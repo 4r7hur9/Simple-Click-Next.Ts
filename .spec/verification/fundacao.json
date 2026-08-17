@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-17T19:37:48.553Z",
-  "gitRev": "a68f6ba",
+  "timestamp": "2026-08-17T19:45:51.963Z",
+  "gitRev": "aa24794",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 148,
+  "testsParsed": 163,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,22 @@
     },
     "AC-005": {
       "status": "pass",
-      "testName": "fronteiras no repositório real @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra",
+      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "method": "vitest-json"
+    },
+    "AC-008": {
+      "status": "pass",
+      "testName": "verificação estrutural do isolamento @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado",
+      "method": "vitest-json"
+    },
+    "AC-009": {
+      "status": "pass",
+      "testName": "consulta da aplicação sem contexto de loja @spec:AC-009 devolve zero linhas em vez de tudo quando o contexto de loja não foi definido @spec:AC-009 devolve zero linhas em vez de tudo quando o contexto de loja não foi definido",
+      "method": "vitest-json"
+    },
+    "AC-012": {
+      "status": "pass",
+      "testName": "credencial de migração separada da credencial da aplicação @spec:AC-012 a credencial da aplicação não tem como contornar o isolamento @spec:AC-012 a credencial da aplicação não tem como contornar o isolamento",
       "method": "vitest-json"
     },
     "AC-013": {
@@ -29,7 +44,7 @@
     },
     "AC-014": {
       "status": "pass",
-      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
+      "testName": "cor escrita direto no componente @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha",
       "method": "vitest-json"
     },
     "AC-015": {
@@ -45,6 +60,21 @@
     "AC-031": {
       "status": "pass",
       "testName": "check-ambientes.sh @spec:AC-031 aprova quando teste tem banco e cache próprios @spec:AC-031 aprova quando teste tem banco e cache próprios",
+      "method": "vitest-json"
+    },
+    "AC-032": {
+      "status": "pass",
+      "testName": "aplicador de migrações @spec:AC-032 leva um banco vazio ao estado esperado só com as migrações, sem passo manual @spec:AC-032 leva um banco vazio ao estado esperado só com as migrações, sem passo manual",
+      "method": "vitest-json"
+    },
+    "AC-033": {
+      "status": "pass",
+      "testName": "aplicador de migrações @spec:AC-033 aplicada de novo não altera nada e termina com sucesso avisando que não havia pendência @spec:AC-033 aplicada de novo não altera nada e termina com sucesso avisando que não havia pendência",
+      "method": "vitest-json"
+    },
+    "AC-034": {
+      "status": "pass",
+      "testName": "aplicador de migrações @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta",
       "method": "vitest-json"
     }
   },

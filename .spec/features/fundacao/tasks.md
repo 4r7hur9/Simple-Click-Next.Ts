@@ -23,7 +23,7 @@
 - Notas: a API recusa iniciar nomeando a variável ausente. O verificador de ambientes reprova produção e teste apontando para o mesmo banco ou cache.
 - Esforço: baixo
 
-## T-004 — Migrações base, credenciais separadas e isolamento por linha [pendente]
+## T-004 — Migrações base, credenciais separadas e isolamento por linha [concluida]
 
 - Refs: US-003, AC-008, AC-009, AC-012, AC-032, AC-033, AC-034
 - Arquivos: packages/database/package.json, packages/database/migrations/0001_extensoes_e_roles.sql, packages/database/migrations/0002_identidade.sql, packages/database/migrations/0003_lojas.sql, packages/database/migrations/0004_catalogo.sql, packages/database/migrations/0005_pedidos.sql, packages/database/migrations/0006_impressao_e_auditoria.sql, packages/database/policies/README.md, packages/database/src/migrate.ts, packages/database/src/migrate.test.ts

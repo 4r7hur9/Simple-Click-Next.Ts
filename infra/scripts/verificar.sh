@@ -7,6 +7,19 @@ cd "$(dirname "$0")/../.." || exit 1
 ONP="node $HOME/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs"
 falhas=()
 
+# O ambiente local vem do .env, que nunca e versionado. Sem ele, os testes que
+# provam o isolamento contra o banco real ficariam de fora em silencio — e um
+# portao que pula justamente a verificacao mais importante e pior do que nenhum.
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+else
+  printf '\033[33m⚠ .env nao encontrado — os testes contra o banco real nao vao rodar.\033[0m\n'
+  printf '  crie com: cp .env.example .env  (e complete os valores)\n\n'
+fi
+
 etapa() {
   local nome="$1"; shift
   printf '\n\033[1m▸ %s\033[0m\n' "$nome"
