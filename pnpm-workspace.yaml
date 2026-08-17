@@ -1,0 +1,21 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Catálogo de versões: uma versão por biblioteca no monorepo inteiro.
+# Evita a classe de bug em que o site usa uma versão e a API usa outra da
+# mesma biblioteca, que só aparece em produção.
+catalog:
+  typescript: 6.0.3
+  eslint: 10.8.1
+  typescript-eslint: 8.67.0
+  vitest: 4.1.10
+  prettier: 3.9.6
+  zod: 4.4.3
+
+# Só estes pacotes podem rodar script na instalação. Qualquer outro que peça
+# execução precisa ser aprovado aqui, de propósito — é superfície de ataque de
+# cadeia de suprimentos, não detalhe de configuração.
+allowBuilds:
+  lefthook: true # instala os ganchos locais do portão de qualidade
+  unrs-resolver: true # binário nativo que resolve importações em TypeScript

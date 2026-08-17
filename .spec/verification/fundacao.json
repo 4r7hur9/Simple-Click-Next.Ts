@@ -1,0 +1,17 @@
+{
+  "feature": "fundacao",
+  "timestamp": "2026-08-17T18:08:22.218Z",
+  "gitRev": "53f4cc4",
+  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 4,
+  "results": {
+    "AC-005": {
+      "status": "pass",
+      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {}
+}

@@ -1,0 +1,42 @@
+# dependências
+node_modules/
+.pnpm-store/
+
+# saídas de build
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# cache de ferramentas
+.turbo/
+coverage/
+.eslintcache
+
+# testes de ponta a ponta
+playwright-report/
+test-results/
+e2e/.auth/
+
+# ambiente — nunca versionar valor real (P-002)
+.env
+.env.*
+!.env.example
+infra/compose/.env.compose
+!infra/compose/.env.compose.example
+
+# certificados de desenvolvimento
+infra/traefik/certs/*
+!infra/traefik/certs/.gitkeep
+
+# relatórios do motor de especificação
+.spec/.vitest-report.json
+.spec/.jest-report.json
+
+# sistema operacional e editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

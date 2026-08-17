@@ -1,0 +1,23 @@
+{
+  "testCommand": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "reporter": "vitest-json",
+  "reporterOutputFile": ".spec/.vitest-report.json",
+  "testGlobs": [
+    "apps/*/src/**/*.test.ts",
+    "apps/*/src/**/*.test.tsx",
+    "apps/*/tests/**",
+    "packages/*/src/**/*.test.ts",
+    "packages/*/tests/**",
+    "e2e/**"
+  ],
+  "srcGlobs": [
+    "apps/*/src/**",
+    "packages/*/src/**",
+    "packages/*/*.js",
+    "packages/database/migrations/**",
+    "infra/**"
+  ],
+  "paralelo": {
+    "maxFaixas": 4
+  }
+}

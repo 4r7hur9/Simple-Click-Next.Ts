@@ -1,0 +1,143 @@
+# Tasks: Fundacao
+
+> feature: fundacao
+
+## T-001 — Monorepo, ferramentas e regras de fronteira [concluida]
+
+- Refs: US-002, AC-005
+- Arquivos: package.json, pnpm-workspace.yaml, turbo.json, tsconfig.base.json, eslint.config.js, lefthook.yml, Makefile, .gitignore, packages/config-ts/package.json, packages/config-ts/base.json, packages/config-ts/node.json, packages/config-ts/react.json, packages/config-eslint/package.json, packages/config-eslint/index.js, packages/config-eslint/fronteiras.js, packages/config-eslint/tests/fronteiras.test.js
+- Notas: as regras de dependência entre camadas da tabela em design/arquitetura.md viram regra de formatação verificável. Nenhuma outra tarefa começa antes desta.
+- Esforço: medio
+
+## T-002 — Ambiente local sobe com um comando [pendente]
+
+- Refs: US-001, AC-001
+- Arquivos: infra/compose/docker-compose.yml, infra/compose/docker-compose.ci.yml, infra/compose/.env.compose.example, infra/traefik/traefik.yml, infra/traefik/dynamic/tls.yml, infra/traefik/dynamic/middlewares.yml, infra/scripts/setup.sh, infra/scripts/certs.sh
+- Notas: perfis core, app, test e print. O roteador local existe para reproduzir o endereço por loja com TLS em desenvolvimento; em produção esse papel é do provedor.
+- Esforço: alto
+
+## T-003 — Variáveis de ambiente validadas na partida [pendente]
+
+- Refs: AC-002, AC-031
+- Arquivos: .env.example, apps/api/src/core/env.ts, apps/api/src/core/env.test.ts, infra/scripts/check-ambientes.sh
+- Notas: a API recusa iniciar nomeando a variável ausente. O verificador de ambientes reprova produção e teste apontando para o mesmo banco ou cache.
+- Esforço: baixo
+
+## T-004 — Migrações base, credenciais separadas e isolamento por linha [pendente]
+
+- Refs: US-003, AC-008, AC-009, AC-012, AC-032, AC-033, AC-034
+- Arquivos: packages/database/package.json, packages/database/migrations/0001_extensoes_e_roles.sql, packages/database/migrations/0002_identidade.sql, packages/database/migrations/0003_lojas.sql, packages/database/migrations/0004_catalogo.sql, packages/database/migrations/0005_pedidos.sql, packages/database/migrations/0006_impressao_e_auditoria.sql, packages/database/policies/README.md, packages/database/src/migrate.ts, packages/database/src/migrate.test.ts
+- Notas: três credenciais distintas — migração, aplicação e administração. A credencial da aplicação não pode contornar o isolamento. Segue o modelo em design/modelo-de-dados.md, com a precedência do adendo do topo.
+- Esforço: max
+
+## T-005 — Guardas estruturais do banco no portão de qualidade [pendente]
+
+- Refs: AC-008, AC-035
+- Arquivos: packages/database/guards/g1_isolamento_ativo.sql, packages/database/guards/g2_politica_por_comando.sql, packages/database/guards/g3_unica_por_loja.sql, packages/database/guards/g4_politica_cita_loja.sql, packages/database/guards/g5_indice_cobre_politica.sql, packages/database/guards/g6_sem_matview_multi_loja.sql, packages/database/guards/g7_view_com_invocador.sql, packages/database/guards/g8_pedido_imutavel.sql, packages/database/guards/g9_auditoria_sem_alteracao.sql, infra/scripts/db-guards.sh, .github/workflows/db-guards.yml
+- Notas: a guarda 4 existe por achado medido — política sem o identificador da loja no conjunto destrói o índice ordenado. A guarda 5 confere que o índice inclui também as colunas citadas pelas políticas.
+- Esforço: alto
+
+## T-006 — Caminho único de acesso ao banco com contexto por transação [pendente]
+
+- Refs: AC-010, AC-011, AC-009
+- Arquivos: apps/api/src/core/db.ts, apps/api/src/core/db.test.ts, apps/api/src/core/contexto.ts, apps/api/src/core/contexto.test.ts
+- Notas: uma transação por requisição, contexto definido nela e descartado ao fim. Nenhum módulo instancia cliente próprio (P-004). Prova de que o contexto não escapa entre requisições concorrentes.
+- Esforço: max
+
+## T-007 — Banco de teste separado e efêmero [pendente]
+
+- Refs: US-001, AC-003
+- Arquivos: vitest.config.ts, packages/testing/src/db-test.ts, packages/testing/src/db-test.test.ts, packages/testing/package.json
+- Notas: banco por processo de teste, criado a partir de molde. Dados de desenvolvimento nunca são tocados. Rodar duas vezes dá o mesmo resultado.
+- Esforço: alto
+
+## T-008 — Dados de exemplo determinísticos [pendente]
+
+- Refs: AC-004, AC-036, AC-037, AC-039
+- Arquivos: packages/database/seed/index.ts, packages/database/seed/lojas.ts, packages/database/seed/catalogo.ts, packages/database/seed/pedidos.ts, packages/database/seed/seed.test.ts
+- Notas: duas lojas de ramos diferentes, uma de comida e uma com estoque, com pedidos em todos os status. Identificadores e datas previsíveis. Recusa rodar em produção.
+- Esforço: alto
+
+## T-009 — Construtores de dados para teste [pendente]
+
+- Refs: AC-038
+- Arquivos: packages/testing/src/factories.ts, packages/testing/src/factories.test.ts, packages/testing/src/index.ts
+- Notas: cada teste monta o próprio cenário; ordem de execução não altera resultado.
+- Esforço: medio
+
+## T-010 — Prova de isolamento entre lojas [pendente]
+
+- Refs: AC-010, AC-011
+- Arquivos: apps/api/tests/isolamento.test.ts, apps/api/tests/isolamento-concorrente.test.ts
+- Notas: cobre leitura, inserção, alteração e remoção separadamente, e o caso de conexões reaproveitadas alternando entre lojas. Marcado com @principle:P-003.
+- Esforço: alto
+
+## T-011 — Contrato compartilhado e documento publicado [pendente]
+
+- Refs: US-002, AC-006, AC-007
+- Arquivos: packages/contracts/package.json, packages/contracts/src/index.ts, packages/contracts/src/comum.ts, apps/api/src/contracts/gerar.ts, apps/api/src/contracts/gerar.test.ts, contrato/openapi.json, .github/workflows/contrato.yml
+- Notas: fonte única de esquema para web, API e aplicativos nativos. O portão reprova se o documento publicado divergir do código. Depende da decisão pendente D1 em design/decisoes.md.
+- Esforço: alto
+
+## T-012 — Registro, erros e verificações de saúde [pendente]
+
+- Refs: US-006, AC-021, AC-022, AC-023, AC-024
+- Arquivos: apps/api/src/core/log.ts, apps/api/src/core/log.test.ts, apps/api/src/core/erros.ts, apps/api/src/core/erros.test.ts, apps/api/src/modules/health/health.routes.ts, apps/api/src/modules/health/health.test.ts
+- Notas: registro por lista do que é permitido, nunca por lista do que é proibido. Dado pessoal não entra nem em erro detalhado. Vivo e pronto são verificações distintas.
+- Esforço: medio
+
+## T-013 — Borda de validação, origens autorizadas e limite de tentativas [pendente]
+
+- Refs: AC-125, AC-126, AC-127, AC-128, AC-119, AC-120
+- Arquivos: apps/api/src/core/validar.ts, apps/api/src/core/validar.test.ts, apps/api/src/core/cors.ts, apps/api/src/core/cors.test.ts, apps/api/src/core/limite.ts, apps/api/src/core/limite.test.ts, apps/api/src/app.ts
+- Notas: lista de origens fechada, nunca refletindo a origem recebida. Limite por conta tem prioridade sobre limite por origem. Requisição que muda estado exige origem confiável.
+- Esforço: alto
+
+## T-014 — Trabalho em segundo plano com repetição [pendente]
+
+- Refs: US-007, AC-025, AC-026
+- Arquivos: apps/api/src/jobs/fila.ts, apps/api/src/jobs/fila.test.ts, apps/api/src/jobs/email.job.ts, apps/api/src/jobs/index.ts
+- Notas: envio de e-mail sai do caminho da resposta. Falha repete com espera crescente e termina em estado inspecionável.
+- Esforço: medio
+
+## T-015 — Cache com identificação de loja e invalidação [pendente]
+
+- Refs: AC-027, AC-028
+- Arquivos: apps/api/src/core/cache.ts, apps/api/src/core/cache.test.ts, apps/web/src/server/cache.ts, apps/web/src/app/api/revalidate/route.ts
+- Notas: toda chave começa pelo identificador da loja; teste prova que não há troca entre lojas. Invalidação por versão de catálogo, disparada por chamada autenticada.
+- Esforço: alto
+
+## T-016 — Design system com os quatro estados [pendente]
+
+- Refs: US-004, AC-013, AC-014, AC-015, AC-016
+- Arquivos: packages/ui/package.json, packages/ui/styles/theme.css, packages/ui/src/index.ts, packages/ui/src/botao.tsx, packages/ui/src/campo.tsx, packages/ui/src/cartao.tsx, packages/ui/src/lista.tsx, packages/ui/src/aviso.tsx, packages/ui/src/dialogo.tsx, packages/ui/src/estados.tsx, packages/ui/src/tema-loja.tsx, apps/web/src/app/(dev)/ui/page.tsx
+- Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova. A cor escolhida pela loja tem contraste ajustado automaticamente.
+- Esforço: alto
+
+## T-017 — Portão de qualidade local, com ganchos [pendente]
+
+- Refs: US-005, AC-017, AC-018, AC-019, AC-020, AC-040, AC-041, AC-042, AC-043
+- Arquivos: infra/scripts/verificar.sh, infra/scripts/check-segredos.sh, infra/scripts/check-mensagem.sh, infra/scripts/audit-regressao.mjs, infra/scripts/check-sem-middleware.sh, docs/verificacao.md, docs/pendencias.md
+- Notas: nada roda em servidor externo — a verificação é um comando único na máquina de desenvolvimento. Gancho antes do registro cobre o rápido em segundos; gancho antes do envio roda o portão inteiro e bloqueia. Saída explícita para pular existe, mas registra a dívida em arquivo de pendências. Fixar versão das ferramentas para o resultado ser reproduzível.
+- Esforço: alto
+
+## T-018 — Publicação com migração antes da troca de versão [pendente]
+
+- Refs: US-008, AC-029, AC-030, AC-031
+- Arquivos: infra/railway/pre-deploy.sh, infra/railway/README.md, apps/api/Dockerfile, apps/web/Dockerfile, docs/publicacao.md
+- Notas: migração aplicada com a credencial de migração, antes de a versão nova receber tráfego; falha interrompe a publicação. Migração compatível com a versão anterior por uma janela definida.
+- Esforço: medio
+
+## T-019 — Esqueleto do Next e da API que sobe vazio e verde [pendente]
+
+- Refs: US-001, AC-001, AC-005
+- Arquivos: apps/web/package.json, apps/web/next.config.ts, apps/web/postcss.config.mjs, apps/web/src/app/layout.tsx, apps/web/src/app/globals.css, apps/web/src/app/error.tsx, apps/web/src/app/not-found.tsx, apps/web/src/proxy.ts, apps/api/package.json, apps/api/src/main.ts
+- Notas: sem regra de negócio. Existe para que as fatias seguintes tenham onde encostar, e para provar o caminho de ponta a ponta do ambiente.
+- Esforço: medio
+
+## T-020 — Manifesto de rotas e cobertura de telas [pendente]
+
+- Refs: US-004, AC-016
+- Arquivos: apps/web/src/lib/routes.ts, e2e/playwright.config.ts, e2e/specs/rotas-manifesto.spec.ts, e2e/specs/manifesto-cobre-arquivos.spec.ts, e2e/specs/a11y.spec.ts, e2e/fixtures/auth.setup.ts
+- Notas: o manifesto espelha design/mapa-de-telas.md. Uma tela nova sem entrada no manifesto reprova, e é isso que torna "todas as telas" verificável. Acessibilidade em cada rota, marcado com @principle:P-012 e @principle:P-011.
+- Esforço: alto
