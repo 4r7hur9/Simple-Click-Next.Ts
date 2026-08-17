@@ -1,0 +1,15 @@
+# Saída de ferramenta não se formata: formatar o que a máquina gerou faz o
+# portão reescrever arquivo de build e acusar diferença que ninguém escreveu.
+node_modules/
+dist/
+.next/
+out/
+coverage/
+.turbo/
+playwright-report/
+test-results/
+
+# Arquivos gerados
+pnpm-lock.yaml
+apps/web/next-env.d.ts
+.spec/.vitest-report.json

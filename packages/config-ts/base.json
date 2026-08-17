@@ -1,4 +1,31 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../../tsconfig.base.json"
+  "_nota": "O conteúdo mora aqui, e não em /tsconfig.base.json, porque as aplicações leem este arquivo pelo link do workspace (node_modules/@simpleclick/config-ts). Ferramenta que não resolve o link para o caminho real — o transformador do Vitest é uma delas — quebra ao seguir um 'extends' que sai do pacote. Sem caminho para fora, funciona em todas.",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "exactOptionalPropertyTypes": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true,
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": ["node_modules", "dist", ".next", "coverage"]
 }

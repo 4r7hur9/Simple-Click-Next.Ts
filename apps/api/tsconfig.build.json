@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_nota": "Só para gerar `dist`. O tsconfig.json inclui os testes, porque a verificação de tipos precisa olhar para eles; o pacote publicado, não — teste em imagem de produção só carrega peso e dependência que não existe lá.",
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+}
