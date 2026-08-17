@@ -2,8 +2,9 @@
  * Configuração de qualidade de código compartilhada pelo monorepo.
  *
  * Composição: `base` vale para todo TypeScript; `fronteiras` acrescenta as
- * regras de dependência entre camadas; `seguranca` traz as verificações que
- * a constituição exige (P-002, P-008, P-009).
+ * regras de dependência entre camadas; `cores` proíbe cor escrita à mão fora
+ * do tema (AC-014); `seguranca` traz as verificações que a constituição exige
+ * (P-002, P-008, P-009).
  */
 
 import js from "@eslint/js";
@@ -11,6 +12,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import boundaries from "eslint-plugin-boundaries";
 import { configFronteiras } from "./fronteiras.js";
+import { configCores } from "./cores.js";
 
 /** Arquivos que nenhuma verificação precisa olhar. */
 export const ignorados = {
@@ -92,9 +94,11 @@ export function configBase() {
         ...seguranca.rules,
       },
     },
+    ...configCores(),
     {
       // Teste monta cenário e às vezes precisa alcançar o que a camada de
-      // produção não alcança. A fronteira vale para o código que vai ao ar.
+      // produção não alcança. A fronteira vale para o código que vai ao ar —
+      // e provar que a regra de cor acusa exige escrever a cor proibida.
       files: [
         "**/*.test.{ts,tsx,js}",
         "**/tests/**",
@@ -103,6 +107,7 @@ export function configBase() {
       rules: {
         "boundaries/dependencies": "off",
         "no-console": "off",
+        "cores/sem-cor-literal": "off",
       },
     },
   ];

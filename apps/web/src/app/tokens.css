@@ -1,12 +1,11 @@
 /*
- * Lugar dos valores declarados do design system (cor, espaçamento, tipografia).
+ * Valores declarados do design system (cor, espaçamento, tipografia, raio,
+ * sombra).
  *
- * A fonte definitiva é `packages/ui/styles/theme.css`, criada pela T-016. Este
- * arquivo existe vazio de propósito: o esqueleto não pode inventar cor própria
- * — cor escrita direto na tela é o que o design system existe para impedir —
- * e também não pode importar um pacote que ainda não foi publicado, senão a
- * instalação do monorepo quebra. Quando a T-016 entrar, o conteúdo daqui vira
- * uma linha só:
- *
- *   @import "@simpleclick/ui/styles/theme.css";
+ * A fonte definitiva mora em `packages/ui/styles/theme.css` e entra aqui
+ * inteira, junto da aparência dos componentes base. O site não declara valor
+ * próprio: cor escrita fora do tema é exatamente o que a regra
+ * `cores/sem-cor-literal` reprova (AC-014).
  */
+
+@import "@simpleclick/ui/styles/theme.css";

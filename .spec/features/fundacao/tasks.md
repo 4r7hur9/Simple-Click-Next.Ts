@@ -107,11 +107,11 @@
 - Notas: toda chave começa pelo identificador da loja; teste prova que não há troca entre lojas. Invalidação por versão de catálogo, disparada por chamada autenticada.
 - Esforço: alto
 
-## T-016 — Design system com os quatro estados [pendente]
+## T-016 — Design system com os quatro estados [concluida]
 
 - Refs: US-004, AC-013, AC-014, AC-015, AC-016
-- Arquivos: packages/ui/package.json, packages/ui/styles/theme.css, packages/ui/src/index.ts, packages/ui/src/botao.tsx, packages/ui/src/campo.tsx, packages/ui/src/cartao.tsx, packages/ui/src/lista.tsx, packages/ui/src/aviso.tsx, packages/ui/src/dialogo.tsx, packages/ui/src/estados.tsx, packages/ui/src/tema-loja.tsx, apps/web/src/app/(dev)/ui/page.tsx
-- Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova. A cor escolhida pela loja tem contraste ajustado automaticamente.
+- Arquivos: packages/ui/package.json, packages/ui/tsconfig.json, packages/ui/styles/theme.css, packages/ui/styles/componentes.css, packages/ui/src/index.ts, packages/ui/src/tokens.ts, packages/ui/src/contraste.ts, packages/ui/src/botao.tsx, packages/ui/src/campo.tsx, packages/ui/src/cartao.tsx, packages/ui/src/lista.tsx, packages/ui/src/aviso.tsx, packages/ui/src/dialogo.tsx, packages/ui/src/estados.tsx, packages/ui/src/tema-loja.tsx, packages/ui/tests/contraste.test.ts, packages/ui/tests/tokens.test.ts, packages/ui/tests/componentes.test.tsx, packages/ui/tests/tema-loja.test.tsx, packages/config-eslint/cores.js, packages/config-eslint/tests/cores.test.js, apps/web/src/app/(dev)/ui/page.tsx, apps/web/src/app/tokens.css, apps/web/tests/vitrine-ui-estados.test.tsx, apps/web/tests/vitrine-ui-a11y.test.tsx, apps/web/tests/cores-projeto.test.ts
+- Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova, pela regra `cores/sem-cor-literal` que mora em `packages/config-eslint/cores.js`. A cor escolhida pela loja tem contraste ajustado automaticamente por cálculo de luminância do WCAG (`contraste.ts`); `tokens.ts` é o espelho em TypeScript de `theme.css`, porque o cálculo roda no servidor, e a divergência entre os dois reprova por teste. A acessibilidade da vitrine é medida com axe em jsdom — o navegador de verdade entra na T-020.
 - Esforço: alto
 
 ## T-017 — Portão de qualidade local, com ganchos [pendente]

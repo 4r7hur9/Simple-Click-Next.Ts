@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/react.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    // O TypeScript 6 não inclui mais os tipos de `@types/*` sozinho. O pacote
+    // roda no navegador, mas o cálculo do tema lê `process.env.NODE_ENV` e os
+    // testes leem a folha de estilo do disco.
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"],
+  "exclude": ["node_modules"]
+}
