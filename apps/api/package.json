@@ -13,9 +13,11 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "zod": "catalog:"
   },
   "devDependencies": {
+    "@simpleclick/config-ts": "workspace:*",
     "@types/express": "5.0.6",
     "@types/node": "26.2.0",
     "@types/supertest": "6.0.3",
