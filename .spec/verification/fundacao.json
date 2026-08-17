@@ -1,12 +1,17 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-17T18:37:03.128Z",
-  "gitRev": "e599b87",
+  "timestamp": "2026-08-17T18:51:59.330Z",
+  "gitRev": "8195eca",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 28,
+  "testsParsed": 58,
   "results": {
+    "AC-001": {
+      "status": "pass",
+      "testName": "composição do ambiente local @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site",
+      "method": "vitest-json"
+    },
     "AC-002": {
       "status": "pass",
       "testName": "carregarAmbiente @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome",
@@ -23,5 +28,10 @@
       "method": "vitest-json"
     }
   },
-  "principles": {}
+  "principles": {
+    "P-011": {
+      "status": "pass",
+      "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
+    }
+  }
 }

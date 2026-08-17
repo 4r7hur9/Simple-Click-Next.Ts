@@ -9,17 +9,17 @@
 - Notas: as regras de dependência entre camadas da tabela em design/arquitetura.md viram regra de formatação verificável. Nenhuma outra tarefa começa antes desta.
 - Esforço: medio
 
-## T-002 — Ambiente local sobe com um comando [pendente]
+## T-002 — Ambiente local sobe com um comando [concluida]
 
 - Refs: US-001, AC-001
-- Arquivos: infra/compose/docker-compose.yml, infra/compose/docker-compose.ci.yml, infra/compose/.env.compose.example, infra/traefik/traefik.yml, infra/traefik/dynamic/tls.yml, infra/traefik/dynamic/middlewares.yml, infra/scripts/setup.sh, infra/scripts/certs.sh
+- Arquivos: infra/compose/docker-compose.yml, infra/compose/docker-compose.ci.yml, infra/compose/.env.compose.example, infra/traefik/traefik.yml, infra/traefik/dynamic/tls.yml, infra/traefik/dynamic/middlewares.yml, infra/traefik/certs/.gitkeep, infra/scripts/setup.sh, infra/scripts/certs.sh, infra/scripts/up.sh, infra/tests/compose.test.ts, Makefile
 - Notas: perfis core, app, test e print. O roteador local existe para reproduzir o endereço por loja com TLS em desenvolvimento; em produção esse papel é do provedor.
 - Esforço: alto
 
-## T-003 — Variáveis de ambiente validadas na partida [pendente]
+## T-003 — Variáveis de ambiente validadas na partida [concluida]
 
 - Refs: AC-002, AC-031
-- Arquivos: .env.example, apps/api/src/core/env.ts, apps/api/src/core/env.test.ts, infra/scripts/check-ambientes.sh
+- Arquivos: .env.example, apps/api/src/core/env.ts, apps/api/src/core/env.test.ts, apps/api/package.json, apps/api/tsconfig.json, infra/scripts/check-ambientes.sh, infra/tests/check-ambientes.test.ts
 - Notas: a API recusa iniciar nomeando a variável ausente. O verificador de ambientes reprova produção e teste apontando para o mesmo banco ou cache.
 - Esforço: baixo
 
