@@ -1,0 +1,469 @@
+{
+  "runId": "SC-fundacao-msxjgned",
+  "feature": "fundacao",
+  "agent": "claude",
+  "modo": "paralelo",
+  "paralelizar": null,
+  "modeloForcado": null,
+  "esforcoForcado": null,
+  "geradoEm": "2026-08-17 17:59",
+  "branchTrabalho": "spec/fundacao",
+  "baseDir": ".spec/features/fundacao",
+  "specDir": ".spec",
+  "repoName": "SC",
+  "logsDir": "../onp-worktrees/SC-fundacao-logs",
+  "ondas": [
+    ["faixa-1", "faixa-2", "faixa-3"],
+    ["faixa-4", "faixa-5", "faixa-6"],
+    ["faixa-7", "faixa-8", "faixa-9"],
+    ["faixa-10", "faixa-11", "faixa-12"],
+    ["faixa-13", "faixa-14", "faixa-15"],
+    ["faixa-16", "faixa-17", "faixa-18"],
+    ["faixa-19"]
+  ],
+  "faixas": [
+    {
+      "id": "faixa-1",
+      "branch": "spec/fundacao-faixa-1",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-1",
+      "tarefas": [
+        {
+          "id": "T-002",
+          "titulo": "Ambiente local sobe com um comando",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "infra/compose/docker-compose.yml",
+            "infra/compose/docker-compose.ci.yml",
+            "infra/compose/.env.compose.example",
+            "infra/traefik/traefik.yml",
+            "infra/traefik/dynamic/tls.yml",
+            "infra/traefik/dynamic/middlewares.yml",
+            "infra/scripts/setup.sh",
+            "infra/scripts/certs.sh"
+          ],
+          "refs": ["US-001", "AC-001"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-2",
+      "branch": "spec/fundacao-faixa-2",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-2",
+      "tarefas": [
+        {
+          "id": "T-003",
+          "titulo": "Variáveis de ambiente validadas na partida",
+          "modelo": "claude-sonnet-5",
+          "esforco": "low",
+          "arquivos": [
+            ".env.example",
+            "apps/api/src/core/env.ts",
+            "apps/api/src/core/env.test.ts",
+            "infra/scripts/check-ambientes.sh"
+          ],
+          "refs": ["AC-002", "AC-031"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-3",
+      "branch": "spec/fundacao-faixa-3",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-3",
+      "tarefas": [
+        {
+          "id": "T-004",
+          "titulo": "Migrações base, credenciais separadas e isolamento por linha",
+          "modelo": "claude-sonnet-5",
+          "esforco": "max",
+          "arquivos": [
+            "packages/database/package.json",
+            "packages/database/migrations/0001_extensoes_e_roles.sql",
+            "packages/database/migrations/0002_identidade.sql",
+            "packages/database/migrations/0003_lojas.sql",
+            "packages/database/migrations/0004_catalogo.sql",
+            "packages/database/migrations/0005_pedidos.sql",
+            "packages/database/migrations/0006_impressao_e_auditoria.sql",
+            "packages/database/policies/README.md",
+            "packages/database/src/migrate.ts",
+            "packages/database/src/migrate.test.ts"
+          ],
+          "refs": [
+            "US-003",
+            "AC-008",
+            "AC-009",
+            "AC-012",
+            "AC-032",
+            "AC-033",
+            "AC-034"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faixa-4",
+      "branch": "spec/fundacao-faixa-4",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-4",
+      "tarefas": [
+        {
+          "id": "T-005",
+          "titulo": "Guardas estruturais do banco no portão de qualidade",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "packages/database/guards/g1_isolamento_ativo.sql",
+            "packages/database/guards/g2_politica_por_comando.sql",
+            "packages/database/guards/g3_unica_por_loja.sql",
+            "packages/database/guards/g4_politica_cita_loja.sql",
+            "packages/database/guards/g5_indice_cobre_politica.sql",
+            "packages/database/guards/g6_sem_matview_multi_loja.sql",
+            "packages/database/guards/g7_view_com_invocador.sql",
+            "packages/database/guards/g8_pedido_imutavel.sql",
+            "packages/database/guards/g9_auditoria_sem_alteracao.sql",
+            "infra/scripts/db-guards.sh",
+            ".github/workflows/db-guards.yml"
+          ],
+          "refs": ["AC-008", "AC-035"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-5",
+      "branch": "spec/fundacao-faixa-5",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-5",
+      "tarefas": [
+        {
+          "id": "T-006",
+          "titulo": "Caminho único de acesso ao banco com contexto por transação",
+          "modelo": "claude-sonnet-5",
+          "esforco": "max",
+          "arquivos": [
+            "apps/api/src/core/db.ts",
+            "apps/api/src/core/db.test.ts",
+            "apps/api/src/core/contexto.ts",
+            "apps/api/src/core/contexto.test.ts"
+          ],
+          "refs": ["AC-010", "AC-011", "AC-009"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-6",
+      "branch": "spec/fundacao-faixa-6",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-6",
+      "tarefas": [
+        {
+          "id": "T-007",
+          "titulo": "Banco de teste separado e efêmero",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "vitest.config.ts",
+            "packages/testing/src/db-test.ts",
+            "packages/testing/src/db-test.test.ts",
+            "packages/testing/package.json"
+          ],
+          "refs": ["US-001", "AC-003"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-7",
+      "branch": "spec/fundacao-faixa-7",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-7",
+      "tarefas": [
+        {
+          "id": "T-008",
+          "titulo": "Dados de exemplo determinísticos",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "packages/database/seed/index.ts",
+            "packages/database/seed/lojas.ts",
+            "packages/database/seed/catalogo.ts",
+            "packages/database/seed/pedidos.ts",
+            "packages/database/seed/seed.test.ts"
+          ],
+          "refs": ["AC-004", "AC-036", "AC-037", "AC-039"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-8",
+      "branch": "spec/fundacao-faixa-8",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-8",
+      "tarefas": [
+        {
+          "id": "T-009",
+          "titulo": "Construtores de dados para teste",
+          "modelo": "claude-sonnet-5",
+          "esforco": "medium",
+          "arquivos": [
+            "packages/testing/src/factories.ts",
+            "packages/testing/src/factories.test.ts",
+            "packages/testing/src/index.ts"
+          ],
+          "refs": ["AC-038"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-9",
+      "branch": "spec/fundacao-faixa-9",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-9",
+      "tarefas": [
+        {
+          "id": "T-010",
+          "titulo": "Prova de isolamento entre lojas",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/tests/isolamento.test.ts",
+            "apps/api/tests/isolamento-concorrente.test.ts"
+          ],
+          "refs": ["AC-010", "AC-011"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-10",
+      "branch": "spec/fundacao-faixa-10",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-10",
+      "tarefas": [
+        {
+          "id": "T-011",
+          "titulo": "Contrato compartilhado e documento publicado",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "packages/contracts/package.json",
+            "packages/contracts/src/index.ts",
+            "packages/contracts/src/comum.ts",
+            "apps/api/src/contracts/gerar.ts",
+            "apps/api/src/contracts/gerar.test.ts",
+            "contrato/openapi.json",
+            ".github/workflows/contrato.yml"
+          ],
+          "refs": ["US-002", "AC-006", "AC-007"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-11",
+      "branch": "spec/fundacao-faixa-11",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-11",
+      "tarefas": [
+        {
+          "id": "T-012",
+          "titulo": "Registro, erros e verificações de saúde",
+          "modelo": "claude-sonnet-5",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/core/log.ts",
+            "apps/api/src/core/log.test.ts",
+            "apps/api/src/core/erros.ts",
+            "apps/api/src/core/erros.test.ts",
+            "apps/api/src/modules/health/health.routes.ts",
+            "apps/api/src/modules/health/health.test.ts"
+          ],
+          "refs": ["US-006", "AC-021", "AC-022", "AC-023", "AC-024"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-12",
+      "branch": "spec/fundacao-faixa-12",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-12",
+      "tarefas": [
+        {
+          "id": "T-013",
+          "titulo": "Borda de validação, origens autorizadas e limite de tentativas",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/core/validar.ts",
+            "apps/api/src/core/validar.test.ts",
+            "apps/api/src/core/cors.ts",
+            "apps/api/src/core/cors.test.ts",
+            "apps/api/src/core/limite.ts",
+            "apps/api/src/core/limite.test.ts",
+            "apps/api/src/app.ts"
+          ],
+          "refs": ["AC-125", "AC-126", "AC-127", "AC-128", "AC-119", "AC-120"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-13",
+      "branch": "spec/fundacao-faixa-13",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-13",
+      "tarefas": [
+        {
+          "id": "T-014",
+          "titulo": "Trabalho em segundo plano com repetição",
+          "modelo": "claude-sonnet-5",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/jobs/fila.ts",
+            "apps/api/src/jobs/fila.test.ts",
+            "apps/api/src/jobs/email.job.ts",
+            "apps/api/src/jobs/index.ts"
+          ],
+          "refs": ["US-007", "AC-025", "AC-026"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-14",
+      "branch": "spec/fundacao-faixa-14",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-14",
+      "tarefas": [
+        {
+          "id": "T-015",
+          "titulo": "Cache com identificação de loja e invalidação",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/core/cache.ts",
+            "apps/api/src/core/cache.test.ts",
+            "apps/web/src/server/cache.ts",
+            "apps/web/src/app/api/revalidate/route.ts"
+          ],
+          "refs": ["AC-027", "AC-028"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-15",
+      "branch": "spec/fundacao-faixa-15",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-15",
+      "tarefas": [
+        {
+          "id": "T-016",
+          "titulo": "Design system com os quatro estados",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "packages/ui/package.json",
+            "packages/ui/styles/theme.css",
+            "packages/ui/src/index.ts",
+            "packages/ui/src/botao.tsx",
+            "packages/ui/src/campo.tsx",
+            "packages/ui/src/cartao.tsx",
+            "packages/ui/src/lista.tsx",
+            "packages/ui/src/aviso.tsx",
+            "packages/ui/src/dialogo.tsx",
+            "packages/ui/src/estados.tsx",
+            "packages/ui/src/tema-loja.tsx",
+            "apps/web/src/app/(dev)/ui/page.tsx"
+          ],
+          "refs": ["US-004", "AC-013", "AC-014", "AC-015", "AC-016"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-16",
+      "branch": "spec/fundacao-faixa-16",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-16",
+      "tarefas": [
+        {
+          "id": "T-017",
+          "titulo": "Portão de qualidade local, com ganchos",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "Makefile",
+            "lefthook.yml",
+            "infra/scripts/verificar.sh",
+            "infra/scripts/check-segredos.sh",
+            "infra/scripts/check-sem-middleware.sh",
+            "docs/verificacao.md"
+          ],
+          "refs": [
+            "US-005",
+            "AC-017",
+            "AC-018",
+            "AC-019",
+            "AC-020",
+            "AC-040",
+            "AC-041",
+            "AC-042",
+            "AC-043"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faixa-17",
+      "branch": "spec/fundacao-faixa-17",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-17",
+      "tarefas": [
+        {
+          "id": "T-018",
+          "titulo": "Publicação com migração antes da troca de versão",
+          "modelo": "claude-sonnet-5",
+          "esforco": "medium",
+          "arquivos": [
+            "infra/railway/pre-deploy.sh",
+            "infra/railway/README.md",
+            "apps/api/Dockerfile",
+            "apps/web/Dockerfile",
+            "docs/publicacao.md"
+          ],
+          "refs": ["US-008", "AC-029", "AC-030", "AC-031"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-18",
+      "branch": "spec/fundacao-faixa-18",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-18",
+      "tarefas": [
+        {
+          "id": "T-019",
+          "titulo": "Esqueleto do Next e da API que sobe vazio e verde",
+          "modelo": "claude-sonnet-5",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/web/package.json",
+            "apps/web/next.config.ts",
+            "apps/web/postcss.config.mjs",
+            "apps/web/src/app/layout.tsx",
+            "apps/web/src/app/globals.css",
+            "apps/web/src/app/error.tsx",
+            "apps/web/src/app/not-found.tsx",
+            "apps/web/src/proxy.ts",
+            "apps/api/package.json",
+            "apps/api/src/main.ts"
+          ],
+          "refs": ["US-001", "AC-001", "AC-005"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-19",
+      "branch": "spec/fundacao-faixa-19",
+      "worktree": "../onp-worktrees/SC-fundacao-faixa-19",
+      "tarefas": [
+        {
+          "id": "T-020",
+          "titulo": "Manifesto de rotas e cobertura de telas",
+          "modelo": "claude-sonnet-5",
+          "esforco": "high",
+          "arquivos": [
+            "apps/web/src/lib/routes.ts",
+            "e2e/playwright.config.ts",
+            "e2e/specs/rotas-manifesto.spec.ts",
+            "e2e/specs/manifesto-cobre-arquivos.spec.ts",
+            "e2e/specs/a11y.spec.ts",
+            "e2e/fixtures/auth.setup.ts"
+          ],
+          "refs": ["US-004", "AC-016"]
+        }
+      ]
+    }
+  ],
+  "sequenciais": [],
+  "concluidas": ["T-001"],
+  "avisos": []
+}

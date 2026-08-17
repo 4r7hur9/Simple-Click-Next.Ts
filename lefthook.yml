@@ -1,0 +1,31 @@
+# Ganchos locais — o portão de qualidade roda nesta máquina, sem serviço externo.
+# Decisão registrada em .spec/design/decisoes.md (17/08/2026).
+
+# Antes de registrar no histórico: só o que responde em segundos (AC-040).
+pre-commit:
+  parallel: true
+  commands:
+    formatacao:
+      glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml,css}"
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    qualidade:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm eslint --max-warnings=0 {staged_files}
+    segredos:
+      run: bash infra/scripts/check-segredos.sh {staged_files}
+
+# A mensagem cita a tarefa: "T-003 fundacao: ..." (1 tarefa = 1 commit).
+commit-msg:
+  commands:
+    formato-da-mensagem:
+      run: bash infra/scripts/check-mensagem.sh {1}
+
+# Antes de enviar: o portão inteiro, incluindo as telas (AC-041).
+# Para pular em situação excepcional: LEFTHOOK=0 git push — e registre a dívida
+# em docs/pendencias.md, como exige AC-043.
+pre-push:
+  piped: true
+  commands:
+    portao-completo:
+      run: bash infra/scripts/verificar.sh

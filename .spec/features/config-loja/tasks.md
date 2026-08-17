@@ -1,0 +1,66 @@
+# Tasks: Configurações da Loja
+
+> feature: config-loja
+
+## T-900 — Configurações por seção, com gravação atômica e auditoria [pendente]
+
+- Refs: US-906, AC-921, AC-922, AC-923
+- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/(painel)/painel/config/layout.tsx
+- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato.
+- Esforço: alto
+
+## T-901 — Chave PIX e formas de pagamento [pendente]
+
+- Refs: US-900, AC-900, AC-901, AC-902, AC-903, AC-904
+- Arquivos: apps/api/src/modules/stores/pix.usecase.ts, apps/api/src/modules/stores/pix.usecase.test.ts, packages/core/src/chave-pix.ts, packages/core/src/chave-pix.test.ts, apps/web/src/app/(painel)/painel/config/pagamento/page.tsx, apps/web/src/features/config/FormularioPix.tsx
+- Notas: validação por tipo de chave — CPF, CNPJ, telefone, e-mail ou aleatória. Loja sem chave não oferece PIX. Trocar a chave não altera pedido antigo. A chave nunca sai na resposta pública nem em registro.
+- Esforço: alto
+
+## T-902 — Entrega, retirada, taxa e valor mínimo [pendente]
+
+- Refs: US-901, AC-905, AC-906, AC-907, AC-908
+- Arquivos: apps/api/src/modules/stores/entrega.usecase.ts, apps/api/src/modules/stores/entrega.usecase.test.ts, apps/web/src/app/(painel)/painel/config/entrega/page.tsx, apps/web/src/features/config/FormularioEntrega.tsx
+- Notas: desativar os dois modos impede finalizar pedido e avisa o dono no painel. Entrega grátis acima de valor e mínimo por modo de recebimento.
+- Esforço: medio
+
+## T-903 — Horário de funcionamento, fechar agora e exceções [pendente]
+
+- Refs: US-902, AC-909, AC-910, AC-911, AC-912
+- Arquivos: packages/core/src/horario-loja.ts, packages/core/src/horario-loja.test.ts, apps/api/src/modules/stores/horarios.usecase.ts, apps/api/src/modules/stores/horarios.usecase.test.ts, apps/web/src/app/(painel)/painel/config/horarios/page.tsx, apps/web/src/features/config/GradeDeHorarios.tsx
+- Notas: cálculo sempre no fuso da loja, nunca no relógio do cliente nem em fuso universal. Mais de uma faixa por dia. Fechar agora não desconfigura a semana. Exceção datada vence o horário semanal.
+- Esforço: alto
+
+## T-904 — Contato de WhatsApp e texto da mensagem [pendente]
+
+- Refs: US-903, AC-913, AC-914, AC-915
+- Arquivos: apps/api/src/modules/stores/contato.usecase.ts, apps/api/src/modules/stores/contato.usecase.test.ts, apps/web/src/app/(painel)/painel/config/contato/page.tsx, apps/web/src/features/config/EditorDeMensagem.tsx
+- Notas: número normalizado e mostrado como ficou. Sem número, o painel avisa e o pedido continua sendo registrado. Pré-visualização com pedido de exemplo; campos obrigatórios não podem ser removidos; mensagem sem marca da plataforma.
+- Esforço: medio
+
+## T-905 — Apresentação da loja, logo, capa e cor [pendente]
+
+- Refs: US-904, AC-916, AC-917, AC-918
+- Arquivos: apps/api/src/modules/stores/aparencia.usecase.ts, apps/api/src/modules/stores/aparencia.usecase.test.ts, packages/ui/src/contraste.ts, packages/ui/src/contraste.test.ts, apps/web/src/app/(painel)/painel/config/aparencia/page.tsx, apps/web/src/features/config/FormularioAparencia.tsx
+- Notas: herda a página de boas-vindas do primeiro SimpleClick, agora editável. Cor da loja tem contraste ajustado automaticamente e aviso quando compromete a legibilidade. Imagem conferida pelos bytes, com orientação de formato e proporção.
+- Esforço: alto
+
+## T-906 — Formato de impressão do cupom [pendente]
+
+- Refs: US-905, AC-919, AC-920
+- Arquivos: apps/api/src/modules/stores/impressao-config.usecase.ts, apps/api/src/modules/stores/impressao-config.usecase.test.ts, apps/web/src/app/(painel)/painel/config/impressao/page.tsx
+- Notas: largura de papel muda a formatação do mesmo pedido. O dono escolhe o que aparece, mas o essencial do pedido não pode ser desligado.
+- Esforço: medio
+
+## T-907 — Avisos de configuração pendente no painel [pendente]
+
+- Refs: US-903, AC-902, AC-914
+- Arquivos: apps/api/src/modules/stores/pendencias.usecase.ts, apps/api/src/modules/stores/pendencias.usecase.test.ts, apps/web/src/features/config/AvisosPendentes.tsx
+- Notas: loja sem forma de pagamento, sem WhatsApp ou sem horário recebe aviso destacado antes de o cliente descobrir o problema no checkout.
+- Esforço: baixo
+
+## T-908 — Teste de ponta a ponta das configurações [pendente]
+
+- Refs: US-900, US-902, US-904, AC-900, AC-909, AC-916
+- Arquivos: e2e/specs/config-pagamento.spec.ts, e2e/specs/config-horarios.spec.ts, e2e/specs/config-aparencia.spec.ts
+- Notas: cobre cadastrar a chave PIX e vê-la aparecer no checkout, fechar a loja e o cliente ser impedido, e editar a apresentação refletindo na página pública.
+- Esforço: medio

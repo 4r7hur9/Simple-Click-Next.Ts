@@ -1,0 +1,28 @@
+{
+  "name": "@simpleclick/config-eslint",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./fronteiras": "./fronteiras.js"
+  },
+  "files": [
+    "index.js",
+    "fronteiras.js"
+  ],
+  "scripts": {
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "globals": "^16.5.0",
+    "typescript-eslint": "catalog:"
+  },
+  "devDependencies": {
+    "eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

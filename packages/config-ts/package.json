@@ -1,0 +1,13 @@
+{
+  "name": "@simpleclick/config-ts",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "base.json",
+    "node.json",
+    "react.json"
+  ],
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
