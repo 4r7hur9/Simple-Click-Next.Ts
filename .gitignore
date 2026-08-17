@@ -7,6 +7,9 @@ dist/
 .next/
 out/
 *.tsbuildinfo
+# gerado pelo Next a cada build, e aponta para dentro de .next/ — versionar
+# quebraria a verificação de tipos em clone sem build feito
+apps/web/next-env.d.ts
 
 # cache de ferramentas
 .turbo/

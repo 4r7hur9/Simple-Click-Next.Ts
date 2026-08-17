@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    // O Node 24 executa TypeScript apagando os tipos, mas não reescreve
+    // especificador: em desenvolvimento o import precisa apontar para o
+    // arquivo que existe no disco (`./app.ts`), e o tsc reescreve para
+    // `./app.js` ao gerar `dist`. Assim `node src/main.ts` e `node
+    // dist/main.js` funcionam com o mesmo código-fonte, sem transpilador
+    // em desenvolvimento (P-014).
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    // Só sintaxe apagável: enum, namespace e propriedade de parâmetro
+    // quebrariam a execução direta pelo Node.
+    "erasableSyntaxOnly": true,
+    // Aplicação não é consumida como biblioteca: gerar declaração aqui só
+    // custaria tempo de build e ninguém leria.
+    "declaration": false,
+    "declarationMap": false,
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

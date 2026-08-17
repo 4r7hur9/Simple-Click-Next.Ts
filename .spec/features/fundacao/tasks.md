@@ -128,11 +128,11 @@
 - Notas: migração aplicada com a credencial de migração, antes de a versão nova receber tráfego; falha interrompe a publicação. Migração compatível com a versão anterior por uma janela definida.
 - Esforço: medio
 
-## T-019 — Esqueleto do Next e da API que sobe vazio e verde [pendente]
+## T-019 — Esqueleto do Next e da API que sobe vazio e verde [concluida]
 
 - Refs: US-001, AC-001, AC-005
-- Arquivos: apps/web/package.json, apps/web/next.config.ts, apps/web/postcss.config.mjs, apps/web/src/app/layout.tsx, apps/web/src/app/globals.css, apps/web/src/app/error.tsx, apps/web/src/app/not-found.tsx, apps/web/src/proxy.ts, apps/api/package.json, apps/api/src/main.ts
-- Notas: sem regra de negócio. Existe para que as fatias seguintes tenham onde encostar, e para provar o caminho de ponta a ponta do ambiente.
+- Arquivos: apps/web/package.json, apps/web/tsconfig.json, apps/web/next.config.ts, apps/web/postcss.config.mjs, apps/web/src/app/layout.tsx, apps/web/src/app/page.tsx, apps/web/src/app/globals.css, apps/web/src/app/tokens.css, apps/web/src/app/error.tsx, apps/web/src/app/not-found.tsx, apps/web/src/app/loading.tsx, apps/web/src/lib/host-loja.ts, apps/web/src/proxy.ts, apps/web/tests/estados.test.tsx, apps/web/tests/host-loja.test.ts, apps/web/tests/sem-middleware.test.ts, apps/web/tests/fronteiras-projeto.test.ts, apps/api/package.json, apps/api/tsconfig.json, apps/api/tsconfig.build.json, apps/api/src/app.ts, apps/api/src/app.test.ts, apps/api/src/main.ts, apps/api/src/main.test.ts, vitest.config.ts, .prettierignore
+- Notas: sem regra de negócio. Existe para que as fatias seguintes tenham onde encostar, e para provar o caminho de ponta a ponta do ambiente. `tokens.css` nasce vazio e vira o `@import` do design system quando a T-016 publicar `packages/ui`. O arquivo de proxy tem esse nome porque o Next 16 ignora `middleware.ts` em silêncio.
 - Esforço: medio
 
 ## T-020 — Manifesto de rotas e cobertura de telas [pendente]
