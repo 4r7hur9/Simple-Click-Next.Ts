@@ -1,0 +1,205 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  carregarAmbiente,
+  ErroDeAmbiente,
+  VARIAVEIS,
+  type FonteDeAmbiente,
+} from "./env.js";
+
+/**
+ * Nenhum valor aqui é segredo real: são cadeias de exemplo, montadas em
+ * constante justamente para que o arquivo de teste nunca pareça — nem seja —
+ * um lugar onde credencial mora (P-002).
+ */
+const CONEXAO_DA_APLICACAO =
+  "postgresql://aplicacao:trocar@localhost:6432/simpleclick_dev?pgbouncer=true";
+const CONEXAO_DIRETA =
+  "postgresql://migracao:trocar@localhost:5432/simpleclick_dev";
+const CONEXAO_DE_TESTE =
+  "postgresql://aplicacao:trocar@localhost:5432/simpleclick_test";
+const CACHE = "redis://localhost:6379/0";
+const CHAVE_DE_ASSINATURA = "x".repeat(48);
+
+/** Ambiente completo e válido — cada teste tira ou estraga uma peça dele. */
+function ambienteCompleto(): Record<string, string> {
+  return {
+    NODE_ENV: "development",
+    PORT: "3001",
+    DATABASE_URL: CONEXAO_DA_APLICACAO,
+    DATABASE_URL_DIRETA: CONEXAO_DIRETA,
+    DATABASE_URL_TEST: CONEXAO_DE_TESTE,
+    REDIS_URL: CACHE,
+    JWT_SECRET: CHAVE_DE_ASSINATURA,
+    ORIGENS_PERMITIDAS:
+      "https://simpleclick.localhost,https://api.simpleclick.localhost",
+    LOG_LEVEL: "info",
+  };
+}
+
+/** Ambiente completo menos as variáveis pedidas. */
+function ambienteSem(...ausentes: readonly string[]): FonteDeAmbiente {
+  const fonte = ambienteCompleto();
+  for (const nome of ausentes) delete fonte[nome];
+  return fonte;
+}
+
+/** Captura a recusa de partida, falhando o teste se ela não acontecer. */
+function recusaAoCarregar(fonte: FonteDeAmbiente): ErroDeAmbiente {
+  try {
+    carregarAmbiente(fonte);
+  } catch (erro) {
+    if (erro instanceof ErroDeAmbiente) return erro;
+    throw erro;
+  }
+  throw new Error("a API aceitou iniciar com ambiente inválido");
+}
+
+describe("carregarAmbiente", () => {
+  it("@spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome", () => {
+    const erro = recusaAoCarregar(ambienteSem("DATABASE_URL"));
+
+    expect(erro.variaveis).toContain("DATABASE_URL");
+    expect(erro.message).toContain("DATABASE_URL");
+    expect(erro.message).toContain("ausente");
+  });
+
+  it("@spec:AC-002 diz o que se espera da variável ausente, não apenas que ela falta", () => {
+    const erro = recusaAoCarregar(ambienteSem("JWT_SECRET"));
+
+    const problema = erro.problemas.find((p) => p.variavel === "JWT_SECRET");
+    expect(problema?.esperado).toMatch(/ao menos 32 caracteres/);
+    // A expectativa precisa chegar a quem lê a mensagem, não ficar só no objeto.
+    expect(erro.message).toContain("esperado:");
+    expect(erro.message).toContain("ao menos 32 caracteres");
+  });
+
+  it("@spec:AC-002 nomeia todas as variáveis que faltam de uma vez, não só a primeira", () => {
+    // DATABASE_URL_TEST entra aqui de propósito: ela só é exigida ao olhar
+    // NODE_ENV junto, e essa checagem não pode ficar escondida atrás das outras
+    // — senão quem configura corrige tudo, roda de novo e leva um segundo susto.
+    const erro = recusaAoCarregar(
+      ambienteSem(
+        "DATABASE_URL",
+        "DATABASE_URL_TEST",
+        "REDIS_URL",
+        "ORIGENS_PERMITIDAS",
+      ),
+    );
+
+    expect([...erro.variaveis].sort()).toEqual([
+      "DATABASE_URL",
+      "DATABASE_URL_TEST",
+      "ORIGENS_PERMITIDAS",
+      "REDIS_URL",
+    ]);
+  });
+
+  it("@spec:AC-002 recusa variável presente porém inválida, dizendo que o valor é que está errado", () => {
+    const fonte = ambienteCompleto();
+    fonte.PORT = "oito mil";
+
+    const erro = recusaAoCarregar(fonte);
+    const problema = erro.problemas.find((p) => p.variavel === "PORT");
+
+    expect(problema?.motivo).toContain("valor inválido");
+    expect(problema?.esperado).toContain("entre 1 e 65535");
+  });
+
+  it("@spec:AC-002 recusa cadeia de conexão que não é do serviço esperado", () => {
+    const fonte = ambienteCompleto();
+    fonte.REDIS_URL = "postgresql://localhost:5432/nao_sou_cache";
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["REDIS_URL"]);
+    expect(erro.message).toContain("valor inválido");
+  });
+
+  it("@spec:AC-002 recusa segredo de assinatura curto demais para ser segredo", () => {
+    const fonte = ambienteCompleto();
+    fonte.JWT_SECRET = "curto";
+
+    expect(recusaAoCarregar(fonte).variaveis).toEqual(["JWT_SECRET"]);
+  });
+
+  it("@spec:AC-002 recusa origem autorizada que não é uma origem", () => {
+    const fonte = ambienteCompleto();
+    fonte.ORIGENS_PERMITIDAS = "https://simpleclick.localhost/painel";
+
+    expect(recusaAoCarregar(fonte).variaveis).toEqual(["ORIGENS_PERMITIDAS"]);
+  });
+
+  it("@spec:AC-002 falha na partida e não depois, porque não olha o ambiente do processo", () => {
+    // Se a função lesse process.env por dentro, o valor plantado aqui salvaria
+    // a partida e o defeito só apareceria no meio de uma requisição.
+    const anterior = process.env.JWT_SECRET;
+    process.env.JWT_SECRET = CHAVE_DE_ASSINATURA;
+    try {
+      expect(recusaAoCarregar(ambienteSem("JWT_SECRET")).variaveis).toEqual([
+        "JWT_SECRET",
+      ]);
+    } finally {
+      if (anterior === undefined) delete process.env.JWT_SECRET;
+      else process.env.JWT_SECRET = anterior;
+    }
+  });
+
+  it("@spec:AC-002 aceita ambiente completo e entrega os valores já convertidos", () => {
+    const ambiente = carregarAmbiente(ambienteCompleto());
+
+    expect(ambiente.PORT).toBe(3001);
+    expect(ambiente.NODE_ENV).toBe("development");
+    expect(ambiente.ORIGENS_PERMITIDAS).toEqual([
+      "https://simpleclick.localhost",
+      "https://api.simpleclick.localhost",
+    ]);
+  });
+
+  it("@spec:AC-002 aplica os valores padrão do que é opcional, sem exigir configuração extra", () => {
+    const ambiente = carregarAmbiente(
+      ambienteSem("PORT", "NODE_ENV", "LOG_LEVEL"),
+    );
+
+    expect(ambiente.NODE_ENV).toBe("development");
+    expect(ambiente.PORT).toBe(3001);
+    expect(ambiente.LOG_LEVEL).toBe("info");
+  });
+
+  it("@spec:AC-002 descreve todas as variáveis previstas, para que nenhuma falhe sem explicação", () => {
+    expect([...VARIAVEIS].sort()).toEqual([
+      "DATABASE_URL",
+      "DATABASE_URL_DIRETA",
+      "DATABASE_URL_TEST",
+      "JWT_SECRET",
+      "LOG_LEVEL",
+      "NODE_ENV",
+      "ORIGENS_PERMITIDAS",
+      "PORT",
+      "REDIS_URL",
+    ]);
+
+    for (const nome of VARIAVEIS) {
+      const erro = recusaAoCarregar({ [nome]: "%%invalido%%" });
+      const problema = erro.problemas.find((p) => p.variavel === nome);
+      expect(problema?.esperado ?? "").not.toBe("");
+      expect(problema?.esperado).not.toContain("veja .env.example");
+    }
+  });
+
+  it("@spec:AC-031 recusa iniciar quando o banco de teste é o mesmo banco da aplicação", () => {
+    const fonte = ambienteCompleto();
+    fonte.DATABASE_URL_TEST = fonte.DATABASE_URL as string;
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["DATABASE_URL_TEST"]);
+    expect(erro.message).toContain("mesmo banco");
+  });
+
+  it("@spec:AC-031 exige o banco de teste fora de produção, para a suíte nunca cair no banco da aplicação", () => {
+    const erro = recusaAoCarregar(ambienteSem("DATABASE_URL_TEST"));
+
+    expect(erro.variaveis).toEqual(["DATABASE_URL_TEST"]);
+  });
+});

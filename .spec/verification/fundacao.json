@@ -1,15 +1,25 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-17T18:12:38.252Z",
-  "gitRev": "7512f42",
+  "timestamp": "2026-08-17T18:37:03.128Z",
+  "gitRev": "e599b87",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 4,
+  "testsParsed": 28,
   "results": {
+    "AC-002": {
+      "status": "pass",
+      "testName": "carregarAmbiente @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome",
+      "method": "vitest-json"
+    },
     "AC-005": {
       "status": "pass",
       "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "method": "vitest-json"
+    },
+    "AC-031": {
+      "status": "pass",
+      "testName": "check-ambientes.sh @spec:AC-031 aprova quando teste tem banco e cache próprios @spec:AC-031 aprova quando teste tem banco e cache próprios",
       "method": "vitest-json"
     }
   },

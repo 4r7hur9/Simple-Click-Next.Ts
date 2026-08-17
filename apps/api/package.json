@@ -1,0 +1,19 @@
+{
+  "name": "@simpleclick/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@simpleclick/config-ts": "workspace:*",
+    "@types/node": "^24.10.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
