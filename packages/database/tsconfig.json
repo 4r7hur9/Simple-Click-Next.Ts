@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    // Este pacote é consumido pelo código-fonte, sem passo de compilação: as
+    // migrações rodam com o TypeScript executado direto pelo Node, e o
+    // importador precisa apontar para o arquivo que existe no disco.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "coverage"]
+}
