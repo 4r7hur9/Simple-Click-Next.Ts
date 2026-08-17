@@ -5,11 +5,13 @@
   "type": "module",
   "exports": {
     ".": "./index.js",
-    "./fronteiras": "./fronteiras.js"
+    "./fronteiras": "./fronteiras.js",
+    "./cores": "./cores.js"
   },
   "files": [
     "index.js",
-    "fronteiras.js"
+    "fronteiras.js",
+    "cores.js"
   ],
   "scripts": {
     "test:unit": "vitest run"

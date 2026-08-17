@@ -20,7 +20,9 @@ export const viewport: Viewport = {
 export default function LayoutRaiz({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-dvh antialiased">{children}</body>
+      {/* `sc-raiz` liga o corpo aos valores declarados do design system: fundo,
+          tinta, fonte e o desenho único do anel de foco. */}
+      <body className="sc-raiz min-h-dvh antialiased">{children}</body>
     </html>
   );
 }

@@ -1,0 +1,177 @@
+/*
+ * Valores declarados do design system do SimpleClick (AC-014).
+ *
+ * Esta é a única lista de cor, espaçamento, tipografia, raio e sombra do
+ * projeto. Componente nenhum escreve cor: escreve o nome do valor. É o que
+ * mantém a identidade visual coerente entre telas escritas em momentos
+ * diferentes, e é o que a regra `cores/sem-cor-literal` verifica.
+ *
+ * O espelho em TypeScript vive em `src/tokens.ts`, porque o cálculo de
+ * contraste (AC-015) roda antes de existir navegador para ler CSS. A
+ * divergência entre os dois é reprovada por teste.
+ *
+ * O @import vem primeiro porque a especificação do CSS exige que ele preceda
+ * qualquer regra.
+ */
+
+@import "./componentes.css";
+
+:root {
+  /* --- cor: superfícies e tinta (tema claro é o padrão) --- */
+  --cor-fundo: #ffffff;
+  --cor-superficie: #f5f6f8;
+  --cor-superficie-alta: #ffffff;
+  --cor-tinta: #14171c;
+  --cor-tinta-suave: #565c66;
+  --cor-borda: #d3d7de;
+  /* Contorno de controle interativo: precisa de 3:1 contra o fundo, porque é
+     o único sinal visual da fronteira do componente (WCAG 1.4.11). */
+  --cor-borda-forte: #7d838c;
+
+  /* --- cor: identidade e intenção --- */
+  --cor-primaria: #1a4fd6;
+  --cor-em-primaria: #ffffff;
+  --cor-primaria-suave: #e9eefc;
+  /* A cor principal usada como **texto** sobre o fundo da página. Existe
+     separada porque a cor que serve de preenchimento de botão nem sempre serve
+     de letra: quando a loja escolhe um tom claro, esta é a que o tema escurece
+     para o link continuar legível (AC-015). */
+  --cor-primaria-texto: #1a4fd6;
+  --cor-sucesso: #136c3a;
+  --cor-em-sucesso: #ffffff;
+  --cor-sucesso-suave: #e6f6ec;
+  --cor-erro: #b3251c;
+  --cor-em-erro: #ffffff;
+  --cor-erro-suave: #fdeceb;
+  --cor-atencao: #8a5300;
+  --cor-em-atencao: #ffffff;
+  --cor-atencao-suave: #fdf3e2;
+  --cor-info: #1a4fd6;
+  --cor-info-suave: #e9eefc;
+
+  /* --- cor: tinta de último recurso ---
+     Iguais nos dois temas, porque são os extremos absolutos do sRGB. Entram
+     quando a cor escolhida pela loja fica no meio da escala e nem a tinta clara
+     nem a escura do tema alcançam o contraste mínimo (AC-015). */
+  --cor-tinta-extrema-clara: #ffffff;
+  --cor-tinta-extrema-escura: #000000;
+
+  /* --- cor: estados de interação --- */
+  --cor-foco: #1a4fd6;
+  --cor-sobreposicao: rgb(20 23 28 / 55%);
+
+  /* --- espaçamento: escala de 4 em 4, para o ritmo não virar palpite --- */
+  --espaco-0: 0;
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-5: 1.5rem;
+  --espaco-6: 2rem;
+  --espaco-7: 3rem;
+  --espaco-8: 4rem;
+
+  /* --- tipografia --- */
+  --fonte-base:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --fonte-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --texto-xs: 0.75rem;
+  --texto-sm: 0.875rem;
+  --texto-base: 1rem;
+  --texto-lg: 1.125rem;
+  --texto-xl: 1.375rem;
+  --texto-2xl: 1.75rem;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-forte: 600;
+  --altura-linha-apertada: 1.25;
+  --altura-linha-base: 1.5;
+
+  /* --- raio --- */
+  --raio-1: 0.25rem;
+  --raio-2: 0.5rem;
+  --raio-3: 0.75rem;
+  --raio-completo: 9999px;
+
+  /* --- sombra --- */
+  --sombra-1: 0 1px 2px rgb(20 23 28 / 8%);
+  --sombra-2: 0 2px 8px rgb(20 23 28 / 10%);
+  --sombra-3: 0 12px 32px rgb(20 23 28 / 18%);
+
+  /* --- movimento --- */
+  --transicao-rapida: 120ms ease-out;
+}
+
+/*
+ * Tema escuro. Só a cor muda: espaçamento, tipografia, raio e sombra são os
+ * mesmos, porque o que muda no escuro é a luz, não o ritmo da tela.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --cor-fundo: #0d1015;
+    --cor-superficie: #161a21;
+    --cor-superficie-alta: #1d222b;
+    --cor-tinta: #eef1f5;
+    --cor-tinta-suave: #a4adba;
+    --cor-borda: #2e3641;
+    --cor-borda-forte: #6b7380;
+
+    --cor-primaria: #8ab4ff;
+    --cor-em-primaria: #0d1015;
+    --cor-primaria-suave: #141d2e;
+    --cor-primaria-texto: #8ab4ff;
+    --cor-sucesso: #69d597;
+    --cor-em-sucesso: #0d1015;
+    --cor-sucesso-suave: #12281c;
+    --cor-erro: #ff938c;
+    --cor-em-erro: #0d1015;
+    --cor-erro-suave: #2d1615;
+    --cor-atencao: #f2be5c;
+    --cor-em-atencao: #0d1015;
+    --cor-atencao-suave: #2a2110;
+    --cor-info: #8ab4ff;
+    --cor-info-suave: #141d2e;
+
+    --cor-foco: #8ab4ff;
+    --cor-sobreposicao: rgb(0 0 0 / 65%);
+
+    --sombra-1: 0 1px 2px rgb(0 0 0 / 40%);
+    --sombra-2: 0 2px 8px rgb(0 0 0 / 45%);
+    --sombra-3: 0 12px 32px rgb(0 0 0 / 60%);
+  }
+}
+
+/* Escolha explícita do leitor vence a preferência do sistema, nos dois sentidos. */
+:root[data-tema="escuro"] {
+  --cor-fundo: #0d1015;
+  --cor-superficie: #161a21;
+  --cor-superficie-alta: #1d222b;
+  --cor-tinta: #eef1f5;
+  --cor-tinta-suave: #a4adba;
+  --cor-borda: #2e3641;
+  --cor-borda-forte: #6b7380;
+
+  --cor-primaria: #8ab4ff;
+  --cor-em-primaria: #0d1015;
+  --cor-primaria-suave: #141d2e;
+  --cor-primaria-texto: #8ab4ff;
+  --cor-sucesso: #69d597;
+  --cor-em-sucesso: #0d1015;
+  --cor-sucesso-suave: #12281c;
+  --cor-erro: #ff938c;
+  --cor-em-erro: #0d1015;
+  --cor-erro-suave: #2d1615;
+  --cor-atencao: #f2be5c;
+  --cor-em-atencao: #0d1015;
+  --cor-atencao-suave: #2a2110;
+  --cor-info: #8ab4ff;
+  --cor-info-suave: #141d2e;
+
+  --cor-foco: #8ab4ff;
+  --cor-sobreposicao: rgb(0 0 0 / 65%);
+
+  --sombra-1: 0 1px 2px rgb(0 0 0 / 40%);
+  --sombra-2: 0 2px 8px rgb(0 0 0 / 45%);
+  --sombra-3: 0 12px 32px rgb(0 0 0 / 60%);
+}

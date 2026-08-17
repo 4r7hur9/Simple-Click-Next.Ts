@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-17T18:51:59.330Z",
-  "gitRev": "8195eca",
+  "timestamp": "2026-08-17T19:37:48.553Z",
+  "gitRev": "a68f6ba",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 58,
+  "testsParsed": 148,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,27 @@
     },
     "AC-005": {
       "status": "pass",
-      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "testName": "fronteiras no repositório real @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra",
+      "method": "vitest-json"
+    },
+    "AC-013": {
+      "status": "pass",
+      "testName": "a vitrine mostra os estados de cada componente base @spec:AC-013 o botão aparece pronto, carregando e desabilitado @spec:AC-013 o botão aparece pronto, carregando e desabilitado",
+      "method": "vitest-json"
+    },
+    "AC-014": {
+      "status": "pass",
+      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
+      "method": "vitest-json"
+    },
+    "AC-015": {
+      "status": "pass",
+      "testName": "relação de contraste do WCAG @spec:AC-015 mede luminância nos extremos com os valores da especificação @spec:AC-015 mede luminância nos extremos com os valores da especificação",
+      "method": "vitest-json"
+    },
+    "AC-016": {
+      "status": "pass",
+      "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
       "method": "vitest-json"
     },
     "AC-031": {
@@ -32,6 +52,10 @@
     "P-011": {
       "status": "pass",
       "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
     }
   }
 }

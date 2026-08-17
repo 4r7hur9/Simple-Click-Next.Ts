@@ -1,0 +1,428 @@
+/*
+ * Aparência dos componentes base.
+ *
+ * Mora em CSS, e não em classes utilitárias dentro do JSX, por uma razão
+ * prática: o pacote precisa funcionar em qualquer consumidor, inclusive um que
+ * configure o Tailwind de outro jeito ou não use Tailwind nenhum. Toda cor,
+ * medida e raio aqui vem de valor declarado em `theme.css` (AC-014).
+ */
+
+/* --- base ---------------------------------------------------------------- */
+
+.sc-raiz {
+  background-color: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha-base);
+}
+
+/* Um único desenho de foco no sistema inteiro: quem navega por teclado
+   aprende o sinal uma vez e o reconhece em toda tela. */
+.sc-raiz :focus-visible,
+.sc-botao:focus-visible,
+.sc-campo__controle:focus-visible,
+.sc-dialogo__fechar:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* Envelope da identidade da loja: só redefine valores declarados, e por isso
+   não pode impor layout nenhum a quem está dentro dele. */
+.sc-tema-loja {
+  display: contents;
+}
+
+/* Texto que só o leitor de tela recebe. */
+.sc-so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* --- botão --------------------------------------------------------------- */
+
+.sc-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid transparent;
+  border-radius: var(--raio-2);
+  font-family: inherit;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-linha-apertada);
+  cursor: pointer;
+  transition:
+    background-color var(--transicao-rapida),
+    border-color var(--transicao-rapida);
+  /* Alvo de toque confortável no celular, que é onde este produto vive. */
+  min-height: 2.75rem;
+}
+
+.sc-botao--pequeno {
+  min-height: 2.25rem;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--texto-sm);
+}
+
+.sc-botao--primaria {
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-botao--secundaria {
+  background-color: var(--cor-superficie);
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-tinta);
+}
+
+.sc-botao--perigo {
+  background-color: var(--cor-erro);
+  color: var(--cor-em-erro);
+}
+
+.sc-botao--discreta {
+  background-color: transparent;
+  /* Letra sobre o fundo da página usa o tom já conferido para leitura, não o
+     tom de preenchimento — é neste ponto que a cor clara de uma loja some. */
+  color: var(--cor-primaria-texto);
+}
+
+.sc-botao[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sc-botao[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* --- indicador de espera ------------------------------------------------- */
+
+.sc-girando {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: var(--raio-completo);
+  animation: sc-girar 700ms linear infinite;
+}
+
+@keyframes sc-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Quem pediu menos movimento não recebe animação; o indicador continua
+   visível, apenas parado. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-girando {
+    animation: none;
+  }
+
+  .sc-esqueleto__linha {
+    animation: none;
+  }
+}
+
+/* --- campo --------------------------------------------------------------- */
+
+.sc-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.sc-campo__rotulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--cor-tinta);
+}
+
+.sc-campo__obrigatorio {
+  color: var(--cor-erro);
+  margin-inline-start: var(--espaco-1);
+}
+
+.sc-campo__controle {
+  width: 100%;
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-2);
+  background-color: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font-family: inherit;
+  font-size: var(--texto-base);
+  min-height: 2.75rem;
+}
+
+.sc-campo__controle[aria-invalid="true"] {
+  border-color: var(--cor-erro);
+}
+
+.sc-campo--sucesso .sc-campo__controle {
+  border-color: var(--cor-sucesso);
+}
+
+.sc-campo__controle[disabled] {
+  background-color: var(--cor-superficie);
+  cursor: not-allowed;
+}
+
+.sc-campo__dica {
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-campo__erro {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--cor-erro);
+}
+
+.sc-campo__sucesso {
+  font-size: var(--texto-sm);
+  color: var(--cor-sucesso);
+}
+
+/* --- cartão -------------------------------------------------------------- */
+
+.sc-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background-color: var(--cor-superficie-alta);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  box-shadow: var(--sombra-1);
+}
+
+.sc-cartao__titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-cartao__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+/* --- esqueleto de espera ------------------------------------------------- */
+
+.sc-esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.sc-esqueleto__linha {
+  height: var(--espaco-4);
+  border-radius: var(--raio-1);
+  background-color: var(--cor-borda);
+  animation: sc-pulsar 1400ms ease-in-out infinite;
+}
+
+.sc-esqueleto__linha:last-child {
+  width: 60%;
+}
+
+@keyframes sc-pulsar {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* --- estados ------------------------------------------------------------- */
+
+.sc-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  padding: var(--espaco-5) var(--espaco-4);
+  border-radius: var(--raio-2);
+}
+
+.sc-estado--centro {
+  align-items: center;
+  text-align: center;
+}
+
+.sc-estado__titulo {
+  margin: 0;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-estado__descricao {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-estado--carregando {
+  flex-direction: row;
+  align-items: center;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-estado--vazio {
+  background-color: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda-forte);
+}
+
+.sc-estado--erro {
+  background-color: var(--cor-erro-suave);
+  border: 1px solid var(--cor-erro);
+  color: var(--cor-tinta);
+}
+
+.sc-estado--sucesso {
+  background-color: var(--cor-sucesso-suave);
+  border: 1px solid var(--cor-sucesso);
+  color: var(--cor-tinta);
+}
+
+.sc-estado__referencia {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-xs);
+  color: var(--cor-tinta-suave);
+}
+
+/* --- lista --------------------------------------------------------------- */
+
+.sc-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-2);
+  overflow: hidden;
+}
+
+.sc-lista__item {
+  padding: var(--espaco-3) var(--espaco-4);
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-lista__item + .sc-lista__item {
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* --- aviso --------------------------------------------------------------- */
+
+.sc-aviso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-2);
+  border: 1px solid transparent;
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta);
+}
+
+.sc-aviso__titulo {
+  margin: 0;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-aviso--info {
+  background-color: var(--cor-info-suave);
+  border-color: var(--cor-info);
+}
+
+.sc-aviso--sucesso {
+  background-color: var(--cor-sucesso-suave);
+  border-color: var(--cor-sucesso);
+}
+
+.sc-aviso--erro {
+  background-color: var(--cor-erro-suave);
+  border-color: var(--cor-erro);
+}
+
+.sc-aviso--atencao {
+  background-color: var(--cor-atencao-suave);
+  border-color: var(--cor-atencao);
+}
+
+/* --- diálogo ------------------------------------------------------------- */
+
+.sc-dialogo {
+  padding: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  max-width: min(32rem, calc(100vw - var(--espaco-6)));
+  width: 100%;
+}
+
+.sc-dialogo::backdrop {
+  background-color: var(--cor-sobreposicao);
+}
+
+.sc-dialogo__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-5);
+}
+
+.sc-dialogo__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.sc-dialogo__titulo {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-dialogo__descricao {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-dialogo__fechar {
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-2);
+  background-color: transparent;
+  color: var(--cor-tinta);
+  cursor: pointer;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  font-size: var(--texto-base);
+}
+
+.sc-dialogo__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espaco-2);
+}
