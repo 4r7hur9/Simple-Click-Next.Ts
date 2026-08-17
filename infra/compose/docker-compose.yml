@@ -1,0 +1,244 @@
+# Ambiente local do SimpleClick — um comando sobe tudo (AC-001).
+#
+# Perfis:
+#   core   roteador, banco de desenvolvimento e cache — a base de qualquer trabalho
+#   app    site e API
+#   test   banco de teste, efêmero e descartável (AC-003)
+#   print  emulador de impressora térmica
+#
+# A topologia local é a MESMA que vai para produção: dois nomes sob um domínio
+# comum (app.localhost e api.localhost), servidos com TLS. Isso não é capricho —
+# é o que faz o cookie de sessão se comportar aqui como vai se comportar lá,
+# conforme a decisão "Site e API em domínio próprio compartilhado" e a decisão
+# "Domínio fica para o fim do projeto", ambas em .spec/design/decisoes.md.
+#
+# Nenhum valor sensível mora neste arquivo: tudo vem de .env.compose (P-002).
+# Copie .env.compose.example e preencha — ou rode `bash infra/scripts/setup.sh`.
+
+name: ${COMPOSE_PROJECT_NAME:-simpleclick}
+
+services:
+  # --------------------------------------------------------------------------
+  # Roteador local: termina o TLS e distribui por nome de host.
+  # --------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.7
+    profiles: [core]
+    restart: unless-stopped
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "${PORTA_HTTP:-80}:80"
+      - "${PORTA_HTTPS:-443}:443"
+      - "${PORTA_PAINEL_TRAEFIK:-8081}:8080"
+    volumes:
+      # Somente leitura: o roteador lê a configuração e o certificado, e o
+      # soquete do Docker só para descobrir contêiner — nunca para escrever.
+      - ../traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../traefik/dynamic:/etc/traefik/dynamic:ro
+      - ../traefik/certs:/etc/traefik/certs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - borda
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # Banco de desenvolvimento: os dados sobrevivem a `down` (volume nomeado).
+  # --------------------------------------------------------------------------
+  postgres-dev:
+    image: postgres:16-alpine
+    profiles: [core]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USUARIO_DEV:?defina POSTGRES_USUARIO_DEV em .env.compose}
+      POSTGRES_PASSWORD: ${POSTGRES_SENHA_DEV:?defina POSTGRES_SENHA_DEV em .env.compose}
+      POSTGRES_DB: ${POSTGRES_BANCO_DEV:?defina POSTGRES_BANCO_DEV em .env.compose}
+      # Comparação e ordenação determinísticas, iguais às de produção.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      - "${PORTA_POSTGRES_DEV:-5432}:5432"
+    volumes:
+      - dados-postgres-dev:/var/lib/postgresql/data
+    networks:
+      - dados
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -q']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  # --------------------------------------------------------------------------
+  # Banco de teste: outra porta, outro volume, outra vida (AC-003).
+  # Vive em memória e com escrita em disco desligada — pode perder tudo em uma
+  # queda de energia, e é exatamente esse o ponto: a suíte recria do zero e
+  # roda rápido. Nunca aponte a aplicação para cá.
+  # --------------------------------------------------------------------------
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: [test]
+    restart: "no"
+    command:
+      - postgres
+      - -c
+      - fsync=off
+      - -c
+      - full_page_writes=off
+      - -c
+      - synchronous_commit=off
+      - -c
+      - max_connections=200
+    environment:
+      POSTGRES_USER: ${POSTGRES_USUARIO_TEST:?defina POSTGRES_USUARIO_TEST em .env.compose}
+      POSTGRES_PASSWORD: ${POSTGRES_SENHA_TEST:?defina POSTGRES_SENHA_TEST em .env.compose}
+      POSTGRES_DB: ${POSTGRES_BANCO_TEST:?defina POSTGRES_BANCO_TEST em .env.compose}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+      PGDATA: /var/lib/postgresql/efemero
+    ports:
+      - "${PORTA_POSTGRES_TEST:-5433}:5432"
+    tmpfs:
+      - /var/lib/postgresql/efemero:size=1g
+    networks:
+      - dados
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -q']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # Cache descartável. A fila de impressão NÃO mora aqui — mora no PostgreSQL,
+  # para que a cozinha continue recebendo pedido se o cache cair (decisoes.md).
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    profiles: [core]
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_SENHA:?defina REDIS_SENHA em .env.compose}
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+      - --maxmemory
+      - ${REDIS_MEMORIA_MAXIMA:-256mb}
+      - --maxmemory-policy
+      - allkeys-lru
+    environment:
+      # redis-cli lê a senha daqui; assim ela não aparece na linha de comando
+      # da verificação de saúde.
+      REDISCLI_AUTH: ${REDIS_SENHA:?defina REDIS_SENHA em .env.compose}
+    ports:
+      - "${PORTA_REDIS:-6379}:6379"
+    networks:
+      - dados
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # --------------------------------------------------------------------------
+  # API — provisório até T-019 criar o esqueleto do Express.
+  # Na troca, `image` vira `build: ../../apps/api` e o caminho da verificação
+  # de saúde passa a ser /v1/health/ready (AC-023). O roteamento, o nome de
+  # host e o certificado já são os definitivos.
+  # --------------------------------------------------------------------------
+  api:
+    image: nginx:1.27-alpine
+    profiles: [app]
+    restart: unless-stopped
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - borda
+      - dados
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${COMPOSE_PROJECT_NAME:-simpleclick}_borda
+      - traefik.http.routers.api.rule=Host(`${HOST_API:?defina HOST_API em .env.compose}`)
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.tls=true
+      - traefik.http.routers.api.middlewares=cabecalhos-seguros@file,compressao@file
+      - traefik.http.services.api.loadbalancer.server.port=${PORTA_INTERNA_API:-80}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # Site — provisório até T-019 criar o esqueleto do Next.
+  # --------------------------------------------------------------------------
+  web:
+    image: nginx:1.27-alpine
+    profiles: [app]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - borda
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${COMPOSE_PROJECT_NAME:-simpleclick}_borda
+      - traefik.http.routers.web.rule=Host(`${HOST_WEB:?defina HOST_WEB em .env.compose}`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls=true
+      - traefik.http.routers.web.middlewares=cabecalhos-seguros@file,compressao@file
+      - traefik.http.services.web.loadbalancer.server.port=${PORTA_INTERNA_WEB:-80}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+
+  # --------------------------------------------------------------------------
+  # Emulador de impressora térmica — recebe o cupom que o agente enviaria à
+  # impressora, para conferir o layout sem hardware. Provisório até F6.
+  # --------------------------------------------------------------------------
+  emulador-de-impressora:
+    image: nginx:1.27-alpine
+    profiles: [print]
+    restart: unless-stopped
+    ports:
+      - "${PORTA_IMPRESSORA:-9100}:80"
+    networks:
+      - dados
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+networks:
+  # Quem fala com o navegador.
+  borda:
+    driver: bridge
+  # Quem guarda dado. O roteador não entra aqui: banco e cache não são
+  # publicados por nome de host.
+  dados:
+    driver: bridge
+
+volumes:
+  # Só o banco de desenvolvimento tem volume. O de teste é efêmero de propósito
+  # (AC-003), então não aparece nesta lista.
+  dados-postgres-dev:
+    driver: local

@@ -1,0 +1,67 @@
+# Configuração estática do roteador local.
+#
+# "Estática" quer dizer lida uma vez, na partida: entradas, provedores e
+# registro. O que muda sem reiniciar — rotas, certificado, middlewares — mora
+# em dynamic/, e o roteador recarrega sozinho quando aquele diretório muda.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# Endereço que a verificação de saúde do contêiner consulta
+# (`traefik healthcheck --ping`). Vai na entrada embutida `traefik`, criada pelo
+# painel abaixo — declarar outra entrada na mesma porta faria o roteador subir
+# e morrer em laço, reclamando de porta ocupada.
+ping:
+  entryPoint: traefik
+
+entryPoints:
+  # Existe só para mandar todo mundo para o TLS. O ambiente local reproduz a
+  # topologia de produção, e lá não há tráfego em claro.
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+
+api:
+  dashboard: true
+  # Modo aberto: cria a entrada embutida `traefik` na porta 8080, que serve o
+  # painel e o /ping. Ela não é publicada por nome de host — o compose expõe
+  # essa porta só no computador de quem desenvolve. Este arquivo não vai para
+  # produção: lá o papel de roteador é do provedor de hospedagem (nota de T-002
+  # em tasks.md).
+  insecure: true
+
+providers:
+  # Rota descoberta pelos rótulos dos contêineres.
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    # Nada é publicado por acidente: só entra quem declara traefik.enable=true.
+    exposedByDefault: false
+    watch: true
+
+  # Certificado e middlewares vêm de arquivo, porque valem para o roteador
+  # inteiro e não pertencem a nenhum contêiner.
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+log:
+  level: INFO
+  format: common
+
+accessLog:
+  format: common
+  filters:
+    # Requisição bem-sucedida polui a saída; erro é o que interessa ao depurar.
+    statusCodes:
+      - "400-599"
