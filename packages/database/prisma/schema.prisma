@@ -1,0 +1,299 @@
+// Esquema declarado do SimpleClick — existe para GERAR TIPOS, e só isso.
+//
+// A fonte da verdade da estrutura são as migrações SQL de `../migrations`. O
+// Prisma não gera política de isolamento por linha, função, gatilho, índice
+// parcial nem verificação de coluna, e é disso que este esquema é feito: um
+// esquema gerado por ele nasceria sem o isolamento que sustenta o produto.
+//
+// Por isso este arquivo NÃO declara índice: quase todos são parciais ou sobre
+// expressão (`lower(slug)`, `WHERE deleted_at IS NULL`, trigrama, GIN), e
+// declarar aqui uma versão aproximada faria o esquema mentir sobre o banco.
+//
+// Dinheiro é sempre `BigInt` em centavos (P-005). Ponto flutuante não aparece
+// neste arquivo, e a constituição verifica isso mecanicamente.
+//
+// Cobre o que as migrações 0001–0006 criam. As demais entidades entram junto
+// com as migrações das fatias seguintes.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../gerado/cliente"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Conexão da aplicação, pelo agrupador em modo transação.
+  url       = env("DATABASE_URL")
+  // Conexão direta, com a credencial de migração — a única dona do esquema.
+  directUrl = env("DATABASE_URL_DIRETA")
+  schemas   = ["app"]
+}
+
+/// Identidade global de acesso: uma pessoa, uma conta na plataforma inteira.
+/// Nunca é visível para o dono de loja.
+model Identity {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emailNorm        String    @map("email_norm")
+  passwordHash     String?   @map("password_hash")
+  emailVerifiedAt  DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  phoneE164        String?   @map("phone_e164")
+  displayName      String?   @map("display_name")
+  locale           String    @default("pt-BR")
+  failedLoginCount Int       @default(0) @map("failed_login_count")
+  lockedUntil      DateTime? @map("locked_until") @db.Timestamptz(6)
+  anonymizedAt     DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  admin           PlatformAdmin?  @relation("AdminDaPlataforma")
+  adminsConcedios PlatformAdmin[] @relation("QuemConcedeu")
+  lojasCriadas    Store[]         @relation("QuemCriouALoja")
+  vinculos        StoreMember[]   @relation("VinculoDaIdentidade")
+  convitesFeitos  StoreMember[]   @relation("QuemConvidou")
+  produtosCriados Product[]       @relation("QuemCriouOProduto")
+  clientesDeLoja  StoreCustomer[]
+  atosAuditados   AuditLog[]
+
+  @@map("identities")
+  @@schema("app")
+}
+
+/// Quem administra a plataforma. Tabela separada para que o papel de
+/// administração não seja alcançável por uma alteração numa rota de loja.
+model PlatformAdmin {
+  identityId String    @id @map("identity_id") @db.Uuid
+  grantedBy  String?   @map("granted_by") @db.Uuid
+  grantedAt  DateTime  @default(now()) @map("granted_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  identidade   Identity  @relation("AdminDaPlataforma", fields: [identityId], references: [id])
+  quemConcedeu Identity? @relation("QuemConcedeu", fields: [grantedBy], references: [id])
+
+  @@map("platform_admins")
+  @@schema("app")
+}
+
+/// Catálogo global de tipos de negócio: vocabulário e composição de tela.
+model VerticalPreset {
+  code                    String   @id
+  label                   String
+  labels                  Json     @db.JsonB
+  blocos                  Json     @default("{}") @db.JsonB
+  defaultOptionGroupKinds String[] @map("default_option_group_kinds")
+  schemaVersion           Int      @default(1) @map("schema_version")
+  isFood                  Boolean  @default(false) @map("is_food")
+  tracksStock             Boolean  @default(false) @map("tracks_stock")
+  sortOrder               Int      @default(0) @map("sort_order")
+
+  lojas    Store[]
+  produtos Product[]
+
+  @@map("vertical_presets")
+  @@schema("app")
+}
+
+/// A loja: raiz do inquilino. Toda tabela de negócio aponta para cá.
+model Store {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                   String
+  name                   String
+  legalName              String?   @map("legal_name")
+  docNumber              String?   @map("doc_number")
+  docType                String?   @map("doc_type")
+  slug                   String
+  status                 String    @default("PENDING")
+  verticalCode           String    @map("vertical_code")
+  verticalSchemaVersion  Int       @default(1) @map("vertical_schema_version")
+  timezone               String    @default("America/Sao_Paulo")
+  currency               String    @default("BRL") @db.Char(3)
+  openState              String    @default("SCHEDULE") @map("open_state")
+  temporarilyClosedUntil DateTime? @map("temporarily_closed_until") @db.Timestamptz(6)
+  fulfillmentModes       String[]  @map("fulfillment_modes")
+  whatsappE164           String?   @map("whatsapp_e164")
+  phone1                 String?
+  phone2                 String?
+  email                  String?
+  street                 String?
+  number                 String?
+  complement             String?
+  neighborhood           String?
+  city                   String?
+  uf                     String?
+  zip                    String?
+  lat                    Decimal?  @db.Decimal(9, 6)
+  lng                    Decimal?  @db.Decimal(9, 6)
+  catalogVersion         BigInt    @default(1) @map("catalog_version")
+  deletedAt              DateTime? @map("deleted_at") @db.Timestamptz(6)
+  purgeAfter             DateTime? @map("purge_after") @db.Timestamptz(6)
+  createdBy              String?   @map("created_by") @db.Uuid
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  ramo         VerticalPreset  @relation(fields: [verticalCode], references: [code])
+  quemCriou    Identity?       @relation("QuemCriouALoja", fields: [createdBy], references: [id])
+  configuracao StoreSettings?
+  enderecos    StoreDomain[]
+  membros      StoreMember[]
+  produtos     Product[]
+  clientes     StoreCustomer[]
+  auditoria    AuditLog[]
+
+  @@map("stores")
+  @@schema("app")
+}
+
+/// Configuração da loja em documento validado, com versão do esquema.
+/// Guarda a chave PIX: nunca é lida diretamente pela vitrine.
+model StoreSettings {
+  storeId       String   @id @map("store_id") @db.Uuid
+  theme         Json     @default("{}") @db.JsonB
+  landing       Json     @default("{}") @db.JsonB
+  checkout      Json     @default("{}") @db.JsonB
+  delivery      Json     @default("{}") @db.JsonB
+  payment       Json     @default("{}") @db.JsonB
+  whatsapp      Json     @default("{}") @db.JsonB
+  printing      Json     @default("{}") @db.JsonB
+  seo           Json     @default("{}") @db.JsonB
+  notifications Json     @default("{}") @db.JsonB
+  schemaVersion Int      @default(1) @map("schema_version")
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_settings")
+  @@schema("app")
+}
+
+/// Endereços que resolvem para a loja, incluindo o histórico de apelidos.
+model StoreDomain {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId             String    @map("store_id") @db.Uuid
+  host                String
+  kind                String
+  isCanonical         Boolean   @default(false) @map("is_canonical")
+  verifiedAt          DateTime? @map("verified_at") @db.Timestamptz(6)
+  redirectToCanonical Boolean   @default(false) @map("redirect_to_canonical")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_domains")
+  @@schema("app")
+}
+
+/// Vínculo entre identidade e loja, com papel. Separa "quem sou" de "o que
+/// posso naquela loja".
+model StoreMember {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId           String    @map("store_id") @db.Uuid
+  identityId        String    @map("identity_id") @db.Uuid
+  role              String
+  permissions       Json      @default("{}") @db.JsonB
+  invitedBy         String?   @map("invited_by") @db.Uuid
+  inviteAcceptedAt  DateTime? @map("invite_accepted_at") @db.Timestamptz(6)
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  loja         Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  identidade   Identity  @relation("VinculoDaIdentidade", fields: [identityId], references: [id])
+  quemConvidou Identity? @relation("QuemConvidou", fields: [invitedBy], references: [id])
+
+  @@map("store_members")
+  @@schema("app")
+}
+
+/// O produto genérico: uma tabela para comida, roupa, peça e eletrônico.
+model Product {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId               String                  @map("store_id") @db.Uuid
+  name                  String
+  slug                  String
+  description           String?
+  shortDescription      String?                 @map("short_description")
+  productType           String                  @default("SIMPLE") @map("product_type")
+  verticalCode          String                  @map("vertical_code")
+  verticalSchemaVersion Int                     @default(1) @map("vertical_schema_version")
+  status                String                  @default("DRAFT")
+  isAvailable           Boolean                 @default(true) @map("is_available")
+  unavailableUntil      DateTime?               @map("unavailable_until") @db.Timestamptz(6)
+  unitLabel             String                  @default("un") @map("unit_label")
+  trackStock            Boolean                 @default(false) @map("track_stock")
+  sortOrder             Int                     @default(0) @map("sort_order")
+  isFeatured            Boolean                 @default(false) @map("is_featured")
+  attributes            Json                    @default("{}") @db.JsonB
+  // Centavos inteiros, sempre. R$ 19,99 vezes 3 tem de dar exatamente
+  // R$ 59,97 na vitrine, no fechamento, no WhatsApp e no cupom impresso.
+  priceMinCents         BigInt?                 @map("price_min_cents")
+  priceMaxCents         BigInt?                 @map("price_max_cents")
+  displayPriceCents     BigInt?                 @map("display_price_cents")
+  compareAtCents        BigInt?                 @map("compare_at_cents")
+  hasVariants           Boolean                 @default(false) @map("has_variants")
+  fractionSlots         Int?                    @map("fraction_slots") @db.SmallInt
+  fractionPricing       String?                 @map("fraction_pricing")
+  prepTimeMinutes       Int?                    @map("prep_time_minutes")
+  seoTitle              String?                 @map("seo_title")
+  seoDescription        String?                 @map("seo_description")
+  // Coluna gerada pelo banco a partir de nome e descrição. O Prisma não a
+  // escreve: quem a mantém é o próprio PostgreSQL.
+  searchTsv             Unsupported("tsvector")? @map("search_tsv")
+  deletedAt             DateTime?               @map("deleted_at") @db.Timestamptz(6)
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  createdBy             String?                 @map("created_by") @db.Uuid
+
+  loja      Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  ramo      VerticalPreset @relation(fields: [verticalCode], references: [code])
+  quemCriou Identity?      @relation("QuemCriouOProduto", fields: [createdBy], references: [id])
+
+  @@map("products")
+  @@schema("app")
+}
+
+/// O comprador visto pela loja: projeção da identidade global com o que o dono
+/// precisa para entregar, e nada além disso.
+model StoreCustomer {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId         String    @map("store_id") @db.Uuid
+  identityId      String?   @map("identity_id") @db.Uuid
+  displayName     String?   @map("display_name")
+  phoneE164       String?   @map("phone_e164")
+  phoneHmac       Bytes?    @map("phone_hmac")
+  email           String?
+  docNumber       String?   @map("doc_number")
+  birthDate       DateTime? @map("birth_date") @db.Date
+  notes           String?
+  ordersCount     Int       @default(0) @map("orders_count")
+  totalSpentCents BigInt    @default(0) @map("total_spent_cents")
+  lastOrderAt     DateTime? @map("last_order_at") @db.Timestamptz(6)
+  anonymizedAt    DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  identidade Identity? @relation(fields: [identityId], references: [id])
+
+  @@map("store_customers")
+  @@schema("app")
+}
+
+/// Trilha de auditoria: só acrescenta. Alteração e remoção são negadas por
+/// ausência de política, por retirada de privilégio e por gatilho.
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  storeId    String   @map("store_id") @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  actorRole  String   @map("actor_role")
+  action     String
+  entity     String
+  entityId   String?  @map("entity_id")
+  beforeData Json?    @map("before_data") @db.JsonB
+  afterData  Json?    @map("after_data") @db.JsonB
+  ipHmac     Bytes?   @map("ip_hmac")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  loja  Store     @relation(fields: [storeId], references: [id])
+  autor Identity? @relation(fields: [actorId], references: [id])
+
+  @@map("audit_log")
+  @@schema("app")
+}

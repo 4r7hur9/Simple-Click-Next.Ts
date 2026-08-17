@@ -1,0 +1,26 @@
+{
+  "name": "@simpleclick/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/migrate.ts"
+  },
+  "scripts": {
+    "migrar": "node src/migrate.ts aplicar",
+    "migrar:verificar": "node src/migrate.ts verificar",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test:int": "vitest run"
+  },
+  "dependencies": {
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@simpleclick/config-ts": "workspace:*",
+    "@types/node": "26.2.0",
+    "@types/pg": "8.15.6",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
