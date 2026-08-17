@@ -1,0 +1,50 @@
+# Middlewares compartilhados pelas rotas locais.
+#
+# Cada contêiner escolhe os seus pelo rótulo, com o sufixo `@file` — que é como
+# o roteador diz "este veio de arquivo, não de rótulo".
+
+http:
+  middlewares:
+    # Os cabeçalhos que o navegador precisa ver desde o desenvolvimento. Cookie
+    # de sessão e política de origem se comportam diferente sem eles, e a graça
+    # do ambiente local é justamente reproduzir o comportamento de produção.
+    cabecalhos-seguros:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: strict-origin-when-cross-origin
+        # Um ano, para que o navegador exija TLS também nos subdomínios.
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: false
+        customRequestHeaders:
+          # O site atrás do roteador precisa saber que a origem era https;
+          # sem isso ele monta link absoluto em http e o cookie Secure some.
+          X-Forwarded-Proto: https
+
+    compressao:
+      compress:
+        excludedContentTypes:
+          # Imagem já vem comprimida; recomprimir só gasta processador.
+          - image/png
+          - image/jpeg
+          - image/webp
+          - image/avif
+
+    # Freio grosso de borda, por endereço de origem. NÃO substitui o limite por
+    # conta que a API implementa em T-013 (AC-119, AC-120): aquele conhece quem
+    # está tentando entrar, este só conhece de onde vem o pacote.
+    limite-de-borda:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    # Cupom para impressão é conteúdo de uma loja só e não pode ser guardado
+    # por intermediário nenhum.
+    sem-cache:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "no-store, no-cache, must-revalidate"
+          Pragma: "no-cache"

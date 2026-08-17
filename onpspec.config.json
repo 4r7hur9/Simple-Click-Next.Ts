@@ -8,6 +8,7 @@
     "apps/*/tests/**",
     "packages/*/src/**/*.test.ts",
     "packages/*/tests/**",
+    "infra/tests/**",
     "e2e/**"
   ],
   "srcGlobs": [
@@ -16,6 +17,16 @@
     "packages/*/*.js",
     "packages/database/migrations/**",
     "infra/**"
+  ],
+  "ignoreGlobs": [
+    "node_modules/**",
+    ".git/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    ".spec/**",
+    "infra/compose/.env.compose",
+    "infra/traefik/certs/**"
   ],
   "paralelo": {
     "maxFaixas": 4
