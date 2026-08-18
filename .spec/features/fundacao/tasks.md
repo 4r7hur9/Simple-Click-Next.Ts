@@ -65,12 +65,12 @@
 - Notas: cada teste monta o próprio cenário; ordem de execução não altera resultado. Unicidade por contador do processo, nunca por sorteio. Loja e identidade entram pela credencial de administração (como em produção, onde `INSERT` em `stores` é retirado de `sc_app`); membro, produto e cliente entram pela credencial da aplicação, dentro de uma transação com `app.store_id` gravado. A ordem invertida é provada rodando a mesma suíte em outro processo, com os casos registrados ao contrário, e comparando os relatos. Falta `criarCategoria`: `app.categories` ainda não existe no banco (ver docs/pendencias.md).
 - Esforço: medio
 
-## T-010 — Prova de isolamento em toda tabela de loja [pendente]
+## T-010 — Prova de isolamento em toda tabela de loja [concluida]
 
 - Refs: AC-010, AC-011
-- Arquivos: apps/api/tests/isolamento-varredura.test.ts, apps/api/tests/isolamento-concorrente.test.ts
-- Notas: a T-006 já provou as quatro operações e as conexões reaproveitadas, mas em três tabelas escolhidas à mão. Aqui a prova passa a ser por VARREDURA: o teste descobre no catálogo do banco toda tabela com identificador de loja e prova o isolamento em cada uma, uma a uma. Assim tabela nova nasce coberta, em vez de depender de alguém lembrar de escrever o teste. Se a varredura achar tabela que ela não sabe povoar, reprova pedindo o construtor — silêncio aqui seria pior que falha. Marcado com @principle:P-003.
-- Esforço: alto
+- Arquivos: apps/api/tests/apoio-de-isolamento.ts, apps/api/tests/isolamento-varredura.test.ts, apps/api/tests/isolamento-concorrente.test.ts
+- Notas: a prova deixa de depender de alguém lembrar de escrevê-la para cada tabela nova: a varredura pergunta ao catálogo do PostgreSQL quais tabelas têm identificador de loja e cobra leitura, inserção, alteração e remoção de CADA uma, separadamente. Tabela que a varredura não sabe povoar REPROVA pedindo o construtor — nunca é pulada. A própria varredura é provada por uma tabela com identificador de loja e sem política, criada de propósito e desfeita no fim. A prova de concorrência vai além da T-006: quatro lojas, escrita misturada com leitura e 120 requisições sobre três conexões. Marcado com @principle:P-003.
+- Esforço: max
 
 ## T-011 — Contrato compartilhado e documento publicado [pendente]
 

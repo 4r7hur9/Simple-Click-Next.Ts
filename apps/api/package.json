@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@simpleclick/config-ts": "workspace:*",
+    "@simpleclick/testing": "workspace:*",
     "@types/express": "5.0.6",
     "@types/node": "26.2.0",
     "@types/pg": "8.21.0",

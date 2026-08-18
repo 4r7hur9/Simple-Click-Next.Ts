@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:25:52.417Z",
+  "timestamp": "2026-08-18T13:25:52.552Z",
   "gitRev": "71c66fa",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 248,
+  "testsParsed": 245,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -20,11 +20,6 @@
     "AC-003": {
       "status": "pass",
       "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
-      "method": "vitest-json"
-    },
-    "AC-004": {
-      "status": "pass",
-      "testName": "cenário navegável @spec:AC-004 planta duas lojas de ramos diferentes com catálogo, clientes e pedidos, a partir de um banco vazio @spec:AC-004 planta duas lojas de ramos diferentes com catálogo, clientes e pedidos, a partir de um banco vazio",
       "method": "vitest-json"
     },
     "AC-005": {
@@ -44,12 +39,12 @@
     },
     "AC-010": {
       "status": "pass",
-      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-010 @principle:P-003 a tentativa cruzada sob concorrência não leu nem alterou a linha da outra loja @spec:AC-010 @principle:P-003 a tentativa cruzada sob concorrência não leu nem alterou a linha da outra loja",
       "method": "vitest-json"
     },
     "AC-011": {
       "status": "pass",
-      "testName": "contexto entre requisições concorrentes sobre conexões reaproveitadas @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas",
       "method": "vitest-json"
     },
     "AC-012": {
@@ -101,27 +96,12 @@
       "status": "pass",
       "testName": "guardas estruturais do banco @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos",
       "method": "vitest-json"
-    },
-    "AC-036": {
-      "status": "pass",
-      "testName": "cobertura dos ramos e dos estados @spec:AC-036 planta uma loja de comida sem controle de estoque e uma loja de produto contável com estoque @spec:AC-036 planta uma loja de comida sem controle de estoque e uma loja de produto contável com estoque",
-      "method": "vitest-json"
-    },
-    "AC-037": {
-      "status": "pass",
-      "testName": "determinismo da carga @spec:AC-037 produz bancos idênticos ao rodar duas vezes em bancos vazios distintos @spec:AC-037 produz bancos idênticos ao rodar duas vezes em bancos vazios distintos",
-      "method": "vitest-json"
-    },
-    "AC-039": {
-      "status": "pass",
-      "testName": "recusa fora do desenvolvimento @spec:AC-039 se recusa a rodar quando o ambiente indica produção, e não escreve nada @spec:AC-039 se recusa a rodar quando o ambiente indica produção, e não escreve nada",
-      "method": "vitest-json"
     }
   },
   "principles": {
     "P-003": {
       "status": "pass",
-      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
     },
     "P-011": {
       "status": "pass",

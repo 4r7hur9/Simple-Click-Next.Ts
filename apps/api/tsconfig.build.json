@@ -2,5 +2,11 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "_nota": "Só para gerar `dist`. O tsconfig.json inclui os testes, porque a verificação de tipos precisa olhar para eles; o pacote publicado, não — teste em imagem de produção só carrega peso e dependência que não existe lá.",
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+  "compilerOptions": {
+    // `rootDir` é assunto de geração, e por isso mora só aqui: no tsconfig de
+    // verificação ele barraria `tests/`, que fica fora de `src/` e precisa ser
+    // olhado pela checagem de tipos como qualquer outro código.
+    "rootDir": "src"
+  },
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "tests"]
 }
