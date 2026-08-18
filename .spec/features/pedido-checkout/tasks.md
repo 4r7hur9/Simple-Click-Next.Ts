@@ -23,10 +23,10 @@
 - Notas: endereço obrigatório só na entrega; na retirada mostra o endereço da loja. Loja que só faz retirada não oferece entrega. Cliente logado vem com dados preenchidos e editáveis.
 - Esforço: alto
 
-## T-503 — Taxa de entrega, mínimo e entrega grátis no resumo [pendente]
+## T-503 — Taxa de entrega, mínimo e entrega grátis no resumo [concluida]
 
 - Refs: US-501, AC-507, AC-906, AC-907, AC-908
-- Arquivos: packages/core/src/taxa-entrega.ts, packages/core/src/taxa-entrega.test.ts, apps/web/src/features/checkout/ResumoDoPedido.tsx
+- Arquivos: packages/core/src/taxa-entrega.ts, packages/core/src/taxa-entrega.test.ts, apps/web/src/features/checkout/ResumoDoPedido.tsx, apps/web/src/server/resumo-de-valores.ts, apps/web/tests/resumo-do-pedido.test.tsx, apps/web/package.json
 - Notas: ordem de cálculo fixada e testada: itens, depois taxa, depois total. Taxa aparece em linha separada com o nome que o dono deu. Mínimo informa quanto falta.
 - Esforço: medio
 

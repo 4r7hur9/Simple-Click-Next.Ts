@@ -129,6 +129,9 @@ importers:
       '@simpleclick/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@simpleclick/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@simpleclick/ui':
         specifier: workspace:*
         version: link:../../packages/ui

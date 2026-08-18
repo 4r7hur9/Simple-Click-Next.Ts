@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-18T18:57:08.366Z",
-  "gitRev": "b8ed7aa",
+  "timestamp": "2026-08-18T19:09:58.413Z",
+  "gitRev": "5a0607c",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 585,
+  "testsParsed": 594,
   "results": {
     "AC-506": {
       "status": "pass",
@@ -14,7 +14,7 @@
     },
     "AC-507": {
       "status": "pass",
-      "testName": "taxa de entrega no resumo (AC-507, AC-906) @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas",
+      "testName": "resumo de valores na tela (AC-507) @spec:AC-507 a tela mostra itens, taxa em linha separada e total @spec:AC-507 a tela mostra itens, taxa em linha separada e total",
       "method": "vitest-json"
     },
     "AC-519": {

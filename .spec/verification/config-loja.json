@@ -1,11 +1,11 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-18T18:56:11.866Z",
-  "gitRev": "b8ed7aa",
+  "timestamp": "2026-08-18T19:08:31.919Z",
+  "gitRev": "5a0607c",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 585,
+  "testsParsed": 594,
   "results": {
     "AC-906": {
       "status": "pass",
@@ -14,12 +14,12 @@
     },
     "AC-907": {
       "status": "pass",
-      "testName": "entrega grátis acima de um valor (AC-907) @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça",
+      "testName": "entrega grátis na tela (AC-907) @spec:AC-907 a linha continua aparecendo, zerada e com a indicação de grátis @spec:AC-907 a linha continua aparecendo, zerada e com a indicação de grátis",
       "method": "vitest-json"
     },
     "AC-908": {
       "status": "pass",
-      "testName": "valor mínimo do pedido (AC-908) @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta",
+      "testName": "valor mínimo na tela (AC-908) @spec:AC-908 o aviso diz quanto falta e interrompe quem usa leitor de tela @spec:AC-908 o aviso diz quanto falta e interrompe quem usa leitor de tela",
       "method": "vitest-json"
     },
     "AC-913": {

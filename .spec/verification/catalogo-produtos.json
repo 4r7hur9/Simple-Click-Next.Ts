@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-08-18T18:55:53.413Z",
-  "gitRev": "b8ed7aa",
+  "timestamp": "2026-08-18T19:08:07.891Z",
+  "gitRev": "5a0607c",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 585,
+  "testsParsed": 594,
   "results": {},
   "principles": {
     "P-003": {
