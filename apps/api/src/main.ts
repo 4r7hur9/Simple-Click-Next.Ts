@@ -1,4 +1,5 @@
 import { criarApp } from "./app.ts";
+import { registrar } from "./core/log.ts";
 
 /** Porta usada quando o ambiente não diz outra. */
 export const PORTA_PADRAO = 3001;
@@ -26,7 +27,8 @@ export function lerPorta(ambiente: NodeJS.ProcessEnv): number {
 const porta = lerPorta(process.env);
 
 criarApp().listen(porta, () => {
-  // O registro estruturado é da T-012; até lá, a linha de partida vai direto
-  // para a saída padrão para não depender de nada que ainda não existe.
-  process.stdout.write(`API do SimpleClick ouvindo na porta ${porta}\n`);
+  // A linha de partida já sai pelo registro estruturado (AC-021): quem lê a
+  // saída da API por máquina não deveria encontrar uma linha em outro formato
+  // logo na primeira. A porta entra como campo, não como texto interpolado.
+  registrar.info("api.iniciou", { porta });
 });

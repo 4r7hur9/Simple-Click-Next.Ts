@@ -76,8 +76,17 @@ describe("partida da API", () => {
     const api = subirApi({ API_PORT: String(porta) });
     emExecucao = api;
 
-    await esperarSaida(api, "stdout", `ouvindo na porta ${porta}`);
+    // A linha de partida agora sai pelo registro estruturado (AC-021): uma
+    // linha de JSON com o nome do evento, e não mais texto corrido.
+    const saida = await esperarSaida(api, "stdout", '"api.iniciou"');
     const resposta = await fetch(`http://127.0.0.1:${porta}/`);
+
+    const linhaDaPartida = saida
+      .split("\n")
+      .find((linha) => linha.includes("api.iniciou"));
+    const partida = JSON.parse(linhaDaPartida ?? "") as Record<string, unknown>;
+    expect(partida.msg).toBe("api.iniciou");
+    expect(partida.porta).toBe(porta);
 
     expect(resposta.status).toBe(200);
     expect(await resposta.json()).toMatchObject({ status: "viva" });

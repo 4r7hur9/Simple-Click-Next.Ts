@@ -17,6 +17,7 @@
     "@simpleclick/database": "workspace:*",
     "express": "5.2.1",
     "pg": "8.23.0",
+    "pino": "10.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -284,6 +284,65 @@ bash infra/scripts/verificar.sh  # o portão completo
     (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
     lista de exclusão da geração — teste em imagem de produção só carrega peso.
 
+25. **A T-012 tocou `apps/api/src/app.ts` em quatro linhas, e só nelas.** Foram
+    acrescentados três `import` e três `app.use`: `middlewareDeRegistro()` como
+    PRIMEIRO middleware (ele abre o contexto da requisição, e tudo depois
+    depende do identificador já existir), `criarRotasDeSaude()` montado em
+    `PREFIXO_DE_SAUDE` (`/v1/health`) antes das rotas de negócio, e
+    `manipuladorDeErros()` como ÚLTIMO, depois do 404 — o Express só entrega a
+    falha a um middleware de quatro parâmetros que venha depois de tudo que pode
+    falhar. A assinatura de `criarApp()` NÃO mudou, de propósito, para o merge
+    com as outras tarefas do grupo E não virar batalha. Quem for resolver
+    conflito nesse arquivo: a ordem dos três é o que importa, o resto é livre.
+
+26. **A T-012 também mexeu em `apps/api/src/core/db.ts`, em quatro linhas.**
+    `garantirCredencial` guardava a promessa da conferência de credencial mesmo
+    quando ela FALHAVA. Com o banco fora do ar, a primeira tentativa gravava uma
+    promessa recusada e a API nunca mais tentava de novo — a verificação de
+    PRONTO continuaria dizendo "não" depois de o banco voltar, o oposto do que
+    AC-023 pede. Agora a falha limpa o cache e a próxima transação tenta outra
+    vez. Nenhum outro comportamento de `db.ts` mudou.
+
+27. **Mensagem de erro de biblioteca não vai para o registro, e isso é uma
+    escolha com custo.** `core/log.ts` grava a mensagem apenas de erro que
+    carrega a marca `mensagemEscritaPorNos` (hoje, `ErroDeDominio`). De erro de
+    terceiro — Prisma, `pg`, `TypeError` de biblioteca — vão o nome da classe, o
+    código quando existe e os quadros da pilha, nunca a mensagem. O motivo é
+    AC-022: mensagem de banco vem com o VALOR que causou a falha colado nela
+    (`invalid input syntax for type uuid: "..."`), e esse valor costuma ser
+    justamente o dado pessoal. O custo é real — perde-se o texto que explicaria
+    a falha de imediato. Duas saídas quando incomodar: marcar também os erros
+    nomeados de `core/db.ts` (`ErroDeRecursoNaoEncontrado` e companhia), cujas
+    mensagens são escritas à mão; ou embrulhar o erro de terceiro num
+    `ErroDeDominio` com `detalhe` estruturado no ponto onde ele nasce.
+
+28. **A verificação do cache fala o protocolo do Redis à mão, sem cliente.**
+    `apps/api/src/modules/health/health.cache.ts` abre um soquete, manda `AUTH`
+    (quando a cadeia traz credencial) e `PING`, e reconhece `+PONG`. São ~40
+    linhas e nenhuma dependência nova (P-014) — e a conexão nova a cada
+    verificação é o que faz a resposta ser honesta, coisa que um cliente com
+    agrupamento não entrega. **Quando a T-015 criar `core/cache.ts` com um
+    cliente de verdade, esta função deve dar lugar a ele**, senão passam a
+    existir dois caminhos até o Redis.
+
+29. **`pino` entrou como dependência de `apps/api`.** É a única biblioteca nova
+    da T-012. Justificativa (P-014): saída em JSON por linha sem custo de
+    formatação, `mixin` por linha — que é o gancho onde o identificador da
+    requisição entra sem nenhuma chamada precisar passá-lo — e `formatters.log`,
+    onde a lista de permissão fica num ponto só, por onde TODO caminho de
+    registro passa. Escrever isso à mão custaria mais do que manter a
+    dependência. **Risco de merge:** as outras tarefas do grupo E também alteram
+    `apps/api/package.json` e o `pnpm-lock.yaml`; aceitar os dois lados e rodar
+    `pnpm install` resolve.
+
+30. **`main.test.ts` mudou porque a linha de partida mudou de formato.** Ela
+    saía como texto (`ouvindo na porta N`) e agora sai pelo registro
+    estruturado, como uma linha de JSON com `msg: "api.iniciou"` e o campo
+    `porta`. O teste ficou mais forte, não mais fraco: além de esperar a linha,
+    ele a converte de volta em objeto e confere a porta. `app.test.ts` ganhou
+    um desvio do registrador para um destino que não escreve nada — sem ele, o
+    portão passaria a imprimir duas linhas de JSON por requisição de teste.
+
 ## Portão contornado
 
 Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a

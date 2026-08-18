@@ -79,10 +79,10 @@
 - Notas: fonte única de esquema para web, API e aplicativos nativos. O portão reprova se o documento publicado divergir do código. Depende da decisão pendente D1 em design/decisoes.md.
 - Esforço: alto
 
-## T-012 — Registro, erros e verificações de saúde [pendente]
+## T-012 — Registro, erros e verificações de saúde [concluida]
 
 - Refs: US-006, AC-021, AC-022, AC-023, AC-024
-- Arquivos: apps/api/src/core/log.ts, apps/api/src/core/log.test.ts, apps/api/src/core/erros.ts, apps/api/src/core/erros.test.ts, apps/api/src/modules/health/health.routes.ts, apps/api/src/modules/health/health.test.ts
+- Arquivos: apps/api/src/core/log.ts, apps/api/src/core/log.test.ts, apps/api/src/core/erros.ts, apps/api/src/core/erros.test.ts, apps/api/src/modules/health/health.routes.ts, apps/api/src/modules/health/health.cache.ts, apps/api/src/modules/health/health.test.ts, apps/api/src/modules/health/health.int.test.ts
 - Notas: registro por lista do que é permitido, nunca por lista do que é proibido. Dado pessoal não entra nem em erro detalhado. Vivo e pronto são verificações distintas.
 - Esforço: medio
 
