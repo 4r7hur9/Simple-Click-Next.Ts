@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:39:23.808Z",
-  "gitRev": "2b85f1f",
+  "timestamp": "2026-08-18T14:07:02.685Z",
+  "gitRev": "abe34df",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 271,
+  "testsParsed": 290,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -75,6 +75,16 @@
     "AC-016": {
       "status": "pass",
       "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
+      "method": "vitest-json"
+    },
+    "AC-025": {
+      "status": "pass",
+      "testName": "envio de e-mail do cadastro @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail",
+      "method": "vitest-json"
+    },
+    "AC-026": {
+      "status": "pass",
+      "testName": "trabalho que falha em toda tentativa @spec:AC-026 repete a tentativa com espera crescente entre elas @spec:AC-026 repete a tentativa com espera crescente entre elas",
       "method": "vitest-json"
     },
     "AC-031": {

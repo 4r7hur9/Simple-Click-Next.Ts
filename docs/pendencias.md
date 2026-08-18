@@ -47,6 +47,15 @@ grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
 Depois: o resto do grupo D (T-008 seed, T-009 construtores), grupo E (T-011 a
 T-015), grupo F (T-020) e grupo G (T-017, T-018).
 
+**Grupo E** — as transversais da API:
+
+- ~~**T-014** — trabalho em segundo plano com repetição~~ **concluída em 18/08:**
+  `apps/api/src/jobs/`, com AC-025 e AC-026 provados contra o Redis real
+  (5 testes no projeto `filas`) e mais 14 testes de unidade. A fila de e-mail
+  está de pé de verdade; `webhook` e `impressao` ficam declaradas, e a de
+  impressão é RECUSADA no Redis por `abrirFilaEmRedis`, com a decisão de 17/08
+  na mensagem. Pendências novas: 25 a 30.
+
 ### Como subir o ambiente
 
 ```bash
@@ -283,6 +292,69 @@ bash infra/scripts/verificar.sh  # o portão completo
     teste que compila errado sem ninguém saber. A geração continua idêntica
     (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
     lista de exclusão da geração — teste em imagem de produção só carrega peso.
+
+25. **Nenhum provedor de e-mail foi escolhido, e por isso não existe adaptador
+    de envio de verdade.** A T-014 entregou a PORTA (`EnviadorDeEmail`, em
+    `apps/api/src/jobs/email.job.ts`) e um adaptador de partida
+    (`enviadorNaoConfigurado`) que **falha alto**: o trabalho esgota as
+    tentativas e fica em estado falho, inspecionável, com uma mensagem que diz
+    o que falta configurar. Fingir que enviou seria pior — produziria um
+    sistema que parece funcionar e perde todo e-mail. Para resolver: escolher o
+    provedor, registrar a decisão em `.spec/design/decisoes.md`, acrescentar as
+    variáveis a `.env.example` e implementar a porta contra ele, com credencial
+    vinda do ambiente (P-002). Enquanto isso, AC-025 e AC-026 estão provados
+    contra o Redis real com um duplo no lugar do serviço externo.
+
+26. **`montarSegundoPlano` ainda não é chamado por `main.ts`.** A T-014 NÃO
+    tocou em `apps/api/src/app.ts` nem em `apps/api/src/main.ts`, de propósito:
+    várias tarefas deste grupo disputam esses dois arquivos e um conflito ali
+    custa mais do que a espera. O ponto de composição existe, está provado e é
+    uma chamada só — `montarSegundoPlano({ urlDoRedis, enviadorDeEmail })` na
+    partida, e `fechar()` no desligamento. Quem consolidar a partida (T-012, do
+    registro estruturado, ou T-017, do portão) faz a ligação e passa `aoFalhar`
+    apontando para o registro do servidor. Enquanto não for ligado, nenhuma
+    fila sobe em produção — o que é seguro, porque também não existe rota que
+    enfileire nada ainda.
+
+27. **`REDIS_URL_TEST` não é validada por `core/env.ts`.** A validação de
+    partida conhece `REDIS_URL`, e só ela; a variável de teste é lida direto
+    por `apps/api/tests/apoio-de-fila.ts`, que recusa a ausência com mensagem
+    dizendo o que fazer, e recusa também que ela aponte para o MESMO Redis de
+    `REDIS_URL`. É o mesmo arranjo que `DATABASE_URL_TEST` tem em
+    `packages/testing`. Se um dia a API passar a precisar dela na partida, o
+    lugar de acrescentar é a forma declarada em `core/env.ts`.
+
+28. **O Redis do ambiente sobe com `maxmemory-policy allkeys-lru`, e a BullMQ
+    avisa disso a cada partida de fila.** O aviso ("Eviction policy is
+    allkeys-lru. It should be noeviction") aparece na saída dos testes e é
+    correto: sob pressão de memória o Redis pode descartar chave de fila junto
+    com chave de cache. A configuração fica como está porque este mesmo Redis é
+    o cache do projeto, e porque a consequência já foi aceita — e-mail perdido
+    custa um reenvio. É exatamente essa aceitação que torna a fila de impressão
+    inadequada ao Redis, e ela está registrada em `MOTOR_DAS_FILAS`
+    (`apps/api/src/jobs/index.ts`), com teste que quebra se alguém mudar. Se um
+    dia o cache e a fila forem separados em dois servidores, o da fila deve
+    subir com `noeviction`.
+
+29. **A BullMQ 6 traz um motor PostgreSQL embutido, e ele NÃO foi adotado.**
+    `createPostgresBackend` permitiria a fila de impressão com a mesma API
+    desta tarefa. Não foi usado aqui por dois motivos concretos: ele cria e
+    migra o próprio esquema, o que colide com a regra de migrações escritas à
+    mão (decisão de 17/08, regra 5), e as tabelas que ele cria não têm
+    isolamento por linha — as guardas estruturais G1..G9 reprovariam. Fica
+    registrado como caminho a avaliar quando a fatia de impressão (F6) chegar:
+    ou se resolve o esquema dele sob as guardas, ou se escreve a fila de
+    impressão à mão, como a decisão previa.
+
+30. **`vitest.config.ts` ganhou um quinto projeto, `filas`, e o portão ganhou
+    uma etapa.** Os testes que falam com Redis moram em
+    `apps/api/src/jobs/*.int.test.ts` e ficaram FORA de `api-int` — sem isso,
+    cada arquivo deles pagaria a criação de um banco descartável que nenhum
+    teste seu abriria, e entraria na serialização que existe por causa das
+    migrações. `infra/scripts/verificar.sh` roda a etapa "testes de fila
+    (Redis)" separada da de banco, para a primeira linha vermelha já dizer qual
+    serviço está envolvido. Quem consolidar o portão na T-017 herda as duas
+    mudanças.
 
 ## Portão contornado
 
