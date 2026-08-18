@@ -31,6 +31,11 @@ etapa() {
   fi
 }
 
+# O cliente tipado do banco nasce do esquema declarado e nao e versionado. Sem
+# ele, o caminho unico ate o banco nao compila e os testes de isolamento nem
+# rodariam — um portao que pula a verificacao mais importante e pior que nenhum.
+etapa "cliente tipado do banco" pnpm --filter @simpleclick/database run gerar
+
 etapa "formatação" pnpm prettier --check .
 etapa "qualidade de código" pnpm eslint . --max-warnings=0
 etapa "testes de unidade" pnpm vitest run
@@ -40,6 +45,8 @@ etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 #   T-004/T-005 → guardas estruturais do banco
 #   T-007       → testes de integração contra o banco de teste
 #   T-020       → telas de ponta a ponta e acessibilidade
+# A T-006 ja entra pela etapa de testes: `apps/api/src/core/db.test.ts` cria o
+# proprio banco descartavel no PostgreSQL de teste e prova o isolamento la.
 
 printf '\n'
 if [ ${#falhas[@]} -eq 0 ]; then

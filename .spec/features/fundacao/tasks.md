@@ -37,7 +37,7 @@
 - Notas: a guarda 4 existe por achado medido — política sem o identificador da loja no conjunto destrói o índice ordenado. A guarda 5 confere que o índice inclui também as colunas citadas pelas políticas.
 - Esforço: alto
 
-## T-006 — Caminho único de acesso ao banco com contexto por transação [pendente]
+## T-006 — Caminho único de acesso ao banco com contexto por transação [concluida]
 
 - Refs: AC-010, AC-011, AC-009
 - Arquivos: apps/api/src/core/db.ts, apps/api/src/core/db.test.ts, apps/api/src/core/contexto.ts, apps/api/src/core/contexto.test.ts

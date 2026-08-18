@@ -10,6 +10,7 @@ playwright-report/
 test-results/
 
 # Arquivos gerados
+packages/database/gerado/
 pnpm-lock.yaml
 apps/web/next-env.d.ts
 .spec/.vitest-report.json

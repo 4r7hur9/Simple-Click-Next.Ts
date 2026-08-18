@@ -15,18 +15,24 @@
 // Cobre o que as migrações 0001–0006 criam. As demais entidades entram junto
 // com as migrações das fatias seguintes.
 
+// O gerador escreve TypeScript em `../gerado/cliente`, que não é versionado e
+// nasce de `pnpm --filter @simpleclick/database gerar`. Módulos ESM porque o
+// monorepo inteiro é ESM, e execução em Node porque a API roda em Node.
 generator client {
-  provider = "prisma-client-js"
-  output   = "../gerado/cliente"
+  provider     = "prisma-client"
+  output       = "../gerado/cliente"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
 }
 
+// As cadeias de conexão NÃO moram aqui: desde o Prisma 7 o esquema não aceita
+// `url` nem `directUrl`, e quem as recebe é o cliente, por adaptador de driver.
+// Isso não muda o arranjo decidido, muda onde ele é escrito — as duas cadeias
+// continuam distintas e vivem em `apps/api/src/core/db.ts` (aplicação, pelo
+// agrupador) e no aplicador de migrações (direta, credencial de migração).
 datasource db {
   provider = "postgresql"
-  // Conexão da aplicação, pelo agrupador em modo transação.
-  url       = env("DATABASE_URL")
-  // Conexão direta, com a credencial de migração — a única dona do esquema.
-  directUrl = env("DATABASE_URL_DIRETA")
-  schemas   = ["app"]
+  schemas  = ["app"]
 }
 
 /// Identidade global de acesso: uma pessoa, uma conta na plataforma inteira.

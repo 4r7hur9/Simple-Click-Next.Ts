@@ -23,7 +23,9 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
 **Grupo C** — as três dependem das migrações da T-004, que já entrou:
 
 - **T-005** — guardas estruturais do banco (G1 a G9) no portão de qualidade
-- **T-006** — caminho único de acesso ao banco, com contexto por transação
+- ~~**T-006** — caminho único de acesso ao banco, com contexto por transação~~
+  **concluída:** `apps/api/src/core/db.ts` e `core/contexto.ts`, com AC-009,
+  AC-010 e AC-011 provados contra o PostgreSQL de teste
 - **T-007** — banco de teste separado e efêmero
 
 Depois: grupo D (T-008 seed, T-009 construtores, T-010 prova de isolamento),
@@ -72,6 +74,40 @@ bash infra/scripts/verificar.sh  # o portão completo
 
 7. **Traefik aparece como não saudável** embora roteie corretamente. A
    verificação de saúde dele precisa de ajuste; não impede o uso.
+
+8. **`DATABASE_URL` do `.env` ainda usa a credencial de arranque, e não a da
+   aplicação.** As duas variáveis (`DATABASE_URL` e `DATABASE_URL_DIRETA`)
+   estão idênticas e apontam para o superusuário `simpleclick` — que contorna
+   o isolamento por linha. `apps/api/src/core/db.ts` recusa abrir caminho
+   nessas condições (`ErroDeConexaoDoBanco` e `ErroDeCredencialPrivilegiada`),
+   então nada passa em silêncio, mas a API não sobe contra o banco de
+   desenvolvimento até o `.env` ser corrigido para
+   `postgresql://sc_app:<SENHA_BANCO_APLICACAO>@localhost:5432/simpleclick_dev`.
+   Os testes de isolamento não dependem disso: eles derivam a credencial
+   `sc_app` sozinhos, a partir de `DATABASE_URL_TEST`. Entra na T-017, junto
+   com a dívida 2, quando o `setup.sh` passar a gerar o `.env`.
+
+9. **O cliente tipado do Prisma não é versionado.** `packages/database/gerado/`
+   nasce de `prisma generate` e é regenerado no `prepare` (todo `pnpm install`)
+   e no início de `infra/scripts/verificar.sh`. Quem apagar a pasta no meio de
+   uma sessão precisa rodar `pnpm db:gerar` antes dos testes.
+
+10. **A API em `dist/` depende de o Node apagar tipos do pacote de banco.**
+    `@simpleclick/database` publica TypeScript pelos `exports`
+    (`./src/migrate.ts` e `./gerado/cliente/client.ts`). Isso funciona hoje —
+    `pnpm build` compila e `import('dist/core/db.js')` carrega — porque o link
+    do pnpm resolve para o caminho real, fora de `node_modules`, e o Node só
+    recusa apagar tipos DENTRO de `node_modules`. Fica registrado porque a
+    dependência é sutil: uma imagem de produção que copie os pacotes para
+    dentro de `node_modules` em vez de linká-los quebra sem aviso. Confirmar na
+    T-018, quando a publicação for montada.
+
+11. **Prisma 7 tirou as cadeias de conexão do `schema.prisma`.** A decisão de
+    17/08 previa `url` e `directUrl` no esquema declarado; o Prisma 7 recusa as
+    duas propriedades e passa a conexão pelo adaptador de driver. O arranjo não
+    mudou — as duas cadeias continuam distintas —, mudou onde ele é escrito:
+    a da aplicação em `apps/api/src/core/db.ts` e a de migração no aplicador de
+    migrações. Vale registrar na próxima revisão de decisões.
 
 ## Portão contornado
 
