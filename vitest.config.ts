@@ -63,6 +63,14 @@ export default defineConfig({
   oxc: conversaoDeJsx,
   test: {
     exclude: excluidos,
+    // O arquivo de comparação nasce AO LADO do teste, e não em `__snapshots__`.
+    // O motivo não é gosto: o Prettier normaliza markdown e reescreve
+    // `__snapshots__` como negrito (`**snapshots**`), o que quebrou em silêncio
+    // o caminho declarado na tarefa e fez a auditoria acusar o arquivo como
+    // código que nenhum requisito atende. Sem underscore duplo, o caminho
+    // sobrevive à formatação — e o mesmo vale para qualquer tarefa futura.
+    resolveSnapshotPath: (caminhoDoTeste, extensao) =>
+      caminhoDoTeste + extensao,
     projects: [
       {
         oxc: conversaoDeJsx,
@@ -118,8 +126,7 @@ export default defineConfig({
           // cada arquivo dela pagar a criação de um banco descartável que
           // nenhum teste seu abriria — e ainda entrar nesta serialização, que
           // existe por causa das migrações.
-          exclude: [...excluidos, "apps/api/src/jobs/**"],
-          exclude: [...excluidos, ...provaDeCache],
+          exclude: [...excluidos, ...provaDeCache, "apps/api/src/jobs/**"],
           setupFiles: preparacaoDeBanco,
           ...esperaDeIntegracao,
         },

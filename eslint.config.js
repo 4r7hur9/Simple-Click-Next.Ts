@@ -14,6 +14,15 @@ export default [
     rules: {
       "boundaries/dependencies": "off",
       "no-console": "off",
+      // O typescript-eslint desliga esta regra por padrão, partindo do princípio
+      // de que o compilador acusa chave repetida (TS1117). Só que estes arquivos
+      // não pertencem a tsconfig nenhum — não existe `tsconfig.json` na raiz, e
+      // `turbo run typecheck` roda por pacote. O resultado é um ponto cego real:
+      // uma chave `exclude` repetida no vitest.config.ts fez cinco testes de
+      // fila rodarem também no projeto de banco, cada um pagando um banco
+      // descartável que nunca abriam, sem nenhuma ferramenta reclamar. Ligada
+      // aqui, e só aqui, a regra cobre exatamente o que o compilador não vê.
+      "no-dupe-keys": "error",
     },
   },
 ];

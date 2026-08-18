@@ -54,7 +54,7 @@
 ## T-507 — Gerador do texto do pedido para WhatsApp [concluida]
 
 - Refs: US-504, AC-519, AC-521, AC-522
-- Arquivos: packages/core/package.json, packages/core/tsconfig.json, packages/core/src/index.ts, packages/core/src/cupom-texto.ts, packages/core/src/cupom-texto.test.ts, packages/core/src/**snapshots**/cupom-texto.test.ts.snap
+- Arquivos: packages/core/package.json, packages/core/tsconfig.json, packages/core/src/index.ts, packages/core/src/cupom-texto.ts, packages/core/src/cupom-texto.test.ts, packages/core/src/cupom-texto.test.ts.snap
 - Notas: função pura testada por comparação com texto esperado. Acento e emoji íntegros, quebras de linha preservadas. Texto longo é encurtado de forma controlada, com o link de acompanhamento levando ao detalhe completo.
 - Esforço: alto
 

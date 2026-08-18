@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T18:25:24.021Z",
-  "gitRev": "f701609",
+  "timestamp": "2026-08-18T18:41:08.587Z",
+  "gitRev": "be3303b",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 541,
+  "testsParsed": 557,
   "results": {
     "AC-001": {
       "status": "pass",
