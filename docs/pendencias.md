@@ -144,6 +144,30 @@ bash infra/scripts/verificar.sh  # o portão completo
     a da aplicação em `apps/api/src/core/db.ts` e a de migração no aplicador de
     migrações. Vale registrar na próxima revisão de decisões.
 
+14. **`criarCategoria` não existe porque `app.categories` ainda não existe.**
+    A T-009 pedia construtor para categoria junto com loja, identidade, membro,
+    produto e cliente. Os cinco existem; categoria não, porque a tabela é
+    declarada como pendente no cabeçalho da migração `0004_catalogo.sql` e
+    pertence à feature `catalogo-produtos`. Criar a tabela aqui significaria
+    escrever migração, políticas de isolamento e índices fora do escopo desta
+    tarefa — e, com as tarefas rodando em árvores de trabalho paralelas, uma
+    migração nova nesta acabaria colidindo com a T-008 e com a fatia de
+    catálogo. Quando `app.categories` nascer, o construtor é um bloco novo em
+    `packages/testing/src/factories.ts`, no mesmo molde de `criarProduto`
+    (escrita pela credencial da aplicação, dentro do contexto da loja), mais a
+    exportação em `src/index.ts`.
+
+15. **`packages/testing` repete o arranjo de contexto por transação de
+    `apps/api/src/core/db.ts`.** As duas escrevem os quatro parâmetros com
+    `set_config(..., is_local => true)` dentro de uma transação. A repetição é
+    deliberada: a tabela de fronteiras não autoriza `packages/testing` a
+    importar aplicação, e o apoio de teste também serve aos testes de
+    `packages/database`, que existem antes de a API existir. O risco é as duas
+    divergirem em silêncio — se um dia o arranjo mudar em `core/db.ts`, o
+    espelho em `factories.ts` precisa mudar junto. O ponto de correção
+    definitivo seria a regra subir para `packages/database`, que as duas
+    camadas podem importar; fica para quando a divergência incomodar.
+
 ## Portão contornado
 
 Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a

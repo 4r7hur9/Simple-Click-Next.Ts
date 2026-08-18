@@ -1,8 +1,9 @@
 /**
  * Apoio de teste do SimpleClick.
  *
- * Nada daqui vai ao ar: é o que os testes usam para montar cenário próprio, a
- * começar pelo banco descartável de cada arquivo (AC-003).
+ * Nada daqui vai ao ar. São as duas peças que fazem um teste ser confiável: o
+ * banco descartável de cada arquivo (AC-003) e os construtores com que cada
+ * teste monta o próprio cenário (AC-038).
  */
 
 export {
@@ -33,3 +34,35 @@ export {
   type BancoDeTeste,
   type OpcoesDeBancoDeTeste,
 } from "./db-test.ts";
+
+export {
+  comoAdministracao,
+  comoLoja,
+  criarCliente,
+  criarIdentidade,
+  criarLoja,
+  criarMembro,
+  criarProduto,
+  encerrarConstrutores,
+  ErroDeConstrutorDeTeste,
+  PAPEIS_DE_TESTE,
+  proximoNumeroDeTeste,
+  RAMOS_DE_TESTE,
+  sufixoDeTeste,
+  type AlvoDeLoja,
+  type ClienteDeTeste,
+  type CodigoDeRamo,
+  type ContextoDeTeste,
+  type DadosDeCliente,
+  type DadosDeMembro,
+  type DadosDeProduto,
+  type IdentidadeDeTeste,
+  type LojaDeTeste,
+  type MembroDeTeste,
+  type PapelDeTeste,
+  type ProdutoDeTeste,
+  type RamoDeTeste,
+  type SobrescritaDeIdentidade,
+  type SobrescritaDeLoja,
+  type TransacaoDeTeste,
+} from "./factories.ts";
