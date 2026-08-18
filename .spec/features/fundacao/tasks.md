@@ -72,11 +72,11 @@
 - Notas: a prova deixa de depender de alguém lembrar de escrevê-la para cada tabela nova: a varredura pergunta ao catálogo do PostgreSQL quais tabelas têm identificador de loja e cobra leitura, inserção, alteração e remoção de CADA uma, separadamente. Tabela que a varredura não sabe povoar REPROVA pedindo o construtor — nunca é pulada. A própria varredura é provada por uma tabela com identificador de loja e sem política, criada de propósito e desfeita no fim. A prova de concorrência vai além da T-006: quatro lojas, escrita misturada com leitura e 120 requisições sobre três conexões. Marcado com @principle:P-003.
 - Esforço: max
 
-## T-011 — Contrato compartilhado e documento publicado [pendente]
+## T-011 — Contrato compartilhado e documento publicado [concluida]
 
 - Refs: US-002, AC-006, AC-007
-- Arquivos: packages/contracts/package.json, packages/contracts/src/index.ts, packages/contracts/src/comum.ts, apps/api/src/contracts/gerar.ts, apps/api/src/contracts/gerar.test.ts, contrato/openapi.json, .github/workflows/contrato.yml
-- Notas: fonte única de esquema para web, API e aplicativos nativos. O portão reprova se o documento publicado divergir do código. Depende da decisão pendente D1 em design/decisoes.md.
+- Arquivos: packages/contracts/package.json, packages/contracts/tsconfig.json, packages/contracts/src/index.ts, packages/contracts/src/comum.ts, packages/contracts/src/erro.ts, packages/contracts/src/rota.ts, packages/contracts/src/rotas.ts, packages/contracts/src/saude.ts, packages/contracts/src/rota.test.ts, packages/contracts/src/contrato.test.ts, apps/api/src/contracts/gerar.ts, apps/api/src/contracts/gerar.test.ts, apps/api/src/contracts/conformidade.test.ts, contrato/openapi.json, apps/web/src/lib/api-contrato.ts, apps/web/src/server/api-client.ts, apps/web/src/app/page.tsx, apps/web/tests/api-contrato.test.ts, apps/web/tests/contrato-tipos.test.ts, packages/config-eslint/fronteiras.js, infra/scripts/verificar.sh
+- Notas: fonte única de esquema para web, API e aplicativos nativos — a decisão D1 saiu de pendente em 17/08. `definirRota` serve a dois usos com uma declaração só: valida a entrada em execução (P-007) e descreve a rota para o documento. A geração vive na API, não no pacote de contrato, para que trocar o formato publicado não obrigue a mexer nos esquemas de domínio. O catálogo declara só o que a API serve hoje (raiz e erro); saúde separada em vivo/pronto entra com a T-012. Não há fluxo do GitHub Actions: a etapa de contrato entra em `infra/scripts/verificar.sh`, como as guardas do banco.
 - Esforço: alto
 
 ## T-012 — Registro, erros e verificações de saúde [pendente]

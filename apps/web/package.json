@@ -12,6 +12,7 @@
     "test:unit": "vitest run --root ../.. --project web apps/web/"
   },
   "dependencies": {
+    "@simpleclick/contracts": "workspace:*",
     "@simpleclick/ui": "workspace:*",
     "next": "16.3.1",
     "react": "19.2.8",

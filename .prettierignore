@@ -10,7 +10,15 @@ playwright-report/
 test-results/
 
 # Arquivos gerados
+# Documento de contrato: quem o escreve é `apps/api/src/contracts/gerar.ts`, e
+# o portão compara byte a byte com o que o gerador produz. Formatar aqui faria
+# as duas etapas brigarem para sempre pelo mesmo arquivo.
+contrato/openapi.json
 packages/database/gerado/
 pnpm-lock.yaml
 apps/web/next-env.d.ts
 .spec/.vitest-report.json
+
+# árvore de mentira montada pela prova de tipos do contrato: é cópia de código
+# que já é formatado no lugar de origem
+packages/contracts/.provas-de-tipo/

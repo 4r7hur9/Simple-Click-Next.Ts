@@ -44,6 +44,14 @@ etapa "qualidade de código" pnpm eslint . --max-warnings=0
 # havia dias, sem ninguém notar — o portão olhava formatação e testes, mas não
 # tipos, e teste não exercita todo caminho tipado.
 etapa "verificação de tipos" pnpm turbo run typecheck
+
+# O documento de contrato publicado (contrato/openapi.json) é o que os
+# aplicativos Kotlin e Swift vão ler para gerar o cliente deles. Esta etapa
+# regenera o documento em memória a partir dos esquemas e reprova se o arquivo
+# versionado estiver diferente, apontando o campo que divergiu (AC-007). Ela
+# não conserta sozinha de propósito: mudança de contrato precisa ser revista,
+# não publicada em silêncio.
+etapa "contrato publicado em dia" pnpm --filter @simpleclick/api run contrato:verificar
 # Os quatro projetos do Vitest estao em vitest.config.ts. Aqui eles entram em
 # duas etapas separadas de proposito: quando o portao reprova, a primeira linha
 # vermelha ja diz se o problema e de logica (unidade) ou de banco (integracao).

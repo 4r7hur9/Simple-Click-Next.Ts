@@ -15,6 +15,10 @@ apps/web/next-env.d.ts
 # (`prepare`), e versionar código gerado só cria conflito que ninguém escreveu
 packages/database/gerado/
 
+# árvore de mentira que a prova de tipos do contrato monta e desfaz
+# (apps/web/tests/contrato-tipos.test.ts). Só sobra aqui se o teste morrer no meio.
+packages/contracts/.provas-de-tipo/
+
 # cache de ferramentas
 .turbo/
 coverage/
