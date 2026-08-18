@@ -133,6 +133,7 @@ SC/
 | `packages/contracts`  | nada do projeto                      | qualquer aplicação                                         |
 | `packages/database`   | `contracts`                          | `apps/*`                                                   |
 | `apps/api/modules/*`  | `core`, `contracts`, `apps/api/core` | outro módulo diretamente, cliente de banco próprio (P-004) |
+| `apps/api/contracts`  | `contracts`                          | `apps/api/core`, módulo de domínio, banco                  |
 | `apps/web/features/*` | `ui`, `contracts`, `lib`             | `apps/api`, banco, `server/*` diretamente                  |
 | `apps/web/app/*`      | `features`, `server`, `ui`           | `apps/api`                                                 |
 | `apps/web/server/*`   | `contracts`, `core`                  | `features`                                                 |

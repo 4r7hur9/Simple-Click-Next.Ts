@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:39:23.808Z",
-  "gitRev": "2b85f1f",
+  "timestamp": "2026-08-18T14:03:51.750Z",
+  "gitRev": "abe34df",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 271,
+  "testsParsed": 309,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -30,6 +30,16 @@
     "AC-005": {
       "status": "pass",
       "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "method": "vitest-json"
+    },
+    "AC-006": {
+      "status": "pass",
+      "testName": "contrato compartilhado @spec:AC-006 declara só as rotas que a API serve hoje @spec:AC-006 declara só as rotas que a API serve hoje",
+      "method": "vitest-json"
+    },
+    "AC-007": {
+      "status": "pass",
+      "testName": "contrato compartilhado @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada",
       "method": "vitest-json"
     },
     "AC-008": {

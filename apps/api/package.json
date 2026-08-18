@@ -10,10 +10,13 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:unit": "vitest run --root ../.. --project unit apps/api/"
+    "test:unit": "vitest run --root ../.. --project unit apps/api/",
+    "contrato:escrever": "node src/contracts/gerar.ts escrever",
+    "contrato:verificar": "node src/contracts/gerar.ts verificar"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",
+    "@simpleclick/contracts": "workspace:*",
     "@simpleclick/database": "workspace:*",
     "express": "5.2.1",
     "pg": "8.23.0",

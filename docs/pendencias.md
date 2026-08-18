@@ -284,6 +284,54 @@ bash infra/scripts/verificar.sh  # o portão completo
     (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
     lista de exclusão da geração — teste em imagem de produção só carrega peso.
 
+25. **A T-011 mexeu em quatro arquivos que não são dela, e cada um por um
+    motivo.** Fica registrado para o merge não virar caça ao culpado:
+    - `apps/web/src/app/page.tsx` (T-019): a página passou a perguntar à API se
+      ela está viva e a ler a resposta pelo contrato. Antes ela afirmava
+      "ambiente no ar" sem ter conferido nada. **`apps/api/src/app.ts` NÃO foi
+      tocado** — a conformidade da API com o contrato é provada de fora, em
+      `apps/api/src/contracts/conformidade.test.ts`, justamente para não
+      disputar esse arquivo com as tarefas vizinhas;
+    - `apps/web/tsconfig.json` (T-019): ganhou `allowImportingTsExtensions`. O
+      pacote de contrato é consumido pelo código-fonte e também é lido pela
+      API, que roda em Node e exige a extensão no import. Sem a opção, a
+      verificação de tipos do site reprovaria os arquivos internos do contrato;
+    - `packages/config-eslint/fronteiras.js` (T-001): nasceu a camada
+      `api-contracts` (`apps/api/src/contracts/**`), autorizada a importar
+      `pkg-contracts` e mais nada. Sem a camada, a pasta ficava fora do alcance
+      da regra, como `app.ts` e `main.ts` ainda estão. A linha correspondente
+      entrou na tabela de fronteiras de `.spec/design/arquitetura.md`;
+    - `infra/scripts/verificar.sh` (T-005/T-007): mais uma etapa, logo depois da
+      verificação de tipos.
+
+26. **O contrato declara uma rota só, e é de propósito.** `GET /` é o que a API
+    serve hoje; `/v1/health/live` e `/ready` (AC-023) pertencem à T-012 e não
+    foram inventados aqui — documento que promete rota inexistente faz o
+    aplicativo nativo nascer chamando o vazio. Quando a T-012 entrar, o caminho
+    é: declarar as rotas em `packages/contracts/src/saude.ts`, somá-las a
+    `ROTAS_DO_CONTRATO` e regravar com
+    `pnpm --filter @simpleclick/api run contrato:escrever`. O teste
+    `@spec:AC-006 declara só as rotas que a API serve hoje` vai reprovar até a
+    lista ser atualizada — é ele que impede o catálogo de envelhecer calado.
+
+27. **A prova de AC-006 monta uma árvore de mentira dentro de
+    `packages/contracts/.provas-de-tipo/`.** Ela copia os esquemas de verdade e
+    o consumidor de verdade (`apps/web/src/lib/api-contrato.ts`), renomeia um
+    campo na cópia e chama o `tsc` do repositório. Mora ali porque é de
+    `packages/contracts/node_modules` que o `zod` é resolvido pela subida de
+    diretórios. A pasta nasce e morre no próprio teste, e está ignorada no Git,
+    no formatador e na verificação de qualidade — se ela sobrar, o teste morreu
+    no meio. A prova é ancorada na linha `status: z.literal("viva")`: quem
+    renomear esse campo recebe uma falha que explica o que ajustar, e **não**
+    um teste que passa por engano.
+
+28. **`NEXT_PUBLIC_API_URL` entrou no `.env.example` e não é validada na
+    partida.** Ela é do site, não da API, então não entra no esquema de
+    `apps/api/src/core/env.ts`. Sem ela, `apps/web/src/server/api-client.ts`
+    usa `https://api.simpleclick.localhost`, que é o nome que o roteador local
+    serve com TLS. Quando a T-017 consolidar o portão, vale decidir se o site
+    também passa a recusar subir sem ambiente declarado.
+
 ## Portão contornado
 
 Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a

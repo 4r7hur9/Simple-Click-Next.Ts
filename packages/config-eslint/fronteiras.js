@@ -30,6 +30,7 @@ export const camadas = [
     capture: ["modulo"],
   },
   { type: "api-jobs", pattern: "apps/api/src/jobs/**" },
+  { type: "api-contracts", pattern: "apps/api/src/contracts/**" },
 
   // --- site ---
   { type: "web-app", pattern: "apps/web/src/app/**" },
@@ -81,6 +82,12 @@ export const politicas = [
   },
 
   permite("api-jobs", ["pkg-core", "pkg-contracts", "api-core"]),
+
+  // A geração do documento publicado lê os esquemas e mais nada. Ela descreve
+  // o CONTRATO, não a implementação: se pudesse alcançar módulo de domínio ou
+  // banco, o documento passaria a depender de detalhe interno e mudaria por
+  // motivo que o cliente do aplicativo nativo não deveria nem enxergar.
+  permite("api-contracts", ["pkg-contracts"]),
 
   // Rotas do site compõem: usam interface, dados do servidor e componentes.
   permite("web-app", [

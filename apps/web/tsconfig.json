@@ -3,7 +3,13 @@
   "extends": "@simpleclick/config-ts/react.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"] },
+    // `@simpleclick/contracts` é consumido pelo código-fonte, e o mesmo pacote
+    // também é lido pela API, que roda em Node — lá a importação precisa
+    // apontar para o arquivo que existe no disco, com extensão. Sem esta opção
+    // aqui, a verificação de tipos do site reprovaria os arquivos internos do
+    // contrato, e não o código do site.
+    "allowImportingTsExtensions": true
   },
   "include": [
     "next-env.d.ts",

@@ -1,0 +1,26 @@
+{
+  "name": "@simpleclick/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test:unit": "vitest run --root ../.. --project unit packages/contracts/"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@simpleclick/config-ts": "workspace:*",
+    "@types/node": "26.2.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

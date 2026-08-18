@@ -29,6 +29,9 @@ export const ignorados = {
     // Prisma, e formatar ou lintar saída de ferramenta faz o portão acusar
     // diferença que ninguém escreveu.
     "packages/database/gerado/**",
+    // Cópia temporária do contrato, montada e desfeita pela prova de tipos em
+    // apps/web/tests/contrato-tipos.test.ts. O original já é verificado.
+    "packages/contracts/.provas-de-tipo/**",
   ],
 };
 

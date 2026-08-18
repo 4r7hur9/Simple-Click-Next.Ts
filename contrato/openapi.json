@@ -1,0 +1,102 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "SimpleClick API",
+    "version": "0.1.0",
+    "description": "Contrato gerado a partir dos esquemas de validação da API. Não edite este arquivo à mão: ele é regravado por `pnpm --filter @simpleclick/api run contrato:escrever` e conferido pelo portão de qualidade."
+  },
+  "servers": [
+    {
+      "url": "https://api.simpleclick.localhost",
+      "description": "desenvolvimento local"
+    },
+    {
+      "url": "https://api.simpleclick.app",
+      "description": "produção"
+    }
+  ],
+  "tags": [
+    {
+      "name": "saude",
+      "description": "Sinais de vida e prontidão da API"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "get_raiz",
+        "summary": "Sinal de vida da API",
+        "tags": [
+          "saude"
+        ],
+        "description": "Diz que a API está no ar e qual serviço respondeu. Não consulta banco, não abre transação e não devolve dado de nenhuma loja.",
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentificacaoDaApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Erro": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "mensagem": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "referencia": {
+            "type": "string",
+            "pattern": "^ref-[0-9a-z]{4,32}$"
+          }
+        },
+        "required": [
+          "erro"
+        ],
+        "additionalProperties": false
+      },
+      "IdentificacaoDaApi": {
+        "type": "object",
+        "properties": {
+          "servico": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "status": {
+            "type": "string",
+            "const": "viva"
+          }
+        },
+        "required": [
+          "servico",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
