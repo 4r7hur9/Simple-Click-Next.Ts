@@ -51,10 +51,10 @@
 - Notas: banco por processo de teste, criado a partir de molde. Dados de desenvolvimento nunca são tocados. Rodar duas vezes dá o mesmo resultado.
 - Esforço: alto
 
-## T-008 — Dados de exemplo determinísticos [pendente]
+## T-008 — Dados de exemplo determinísticos [concluida]
 
 - Refs: AC-004, AC-036, AC-037, AC-039
-- Arquivos: packages/database/seed/index.ts, packages/database/seed/lojas.ts, packages/database/seed/catalogo.ts, packages/database/seed/pedidos.ts, packages/database/seed/seed.test.ts
+- Arquivos: packages/database/seed/index.ts, packages/database/seed/lojas.ts, packages/database/seed/catalogo.ts, packages/database/seed/pedidos.ts, packages/database/seed/deterministico.ts, packages/database/seed/seed.test.ts, vitest.config.ts
 - Notas: duas lojas de ramos diferentes, uma de comida e uma com estoque, com pedidos em todos os status. Identificadores e datas previsíveis. Recusa rodar em produção.
 - Esforço: alto
 

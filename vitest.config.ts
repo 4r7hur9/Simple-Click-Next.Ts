@@ -111,6 +111,11 @@ export default defineConfig({
           fileParallelism: false,
           include: [
             "packages/database/src/**/*.test.ts",
+            // A carga de dados de exemplo (T-008) fala com o banco e mora fora
+            // de `src/`: sem esta linha o arquivo dela não casaria com nenhum
+            // projeto e deixaria de rodar em silêncio — que é o pior jeito de
+            // um teste falhar.
+            "packages/database/seed/**/*.test.ts",
             "packages/testing/src/**/*.test.ts",
             "packages/testing/tests/**/*.test.ts",
           ],
