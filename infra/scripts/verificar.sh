@@ -1,103 +1,162 @@
 #!/usr/bin/env bash
-# Portão de qualidade — roda inteiramente nesta máquina (AC-017, AC-041).
-# Cresce junto com o projeto: cada etapa entra quando a tarefa que a cria conclui.
+# Portão de qualidade — UM comando roda a verificação inteira, nesta máquina
+# (AC-017). O gancho antes do envio chama exatamente este script e bloqueia o
+# envio se ele reprovar (AC-041). Nada roda em servidor externo: a decisão está
+# em .spec/design/decisoes.md (17/08/2026).
+#
+# Uso:
+#   bash infra/scripts/verificar.sh                  o portão inteiro
+#   bash infra/scripts/verificar.sh --listar         só os nomes das etapas, na ordem
+#   bash infra/scripts/verificar.sh --somente tipos  só as etapas com "tipos" no nome
+#
+# COMO O ARQUIVO ESTÁ ORGANIZADO
+#
+# O motor (impressão, cronometragem, resumo, registro) mora em `portao-lib.sh`.
+# Aqui só existe a LISTA DE ETAPAS, agrupada em blocos numerados. Cada etapa é
+# uma linha `portao_etapa "<nome>" "<o que ela verifica>" <comando...>`.
+#
+# ORDEM: barato e revelador primeiro. Quem reprova por vírgula fora do lugar
+# descobre em dois segundos, e não depois de dez minutos de banco de dados. Os
+# blocos vão do que só lê arquivo até o que precisa de serviço no ar.
+#
+# PARA ACRESCENTAR UMA ETAPA: escreva UMA linha no bloco a que ela pertence.
+# Não mexa no motor. Assim duas tarefas que crescem o portão ao mesmo tempo
+# juntam o trabalho sem conflito além da própria linha.
+
 set -uo pipefail
-cd "$(dirname "$0")/../.." || exit 1
 
-ONP="node $HOME/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs"
-falhas=()
+PORTAO_RAIZ="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$PORTAO_RAIZ" || exit 1
 
-# O ambiente local vem do .env, que nunca e versionado. Sem ele, os testes que
-# provam o isolamento contra o banco real ficariam de fora em silencio — e um
-# portao que pula justamente a verificacao mais importante e pior do que nenhum.
-if [ -f .env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  . ./.env
-  set +a
-else
-  printf '\033[33m⚠ .env nao encontrado — os testes contra o banco real nao vao rodar.\033[0m\n'
-  printf '  crie com: cp .env.example .env  (e complete os valores)\n\n'
-fi
+# shellcheck source=infra/scripts/portao-lib.sh
+. "$PORTAO_RAIZ/infra/scripts/portao-lib.sh"
 
-etapa() {
-  local nome="$1"; shift
-  printf '\n\033[1m▸ %s\033[0m\n' "$nome"
-  if "$@"; then
-    printf '\033[32m  ✔ %s\033[0m\n' "$nome"
-  else
-    printf '\033[31m  ✘ %s\033[0m\n' "$nome"
-    falhas+=("$nome")
-  fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --listar)
+      PORTAO_LISTAR=1
+      shift
+      ;;
+    --somente)
+      PORTAO_SOMENTE="${2:-}"
+      shift 2
+      ;;
+    --somente=*)
+      PORTAO_SOMENTE="${1#--somente=}"
+      shift
+      ;;
+    -h | --ajuda)
+      sed -n '2,28p' "$0"
+      exit 0
+      ;;
+    *)
+      printf 'opção desconhecida: %s (use --ajuda)\n' "$1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+# Varredura de segredo sobre tudo que está versionado. O gancho antes do
+# registro já olha o que foi preparado para entrar; esta etapa existe para o
+# caso de algo ter entrado por um caminho que não passou pelo gancho — inclusive
+# um envio com o portão pulado (AC-020, AC-043).
+portao_varrer_segredos() {
+  git ls-files -z | xargs -0 bash infra/scripts/check-segredos.sh
 }
 
-# O cliente tipado do banco nasce do esquema declarado e nao e versionado. Sem
-# ele, o caminho unico ate o banco nao compila e os testes de isolamento nem
-# rodariam — um portao que pula a verificacao mais importante e pior que nenhum.
-etapa "cliente tipado do banco" pnpm --filter @simpleclick/database run gerar
+[ "$PORTAO_LISTAR" = "1" ] || portao_carregar_ambiente
 
-etapa "formatação" pnpm prettier --check .
-etapa "qualidade de código" pnpm eslint . --max-warnings=0
+# ── Bloco 0 · o que precisa existir antes de qualquer verificação ──────────
+# O cliente tipado do banco nasce do esquema declarado e NÃO é versionado. Sem
+# ele, o caminho único até o banco não compila e os testes de isolamento nem
+# rodariam — o portão passaria sem ter olhado o que mais importa.
+portao_etapa "cliente tipado do banco" \
+  "o cliente do Prisma foi gerado a partir do esquema declarado" \
+  pnpm --filter @simpleclick/database run gerar
 
-# TypeScript sem verificação de tipos é JavaScript com comentários caros. Esta
-# etapa entrou depois de a T-010 descobrir que packages/database não compilava
-# havia dias, sem ninguém notar — o portão olhava formatação e testes, mas não
+# ── Bloco 1 · leitura do repositório (segundos, sem serviço no ar) ─────────
+portao_etapa "formatação" \
+  "todo arquivo versionado está no formato do Prettier" \
+  pnpm prettier --check .
+
+portao_etapa "qualidade de código" \
+  "ESLint sem erro nem aviso, incluindo as fronteiras entre camadas e a regra de cor" \
+  pnpm eslint . --max-warnings=0
+
+portao_etapa "segredo no código" \
+  "nenhum arquivo versionado tem chave, senha ou cadeia de conexão escrita à mão (P-002)" \
+  portao_varrer_segredos
+
+# A auditoria completa exige prova para TODOS os critérios do projeto e reprova
+# por construção enquanto houver trabalho pendente; aqui entra só a parte que
+# acusa regressão — critério que tinha prova e perdeu, teste órfão, referência
+# quebrada. O veredito completo é `make audit`, obrigatório para declarar uma
+# feature pronta (AC-018, AC-019).
+portao_etapa "auditoria da especificação" \
+  "nenhuma regressão entre especificação, tarefas e testes; critério sem prova é contado" \
+  node infra/scripts/audit-regressao.mjs
+
+# ── Bloco 2 · tipos e contrato publicado ──────────────────────────────────
+# TypeScript sem verificação de tipos é JavaScript com comentário caro. Esta
+# etapa entrou quando a T-010 descobriu que `packages/database` não compilava
+# havia dias sem ninguém notar: o portão olhava formatação e testes, mas não
 # tipos, e teste não exercita todo caminho tipado.
-etapa "verificação de tipos" pnpm turbo run typecheck
+portao_etapa "verificação de tipos" \
+  "todo pacote compila com tsc, sem emitir" \
+  pnpm turbo run typecheck
 
-# O documento de contrato publicado (contrato/openapi.json) é o que os
-# aplicativos Kotlin e Swift vão ler para gerar o cliente deles. Esta etapa
-# regenera o documento em memória a partir dos esquemas e reprova se o arquivo
-# versionado estiver diferente, apontando o campo que divergiu (AC-007). Ela
-# não conserta sozinha de propósito: mudança de contrato precisa ser revista,
-# não publicada em silêncio.
-etapa "contrato publicado em dia" pnpm --filter @simpleclick/api run contrato:verificar
-# Os quatro projetos do Vitest estao em vitest.config.ts. Aqui eles entram em
-# duas etapas separadas de proposito: quando o portao reprova, a primeira linha
-# vermelha ja diz se o problema e de logica (unidade) ou de banco (integracao).
-etapa "testes de unidade" pnpm vitest run --project unit --project web
+# `contrato/openapi.json` é o que os aplicativos Kotlin e Swift vão ler para
+# gerar o cliente deles. A etapa regenera o documento em memória a partir dos
+# esquemas e reprova se o arquivo versionado divergir, apontando o campo. Não
+# conserta sozinha de propósito: mudança de contrato se revisa, não se publica
+# em silêncio (AC-007).
+portao_etapa "contrato publicado em dia" \
+  "contrato/openapi.json é idêntico ao que os esquemas geram hoje" \
+  pnpm --filter @simpleclick/api run contrato:verificar
 
-# Cada arquivo deste grupo recebe um banco proprio, criado de um molde ja
-# migrado e apagado no fim (AC-003). O banco de desenvolvimento nao e tocado.
-etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-int --project db-rls
+# ── Bloco 3 · testes que não precisam de serviço no ar ────────────────────
+# Separados por projeto do Vitest de propósito: quando o portão reprova, a
+# primeira linha vermelha já diz ONDE está o problema, sem ninguém precisar ler
+# a saída inteira.
+portao_etapa "testes de unidade" \
+  "regra de negócio, esquemas e scripts de infraestrutura, sem banco nem cache" \
+  pnpm vitest run --project unit
 
-# As filas de segundo plano falam com o Redis, e nao com o banco (T-014). Etapa
-# propria de proposito: quando o portao reprova, a primeira linha vermelha ja
-# diz se o problema e de PostgreSQL ou de Redis. Cada arquivo isola as proprias
-# chaves num espaco de nomes so dele, entao rodar isto nao mexe no ambiente
-# local nem em outra arvore de trabalho desta maquina.
-etapa "testes de fila (Redis)" pnpm vitest run --project filas
-# O cache fala com o Redis de verdade, no indice de teste (REDIS_URL_TEST).
-# Projeto separado porque o servico que ele exige e outro: cobrar PostgreSQL
-# de pe para provar o cache faria o teste do cache falhar por motivo alheio.
-etapa "testes do cache (Redis de teste)" pnpm vitest run --project cache-int
-# O limite de tentativas (T-013) decide dentro de um script que roda no Redis,
-# entao a prova dele fala com um Redis de verdade — no indice de teste, nunca no
-# da aplicacao. Projeto separado porque nao precisa de banco nenhum, e sem esta
-# linha o projeto novo do Vitest ficaria de fora do portao em silencio.
-# O limite de tentativas fala com o Redis e seus testes usam o mesmo sufixo de
-# arquivo do cache, então rodam na etapa "testes do cache" acima. Uma etapa
-# própria apontaria para um projeto inexistente e passaria sem rodar nada.
+portao_etapa "testes do site (estados e acessibilidade)" \
+  "componentes e páginas do Next: os quatro estados e a verificação de acessibilidade com axe" \
+  pnpm vitest run --project web
 
-etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
+# ── Bloco 4 · testes contra serviço de verdade ────────────────────────────
+# Cada etapa cobra UM serviço. Misturar faria a prova do cache reprovar por
+# PostgreSQL fora do ar — falha por motivo alheio é ruído, não informação.
+portao_etapa "testes do cache (Redis de teste)" \
+  "cache e limite de tentativas contra um Redis de verdade, no índice de teste" \
+  pnpm vitest run --project cache-int
 
-# As guardas estruturais rodam contra um banco de prova efêmero, criado de molde
-# vazio e migrado na hora (AC-008, AC-035). É o que faz elas falarem sobre o
-# REPOSITÓRIO: rodar contra o banco de desenvolvimento de quem chamou diria
-# apenas o que aquela máquina tem hoje — inclusive um banco vazio, que passaria
-# em todas as guardas sem que nenhuma tivesse olhado para nada.
-etapa "guardas estruturais do banco" bash infra/scripts/db-guards.sh
+portao_etapa "testes de fila (Redis)" \
+  "trabalho em segundo plano contra um Redis de verdade, cada arquivo no seu espaço de nomes" \
+  pnpm vitest run --project filas
 
-# Etapas que entram conforme as tarefas concluem:
-#   T-020       → telas de ponta a ponta e acessibilidade
-# A T-006 ja entra pela etapa de testes: `apps/api/src/core/db.test.ts` cria o
-# proprio banco descartavel no PostgreSQL de teste e prova o isolamento la.
+# Cada arquivo deste grupo recebe um banco próprio, criado de um molde já
+# migrado e apagado no fim (AC-003, AC-042). O banco de desenvolvimento não é
+# tocado — e é essa propriedade que faz duas execuções seguidas darem o mesmo
+# resultado.
+portao_etapa "testes de integração (banco efêmero)" \
+  "rotas da API e políticas de isolamento contra PostgreSQL, um banco descartável por arquivo" \
+  pnpm vitest run --project api-int --project db-rls
 
-printf '\n'
-if [ ${#falhas[@]} -eq 0 ]; then
-  printf '\033[32m✔ portão limpo\033[0m\n'
-  exit 0
-fi
-printf '\033[31m✘ portão reprovou em: %s\033[0m\n' "${falhas[*]}"
-printf '  para enviar mesmo assim: LEFTHOOK=0 git push — e registre em docs/pendencias.md (AC-043)\n'
-exit 1
+# As guardas rodam contra um banco de prova efêmero, criado de molde vazio e
+# migrado na hora (AC-008, AC-035). É o que as faz falarem sobre o REPOSITÓRIO:
+# rodar contra o banco de desenvolvimento de quem chamou diria apenas o que
+# aquela máquina tem hoje — inclusive um banco vazio, que passaria em todas as
+# guardas sem que nenhuma tivesse olhado para nada.
+portao_etapa "guardas estruturais do banco" \
+  "as nove guardas de isolamento, índice e imutabilidade contra um banco migrado do zero" \
+  bash infra/scripts/db-guards.sh
+
+# ── Bloco 5 · telas de ponta a ponta ──────────────────────────────────────
+# Reservado para a T-020 (navegador de verdade e acessibilidade nas telas).
+# Acrescente aqui as linhas `portao_etapa` das telas; nada mais precisa mudar.
+# A acessibilidade dos componentes já é coberta no bloco 3, com axe em jsdom.
+
+portao_resumo
