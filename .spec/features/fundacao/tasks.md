@@ -79,10 +79,10 @@
 - Notas: fonte única de esquema para web, API e aplicativos nativos — a decisão D1 saiu de pendente em 17/08. `definirRota` serve a dois usos com uma declaração só: valida a entrada em execução (P-007) e descreve a rota para o documento. A geração vive na API, não no pacote de contrato, para que trocar o formato publicado não obrigue a mexer nos esquemas de domínio. O catálogo declara só o que a API serve hoje (raiz e erro); saúde separada em vivo/pronto entra com a T-012. Não há fluxo do GitHub Actions: a etapa de contrato entra em `infra/scripts/verificar.sh`, como as guardas do banco.
 - Esforço: alto
 
-## T-012 — Registro, erros e verificações de saúde [pendente]
+## T-012 — Registro, erros e verificações de saúde [concluida]
 
 - Refs: US-006, AC-021, AC-022, AC-023, AC-024
-- Arquivos: apps/api/src/core/log.ts, apps/api/src/core/log.test.ts, apps/api/src/core/erros.ts, apps/api/src/core/erros.test.ts, apps/api/src/modules/health/health.routes.ts, apps/api/src/modules/health/health.test.ts
+- Arquivos: apps/api/src/core/log.ts, apps/api/src/core/log.test.ts, apps/api/src/core/erros.ts, apps/api/src/core/erros.test.ts, apps/api/src/modules/health/health.routes.ts, apps/api/src/modules/health/health.cache.ts, apps/api/src/modules/health/health.test.ts, apps/api/src/modules/health/health.int.test.ts
 - Notas: registro por lista do que é permitido, nunca por lista do que é proibido. Dado pessoal não entra nem em erro detalhado. Vivo e pronto são verificações distintas.
 - Esforço: medio
 

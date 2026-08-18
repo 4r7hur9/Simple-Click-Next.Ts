@@ -340,6 +340,13 @@ export function criarAcessoAoBanco(opcoes: OpcoesDoAcesso): AcessoAoBanco {
                rolsuper               AS superusuario,
                rolbypassrls           AS "contornaIsolamento"
           FROM pg_roles WHERE rolname = current_user`;
+    }).catch((erro: unknown) => {
+      // Falha aqui não é veredito sobre a credencial: com o banco fora do ar a
+      // consulta nem chega a acontecer. Guardar a promessa recusada faria a API
+      // nunca mais tentar, e a verificação de PRONTO continuaria dizendo "não"
+      // depois de o banco voltar — o oposto do que AC-023 pede.
+      credencialConferida = undefined;
+      throw erro;
     });
     await credencialConferida;
   }

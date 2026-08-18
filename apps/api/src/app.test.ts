@@ -1,6 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
 import { criarApp, IDENTIFICACAO_DA_API } from "./app.ts";
+import { criarRegistrador, definirRegistrador } from "./core/log.ts";
+
+/**
+ * A composição já monta o registro estruturado (T-012), e cada requisição
+ * deste arquivo renderia duas linhas de JSON na saída do portão. Desviar para
+ * um destino que não escreve nada mantém a saída legível sem desligar nada:
+ * o que se prova aqui é o esqueleto da API, não o registro.
+ */
+beforeAll(() => {
+  definirRegistrador(criarRegistrador({ destino: { write() {} } }));
+});
+
+afterAll(() => {
+  definirRegistrador(undefined);
+});
 
 /**
  * Quantos servidores de rede este processo tem abertos agora.
