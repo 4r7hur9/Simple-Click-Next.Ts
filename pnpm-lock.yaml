@@ -32,12 +32,21 @@ importers:
       '@simpleclick/config-ts':
         specifier: workspace:*
         version: link:packages/config-ts
+      '@simpleclick/database':
+        specifier: workspace:*
+        version: link:packages/database
+      '@types/pg':
+        specifier: 8.21.0
+        version: 8.21.0
       eslint:
         specifier: 10.8.1
         version: 10.8.1(jiti@2.7.0)(supports-color@7.2.0)
       lefthook:
         specifier: 2.1.10
         version: 2.1.10
+      pg:
+        specifier: 8.23.0
+        version: 8.23.0
       prettier:
         specifier: 3.9.6
         version: 3.9.6

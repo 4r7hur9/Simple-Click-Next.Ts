@@ -67,6 +67,15 @@ portao_varrer_segredos() {
 [ "$PORTAO_LISTAR" = "1" ] || portao_carregar_ambiente
 
 # ── Bloco 0 · o que precisa existir antes de qualquer verificação ──────────
+# Primeiro de tudo: produção e teste nunca compartilham banco nem cache
+# (AC-031). Quase toda etapa abaixo escreve no banco de teste — se ele for o
+# mesmo banco da aplicação, a suíte apaga dado de gente antes de qualquer linha
+# vermelha aparecer. Errado aqui não é um teste que reprova: é um estrago que já
+# aconteceu. O mesmo verificador roda no primeiro passo da publicação.
+portao_etapa "separação de ambientes" \
+  "o banco e o cache de teste não são os da aplicação" \
+  bash infra/scripts/check-ambientes.sh
+
 # O cliente tipado do banco nasce do esquema declarado e NÃO é versionado. Sem
 # ele, o caminho único até o banco não compila e os testes de isolamento nem
 # rodariam — o portão passaria sem ter olhado o que mais importa.
@@ -150,6 +159,12 @@ portao_etapa "testes de integração (banco efêmero)" \
 # rodar contra o banco de desenvolvimento de quem chamou diria apenas o que
 # aquela máquina tem hoje — inclusive um banco vazio, que passaria em todas as
 # guardas sem que nenhuma tivesse olhado para nada.
+# Descobrir que a migração impede voltar atrás no minuto da publicação é
+# descobrir tarde demais: nessa hora o esquema já mudou (AC-030).
+portao_etapa "migração compatível com a versão anterior" \
+  "nenhuma migração nova quebra a versão que está no ar" \
+  node infra/scripts/check-migracao-compativel.mjs
+
 portao_etapa "guardas estruturais do banco" \
   "as nove guardas de isolamento, índice e imutabilidade contra um banco migrado do zero" \
   bash infra/scripts/db-guards.sh
