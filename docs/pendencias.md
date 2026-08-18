@@ -110,24 +110,24 @@ bash infra/scripts/verificar.sh  # o portão completo
      tentativas seguidas. A correção é a mesma trava do molde dentro do
      aplicador; fica para quando incomodar de novo, porque mexe em código da
      T-004.
-8. **`DATABASE_URL` do `.env` ainda usa a credencial de arranque, e não a da
-   aplicação.** As duas variáveis (`DATABASE_URL` e `DATABASE_URL_DIRETA`)
-   estão idênticas e apontam para o superusuário `simpleclick` — que contorna
-   o isolamento por linha. `apps/api/src/core/db.ts` recusa abrir caminho
-   nessas condições (`ErroDeConexaoDoBanco` e `ErroDeCredencialPrivilegiada`),
-   então nada passa em silêncio, mas a API não sobe contra o banco de
-   desenvolvimento até o `.env` ser corrigido para
-   `postgresql://sc_app:<SENHA_BANCO_APLICACAO>@localhost:5432/simpleclick_dev`.
-   Os testes de isolamento não dependem disso: eles derivam a credencial
-   `sc_app` sozinhos, a partir de `DATABASE_URL_TEST`. Entra na T-017, junto
-   com a dívida 2, quando o `setup.sh` passar a gerar o `.env`.
+10. **`DATABASE_URL` do `.env` ainda usa a credencial de arranque, e não a da
+    aplicação.** As duas variáveis (`DATABASE_URL` e `DATABASE_URL_DIRETA`)
+    estão idênticas e apontam para o superusuário `simpleclick` — que contorna
+    o isolamento por linha. `apps/api/src/core/db.ts` recusa abrir caminho
+    nessas condições (`ErroDeConexaoDoBanco` e `ErroDeCredencialPrivilegiada`),
+    então nada passa em silêncio, mas a API não sobe contra o banco de
+    desenvolvimento até o `.env` ser corrigido para
+    `postgresql://sc_app:<SENHA_BANCO_APLICACAO>@localhost:5432/simpleclick_dev`.
+    Os testes de isolamento não dependem disso: eles derivam a credencial
+    `sc_app` sozinhos, a partir de `DATABASE_URL_TEST`. Entra na T-017, junto
+    com a dívida 2, quando o `setup.sh` passar a gerar o `.env`.
 
-9. **O cliente tipado do Prisma não é versionado.** `packages/database/gerado/`
-   nasce de `prisma generate` e é regenerado no `prepare` (todo `pnpm install`)
-   e no início de `infra/scripts/verificar.sh`. Quem apagar a pasta no meio de
-   uma sessão precisa rodar `pnpm db:gerar` antes dos testes.
+11. **O cliente tipado do Prisma não é versionado.** `packages/database/gerado/`
+    nasce de `prisma generate` e é regenerado no `prepare` (todo `pnpm install`)
+    e no início de `infra/scripts/verificar.sh`. Quem apagar a pasta no meio de
+    uma sessão precisa rodar `pnpm db:gerar` antes dos testes.
 
-10. **A API em `dist/` depende de o Node apagar tipos do pacote de banco.**
+12. **A API em `dist/` depende de o Node apagar tipos do pacote de banco.**
     `@simpleclick/database` publica TypeScript pelos `exports`
     (`./src/migrate.ts` e `./gerado/cliente/client.ts`). Isso funciona hoje —
     `pnpm build` compila e `import('dist/core/db.js')` carrega — porque o link
@@ -137,7 +137,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     dentro de `node_modules` em vez de linká-los quebra sem aviso. Confirmar na
     T-018, quando a publicação for montada.
 
-11. **Prisma 7 tirou as cadeias de conexão do `schema.prisma`.** A decisão de
+13. **Prisma 7 tirou as cadeias de conexão do `schema.prisma`.** A decisão de
     17/08 previa `url` e `directUrl` no esquema declarado; o Prisma 7 recusa as
     duas propriedades e passa a conexão pelo adaptador de driver. O arranjo não
     mudou — as duas cadeias continuam distintas —, mudou onde ele é escrito:

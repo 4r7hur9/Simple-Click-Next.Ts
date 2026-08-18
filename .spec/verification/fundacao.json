@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T12:35:53.640Z",
-  "gitRev": "5bff874",
+  "timestamp": "2026-08-18T12:43:24.410Z",
+  "gitRev": "7261696",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 201,
+  "testsParsed": 232,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -17,14 +17,19 @@
       "testName": "carregarAmbiente @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome",
       "method": "vitest-json"
     },
+    "AC-003": {
+      "status": "pass",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
+      "method": "vitest-json"
+    },
     "AC-005": {
       "status": "pass",
-      "testName": "fronteiras no repositório real @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra",
+      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
       "method": "vitest-json"
     },
     "AC-008": {
       "status": "pass",
-      "testName": "verificação estrutural do isolamento @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado",
+      "testName": "guardas estruturais do banco @spec:AC-008 g1 acusa a tabela de loja sem o isolamento ligado e forçado @spec:AC-008 g1 acusa a tabela de loja sem o isolamento ligado e forçado",
       "method": "vitest-json"
     },
     "AC-009": {
@@ -49,12 +54,12 @@
     },
     "AC-013": {
       "status": "pass",
-      "testName": "a vitrine mostra os estados de cada componente base @spec:AC-013 o botão aparece pronto, carregando e desabilitado @spec:AC-013 o botão aparece pronto, carregando e desabilitado",
+      "testName": "estados reutilizáveis @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda",
       "method": "vitest-json"
     },
     "AC-014": {
       "status": "pass",
-      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
+      "testName": "cor escrita direto no componente @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha",
       "method": "vitest-json"
     },
     "AC-015": {
@@ -86,9 +91,18 @@
       "status": "pass",
       "testName": "aplicador de migrações @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta",
       "method": "vitest-json"
+    },
+    "AC-035": {
+      "status": "pass",
+      "testName": "guardas estruturais do banco @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos",
+      "method": "vitest-json"
     }
   },
   "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
+    },
     "P-011": {
       "status": "pass",
       "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
@@ -96,10 +110,6 @@
     "P-012": {
       "status": "pass",
       "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
-    },
-    "P-003": {
-      "status": "pass",
-      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
     }
   }
 }
