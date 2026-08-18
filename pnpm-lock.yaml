@@ -74,6 +74,9 @@ importers:
       '@simpleclick/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@simpleclick/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@simpleclick/database':
         specifier: workspace:*
         version: link:../../packages/database

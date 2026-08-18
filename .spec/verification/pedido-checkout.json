@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-18T19:09:58.413Z",
-  "gitRev": "5a0607c",
+  "timestamp": "2026-08-18T19:22:33.974Z",
+  "gitRev": "a708f66",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 594,
+  "testsParsed": 620,
   "results": {
     "AC-506": {
       "status": "pass",
@@ -15,6 +15,26 @@
     "AC-507": {
       "status": "pass",
       "testName": "resumo de valores na tela (AC-507) @spec:AC-507 a tela mostra itens, taxa em linha separada e total @spec:AC-507 a tela mostra itens, taxa em linha separada e total",
+      "method": "vitest-json"
+    },
+    "AC-510": {
+      "status": "pass",
+      "testName": "chave PIX exibida e copiável (AC-510) @spec:AC-510 a chave e o nome do recebedor aparecem na tela @spec:AC-510 a chave e o nome do recebedor aparecem na tela",
+      "method": "vitest-json"
+    },
+    "AC-511": {
+      "status": "pass",
+      "testName": "o pedido guarda a chave que valia no momento (AC-511) @spec:AC-511 a chave, o tipo e o recebedor são copiados para dentro do pedido @spec:AC-511 a chave, o tipo e o recebedor são copiados para dentro do pedido",
+      "method": "vitest-json"
+    },
+    "AC-512": {
+      "status": "pass",
+      "testName": "escolha da forma de pagamento (AC-512) @spec:AC-512 as três formas configuradas aparecem como opção @spec:AC-512 as três formas configuradas aparecem como opção",
+      "method": "vitest-json"
+    },
+    "AC-513": {
+      "status": "pass",
+      "testName": "nada de cartão na tela (AC-513) @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido",
       "method": "vitest-json"
     },
     "AC-519": {

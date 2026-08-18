@@ -30,10 +30,10 @@
 - Notas: ordem de cálculo fixada e testada: itens, depois taxa, depois total. Taxa aparece em linha separada com o nome que o dono deu. Mínimo informa quanto falta.
 - Esforço: medio
 
-## T-504 — Chave PIX exibida e copiável [pendente]
+## T-504 — Chave PIX exibida e copiável [concluida]
 
 - Refs: US-502, AC-510, AC-511, AC-512, AC-513
-- Arquivos: apps/web/src/features/checkout/CaixaPix.tsx, apps/web/src/features/checkout/SeletorDePagamento.tsx, apps/api/src/modules/orders/pagamento.ts, apps/api/src/modules/orders/pagamento.test.ts
+- Arquivos: apps/web/src/features/checkout/CaixaPix.tsx, apps/web/src/features/checkout/SeletorDePagamento.tsx, apps/api/src/modules/orders/pagamento.ts, apps/api/src/modules/orders/pagamento.test.ts, apps/web/tests/caixa-pix.test.tsx, apps/web/tests/seletor-de-pagamento.test.tsx, infra/tests/sem-cobranca.test.ts
 - Notas: chave com nome do recebedor e confirmação visual de cópia. O pedido guarda a chave que valia no momento. Nenhuma etapa pede dado de cartão nem cobra de verdade. Troco informado quando o pagamento é em dinheiro.
 - Esforço: medio
 
