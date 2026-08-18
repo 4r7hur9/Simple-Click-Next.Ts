@@ -65,11 +65,11 @@
 - Notas: cada teste monta o próprio cenário; ordem de execução não altera resultado.
 - Esforço: medio
 
-## T-010 — Prova de isolamento entre lojas [pendente]
+## T-010 — Prova de isolamento em toda tabela de loja [pendente]
 
 - Refs: AC-010, AC-011
-- Arquivos: apps/api/tests/isolamento.test.ts, apps/api/tests/isolamento-concorrente.test.ts
-- Notas: cobre leitura, inserção, alteração e remoção separadamente, e o caso de conexões reaproveitadas alternando entre lojas. Marcado com @principle:P-003.
+- Arquivos: apps/api/tests/isolamento-varredura.test.ts, apps/api/tests/isolamento-concorrente.test.ts
+- Notas: a T-006 já provou as quatro operações e as conexões reaproveitadas, mas em três tabelas escolhidas à mão. Aqui a prova passa a ser por VARREDURA: o teste descobre no catálogo do banco toda tabela com identificador de loja e prova o isolamento em cada uma, uma a uma. Assim tabela nova nasce coberta, em vez de depender de alguém lembrar de escrever o teste. Se a varredura achar tabela que ela não sabe povoar, reprova pedindo o construtor — silêncio aqui seria pior que falha. Marcado com @principle:P-003.
 - Esforço: alto
 
 ## T-011 — Contrato compartilhado e documento publicado [pendente]
