@@ -1,7 +1,7 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-08-18T15:37:03.442Z",
-  "gitRev": "c54eca3",
+  "timestamp": "2026-08-18T18:13:42.013Z",
+  "gitRev": "56b7b48",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,

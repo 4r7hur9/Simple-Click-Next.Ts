@@ -46,6 +46,8 @@ import { montarCatalogo, PRODUTOS } from "./catalogo.ts";
 import {
   type ConjuntoDeExemplo,
   DATA_DE_REFERENCIA_PADRAO,
+  idDeExemplo,
+  instanteDeExemplo,
   type LinhaDeExemplo,
   montarInsercao,
 } from "./deterministico.ts";
@@ -306,6 +308,28 @@ async function colunasDaTabela(
   return new Set(resultado.rows.map((linha) => String(linha.column_name)));
 }
 
+/**
+ * Colunas que ACEITAM valor na inserção.
+ *
+ * Coluna gerada sempre — o `id` da trilha de auditoria é uma — recusa qualquer
+ * valor, inclusive o correto. Sem esta distinção, completar o identificador
+ * viraria erro justamente na tabela que menos precisava de ajuda.
+ */
+async function colunasQueAceitamValor(
+  cliente: ClienteSql,
+  tabela: string,
+): Promise<Set<string>> {
+  const resultado = await cliente.query(
+    `SELECT column_name
+       FROM information_schema.columns
+      WHERE table_schema = 'app' AND table_name = $1
+        AND is_generated = 'NEVER'
+        AND coalesce(identity_generation, '') <> 'ALWAYS'`,
+    [tabela],
+  );
+  return new Set(resultado.rows.map((linha) => String(linha.column_name)));
+}
+
 // ---------------------------------------------------------------------------
 // Relatório
 // ---------------------------------------------------------------------------
@@ -396,7 +420,17 @@ export async function carregarDadosDeExemplo(
         continue;
       }
 
-      await plantarConjunto(cliente, conjunto, colunas);
+      const aceitamValor = await colunasQueAceitamValor(
+        cliente,
+        conjunto.tabela,
+      );
+      await plantarConjunto({
+        cliente,
+        conjunto,
+        colunas,
+        aceitamValor,
+        referencia,
+      });
       plantadas.push({
         tabela: conjunto.tabela,
         linhas: conjunto.linhas.length,
@@ -414,19 +448,116 @@ export async function carregarDadosDeExemplo(
   return { referencia, plantadas, adiadas, duracaoMs: Date.now() - comeco };
 }
 
+/**
+ * Colunas de tempo que o esquema preenche com o relógio do banco quando ninguém
+ * informa. São o inimigo do determinismo: duas cargas em bancos diferentes saem
+ * com instantes diferentes, e a carga deixa de ser reproduzível.
+ */
+const COLUNAS_DE_RELOGIO = ["created_at", "updated_at", "placed_at"] as const;
+
+/**
+ * Preenche o identificador quando a tabela tem `id` e o cenário não informou.
+ *
+ * `gen_random_uuid()` é sorteio, e sorteio quebra a reprodutibilidade: as
+ * tabelas de ligação não informavam `id` — a chave natural delas são as duas
+ * pontas — e o banco criava um diferente a cada carga. O nome derivado da tabela
+ * e da posição dá o mesmo identificador sempre, sem obrigar cada linha do
+ * cenário a inventar um.
+ */
+function comIdentificadorDeterministico(
+  tabela: string,
+  linha: LinhaDeExemplo,
+  indice: number,
+  aceitamValor: ReadonlySet<string>,
+): LinhaDeExemplo {
+  if (!aceitamValor.has("id")) return linha;
+  if ("id" in linha) return linha;
+  return { ...linha, id: idDeExemplo(`${tabela}:${indice}`) } as LinhaDeExemplo;
+}
+
+/**
+ * Preenche as colunas de tempo que a tabela tem e a linha não informou.
+ *
+ * Existe para atacar a causa em vez do sintoma. A alternativa era caçar, uma por
+ * uma, cada coluna de relógio de cada tabela nova — e recomeçar a caça na
+ * próxima migração. Aqui a regra é escrita uma vez: se a coluna de tempo existe
+ * e o cenário não disse qual instante é, o instante vem da referência, e não do
+ * relógio.
+ *
+ * O deslocamento nasce do nome da tabela e da posição da linha, de modo que o
+ * valor é sempre o mesmo para a mesma carga — e diferente entre linhas, para
+ * que ordenar por data continue tendo sentido no dado de exemplo.
+ */
+interface PedidoDeCompletar {
+  readonly tabela: string;
+  readonly linha: LinhaDeExemplo;
+  readonly indice: number;
+  readonly colunas: ReadonlySet<string>;
+  readonly referencia: Date;
+}
+
+function comInstantesDeterministicos({
+  tabela,
+  linha,
+  indice,
+  colunas,
+  referencia,
+}: PedidoDeCompletar): LinhaDeExemplo {
+  const somaDoNome = [...tabela].reduce(
+    (total, letra) => total + letra.charCodeAt(0),
+    0,
+  );
+  const completada: Record<string, unknown> = { ...linha };
+
+  for (const coluna of COLUNAS_DE_RELOGIO) {
+    if (!colunas.has(coluna)) continue;
+    if (coluna in completada) continue;
+    completada[coluna] = instanteDeExemplo(
+      referencia,
+      -(somaDoNome * 10 + indice),
+    );
+  }
+
+  return completada as LinhaDeExemplo;
+}
+
 /** Planta as linhas de uma tabela, conferindo antes que as colunas existem. */
-async function plantarConjunto(
-  cliente: ClienteSql,
-  conjunto: ConjuntoDeExemplo,
-  colunas: ReadonlySet<string>,
-): Promise<void> {
+interface PedidoDePlantar {
+  readonly cliente: ClienteSql;
+  readonly conjunto: ConjuntoDeExemplo;
+  /** Todas as colunas da tabela, para saber o que existe. */
+  readonly colunas: ReadonlySet<string>;
+  /** As que aceitam valor: coluna gerada sempre recusa até o valor correto. */
+  readonly aceitamValor: ReadonlySet<string>;
+  readonly referencia: Date;
+}
+
+async function plantarConjunto({
+  cliente,
+  conjunto,
+  colunas,
+  aceitamValor,
+  referencia,
+}: PedidoDePlantar): Promise<void> {
   const primeira = conjunto.linhas[0];
   if (primeira !== undefined) {
     exigirColunasConhecidas(conjunto.tabela, primeira, colunas);
   }
 
   for (const [indice, linha] of conjunto.linhas.entries()) {
-    const insercao = montarInsercao(conjunto.tabela, linha);
+    const completada = comInstantesDeterministicos({
+      tabela: conjunto.tabela,
+      linha: comIdentificadorDeterministico(
+        conjunto.tabela,
+        linha,
+        indice,
+        aceitamValor,
+      ),
+      indice,
+      colunas,
+      referencia,
+    });
+    const insercao = montarInsercao(conjunto.tabela, completada);
     try {
       await cliente.query(insercao.texto, [...insercao.valores]);
     } catch (causa) {

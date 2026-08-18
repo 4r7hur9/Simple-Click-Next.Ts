@@ -91,8 +91,6 @@ bash infra/scripts/verificar.sh  # o portão completo
    exatamente o comportamento correto — o código está commitado em local e não
    subiu.
 
-
-
 1. ~~`infra/compose/.env.compose` não existe na raiz.~~ **Resolvido em
    17/08:** `setup.sh` gerou o arquivo, as senhas foram criadas com
    `openssl rand` e o banco de teste ficou na porta 5533 — a 5433 é do projeto
@@ -702,5 +700,11 @@ limpo e apague a linha.
 Enquanto a lista abaixo estiver vazia, nunca aconteceu.
 
 <!-- portao-contornado:inicio -->
+
+- **18/08/2026 · `56b7b48` no ramo `main`** — enviado sem passar pelo portão.
+  Motivo: não informado — quem pulou não declarou
+  Ficou sem verificação: separação de ambientes · cliente tipado do banco · formatação · qualidade de código · segredo no código · auditoria da especificação · verificação de tipos · contrato publicado em dia · testes de unidade · testes do site (estados e acessibilidade) · testes do cache (Redis de teste) · testes de fila (Redis) · testes de integração (banco efêmero) · migração compatível com a versão anterior · guardas estruturais do banco.
+  Para quitar: volte a esta versão, rode `bash infra/scripts/verificar.sh`
+  até sair limpo e apague esta linha.
 
 <!-- portao-contornado:fim -->

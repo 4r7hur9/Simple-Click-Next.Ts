@@ -3,6 +3,7 @@ import {
   copyFileSync,
   existsSync,
   mkdtempSync,
+  readFileSync,
   readdirSync,
   rmSync,
 } from "node:fs";
@@ -248,6 +249,8 @@ describe("publicação com migração que falha no meio", () => {
   let cliente: pg.Client;
   let veredito: Veredito;
   let temporario: string;
+  /** A migração que esta publicação traria, e que vai falhar. */
+  let migracaoQueFalha = "";
 
   beforeAll(async () => {
     banco = await criarBancoVazio("falha");
@@ -275,7 +278,30 @@ describe("publicação com migração que falha no meio", () => {
     // E agora o tropeço: alguém criou à mão, em produção, uma tabela com o
     // nome que a migração nova usa — a forma mais comum de uma migração falhar
     // no meio, porque a criação é ignorada e o que vem depois dela não é.
-    await cliente.query("CREATE TABLE app.audit_log (id bigint)");
+    //
+    // O nome é DESCOBERTO na própria migração que ficou de fora, e não escrito
+    // aqui: quando este teste nomeava a tabela à mão, ele passou a reprovar na
+    // primeira migração nova que entrou no projeto — a última deixou de ser a
+    // que ele imaginava. Teste que quebra a cada migração acrescentada é teste
+    // que alguém desativa.
+    const ultima = arquivos[arquivos.length - 1] as string;
+    migracaoQueFalha = ultima;
+    const sqlDaUltima = readFileSync(
+      join(DIRETORIO_DE_MIGRACOES, ultima),
+      "utf8",
+    );
+    const primeiraTabela = /CREATE TABLE (?:IF NOT EXISTS )?app\.(\w+)/i.exec(
+      sqlDaUltima,
+    );
+    if (primeiraTabela === null) {
+      throw new Error(
+        `A migração ${ultima} não cria tabela nenhuma, então não há colisão a simular. ` +
+          "Este teste precisa de uma migração que crie tabela para provar a interrupção.",
+      );
+    }
+    await cliente.query(
+      `CREATE TABLE app.${primeiraTabela[1] as string} (id bigint)`,
+    );
 
     veredito = publicar(banco.url);
   }, ESPERA_LONGA);
@@ -298,40 +324,58 @@ describe("publicação com migração que falha no meio", () => {
 
     // A recusa nomeia o arquivo: sem isso, quem lê o registro sabe que falhou e
     // não sabe onde.
-    expect(veredito.texto).toContain("0006_impressao_e_auditoria.sql");
+    expect(veredito.texto).toContain(migracaoQueFalha);
   });
 
   it("@spec:AC-029 não deixa o banco em estado misto: da migração que falhou, nada entrou", async () => {
     // O livro de controle continua com as cinco de antes, e só elas.
     const registradas = await migracoesRegistradas(cliente);
     expect(registradas).toHaveLength(lerMigracoes().length - 1);
-    expect(registradas).not.toContain("0006_impressao_e_auditoria.sql");
+    expect(registradas).not.toContain(migracaoQueFalha);
 
     // E nenhum objeto da migração que falhou sobrou pelo caminho: índice,
     // política e gatilho vinham DEPOIS do comando que quebrou, e todos foram
     // desfeitos junto — é a transação por arquivo que garante isso.
-    expect(
-      await contar(
-        cliente,
-        `SELECT count(*)::int AS total FROM pg_indexes
-          WHERE schemaname = 'app' AND indexname = 'audit_log_store_ix'`,
+    //
+    // Os nomes são LIDOS da migração que falhou, e não escritos aqui. Antes eram
+    // fixos, e o teste passou a mentir na primeira migração nova: ele conferia a
+    // ausência de objetos de um arquivo que agora é aplicado com sucesso, então
+    // media zero por motivo errado e passava sem provar nada.
+    const sqlQueFalhou = readFileSync(
+      join(DIRETORIO_DE_MIGRACOES, migracaoQueFalha),
+      "utf8",
+    );
+
+    const indices = [
+      ...sqlQueFalhou.matchAll(
+        /CREATE (?:UNIQUE )?INDEX (?:IF NOT EXISTS )?(\w+)/gi,
       ),
-    ).toBe(0);
-    expect(
-      await contar(
-        cliente,
-        `SELECT count(*)::int AS total FROM pg_policy p
-           JOIN pg_class c ON c.oid = p.polrelid
-          WHERE c.relname = 'audit_log'`,
-      ),
-    ).toBe(0);
-    expect(
-      await contar(
-        cliente,
-        `SELECT count(*)::int AS total FROM pg_trigger
-          WHERE tgname = 'audit_log_append_only'`,
-      ),
-    ).toBe(0);
+    ].map((achado) => achado[1] as string);
+    const politicas = [...sqlQueFalhou.matchAll(/CREATE POLICY (\w+)/gi)].map(
+      (achado) => achado[1] as string,
+    );
+
+    // Sem isto, uma migração que não criasse índice nem política deixaria as
+    // duas listas vazias e o teste passaria sem ter olhado para nada.
+    expect(indices.length + politicas.length).toBeGreaterThan(0);
+
+    for (const indice of indices) {
+      expect(
+        await contar(
+          cliente,
+          `SELECT count(*)::int AS total FROM pg_indexes
+            WHERE schemaname = 'app' AND indexname = '${indice}'`,
+        ),
+      ).toBe(0);
+    }
+    for (const politica of politicas) {
+      expect(
+        await contar(
+          cliente,
+          `SELECT count(*)::int AS total FROM pg_policy WHERE polname = '${politica}'`,
+        ),
+      ).toBe(0);
+    }
   });
 
   it("@spec:AC-029 a publicação seguinte encontra o banco intacto e volta a reprovar do mesmo jeito", async () => {

@@ -138,6 +138,31 @@ interface ApoioDaLoja {
 const apoio: Record<string, ApoioDaLoja> = {};
 
 /**
+ * A linha de apoio daquela loja, ou falha dizendo qual falta.
+ *
+ * Devolver `undefined` aqui seria pior que falhar: a chave estrangeira entraria
+ * nula, a linha seria criada mesmo assim e a prova de isolamento passaria sem
+ * ter olhado para o vínculo que deveria testar.
+ */
+function exigirApoio(loja: string, campo: keyof ApoioDaLoja): string {
+  const daPropriaLoja = apoio[loja]?.[campo];
+  if (daPropriaLoja !== undefined && daPropriaLoja !== "") return daPropriaLoja;
+
+  // A loja de destino das inserções fica sem dado de propósito, e o teste de
+  // inserção monta uma linha para ela. Aqui o vínculo cai no da loja A — e isso
+  // deixa a prova MAIS fiel, não menos: um atacante que tenta plantar na loja
+  // vizinha usa os identificadores que ele tem, que são os dele. O que precisa
+  // ser recusado é o `store_id`, e é isso que o teste mede.
+  const emprestado = apoio[lojaA]?.[campo];
+  if (emprestado !== undefined && emprestado !== "") return emprestado;
+
+  throw new Error(
+    `A linha de apoio \`${campo}\` não existe nem na loja ${loja} nem na loja A. ` +
+      "Confira a ordem das camadas em CAMADAS: a tabela que depende dela precisa vir depois.",
+  );
+}
+
+/**
  * O que a varredura sabe povoar. Tabela de loja que não estiver aqui reprova a
  * suíte pedindo o construtor — e é para isso que a lista existe.
  */
@@ -220,6 +245,20 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
 
   // ── Catálogo (migração 0007) ─────────────────────────────────────────────
 
+  assets: {
+    chave: "id",
+    // Trocar a chave de armazenamento da loja vizinha é o ataque útil aqui:
+    // aponta a imagem dela para outro arquivo.
+    alteracao: { coluna: "storage_key", valor: "sequestrado/arquivo.webp" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      kind: "PRODUCT_IMAGE",
+      status: "READY",
+      storage_key: `exemplo/${marca}/arquivo.webp`,
+      mime_type: "image/webp",
+    }),
+  },
+
   categories: {
     chave: "id",
     alteracao: { coluna: "name", valor: "Categoria sequestrada" },
@@ -235,8 +274,8 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "sort_order", valor: 99 },
     colunas: (loja) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
-      category_id: apoio[loja]?.categoria,
+      product_id: exigirApoio(loja, "produto"),
+      category_id: exigirApoio(loja, "categoria"),
     }),
   },
 
@@ -245,7 +284,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "alt_text", valor: "Imagem sequestrada" },
     colunas: (loja, marca) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
+      product_id: exigirApoio(loja, "produto"),
       url: `https://exemplo.test/${marca}.jpg`,
       alt_text: `Imagem ${marca}`,
     }),
@@ -256,7 +295,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "name", valor: "Variante sequestrada" },
     colunas: (loja, marca) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
+      product_id: exigirApoio(loja, "produto"),
       name: `Variante ${marca}`,
       sku: `sku-${marca}`,
     }),
@@ -269,7 +308,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "amount_cents", valor: 1 },
     colunas: (loja) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
+      product_id: exigirApoio(loja, "produto"),
       kind: "BASE",
       amount_cents: 1990,
     }),
@@ -291,7 +330,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "price_delta_cents", valor: 9999 },
     colunas: (loja, marca) => ({
       store_id: loja,
-      group_id: apoio[loja]?.grupoDeOpcao,
+      group_id: exigirApoio(loja, "grupoDeOpcao"),
       name: `Opção ${marca}`,
       price_delta_cents: 300,
     }),
@@ -302,19 +341,22 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "sort_order", valor: 99 },
     colunas: (loja) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
-      group_id: apoio[loja]?.grupoDeOpcao,
+      product_id: exigirApoio(loja, "produto"),
+      group_id: exigirApoio(loja, "grupoDeOpcao"),
     }),
   },
 
   variant_option_values: {
     chave: "id",
-    alteracao: { coluna: "option_item_id", valor: "00000000-0000-0000-0000-000000000000" },
+    alteracao: {
+      coluna: "option_item_id",
+      valor: "00000000-0000-0000-0000-000000000000",
+    },
     colunas: (loja) => ({
       store_id: loja,
-      variant_id: apoio[loja]?.variante,
-      group_id: apoio[loja]?.grupoDeOpcao,
-      option_item_id: apoio[loja]?.itemDeOpcao,
+      variant_id: exigirApoio(loja, "variante"),
+      group_id: exigirApoio(loja, "grupoDeOpcao"),
+      option_item_id: exigirApoio(loja, "itemDeOpcao"),
     }),
   },
 
@@ -323,7 +365,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "label", valor: "Especificação sequestrada" },
     colunas: (loja, marca) => ({
       store_id: loja,
-      category_id: apoio[loja]?.categoria,
+      category_id: exigirApoio(loja, "categoria"),
       key: `chave_${marca}`,
       label: `Especificação ${marca}`,
       data_type: "TEXT",
@@ -335,8 +377,8 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "value_text", valor: "valor sequestrado" },
     colunas: (loja, marca) => ({
       store_id: loja,
-      product_id: apoio[loja]?.produto,
-      definition_id: apoio[loja]?.definicao,
+      product_id: exigirApoio(loja, "produto"),
+      definition_id: exigirApoio(loja, "definicao"),
       value_text: `valor ${marca}`,
     }),
   },
@@ -373,7 +415,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     chave: "order_id",
     alteracao: { coluna: "name", valor: "Cliente sequestrado" },
     colunas: (loja, marca) => ({
-      order_id: apoio[loja]?.pedido,
+      order_id: exigirApoio(loja, "pedido"),
       store_id: loja,
       name: `Cliente ${marca}`,
       phone_e164: marca === "a" ? "+5585900000001" : "+5585900000002",
@@ -385,7 +427,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "unit_price_cents", valor: 1 },
     colunas: (loja, marca) => ({
       store_id: loja,
-      order_id: apoio[loja]?.pedido,
+      order_id: exigirApoio(loja, "pedido"),
       // Nome COPIADO, não lido do produto: é o que faz o pedido sobreviver ao
       // produto ser renomeado ou apagado.
       product_name: `Produto ${marca}`,
@@ -400,7 +442,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "option_name_snapshot", valor: "Opção sequestrada" },
     colunas: (loja, marca) => ({
       store_id: loja,
-      order_item_id: apoio[loja]?.itemDePedido,
+      order_item_id: exigirApoio(loja, "itemDePedido"),
       group_name_snapshot: `Grupo ${marca}`,
       option_name_snapshot: `Opção ${marca}`,
       price_delta_cents: 300,
@@ -412,7 +454,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "to_status", valor: "CANCELLED" },
     colunas: (loja) => ({
       store_id: loja,
-      order_id: apoio[loja]?.pedido,
+      order_id: exigirApoio(loja, "pedido"),
       to_status: "PENDING",
     }),
   },
@@ -432,12 +474,11 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     alteracao: { coluna: "quantity", valor: 99 },
     colunas: (loja) => ({
       store_id: loja,
-      cart_id: apoio[loja]?.carrinho,
-      product_id: apoio[loja]?.produto,
+      cart_id: exigirApoio(loja, "carrinho"),
+      product_id: exigirApoio(loja, "produto"),
       quantity: 1,
     }),
   },
-
 };
 
 // ---------------------------------------------------------------------------
@@ -790,13 +831,37 @@ beforeAll(async () => {
   // distinguiria isolamento de acidente.
   const CAMADAS: readonly (readonly string[])[] = [
     ["stores"],
-    ["store_settings", "store_domains", "store_members", "store_customers",
-     "products", "categories", "option_groups", "carts", "store_sequences"],
-    ["orders", "product_variants", "option_items", "attribute_definitions",
-     "product_images", "product_prices", "product_categories",
-     "product_option_groups", "cart_items", "audit_log"],
-    ["order_contacts", "order_items", "order_status_history",
-     "variant_option_values", "product_attributes"],
+    [
+      "store_settings",
+      "store_domains",
+      "store_members",
+      "store_customers",
+      "products",
+      "assets",
+      "categories",
+      "option_groups",
+      "carts",
+      "store_sequences",
+    ],
+    [
+      "orders",
+      "product_variants",
+      "option_items",
+      "attribute_definitions",
+      "product_images",
+      "product_prices",
+      "product_categories",
+      "product_option_groups",
+      "cart_items",
+      "audit_log",
+    ],
+    [
+      "order_contacts",
+      "order_items",
+      "order_status_history",
+      "variant_option_values",
+      "product_attributes",
+    ],
     ["order_item_options"],
   ];
 
