@@ -44,8 +44,14 @@ etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-in
 
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
+# As guardas estruturais rodam contra um banco de prova efêmero, criado de molde
+# vazio e migrado na hora (AC-008, AC-035). É o que faz elas falarem sobre o
+# REPOSITÓRIO: rodar contra o banco de desenvolvimento de quem chamou diria
+# apenas o que aquela máquina tem hoje — inclusive um banco vazio, que passaria
+# em todas as guardas sem que nenhuma tivesse olhado para nada.
+etapa "guardas estruturais do banco" bash infra/scripts/db-guards.sh
+
 # Etapas que entram conforme as tarefas concluem:
-#   T-004/T-005 → guardas estruturais do banco
 #   T-020       → telas de ponta a ponta e acessibilidade
 
 printf '\n'

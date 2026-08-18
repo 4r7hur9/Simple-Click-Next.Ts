@@ -80,6 +80,14 @@ export default defineConfig({
         oxc: conversaoDeJsx,
         test: {
           name: "api-int",
+          // A migração 0001 cria PAPÉIS, e papel é objeto do agrupamento, não
+          // do banco. Dois arquivos deste projeto rodando ao mesmo tempo
+          // disparam dois ALTER ROLE sobre a mesma linha do catálogo
+          // compartilhado, e o PostgreSQL recusa com "tuple concurrently
+          // updated" — a trava do aplicador de migrações não alcança isso,
+          // porque ela é por banco e os bancos são distintos. Serializar só
+          // aqui: os projetos de unidade e de tela seguem em paralelo.
+          fileParallelism: false,
           include: [
             "apps/api/tests/**/*.test.ts",
             "apps/api/src/**/*.int.test.ts",
@@ -93,6 +101,14 @@ export default defineConfig({
         oxc: conversaoDeJsx,
         test: {
           name: "db-rls",
+          // A migração 0001 cria PAPÉIS, e papel é objeto do agrupamento, não
+          // do banco. Dois arquivos deste projeto rodando ao mesmo tempo
+          // disparam dois ALTER ROLE sobre a mesma linha do catálogo
+          // compartilhado, e o PostgreSQL recusa com "tuple concurrently
+          // updated" — a trava do aplicador de migrações não alcança isso,
+          // porque ela é por banco e os bancos são distintos. Serializar só
+          // aqui: os projetos de unidade e de tela seguem em paralelo.
+          fileParallelism: false,
           include: [
             "packages/database/src/**/*.test.ts",
             "packages/testing/src/**/*.test.ts",

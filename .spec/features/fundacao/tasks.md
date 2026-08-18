@@ -30,11 +30,11 @@
 - Notas: três credenciais distintas — migração, aplicação e administração. A credencial da aplicação não pode contornar o isolamento. Segue o modelo em design/modelo-de-dados.md, com a precedência do adendo do topo.
 - Esforço: max
 
-## T-005 — Guardas estruturais do banco no portão de qualidade [pendente]
+## T-005 — Guardas estruturais do banco no portão de qualidade [concluida]
 
 - Refs: AC-008, AC-035
-- Arquivos: packages/database/guards/g1_isolamento_ativo.sql, packages/database/guards/g2_politica_por_comando.sql, packages/database/guards/g3_unica_por_loja.sql, packages/database/guards/g4_politica_cita_loja.sql, packages/database/guards/g5_indice_cobre_politica.sql, packages/database/guards/g6_sem_matview_multi_loja.sql, packages/database/guards/g7_view_com_invocador.sql, packages/database/guards/g8_pedido_imutavel.sql, packages/database/guards/g9_auditoria_sem_alteracao.sql, infra/scripts/db-guards.sh, .github/workflows/db-guards.yml
-- Notas: a guarda 4 existe por achado medido — política sem o identificador da loja no conjunto destrói o índice ordenado. A guarda 5 confere que o índice inclui também as colunas citadas pelas políticas.
+- Arquivos: packages/database/guards/g1_isolamento_ativo.sql, packages/database/guards/g2_politica_por_comando.sql, packages/database/guards/g3_unica_por_loja.sql, packages/database/guards/g4_politica_cita_loja.sql, packages/database/guards/g5_indice_cobre_politica.sql, packages/database/guards/g6_sem_matview_multi_loja.sql, packages/database/guards/g7_view_com_invocador.sql, packages/database/guards/g8_pedido_imutavel.sql, packages/database/guards/g9_auditoria_sem_alteracao.sql, packages/database/src/guards.ts, packages/database/src/guards.test.ts, infra/scripts/db-guards.sh, infra/scripts/verificar.sh
+- Notas: a guarda 4 existe por achado medido — política sem o identificador da loja no conjunto destrói o índice ordenado. A guarda 5 confere que o índice inclui também as colunas citadas pelas políticas. Não há fluxo do GitHub Actions: a verificação deste projeto roda inteiramente na máquina do dono, e as guardas entram como etapa de `infra/scripts/verificar.sh`.
 - Esforço: alto
 
 ## T-006 — Caminho único de acesso ao banco com contexto por transação [pendente]
