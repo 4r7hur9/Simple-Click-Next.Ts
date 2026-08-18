@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:25:52.552Z",
-  "gitRev": "71c66fa",
+  "timestamp": "2026-08-18T13:31:48.741Z",
+  "gitRev": "b252ed7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 245,
+  "testsParsed": 271,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -20,6 +20,11 @@
     "AC-003": {
       "status": "pass",
       "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
+      "method": "vitest-json"
+    },
+    "AC-004": {
+      "status": "pass",
+      "testName": "cenário navegável @spec:AC-004 planta duas lojas de ramos diferentes com catálogo, clientes e pedidos, a partir de um banco vazio @spec:AC-004 planta duas lojas de ramos diferentes com catálogo, clientes e pedidos, a partir de um banco vazio",
       "method": "vitest-json"
     },
     "AC-005": {
@@ -95,6 +100,26 @@
     "AC-035": {
       "status": "pass",
       "testName": "guardas estruturais do banco @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos",
+      "method": "vitest-json"
+    },
+    "AC-036": {
+      "status": "pass",
+      "testName": "cobertura dos ramos e dos estados @spec:AC-036 planta uma loja de comida sem controle de estoque e uma loja de produto contável com estoque @spec:AC-036 planta uma loja de comida sem controle de estoque e uma loja de produto contável com estoque",
+      "method": "vitest-json"
+    },
+    "AC-037": {
+      "status": "pass",
+      "testName": "determinismo da carga @spec:AC-037 produz bancos idênticos ao rodar duas vezes em bancos vazios distintos @spec:AC-037 produz bancos idênticos ao rodar duas vezes em bancos vazios distintos",
+      "method": "vitest-json"
+    },
+    "AC-038": {
+      "status": "pass",
+      "testName": "@spec:AC-038 monta um cenário completo em poucas linhas e o encontra no banco @spec:AC-038 monta um cenário completo em poucas linhas e o encontra no banco",
+      "method": "vitest-json"
+    },
+    "AC-039": {
+      "status": "pass",
+      "testName": "recusa fora do desenvolvimento @spec:AC-039 se recusa a rodar quando o ambiente indica produção, e não escreve nada @spec:AC-039 se recusa a rodar quando o ambiente indica produção, e não escreve nada",
       "method": "vitest-json"
     }
   },

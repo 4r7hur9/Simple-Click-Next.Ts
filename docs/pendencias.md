@@ -182,7 +182,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     espelho em `factories.ts` precisa mudar junto. O ponto de correção
     definitivo seria a regra subir para `packages/database`, que as duas
     camadas podem importar; fica para quando a divergência incomodar.
-14. **A carga de exemplo (T-008) declara 17 tabelas que ainda não existem.** O
+16. **A carga de exemplo (T-008) declara 17 tabelas que ainda não existem.** O
     cenário descreve o catálogo e os pedidos inteiros — categorias,
     especificações por categoria, imagens, variações com estoque, preços
     nomeados, grupos de opção e pedidos em todos os status —, mas as migrações
@@ -210,7 +210,7 @@ bash infra/scripts/verificar.sh  # o portão completo
       `packages/database/seed/`.** Enquanto isso, AC-036 está provado no banco
       para o que o esquema suporta e no cenário para o que ainda não existe.
 
-15. **`stores.updated_at` é a única coluna que difere entre duas cargas.**
+17. **`stores.updated_at` é a única coluna que difere entre duas cargas.**
     `bump_catalog_version` atualiza a linha da loja a cada produto plantado, e o
     gatilho `stores_touch` grava `now()` — que é o relógio do servidor, não um
     dado do cenário. A carga não tem como escrevê-lo: a credencial de
@@ -221,7 +221,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     e qualquer coluna. Se um `now()` aparecer em outro lugar, o segundo teste
     reprova.
 
-16. **A carga de exemplo não recarrega: ela recusa banco que já tem dados.**
+18. **A carga de exemplo não recarrega: ela recusa banco que já tem dados.**
     `audit_log` não aceita alteração nem remoção (gatilho `deny_mutation`, que
     vale inclusive para a credencial de migração), então não existe "apagar e
     plantar de novo" que devolva o banco ao estado inicial — e plantar por cima
@@ -231,7 +231,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     Se um dia isso incomodar, o caminho é um comando de recriação do banco de
     desenvolvimento, e não um "recarregar" que mente.
 
-17. **`pnpm typecheck` já reprovava em `packages/database/src/guards.ts` antes
+19. **`pnpm typecheck` já reprovava em `packages/database/src/guards.ts` antes
     da T-008.** Duas chamadas passam o módulo `pg` para o parâmetro `ModuloPg`,
     e as assinaturas divergem porque `@types/pg` está em 8.21 na raiz e em 8.15
     em `packages/testing` — `Client.connect()` devolve `Promise<Client>` numa
@@ -240,7 +240,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     `infra/scripts/verificar.sh` ainda não tem etapa de tipos. Alinhar a versão
     de `@types/pg` no catálogo do workspace resolve; entra na T-017, com as
     dívidas 2 e 10.
-14. **A varredura de isolamento cobre o papel `OWNER`, e só ele.**
+20. **A varredura de isolamento cobre o papel `OWNER`, e só ele.**
     `apps/api/tests/isolamento-varredura.test.ts` prova as quatro operações com
     a requisição no papel de dono, que é o eixo de isolamento por loja. O
     segundo eixo — o do comprador, que enxerga a própria linha em qualquer loja
@@ -250,14 +250,14 @@ bash infra/scripts/verificar.sh  # o portão completo
     uma segunda passada no papel `CUSTOMER`, provando que ele NÃO enxerga a
     linha de outra pessoa na mesma loja.
 
-15. **A varredura mira a linha por chave de UMA coluna.** O construtor de cada
+21. **A varredura mira a linha por chave de UMA coluna.** O construtor de cada
     tabela declara `chave: "id"` (ou `store_id`), e as tentativas de alteração e
     remoção montam `WHERE <chave>::text = $1`. Nenhuma tabela de hoje tem chave
     primária composta; a primeira que tiver vai precisar que o construtor passe
     a aceitar mais de uma coluna. Não é armadilha silenciosa: sem construtor a
     varredura reprova, e com construtor incompleto o teste quebra na hora.
 
-16. **`packages/database` não passa na verificação de tipos, e isso já vinha de
+22. **`packages/database` não passa na verificação de tipos, e isso já vinha de
     antes.** `pnpm typecheck` reprova em `packages/database/src/guards.ts:320`
     com incompatibilidade entre o módulo `pg` real e o tipo `ModuloPg` declarado
     ali (`connect()` devolve `Promise<Client>`, não `Promise<void>`). Foi
@@ -268,7 +268,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     consolidado: corrigir a assinatura em `guards.ts` e ACRESCENTAR
     `pnpm typecheck` ao portão, senão o próximo erro de tipo também vai passar.
 
-17. **`@types/pg` estava em duas versões no monorepo.** `packages/testing`
+23. **`@types/pg` estava em duas versões no monorepo.** `packages/testing`
     declarava `8.15.6` enquanto `packages/database` e `apps/api` já usavam
     `8.21.0`, e a divergência fazia o MESMO `pg.Client` ser dois tipos
     incompatíveis — o cliente devolvido por `conectarNoBancoDoArquivo()` não
@@ -277,7 +277,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     banco, alinhe também — ou o catálogo do `pnpm-workspace.yaml` passa a ser o
     lugar certo para essa versão.
 
-18. **`apps/api/tsconfig.json` deixou de declarar `rootDir`.** Ele foi para
+24. **`apps/api/tsconfig.json` deixou de declarar `rootDir`.** Ele foi para
     `tsconfig.build.json`, que é quem gera `dist/`. O motivo: `rootDir: "src"`
     barrava `apps/api/tests/`, e teste que a verificação de tipos não olha é
     teste que compila errado sem ninguém saber. A geração continua idêntica
