@@ -40,7 +40,7 @@
 ## T-505 — Criação do pedido com número por loja e sem duplicata [pendente]
 
 - Refs: US-503, AC-514, AC-516, AC-517, AC-518
-- Arquivos: apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/src/modules/orders/criar-pedido.usecase.test.ts, apps/api/src/modules/orders/numero-pedido.ts, apps/api/src/modules/orders/numero-pedido.test.ts, apps/api/tests/pedido-idempotente.test.ts
+- Arquivos: apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/src/modules/orders/criar-pedido.usecase.test.ts, apps/api/src/modules/orders/numero-pedido.ts, apps/api/src/modules/orders/numero-pedido.test.ts, apps/api/tests/pedido-idempotente.test.ts, packages/database/migrations/0008_pedidos.sql
 - Notas: número sequencial por loja com incremento atômico. Envio repetido devolve o mesmo pedido em vez de criar outro. Loja fechada não aceita e preserva o carrinho. Convidado fecha pedido sem conta e recebe o link.
 - Esforço: max
 

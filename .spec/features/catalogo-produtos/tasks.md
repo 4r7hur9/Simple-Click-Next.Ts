@@ -5,7 +5,7 @@
 ## T-300 — Categorias com ordenação e visibilidade [pendente]
 
 - Refs: US-300, AC-300, AC-301, AC-302, AC-303
-- Arquivos: apps/api/src/modules/catalog/categorias.usecase.ts, apps/api/src/modules/catalog/categorias.usecase.test.ts, apps/api/src/modules/catalog/catalog.schema.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaOrdenavel.tsx, packages/contracts/src/catalog.ts
+- Arquivos: apps/api/src/modules/catalog/categorias.usecase.ts, apps/api/src/modules/catalog/categorias.usecase.test.ts, apps/api/src/modules/catalog/catalog.schema.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaOrdenavel.tsx, packages/contracts/src/catalog.ts, packages/database/migrations/0007_catalogo_completo.sql
 - Notas: apagar categoria com produtos exige escolher destino, para não criar produto órfão. Ocultar não apaga produto.
 - Esforço: alto
 
