@@ -135,7 +135,7 @@
 - Notas: sem regra de negócio. Existe para que as fatias seguintes tenham onde encostar, e para provar o caminho de ponta a ponta do ambiente. `tokens.css` nasce vazio e vira o `@import` do design system quando a T-016 publicar `packages/ui`. O arquivo de proxy tem esse nome porque o Next 16 ignora `middleware.ts` em silêncio.
 - Esforço: medio
 
-## T-020 — Manifesto de rotas e cobertura de telas [pendente]
+## T-020 — Manifesto de rotas e cobertura de telas [concluida]
 
 - Refs: US-004, AC-016
 - Arquivos: apps/web/src/lib/routes.ts, e2e/playwright.config.ts, e2e/specs/rotas-manifesto.spec.ts, e2e/specs/manifesto-cobre-arquivos.spec.ts, e2e/specs/a11y.spec.ts, e2e/fixtures/auth.setup.ts

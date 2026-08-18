@@ -1,7 +1,7 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T15:36:42.578Z",
-  "gitRev": "c54eca3",
+  "timestamp": "2026-08-18T15:41:00.917Z",
+  "gitRev": "32a9f11",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
