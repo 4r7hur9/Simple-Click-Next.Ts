@@ -559,24 +559,20 @@ describe("guardas estruturais do banco", () => {
     async () => {
       expect(await objetosApontadosPor("g8_pedido_imutavel.sql")).toEqual([]);
 
+      // A política defeituosa é criada na tabela REAL, e não numa imitação.
+      // Quando este teste foi escrito, `order_items` ainda não existia e ele
+      // precisava fabricá-la; agora que a migração a criou, provar contra a
+      // tabela de verdade é mais forte: se alguém der o poder de alterar item
+      // de pedido na migração, é exatamente esta política que vai aparecer.
       await comDefeito(
         [
-          `CREATE TABLE app.order_items (
-             id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-             store_id uuid NOT NULL REFERENCES app.stores (id),
-             product_name     text   NOT NULL,
-             unit_price_cents bigint NOT NULL)`,
-          `CREATE POLICY oi_staff_select ON app.order_items FOR SELECT TO sc_app
-             USING (store_id = (SELECT app.current_store_id()))`,
-          `CREATE POLICY oi_staff_insert ON app.order_items FOR INSERT TO sc_app
-             WITH CHECK (store_id = (SELECT app.current_store_id()))`,
           // O defeito: item de pedido é cópia congelada da compra (P-010), e
           // alterar produto depois nunca pode mudar pedido já feito.
           `CREATE POLICY oi_staff_update ON app.order_items FOR UPDATE TO sc_app
              USING      (store_id = (SELECT app.current_store_id()))
              WITH CHECK (store_id = (SELECT app.current_store_id()))`,
         ],
-        ["DROP TABLE app.order_items"],
+        ["DROP POLICY IF EXISTS oi_staff_update ON app.order_items"],
         async () => {
           expect(await objetosApontadosPor("g8_pedido_imutavel.sql")).toEqual([
             "app.order_items / oi_staff_update",
@@ -597,6 +593,9 @@ describe("guardas estruturais do banco", () => {
           );
           const objetos = await objetosApontadosPor("g8_pedido_imutavel.sql");
           expect(objetos).toContain("app.order_items / oi_admin_all");
+          // Desfeita aqui mesmo: com a tabela real, política esquecida viraria
+          // sujeira que reprova o teste seguinte por motivo alheio a ele.
+          await migrador.query("DROP POLICY oi_admin_all ON app.order_items");
         },
       );
 

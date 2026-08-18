@@ -442,7 +442,7 @@ describe("aplicador de migrações", () => {
   it(
     "@spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta",
     async () => {
-      const nova = "0007_coluna_que_o_codigo_espera.sql";
+      const nova = "0999_coluna_que_o_codigo_espera.sql";
       const temporario = diretorioComMigracaoNova(
         nova,
         [

@@ -73,6 +73,26 @@ bash infra/scripts/verificar.sh  # o portão completo
 
 ## Dívidas abertas
 
+0. **Cinco testes falham depois das migrações de catálogo e pedidos (18/08).**
+   As 20 tabelas novas fizeram testes de cobertura reprovarem — e reprovarem
+   certo: eles cobram que tabela existente esteja coberta. Vinte divergências
+   foram corrigidas; estas cinco continuam:
+
+   - `seed.test.ts` — dois testes de determinismo (AC-037). O cenário compara
+     dois bancos coluna a coluna e ainda encontra uma diferença de relógio: há
+     coluna `updated_at` nas tabelas novas que o cenário não informa e o banco
+     preenche com `now()`. O caminho é achar a última e informá-la; o padrão já
+     está estabelecido nas que foram corrigidas.
+   - `pre-deploy.int.test.ts` — publicação com migração que falha no meio.
+   - Dois testes de integração da API que dependem do cenário completo.
+
+   Nada disso é regressão do produto: são os testes de cobertura pedindo que o
+   dado de exemplo acompanhe o esquema. O portão está barrando o envio, que é
+   exatamente o comportamento correto — o código está commitado em local e não
+   subiu.
+
+
+
 1. ~~`infra/compose/.env.compose` não existe na raiz.~~ **Resolvido em
    17/08:** `setup.sh` gerou o arquivo, as senhas foram criadas com
    `openssl rand` e o banco de teste ficou na porta 5533 — a 5433 é do projeto

@@ -115,6 +115,29 @@ function relatar(violacoes: readonly Violacao[]): string {
 let identidadeDeApoio = "";
 
 /**
+ * Linhas de apoio criadas por loja, antes da semeadura.
+ *
+ * Existem porque `colunas()` é sincrônico de propósito — o construtor descreve
+ * uma linha, não executa consulta. Tabela que depende de produto, categoria ou
+ * pedido precisa que esses já existam na loja certa, e é isso que este mapa
+ * guarda. Uma linha de apoio POR LOJA, porque uma compartilhada faria a loja A
+ * apontar para dado da loja B e o teste passaria por acidente.
+ */
+interface ApoioDaLoja {
+  produto: string;
+  categoria: string;
+  variante: string;
+  grupoDeOpcao: string;
+  itemDeOpcao: string;
+  definicao: string;
+  pedido: string;
+  itemDePedido: string;
+  carrinho: string;
+}
+
+const apoio: Record<string, ApoioDaLoja> = {};
+
+/**
  * O que a varredura sabe povoar. Tabela de loja que não estiver aqui reprova a
  * suíte pedindo o construtor — e é para isso que a lista existe.
  */
@@ -194,6 +217,227 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       entity_id: marca,
     }),
   },
+
+  // ── Catálogo (migração 0007) ─────────────────────────────────────────────
+
+  categories: {
+    chave: "id",
+    alteracao: { coluna: "name", valor: "Categoria sequestrada" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      name: `Categoria ${marca}`,
+      slug: `categoria-${marca}`,
+    }),
+  },
+
+  product_categories: {
+    chave: "id",
+    alteracao: { coluna: "sort_order", valor: 99 },
+    colunas: (loja) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      category_id: apoio[loja]?.categoria,
+    }),
+  },
+
+  product_images: {
+    chave: "id",
+    alteracao: { coluna: "alt_text", valor: "Imagem sequestrada" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      url: `https://exemplo.test/${marca}.jpg`,
+      alt_text: `Imagem ${marca}`,
+    }),
+  },
+
+  product_variants: {
+    chave: "id",
+    alteracao: { coluna: "name", valor: "Variante sequestrada" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      name: `Variante ${marca}`,
+      sku: `sku-${marca}`,
+    }),
+  },
+
+  product_prices: {
+    chave: "id",
+    // Alterar preço da outra loja é o ataque mais direto que existe aqui: o
+    // valor que o cliente vai pagar.
+    alteracao: { coluna: "amount_cents", valor: 1 },
+    colunas: (loja) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      kind: "BASE",
+      amount_cents: 1990,
+    }),
+  },
+
+  option_groups: {
+    chave: "id",
+    alteracao: { coluna: "name", valor: "Grupo sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      name: `Grupo ${marca}`,
+      kind: "ADDON",
+      min_select: 0,
+    }),
+  },
+
+  option_items: {
+    chave: "id",
+    alteracao: { coluna: "price_delta_cents", valor: 9999 },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      group_id: apoio[loja]?.grupoDeOpcao,
+      name: `Opção ${marca}`,
+      price_delta_cents: 300,
+    }),
+  },
+
+  product_option_groups: {
+    chave: "id",
+    alteracao: { coluna: "sort_order", valor: 99 },
+    colunas: (loja) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      group_id: apoio[loja]?.grupoDeOpcao,
+    }),
+  },
+
+  variant_option_values: {
+    chave: "id",
+    alteracao: { coluna: "option_item_id", valor: "00000000-0000-0000-0000-000000000000" },
+    colunas: (loja) => ({
+      store_id: loja,
+      variant_id: apoio[loja]?.variante,
+      group_id: apoio[loja]?.grupoDeOpcao,
+      option_item_id: apoio[loja]?.itemDeOpcao,
+    }),
+  },
+
+  attribute_definitions: {
+    chave: "id",
+    alteracao: { coluna: "label", valor: "Especificação sequestrada" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      category_id: apoio[loja]?.categoria,
+      key: `chave_${marca}`,
+      label: `Especificação ${marca}`,
+      data_type: "TEXT",
+    }),
+  },
+
+  product_attributes: {
+    chave: "id",
+    alteracao: { coluna: "value_text", valor: "valor sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      product_id: apoio[loja]?.produto,
+      definition_id: apoio[loja]?.definicao,
+      value_text: `valor ${marca}`,
+    }),
+  },
+
+  // ── Pedidos e carrinho (migração 0008) ───────────────────────────────────
+
+  store_sequences: {
+    chave: "store_id",
+    alteracao: { coluna: "last_value", valor: 999 },
+    colunas: (loja) => ({ store_id: loja, kind: "order", last_value: 10 }),
+  },
+
+  orders: {
+    chave: "id",
+    // O status é o que a loja vizinha mais teria interesse em mexer: marcar o
+    // pedido do concorrente como cancelado.
+    alteracao: { coluna: "status", valor: "CANCELLED" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      number: marca === "a" ? 101 : 201,
+      code: `PED-${marca}`,
+      // Token do tamanho real: é o endereço da página pública, e o teste de
+      // enumeração depende de ele não ser adivinhável.
+      public_token: `tok-${marca}-${"0".repeat(24)}${marca}`,
+      status: "PENDING",
+      channel: "ONLINE",
+      fulfillment: "DELIVERY",
+      items_total_cents: 1990,
+      total_cents: 1990,
+    }),
+  },
+
+  order_contacts: {
+    chave: "order_id",
+    alteracao: { coluna: "name", valor: "Cliente sequestrado" },
+    colunas: (loja, marca) => ({
+      order_id: apoio[loja]?.pedido,
+      store_id: loja,
+      name: `Cliente ${marca}`,
+      phone_e164: marca === "a" ? "+5585900000001" : "+5585900000002",
+    }),
+  },
+
+  order_items: {
+    chave: "id",
+    alteracao: { coluna: "unit_price_cents", valor: 1 },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      order_id: apoio[loja]?.pedido,
+      // Nome COPIADO, não lido do produto: é o que faz o pedido sobreviver ao
+      // produto ser renomeado ou apagado.
+      product_name: `Produto ${marca}`,
+      quantity: 1,
+      unit_price_cents: 1990,
+      line_total_cents: 1990,
+    }),
+  },
+
+  order_item_options: {
+    chave: "id",
+    alteracao: { coluna: "option_name_snapshot", valor: "Opção sequestrada" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      order_item_id: apoio[loja]?.itemDePedido,
+      group_name_snapshot: `Grupo ${marca}`,
+      option_name_snapshot: `Opção ${marca}`,
+      price_delta_cents: 300,
+    }),
+  },
+
+  order_status_history: {
+    chave: "id",
+    alteracao: { coluna: "to_status", valor: "CANCELLED" },
+    colunas: (loja) => ({
+      store_id: loja,
+      order_id: apoio[loja]?.pedido,
+      to_status: "PENDING",
+    }),
+  },
+
+  carts: {
+    chave: "id",
+    alteracao: { coluna: "channel", valor: "MANUAL" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      session_token: `sessao-${marca}`,
+      channel: "ONLINE",
+    }),
+  },
+
+  cart_items: {
+    chave: "id",
+    alteracao: { coluna: "quantity", valor: 99 },
+    colunas: (loja) => ({
+      store_id: loja,
+      cart_id: apoio[loja]?.carrinho,
+      product_id: apoio[loja]?.produto,
+      quantity: 1,
+    }),
+  },
+
 };
 
 // ---------------------------------------------------------------------------
@@ -535,12 +779,61 @@ beforeAll(async () => {
 
   descobertas = await descobrirTabelasDeLoja(migrador);
 
-  // `stores` primeiro: todas as outras tabelas apontam para ela.
-  const emOrdemDeDependencia = [...descobertas].sort((uma, outra) =>
-    uma.tabela === "stores" ? -1 : outra.tabela === "stores" ? 1 : 0,
-  );
+  // A ordem de semeadura É a ordem de dependência do banco, escrita à mão em
+  // camadas. Ordenação automática por nome não serve: `cart_items` depende de
+  // `carts` e de `products`, e nada no nome diz isso.
+  //
+  // Cada camada guarda em `apoio` a chave que acabou de semear, e a camada
+  // seguinte a usa como pai. Assim existe exatamente UMA linha por tabela por
+  // loja — a contagem importa, porque a prova de leitura exige que a loja A
+  // enxergue a própria linha e só ela: com duas, "enxerguei uma" não
+  // distinguiria isolamento de acidente.
+  const CAMADAS: readonly (readonly string[])[] = [
+    ["stores"],
+    ["store_settings", "store_domains", "store_members", "store_customers",
+     "products", "categories", "option_groups", "carts", "store_sequences"],
+    ["orders", "product_variants", "option_items", "attribute_definitions",
+     "product_images", "product_prices", "product_categories",
+     "product_option_groups", "cart_items", "audit_log"],
+    ["order_contacts", "order_items", "order_status_history",
+     "variant_option_values", "product_attributes"],
+    ["order_item_options"],
+  ];
 
-  for (const descoberta of emOrdemDeDependencia) {
+  const porNome = new Map(descobertas.map((d) => [d.tabela, d]));
+  const naOrdem: TabelaDeLoja[] = [];
+  for (const camada of CAMADAS) {
+    for (const nome of camada) {
+      const d = porNome.get(nome);
+      if (d !== undefined) {
+        naOrdem.push(d);
+        porNome.delete(nome);
+      }
+    }
+  }
+  // Tabela descoberta que não está em nenhuma camada entra no fim: quem cobra
+  // por ela é o primeiro teste, que reprova pedindo o construtor.
+  naOrdem.push(...porNome.values());
+
+  const guardarApoio = (loja: string, tabela: string, chave: string): void => {
+    const atual = apoio[loja] ?? ({} as ApoioDaLoja);
+    const campo: Partial<Record<string, keyof ApoioDaLoja>> = {
+      products: "produto",
+      categories: "categoria",
+      product_variants: "variante",
+      option_groups: "grupoDeOpcao",
+      option_items: "itemDeOpcao",
+      attribute_definitions: "definicao",
+      orders: "pedido",
+      order_items: "itemDePedido",
+      carts: "carrinho",
+    };
+    const nome = campo[tabela];
+    if (nome !== undefined) atual[nome] = chave;
+    apoio[loja] = atual;
+  };
+
+  for (const descoberta of naOrdem) {
     const construtor = CONSTRUTORES[descoberta.tabela];
     // Tabela sem construtor não é semeada: quem cobra por ela é o primeiro
     // teste, que reprova nomeando-a. Semear às cegas seria adivinhar.
@@ -550,7 +843,10 @@ beforeAll(async () => {
       semearLinha({ tabela: descoberta.tabela, construtor, loja, marca });
 
     const chaveDeA = await semear(lojaA, "a");
+    guardarApoio(lojaA, descoberta.tabela, chaveDeA);
     const chaveDeB = await semear(lojaB, "b");
+    guardarApoio(lojaB, descoberta.tabela, chaveDeB);
+
     // A loja de destino das inserções existe, mas fica vazia de propósito.
     if (descoberta.tabela === "stores") await semear(lojaSemDados, "sem-dados");
 

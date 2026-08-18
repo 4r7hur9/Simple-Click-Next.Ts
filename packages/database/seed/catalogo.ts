@@ -910,7 +910,6 @@ function linhasDeCategorias(referencia: Date): readonly LinhaDeExemplo[] {
       name: categoria.nome,
       slug: categoria.slug,
       description: categoria.descricao,
-      image_asset_id: null,
       sort_order: ordem,
       is_visible: true,
       deleted_at: null,
@@ -933,18 +932,19 @@ function linhasDeEspecificacoes(referencia: Date): readonly LinhaDeExemplo[] {
       categoria.especificacoes.map((especificacao, ordem) => ({
         id: idDaEspecificacao(loja.chave, categoria.chave, especificacao.chave),
         store_id: loja.id,
+        // `category_id` é a fonte da verdade, e `vertical_code` saiu de cena: o
+        // ajuste de 17/08 moveu a especificação do ramo para a categoria, e
+        // guardar o ramo aqui de novo criaria duas respostas para a mesma
+        // pergunta — a que vale seria decidida por acidente.
         category_id: idDaCategoria(loja.chave, categoria.chave),
-        vertical_code: loja.ramo,
         key: especificacao.chave,
         label: especificacao.rotulo,
         data_type: especificacao.tipo,
         unit: especificacao.unidade,
-        enum_options:
+        allowed_values:
           especificacao.opcoes === null ? null : json(especificacao.opcoes),
         is_required: false,
         is_filterable: especificacao.filtravel,
-        is_public: true,
-        validation: json({}),
         sort_order: ordem,
         created_by_owner: true,
         deprecated_at: null,
@@ -976,6 +976,7 @@ function linhasDeArquivos(referencia: Date): readonly LinhaDeExemplo[] {
       alt_text: `${produto.nome} — ${imagem}`,
       uploaded_by: produto.loja.dona.id,
       created_at: instanteDeExemplo(referencia, -40_000 + ordem),
+      updated_at: instanteDeExemplo(referencia, -40_000 + ordem),
     })),
   );
 }
@@ -1090,11 +1091,12 @@ function linhasDeImagens(referencia: Date): readonly LinhaDeExemplo[] {
       sort_order: ordem,
       alt_text: `${produto.nome} — ${imagem}`,
       created_at: instanteDeExemplo(referencia, -34_000 + ordem),
+      updated_at: instanteDeExemplo(referencia, -34_000 + ordem),
     })),
   );
 }
 
-function linhasDeGrupos(): readonly LinhaDeExemplo[] {
+function linhasDeGrupos(referencia: Date): readonly LinhaDeExemplo[] {
   return PRODUTOS.flatMap((produto) =>
     produto.grupos.map((grupo, ordem) => ({
       id: idDoGrupo(produto, grupo.chave),
@@ -1110,12 +1112,14 @@ function linhasDeGrupos(): readonly LinhaDeExemplo[] {
       max_per_option: null,
       fraction_slots: null,
       sort_order: ordem,
+      created_at: instanteDeExemplo(referencia, -30000),
+      updated_at: instanteDeExemplo(referencia, -30000),
       is_active: true,
     })),
   );
 }
 
-function linhasDeOpcoes(): readonly LinhaDeExemplo[] {
+function linhasDeOpcoes(referencia: Date): readonly LinhaDeExemplo[] {
   return PRODUTOS.flatMap((produto) =>
     produto.grupos.flatMap((grupo) =>
       grupo.opcoes.map((opcao, ordem) => ({
@@ -1126,8 +1130,9 @@ function linhasDeOpcoes(): readonly LinhaDeExemplo[] {
         price_delta_cents: opcao.acrescimoCents,
         is_default_selected: opcao.marcadaPorPadrao,
         is_available: opcao.disponivel,
-        image_asset_id: null,
         sort_order: ordem,
+        created_at: instanteDeExemplo(referencia, -29000),
+        updated_at: instanteDeExemplo(referencia, -29000),
         external_code: null,
       })),
     ),
@@ -1226,8 +1231,8 @@ export function montarCatalogo(referencia: Date): readonly ConjuntoDeExemplo[] {
     { tabela: "product_categories", linhas: linhasDeProdutoPorCategoria() },
     { tabela: "product_attributes", linhas: linhasDeValoresDeEspecificacao() },
     { tabela: "product_images", linhas: linhasDeImagens(referencia) },
-    { tabela: "option_groups", linhas: linhasDeGrupos() },
-    { tabela: "option_items", linhas: linhasDeOpcoes() },
+    { tabela: "option_groups", linhas: linhasDeGrupos(referencia) },
+    { tabela: "option_items", linhas: linhasDeOpcoes(referencia) },
     { tabela: "product_option_groups", linhas: linhasDeGrupoPorProduto() },
     { tabela: "product_variants", linhas: linhasDeVariantes() },
     { tabela: "variant_option_values", linhas: linhasDeCombinacoes() },

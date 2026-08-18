@@ -370,6 +370,10 @@ function linhaDoPedido(
     id: idDoPedido(pedido),
     store_id: pedido.loja.id,
     code: pedido.codigo,
+    // O número sequencial por loja sai do próprio código do cenário
+    // ("A-1042" → 1042), para o dado de exemplo ter a mesma forma que a API
+    // produz — e não uma forma inventada só para o teste passar.
+    number: Number(pedido.codigo.replace(/\D/g, "")),
     public_token: tokenDeExemplo(pedido.chave),
     channel: "ONLINE",
     status: pedido.status,
@@ -455,6 +459,7 @@ function linhaDoContato(
     lng: null,
     anonymized_at: null,
     created_at: instanteDeExemplo(referencia, pedido.minutosAntes),
+    updated_at: instanteDeExemplo(referencia, pedido.minutosAntes),
   };
 }
 

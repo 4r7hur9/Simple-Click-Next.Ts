@@ -23,6 +23,58 @@
 --    livre ingovernável.
 -- ===========================================================================
 
+-- O papel de migração é assumido explicitamente: sem isso os objetos nascem
+-- pertencendo a quem conectou, e no banco de teste isso é outro usuário. Dono
+-- errado significa privilégio errado, e o defeito só aparece quando alguém
+-- tenta ler a tabela pela credencial da aplicação.
+SET ROLE sc_migrator;
+
+-- ── Arquivos ───────────────────────────────────────────────────────────────
+-- Registro único de arquivo no armazenamento externo: imagem de produto, logo,
+-- capa e comprovante de PIX.
+--
+-- O arquivo nasce PENDENTE e só vira PRONTO depois do passo de confirmação que
+-- confere os bytes iniciais e RE-CODIFICA a imagem. Re-codificar não é capricho:
+-- destrói carga embutida em arquivo que finge ser imagem e remove os dados de
+-- posição que a câmera grava sem o dono saber.
+
+CREATE TABLE IF NOT EXISTS app.assets (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id     uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
+  kind         text NOT NULL,
+  status       text NOT NULL DEFAULT 'PENDING',
+  storage_key  text NOT NULL,
+  -- Nunca SVG: é XML executável, e aceitar um é aceitar script guardado no
+  -- próprio acervo da loja.
+  mime_type    text NOT NULL,
+  width        integer,
+  height       integer,
+  byte_size    bigint,
+  sha256       bytea,
+  -- Variantes geradas na confirmação (tamanhos por dispositivo), guardadas como
+  -- estrutura porque a lista muda sem migração.
+  variants     jsonb NOT NULL DEFAULT '{}'::jsonb,
+  -- Prévia embutida de poucos bytes: a vitrine mostra algo no lugar da imagem
+  -- enquanto ela carrega, em vez de um retângulo vazio que faz a página pular.
+  blurhash     text,
+  alt_text     text,
+  uploaded_by  uuid REFERENCES app.identities (id) ON DELETE SET NULL,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT assets_kind_conhecido
+    CHECK (kind IN ('PRODUCT_IMAGE', 'LOGO', 'BANNER', 'PIX_PROOF')),
+  CONSTRAINT assets_status_conhecido
+    CHECK (status IN ('PENDING', 'READY', 'REJECTED')),
+  CONSTRAINT assets_sem_svg CHECK (mime_type <> 'image/svg+xml')
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS assets_storage_key_uk
+  ON app.assets (store_id, storage_key);
+
+CREATE INDEX IF NOT EXISTS assets_da_loja_idx
+  ON app.assets (store_id, kind, status)
+  INCLUDE (storage_key, mime_type, width, height);
+
 -- ── Categorias ─────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS app.categories (
@@ -33,6 +85,12 @@ CREATE TABLE IF NOT EXISTS app.categories (
   description  text,
   -- Ocultar não apaga: a categoria sai da vitrine junto com seus produtos e
   -- continua na gestão do dono, marcada como oculta.
+  -- Subcategoria (Bebidas > Cervejas). A pergunta Q-303 — se um nível basta —
+  -- continua aberta, então a coluna nasce aceitando nulo e ninguém é obrigado a
+  -- usá-la. Acrescentar depois custaria uma migração; deixar o lugar reservado
+  -- custa uma coluna nula.
+  parent_id    uuid REFERENCES app.categories (id) ON DELETE SET NULL,
+  image_asset_id uuid REFERENCES app.assets (id) ON DELETE SET NULL,
   is_visible   boolean NOT NULL DEFAULT true,
   -- Ordenação manual, porque a ordem da vitrine é decisão de negócio do dono,
   -- não consequência alfabética.
@@ -72,7 +130,8 @@ CREATE TABLE IF NOT EXISTS app.product_categories (
   sort_order   integer NOT NULL DEFAULT 0,
   -- Uma primária por produto, para o endereço canônico e a trilha de navegação.
   is_primary   boolean NOT NULL DEFAULT false,
-  created_at   timestamptz NOT NULL DEFAULT now()
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS product_categories_uk
@@ -93,14 +152,19 @@ CREATE TABLE IF NOT EXISTS app.product_images (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id    uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
   product_id  uuid NOT NULL REFERENCES app.products (id) ON DELETE CASCADE,
-  url         text NOT NULL,
+  asset_id    uuid REFERENCES app.assets (id) ON DELETE SET NULL,
+  -- A URL vem do arquivo registrado quando ele existe; a coluna aceita nulo
+  -- para o caso de imagem apontada direto, sem passar pelo acervo.
+  url         text,
+  CONSTRAINT product_images_tem_origem CHECK (asset_id IS NOT NULL OR url IS NOT NULL),
   alt_text    text,
   -- Uma principal por produto, garantida por índice único parcial (abaixo).
   is_primary  boolean NOT NULL DEFAULT false,
   sort_order  integer NOT NULL DEFAULT 0,
   width       integer,
   height      integer,
-  created_at  timestamptz NOT NULL DEFAULT now()
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS product_images_primary_uk
@@ -125,7 +189,17 @@ CREATE TABLE IF NOT EXISTS app.product_variants (
   -- Nulo significa "não controla estoque" — é o caso da lanchonete. Zero
   -- significa "controla e acabou", que é o caso da loja de roupa.
   stock_quantity    integer,
+  -- Reservado por carrinho em andamento. A pergunta D5 — reservar no carrinho
+  -- ou baixar na confirmação — segue aberta, então a coluna nasce em zero e só
+  -- passa a ser usada quando a decisão vier.
+  stock_reserved    integer,
   stock_min_alert   integer,
+  -- Peso para cálculo de frete por transportadora, quando isso existir.
+  weight_grams      integer,
+  -- A variante que vem escolhida ao abrir o produto: sem ela, a loja de roupa
+  -- abre sem tamanho nenhum marcado e o cliente precisa decidir antes de ver o
+  -- preço.
+  is_default        boolean NOT NULL DEFAULT false,
   is_available      boolean NOT NULL DEFAULT true,
   sort_order        integer NOT NULL DEFAULT 0,
   deleted_at        timestamptz,
@@ -134,7 +208,9 @@ CREATE TABLE IF NOT EXISTS app.product_variants (
   -- Estoque nunca fica negativo: a regra vive no banco, não na aplicação, e
   -- por isso vale mesmo quando duas compras chegam no mesmo instante.
   CONSTRAINT product_variants_estoque_nao_negativo
-    CHECK (stock_quantity IS NULL OR stock_quantity >= 0)
+    CHECK (stock_quantity IS NULL OR stock_quantity >= 0),
+  CONSTRAINT product_variants_reserva_nao_negativa
+    CHECK (stock_reserved IS NULL OR stock_reserved >= 0)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS product_variants_sku_uk
@@ -163,6 +239,10 @@ CREATE TABLE IF NOT EXISTS app.product_prices (
   amount_cents  bigint NOT NULL,
   -- Preço de atacado que vale a partir de N unidades.
   min_quantity  integer NOT NULL DEFAULT 1,
+  -- Moeda por preco, e nao por loja: o dia em que houver loja atendendo em duas
+  -- moedas, a coluna ja existe e nenhum preco antigo fica ambiguo.
+  currency      char(3) NOT NULL DEFAULT 'BRL',
+  sort_order    integer NOT NULL DEFAULT 0,
   starts_at     timestamptz,
   ends_at       timestamptz,
   is_active     boolean NOT NULL DEFAULT true,
@@ -184,10 +264,19 @@ CREATE INDEX IF NOT EXISTS product_prices_do_produto_idx
 CREATE TABLE IF NOT EXISTS app.option_groups (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id         uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
+  -- Nulo significa grupo de BIBLIOTECA, reusável em vários produtos: o dono
+  -- cadastra "Adicionais" uma vez e liga a vinte itens. Preenchido significa
+  -- grupo que só existe naquele produto, que é o caso mais comum de sabor.
+  product_id       uuid REFERENCES app.products (id) ON DELETE CASCADE,
   name             text NOT NULL,
+  description      text,
   -- Escolhe o rótulo que o ramo dá ao grupo: ingrediente e adicional na
   -- lanchonete, especificação e compatibilidade na autopeça.
   kind             text NOT NULL DEFAULT 'ADDON',
+  -- Quantas frações o grupo divide, para meio a meio e cento de salgados. O
+  -- cálculo do preço a partir do preço cheio é do domínio, não do banco.
+  fraction_slots   smallint,
+  is_active        boolean NOT NULL DEFAULT true,
   -- Obrigatoriedade é DERIVADA de min_select >= 1. Coluna própria seria
   -- redundante e abriria a chance de divergir do mínimo.
   min_select       integer NOT NULL DEFAULT 0,
@@ -214,10 +303,15 @@ CREATE INDEX IF NOT EXISTS option_groups_da_loja_idx
 CREATE TABLE IF NOT EXISTS app.option_items (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id          uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
-  option_group_id   uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
+  group_id          uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
   name              text NOT NULL,
   -- Acréscimo em centavos, que pode ser negativo (desconto por remover algo).
   price_delta_cents bigint NOT NULL DEFAULT 0,
+  -- Já vem marcada: o sabor mais pedido aparece selecionado, e quem quer outro
+  -- troca. Um clique a menos no celular, no fim do dia, é pedido a mais.
+  is_default_selected boolean NOT NULL DEFAULT false,
+  -- Código do sistema do dono, para quem já tem cadastro em outro lugar.
+  external_code     text,
   -- Opção esgotada aparece indisponível sem bloquear o produto inteiro: só o
   -- cheddar acabou, o hambúrguer continua à venda.
   is_available      boolean NOT NULL DEFAULT true,
@@ -228,7 +322,7 @@ CREATE TABLE IF NOT EXISTS app.option_items (
 );
 
 CREATE INDEX IF NOT EXISTS option_items_do_grupo_idx
-  ON app.option_items (store_id, option_group_id, sort_order)
+  ON app.option_items (store_id, group_id, sort_order)
   INCLUDE (name, price_delta_cents, is_available, deleted_at);
 
 -- Liga produto a grupo, para o dono cadastrar "Adicionais" uma vez e reusar em
@@ -237,17 +331,17 @@ CREATE TABLE IF NOT EXISTS app.product_option_groups (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id         uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
   product_id       uuid NOT NULL REFERENCES app.products (id) ON DELETE CASCADE,
-  option_group_id  uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
+  group_id         uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
   sort_order       integer NOT NULL DEFAULT 0,
   created_at       timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS product_option_groups_uk
-  ON app.product_option_groups (store_id, product_id, option_group_id);
+  ON app.product_option_groups (store_id, product_id, group_id);
 
 CREATE INDEX IF NOT EXISTS product_option_groups_do_produto_idx
   ON app.product_option_groups (store_id, product_id, sort_order)
-  INCLUDE (option_group_id);
+  INCLUDE (group_id);
 
 -- Resolve a grade: qual combinação de valores dos eixos identifica cada
 -- variante. É o que liga "P + azul" à peça que tem estoque.
@@ -255,17 +349,17 @@ CREATE TABLE IF NOT EXISTS app.variant_option_values (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id         uuid NOT NULL REFERENCES app.stores (id) ON DELETE CASCADE,
   variant_id       uuid NOT NULL REFERENCES app.product_variants (id) ON DELETE CASCADE,
-  option_group_id  uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
+  group_id         uuid NOT NULL REFERENCES app.option_groups (id) ON DELETE CASCADE,
   option_item_id   uuid NOT NULL REFERENCES app.option_items (id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS variant_option_values_uk
-  ON app.variant_option_values (store_id, variant_id, option_group_id);
+  ON app.variant_option_values (store_id, variant_id, group_id);
 
 CREATE INDEX IF NOT EXISTS variant_option_values_por_valor_idx
   ON app.variant_option_values (store_id, option_item_id)
-  INCLUDE (variant_id, option_group_id);
+  INCLUDE (variant_id, group_id);
 
 -- ── Especificações: o registro tipado, por categoria ───────────────────────
 -- Escopado por CATEGORIA, e não por ramo: o dono cria a categoria Pneus e,
@@ -294,7 +388,7 @@ CREATE TABLE IF NOT EXISTS app.attribute_definitions (
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT attribute_definitions_tipo_conhecido
-    CHECK (data_type IN ('TEXT', 'NUMBER', 'LIST', 'BOOLEAN'))
+    CHECK (data_type IN ('TEXT', 'NUMBER', 'ENUM', 'BOOLEAN'))
 );
 
 -- Único por loja E categoria: "aro" em Pneus e "aro" em Rodas são duas
@@ -314,17 +408,23 @@ CREATE TABLE IF NOT EXISTS app.product_attributes (
   -- Chave estrangeira OBRIGATÓRIA para a definição: é ela que impede o modelo
   -- de virar campo livre onde qualquer chave entra e nada é validável.
   definition_id  uuid NOT NULL REFERENCES app.attribute_definitions (id) ON DELETE RESTRICT,
+  -- Nomes curtos, como o cenário de exemplo já usava. `value_date` existe porque
+  -- especificação de data aparece em autopeça (ano de aplicação) e em eletrônico
+  -- (fim de garantia), e guardá-la como texto tiraria a possibilidade de
+  -- comparar e ordenar.
   value_text     text,
-  value_number   numeric,
-  value_boolean  boolean,
+  value_num      numeric,
+  value_bool     boolean,
+  value_date     date,
   created_at     timestamptz NOT NULL DEFAULT now(),
   updated_at     timestamptz NOT NULL DEFAULT now(),
   -- Exatamente um valor preenchido: dois seria ambíguo, nenhum seria linha
   -- inútil ocupando espaço.
   CONSTRAINT product_attributes_um_valor CHECK (
     (value_text IS NOT NULL)::int
-    + (value_number IS NOT NULL)::int
-    + (value_boolean IS NOT NULL)::int = 1
+    + (value_num  IS NOT NULL)::int
+    + (value_bool IS NOT NULL)::int
+    + (value_date IS NOT NULL)::int = 1
   )
 );
 
@@ -333,7 +433,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS product_attributes_uk
 
 CREATE INDEX IF NOT EXISTS product_attributes_por_definicao_idx
   ON app.product_attributes (store_id, definition_id)
-  INCLUDE (product_id, value_text, value_number, value_boolean);
+  INCLUDE (product_id, value_text, value_num, value_bool, value_date);
 
 -- ===========================================================================
 -- Isolamento por linha das 11 tabelas
@@ -349,6 +449,34 @@ CREATE INDEX IF NOT EXISTS product_attributes_por_definicao_idx
 -- ordenado. A guarda 4 existe por causa dessa medição.
 -- ===========================================================================
 
+
+ALTER TABLE app.assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.assets FORCE  ROW LEVEL SECURITY;
+
+CREATE POLICY assets_storefront_select ON app.assets FOR SELECT TO sc_app
+  USING (store_id = (SELECT app.current_store_id())
+     AND (SELECT app.current_role_name()) IN ('PUBLIC', 'CUSTOMER')
+     AND status = 'READY');
+
+CREATE POLICY assets_staff_select ON app.assets FOR SELECT TO sc_app
+  USING (store_id = (SELECT app.current_store_id()) AND (SELECT app.is_store_staff()));
+
+CREATE POLICY assets_staff_insert ON app.assets FOR INSERT TO sc_app
+  WITH CHECK (store_id = (SELECT app.current_store_id()) AND (SELECT app.is_store_staff()));
+
+CREATE POLICY assets_staff_update ON app.assets FOR UPDATE TO sc_app
+  USING      (store_id = (SELECT app.current_store_id()) AND (SELECT app.is_store_staff()))
+  WITH CHECK (store_id = (SELECT app.current_store_id()) AND (SELECT app.is_store_staff()));
+
+CREATE POLICY assets_staff_delete ON app.assets FOR DELETE TO sc_app
+  USING (store_id = (SELECT app.current_store_id()) AND (SELECT app.is_store_staff()));
+
+CREATE POLICY assets_require_ctx ON app.assets AS RESTRICTIVE FOR ALL TO sc_app
+  USING      ((SELECT app.current_store_id()) IS NOT NULL)
+  WITH CHECK ((SELECT app.current_store_id()) IS NOT NULL);
+
+CREATE POLICY assets_admin_all ON app.assets FOR ALL TO sc_admin
+  USING (true) WITH CHECK (true);
 
 ALTER TABLE app.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app.categories FORCE  ROW LEVEL SECURITY;
@@ -656,3 +784,32 @@ CREATE POLICY product_attributes_require_ctx ON app.product_attributes AS RESTRI
 
 CREATE POLICY product_attributes_admin_all ON app.product_attributes FOR ALL TO sc_admin
   USING (true) WITH CHECK (true);
+
+
+-- ===========================================================================
+-- Privilégios
+--
+-- Concedidos EXPLICITAMENTE, e não herdados do privilégio padrão do esquema.
+-- O padrão vale apenas para tabela criada pela credencial que o declarou: se a
+-- migração rodar por outro caminho — e ela roda, no molde do banco de teste —,
+-- a tabela nasce sem privilégio e o defeito aparece como "permission denied"
+-- num teste distante, meses depois.
+--
+-- O privilégio acompanha a política, tabela por tabela. Dar UPDATE no banco a
+-- uma tabela cuja política nega alteração criaria duas verdades diferentes
+-- sobre a mesma tabela, e a que vale seria decidida por acidente.
+-- ===========================================================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.assets TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.categories TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_categories TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_images TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_variants TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_prices TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.option_groups TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.option_items TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_option_groups TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.variant_option_values TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.attribute_definitions TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.product_attributes TO sc_app, sc_admin;
+
+RESET ROLE;

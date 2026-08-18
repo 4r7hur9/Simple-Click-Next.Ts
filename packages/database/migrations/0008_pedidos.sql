@@ -26,6 +26,12 @@
 --    extrairia nome, telefone e endereço de todos os pedidos de todas as lojas.
 -- ===========================================================================
 
+-- O papel de migração é assumido explicitamente: sem isso os objetos nascem
+-- pertencendo a quem conectou, e no banco de teste isso é outro usuário. Dono
+-- errado significa privilégio errado, e o defeito só aparece quando alguém
+-- tenta ler a tabela pela credencial da aplicação.
+SET ROLE sc_migrator;
+
 -- ── Numeração por loja ─────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS app.store_sequences (
@@ -87,10 +93,44 @@ CREATE TABLE IF NOT EXISTS app.orders (
   -- pode alterar o que o cliente viu para pagar.
   pix_key_snapshot      text,
   pix_holder_snapshot   text,
+  -- A ordem do cálculo é fixada e testada: subtotal, cupom (só sobre o
+  -- subtotal), frete, desconto de retirada, total. Guardar cada parcela — em vez
+  -- de só o total — é o que permite explicar ao cliente de onde veio o valor, e
+  -- ao dono por que o faturamento do dia é aquele.
+  subtotal_cents        bigint NOT NULL DEFAULT 0,
   items_total_cents     bigint NOT NULL DEFAULT 0,
+  coupon_discount_cents bigint NOT NULL DEFAULT 0,
   delivery_fee_cents    bigint NOT NULL DEFAULT 0,
+  delivery_fee_mode     text,
+  pickup_discount_cents bigint NOT NULL DEFAULT 0,
   discount_cents        bigint NOT NULL DEFAULT 0,
   total_cents           bigint NOT NULL DEFAULT 0,
+  currency              char(3) NOT NULL DEFAULT 'BRL',
+  -- Sem cobrança automática na versão 1: este campo registra o que o dono
+  -- confirmou ter recebido, e não o que um gateway respondeu.
+  payment_status        text NOT NULL DEFAULT 'PENDING',
+  -- A chave PIX inteira, copiada do momento da compra. O código de copiar e
+  -- colar entra aqui quando existir: o cliente que digita chave à mão erra, e o
+  -- pedido fica sem pagamento sem ninguém entender por quê.
+  pix_key_type_snapshot text,
+  pix_account_name_snapshot text,
+  pix_brcode_snapshot   text,
+  coupon_id             uuid,
+  coupon_code_snapshot  text,
+  -- Duas observações separadas: a que o cliente escreveu e a que a loja anotou.
+  -- Misturar as duas faria a loja publicar sem querer o que anotou para si.
+  customer_note         text,
+  store_note            text,
+  -- Chave de idempotência: toque duplo e nova tentativa automática devolvem o
+  -- MESMO pedido, em vez de criar dois (AC-516).
+  idempotency_key       text,
+  -- Tamanho da mensagem enviada, para saber quando o texto passou do limite que
+  -- cabe no endereço da conversa e foi encurtado.
+  whatsapp_message_chars integer,
+  -- Pedido agendado para depois. A pergunta Q-502 segue aberta; a coluna aceita
+  -- nulo e ninguém é obrigado a usá-la.
+  scheduled_for         timestamptz,
+  updated_at            timestamptz NOT NULL DEFAULT now(),
   -- Custo somado no fechamento, para a margem no painel. Nunca sai na leitura
   -- pública.
   cost_total_cents      bigint,
@@ -110,15 +150,18 @@ CREATE TABLE IF NOT EXISTS app.orders (
   cancel_reason         text,
   created_at            timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT orders_status_conhecido CHECK (status IN (
-    'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY',
-    'COMPLETED', 'REJECTED', 'CANCELLED'
+    'PENDING', 'ACCEPTED', 'PREPARING', 'READY_FOR_PICKUP',
+    'OUT_FOR_DELIVERY', 'COMPLETED', 'REJECTED', 'CANCELLED'
   )),
   CONSTRAINT orders_canal_conhecido CHECK (channel IN ('ONLINE', 'MANUAL')),
   CONSTRAINT orders_entrega_conhecida CHECK (fulfillment IN ('DELIVERY', 'PICKUP')),
   CONSTRAINT orders_valores_nao_negativos CHECK (
-    items_total_cents >= 0 AND delivery_fee_cents >= 0
+    subtotal_cents >= 0 AND items_total_cents >= 0 AND delivery_fee_cents >= 0
+    AND coupon_discount_cents >= 0 AND pickup_discount_cents >= 0
     AND discount_cents >= 0 AND total_cents >= 0
-  )
+  ),
+  CONSTRAINT orders_pagamento_conhecido
+    CHECK (payment_status IN ('PENDING', 'AWAITING_PROOF', 'CONFIRMED', 'REFUNDED', 'FAILED'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS orders_store_number_uk
@@ -129,6 +172,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS orders_store_code_uk
 -- pedido é encontrado por ele antes de haver contexto de loja.
 CREATE UNIQUE INDEX IF NOT EXISTS orders_public_token_uk
   ON app.orders (public_token);
+-- Sem esta unicidade a chave de idempotência não impediria nada: duas
+-- requisições iguais criariam dois pedidos e ninguém notaria.
+CREATE UNIQUE INDEX IF NOT EXISTS orders_idempotency_uk
+  ON app.orders (store_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 -- O índice do painel inclui as colunas que as POLÍTICAS citam, e não só as da
 -- consulta: sem `public_token` e `store_customer_id` aqui, a reconferência do
@@ -154,14 +201,23 @@ CREATE TABLE IF NOT EXISTS app.order_contacts (
   -- reivindique pedidos feitos como convidado, sem comparar o dado em claro.
   phone_hmac     text,
   email          text,
-  document       text,
-  address_line   text,
-  address_number text,
+  doc_number     text,
+  -- Quem recebe pode não ser quem pediu: presente, entrega no trabalho, pedido
+  -- feito por um filho para a mãe. Sem esta coluna o entregador procura a pessoa
+  -- errada.
+  recipient_name text,
+  street         text,
+  number         text,
   complement     text,
-  district       text,
+  neighborhood   text,
   city           text,
-  state          text,
-  zip_code       text,
+  uf             char(2),
+  zip            text,
+  -- "Portão azul ao lado da padaria" resolve mais entrega no Brasil que
+  -- coordenada, e é o que o cliente escreve sozinho.
+  reference_point text,
+  lat            numeric(10, 7),
+  lng            numeric(10, 7),
   -- Preenchido quando o titular pede exclusão: o pedido continua contando para
   -- o faturamento do lojista, e o dado pessoal deixa de existir.
   anonymized_at  timestamptz,
@@ -185,17 +241,25 @@ CREATE TABLE IF NOT EXISTS app.order_items (
   variant_id          uuid REFERENCES app.product_variants (id) ON DELETE SET NULL,
   -- Tudo abaixo é COPIADO. O dono renomeia e apaga produto; o pedido de ontem
   -- precisa continuar dizendo o que foi vendido, com o nome da época.
+  -- O sufixo `_snapshot` é deliberado: quem lê o código enxerga na hora que
+  -- aquele valor é cópia do momento da compra, e não algo a buscar no produto.
   product_name        text NOT NULL,
   variant_name        text,
-  sku                 text,
+  sku_snapshot        text,
   quantity            integer NOT NULL,
   unit_price_cents    bigint NOT NULL,
   compare_at_cents    bigint,
   unit_cost_cents     bigint,
-  price_kind          text,
+  price_kind_snapshot text,
+  -- Especificações copiadas: o cupom da autopeça precisa dizer o aro que foi
+  -- vendido, mesmo que a especificação seja renomeada depois.
+  attributes_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
   options_total_cents bigint NOT NULL DEFAULT 0,
   line_total_cents    bigint NOT NULL,
-  notes               text,
+  note                text,
+  -- Qual metade da pizza este item representa. Nulo para item inteiro.
+  fraction_index      smallint,
+  sort_order          integer NOT NULL DEFAULT 0,
   created_at          timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT order_items_quantidade_positiva CHECK (quantity > 0),
   CONSTRAINT order_items_valores_nao_negativos CHECK (
@@ -221,17 +285,24 @@ CREATE TABLE IF NOT EXISTS app.order_item_options (
   option_item_id    uuid REFERENCES app.option_items (id) ON DELETE SET NULL,
   -- Nome do grupo e da opção por extenso, porque o dono renomeia e apaga grupo
   -- de opção, e o cupom impresso precisa continuar legível.
-  group_name        text NOT NULL,
-  option_name       text NOT NULL,
+  group_name_snapshot  text NOT NULL,
+  option_name_snapshot text NOT NULL,
+  kind_snapshot        text,
+  external_code_snapshot text,
+  -- ADD ou REMOVE: "sem cebola" é uma escolha do cliente tanto quanto "com
+  -- bacon", e a cozinha precisa ler as duas no mesmo cupom.
+  action            text NOT NULL DEFAULT 'ADD',
   quantity          integer NOT NULL DEFAULT 1,
   price_delta_cents bigint NOT NULL DEFAULT 0,
+  sort_order        integer NOT NULL DEFAULT 0,
   created_at        timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT order_item_options_quantidade_positiva CHECK (quantity > 0)
+  CONSTRAINT order_item_options_quantidade_positiva CHECK (quantity > 0),
+  CONSTRAINT order_item_options_acao_conhecida CHECK (action IN ('ADD', 'REMOVE'))
 );
 
 CREATE INDEX IF NOT EXISTS order_item_options_do_item_idx
   ON app.order_item_options (store_id, order_item_id)
-  INCLUDE (group_name, option_name, price_delta_cents);
+  INCLUDE (group_name_snapshot, option_name_snapshot, action, price_delta_cents);
 
 -- ── Histórico de status ────────────────────────────────────────────────────
 
@@ -242,14 +313,20 @@ CREATE TABLE IF NOT EXISTS app.order_status_history (
   from_status  text,
   to_status    text NOT NULL,
   -- Quem mudou. Nulo quando foi o próprio sistema.
-  changed_by   uuid REFERENCES app.identities (id) ON DELETE SET NULL,
+  changed_by_identity_id uuid REFERENCES app.identities (id) ON DELETE SET NULL,
+  -- Em qual papel a pessoa agiu. A mesma identidade pode ser dona de uma loja e
+  -- cliente de outra, e sem o papel a trilha não diz em que condição ela agiu.
+  actor_role   text,
   reason       text,
+  -- Quando aconteceu, separado de quando foi registrado: pedido lançado à mão
+  -- pelo dono pode registrar transição que ocorreu antes.
+  occurred_at  timestamptz NOT NULL DEFAULT now(),
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS order_status_history_do_pedido_idx
-  ON app.order_status_history (store_id, order_id, created_at)
-  INCLUDE (id, from_status, to_status, changed_by, reason);
+  ON app.order_status_history (store_id, order_id, occurred_at)
+  INCLUDE (id, from_status, to_status, changed_by_identity_id, actor_role, reason);
 
 -- ── Carrinho: o oposto do pedido ───────────────────────────────────────────
 
@@ -511,3 +588,35 @@ CREATE POLICY store_sequences_require_ctx ON app.store_sequences AS RESTRICTIVE 
 
 CREATE POLICY store_sequences_admin_all ON app.store_sequences FOR ALL TO sc_admin
   USING (true) WITH CHECK (true);
+
+
+-- ===========================================================================
+-- Privilégios
+--
+-- Concedidos EXPLICITAMENTE, e não herdados do privilégio padrão do esquema.
+-- O padrão vale apenas para tabela criada pela credencial que o declarou: se a
+-- migração rodar por outro caminho — e ela roda, no molde do banco de teste —,
+-- a tabela nasce sem privilégio e o defeito aparece como "permission denied"
+-- num teste distante, meses depois.
+--
+-- O privilégio acompanha a política, tabela por tabela. Dar UPDATE no banco a
+-- uma tabela cuja política nega alteração criaria duas verdades diferentes
+-- sobre a mesma tabela, e a que vale seria decidida por acidente.
+-- ===========================================================================
+-- Leitura e inserção apenas: item de pedido é cópia congelada.
+GRANT SELECT, INSERT ON app.order_items TO sc_app, sc_admin;
+GRANT SELECT, INSERT ON app.order_item_options TO sc_app, sc_admin;
+GRANT SELECT, INSERT ON app.order_status_history TO sc_app, sc_admin;
+
+-- O pedido anda (status muda), mas nunca é apagado.
+GRANT SELECT, INSERT, UPDATE ON app.orders TO sc_app, sc_admin;
+
+-- Carrinho e contador são rascunho por natureza.
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.store_sequences TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.order_contacts TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.carts TO sc_app, sc_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.cart_items TO sc_app, sc_admin;
+
+GRANT EXECUTE ON FUNCTION app.proximo_numero_de_pedido(uuid) TO sc_app, sc_admin;
+
+RESET ROLE;
