@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 
+import { corsDeOrigensFechadas, origensDoAmbiente } from "./core/cors.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
@@ -13,6 +14,17 @@ export const IDENTIFICACAO_DA_API = {
 /** Onde as verificações de saúde ficam montadas (AC-023). */
 export const PREFIXO_DE_SAUDE = "/v1/health";
 
+/** Ajustes da composição. Tudo tem padrão; teste sobrescreve o que precisa. */
+export interface OpcoesDoApp {
+  /**
+   * Lista fechada de origens autorizadas. Sem ela, vale `ORIGENS_PERMITIDAS`
+   * do ambiente — e, na falta das duas, a lista fica VAZIA: nenhuma origem
+   * autorizada a mudar estado. Ambiente mal configurado fecha a porta em vez
+   * de abrir todas.
+   */
+  readonly origens?: readonly string[];
+}
+
 /**
  * Monta o Express e devolve a aplicação **sem escutar porta**.
  *
@@ -20,7 +32,7 @@ export const PREFIXO_DE_SAUDE = "/v1/health";
  * precisa da aplicação montada, mas não pode disputar porta com o ambiente
  * local nem com outro teste rodando em paralelo. Quem escuta é `main.ts`.
  */
-export function criarApp(): Express {
+export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   const app = express();
 
   // Não anunciar a tecnologia do servidor: informação que só serve a quem
@@ -29,8 +41,20 @@ export function criarApp(): Express {
 
   // Primeiro de todos: é ele que abre o contexto da requisição, e tudo que
   // vier depois precisa do identificador já existindo para que as linhas de
-  // registro casem umas com as outras (AC-021).
+  // registro casem umas com as outras (AC-021) — inclusive a recusa por
+  // origem, que sem isso seria registrada solta, sem dizer de qual requisição
+  // veio.
   app.use(middlewareDeRegistro());
+
+  // Logo em seguida, e antes de qualquer leitura de corpo: requisição de origem
+  // estranha é recusada sem que a API gaste trabalho lendo o que ela mandou
+  // (AC-125..AC-128).
+  app.use(
+    corsDeOrigensFechadas({
+      origens:
+        opcoes.origens ?? origensDoAmbiente(process.env.ORIGENS_PERMITIDAS),
+    }),
+  );
 
   app.use(express.json({ limit: "1mb" }));
 

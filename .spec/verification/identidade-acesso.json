@@ -1,0 +1,59 @@
+{
+  "feature": "identidade-acesso",
+  "timestamp": "2026-08-18T14:18:11.971Z",
+  "gitRev": "abe34df",
+  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 314,
+  "results": {
+    "AC-119": {
+      "status": "pass",
+      "testName": "limite de tentativas por conta @spec:AC-119 depois de dez falhas, a tentativa seguinte é barrada mesmo com a senha correta @spec:AC-119 depois de dez falhas, a tentativa seguinte é barrada mesmo com a senha correta",
+      "method": "vitest-json"
+    },
+    "AC-120": {
+      "status": "pass",
+      "testName": "limite de tentativas por origem @spec:AC-120 tentativas espalhadas entre muitas contas esbarram no limite da origem @spec:AC-120 tentativas espalhadas entre muitas contas esbarram no limite da origem",
+      "method": "vitest-json"
+    },
+    "AC-125": {
+      "status": "pass",
+      "testName": "lista de origens autorizadas @spec:AC-125 chamada de origem fora da lista não recebe o cabeçalho que liberaria a leitura @spec:AC-125 chamada de origem fora da lista não recebe o cabeçalho que liberaria a leitura",
+      "method": "vitest-json"
+    },
+    "AC-126": {
+      "status": "pass",
+      "testName": "requisição que muda dados @spec:AC-126 sem indicação de origem, é recusada antes de tocar o domínio @spec:AC-126 sem indicação de origem, é recusada antes de tocar o domínio",
+      "method": "vitest-json"
+    },
+    "AC-127": {
+      "status": "pass",
+      "testName": "leitura pública da vitrine @spec:AC-127 consulta de qualquer origem funciona normalmente @spec:AC-127 consulta de qualquer origem funciona normalmente",
+      "method": "vitest-json"
+    },
+    "AC-128": {
+      "status": "pass",
+      "testName": "sessão do navegador em requisição de outro site @spec:AC-128 formulário de site de terceiros enviado com o cookie da vítima não executa a operação @spec:AC-128 formulário de site de terceiros enviado com o cookie da vítima não executa a operação",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
+    }
+  }
+}

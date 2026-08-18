@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T14:04:32.020Z",
+  "timestamp": "2026-08-18T14:18:20.569Z",
   "gitRev": "abe34df",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 324,
+  "testsParsed": 314,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -77,16 +77,6 @@
       "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
       "method": "vitest-json"
     },
-    "AC-027": {
-      "status": "pass",
-      "testName": "cache contra o Redis de verdade @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu",
-      "method": "vitest-json"
-    },
-    "AC-028": {
-      "status": "pass",
-      "testName": "cache contra o Redis de verdade @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual",
-      "method": "vitest-json"
-    },
     "AC-031": {
       "status": "pass",
       "testName": "check-ambientes.sh @spec:AC-031 aprova quando teste tem banco e cache próprios @spec:AC-031 aprova quando teste tem banco e cache próprios",
@@ -137,6 +127,10 @@
     "P-003": {
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     },
     "P-011": {
       "status": "pass",

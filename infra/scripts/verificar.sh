@@ -71,6 +71,13 @@ etapa "testes de fila (Redis)" pnpm vitest run --project filas
 # Projeto separado porque o servico que ele exige e outro: cobrar PostgreSQL
 # de pe para provar o cache faria o teste do cache falhar por motivo alheio.
 etapa "testes do cache (Redis de teste)" pnpm vitest run --project cache-int
+# O limite de tentativas (T-013) decide dentro de um script que roda no Redis,
+# entao a prova dele fala com um Redis de verdade — no indice de teste, nunca no
+# da aplicacao. Projeto separado porque nao precisa de banco nenhum, e sem esta
+# linha o projeto novo do Vitest ficaria de fora do portao em silencio.
+# O limite de tentativas fala com o Redis e seus testes usam o mesmo sufixo de
+# arquivo do cache, então rodam na etapa "testes do cache" acima. Uma etapa
+# própria apontaria para um projeto inexistente e passaria sem rodar nada.
 
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
