@@ -75,6 +75,9 @@ importers:
       '@simpleclick/config-ts':
         specifier: workspace:*
         version: link:../../packages/config-ts
+      '@simpleclick/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@types/express':
         specifier: 5.0.6
         version: 5.0.6
@@ -215,8 +218,8 @@ importers:
         specifier: 26.2.0
         version: 26.2.0
       '@types/pg':
-        specifier: 8.15.6
-        version: 8.15.6
+        specifier: 8.21.0
+        version: 8.21.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -1091,9 +1094,6 @@ packages:
 
   '@types/node@26.2.0':
     resolution: {integrity: sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==}
-
-  '@types/pg@8.15.6':
-    resolution: {integrity: sha512-NoaMtzhxOrubeL/7UZuNTrejB4MPAJ0RpxZqXQf2qXuVlTPuG6Y8p4u9dKRaue4yjmC7ZhzVO2/Yyyn25znrPQ==}
 
   '@types/pg@8.21.0':
     resolution: {integrity: sha512-AYdtudzabjLZgVgRZmAnU8bAnVUXzuJX2IYHeSIiIHm68olD+LgQYCGWdtcNYnP0uq9c4S4NibVG3Ni7VbKW7Q==}
@@ -3727,12 +3727,6 @@ snapshots:
   '@types/node@26.2.0':
     dependencies:
       undici-types: 8.3.0
-
-  '@types/pg@8.15.6':
-    dependencies:
-      '@types/node': 26.2.0
-      pg-protocol: 1.16.0
-      pg-types: 2.2.0
 
   '@types/pg@8.21.0':
     dependencies:

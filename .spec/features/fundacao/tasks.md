@@ -65,11 +65,11 @@
 - Notas: cada teste monta o próprio cenário; ordem de execução não altera resultado.
 - Esforço: medio
 
-## T-010 — Prova de isolamento entre lojas [pendente]
+## T-010 — Prova de isolamento entre lojas [concluida]
 
 - Refs: AC-010, AC-011
-- Arquivos: apps/api/tests/isolamento.test.ts, apps/api/tests/isolamento-concorrente.test.ts
-- Notas: cobre leitura, inserção, alteração e remoção separadamente, e o caso de conexões reaproveitadas alternando entre lojas. Marcado com @principle:P-003.
+- Arquivos: apps/api/tests/apoio-de-isolamento.ts, apps/api/tests/isolamento-varredura.test.ts, apps/api/tests/isolamento-concorrente.test.ts
+- Notas: a prova deixa de depender de alguém lembrar de escrevê-la para cada tabela nova: a varredura pergunta ao catálogo do PostgreSQL quais tabelas têm identificador de loja e cobra leitura, inserção, alteração e remoção de CADA uma, separadamente. Tabela que a varredura não sabe povoar REPROVA pedindo o construtor — nunca é pulada. A própria varredura é provada por uma tabela com identificador de loja e sem política, criada de propósito e desfeita no fim. A prova de concorrência vai além da T-006: quatro lojas, escrita misturada com leitura e 120 requisições sobre três conexões. Marcado com @principle:P-003.
 - Esforço: alto
 
 ## T-011 — Contrato compartilhado e documento publicado [pendente]

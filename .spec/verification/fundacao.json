@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T12:43:24.410Z",
-  "gitRev": "7261696",
+  "timestamp": "2026-08-18T13:25:52.552Z",
+  "gitRev": "71c66fa",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 232,
+  "testsParsed": 245,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -39,12 +39,12 @@
     },
     "AC-010": {
       "status": "pass",
-      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-010 @principle:P-003 a tentativa cruzada sob concorrência não leu nem alterou a linha da outra loja @spec:AC-010 @principle:P-003 a tentativa cruzada sob concorrência não leu nem alterou a linha da outra loja",
       "method": "vitest-json"
     },
     "AC-011": {
       "status": "pass",
-      "testName": "contexto entre requisições concorrentes sobre conexões reaproveitadas @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas",
       "method": "vitest-json"
     },
     "AC-012": {
@@ -101,7 +101,7 @@
   "principles": {
     "P-003": {
       "status": "pass",
-      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
     },
     "P-011": {
       "status": "pass",

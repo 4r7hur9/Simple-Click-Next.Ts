@@ -6,8 +6,8 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 
 ### Onde paramos
 
-Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
-14 de 253 critérios de aceite provados. Tudo enviado para `main`.
+Fase **F0 (fundação)**: 10 de 20 tarefas concluídas, 245 testes passando,
+18 de 253 critérios de aceite provados.
 
 | Concluída | O que entregou                                                          |
 | --------- | ----------------------------------------------------------------------- |
@@ -18,6 +18,7 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
 | T-016     | Design system com os quatro estados, contraste WCAG, regra de cor       |
 | T-019     | Esqueleto do site (Next) e da API (Express)                             |
 | T-007     | Banco de teste por arquivo, criado de molde e descartado no fim         |
+| T-010     | Isolamento provado em TODA tabela de loja, por varredura do catálogo    |
 
 ### Próximo passo
 
@@ -29,8 +30,16 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
   AC-009, AC-010 e AC-011 provados contra o PostgreSQL de teste
 - ~~**T-007** — banco de teste separado e efêmero~~ **concluída em 18/08**
 
-Depois: grupo D (T-008 seed, T-009 construtores, T-010 prova de isolamento),
-grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
+**Grupo D** — depende da T-006:
+
+- ~~**T-010** — prova de isolamento entre lojas~~ **concluída em 18/08:**
+  `apps/api/tests/isolamento-varredura.test.ts` descobre no catálogo do
+  PostgreSQL toda tabela com identificador de loja e cobra as quatro operações
+  de cada uma; `apps/api/tests/isolamento-concorrente.test.ts` leva a prova de
+  AC-011 a quatro lojas, com escrita misturada com leitura
+
+Depois: o resto do grupo D (T-008 seed, T-009 construtores), grupo E (T-011 a
+T-015), grupo F (T-020) e grupo G (T-017, T-018).
 
 ### Como subir o ambiente
 
@@ -143,6 +152,50 @@ bash infra/scripts/verificar.sh  # o portão completo
     mudou — as duas cadeias continuam distintas —, mudou onde ele é escrito:
     a da aplicação em `apps/api/src/core/db.ts` e a de migração no aplicador de
     migrações. Vale registrar na próxima revisão de decisões.
+
+14. **A varredura de isolamento cobre o papel `OWNER`, e só ele.**
+    `apps/api/tests/isolamento-varredura.test.ts` prova as quatro operações com
+    a requisição no papel de dono, que é o eixo de isolamento por loja. O
+    segundo eixo — o do comprador, que enxerga a própria linha em qualquer loja
+    (`sc_self_select` em `store_customers`) — não é exercitado pela varredura, e
+    é justamente onde a modelagem registra o porteiro de papel como obrigatório.
+    Quando a feature `identidade-acesso` entrar, vale estender a varredura com
+    uma segunda passada no papel `CUSTOMER`, provando que ele NÃO enxerga a
+    linha de outra pessoa na mesma loja.
+
+15. **A varredura mira a linha por chave de UMA coluna.** O construtor de cada
+    tabela declara `chave: "id"` (ou `store_id`), e as tentativas de alteração e
+    remoção montam `WHERE <chave>::text = $1`. Nenhuma tabela de hoje tem chave
+    primária composta; a primeira que tiver vai precisar que o construtor passe
+    a aceitar mais de uma coluna. Não é armadilha silenciosa: sem construtor a
+    varredura reprova, e com construtor incompleto o teste quebra na hora.
+
+16. **`packages/database` não passa na verificação de tipos, e isso já vinha de
+    antes.** `pnpm typecheck` reprova em `packages/database/src/guards.ts:320`
+    com incompatibilidade entre o módulo `pg` real e o tipo `ModuloPg` declarado
+    ali (`connect()` devolve `Promise<Client>`, não `Promise<void>`). Foi
+    conferido na árvore principal, sem nenhuma alteração desta tarefa: o defeito
+    é anterior. Passa despercebido porque `infra/scripts/verificar.sh` não roda
+    a verificação de tipos — só formatação, qualidade de código, testes,
+    auditoria e guardas. Duas coisas para a T-017, quando o portão for
+    consolidado: corrigir a assinatura em `guards.ts` e ACRESCENTAR
+    `pnpm typecheck` ao portão, senão o próximo erro de tipo também vai passar.
+
+17. **`@types/pg` estava em duas versões no monorepo.** `packages/testing`
+    declarava `8.15.6` enquanto `packages/database` e `apps/api` já usavam
+    `8.21.0`, e a divergência fazia o MESMO `pg.Client` ser dois tipos
+    incompatíveis — o cliente devolvido por `conectarNoBancoDoArquivo()` não
+    servia numa variável tipada pelo `pg` da API. Alinhado em 18/08 para
+    `8.21.0` nos três. Se alguém acrescentar um pacote novo que fale com o
+    banco, alinhe também — ou o catálogo do `pnpm-workspace.yaml` passa a ser o
+    lugar certo para essa versão.
+
+18. **`apps/api/tsconfig.json` deixou de declarar `rootDir`.** Ele foi para
+    `tsconfig.build.json`, que é quem gera `dist/`. O motivo: `rootDir: "src"`
+    barrava `apps/api/tests/`, e teste que a verificação de tipos não olha é
+    teste que compila errado sem ninguém saber. A geração continua idêntica
+    (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
+    lista de exclusão da geração — teste em imagem de produção só carrega peso.
 
 ## Portão contornado
 
