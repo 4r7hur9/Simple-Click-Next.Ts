@@ -347,7 +347,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     usa `https://api.simpleclick.localhost`, que é o nome que o roteador local
     serve com TLS. Quando a T-017 consolidar o portão, vale decidir se o site
     também passa a recusar subir sem ambiente declarado.
-25. **A T-012 tocou `apps/api/src/app.ts` em quatro linhas, e só nelas.** Foram
+29. **A T-012 tocou `apps/api/src/app.ts` em quatro linhas, e só nelas.** Foram
     acrescentados três `import` e três `app.use`: `middlewareDeRegistro()` como
     PRIMEIRO middleware (ele abre o contexto da requisição, e tudo depois
     depende do identificador já existir), `criarRotasDeSaude()` montado em
@@ -358,7 +358,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     com as outras tarefas do grupo E não virar batalha. Quem for resolver
     conflito nesse arquivo: a ordem dos três é o que importa, o resto é livre.
 
-26. **A T-012 também mexeu em `apps/api/src/core/db.ts`, em quatro linhas.**
+30. **A T-012 também mexeu em `apps/api/src/core/db.ts`, em quatro linhas.**
     `garantirCredencial` guardava a promessa da conferência de credencial mesmo
     quando ela FALHAVA. Com o banco fora do ar, a primeira tentativa gravava uma
     promessa recusada e a API nunca mais tentava de novo — a verificação de
@@ -366,7 +366,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     AC-023 pede. Agora a falha limpa o cache e a próxima transação tenta outra
     vez. Nenhum outro comportamento de `db.ts` mudou.
 
-27. **Mensagem de erro de biblioteca não vai para o registro, e isso é uma
+31. **Mensagem de erro de biblioteca não vai para o registro, e isso é uma
     escolha com custo.** `core/log.ts` grava a mensagem apenas de erro que
     carrega a marca `mensagemEscritaPorNos` (hoje, `ErroDeDominio`). De erro de
     terceiro — Prisma, `pg`, `TypeError` de biblioteca — vão o nome da classe, o
@@ -379,7 +379,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     mensagens são escritas à mão; ou embrulhar o erro de terceiro num
     `ErroDeDominio` com `detalhe` estruturado no ponto onde ele nasce.
 
-28. **A verificação do cache fala o protocolo do Redis à mão, sem cliente.**
+32. **A verificação do cache fala o protocolo do Redis à mão, sem cliente.**
     `apps/api/src/modules/health/health.cache.ts` abre um soquete, manda `AUTH`
     (quando a cadeia traz credencial) e `PING`, e reconhece `+PONG`. São ~40
     linhas e nenhuma dependência nova (P-014) — e a conexão nova a cada
@@ -388,7 +388,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     cliente de verdade, esta função deve dar lugar a ele**, senão passam a
     existir dois caminhos até o Redis.
 
-29. **`pino` entrou como dependência de `apps/api`.** É a única biblioteca nova
+33. **`pino` entrou como dependência de `apps/api`.** É a única biblioteca nova
     da T-012. Justificativa (P-014): saída em JSON por linha sem custo de
     formatação, `mixin` por linha — que é o gancho onde o identificador da
     requisição entra sem nenhuma chamada precisar passá-lo — e `formatters.log`,
@@ -398,14 +398,14 @@ bash infra/scripts/verificar.sh  # o portão completo
     `apps/api/package.json` e o `pnpm-lock.yaml`; aceitar os dois lados e rodar
     `pnpm install` resolve.
 
-30. **`main.test.ts` mudou porque a linha de partida mudou de formato.** Ela
+34. **`main.test.ts` mudou porque a linha de partida mudou de formato.** Ela
     saía como texto (`ouvindo na porta N`) e agora sai pelo registro
     estruturado, como uma linha de JSON com `msg: "api.iniciou"` e o campo
     `porta`. O teste ficou mais forte, não mais fraco: além de esperar a linha,
     ele a converte de volta em objeto e confere a porta. `app.test.ts` ganhou
     um desvio do registrador para um destino que não escreve nada — sem ele, o
     portão passaria a imprimir duas linhas de JSON por requisição de teste.
-25. **Nenhum provedor de e-mail foi escolhido, e por isso não existe adaptador
+35. **Nenhum provedor de e-mail foi escolhido, e por isso não existe adaptador
     de envio de verdade.** A T-014 entregou a PORTA (`EnviadorDeEmail`, em
     `apps/api/src/jobs/email.job.ts`) e um adaptador de partida
     (`enviadorNaoConfigurado`) que **falha alto**: o trabalho esgota as
@@ -417,7 +417,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     vinda do ambiente (P-002). Enquanto isso, AC-025 e AC-026 estão provados
     contra o Redis real com um duplo no lugar do serviço externo.
 
-26. **`montarSegundoPlano` ainda não é chamado por `main.ts`.** A T-014 NÃO
+36. **`montarSegundoPlano` ainda não é chamado por `main.ts`.** A T-014 NÃO
     tocou em `apps/api/src/app.ts` nem em `apps/api/src/main.ts`, de propósito:
     várias tarefas deste grupo disputam esses dois arquivos e um conflito ali
     custa mais do que a espera. O ponto de composição existe, está provado e é
@@ -428,7 +428,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     fila sobe em produção — o que é seguro, porque também não existe rota que
     enfileire nada ainda.
 
-27. **`REDIS_URL_TEST` não é validada por `core/env.ts`.** A validação de
+37. **`REDIS_URL_TEST` não é validada por `core/env.ts`.** A validação de
     partida conhece `REDIS_URL`, e só ela; a variável de teste é lida direto
     por `apps/api/tests/apoio-de-fila.ts`, que recusa a ausência com mensagem
     dizendo o que fazer, e recusa também que ela aponte para o MESMO Redis de
@@ -436,7 +436,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     `packages/testing`. Se um dia a API passar a precisar dela na partida, o
     lugar de acrescentar é a forma declarada em `core/env.ts`.
 
-28. **O Redis do ambiente sobe com `maxmemory-policy allkeys-lru`, e a BullMQ
+38. **O Redis do ambiente sobe com `maxmemory-policy allkeys-lru`, e a BullMQ
     avisa disso a cada partida de fila.** O aviso ("Eviction policy is
     allkeys-lru. It should be noeviction") aparece na saída dos testes e é
     correto: sob pressão de memória o Redis pode descartar chave de fila junto
@@ -448,7 +448,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     dia o cache e a fila forem separados em dois servidores, o da fila deve
     subir com `noeviction`.
 
-29. **A BullMQ 6 traz um motor PostgreSQL embutido, e ele NÃO foi adotado.**
+39. **A BullMQ 6 traz um motor PostgreSQL embutido, e ele NÃO foi adotado.**
     `createPostgresBackend` permitiria a fila de impressão com a mesma API
     desta tarefa. Não foi usado aqui por dois motivos concretos: ele cria e
     migra o próprio esquema, o que colide com a regra de migrações escritas à
@@ -458,7 +458,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     ou se resolve o esquema dele sob as guardas, ou se escreve a fila de
     impressão à mão, como a decisão previa.
 
-30. **`vitest.config.ts` ganhou um quinto projeto, `filas`, e o portão ganhou
+40. **`vitest.config.ts` ganhou um quinto projeto, `filas`, e o portão ganhou
     uma etapa.** Os testes que falam com Redis moram em
     `apps/api/src/jobs/*.int.test.ts` e ficaram FORA de `api-int` — sem isso,
     cada arquivo deles pagaria a criação de um banco descartável que nenhum
@@ -467,7 +467,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     (Redis)" separada da de banco, para a primeira linha vermelha já dizer qual
     serviço está envolvido. Quem consolidar o portão na T-017 herda as duas
     mudanças.
-25. **A T-015 (cache) tocou quatro arquivos que não são dela, e o merge precisa
+41. **A T-015 (cache) tocou quatro arquivos que não são dela, e o merge precisa
     saber quais.** `apps/api/src/app.ts` NÃO foi tocado. Foram tocados:
     - `vitest.config.ts` — nasceu o quinto projeto, `cache-int`, e os projetos
       `unit`, `web` e `api-int` passaram a excluir `**/*.redis.test.ts`. O
@@ -480,7 +480,7 @@ bash infra/scripts/verificar.sh  # o portão completo
       `SEGREDO_DE_REVALIDACAO`;
     - `.spec/features/fundacao/tasks.md` — a T-015 virou concluída.
 
-26. **`URL_DO_SITE` e `SEGREDO_DE_REVALIDACAO` ainda não passam por
+42. **`URL_DO_SITE` e `SEGREDO_DE_REVALIDACAO` ainda não passam por
     `core/env.ts`.** Elas são lidas por `lerConfiguracaoDoAviso` em
     `apps/api/src/core/cache.ts`, que recusa configuração pela metade e segredo
     com menos de 32 caracteres — então não há segredo em código (P-002) nem
@@ -495,7 +495,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     dívidas 2 e 10: mover para `forma`, acrescentar as duas ao ambiente de
     exemplo do teste e à lista de `VARIAVEIS`.
 
-27. **Ninguém chama o aviso de invalidação ainda.**
+43. **Ninguém chama o aviso de invalidação ainda.**
     `criarAvisoDoSite` e `cache().invalidarLoja` existem e estão provados, mas
     não há caso de uso de catálogo para acioná-los — o módulo `catalog` nasce
     na F1/F3. O ponto de ligação é o caso de uso que altera produto, categoria
@@ -504,7 +504,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     aviso é best-effort de propósito: `"indisponivel"` não pode derrubar a
     alteração do catálogo, porque o prazo de validade assume.
 
-28. **A regra da chave está escrita duas vezes.** `apps/api/src/core/cache.ts` e
+44. **A regra da chave está escrita duas vezes.** `apps/api/src/core/cache.ts` e
     `apps/web/src/server/cache.ts` repetem a mesma expressão regular de parte de
     chave e o mesmo separador. A tabela de fronteiras não deixa o site importar
     a API, e `packages/core` ainda não existe — quando existir, o lugar da regra
@@ -513,7 +513,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     (`<loja>:<nome>[:<parte>]`) e a mesma recusa de separador dentro das partes.
     É a mesma natureza da dívida 15, e some pelo mesmo caminho.
 
-29. **O cache do site depende de `unstable_cache`, que o Next chama de
+45. **O cache do site depende de `unstable_cache`, que o Next chama de
     instável.** É a única API do Next 16 que guarda leitura de servidor por
     chave com etiquetas sem exigir a configuração de componentes em cache. O
     envelope `lembrarNoSite` existe justamente para que a troca seja um arquivo:
@@ -522,7 +522,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     `motorDoNext` e mais nada. `revalidateTag` é chamado com o perfil `"max"`
     porque a forma de um argumento só está descontinuada, e `updateTag` só vale
     dentro de ação de servidor — a rota de invalidação não é uma.
-25. **A T-013 tocou `apps/api/src/app.ts`, e só nas três linhas da lista de
+46. **A T-013 tocou `apps/api/src/app.ts`, e só nas três linhas da lista de
     origens.** `criarApp()` passou a aceitar `OpcoesDoApp` (hoje só `origens`) e
     monta `corsDeOrigensFechadas` ANTES de `express.json()` — a ordem é
     deliberada: requisição de origem estranha é recusada sem a API gastar
@@ -530,7 +530,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     resolvendo conflito nesse arquivo pode ficar com os dois lados: a alteração
     é aditiva.
 
-26. **A borda de validação (`core/validar.ts`) ainda precisa se juntar ao
+47. **A borda de validação (`core/validar.ts`) ainda precisa se juntar ao
     auxiliar de rota da T-011.** As duas nascem para o mesmo ponto do desenho: a
     T-011 declara a rota e gera o documento de contrato a partir do esquema; a
     T-013 aplica esse esquema na requisição. `validar()` já expõe `esquemas`
@@ -539,7 +539,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     por dentro — nenhum dos dois arquivos precisa ser reescrito, mas alguém
     precisa fazer a costura, e ela não está feita.
 
-27. **O aviso de bloqueio de AC-119 sai por gancho, e ninguém o ouve ainda.** O
+48. **O aviso de bloqueio de AC-119 sai por gancho, e ninguém o ouve ainda.** O
     limitador chama `aoBloquear` uma vez por bloqueio NOVO, com a conta, a
     espera e quantos bloqueios seguidos houve. Quem transforma isso em e-mail é
     a feature `identidade-acesso`, usando a fila da T-014 — o limite não pode
@@ -548,7 +548,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     pode provar: que ele é emitido uma vez por bloqueio, e não a cada requisição
     barrada.
 
-28. **Quantas bordas confiáveis existem à frente da API é parâmetro, e ainda não
+49. **Quantas bordas confiáveis existem à frente da API é parâmetro, e ainda não
     é variável de ambiente.** `limitarTentativas` recebe `proxiesConfiaveis`,
     com padrão 1 — o roteador local de hoje. Quando entrar CDN na frente, o
     número muda, e mudar número em código para configurar ambiente é o começo de
@@ -558,14 +558,14 @@ bash infra/scripts/verificar.sh  # o portão completo
     colidiria com quem está na T-003. Entra junto com a montagem das rotas de
     entrada, na feature `identidade-acesso`.
 
-29. **`main.ts` ainda não chama `carregarAmbiente`.** `criarApp()` lê
+50. **`main.ts` ainda não chama `carregarAmbiente`.** `criarApp()` lê
     `ORIGENS_PERMITIDAS` do ambiente e, se ela faltar, a lista fica VAZIA — o que
     fecha a porta (nenhuma origem autorizada a mudar estado) em vez de abri-la.
     É o padrão seguro, mas não substitui a recusa de partida que AC-002 exige:
     hoje a API subiria com a lista vazia e só o primeiro `POST` acusaria. Ligar
     `carregarAmbiente` na partida resolve, e é da T-003/T-017.
 
-30. **Nasceu o quinto projeto do Vitest: `api-redis`.** Casa com
+51. **Nasceu o quinto projeto do Vitest: `api-redis`.** Casa com
     `apps/api/src/**/*.redis.test.ts`, não carrega preparação de banco e entrou
     como etapa própria de `infra/scripts/verificar.sh` — sem essa linha, o
     projeto novo ficaria fora do portão em silêncio, que é o pior jeito de um
@@ -573,21 +573,21 @@ bash infra/scripts/verificar.sh  # o portão completo
     conflito:** a T-017 vai reescrever `verificar.sh`; ao resolver, mantenha a
     etapa do cache.
 
-31. **`@redis/client` entrou como dependência de `apps/api`.** É o cliente do
+52. **`@redis/client` entrou como dependência de `apps/api`.** É o cliente do
     node-redis sem os módulos de busca, JSON, série temporal e filtro — que o
     pacote `redis` traria junto sem uso nenhum (P-014). O que ele resolve e a
     stack atual não resolve: o protocolo do Redis, a vida da conexão e a
     reconexão. O limitador só usa `EVAL`, por uma porta estreita
     (`CacheDoLimite`), então trocar o cliente é mexer em uma função.
 
-32. **O limite de tentativas ainda não está montado em rota nenhuma.**
+53. **O limite de tentativas ainda não está montado em rota nenhuma.**
     `core/limite.ts` está pronto e provado, mas quem o instala em
     `POST /v1/auth/login` (e nas rotas de código de verificação e recuperação de
     senha) é a feature `identidade-acesso`. A prova de hoje monta a rota de
     entrada dentro do próprio teste, com senha e domínio de mentira — o que
     prova o limite, e não a autenticação.
 
-33. **Um servidor por requisição no supertest deu flutuação de verdade.** Duas
+54. **Um servidor por requisição no supertest deu flutuação de verdade.** Duas
     execuções em quinze reprovaram com 404 numa rota que existe, em testes que
     passavam sozinhos. A causa é o volume: provar um limite de tentativas exige
     estourá-lo, e `request(app)` abre um servidor efêmero NOVO por requisição —

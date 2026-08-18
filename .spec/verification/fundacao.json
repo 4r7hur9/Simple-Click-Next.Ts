@@ -1,15 +1,15 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T14:18:20.569Z",
-  "gitRev": "abe34df",
+  "timestamp": "2026-08-18T14:26:06.534Z",
+  "gitRev": "2b5b25c",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 314,
+  "testsParsed": 469,
   "results": {
     "AC-001": {
       "status": "pass",
-      "testName": "composição do ambiente local @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site",
+      "testName": "armadilha silenciosa do Next 16 @spec:AC-001 não existe middleware.ts, que o Next 16 ignoraria sem avisar @spec:AC-001 não existe middleware.ts, que o Next 16 ignoraria sem avisar",
       "method": "vitest-json"
     },
     "AC-002": {
@@ -29,7 +29,17 @@
     },
     "AC-005": {
       "status": "pass",
-      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "testName": "fronteiras no repositório real @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra",
+      "method": "vitest-json"
+    },
+    "AC-006": {
+      "status": "pass",
+      "testName": "leitura das respostas da API pelo contrato @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site",
+      "method": "vitest-json"
+    },
+    "AC-007": {
+      "status": "pass",
+      "testName": "contrato compartilhado @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada",
       "method": "vitest-json"
     },
     "AC-008": {
@@ -59,12 +69,12 @@
     },
     "AC-013": {
       "status": "pass",
-      "testName": "estados reutilizáveis @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda",
+      "testName": "a vitrine mostra os estados de cada componente base @spec:AC-013 o botão aparece pronto, carregando e desabilitado @spec:AC-013 o botão aparece pronto, carregando e desabilitado",
       "method": "vitest-json"
     },
     "AC-014": {
       "status": "pass",
-      "testName": "cor escrita direto no componente @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha",
+      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
       "method": "vitest-json"
     },
     "AC-015": {
@@ -75,6 +85,46 @@
     "AC-016": {
       "status": "pass",
       "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
+      "method": "vitest-json"
+    },
+    "AC-021": {
+      "status": "pass",
+      "testName": "identificador da requisição no registro @spec:AC-021 todas as linhas de uma requisição compartilham o mesmo identificador @spec:AC-021 todas as linhas de uma requisição compartilham o mesmo identificador",
+      "method": "vitest-json"
+    },
+    "AC-022": {
+      "status": "pass",
+      "testName": "proteção por lista do que pode ser registrado @spec:AC-022 nenhum valor de dado pessoal ou segredo chega à saída @spec:AC-022 nenhum valor de dado pessoal ou segredo chega à saída",
+      "method": "vitest-json"
+    },
+    "AC-023": {
+      "status": "pass",
+      "testName": "pronto contra banco e cache reais @spec:AC-023 o cache do ambiente responde ao PING pelo caminho da verificação @spec:AC-023 o cache do ambiente responde ao PING pelo caminho da verificação",
+      "method": "vitest-json"
+    },
+    "AC-024": {
+      "status": "pass",
+      "testName": "resposta de erro @spec:AC-024 falha inesperada responde mensagem genérica com código de referência @spec:AC-024 falha inesperada responde mensagem genérica com código de referência",
+      "method": "vitest-json"
+    },
+    "AC-025": {
+      "status": "pass",
+      "testName": "envio de e-mail do cadastro @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail",
+      "method": "vitest-json"
+    },
+    "AC-026": {
+      "status": "pass",
+      "testName": "trabalho que falha em toda tentativa @spec:AC-026 repete a tentativa com espera crescente entre elas @spec:AC-026 repete a tentativa com espera crescente entre elas",
+      "method": "vitest-json"
+    },
+    "AC-027": {
+      "status": "pass",
+      "testName": "cache contra o Redis de verdade @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu",
+      "method": "vitest-json"
+    },
+    "AC-028": {
+      "status": "pass",
+      "testName": "cache contra o Redis de verdade @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual",
       "method": "vitest-json"
     },
     "AC-031": {
@@ -128,10 +178,6 @@
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
     },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
-    },
     "P-011": {
       "status": "pass",
       "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
@@ -139,6 +185,10 @@
     "P-012": {
       "status": "pass",
       "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     }
   }
 }
