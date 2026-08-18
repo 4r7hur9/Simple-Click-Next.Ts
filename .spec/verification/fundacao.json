@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T15:15:18.132Z",
-  "gitRev": "654819c",
+  "timestamp": "2026-08-18T15:36:42.578Z",
+  "gitRev": "c54eca3",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 521,
+  "testsParsed": 541,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -85,6 +85,46 @@
     "AC-016": {
       "status": "pass",
       "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
+      "method": "vitest-json"
+    },
+    "AC-017": {
+      "status": "pass",
+      "testName": "portão de qualidade — o comando único @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação",
+      "method": "vitest-json"
+    },
+    "AC-018": {
+      "status": "pass",
+      "testName": "auditoria da especificação — o que conta como prova @spec:AC-018 critério de aceite sem teste reprova a auditoria, apontando qual @spec:AC-018 critério de aceite sem teste reprova a auditoria, apontando qual",
+      "method": "vitest-json"
+    },
+    "AC-019": {
+      "status": "pass",
+      "testName": "auditoria da especificação — o que conta como prova @spec:AC-019 teste PULADO não conta como prova: o critério continua sem prova @spec:AC-019 teste PULADO não conta como prova: o critério continua sem prova",
+      "method": "vitest-json"
+    },
+    "AC-020": {
+      "status": "pass",
+      "testName": "gancho antes do registro @spec:AC-020 segredo escrito no código bloqueia o registro e não chega ao histórico @spec:AC-020 segredo escrito no código bloqueia o registro e não chega ao histórico",
+      "method": "vitest-json"
+    },
+    "AC-040": {
+      "status": "pass",
+      "testName": "gancho antes do registro @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir",
+      "method": "vitest-json"
+    },
+    "AC-041": {
+      "status": "pass",
+      "testName": "gancho antes do envio @spec:AC-041 envio é bloqueado quando qualquer etapa do portão falha, e o remoto não recebe nada @spec:AC-041 envio é bloqueado quando qualquer etapa do portão falha, e o remoto não recebe nada",
+      "method": "vitest-json"
+    },
+    "AC-042": {
+      "status": "pass",
+      "testName": "reprodutibilidade da verificação @spec:AC-042 a mesma versão verificada duas vezes dá exatamente o mesmo resultado @spec:AC-042 a mesma versão verificada duas vezes dá exatamente o mesmo resultado",
+      "method": "vitest-json"
+    },
+    "AC-043": {
+      "status": "pass",
+      "testName": "pular o portão @spec:AC-043 pular exige sinalização explícita: sem ela, o portão bloqueia @spec:AC-043 pular exige sinalização explícita: sem ela, o portão bloqueia",
       "method": "vitest-json"
     },
     "AC-021": {

@@ -276,10 +276,19 @@ describe("check-ambientes.sh --producao", () => {
 });
 
 describe("portão de qualidade e o verificador de ambientes", () => {
-  /** As etapas do portão, na ordem: o nome e o comando que cada uma roda. */
+  /**
+   * As etapas do portão, na ordem: o nome e o comando que cada uma roda.
+   *
+   * A declaração ocupa três linhas — nome, descrição e comando —, então o
+   * casamento precisa atravessar quebra de linha. Ler o arquivo em vez de
+   * manter uma lista aqui é o que faz o teste continuar valendo quando alguém
+   * reordenar o portão: uma lista repetida envelheceria em silêncio.
+   */
   function etapasDoPortao(): { nome: string; comando: string }[] {
     const texto = readFileSync(PORTAO, "utf8");
-    const encontradas = texto.matchAll(/^etapa "([^"]+)" (.+)$/gm);
+    const encontradas = texto.matchAll(
+      /^portao_etapa "([^"]+)" \\\n\s+"[^"]*" \\\n\s+(.+)$/gm,
+    );
     return [...encontradas].map((casou) => ({
       nome: casou[1] as string,
       comando: casou[2] as string,

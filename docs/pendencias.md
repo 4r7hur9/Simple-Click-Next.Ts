@@ -625,6 +625,7 @@ bash infra/scripts/verificar.sh  # o portão completo
 
   Teste instável é dívida do portão inteiro: ele ensina a desconfiar do
   vermelho, e portão em que ninguém confia é portão que ninguém roda.
+
 55. **Nada está publicado, e é assim de propósito.** O mecanismo da publicação
     existe e é provado por teste (T-018), mas conta no provedor, domínio e
     primeira publicação são tarefas da fase de publicação — o domínio fica para
