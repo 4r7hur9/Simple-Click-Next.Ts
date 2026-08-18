@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:39:23.808Z",
-  "gitRev": "2b85f1f",
+  "timestamp": "2026-08-18T14:04:32.020Z",
+  "gitRev": "abe34df",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 271,
+  "testsParsed": 324,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
+      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -75,6 +75,16 @@
     "AC-016": {
       "status": "pass",
       "testName": "vitrine do design system @spec:AC-016 a verificação avaliou de fato os componentes da página @spec:AC-016 a verificação avaliou de fato os componentes da página",
+      "method": "vitest-json"
+    },
+    "AC-027": {
+      "status": "pass",
+      "testName": "cache contra o Redis de verdade @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu @spec:AC-027 duas lojas consultando o mesmo tipo de dado recebem cada uma o seu",
+      "method": "vitest-json"
+    },
+    "AC-028": {
+      "status": "pass",
+      "testName": "cache contra o Redis de verdade @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual",
       "method": "vitest-json"
     },
     "AC-031": {

@@ -284,6 +284,62 @@ bash infra/scripts/verificar.sh  # o portão completo
     (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
     lista de exclusão da geração — teste em imagem de produção só carrega peso.
 
+25. **A T-015 (cache) tocou quatro arquivos que não são dela, e o merge precisa
+    saber quais.** `apps/api/src/app.ts` NÃO foi tocado. Foram tocados:
+    - `vitest.config.ts` — nasceu o quinto projeto, `cache-int`, e os projetos
+      `unit`, `web` e `api-int` passaram a excluir `**/*.redis.test.ts`. O
+      motivo de não reaproveitar `api-int`: aquele projeto cria um banco
+      descartável por arquivo, e cobrar um PostgreSQL de pé para provar o cache
+      faria o teste do cache falhar por um motivo que não é dele;
+    - `infra/scripts/verificar.sh` — uma etapa nova, "testes do cache (Redis de
+      teste)", logo depois da etapa de integração;
+    - `.env.example` e `.env` — duas variáveis novas, `URL_DO_SITE` e
+      `SEGREDO_DE_REVALIDACAO`;
+    - `.spec/features/fundacao/tasks.md` — a T-015 virou concluída.
+
+26. **`URL_DO_SITE` e `SEGREDO_DE_REVALIDACAO` ainda não passam por
+    `core/env.ts`.** Elas são lidas por `lerConfiguracaoDoAviso` em
+    `apps/api/src/core/cache.ts`, que recusa configuração pela metade e segredo
+    com menos de 32 caracteres — então não há segredo em código (P-002) nem
+    variável aceita sem conferência. O que falta é a recusa acontecer na
+    PARTIDA, como AC-002 pede, e não na primeira invalidação. Não subiram para
+    `core/env.ts` agora por dois motivos: acrescentá-las ao esquema declarado
+    obriga a mudar a lista exata que `env.test.ts` afirma
+    (`descreve todas as variáveis previstas`), e esse arquivo é da T-003 —
+    com várias tarefas em árvores paralelas, seria conflito garantido; e as
+    duas são opcionais por desenho (sem elas, a alteração do catálogo ainda
+    aparece quando o prazo de validade vence). **Entra na T-017**, junto com as
+    dívidas 2 e 10: mover para `forma`, acrescentar as duas ao ambiente de
+    exemplo do teste e à lista de `VARIAVEIS`.
+
+27. **Ninguém chama o aviso de invalidação ainda.**
+    `criarAvisoDoSite` e `cache().invalidarLoja` existem e estão provados, mas
+    não há caso de uso de catálogo para acioná-los — o módulo `catalog` nasce
+    na F1/F3. O ponto de ligação é o caso de uso que altera produto, categoria
+    ou configuração da loja: ele deve, na mesma ordem, invalidar o cache da
+    API (`invalidarLoja`) e avisar o site (`avisar({ lojaId, nomes })`). O
+    aviso é best-effort de propósito: `"indisponivel"` não pode derrubar a
+    alteração do catálogo, porque o prazo de validade assume.
+
+28. **A regra da chave está escrita duas vezes.** `apps/api/src/core/cache.ts` e
+    `apps/web/src/server/cache.ts` repetem a mesma expressão regular de parte de
+    chave e o mesmo separador. A tabela de fronteiras não deixa o site importar
+    a API, e `packages/core` ainda não existe — quando existir, o lugar da regra
+    é lá, e os dois passam a importá-la. Enquanto isso, o que amarra as pontas é
+    cada lado ter teste exigindo exatamente o mesmo formato de chave
+    (`<loja>:<nome>[:<parte>]`) e a mesma recusa de separador dentro das partes.
+    É a mesma natureza da dívida 15, e some pelo mesmo caminho.
+
+29. **O cache do site depende de `unstable_cache`, que o Next chama de
+    instável.** É a única API do Next 16 que guarda leitura de servidor por
+    chave com etiquetas sem exigir a configuração de componentes em cache. O
+    envelope `lembrarNoSite` existe justamente para que a troca seja um arquivo:
+    quem chama passa loja, nome e função de leitura, e nunca vê o motor. Se o
+    Next promover `"use cache"` com `cacheTag` a caminho padrão, muda
+    `motorDoNext` e mais nada. `revalidateTag` é chamado com o perfil `"max"`
+    porque a forma de um argumento só está descontinuada, e `updateTag` só vale
+    dentro de ação de servidor — a rota de invalidação não é uma.
+
 ## Portão contornado
 
 Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a

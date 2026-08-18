@@ -100,11 +100,11 @@
 - Notas: envio de e-mail sai do caminho da resposta. Falha repete com espera crescente e termina em estado inspecionável.
 - Esforço: medio
 
-## T-015 — Cache com identificação de loja e invalidação [pendente]
+## T-015 — Cache com identificação de loja e invalidação [concluida]
 
 - Refs: AC-027, AC-028
-- Arquivos: apps/api/src/core/cache.ts, apps/api/src/core/cache.test.ts, apps/web/src/server/cache.ts, apps/web/src/app/api/revalidate/route.ts
-- Notas: toda chave começa pelo identificador da loja; teste prova que não há troca entre lojas. Invalidação por versão de catálogo, disparada por chamada autenticada.
+- Arquivos: apps/api/src/core/cache.ts, apps/api/src/core/cache.test.ts, apps/api/src/core/cache.redis.test.ts, apps/web/src/server/cache.ts, apps/web/src/server/revalidacao.ts, apps/web/src/app/api/revalidate/route.ts, apps/web/tests/cache-do-site.test.ts, apps/web/tests/revalidate-rota.test.ts, vitest.config.ts, infra/scripts/verificar.sh, .env.example
+- Notas: toda chave começa pelo identificador da loja, e a montagem RECUSA chave sem loja — o cache responde antes do banco, então a forma da chave é a única defesa que existe ali (nenhuma política de isolamento é consultada). O separador é proibido dentro das partes para que a loja `a` com o dado `b:x` não colida com a loja `a:b` com o dado `x`. A invalidação tem dois níveis: por loja (prefixo, que a regra da chave torna possível sem índice paralelo) e por dado. O prazo de validade é a rede de proteção: se o aviso se perder, o dado velho morre sozinho em 60s, sem reinício de serviço. Queda do cache é degradação — a leitura vai à fonte e a loja continua vendendo, com espera antes de tentar de novo para "sem cache" não virar "lento". O cliente de Redis é escrito à mão (RESP sobre TCP, seis comandos): o que as bibliotecas maduras acrescentam é justamente a fila de espera que transforma "o cache caiu" em "a página pendurou". Provado contra o Redis de verdade no projeto `cache-int` do Vitest, inclusive com valor de 200 mil caracteres (resposta partida pelo TCP) e com porta fechada (conexão recusada).
 - Esforço: alto
 
 ## T-016 — Design system com os quatro estados [concluida]

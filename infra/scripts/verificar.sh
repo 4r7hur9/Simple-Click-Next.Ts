@@ -53,6 +53,11 @@ etapa "testes de unidade" pnpm vitest run --project unit --project web
 # migrado e apagado no fim (AC-003). O banco de desenvolvimento nao e tocado.
 etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-int --project db-rls
 
+# O cache fala com o Redis de verdade, no indice de teste (REDIS_URL_TEST).
+# Projeto separado porque o servico que ele exige e outro: cobrar PostgreSQL
+# de pe para provar o cache faria o teste do cache falhar por motivo alheio.
+etapa "testes do cache (Redis de teste)" pnpm vitest run --project cache-int
+
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
 # As guardas estruturais rodam contra um banco de prova efêmero, criado de molde
