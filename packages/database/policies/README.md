@@ -143,7 +143,39 @@ exceções são fechadas, revisadas e justificadas uma a uma:
 | `store_domains_host_uk` | endereço é chave de roteamento, resolvida antes de haver contexto |
 | `identities_email_uk`   | única chave única global de dado pessoal, enumerável por desenho  |
 
-A T-005 transforma esta lista na lista fechada da guarda de unicidade.
+A guarda `g3_unica_por_loja.sql` carrega esta lista, e mais
+`orders_public_token_uk`, que nasce com o domínio de pedido. Qualquer índice
+único global fora dela reprova o portão — o que obriga a próxima exceção a ser
+uma decisão escrita, e não um esquecimento.
+
+## As guardas estruturais
+
+`../guards/` tem nove consultas ao catálogo do PostgreSQL. Cada uma devolve uma
+linha por problema; qualquer linha reprova. Elas conferem no BANCO o que este
+documento descreve em prosa — porque ler a migração provaria que alguém
+escreveu a política, não que ela está lá.
+
+| Guarda | Recusa                                                                    |
+| ------ | ------------------------------------------------------------------------- |
+| G1     | tabela de loja sem o isolamento ligado **e** forçado                      |
+| G2     | tabela sem política para algum dos quatro comandos                        |
+| G3     | chave única global onde deveria ser única por loja                        |
+| G4     | política permissiva de tabela quente sem citar `store_id` (achado medido) |
+| G5     | índice cobridor sem as colunas que as políticas citam                     |
+| G6     | visão materializada sobre tabela de loja                                  |
+| G7     | visão de loja sem `security_invoker = true`                               |
+| G8     | tabela de pedido com política de alteração ou remoção                     |
+| G9     | trilha de auditoria que aceite alteração ou remoção                       |
+
+Uma exceção revisada em G4: `sc_self_select`, o segundo eixo de
+`store_customers`. Ele é ancorado na identidade, e não na loja — o comprador vê
+a própria linha, que por definição pode estar em outra loja —, e é o porteiro de
+papel que o segura. Está registrado como decisão de modelagem, não como
+esquecimento.
+
+Rodam pelo portão (`bash infra/scripts/db-guards.sh`) contra um banco de prova
+efêmero, migrado na hora: assim elas falam sobre o repositório, e não sobre o
+que a máquina de quem chamou tem hoje.
 
 ## O que ainda não existe
 

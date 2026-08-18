@@ -9,6 +9,7 @@
   "scripts": {
     "migrar": "node src/migrate.ts aplicar",
     "migrar:verificar": "node src/migrate.ts verificar",
+    "guardas": "node src/guards.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test:int": "vitest run"

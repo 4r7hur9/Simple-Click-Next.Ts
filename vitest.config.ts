@@ -8,6 +8,18 @@ export default defineConfig({
   // dependência nenhuma (P-014).
   oxc: { jsx: { runtime: "automatic" } },
   test: {
+    // As suítes que provam o banco criam cada uma o seu banco descartável, mas
+    // a migração 0001 cria PAPÉIS — e papel é objeto do agrupamento, não do
+    // banco. Duas suítes rodando ao mesmo tempo disparam dois `ALTER ROLE`
+    // simultâneos sobre a mesma linha do catálogo compartilhado, e o PostgreSQL
+    // recusa com "tuple concurrently updated". A trava do aplicador de
+    // migrações não alcança isso: ela é por banco, e os bancos são distintos.
+    //
+    // Serializar por arquivo custou 7,3 s contra 2,8 s aqui — preço baixo por
+    // uma suíte que não falha de forma intermitente. Quando a T-007 dividir a
+    // configuração em projetos, a serialização pode ficar só no projeto de
+    // banco, e o resto volta a rodar em paralelo.
+    fileParallelism: false,
     exclude: [
       ...configDefaults.exclude,
       "**/.next/**",
