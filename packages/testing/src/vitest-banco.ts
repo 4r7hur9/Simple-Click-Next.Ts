@@ -8,6 +8,10 @@
  * O descarte fica no encerramento porque o encerramento roda também quando o
  * teste falha: banco de teste não pode depender de o teste ter passado para ser
  * apagado.
+ *
+ * O encerramento fecha antes os agrupadores abertos pelos construtores de dado
+ * de teste (AC-038). Conexão viva depois do fim da suíte segura o processo de
+ * pé, e o Vitest passa a parecer travado num arquivo que já terminou.
  */
 
 import { afterAll, beforeAll, expect } from "vitest";
@@ -18,6 +22,7 @@ import {
   registrarBancoDoArquivo,
   type BancoDeTeste,
 } from "./db-test.ts";
+import { encerrarConstrutores } from "./factories.ts";
 
 /** A primeira execução do dia constrói o molde, e isso leva alguns segundos. */
 const ESPERA_DA_PREPARACAO = 180_000;
@@ -37,6 +42,7 @@ beforeAll(async () => {
 }, ESPERA_DA_PREPARACAO);
 
 afterAll(async () => {
+  await encerrarConstrutores();
   esquecerBancoDoArquivo();
   const aDescartar = banco;
   banco = undefined;

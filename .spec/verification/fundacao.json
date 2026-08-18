@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T12:43:24.410Z",
-  "gitRev": "7261696",
+  "timestamp": "2026-08-18T13:13:49.221Z",
+  "gitRev": "71c66fa",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 232,
+  "testsParsed": 242,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -95,6 +95,11 @@
     "AC-035": {
       "status": "pass",
       "testName": "guardas estruturais do banco @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos",
+      "method": "vitest-json"
+    },
+    "AC-038": {
+      "status": "pass",
+      "testName": "@spec:AC-038 monta um cenário completo em poucas linhas e o encontra no banco @spec:AC-038 monta um cenário completo em poucas linhas e o encontra no banco",
       "method": "vitest-json"
     }
   },
