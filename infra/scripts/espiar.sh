@@ -37,8 +37,25 @@ try:
             break
 except Exception:
     pass
-cor = "32" if idade <= 180 else "90"
-print(f"  \033[{cor}m●\033[0m {os.path.basename(f)[6:14]}  ({idade}s atrás)")
+# A situação vai em TEXTO, e não só em cor: informação que existe apenas na cor
+# some ao copiar e colar, e foi assim que dois agentes mortos há uma hora
+# pareceram estar trabalhando.
+morreu = "529" in acao or "Error" in acao
+if morreu:
+    situacao, cor = "MORTO", "31"
+elif idade <= 180:
+    situacao, cor = "escrevendo", "32"
+elif idade <= 900:
+    situacao, cor = "parado", "33"
+else:
+    situacao, cor = "ABANDONADO", "90"
+
+def humano(s):
+    if s < 90: return f"{s}s"
+    if s < 5400: return f"{s // 60}min"
+    return f"{s // 3600}h{(s % 3600) // 60:02d}"
+
+print(f"  \033[{cor}m[{situacao}]\033[0m {os.path.basename(f)[6:14]}  última atividade há {humano(idade)}")
 print(f"      {acao}\n")
 PY
   done
