@@ -15,6 +15,15 @@ export {
   LIMITE_PADRAO_DO_LINK,
   medirComprimentoNoLink,
 } from "./cupom-texto.ts";
+export { linkDoWhatsApp, normalizarWhatsApp } from "./telefone.ts";
+export type {
+  CausaDaRecusa,
+  NumeroAceito,
+  NumeroRecusado,
+  OpcoesDoNumero,
+  ResultadoDoNumero,
+  TipoDeLinha,
+} from "./telefone.ts";
 export type {
   AcaoDaOpcao,
   ClienteDoPedido,

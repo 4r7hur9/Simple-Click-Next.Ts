@@ -11,6 +11,12 @@
 # quantos critérios cada uma sustenta. Feature ainda sem prova nenhuma não entra:
 # rodá-la aqui só gastaria tempo para gravar um arquivo de zeros.
 #
+# A CONSEQUÊNCIA DISSO: a PRIMEIRA prova de uma feature se grava à mão, uma vez
+# (`node <motor> verify <feature>`). Depois dela o arquivo existe e esta lista
+# passa a incluí-la sozinha. Vale lembrar que o critério provado nem sempre mora
+# na feature da tarefa — a tarefa T-509, do checkout, prova o AC-913, que mora em
+# `config-loja`; quem esquecer disso vai ver a tarefa concluída sem prova.
+#
 # Uso:  bash infra/scripts/provar.sh          antes de registrar o trabalho
 set -uo pipefail
 

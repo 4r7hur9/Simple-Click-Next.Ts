@@ -65,10 +65,10 @@
 - Notas: o cliente envia para o número da loja. A abertura precisa acontecer no mesmo gesto do usuário, senão o navegador bloqueia. Se falhar ou o cliente fechar antes, o pedido continua registrado e há caminho para reenviar, mais alternativa de copiar o texto.
 - Esforço: alto
 
-## T-509 — Número de WhatsApp normalizado [pendente]
+## T-509 — Número de WhatsApp normalizado [concluida]
 
 - Refs: US-504, AC-913
-- Arquivos: packages/core/src/telefone.ts, packages/core/src/telefone.test.ts
+- Arquivos: packages/core/src/telefone.ts, packages/core/src/telefone.test.ts, packages/core/src/index.ts
 - Notas: normaliza máscara, espaços e ausência de código do país, e recusa número impossível — número errado gera link silenciosamente inútil.
 - Esforço: baixo
 
