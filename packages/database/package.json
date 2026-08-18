@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/migrate.ts"
+    ".": "./src/migrate.ts",
+    "./cliente": "./gerado/cliente/client.ts"
   },
   "scripts": {
+    "gerar": "prisma generate --schema prisma/schema.prisma",
     "migrar": "node src/migrate.ts aplicar",
     "migrar:verificar": "node src/migrate.ts verificar",
     "guardas": "node src/guards.ts",
@@ -15,12 +17,14 @@
     "test:int": "vitest run --root ../.. --project db-rls packages/database/"
   },
   "dependencies": {
+    "@prisma/client": "7.9.1",
     "pg": "8.23.0"
   },
   "devDependencies": {
     "@simpleclick/config-ts": "workspace:*",
     "@types/node": "26.2.0",
-    "@types/pg": "8.15.6",
+    "@types/pg": "8.21.0",
+    "prisma": "7.9.1",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

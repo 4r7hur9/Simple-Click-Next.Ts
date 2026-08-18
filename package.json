@@ -21,7 +21,8 @@
     "test:e2e": "turbo run test:e2e",
     "spec:audit": "node ~/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs audit --ci",
     "spec:verify": "node ~/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs verify",
-    "prepare": "lefthook install"
+    "db:gerar": "pnpm --filter @simpleclick/database run gerar",
+    "prepare": "lefthook install && pnpm --filter @simpleclick/database run gerar"
   },
   "devDependencies": {
     "@simpleclick/config-eslint": "workspace:*",

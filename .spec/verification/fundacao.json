@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T12:24:08.163Z",
+  "timestamp": "2026-08-18T12:35:53.640Z",
   "gitRev": "5bff874",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 177,
+  "testsParsed": 201,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -24,12 +24,22 @@
     },
     "AC-008": {
       "status": "pass",
-      "testName": "guardas estruturais do banco @spec:AC-008 g1 acusa a tabela de loja sem o isolamento ligado e forçado @spec:AC-008 g1 acusa a tabela de loja sem o isolamento ligado e forçado",
+      "testName": "verificação estrutural do isolamento @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado @spec:AC-008 reprova a tabela de loja que ficar sem o isolamento ligado e forçado",
       "method": "vitest-json"
     },
     "AC-009": {
       "status": "pass",
       "testName": "consulta da aplicação sem contexto de loja @spec:AC-009 devolve zero linhas em vez de tudo quando o contexto de loja não foi definido @spec:AC-009 devolve zero linhas em vez de tudo quando o contexto de loja não foi definido",
+      "method": "vitest-json"
+    },
+    "AC-010": {
+      "status": "pass",
+      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto",
+      "method": "vitest-json"
+    },
+    "AC-011": {
+      "status": "pass",
+      "testName": "contexto entre requisições concorrentes sobre conexões reaproveitadas @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam @spec:AC-011 @principle:P-003 muitas requisições alternadas entre duas lojas não se misturam",
       "method": "vitest-json"
     },
     "AC-012": {
@@ -76,11 +86,6 @@
       "status": "pass",
       "testName": "aplicador de migrações @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta @spec:AC-034 acusa a migração pendente pelo nome antes de o código topar com a coluna que falta",
       "method": "vitest-json"
-    },
-    "AC-035": {
-      "status": "pass",
-      "testName": "guardas estruturais do banco @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos @spec:AC-035 g2 acusa a tabela sem política para algum dos quatro comandos",
-      "method": "vitest-json"
     }
   },
   "principles": {
@@ -91,6 +96,10 @@
     "P-012": {
       "status": "pass",
       "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
+    },
+    "P-003": {
+      "status": "pass",
+      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
     }
   }
 }

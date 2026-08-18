@@ -19,3 +19,10 @@ catalog:
 allowBuilds:
   lefthook: true # instala os ganchos locais do portão de qualidade
   unrs-resolver: true # binário nativo que resolve importações em TypeScript
+  # Recusa explícita, e não omissão. O Prisma 7 não tem mais motor em Rust: o
+  # que estes scripts de instalação fariam é baixar os binários do motor de
+  # esquema, usados só por `prisma migrate` — comando que este projeto nunca
+  # roda, porque as migrações são escritas à mão (decisão de 17/08, regra 5).
+  # Negar aqui mantém a instalação silenciosa e sem binário vindo da rede.
+  prisma: false
+  "@prisma/engines": false

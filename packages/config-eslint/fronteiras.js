@@ -56,8 +56,12 @@ export const politicas = [
   // contrato, mas nenhuma aplicação depende deles em execução.
   permite("pkg-testing", ["pkg-database", "pkg-contracts", "pkg-core"]),
 
-  // Preocupações transversais da API.
-  permite("api-core", ["pkg-core", "pkg-contracts"]),
+  // Preocupações transversais da API. `pkg-database` entra porque `core/db.ts`
+  // É a camada de dados da API: o cliente tipado nasce do esquema declarado e
+  // mora em `packages/database`, e é de lá que ele é importado. A autorização
+  // para aqui e só aqui — nenhum módulo de domínio recebe a mesma, que é
+  // exatamente o que P-004 exige.
+  permite("api-core", ["pkg-core", "pkg-contracts", "pkg-database"]),
 
   // Módulo de domínio: regras puras, contrato e transversais.
   permite("api-module", ["pkg-core", "pkg-contracts", "api-core"]),

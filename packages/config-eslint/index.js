@@ -25,6 +25,10 @@ export const ignorados = {
     "**/playwright-report/**",
     "**/test-results/**",
     "**/*.gen.ts",
+    // Cliente tipado gerado a partir do esquema declarado: quem o escreve é o
+    // Prisma, e formatar ou lintar saída de ferramenta faz o portão acusar
+    // diferença que ninguém escreveu.
+    "packages/database/gerado/**",
   ],
 };
 

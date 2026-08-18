@@ -22,8 +22,12 @@ const arquivos = {
   // camada de dados: pode conhecer o contrato
   "packages/database/src/repo.ts": `import type { Pedido } from "../../contracts/src/index.ts";\nexport const buscar = (): Pedido | null => null;\n`,
 
-  // transversais da API
-  "apps/api/src/core/db.ts": `export const transacao = async () => {};\n`,
+  // transversais da API: `core/db.ts` É a camada de dados da API, e por isso
+  // é o único ponto autorizado a alcançar `packages/database`
+  "apps/api/src/core/db.ts": `import { buscar } from "../../../../packages/database/src/repo.ts";\nexport const transacao = async () => buscar();\n`,
+
+  // módulo de domínio tentando alcançar o banco por fora do caminho único: proibido (P-004)
+  "apps/api/src/modules/pedidos/atalho.ts": `import { buscar } from "../../../../../packages/database/src/repo.ts";\nexport const atalho = () => buscar();\n`,
 
   // módulo de domínio: caminho permitido
   "apps/api/src/modules/pedidos/criar.ts": `import { centavos } from "../../../../../packages/core/src/dinheiro.ts";\nimport { transacao } from "../../core/db.ts";\nexport const criar = () => centavos(1) && transacao();\n`,
@@ -103,10 +107,24 @@ describe("fronteiras entre camadas", () => {
     expect(violacoes[0].message).toContain("api-module");
   });
 
+  it("@spec:AC-005 acusa quando um módulo de domínio alcança o banco por fora do caminho único", async () => {
+    // P-004: o acesso ao banco passa pelo contexto de requisição, que abre a
+    // transação com a variável de sessão da loja. Módulo que fala com a camada
+    // de dados direto pula justamente esse passo.
+    const violacoes = await lintar("apps/api/src/modules/pedidos/atalho.ts");
+
+    expect(violacoes).toHaveLength(1);
+    expect(violacoes[0].message).toContain("api-module");
+    expect(violacoes[0].message).toContain("pkg-database");
+  });
+
   it("@spec:AC-005 deixa passar o que a arquitetura autoriza", async () => {
     expect(await lintar("apps/api/src/modules/pedidos/criar.ts")).toHaveLength(
       0,
     );
     expect(await lintar("packages/database/src/repo.ts")).toHaveLength(0);
+    // O caminho único até o banco é transversal da API, e é ele — e só ele —
+    // que importa a camada de dados.
+    expect(await lintar("apps/api/src/core/db.ts")).toHaveLength(0);
   });
 });

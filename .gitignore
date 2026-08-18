@@ -11,6 +11,10 @@ out/
 # quebraria a verificação de tipos em clone sem build feito
 apps/web/next-env.d.ts
 
+# cliente tipado do banco: nasce do esquema declarado a cada instalação
+# (`prepare`), e versionar código gerado só cria conflito que ninguém escreveu
+packages/database/gerado/
+
 # cache de ferramentas
 .turbo/
 coverage/
