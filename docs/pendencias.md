@@ -47,6 +47,16 @@ grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
 Depois: o resto do grupo D (T-008 seed, T-009 construtores), grupo E (T-011 a
 T-015), grupo F (T-020) e grupo G (T-017, T-018).
 
+**Grupo E** — as transversais da API:
+
+- ~~**T-013** — borda de validação, origens autorizadas e limite de
+  tentativas~~ **concluída em 18/08:** `apps/api/src/core/validar.ts`,
+  `core/cors.ts` e `core/limite.ts`, com AC-125, AC-126, AC-127, AC-128, AC-119
+  e AC-120 provados por requisição de verdade contra Express montado (43 testes;
+  o limite fala com o Redis de teste, no projeto novo `api-redis`). A costura
+  com o auxiliar de rota da T-011 e a montagem do limite nas rotas de entrada
+  continuam por fazer — ver as dívidas 26 e 32.
+
 ### Como subir o ambiente
 
 ```bash
@@ -283,6 +293,83 @@ bash infra/scripts/verificar.sh  # o portão completo
     teste que compila errado sem ninguém saber. A geração continua idêntica
     (`pnpm --filter @simpleclick/api run build` confere), e `tests/` entrou na
     lista de exclusão da geração — teste em imagem de produção só carrega peso.
+
+25. **A T-013 tocou `apps/api/src/app.ts`, e só nas três linhas da lista de
+    origens.** `criarApp()` passou a aceitar `OpcoesDoApp` (hoje só `origens`) e
+    monta `corsDeOrigensFechadas` ANTES de `express.json()` — a ordem é
+    deliberada: requisição de origem estranha é recusada sem a API gastar
+    trabalho lendo o corpo dela. Nada mais no arquivo mudou. Quem estiver
+    resolvendo conflito nesse arquivo pode ficar com os dois lados: a alteração
+    é aditiva.
+
+26. **A borda de validação (`core/validar.ts`) ainda precisa se juntar ao
+    auxiliar de rota da T-011.** As duas nascem para o mesmo ponto do desenho: a
+    T-011 declara a rota e gera o documento de contrato a partir do esquema; a
+    T-013 aplica esse esquema na requisição. `validar()` já expõe `esquemas`
+    justamente para o gerador de contrato lê-los sem precisar de outra fonte.
+    Quando a T-011 entrar, o encontro é `declararRota(...)` chamando `validar()`
+    por dentro — nenhum dos dois arquivos precisa ser reescrito, mas alguém
+    precisa fazer a costura, e ela não está feita.
+
+27. **O aviso de bloqueio de AC-119 sai por gancho, e ninguém o ouve ainda.** O
+    limitador chama `aoBloquear` uma vez por bloqueio NOVO, com a conta, a
+    espera e quantos bloqueios seguidos houve. Quem transforma isso em e-mail é
+    a feature `identidade-acesso`, usando a fila da T-014 — o limite não pode
+    depender de servidor de e-mail para barrar ninguém. Enquanto o ouvinte não
+    existe, o aviso é emitido e descartado, e o teste prova o que a fundação
+    pode provar: que ele é emitido uma vez por bloqueio, e não a cada requisição
+    barrada.
+
+28. **Quantas bordas confiáveis existem à frente da API é parâmetro, e ainda não
+    é variável de ambiente.** `limitarTentativas` recebe `proxiesConfiaveis`,
+    com padrão 1 — o roteador local de hoje. Quando entrar CDN na frente, o
+    número muda, e mudar número em código para configurar ambiente é o começo de
+    um erro caro: com o número errado para cima, quem chama passa a escolher o
+    próprio balde; para baixo, todo mundo cai no balde do roteador. O lugar certo
+    é uma variável validada em `core/env.ts` (AC-002), e mexer em `env.ts` agora
+    colidiria com quem está na T-003. Entra junto com a montagem das rotas de
+    entrada, na feature `identidade-acesso`.
+
+29. **`main.ts` ainda não chama `carregarAmbiente`.** `criarApp()` lê
+    `ORIGENS_PERMITIDAS` do ambiente e, se ela faltar, a lista fica VAZIA — o que
+    fecha a porta (nenhuma origem autorizada a mudar estado) em vez de abri-la.
+    É o padrão seguro, mas não substitui a recusa de partida que AC-002 exige:
+    hoje a API subiria com a lista vazia e só o primeiro `POST` acusaria. Ligar
+    `carregarAmbiente` na partida resolve, e é da T-003/T-017.
+
+30. **Nasceu o quinto projeto do Vitest: `api-redis`.** Casa com
+    `apps/api/src/**/*.redis.test.ts`, não carrega preparação de banco e entrou
+    como etapa própria de `infra/scripts/verificar.sh` — sem essa linha, o
+    projeto novo ficaria fora do portão em silêncio, que é o pior jeito de um
+    teste sumir. O projeto `unit` passou a excluir o mesmo padrão. **Aviso de
+    conflito:** a T-017 vai reescrever `verificar.sh`; ao resolver, mantenha a
+    etapa do cache.
+
+31. **`@redis/client` entrou como dependência de `apps/api`.** É o cliente do
+    node-redis sem os módulos de busca, JSON, série temporal e filtro — que o
+    pacote `redis` traria junto sem uso nenhum (P-014). O que ele resolve e a
+    stack atual não resolve: o protocolo do Redis, a vida da conexão e a
+    reconexão. O limitador só usa `EVAL`, por uma porta estreita
+    (`CacheDoLimite`), então trocar o cliente é mexer em uma função.
+
+32. **O limite de tentativas ainda não está montado em rota nenhuma.**
+    `core/limite.ts` está pronto e provado, mas quem o instala em
+    `POST /v1/auth/login` (e nas rotas de código de verificação e recuperação de
+    senha) é a feature `identidade-acesso`. A prova de hoje monta a rota de
+    entrada dentro do próprio teste, com senha e domínio de mentira — o que
+    prova o limite, e não a autenticação.
+
+33. **Um servidor por requisição no supertest deu flutuação de verdade.** Duas
+    execuções em quinze reprovaram com 404 numa rota que existe, em testes que
+    passavam sozinhos. A causa é o volume: provar um limite de tentativas exige
+    estourá-lo, e `request(app)` abre um servidor efêmero NOVO por requisição —
+    eram centenas de portas abertas e devolvidas em segundos, e uma conexão nova
+    caindo numa porta recém-largada recebe a resposta do servidor errado.
+    Corrigido em `cors.test.ts` e `limite.redis.test.ts` com um servidor por
+    cenário, fechado no fim de cada teste (24 execuções seguidas limpas depois
+    disso). **Vale para quem escrever teste de rota daqui em diante**, e
+    `apps/api/src/app.test.ts` ainda usa o padrão antigo — não incomoda hoje
+    porque faz quatro requisições.
 
 ## Portão contornado
 

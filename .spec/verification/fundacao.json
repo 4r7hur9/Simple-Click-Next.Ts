@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T13:39:23.808Z",
-  "gitRev": "2b85f1f",
+  "timestamp": "2026-08-18T14:18:20.569Z",
+  "gitRev": "abe34df",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 271,
+  "testsParsed": 314,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -127,6 +127,10 @@
     "P-003": {
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     },
     "P-011": {
       "status": "pass",

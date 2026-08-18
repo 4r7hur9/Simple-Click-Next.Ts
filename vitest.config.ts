@@ -30,17 +30,23 @@ const preparacaoDeBanco = ["./packages/testing/src/vitest-banco.ts"];
 const esperaDeIntegracao = { testTimeout: 60_000, hookTimeout: 180_000 };
 
 /**
- * Quatro projetos, separados pelo que cada teste precisa para rodar:
+ * Cinco projetos, separados pelo que cada teste precisa para rodar:
  *
- * - `unit`    — nada além do processo. É o que responde em segundos.
- * - `web`     — componentes e regras do site, renderizados em texto.
- * - `api-int` — rotas da API contra banco de verdade, um banco por arquivo.
- * - `db-rls`  — migrações, políticas de isolamento e o próprio apoio de teste.
+ * - `unit`      — nada além do processo. É o que responde em segundos.
+ * - `web`       — componentes e regras do site, renderizados em texto.
+ * - `api-int`   — rotas da API contra banco de verdade, um banco por arquivo.
+ * - `api-redis` — rotas da API contra o cache de verdade, sem banco nenhum.
+ * - `db-rls`    — migrações, políticas de isolamento e o próprio apoio de teste.
  *
- * A fronteira entre `unit` e os de integração é o banco: quem precisa dele mora
- * em `apps/api/tests/`, em `*.int.test.ts`, ou nos pacotes de banco e de apoio
- * a teste. Assim ninguém descobre por acidente que um teste "de unidade"
- * dependia de um PostgreSQL no ar.
+ * A fronteira entre `unit` e os de integração é o SERVIÇO EXTERNO: quem precisa
+ * de PostgreSQL mora em `apps/api/tests/`, em `*.int.test.ts`, ou nos pacotes de
+ * banco e de apoio a teste; quem precisa de Redis mora em `*.redis.test.ts`.
+ * Assim ninguém descobre por acidente que um teste "de unidade" dependia de um
+ * serviço no ar.
+ *
+ * `api-redis` é projeto próprio, e não mais um arquivo em `api-int`, porque a
+ * preparação de `api-int` cria um PostgreSQL descartável por arquivo — trabalho
+ * de segundos que um teste de limite de tentativas não usa para nada.
  */
 export default defineConfig({
   oxc: conversaoDeJsx,
@@ -60,6 +66,7 @@ export default defineConfig({
           exclude: [
             ...excluidos,
             "apps/api/src/**/*.int.test.ts",
+            "apps/api/src/**/*.redis.test.ts",
             "packages/database/**",
             "packages/testing/**",
           ],
@@ -94,6 +101,19 @@ export default defineConfig({
           ],
           exclude: excluidos,
           setupFiles: preparacaoDeBanco,
+          ...esperaDeIntegracao,
+        },
+      },
+      {
+        oxc: conversaoDeJsx,
+        test: {
+          name: "api-redis",
+          // Sem preparação de banco: estes testes falam com o Redis e com mais
+          // nada. Cada arquivo separa as próprias chaves por prefixo sorteado,
+          // porque várias árvores de trabalho desta máquina dividem o mesmo
+          // servidor de cache.
+          include: ["apps/api/src/**/*.redis.test.ts"],
+          exclude: excluidos,
           ...esperaDeIntegracao,
         },
       },

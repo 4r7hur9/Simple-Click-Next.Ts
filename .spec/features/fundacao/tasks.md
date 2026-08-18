@@ -86,11 +86,11 @@
 - Notas: registro por lista do que é permitido, nunca por lista do que é proibido. Dado pessoal não entra nem em erro detalhado. Vivo e pronto são verificações distintas.
 - Esforço: medio
 
-## T-013 — Borda de validação, origens autorizadas e limite de tentativas [pendente]
+## T-013 — Borda de validação, origens autorizadas e limite de tentativas [concluida]
 
 - Refs: AC-125, AC-126, AC-127, AC-128, AC-119, AC-120
-- Arquivos: apps/api/src/core/validar.ts, apps/api/src/core/validar.test.ts, apps/api/src/core/cors.ts, apps/api/src/core/cors.test.ts, apps/api/src/core/limite.ts, apps/api/src/core/limite.test.ts, apps/api/src/app.ts
-- Notas: lista de origens fechada, nunca refletindo a origem recebida. Limite por conta tem prioridade sobre limite por origem. Requisição que muda estado exige origem confiável.
+- Arquivos: apps/api/src/core/validar.ts, apps/api/src/core/validar.test.ts, apps/api/src/core/cors.ts, apps/api/src/core/cors.test.ts, apps/api/src/core/limite.ts, apps/api/src/core/limite.redis.test.ts, apps/api/src/app.ts, apps/api/package.json, vitest.config.ts, infra/scripts/verificar.sh
+- Notas: lista de origens fechada, nunca refletindo a origem recebida — o cabeçalho publicado sai da configuração, e quem compara não tem mais acesso ao texto recebido depois de comparar. Método que muda estado exige origem confiável; leitura pública passa de qualquer origem; `Vary: Origin` em toda resposta, senão o cache entrega a liberação de uma origem para outra. O limite de tentativas decide dentro de um script no Redis — leitura, comparação e escrita sem janela entre elas — e conta em dois eixos, com a conta em primeiro lugar. O endereço da origem vem por saltos contados a partir do FIM de `X-Forwarded-For`, porque o começo é escrito por quem chama. O relógio entra por parâmetro, o que torna o crescimento da espera provável sem esperar minutos de verdade. O e-mail de aviso que AC-119 pede é anunciado por `aoBloquear`; quem o transforma em mensagem é a feature de identidade, com a fila da T-014. A prova do limite fala com Redis de verdade e mora no projeto novo `api-redis` do Vitest, ligado ao portão.
 - Esforço: alto
 
 ## T-014 — Trabalho em segundo plano com repetição [pendente]

@@ -53,6 +53,12 @@ etapa "testes de unidade" pnpm vitest run --project unit --project web
 # migrado e apagado no fim (AC-003). O banco de desenvolvimento nao e tocado.
 etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-int --project db-rls
 
+# O limite de tentativas (T-013) decide dentro de um script que roda no Redis,
+# entao a prova dele fala com um Redis de verdade — no indice de teste, nunca no
+# da aplicacao. Projeto separado porque nao precisa de banco nenhum, e sem esta
+# linha o projeto novo do Vitest ficaria de fora do portao em silencio.
+etapa "testes contra o cache (limite de tentativas)" pnpm vitest run --project api-redis
+
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
 # As guardas estruturais rodam contra um banco de prova efêmero, criado de molde
