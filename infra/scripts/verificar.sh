@@ -67,6 +67,10 @@ etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-in
 # chaves num espaco de nomes so dele, entao rodar isto nao mexe no ambiente
 # local nem em outra arvore de trabalho desta maquina.
 etapa "testes de fila (Redis)" pnpm vitest run --project filas
+# O cache fala com o Redis de verdade, no indice de teste (REDIS_URL_TEST).
+# Projeto separado porque o servico que ele exige e outro: cobrar PostgreSQL
+# de pe para provar o cache faria o teste do cache falhar por motivo alheio.
+etapa "testes do cache (Redis de teste)" pnpm vitest run --project cache-int
 
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
