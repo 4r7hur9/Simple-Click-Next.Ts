@@ -11,7 +11,7 @@
     "migrar:verificar": "node src/migrate.ts verificar",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:int": "vitest run"
+    "test:int": "vitest run --root ../.. --project db-rls packages/database/"
   },
   "dependencies": {
     "pg": "8.23.0"

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    // Como em `packages/database`: este pacote é consumido pelo código-fonte,
+    // sem passo de compilação, então o importador aponta para o arquivo que
+    // existe no disco.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "fixtures/**/*.ts"],
+  "exclude": ["node_modules", "coverage"]
+}

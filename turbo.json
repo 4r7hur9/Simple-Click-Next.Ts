@@ -20,7 +20,14 @@
     "test:int": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
-      "env": ["DATABASE_URL_TEST", "REDIS_URL_TEST"]
+      "env": [
+        "DATABASE_URL",
+        "DATABASE_URL_TEST",
+        "REDIS_URL_TEST",
+        "SENHA_BANCO_MIGRADOR",
+        "SENHA_BANCO_APLICACAO",
+        "SENHA_BANCO_ADMINISTRACAO"
+      ]
     },
     "test:e2e": {
       "dependsOn": ["^build"],

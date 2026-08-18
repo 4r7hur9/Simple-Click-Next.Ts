@@ -33,12 +33,19 @@ etapa() {
 
 etapa "formatação" pnpm prettier --check .
 etapa "qualidade de código" pnpm eslint . --max-warnings=0
-etapa "testes de unidade" pnpm vitest run
+# Os quatro projetos do Vitest estao em vitest.config.ts. Aqui eles entram em
+# duas etapas separadas de proposito: quando o portao reprova, a primeira linha
+# vermelha ja diz se o problema e de logica (unidade) ou de banco (integracao).
+etapa "testes de unidade" pnpm vitest run --project unit --project web
+
+# Cada arquivo deste grupo recebe um banco proprio, criado de um molde ja
+# migrado e apagado no fim (AC-003). O banco de desenvolvimento nao e tocado.
+etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-int --project db-rls
+
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
 # Etapas que entram conforme as tarefas concluem:
 #   T-004/T-005 → guardas estruturais do banco
-#   T-007       → testes de integração contra o banco de teste
 #   T-020       → telas de ponta a ponta e acessibilidade
 
 printf '\n'
