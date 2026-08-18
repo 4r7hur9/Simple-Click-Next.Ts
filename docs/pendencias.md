@@ -29,7 +29,11 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
   AC-009, AC-010 e AC-011 provados contra o PostgreSQL de teste
 - ~~**T-007** — banco de teste separado e efêmero~~ **concluída em 18/08**
 
-Depois: grupo D (T-008 seed, T-009 construtores, T-010 prova de isolamento),
+- ~~**T-008** — dados de exemplo determinísticos~~ **concluída em 18/08:**
+  `packages/database/seed/`, com AC-004, AC-036, AC-037 e AC-039 provados
+  contra o PostgreSQL de teste (16 testes)
+
+Depois: o resto do grupo D (T-009 construtores, T-010 prova de isolamento),
 grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
 
 ### Como subir o ambiente
@@ -143,6 +147,65 @@ bash infra/scripts/verificar.sh  # o portão completo
     mudou — as duas cadeias continuam distintas —, mudou onde ele é escrito:
     a da aplicação em `apps/api/src/core/db.ts` e a de migração no aplicador de
     migrações. Vale registrar na próxima revisão de decisões.
+
+14. **A carga de exemplo (T-008) declara 17 tabelas que ainda não existem.** O
+    cenário descreve o catálogo e os pedidos inteiros — categorias,
+    especificações por categoria, imagens, variações com estoque, preços
+    nomeados, grupos de opção e pedidos em todos os status —, mas as migrações
+    atuais só criam `identities`, `platform_admins`, `stores`, `store_settings`,
+    `store_domains`, `store_members`, `products`, `store_customers` e
+    `audit_log`. As 17 tabelas restantes (`assets`, `categories`,
+    `attribute_definitions`, `product_categories`, `product_attributes`,
+    `product_images`, `option_groups`, `option_items`, `product_option_groups`,
+    `product_variants`, `variant_option_values`, `product_prices`, `orders`,
+    `order_contacts`, `order_items`, `order_item_options` e
+    `order_status_history`) aparecem **adiadas e nomeadas** no relatório da
+    carga. Três consequências:
+    - a carga NÃO precisa ser reescrita quando cada migração entrar: ela planta
+      sozinha o que passar a existir;
+    - o teste `@spec:AC-036 planta no banco tudo que o esquema já suporta`
+      consulta o catálogo do PostgreSQL e **exige** que tabela existente tenha
+      sido plantada. No dia em que a migração de `orders` entrar, esse teste
+      passa a cobrar os pedidos e falha se eles não entrarem — é o que impede a
+      carga de envelhecer em silêncio;
+    - as colunas dessas 17 tabelas foram tiradas de
+      `.spec/design/modelo-de-dados.md` (com o adendo de 17/08, que põe
+      `category_id` em `attribute_definitions`). Se a migração nascer com forma
+      diferente, a carga recusa com `ErroDeColunaDesconhecida`, nomeando tabela
+      e colunas. **Quem criar cada tabela deve conferir o conjunto em
+      `packages/database/seed/`.** Enquanto isso, AC-036 está provado no banco
+      para o que o esquema suporta e no cenário para o que ainda não existe.
+
+15. **`stores.updated_at` é a única coluna que difere entre duas cargas.**
+    `bump_catalog_version` atualiza a linha da loja a cada produto plantado, e o
+    gatilho `stores_touch` grava `now()` — que é o relógio do servidor, não um
+    dado do cenário. A carga não tem como escrevê-lo: a credencial de
+    administração não é dona da tabela e não desliga gatilho, e desligá-lo seria
+    mudar o comportamento do sistema para fazer um teste passar. A prova de
+    AC-037 trata isso sem afrouxar: um teste compara os dois bancos **sem** essa
+    coluna, e outro exige que ela seja a **única** diferença, em qualquer tabela
+    e qualquer coluna. Se um `now()` aparecer em outro lugar, o segundo teste
+    reprova.
+
+16. **A carga de exemplo não recarrega: ela recusa banco que já tem dados.**
+    `audit_log` não aceita alteração nem remoção (gatilho `deny_mutation`, que
+    vale inclusive para a credencial de migração), então não existe "apagar e
+    plantar de novo" que devolva o banco ao estado inicial — e plantar por cima
+    produziria um banco diferente de qualquer outra carga, quebrando o
+    determinismo. `pnpm --filter @simpleclick/database seed` rodado duas vezes
+    no mesmo banco sai com código 1 e explica que é preciso recriar o banco.
+    Se um dia isso incomodar, o caminho é um comando de recriação do banco de
+    desenvolvimento, e não um "recarregar" que mente.
+
+17. **`pnpm typecheck` já reprovava em `packages/database/src/guards.ts` antes
+    da T-008.** Duas chamadas passam o módulo `pg` para o parâmetro `ModuloPg`,
+    e as assinaturas divergem porque `@types/pg` está em 8.21 na raiz e em 8.15
+    em `packages/testing` — `Client.connect()` devolve `Promise<Client>` numa
+    versão e `Promise<void>` na outra. Não é regressão desta tarefa (reproduz
+    com o `tsconfig.json` anterior) e não reprova o portão, porque
+    `infra/scripts/verificar.sh` ainda não tem etapa de tipos. Alinhar a versão
+    de `@types/pg` no catálogo do workspace resolve; entra na T-017, com as
+    dívidas 2 e 10.
 
 ## Portão contornado
 
