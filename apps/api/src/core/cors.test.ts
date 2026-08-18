@@ -60,7 +60,14 @@ afterEach(async () => {
 
 /** Põe a aplicação no ar numa porta que o sistema escolhe. */
 function noAr(app: Express): Server {
-  const servidor = app.listen(0);
+  // Escutar em `127.0.0.1`, e não no endereço curinga, é o que torna esta prova
+  // reproduzível quando a suíte inteira roda junto (AC-042). Sem o endereço,
+  // o Node escuta em `::` com pilha dupla; um servidor de OUTRO processo de
+  // teste que pegue a mesma porta em `0.0.0.0` casa mais especificamente com o
+  // `127.0.0.1` que o supertest chama, e a requisição chega ao servidor
+  // errado — a falha aparece como um 404 num caminho que existe. O resto da
+  // suíte já escuta assim.
+  const servidor = app.listen(0, "127.0.0.1");
   servidoresAbertos.push(servidor);
   return servidor;
 }

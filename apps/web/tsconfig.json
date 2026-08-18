@@ -18,5 +18,11 @@
     ".next/types/**/*.ts",
     "next.config.ts"
   ],
-  "exclude": ["node_modules", ".next"]
+  // A pasta de mentira que `tests/cores-projeto.test.ts` monta e desfaz para
+  // provar a regra de cor (AC-014). Ela precisa nascer DENTRO de `apps/web`
+  // para os padrões de camada valerem, mas não pode entrar na verificação de
+  // tipos: o `tsc` de outro processo a pegaria no meio da vida e reprovaria por
+  // arquivo que já não existe — resultado dependendo de quem mais está rodando
+  // não é resultado reproduzível (AC-042).
+  "exclude": ["node_modules", ".next", "src/features/__cores-temp"]
 }

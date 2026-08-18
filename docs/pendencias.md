@@ -599,7 +599,54 @@ bash infra/scripts/verificar.sh  # o portão completo
     `apps/api/src/app.test.ts` ainda usa o padrão antigo — não incomoda hoje
     porque faz quatro requisições.
 
+- **Instabilidade do portão sob carga (aberta desde 18/08/2026, T-017).** A
+  consolidação do portão exigiu rodá-lo repetidas vezes para provar que a
+  mesma versão dá o mesmo resultado (AC-042), e a repetição revelou duas
+  instabilidades que só aparecem com a suíte inteira rodando junto:
+
+  1. **`cors.test.ts` recebia resposta do servidor errado** — 404 num caminho
+     que existe. Causa: `app.listen(0)` sem endereço escuta em `::` com pilha
+     dupla, e um servidor de outro processo de teste que pegue a mesma porta
+     em `0.0.0.0` casa mais especificamente com o `127.0.0.1` que o supertest
+     chama. **Corrigido**: `cors.test.ts` e `limite.redis.test.ts` agora
+     escutam em `127.0.0.1`, como o resto da suíte já fazia. Dezessete
+     execuções da suíte inteira depois da correção, nenhuma recaída.
+  2. **`limite.redis.test.ts`, "a espera não passa do teto configurado",
+     ainda falha em cerca de uma execução a cada quinze** — `esperaSegundos`
+     volta `undefined` porque a requisição não foi barrada. Hipótese: o teste
+     avança um relógio de mentira dentro da aplicação, mas o bloqueio vive
+     como chave com prazo de validade num Redis de verdade; quando as 77
+     requisições do cenário demoram mais que o prazo (a máquina sob carga, ou
+     várias árvores de trabalho dividindo o mesmo Redis), a chave expira
+     sozinha e o bloqueio some. **Não corrigido**: a correção mexe em como o
+     limitador marca prazo em teste, que é decisão da T-013, não do portão.
+     Enquanto isso, uma reprovação nesta etapa merece uma segunda execução
+     antes de virar investigação.
+
+  Teste instável é dívida do portão inteiro: ele ensina a desconfiar do
+  vermelho, e portão em que ninguém confia é portão que ninguém roda.
+
 ## Portão contornado
 
-Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a
-data, o motivo e o que ficou sem verificação — é o que exige o critério AC-043.
+`LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que
+ele não consegue é passar em silêncio: o portão anota cada versão que aprova
+(`.git/portao-verificados`), e o gancho antes do registro compara o que já foi
+enviado com o que foi aprovado. Versão enviada que não consta como aprovada só
+pode ter passado por fora do portão: vira uma linha aqui embaixo, com data,
+versão, ramo e a lista do que ficou sem verificação, e entra no commit — dívida
+que fica só no disco de quem pulou não é visível para mais ninguém (AC-043).
+
+Quem escreve é `infra/scripts/registrar-pulo.sh`. A vigilância começa no ponto
+de partida marcado por `pnpm install`, e não no primeiro commit da história: sem
+isso, todo clone novo acusaria como contornado o histórico que já existia antes
+dele, e dívida falsa ensina a ignorar este arquivo. O funcionamento inteiro está
+em `docs/verificacao.md`.
+
+Para quitar: volte à versão, rode `bash infra/scripts/verificar.sh` até sair
+limpo e apague a linha.
+
+Enquanto a lista abaixo estiver vazia, nunca aconteceu.
+
+<!-- portao-contornado:inicio -->
+
+<!-- portao-contornado:fim -->

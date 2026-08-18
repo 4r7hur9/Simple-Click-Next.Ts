@@ -22,3 +22,7 @@ apps/web/next-env.d.ts
 # árvore de mentira montada pela prova de tipos do contrato: é cópia de código
 # que já é formatado no lugar de origem
 packages/contracts/.provas-de-tipo/
+
+# componente de mentira montado pela prova da regra de cor: nasce e morre dentro
+# de um teste, e o portão não pode acusar diferença num arquivo que já não existe
+apps/web/src/features/__cores-temp/

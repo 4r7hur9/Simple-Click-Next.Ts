@@ -114,11 +114,11 @@
 - Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova, pela regra `cores/sem-cor-literal` que mora em `packages/config-eslint/cores.js`. A cor escolhida pela loja tem contraste ajustado automaticamente por cálculo de luminância do WCAG (`contraste.ts`); `tokens.ts` é o espelho em TypeScript de `theme.css`, porque o cálculo roda no servidor, e a divergência entre os dois reprova por teste. A acessibilidade da vitrine é medida com axe em jsdom — o navegador de verdade entra na T-020.
 - Esforço: alto
 
-## T-017 — Portão de qualidade local, com ganchos [pendente]
+## T-017 — Portão de qualidade local, com ganchos [concluida]
 
 - Refs: US-005, AC-017, AC-018, AC-019, AC-020, AC-040, AC-041, AC-042, AC-043
-- Arquivos: infra/scripts/verificar.sh, infra/scripts/check-segredos.sh, infra/scripts/check-mensagem.sh, infra/scripts/audit-regressao.mjs, infra/scripts/check-sem-middleware.sh, docs/verificacao.md, docs/pendencias.md, packages/database/src/guards.ts
-- Notas: nada roda em servidor externo — a verificação é um comando único na máquina de desenvolvimento. Gancho antes do registro cobre o rápido em segundos; gancho antes do envio roda o portão inteiro e bloqueia. Saída explícita para pular existe, mas registra a dívida em arquivo de pendências. Fixar versão das ferramentas para o resultado ser reproduzível.
+- Arquivos: infra/scripts/verificar.sh, infra/scripts/portao-lib.sh, infra/scripts/registrar-pulo.sh, infra/scripts/check-segredos.sh, infra/scripts/check-mensagem.sh, infra/scripts/audit-regressao.mjs, infra/tests/portao.test.ts, lefthook.yml, package.json, docs/verificacao.md, docs/pendencias.md
+- Notas: nada roda em servidor externo — a verificação é um comando único na máquina de desenvolvimento. Gancho antes do registro cobre o rápido em segundos; gancho antes do envio roda o portão inteiro e bloqueia. Saída explícita para pular existe, mas registra a dívida em arquivo de pendências. Fixar versão das ferramentas para o resultado ser reproduzível. Consolidada: o motor do portão saiu de `verificar.sh` para `portao-lib.sh`, e o script virou só a lista de etapas em blocos — etapa nova é uma linha, e duas tarefas crescem o portão sem conflito. `check-sem-middleware.sh` não nasceu: a T-019 provou a ausência de `middleware.ts` por teste (`apps/web/tests/sem-middleware.test.ts`), que é mais forte que um script. As guardas estruturais moram em `infra/scripts/db-guards.sh` desde a T-008, e não em `packages/database/src/guards.ts`.
 - Esforço: alto
 
 ## T-018 — Publicação com migração antes da troca de versão [pendente]

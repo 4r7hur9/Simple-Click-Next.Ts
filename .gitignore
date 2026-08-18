@@ -19,6 +19,10 @@ packages/database/gerado/
 # (apps/web/tests/contrato-tipos.test.ts). Só sobra aqui se o teste morrer no meio.
 packages/contracts/.provas-de-tipo/
 
+# componente de mentira que a prova da regra de cor monta e desfaz
+# (apps/web/tests/cores-projeto.test.ts). Mesmo motivo.
+apps/web/src/features/__cores-temp/
+
 # cache de ferramentas
 .turbo/
 coverage/
