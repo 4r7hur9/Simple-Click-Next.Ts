@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run --root ../.. --project web apps/web/"
   },
   "dependencies": {
     "@simpleclick/ui": "workspace:*",

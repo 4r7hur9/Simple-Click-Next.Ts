@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-17T19:45:51.963Z",
-  "gitRev": "aa24794",
+  "timestamp": "2026-08-18T12:28:27.002Z",
+  "gitRev": "5bff874",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 163,
+  "testsParsed": 180,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -15,6 +15,11 @@
     "AC-002": {
       "status": "pass",
       "testName": "carregarAmbiente @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome @spec:AC-002 recusa iniciar quando falta variável obrigatória, apontando-a pelo nome",
+      "method": "vitest-json"
+    },
+    "AC-003": {
+      "status": "pass",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
       "method": "vitest-json"
     },
     "AC-005": {
@@ -39,7 +44,7 @@
     },
     "AC-013": {
       "status": "pass",
-      "testName": "a vitrine mostra os estados de cada componente base @spec:AC-013 o botão aparece pronto, carregando e desabilitado @spec:AC-013 o botão aparece pronto, carregando e desabilitado",
+      "testName": "estados reutilizáveis @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda",
       "method": "vitest-json"
     },
     "AC-014": {

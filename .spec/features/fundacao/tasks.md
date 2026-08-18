@@ -44,10 +44,10 @@
 - Notas: uma transação por requisição, contexto definido nela e descartado ao fim. Nenhum módulo instancia cliente próprio (P-004). Prova de que o contexto não escapa entre requisições concorrentes.
 - Esforço: max
 
-## T-007 — Banco de teste separado e efêmero [pendente]
+## T-007 — Banco de teste separado e efêmero [concluida]
 
 - Refs: US-001, AC-003
-- Arquivos: vitest.config.ts, packages/testing/src/db-test.ts, packages/testing/src/db-test.test.ts, packages/testing/package.json
+- Arquivos: vitest.config.ts, packages/testing/package.json, packages/testing/tsconfig.json, packages/testing/src/index.ts, packages/testing/src/db-test.ts, packages/testing/src/db-test.test.ts, packages/testing/src/vitest-banco.ts, packages/testing/tests/paralelo-a.test.ts, packages/testing/tests/paralelo-b.test.ts, packages/testing/fixtures/vitest.fixture.config.ts, packages/testing/fixtures/banco-proprio.prova.ts, packages/testing/fixtures/falha-proposital.prova.ts, infra/scripts/verificar.sh
 - Notas: banco por processo de teste, criado a partir de molde. Dados de desenvolvimento nunca são tocados. Rodar duas vezes dá o mesmo resultado.
 - Esforço: alto
 

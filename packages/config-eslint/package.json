@@ -14,7 +14,7 @@
     "cores.js"
   ],
   "scripts": {
-    "test:unit": "vitest run"
+    "test:unit": "vitest run --root ../.. --project unit packages/config-eslint/"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",

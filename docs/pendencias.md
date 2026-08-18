@@ -17,6 +17,7 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
 | T-004     | Migrações, três credenciais de banco, isolamento por linha provado      |
 | T-016     | Design system com os quatro estados, contraste WCAG, regra de cor       |
 | T-019     | Esqueleto do site (Next) e da API (Express)                             |
+| T-007     | Banco de teste por arquivo, criado de molde e descartado no fim         |
 
 ### Próximo passo
 
@@ -24,7 +25,7 @@ Fase **F0 (fundação)**: 6 de 20 tarefas concluídas, 163 testes passando,
 
 - **T-005** — guardas estruturais do banco (G1 a G9) no portão de qualidade
 - **T-006** — caminho único de acesso ao banco, com contexto por transação
-- **T-007** — banco de teste separado e efêmero
+- ~~**T-007** — banco de teste separado e efêmero~~ (concluída em 18/08)
 
 Depois: grupo D (T-008 seed, T-009 construtores, T-010 prova de isolamento),
 grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
@@ -60,10 +61,21 @@ bash infra/scripts/verificar.sh  # o portão completo
    volumes estão intactos), mas convém subir um projeto de cada vez, ou aumentar
    a memória do Docker Desktop.
 
-5. **`vitest.config.ts` da raiz é declarado pela T-007.** Quem fizer a T-007
-   precisa **estender** o arquivo existente, acrescentando os projetos
-   (unit, api-int, web, db-rls) — e não recriá-lo. A opção de JSX que está lá é o
-   que permite ler qualquer arquivo de componente do site.
+5. ~~`vitest.config.ts` da raiz é declarado pela T-007.~~ **Resolvido em
+   18/08:** os quatro projetos (`unit`, `web`, `api-int`, `db-rls`) foram
+   acrescentados ao arquivo existente. A opção de JSX foi preservada e virou a
+   constante `conversaoDeJsx`, repetida em cada projeto — projeto do Vitest não
+   herda a configuração de transformação da raiz, então apagá-la de um projeto
+   deixaria os componentes daquele projeto ilegíveis. Duas consequências novas:
+   - a fronteira entre unidade e integração é o banco. Teste que precisa de
+     PostgreSQL mora em `apps/api/tests/`, em `*.int.test.ts`, ou nos pacotes
+     `database` e `testing`. **A T-006 precisa disso:** o arquivo declarado nas
+     tarefas como `apps/api/src/core/db.test.ts` fala com o banco, então deve
+     nascer como `apps/api/src/core/db.int.test.ts` para entrar em `api-int` e
+     receber banco próprio;
+   - o projeto `api-int` ainda não casa com nenhum arquivo. O Vitest aceita
+     projeto vazio enquanto houver teste em algum outro; some quando a T-006 e
+     a T-010 entrarem.
 
 6. **`.spec/verification/sinais.json` gera atrito em todo merge.** É derivado,
    regenerado a cada auditoria, e conflita sempre. Resolver aceitando qualquer
@@ -72,6 +84,30 @@ bash infra/scripts/verificar.sh  # o portão completo
 
 7. **Traefik aparece como não saudável** embora roteie corretamente. A
    verificação de saúde dele precisa de ajuste; não impede o uso.
+
+8. **Molde de teste antigo não é varrido.** O banco de molde
+   (`sc_molde_<impressão digital das migrações>`) sobrevive de propósito entre
+   execuções — é dele que vem a velocidade. Quando uma migração muda, nasce um
+   molde novo e o antigo fica no servidor de teste ocupando espaço. A varredura
+   automática só apaga banco de teste (`sc_teste_%`) abandonado, porque apagar
+   molde poderia atropelar outra árvore de trabalho rodando ao mesmo tempo na
+   mesma máquina. Para limpar à mão:
+   `DROP DATABASE <molde antigo> WITH (FORCE)` no servidor da porta 5533.
+
+9. **O servidor de teste é compartilhado entre árvores de trabalho.** Várias
+   worktrees desta máquina falam com o mesmo `postgres-test`. O arranjo do banco
+   efêmero aguenta — nome de banco por processo, trava entre processos na
+   construção do molde, que fica no banco administrativo e portanto vale para o
+   agrupamento inteiro. Duas coisas a saber:
+   - quem for investigar sobra no servidor precisa lembrar que nem tudo que está
+     lá é desta árvore de trabalho;
+   - o `beforeAll` de `packages/database/src/migrate.test.ts` aplica as migrações
+     **sem** essa trava, e migração cria papel, que é objeto do agrupamento. Duas
+     árvores aplicando migração ao mesmo tempo podem colidir no `CREATE ROLE`.
+     Aconteceu uma vez em 18/08, num arranque frio, e não reproduziu em quatro
+     tentativas seguidas. A correção é a mesma trava do molde dentro do
+     aplicador; fica para quando incomodar de novo, porque mexe em código da
+     T-004.
 
 ## Portão contornado
 
