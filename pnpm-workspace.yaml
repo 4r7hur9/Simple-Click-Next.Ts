@@ -26,3 +26,9 @@ allowBuilds:
   # Negar aqui mantém a instalação silenciosa e sem binário vindo da rede.
   prisma: false
   "@prisma/engines": false
+  # Também recusa explícita. `msgpackr-extract` chega pela BullMQ e é apenas um
+  # acelerador nativo opcional do empacotador de mensagens: sem ele o `msgpackr`
+  # usa o caminho em JavaScript puro e a fila funciona igual. Negar evita
+  # compilação de C++ na máquina de quem clona, por um ganho que a fila de
+  # e-mail deste projeto nunca vai sentir.
+  msgpackr-extract: false

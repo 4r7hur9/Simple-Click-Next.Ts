@@ -93,11 +93,11 @@
 - Notas: lista de origens fechada, nunca refletindo a origem recebida. Limite por conta tem prioridade sobre limite por origem. Requisição que muda estado exige origem confiável.
 - Esforço: alto
 
-## T-014 — Trabalho em segundo plano com repetição [pendente]
+## T-014 — Trabalho em segundo plano com repetição [concluida]
 
 - Refs: US-007, AC-025, AC-026
-- Arquivos: apps/api/src/jobs/fila.ts, apps/api/src/jobs/fila.test.ts, apps/api/src/jobs/email.job.ts, apps/api/src/jobs/index.ts
-- Notas: envio de e-mail sai do caminho da resposta. Falha repete com espera crescente e termina em estado inspecionável.
+- Arquivos: apps/api/src/jobs/fila.ts, apps/api/src/jobs/fila.test.ts, apps/api/src/jobs/fila.int.test.ts, apps/api/src/jobs/email.job.ts, apps/api/src/jobs/email.job.test.ts, apps/api/src/jobs/email.job.int.test.ts, apps/api/src/jobs/index.ts, apps/api/src/jobs/index.test.ts, apps/api/tests/apoio-de-fila.ts, vitest.config.ts, infra/scripts/verificar.sh, .env.example
+- Notas: envio de e-mail sai do caminho da resposta. Falha repete com espera crescente e termina em estado inspecionável. A fila de e-mail e a de webhook vivem no Redis (BullMQ); a de impressão fica declarada com motor PostgreSQL, porque no plano gratuito o Redis é o primeiro a cair e a cozinha não pode parar — a distinção é dado (`MOTOR_DAS_FILAS`), e não comentário. O adaptador de envio é porta: em teste, duplo que conta chamadas e falha sob comando; em produção, o adaptador de partida falha alto até o provedor de e-mail ser decidido. Os testes que precisam de Redis moram no projeto `filas` do Vitest e FALHAM dizendo o que fazer quando `REDIS_URL_TEST` não existe.
 - Esforço: medio
 
 ## T-015 — Cache com identificação de loja e invalidação [pendente]

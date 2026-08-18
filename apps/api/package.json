@@ -18,7 +18,9 @@
     "@prisma/adapter-pg": "7.9.1",
     "@simpleclick/contracts": "workspace:*",
     "@simpleclick/database": "workspace:*",
+    "bullmq": "6.1.2",
     "express": "5.2.1",
+    "ioredis": "6.0.0",
     "pg": "8.23.0",
     "pino": "10.1.0",
     "zod": "catalog:"

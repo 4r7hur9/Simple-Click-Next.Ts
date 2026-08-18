@@ -61,6 +61,13 @@ etapa "testes de unidade" pnpm vitest run --project unit --project web
 # migrado e apagado no fim (AC-003). O banco de desenvolvimento nao e tocado.
 etapa "testes de integração (banco efêmero)" pnpm vitest run --project api-int --project db-rls
 
+# As filas de segundo plano falam com o Redis, e nao com o banco (T-014). Etapa
+# propria de proposito: quando o portao reprova, a primeira linha vermelha ja
+# diz se o problema e de PostgreSQL ou de Redis. Cada arquivo isola as proprias
+# chaves num espaco de nomes so dele, entao rodar isto nao mexe no ambiente
+# local nem em outra arvore de trabalho desta maquina.
+etapa "testes de fila (Redis)" pnpm vitest run --project filas
+
 etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 
 # As guardas estruturais rodam contra um banco de prova efêmero, criado de molde

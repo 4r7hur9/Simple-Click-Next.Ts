@@ -30,17 +30,19 @@ const preparacaoDeBanco = ["./packages/testing/src/vitest-banco.ts"];
 const esperaDeIntegracao = { testTimeout: 60_000, hookTimeout: 180_000 };
 
 /**
- * Quatro projetos, separados pelo que cada teste precisa para rodar:
+ * Cinco projetos, separados pelo que cada teste precisa para rodar:
  *
  * - `unit`    — nada além do processo. É o que responde em segundos.
  * - `web`     — componentes e regras do site, renderizados em texto.
  * - `api-int` — rotas da API contra banco de verdade, um banco por arquivo.
  * - `db-rls`  — migrações, políticas de isolamento e o próprio apoio de teste.
+ * - `filas`   — trabalho em segundo plano contra o Redis de verdade.
  *
- * A fronteira entre `unit` e os de integração é o banco: quem precisa dele mora
- * em `apps/api/tests/`, em `*.int.test.ts`, ou nos pacotes de banco e de apoio
- * a teste. Assim ninguém descobre por acidente que um teste "de unidade"
- * dependia de um PostgreSQL no ar.
+ * A fronteira entre `unit` e os de integração é a infraestrutura: quem precisa
+ * de banco mora em `apps/api/tests/`, em `*.int.test.ts`, ou nos pacotes de
+ * banco e de apoio a teste; quem precisa de Redis mora em
+ * `apps/api/src/jobs/*.int.test.ts`. Assim ninguém descobre por acidente que um
+ * teste "de unidade" dependia de um serviço no ar.
  */
 export default defineConfig({
   oxc: conversaoDeJsx,
@@ -92,9 +94,34 @@ export default defineConfig({
             "apps/api/tests/**/*.test.ts",
             "apps/api/src/**/*.int.test.ts",
           ],
-          exclude: excluidos,
+          // A fila fala com Redis, e não com PostgreSQL. Deixá-la aqui faria
+          // cada arquivo dela pagar a criação de um banco descartável que
+          // nenhum teste seu abriria — e ainda entrar nesta serialização, que
+          // existe por causa das migrações.
+          exclude: [...excluidos, "apps/api/src/jobs/**"],
           setupFiles: preparacaoDeBanco,
           ...esperaDeIntegracao,
+        },
+      },
+      {
+        oxc: conversaoDeJsx,
+        test: {
+          // `filas` — trabalho em segundo plano contra o Redis de verdade
+          // (AC-025, AC-026). Separado de `api-int` porque a dependência é
+          // outra: aqui não há banco, e quando o portão reprova a primeira
+          // linha vermelha já diz que o problema é de fila, não de PostgreSQL.
+          //
+          // Cada arquivo isola as próprias chaves num espaço de nomes só dele
+          // (`prefixoDeTeste`), então os arquivos correm em paralelo sem um
+          // consumir o trabalho do outro — inclusive entre árvores de trabalho
+          // diferentes desta máquina, que dividem o mesmo Redis.
+          name: "filas",
+          include: ["apps/api/src/jobs/**/*.int.test.ts"],
+          exclude: excluidos,
+          // A espera crescente entre tentativas é o comportamento sob prova, e
+          // ela leva segundos de propósito.
+          testTimeout: 60_000,
+          hookTimeout: 60_000,
         },
       },
       {
