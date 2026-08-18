@@ -1,0 +1,236 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`acento, cedilha, emoji e quebra de linha (AC-522) > @spec:AC-522 acento, cedilha e emoji chegam íntegros e as quebras de linha são preservadas 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+Ana Conceição Antônio
+(11) 91234-5678
+
+*Itens*
+1x Açaí na tigela 🍧 (500 ml) — R$ 23,50
+   • Cobertura: Leite condensado 🍫
+   Obs.: Sem granola, é alergia
+
+*Observações*
+Apartamento 32 🏢
+Interfone quebrado
+Ligar ao chegar 📞
+
+*Entrega*
+Rua das Flores, 123 - Apto 12
+Centro - São Paulo/SP
+CEP 01000-000
+Referência: Ao lado da praça
+Destinatário: Maria Conceição
+
+*Pagamento*
+PIX
+Chave PIX: loja@sabor.com.br (E-mail)
+Recebedor: Sabor & Cia
+
+*Valores*
+Itens: R$ 23,50
+Entrega Centro: R$ 8,00
+*Total: R$ 31,50*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;
+
+exports[`encurtamento controlado do texto (AC-521) > @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+Maria Conceição
+(11) 98888-7777
+
+*Itens*
+2x Marmita executiva número 1 (Porção grande) — R$ 20,00
+3x Marmita executiva número 2 (Porção grande) — R$ 20,10
+1x Marmita executiva número 3 (Porção grande) — R$ 20,20
+2x Marmita executiva número 4 (Porção grande) — R$ 20,30
+3x Marmita executiva número 5 (Porção grande) — R$ 20,40
+1x Marmita executiva número 6 (Porção grande) — R$ 20,50
+2x Marmita executiva número 7 (Porção grande) — R$ 20,60
+3x Marmita executiva número 8 (Porção grande) — R$ 20,70
+1x Marmita executiva número 9 (Porção grande) — R$ 20,80
+2x Marmita executiva número 10 (Porção grande) — R$ 20,90
+3x Marmita executiva número 11 (Porção grande) — R$ 21,00
+_mais 19 itens (R$ 418,00) — a lista completa está no link do pedido_
+
+*Observações*
+Tocar a campainha do portão
+
+*Entrega*
+Rua das Flores, 123 - Apto 12
+Centro - São Paulo/SP
+CEP 01000-000
+Referência: Ao lado da praça
+Destinatário: Maria Conceição
+
+*Pagamento*
+PIX
+Chave PIX: loja@sabor.com.br (E-mail)
+Recebedor: Sabor & Cia
+
+*Valores*
+Itens: R$ 643,50
+Entrega Centro: R$ 8,00
+*Total: R$ 651,50*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;
+
+exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido de convidado sem cadastro sai completo, com nome, telefone e link 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+João Visitante
+(21) 97777-1234
+
+*Itens*
+1x Pizza Calabresa (Grande) — R$ 55,90
+   • Massa: Fina
+   • Adicionais: Bacon x2 (+R$ 10,00)
+   • Ingredientes: sem Cebola
+   Obs.: Cortar em 8 pedaços
+2x Refrigerante 2L — R$ 23,80
+
+*Observações*
+Tocar a campainha do portão
+
+*Entrega*
+Rua das Flores, 123 - Apto 12
+Centro - São Paulo/SP
+CEP 01000-000
+Referência: Ao lado da praça
+Destinatário: Maria Conceição
+
+*Pagamento*
+Dinheiro
+Troco para R$ 100,00
+
+*Valores*
+Itens: R$ 79,70
+Desconto: -R$ 5,00
+Entrega Centro: R$ 8,00
+*Total: R$ 82,70*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;
+
+exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido de um item só sai completo, sem resumo nem sobra de bloco 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+Maria Conceição
+(11) 98888-7777
+
+*Itens*
+2x Marmita executiva número 1 (Porção grande) — R$ 20,00
+   • Acompanhamento: Farofa da casa
+   • Adicionais: Ovo frito (+R$ 3,00)
+   Obs.: Sem pimenta, por favor
+
+*Observações*
+Tocar a campainha do portão
+
+*Entrega*
+Rua das Flores, 123 - Apto 12
+Centro - São Paulo/SP
+CEP 01000-000
+Referência: Ao lado da praça
+Destinatário: Maria Conceição
+
+*Pagamento*
+PIX
+Chave PIX: loja@sabor.com.br (E-mail)
+Recebedor: Sabor & Cia
+
+*Valores*
+Itens: R$ 20,00
+Entrega Centro: R$ 8,00
+*Total: R$ 28,00*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;
+
+exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido sem entrega troca o endereço pela retirada e não cobra taxa 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+Maria Conceição
+(11) 98888-7777
+
+*Itens*
+1x Pizza Calabresa (Grande) — R$ 55,90
+   • Massa: Fina
+   • Adicionais: Bacon x2 (+R$ 10,00)
+   • Ingredientes: sem Cebola
+   Obs.: Cortar em 8 pedaços
+2x Refrigerante 2L — R$ 23,80
+
+*Observações*
+Tocar a campainha do portão
+
+*Retirada*
+Retirada no local
+
+*Pagamento*
+PIX
+Chave PIX: loja@sabor.com.br (E-mail)
+Recebedor: Sabor & Cia
+
+*Valores*
+Itens: R$ 79,70
+Desconto: -R$ 5,00
+Desconto de retirada: -R$ 3,00
+*Total: R$ 71,70*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;
+
+exports[`texto do pedido para o WhatsApp > @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link 1`] = `
+"*Pedido A-1042*
+
+*Cliente*
+Maria Conceição
+(11) 98888-7777
+
+*Itens*
+1x Pizza Calabresa (Grande) — R$ 55,90
+   • Massa: Fina
+   • Adicionais: Bacon x2 (+R$ 10,00)
+   • Ingredientes: sem Cebola
+   Obs.: Cortar em 8 pedaços
+2x Refrigerante 2L — R$ 23,80
+
+*Observações*
+Tocar a campainha do portão
+
+*Entrega*
+Rua das Flores, 123 - Apto 12
+Centro - São Paulo/SP
+CEP 01000-000
+Referência: Ao lado da praça
+Destinatário: Maria Conceição
+
+*Pagamento*
+PIX
+Chave PIX: loja@sabor.com.br (E-mail)
+Recebedor: Sabor & Cia
+
+*Valores*
+Itens: R$ 79,70
+Desconto: -R$ 5,00
+Entrega Centro: R$ 8,00
+*Total: R$ 82,70*
+
+*Acompanhe seu pedido*
+https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+`;

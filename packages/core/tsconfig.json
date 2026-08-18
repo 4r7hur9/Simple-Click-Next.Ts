@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    // Como em `packages/contracts` e `packages/testing`: este pacote é
+    // consumido pelo código-fonte, sem passo de compilação. Quem importa
+    // aponta para o arquivo que existe no disco, e por isso a importação
+    // interna carrega a extensão `.ts`.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "coverage"]
+}

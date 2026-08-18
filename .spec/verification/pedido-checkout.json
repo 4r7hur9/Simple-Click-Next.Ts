@@ -1,12 +1,28 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-18T18:26:31.522Z",
-  "gitRev": "f701609",
+  "timestamp": "2026-08-18T18:33:01.849Z",
+  "gitRev": "8ca5132",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 541,
-  "results": {},
+  "testsParsed": 562,
+  "results": {
+    "AC-519": {
+      "status": "pass",
+      "testName": "texto do pedido para o WhatsApp @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link",
+      "method": "vitest-json"
+    },
+    "AC-521": {
+      "status": "pass",
+      "testName": "encurtamento controlado do texto (AC-521) @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber",
+      "method": "vitest-json"
+    },
+    "AC-522": {
+      "status": "pass",
+      "testName": "acento, cedilha, emoji e quebra de linha (AC-522) @spec:AC-522 acento, cedilha e emoji chegam íntegros e as quebras de linha são preservadas @spec:AC-522 acento, cedilha e emoji chegam íntegros e as quebras de linha são preservadas",
+      "method": "vitest-json"
+    }
+  },
   "principles": {
     "P-003": {
       "status": "pass",
