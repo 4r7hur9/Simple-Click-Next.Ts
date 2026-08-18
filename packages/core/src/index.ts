@@ -15,6 +15,12 @@ export {
   LIMITE_PADRAO_DO_LINK,
   medirComprimentoNoLink,
 } from "./cupom-texto.ts";
+export { calcularValores, emReais } from "./taxa-entrega.ts";
+export type {
+  ConfiguracaoDeEntrega,
+  ImpedimentoDoFechamento,
+  ResumoDeValores,
+} from "./taxa-entrega.ts";
 export { linkDoWhatsApp, normalizarWhatsApp } from "./telefone.ts";
 export type {
   CausaDaRecusa,

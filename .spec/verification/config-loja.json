@@ -1,12 +1,27 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-18T18:49:07.173Z",
-  "gitRev": "1f8b56d",
+  "timestamp": "2026-08-18T18:56:11.866Z",
+  "gitRev": "b8ed7aa",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 570,
+  "testsParsed": 585,
   "results": {
+    "AC-906": {
+      "status": "pass",
+      "testName": "taxa de entrega no resumo (AC-507, AC-906) @spec:AC-906 a taxa entra em linha separada, com o nome que o dono deu @spec:AC-906 a taxa entra em linha separada, com o nome que o dono deu",
+      "method": "vitest-json"
+    },
+    "AC-907": {
+      "status": "pass",
+      "testName": "entrega grátis acima de um valor (AC-907) @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça",
+      "method": "vitest-json"
+    },
+    "AC-908": {
+      "status": "pass",
+      "testName": "valor mínimo do pedido (AC-908) @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta",
+      "method": "vitest-json"
+    },
     "AC-913": {
       "status": "pass",
       "testName": "normalização do número de WhatsApp (AC-913) @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número",
