@@ -117,7 +117,7 @@
 ## T-017 — Portão de qualidade local, com ganchos [pendente]
 
 - Refs: US-005, AC-017, AC-018, AC-019, AC-020, AC-040, AC-041, AC-042, AC-043
-- Arquivos: infra/scripts/verificar.sh, infra/scripts/check-segredos.sh, infra/scripts/check-mensagem.sh, infra/scripts/audit-regressao.mjs, infra/scripts/check-sem-middleware.sh, docs/verificacao.md, docs/pendencias.md
+- Arquivos: infra/scripts/verificar.sh, infra/scripts/check-segredos.sh, infra/scripts/check-mensagem.sh, infra/scripts/audit-regressao.mjs, infra/scripts/check-sem-middleware.sh, docs/verificacao.md, docs/pendencias.md, packages/database/src/guards.ts
 - Notas: nada roda em servidor externo — a verificação é um comando único na máquina de desenvolvimento. Gancho antes do registro cobre o rápido em segundos; gancho antes do envio roda o portão inteiro e bloqueia. Saída explícita para pular existe, mas registra a dívida em arquivo de pendências. Fixar versão das ferramentas para o resultado ser reproduzível.
 - Esforço: alto
 

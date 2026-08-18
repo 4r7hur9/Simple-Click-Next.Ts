@@ -26,6 +26,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Client as ClientePg } from "pg";
 
 import {
   aplicarMigracoes,
@@ -320,13 +321,16 @@ async function principal(argumentos: readonly string[]): Promise<number> {
   return await contraBancoEfemero(pg, guardas);
 }
 
-/** Formato de `pg` que a linha de comando usa, sem amarrar o módulo ao driver. */
-type ModuloPg = {
-  Client: new (config: { connectionString: string }) => ClienteSql & {
-    connect(): Promise<void>;
-    end(): Promise<void>;
-  };
-};
+/**
+ * Formato de `pg` que a linha de comando usa.
+ *
+ * Derivado do próprio driver em vez de reescrito à mão: a versão escrita à mão
+ * descrevia um `Client` mais estreito que o real e não compilava contra ele —
+ * e o desencontro passou despercebido porque a verificação de tipos ainda não
+ * estava no portão. Com `Pick`, o dia em que o driver mudar a assinatura, a
+ * verificação acusa aqui.
+ */
+type ModuloPg = { readonly Client: typeof ClientePg };
 
 function relatar(relatorio: RelatorioDeGuardas): void {
   for (const guarda of relatorio.guardasExecutadas) {

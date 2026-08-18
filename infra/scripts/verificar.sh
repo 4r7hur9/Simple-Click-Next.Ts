@@ -38,6 +38,12 @@ etapa "cliente tipado do banco" pnpm --filter @simpleclick/database run gerar
 
 etapa "formatação" pnpm prettier --check .
 etapa "qualidade de código" pnpm eslint . --max-warnings=0
+
+# TypeScript sem verificação de tipos é JavaScript com comentários caros. Esta
+# etapa entrou depois de a T-010 descobrir que packages/database não compilava
+# havia dias, sem ninguém notar — o portão olhava formatação e testes, mas não
+# tipos, e teste não exercita todo caminho tipado.
+etapa "verificação de tipos" pnpm turbo run typecheck
 # Os quatro projetos do Vitest estao em vitest.config.ts. Aqui eles entram em
 # duas etapas separadas de proposito: quando o portao reprova, a primeira linha
 # vermelha ja diz se o problema e de logica (unidade) ou de banco (integracao).
