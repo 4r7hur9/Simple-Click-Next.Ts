@@ -31,6 +31,14 @@ etapa() {
   fi
 }
 
+# Producao e teste nunca compartilham banco nem cache (AC-031). Vem PRIMEIRO de
+# proposito: quase toda etapa abaixo escreve no banco de teste, e se ele for o
+# mesmo banco da aplicacao a suite apaga dado de gente antes de qualquer linha
+# vermelha aparecer. Errado aqui nao e um teste que reprova, e um estrago que
+# ja aconteceu. O mesmo verificador roda no primeiro passo da publicacao
+# (infra/railway/pre-deploy.sh), com o modo de producao.
+etapa "separação de ambientes" bash infra/scripts/check-ambientes.sh
+
 # O cliente tipado do banco nasce do esquema declarado e nao e versionado. Sem
 # ele, o caminho unico ate o banco nao compila e os testes de isolamento nem
 # rodariam — um portao que pula a verificacao mais importante e pior que nenhum.
@@ -87,6 +95,12 @@ etapa "auditoria de regressão" node infra/scripts/audit-regressao.mjs
 # apenas o que aquela máquina tem hoje — inclusive um banco vazio, que passaria
 # em todas as guardas sem que nenhuma tivesse olhado para nada.
 etapa "guardas estruturais do banco" bash infra/scripts/db-guards.sh
+
+# A compatibilidade das migracoes com a versao anterior (AC-030) tambem e
+# conferida aqui, e nao so na publicacao: descobrir que a migracao impede voltar
+# atras no minuto da publicacao e descobrir tarde demais — nessa hora o esquema
+# ja mudou.
+etapa "migração compatível com a versão anterior" node infra/scripts/check-migracao-compativel.mjs
 
 # Etapas que entram conforme as tarefas concluem:
 #   T-020       → telas de ponta a ponta e acessibilidade

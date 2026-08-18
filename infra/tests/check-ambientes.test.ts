@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,11 @@ import { afterAll, describe, expect, it } from "vitest";
  */
 const SCRIPT = fileURLToPath(
   new URL("../scripts/check-ambientes.sh", import.meta.url),
+);
+
+/** O portão de qualidade, que precisa chamar o verificador acima (AC-031). */
+const PORTAO = fileURLToPath(
+  new URL("../scripts/verificar.sh", import.meta.url),
 );
 
 /** Códigos de saída combinados com o portão de qualidade. */
@@ -200,5 +205,110 @@ describe("check-ambientes.sh", () => {
     ]);
 
     expect(verificar({}, caminho).codigo).toBe(SEPARADOS);
+  });
+});
+
+/**
+ * Em produção a pergunta muda de forma: não há conexão de teste com que
+ * comparar, e é exatamente isso que se exige. Uma variável de teste presente no
+ * ambiente que atende loja de verdade é arma carregada — basta alguém rodar a
+ * suíte com esse ambiente para os dados irem embora.
+ */
+describe("check-ambientes.sh --producao", () => {
+  /** Ambiente de produção bem formado: nenhuma conexão de teste por perto. */
+  function ambienteDeProducao(): Record<string, string> {
+    return {
+      DATABASE_URL: CONEXAO_DA_APLICACAO,
+      DATABASE_URL_DIRETA: CONEXAO_DA_APLICACAO,
+      REDIS_URL: CACHE_DA_APLICACAO,
+    };
+  }
+
+  it("@spec:AC-031 aprova o ambiente de produção que não carrega conexão de teste nenhuma", () => {
+    const veredito = verificar(ambienteDeProducao(), "--producao");
+
+    expect(veredito.codigo).toBe(SEPARADOS);
+    expect(veredito.texto).toContain("sem nenhuma conexão de teste");
+  });
+
+  it("@spec:AC-031 reprova a conexão de teste presente no ambiente que atende loja", () => {
+    const variaveis = ambienteDeProducao();
+    variaveis.DATABASE_URL_TEST = CONEXAO_DE_TESTE;
+
+    const veredito = verificar(variaveis, "--producao");
+
+    // Repare que o banco de teste aqui é OUTRO banco — e mesmo assim reprova.
+    // O perigo não é o destino: é a variável existir onde a suíte pode achá-la.
+    expect(veredito.codigo).toBe(MESMO_DESTINO);
+    expect(veredito.texto).toContain("DATABASE_URL_TEST");
+    expect(veredito.texto).toContain("teste não roda em produção");
+  });
+
+  it("@spec:AC-031 reprova o cache de teste presente no ambiente que atende loja", () => {
+    const variaveis = ambienteDeProducao();
+    variaveis.REDIS_URL_TEST = CACHE_DE_TESTE;
+
+    const veredito = verificar(variaveis, "--producao");
+
+    expect(veredito.codigo).toBe(MESMO_DESTINO);
+    expect(veredito.texto).toContain("REDIS_URL_TEST");
+  });
+
+  it("@spec:AC-031 reprova o ambiente de produção sem a conexão de migração", () => {
+    const variaveis = ambienteDeProducao();
+    delete variaveis.DATABASE_URL_DIRETA;
+
+    const veredito = verificar(variaveis, "--producao");
+
+    // Sem a conexão direta não há migração aplicada, e publicar assim é subir
+    // sobre um banco desconhecido.
+    expect(veredito.codigo).toBe(CONFIGURACAO_INCOMPLETA);
+    expect(veredito.texto).toContain("DATABASE_URL_DIRETA");
+  });
+
+  it("@spec:AC-031 recusa opção desconhecida em vez de verificar outra coisa", () => {
+    const veredito = verificar(ambienteDeProducao(), "--produção");
+
+    // Um erro de digitação no comando não pode virar "verificou e passou".
+    expect(veredito.codigo).toBe(CONFIGURACAO_INCOMPLETA);
+    expect(veredito.texto).toContain("opção desconhecida");
+  });
+});
+
+describe("portão de qualidade e o verificador de ambientes", () => {
+  /** As etapas do portão, na ordem: o nome e o comando que cada uma roda. */
+  function etapasDoPortao(): { nome: string; comando: string }[] {
+    const texto = readFileSync(PORTAO, "utf8");
+    const encontradas = texto.matchAll(/^etapa "([^"]+)" (.+)$/gm);
+    return [...encontradas].map((casou) => ({
+      nome: casou[1] as string,
+      comando: casou[2] as string,
+    }));
+  }
+
+  it("@spec:AC-031 o portão roda o verificador de ambientes antes de qualquer etapa que escreva no banco", () => {
+    const etapas = etapasDoPortao();
+    const posicao = etapas.findIndex((etapa) =>
+      etapa.comando.includes("check-ambientes.sh"),
+    );
+
+    // Não basta estar na lista: quase toda etapa abaixo escreve no banco de
+    // teste, e se ele for o banco da aplicação a suíte apaga dado de gente
+    // antes de qualquer linha vermelha aparecer. Errado aqui não é um teste que
+    // reprova — é um estrago que já aconteceu.
+    expect(posicao).toBe(0);
+    expect(etapas[posicao]?.nome).toContain("ambientes");
+  });
+
+  it("@spec:AC-030 o portão também cobra a compatibilidade das migrações com a versão anterior", () => {
+    const etapas = etapasDoPortao();
+
+    // Descobrir na hora da publicação que a migração impede voltar atrás é
+    // descobrir tarde demais: nessa hora o esquema já mudou.
+    expect(
+      etapas.some((etapa) =>
+        etapa.comando.includes("check-migracao-compativel.mjs"),
+      ),
+    ).toBe(true);
   });
 });

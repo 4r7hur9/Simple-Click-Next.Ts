@@ -78,6 +78,10 @@ export default defineConfig({
             ...excluidos,
             ...provaDeCache,
             "apps/api/src/**/*.int.test.ts",
+            // A prova da publicação contra um PostgreSQL de verdade (T-018)
+            // mora em `db-rls`. Sem esta linha ela rodaria também aqui, onde
+            // não há banco nenhum — e falharia por um motivo que não é dela.
+            "infra/tests/**/*.int.test.ts",
             "packages/database/**",
             "packages/testing/**",
           ],
@@ -162,6 +166,12 @@ export default defineConfig({
             "packages/database/seed/**/*.test.ts",
             "packages/testing/src/**/*.test.ts",
             "packages/testing/tests/**/*.test.ts",
+            // A publicação aplica migração antes de trocar a versão (AC-029), e
+            // provar isso exige um banco vazio de verdade. Mora aqui, e não em
+            // `api-int`, pelo mesmo motivo que este projeto não corre em
+            // paralelo: aplicar a 0001 num banco novo cria PAPÉIS, que são
+            // objeto do agrupamento inteiro e não do banco.
+            "infra/tests/**/*.int.test.ts",
           ],
           exclude: excluidos,
           setupFiles: preparacaoDeBanco,

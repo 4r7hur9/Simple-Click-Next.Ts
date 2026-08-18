@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T14:26:06.534Z",
-  "gitRev": "2b5b25c",
+  "timestamp": "2026-08-18T15:15:18.132Z",
+  "gitRev": "654819c",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 469,
+  "testsParsed": 521,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -125,6 +125,16 @@
     "AC-028": {
       "status": "pass",
       "testName": "cache contra o Redis de verdade @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual @spec:AC-028 alterou o produto: a leitura seguinte reflete, sem reinício de serviço nem limpeza manual",
+      "method": "vitest-json"
+    },
+    "AC-029": {
+      "status": "pass",
+      "testName": "publicação com o banco no ar @spec:AC-029 aplica todas as migrações e só então libera a troca de versão @spec:AC-029 aplica todas as migrações e só então libera a troca de versão",
+      "method": "vitest-json"
+    },
+    "AC-030": {
+      "status": "pass",
+      "testName": "portão de qualidade e o verificador de ambientes @spec:AC-030 o portão também cobra a compatibilidade das migrações com a versão anterior @spec:AC-030 o portão também cobra a compatibilidade das migrações com a versão anterior",
       "method": "vitest-json"
     },
     "AC-031": {

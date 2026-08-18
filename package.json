@@ -27,8 +27,11 @@
   "devDependencies": {
     "@simpleclick/config-eslint": "workspace:*",
     "@simpleclick/config-ts": "workspace:*",
+    "@simpleclick/database": "workspace:*",
+    "@types/pg": "8.21.0",
     "eslint": "10.8.1",
     "lefthook": "2.1.10",
+    "pg": "8.23.0",
     "prettier": "3.9.6",
     "turbo": "2.10.10",
     "typescript": "6.0.3",

@@ -599,6 +599,40 @@ bash infra/scripts/verificar.sh  # o portão completo
     `apps/api/src/app.test.ts` ainda usa o padrão antigo — não incomoda hoje
     porque faz quatro requisições.
 
+55. **Nada está publicado, e é assim de propósito.** O mecanismo da publicação
+    existe e é provado por teste (T-018), mas conta no provedor, domínio e
+    primeira publicação são tarefas da fase de publicação — o domínio fica para
+    o fim do projeto (decisão de 17/08). O que nunca foi ensaiado de verdade:
+    uma publicação com a versão nova e a antiga atendendo ao mesmo tempo. A
+    regra de compatibilidade das migrações já foi escrita para esse mundo; é
+    exatamente a janela que ela protege.
+
+56. **Dois nomes para a mesma porta da API.** `apps/api/src/main.ts` lê
+    `API_PORT`; `apps/api/src/core/env.ts` e o `.env.example` chamam a mesma
+    coisa de `PORT`. Hoje convivem porque o padrão é 3001 nos dois, e a imagem
+    de produção declara `API_PORT`. Unificar é mexer em teste de duas tarefas
+    (T-003 e T-019), então ficou registrado em vez de resolvido no meio da
+    publicação.
+
+57. **A imagem da API pesa mais do que deveria por causa de companhia
+    opcional.** `@prisma/client` declara a linha de comando do Prisma, o painel
+    visual e o servidor de desenvolvimento como companhia OPCIONAL, e o arquivo
+    de trava reproduz a resolução que a máquina de desenvolvimento fez — mesmo
+    com a poda de produção. `apps/api/Dockerfile` os remove por nome, o que
+    levou o conteúdo de `/app` de 356 MB para 267 MB (imagem inteira: 687 MB). É remoção por nome, e nome muda: se um
+    dia o cliente do Prisma passar a precisar de um deles em execução, a imagem
+    quebra na partida (e a prova disso é subir a imagem e chamar
+    `/v1/health/live`, como está em `docs/publicacao.md`).
+
+58. **A prova das imagens é da RECEITA, não da imagem construída.** Construir as
+    duas imagens no portão levaria minutos e exigiria Docker na máquina que o
+    roda — a mesma razão que já separou a prova da composição local. As duas
+    foram construídas e subiram de verdade durante a T-018 (a API respondendo
+    `/v1/health/live`, o site respondendo a página inicial), e os comandos para
+    repetir isso à mão estão em `docs/publicacao.md`. O que roda no portão
+    confere o que a receita MANDA acontecer: estágios separados, poda das
+    dependências de desenvolvimento e usuário sem privilégio.
+
 ## Portão contornado
 
 Nenhuma vez até agora. Quando acontecer (`LEFTHOOK=0 git push`), registre aqui a

@@ -621,9 +621,15 @@ async function principal(argumentos: readonly string[]): Promise<number> {
   // Cliente único, e não agrupador: migração não sobrevive a agrupador em modo
   // transação, que descarta o estado da sessão entre comandos.
   const cliente = new pg.Client({ connectionString: url });
-  await cliente.connect();
 
   try {
+    // A conexão fica DENTRO do bloco de propósito: banco fora do ar é a falha
+    // mais comum da publicação, e fora daqui ela sairia como rastro de pilha
+    // não tratado — a pior mensagem possível para quem lê o registro de
+    // madrugada. Aqui ela vira uma linha que diz o que aconteceu, e o código de
+    // saída 1 interrompe a publicação do mesmo jeito.
+    await cliente.connect();
+
     if (comando === "aplicar") {
       const relatorio = await aplicarMigracoes({
         cliente,

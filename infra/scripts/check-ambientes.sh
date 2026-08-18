@@ -10,9 +10,16 @@
 # `usuario_b@127.0.0.1:5432/sc?sslmode=require` são o mesmo banco. O que
 # identifica o destino é máquina, porta e nome do banco (ou índice do cache).
 #
+# Em PRODUÇÃO a pergunta muda de forma, e por isso existe `--producao`: lá não
+# há conexão de teste com que comparar — e é justamente isso que se exige. Uma
+# variável de teste presente no ambiente que atende loja de verdade é arma
+# carregada: basta alguém rodar a suíte com esse ambiente para os dados irem
+# embora. Então, em produção, a PRESENÇA dela reprova (AC-031).
+#
 # Uso:
 #   bash infra/scripts/check-ambientes.sh              # usa o ambiente atual
 #   bash infra/scripts/check-ambientes.sh .env         # usa um arquivo
+#   bash infra/scripts/check-ambientes.sh --producao   # ambiente de produção
 #
 # Saída: 0 ambientes separados · 1 mesmo destino · 2 configuração ausente ou
 # malformada (que também reprova: sem a conexão de teste, a suíte cai na
@@ -160,38 +167,95 @@ exigir_destinos_distintos() {
   printf '  ✔ %s e %s usam %ss distintos\n' "$nome_a" "$nome_b" "$rotulo"
 }
 
-[ $# -gt 0 ] && carregar_arquivo "$1"
-
-printf 'Verificando separação entre os ambientes (AC-031)\n'
-
-ler_destino banco_app DATABASE_URL "$PORTA_PADRAO_POSTGRES" postgres
-ler_destino banco_teste DATABASE_URL_TEST "$PORTA_PADRAO_POSTGRES" postgres
-ler_destino cache_app REDIS_URL "$PORTA_PADRAO_REDIS" 0
-ler_destino cache_teste REDIS_URL_TEST "$PORTA_PADRAO_REDIS" 0
-
-if [ -n "$banco_app" ] && [ -n "$banco_teste" ]; then
-  exigir_destinos_distintos banco DATABASE_URL "$banco_app" DATABASE_URL_TEST "$banco_teste"
-fi
-
-# A conexão direta alcança a mesma base da aplicação por outro caminho, sem o
-# agrupador. Apontar o teste para ela é o mesmo acidente, disfarçado.
-if [ -n "${DATABASE_URL_DIRETA:-}" ] && [ -n "$banco_teste" ]; then
-  if banco_direto=$(identidade_do_destino "$DATABASE_URL_DIRETA" "$PORTA_PADRAO_POSTGRES" postgres); then
-    exigir_destinos_distintos banco DATABASE_URL_DIRETA "$banco_direto" DATABASE_URL_TEST "$banco_teste"
-  else
-    recusar "DATABASE_URL_DIRETA não é uma cadeia de conexão reconhecível"
-    falhas_de_configuracao=$((falhas_de_configuracao + 1))
+# Recusa a variável de teste que apareceu onde ela não pode existir.
+recusar_variavel_de_teste() {
+  local variavel="$1"
+  if [ -n "${!variavel:-}" ]; then
+    recusar "$variavel está definida no ambiente de produção"
+    detalhar "a suíte de testes apaga e recria dados: com esta variável carregada aqui, uma execução comum alcança o banco errado"
+    detalhar "remova-a do ambiente do serviço — teste não roda em produção"
+    colisoes=$((colisoes + 1))
+    return 1
   fi
-fi
+  printf '  ✔ %s não existe neste ambiente\n' "$variavel"
+}
 
-if [ -n "$cache_app" ] && [ -n "$cache_teste" ]; then
-  exigir_destinos_distintos cache REDIS_URL "$cache_app" REDIS_URL_TEST "$cache_teste"
+# Confere o ambiente que atende loja de verdade: as conexões da aplicação e da
+# migração precisam existir e ser reconhecíveis, e nenhuma conexão de teste
+# pode estar por perto.
+verificar_producao() {
+  printf 'Verificando o ambiente de produção (AC-031)\n'
+
+  ler_destino banco_app DATABASE_URL "$PORTA_PADRAO_POSTGRES" postgres
+  ler_destino banco_migracao DATABASE_URL_DIRETA "$PORTA_PADRAO_POSTGRES" postgres
+  ler_destino cache_app REDIS_URL "$PORTA_PADRAO_REDIS" 0
+
+  recusar_variavel_de_teste DATABASE_URL_TEST
+  recusar_variavel_de_teste REDIS_URL_TEST
+}
+
+# Confere a máquina de quem desenvolve: aqui os dois ambientes convivem, e o
+# que se exige é que apontem para destinos diferentes.
+verificar_desenvolvimento() {
+  printf 'Verificando separação entre os ambientes (AC-031)\n'
+
+  ler_destino banco_app DATABASE_URL "$PORTA_PADRAO_POSTGRES" postgres
+  ler_destino banco_teste DATABASE_URL_TEST "$PORTA_PADRAO_POSTGRES" postgres
+  ler_destino cache_app REDIS_URL "$PORTA_PADRAO_REDIS" 0
+  ler_destino cache_teste REDIS_URL_TEST "$PORTA_PADRAO_REDIS" 0
+
+  if [ -n "$banco_app" ] && [ -n "$banco_teste" ]; then
+    exigir_destinos_distintos banco DATABASE_URL "$banco_app" DATABASE_URL_TEST "$banco_teste"
+  fi
+
+  # A conexão direta alcança a mesma base da aplicação por outro caminho, sem o
+  # agrupador. Apontar o teste para ela é o mesmo acidente, disfarçado.
+  if [ -n "${DATABASE_URL_DIRETA:-}" ] && [ -n "$banco_teste" ]; then
+    if banco_direto=$(identidade_do_destino "$DATABASE_URL_DIRETA" "$PORTA_PADRAO_POSTGRES" postgres); then
+      exigir_destinos_distintos banco DATABASE_URL_DIRETA "$banco_direto" DATABASE_URL_TEST "$banco_teste"
+    else
+      recusar "DATABASE_URL_DIRETA não é uma cadeia de conexão reconhecível"
+      falhas_de_configuracao=$((falhas_de_configuracao + 1))
+    fi
+  fi
+
+  if [ -n "$cache_app" ] && [ -n "$cache_teste" ]; then
+    exigir_destinos_distintos cache REDIS_URL "$cache_app" REDIS_URL_TEST "$cache_teste"
+  fi
+}
+
+modo=desenvolvimento
+arquivo_de_ambiente=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --producao) modo=producao ;;
+    -*)
+      recusar "opção desconhecida: $1"
+      detalhar "uso: check-ambientes.sh [--producao] [arquivo-de-ambiente]"
+      exit 2
+      ;;
+    *) arquivo_de_ambiente="$1" ;;
+  esac
+  shift
+done
+
+[ -n "$arquivo_de_ambiente" ] && carregar_arquivo "$arquivo_de_ambiente"
+
+if [ "$modo" = producao ]; then
+  verificar_producao
+  aprovacao="✔ ambiente de produção sem nenhuma conexão de teste carregada"
+  conserto="remova as variáveis de teste do ambiente do serviço"
+else
+  verificar_desenvolvimento
+  aprovacao="✔ produção e teste usam bancos e caches separados"
+  conserto="aponte o ambiente de teste para um banco e um cache próprios antes de rodar qualquer suíte"
 fi
 
 printf '\n'
 if [ "$colisoes" -gt 0 ]; then
   recusar "ambientes compartilhados: $colisoes colisão(ões)"
-  detalhar "aponte o ambiente de teste para um banco e um cache próprios antes de rodar qualquer suíte"
+  detalhar "$conserto"
   exit 1
 fi
 if [ "$falhas_de_configuracao" -gt 0 ]; then
@@ -200,5 +264,5 @@ if [ "$falhas_de_configuracao" -gt 0 ]; then
   exit 2
 fi
 
-printf '\033[32m✔ produção e teste usam bancos e caches separados\033[0m\n'
+printf '\033[32m%s\033[0m\n' "$aprovacao"
 exit 0

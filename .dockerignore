@@ -1,0 +1,50 @@
+# O que NÃO entra no contexto de construção das imagens (T-018).
+#
+# Duas razões, e a segunda é a que importa: o contexto viaja inteiro para o
+# motor de construção a cada `docker build`, então tudo que fica aqui é tempo
+# perdido — e, pior, `node_modules` da máquina de quem desenvolve traz ligações
+# simbólicas absolutas e binário compilado para OUTRO sistema operacional, que
+# dentro da imagem não funcionaria. As dependências da imagem são instaladas lá
+# dentro, a partir do arquivo de trava, e é isso que torna a construção
+# reproduzível.
+
+# dependências e saídas de build — reconstruídas dentro da imagem
+node_modules/
+.pnpm-store/
+dist/
+.next/
+out/
+*.tsbuildinfo
+coverage/
+.turbo/
+
+# cliente tipado do banco: nasce do esquema declarado, dentro da imagem
+packages/database/gerado/
+
+# segredo nunca entra em imagem (P-002): em produção o ambiente vem do cofre
+# do provedor, e uma imagem com `.env` dentro vaza para quem baixar a imagem
+.env
+.env.*
+!.env.example
+
+# histórico e ferramentas de desenvolvimento
+.git/
+.github/
+.claude/
+.vscode/
+.idea/
+
+# provas e especificação: não vão ao ar, e mudam a cada tarefa — deixá-las no
+# contexto invalidaria o cache da construção sem alterar uma linha do que roda
+e2e/
+.spec/
+docs/
+playwright-report/
+test-results/
+
+# certificado do ambiente local
+infra/traefik/certs/
+
+# sistema operacional
+.DS_Store
+Thumbs.db
