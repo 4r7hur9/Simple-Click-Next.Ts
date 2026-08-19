@@ -44,7 +44,7 @@
 - Notas: o caso de uso não tem teste de unidade próprio — ele é indivisível do banco (numeração atômica, índice único parcial, políticas de isolamento), e a prova inteira mora em `pedido-idempotente.test.ts`. Número sequencial por loja com incremento atômico. Envio repetido devolve o mesmo pedido em vez de criar outro. Loja fechada não aceita e preserva o carrinho. Convidado fecha pedido sem conta e recebe o link.
 - Esforço: max
 
-## T-506 — Pedido é cópia congelada do momento da compra [pendente]
+## T-506 — Pedido é cópia congelada do momento da compra [concluida]
 
 - Refs: US-503, AC-515
 - Arquivos: apps/api/src/modules/orders/snapshot.ts, apps/api/src/modules/orders/snapshot.test.ts, apps/api/tests/pedido-imutavel.test.ts
