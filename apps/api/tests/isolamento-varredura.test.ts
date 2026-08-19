@@ -188,6 +188,28 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     colunas: (loja) => ({ store_id: loja }),
   },
 
+  store_hours: {
+    chave: "id",
+    alteracao: { coluna: "sort_order", valor: 99 },
+    colunas: (loja) => ({
+      store_id: loja,
+      weekday: 1,
+      opens_at: "11:00",
+      closes_at: "15:00",
+    }),
+  },
+
+  store_hour_exceptions: {
+    chave: "id",
+    // A data é fixa e distante: exceção é única por (loja, dia), e uma data
+    // calculada a partir de hoje faria duas execuções no mesmo dia colidirem.
+    alteracao: { coluna: "reason", valor: "alterado pela varredura" },
+    colunas: (loja) => ({
+      store_id: loja,
+      on_date: "2099-12-25",
+    }),
+  },
+
   store_domains: {
     chave: "id",
     alteracao: { coluna: "kind", valor: "LEGACY_SLUG" },
@@ -842,6 +864,8 @@ beforeAll(async () => {
       "option_groups",
       "carts",
       "store_sequences",
+      "store_hours",
+      "store_hour_exceptions",
     ],
     [
       "orders",

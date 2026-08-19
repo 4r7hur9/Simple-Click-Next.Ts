@@ -141,22 +141,24 @@ model Store {
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  ramo               VerticalPreset     @relation(fields: [verticalCode], references: [code])
-  quemCriou          Identity?          @relation("QuemCriouALoja", fields: [createdBy], references: [id])
-  configuracao       StoreSettings?
-  enderecos          StoreDomain[]
-  membros            StoreMember[]
-  produtos           Product[]
-  clientes           StoreCustomer[]
-  auditoria          AuditLog[]
-  contadores         StoreSequence[]
-  pedidos            Order[]
-  contatos           OrderContact[]
-  itensDePedido      OrderItem[]
-  opcoesDeItem       OrderItemOption[]
-  historicoDePedidos OrderStatusEntry[]
-  carrinhos          Cart[]
-  itensDeCarrinho    CartItem[]
+  ramo                VerticalPreset       @relation(fields: [verticalCode], references: [code])
+  quemCriou           Identity?            @relation("QuemCriouALoja", fields: [createdBy], references: [id])
+  configuracao        StoreSettings?
+  enderecos           StoreDomain[]
+  membros             StoreMember[]
+  produtos            Product[]
+  clientes            StoreCustomer[]
+  auditoria           AuditLog[]
+  contadores          StoreSequence[]
+  pedidos             Order[]
+  contatos            OrderContact[]
+  itensDePedido       OrderItem[]
+  opcoesDeItem        OrderItemOption[]
+  historicoDePedidos  OrderStatusEntry[]
+  carrinhos           Cart[]
+  itensDeCarrinho     CartItem[]
+  storeHours          StoreHour[]
+  storeHourExceptions StoreHourException[]
 
   @@map("stores")
   @@schema("app")
@@ -562,5 +564,46 @@ model CartItem {
   produto  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("cart_items")
+  @@schema("app")
+}
+
+/// Grade semanal de funcionamento, com várias faixas por dia (almoço e jantar).
+/// A hora é `time` e não `timestamptz` de propósito: faixa de funcionamento não
+/// tem data, e guardar com fuso faria a faixa escorregar no horário de verão.
+model StoreHour {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  /// 0 no domingo, como o JavaScript numera. Uma numeração só, do banco à tela.
+  weekday   Int      @db.SmallInt
+  opensAt   DateTime @map("opens_at") @db.Time(6)
+  closesAt  DateTime @map("closes_at") @db.Time(6)
+  isClosed  Boolean  @default(false) @map("is_closed")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_hours")
+  @@schema("app")
+}
+
+/// Feriado, férias, fechamento pontual. Existe para o dono NÃO desconfigurar a
+/// grade semanal só para fechar um dia — e não ter de reconfigurá-la de memória
+/// no dia seguinte.
+model StoreHourException {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId   String    @map("store_id") @db.Uuid
+  onDate    DateTime  @map("on_date") @db.Date
+  isClosed  Boolean   @default(true) @map("is_closed")
+  opensAt   DateTime? @map("opens_at") @db.Time(6)
+  closesAt  DateTime? @map("closes_at") @db.Time(6)
+  reason    String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_hour_exceptions")
   @@schema("app")
 }

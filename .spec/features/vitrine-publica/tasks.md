@@ -2,11 +2,11 @@
 
 > feature: vitrine-publica
 
-## T-400 — Resolução da loja pelo endereço e página de apresentação [em-andamento]
+## T-400 — Resolução da loja pelo endereço e página de apresentação [concluida]
 
 - Refs: US-400, AC-400, AC-401, AC-402
 - Arquivos: apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts
-- Notas: PARADA no AC-401. A resolução da loja (AC-400) e a resposta igual para inexistente e suspensa (AC-402) estão prontas e provadas contra o banco. Falta "a loja está aberta agora", que o AC-401 pede: o CÁLCULO existe e está provado em `packages/core/src/horario-da-loja.ts` — fuso da loja, várias faixas por dia, pausa que vence sozinha —, mas o horário não tem onde ser GUARDADO. O modelo de dados prevê a tabela `store_hours`, que nenhuma migração criou ainda, e criá-la aqui seria entrar na configuração da loja por uma porta lateral. As PÁGINAS do site saíram desta lista e entram junto com a rota HTTP que expõe a resolução — a resolução em si, que é o que os três critérios pedem, está pronta e provada contra o banco. A resolução usa função dedicada que devolve apenas os campos permitidos, porque o contexto da loja ainda não existe nesse momento. São DOIS passos: identificar sem contexto, e ler com contexto numa transação nova — o contexto é definido uma vez, no início da transação, e uma função única precisaria trocá-lo no meio, furando a garantia que sustenta o isolamento. Loja inexistente e suspensa respondem igual, sem revelar se o endereço já existiu.
+- Notas: os três critérios estão provados — o AC-401 fechou com a tabela `store_hours`, que veio na T-903. As PÁGINAS do site saíram desta lista e entram junto com a rota HTTP que expõe a resolução — a resolução em si, que é o que os três critérios pedem, está pronta e provada contra o banco. A resolução usa função dedicada que devolve apenas os campos permitidos, porque o contexto da loja ainda não existe nesse momento. São DOIS passos: identificar sem contexto, e ler com contexto numa transação nova — o contexto é definido uma vez, no início da transação, e uma função única precisaria trocá-lo no meio, furando a garantia que sustenta o isolamento. Loja inexistente e suspensa respondem igual, sem revelar se o endereço já existiu.
 - Esforço: alto
 
 ## T-401 — Saída pública com lista de campos permitidos [concluida]

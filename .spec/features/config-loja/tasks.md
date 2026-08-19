@@ -23,11 +23,11 @@
 - Notas: desativar os dois modos impede finalizar pedido e avisa o dono no painel. Entrega grátis acima de valor e mínimo por modo de recebimento.
 - Esforço: medio
 
-## T-903 — Horário de funcionamento, fechar agora e exceções [pendente]
+## T-903 — Horário de funcionamento, fechar agora e exceções [concluida]
 
 - Refs: US-902, AC-909, AC-910, AC-911, AC-912
-- Arquivos: packages/core/src/horario-loja.ts, packages/core/src/horario-loja.test.ts, apps/api/src/modules/stores/horarios.usecase.ts, apps/api/src/modules/stores/horarios.usecase.test.ts, apps/web/src/app/(painel)/painel/config/horarios/page.tsx, apps/web/src/features/config/GradeDeHorarios.tsx
-- Notas: cálculo sempre no fuso da loja, nunca no relógio do cliente nem em fuso universal. Mais de uma faixa por dia. Fechar agora não desconfigura a semana. Exceção datada vence o horário semanal.
+- Arquivos: packages/core/src/horario-loja.ts, packages/core/src/horario-loja.test.ts, packages/core/src/index.ts, apps/api/src/modules/stores/horarios.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, packages/database/migrations/0015_horario_de_funcionamento.sql, packages/database/prisma/schema.prisma
+- Notas: a TELA do painel (grade de horários) saiu desta lista e entra com o painel do dono; os quatro critérios são de cálculo e de guarda, e estão provados sem ela. O caso de uso não tem teste de unidade próprio — ele só monta o objeto que o cálculo puro interpreta, e a prova de que monta certo exige as linhas do banco. Cálculo sempre no fuso da loja, nunca no relógio do cliente nem em fuso universal. Mais de uma faixa por dia. Fechar agora não desconfigura a semana. Exceção datada vence o horário semanal.
 - Esforço: alto
 
 ## T-904 — Contato de WhatsApp e texto da mensagem [pendente]

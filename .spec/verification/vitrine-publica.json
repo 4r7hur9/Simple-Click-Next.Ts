@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-19T17:21:21.420Z",
-  "gitRev": "1e01d1f",
+  "timestamp": "2026-08-19T18:17:48.670Z",
+  "gitRev": "0ce35c9",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 800,
+  "testsParsed": 812,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -14,7 +14,7 @@
     },
     "AC-401": {
       "status": "pass",
-      "testName": "o horário por dia controla a vitrine (AC-909) @spec:AC-909 @spec:AC-401 dentro da faixa a loja aparece aberta @spec:AC-909 @spec:AC-401 dentro da faixa a loja aparece aberta",
+      "testName": "a vitrine diz se a loja está aberta agora (AC-401) @spec:AC-401 dentro do horário a loja aparece aberta @spec:AC-401 dentro do horário a loja aparece aberta",
       "method": "vitest-json"
     },
     "AC-402": {

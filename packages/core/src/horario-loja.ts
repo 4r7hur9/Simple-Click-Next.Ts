@@ -39,6 +39,25 @@ export interface HorarioDaLoja {
   /** Até quando o fechamento temporário vale. */
   readonly fechadaAte?: Date | null;
   readonly faixas?: Readonly<Record<number, readonly FaixaDeHorario[]>>;
+  /** Feriados e férias. Vencem a grade semanal, e só no dia delas (AC-912). */
+  readonly excecoes?: readonly ExcecaoDatada[];
+}
+
+/**
+ * Uma exceção datada: feriado, férias, fechamento pontual (AC-912).
+ *
+ * Ela existe para o dono NÃO precisar desconfigurar a semana só para fechar um
+ * dia — e não precisar reconfigurá-la de memória no dia seguinte. Quem
+ * esquecesse ficaria fechado sem saber por quê.
+ */
+export interface ExcecaoDatada {
+  /** Data local da loja, em "AAAA-MM-DD". */
+  readonly data: string;
+  readonly fechada: boolean;
+  /** Quando a exceção ABRE fora da grade, como véspera de Natal estendida. */
+  readonly abre?: string;
+  readonly fecha?: string;
+  readonly motivo?: string;
 }
 
 /** O veredito, com a frase que a tela mostra. */
@@ -47,7 +66,10 @@ export interface SituacaoDeAbertura {
   /** "abre hoje às 18h", "abre segunda às 9h30". Nulo quando não há previsão. */
   readonly proximaAbertura: string | null;
   /** Motivo do fechamento, para a tela escolher o tom. */
-  readonly motivo: "ABERTA" | "FORA_DO_HORARIO" | "PAUSA" | "ENCERRADA";
+  readonly motivo:
+    "ABERTA" | "FORA_DO_HORARIO" | "PAUSA" | "ENCERRADA" | "EXCECAO";
+  /** O que o dono escreveu na exceção, quando é ela que fecha a loja. */
+  readonly explicacaoDaExcecao?: string | null;
 }
 
 const DIAS = [
@@ -83,6 +105,8 @@ function comoSeLe(minutos: number): string {
 interface MomentoLocal {
   readonly diaDaSemana: number;
   readonly minutosDoDia: number;
+  /** Data local da loja, em "AAAA-MM-DD" — é a chave da exceção datada. */
+  readonly data: string;
 }
 
 /**
@@ -92,9 +116,12 @@ interface MomentoLocal {
  * decreto e não se calcula com aritmética de fuso fixo.
  */
 export function momentoNaLoja(agora: Date, fusoHorario: string): MomentoLocal {
-  const formatador = new Intl.DateTimeFormat("en-US", {
+  const formatador = new Intl.DateTimeFormat("en-CA", {
     timeZone: fusoHorario,
     weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -110,7 +137,38 @@ export function momentoNaLoja(agora: Date, fusoHorario: string): MomentoLocal {
   const hora = Number(parte("hour")) % 24;
   const minuto = Number(parte("minute"));
 
-  return { diaDaSemana, minutosDoDia: hora * 60 + minuto };
+  const data = `${parte("year")}-${parte("month")}-${parte("day")}`;
+
+  return { diaDaSemana, minutosDoDia: hora * 60 + minuto, data };
+}
+
+/** A exceção cadastrada para aquela data, se houver. */
+function excecaoDoDia(
+  horario: HorarioDaLoja,
+  data: string,
+): ExcecaoDatada | undefined {
+  return horario.excecoes?.find((excecao) => excecao.data === data);
+}
+
+/**
+ * As faixas que valem num dia, já considerando a exceção datada.
+ *
+ * A exceção VENCE a grade semanal — é para isso que ela existe. Fechada, o dia
+ * não tem faixa nenhuma; aberta, valem as horas dela e não as da semana.
+ */
+function faixasDaData(
+  horario: HorarioDaLoja,
+  dia: number,
+  data: string,
+): { abre: number; fecha: number }[] {
+  const excecao = excecaoDoDia(horario, data);
+  if (excecao !== undefined) {
+    if (excecao.fechada) return [];
+    return faixasValidas([
+      { abre: excecao.abre ?? "", fecha: excecao.fecha ?? "" },
+    ]);
+  }
+  return faixasDoDia(horario, dia);
 }
 
 /** As faixas válidas de um dia, ordenadas e sem as malformadas. */
@@ -118,7 +176,13 @@ function faixasDoDia(
   horario: HorarioDaLoja,
   dia: number,
 ): { abre: number; fecha: number }[] {
-  const brutas = horario.faixas?.[dia] ?? [];
+  return faixasValidas(horario.faixas?.[dia] ?? []);
+}
+
+/** Descarta faixa malformada e ordena o que sobrou. */
+function faixasValidas(
+  brutas: readonly FaixaDeHorario[],
+): { abre: number; fecha: number }[] {
   const validas: { abre: number; fecha: number }[] = [];
 
   for (const faixa of brutas) {
@@ -134,14 +198,31 @@ function faixasDoDia(
   return validas.sort((a, b) => a.abre - b.abre);
 }
 
-/** Procura a próxima abertura, olhando até uma semana à frente. */
+/** A data local somada de alguns dias, em "AAAA-MM-DD". */
+function dataMais(data: string, dias: number): string {
+  // Meio-dia UTC de propósito: somar dias a partir da meia-noite escorrega para
+  // o dia anterior em qualquer fuso a oeste, e o feriado do dia 25 viraria 24.
+  const base = new Date(`${data}T12:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + dias);
+  return base.toISOString().slice(0, 10);
+}
+
+/**
+ * Procura a próxima abertura, olhando até uma semana à frente.
+ *
+ * Anda por DATA, e não só por dia da semana, porque é a data que casa com a
+ * exceção: sem isso, a busca prometeria "abre quarta às 11h" no ano em que a
+ * quarta é feriado cadastrado.
+ */
 function proximaAbertura(
   horario: HorarioDaLoja,
   momento: MomentoLocal,
 ): string | null {
   for (let adiante = 0; adiante <= 7; adiante += 1) {
     const dia = (momento.diaDaSemana + adiante) % 7;
-    for (const faixa of faixasDoDia(horario, dia)) {
+    const data = dataMais(momento.data, adiante);
+
+    for (const faixa of faixasDaData(horario, dia, data)) {
       // No dia de hoje, só interessa faixa que ainda vai começar.
       if (adiante === 0 && faixa.abre <= momento.minutosDoDia) continue;
 
@@ -150,7 +231,8 @@ function proximaAbertura(
       return `abre ${quando} às ${comoSeLe(faixa.abre)}`;
     }
   }
-  // Nenhuma faixa em sete dias: a loja não tem horário cadastrado.
+  // Nenhuma faixa em sete dias: a loja não tem horário cadastrado, ou está de
+  // férias pela semana inteira.
   return null;
 }
 
@@ -185,12 +267,25 @@ export function situacaoDaLoja(
     return { aberta: true, proximaAbertura: null, motivo: "ABERTA" };
   }
 
-  const dentro = faixasDoDia(horario, momento.diaDaSemana).some(
+  const excecao = excecaoDoDia(horario, momento.data);
+  const dentro = faixasDaData(horario, momento.diaDaSemana, momento.data).some(
     (faixa) =>
       momento.minutosDoDia >= faixa.abre && momento.minutosDoDia < faixa.fecha,
   );
 
   if (dentro) return { aberta: true, proximaAbertura: null, motivo: "ABERTA" };
+
+  // Fechada POR EXCEÇÃO é diferente de fechada por horário: a tela pode dizer
+  // "fechado no feriado" em vez de "fora do horário", que numa quarta-feira às
+  // duas da tarde soaria como defeito do sistema.
+  if (excecao?.fechada === true) {
+    return {
+      aberta: false,
+      proximaAbertura: proximaAbertura(horario, momento),
+      motivo: "EXCECAO",
+      explicacaoDaExcecao: excecao.motivo ?? null,
+    };
+  }
 
   return {
     aberta: false,

@@ -18,6 +18,12 @@
  * informação que não é de ninguém que esteja apenas navegando, e que serve para
  * mapear concorrentes.
  */
+import {
+  situacaoDaLoja,
+  type HorarioDaLoja,
+  type SituacaoDeAbertura,
+} from "@simpleclick/core";
+
 import { lojaParaVitrine, type LojaPublica } from "./dto-publico.ts";
 
 export type { LojaPublica };
@@ -121,7 +127,16 @@ export async function identificarLoja(
  * declarando-a, e chama o passo 2. A política pública é a segunda trava: ela
  * recusa loja que não esteja ativa mesmo que a resolução tenha deixado passar.
  */
-export async function lojaDaVitrine(): Promise<LojaPublica | null> {
+export interface VitrineDaLoja {
+  readonly publica: LojaPublica;
+  /** Se está aberta agora, e quando abre — no fuso da loja (AC-401). */
+  readonly abertura: SituacaoDeAbertura;
+}
+
+export async function lojaDaVitrine(
+  agora: Date,
+  horario: HorarioDaLoja,
+): Promise<VitrineDaLoja | null> {
   const tx = transacaoAtual();
 
   const loja = await tx.store.findFirst({
@@ -151,5 +166,16 @@ export async function lojaDaVitrine(): Promise<LojaPublica | null> {
     { landing: unknown; theme: unknown }[]
   >`SELECT * FROM app.storefront_settings()`;
 
-  return lojaParaVitrine(loja, configuracao[0] ?? {});
+  // O HORÁRIO CHEGA PRONTO, e não é lido aqui. A tabela de fronteiras não
+  // autoriza um módulo a importar outro: quem sabe ler o horário é o módulo da
+  // loja, quem sabe montar a vitrine é este, e quem junta os dois é a borda —
+  // que é a única camada que enxerga os dois lados. Sem essa regra, os módulos
+  // viram uma teia em que tudo importa tudo.
+  //
+  // O instante também chega por parâmetro: ler o relógio aqui dentro faria esta
+  // função ser impossível de provar na virada da meia-noite, que é justamente
+  // quando ela erra.
+  const abertura = situacaoDaLoja(horario, agora);
+
+  return { publica: lojaParaVitrine(loja, configuracao[0] ?? {}), abertura };
 }

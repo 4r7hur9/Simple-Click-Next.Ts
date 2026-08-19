@@ -140,8 +140,96 @@ describe("o fuso é o da loja, e não o do servidor (AC-909)", () => {
   });
 });
 
-describe("estados que vencem o horário (AC-401)", () => {
-  it("@spec:AC-401 loja em pausa aparece fechada mesmo dentro da faixa", () => {
+describe("feriado e férias são exceções datadas (AC-912)", () => {
+  it("@spec:AC-912 no dia da exceção a loja fecha, mesmo dentro do horário semanal", () => {
+    // Segunda, 17 de agosto, meio-dia: a grade diz aberto. A exceção manda.
+    const comFeriado: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: [
+        { data: "2026-08-17", fechada: true, motivo: "Feriado municipal" },
+      ],
+    };
+
+    const situacao = situacaoDaLoja(comFeriado, emSaoPaulo(17, 12));
+
+    expect(situacao.aberta).toBe(false);
+    expect(situacao.motivo).toBe("EXCECAO");
+    // A tela pode dizer "fechado no feriado" em vez de "fora do horário", que
+    // numa segunda ao meio-dia soaria como defeito do sistema.
+    expect(situacao.explicacaoDaExcecao).toBe("Feriado municipal");
+  });
+
+  it("@spec:AC-912 nos OUTROS dias nada muda", () => {
+    const comFeriado: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: [{ data: "2026-08-17", fechada: true }],
+    };
+
+    // Terça, 18: a grade volta a valer.
+    expect(situacaoDaLoja(comFeriado, emSaoPaulo(18, 12)).aberta).toBe(true);
+  });
+
+  it("@spec:AC-912 a grade semanal continua INTACTA por trás da exceção", () => {
+    // É o ponto do critério: o dono não desconfigurou a semana para fechar um
+    // dia, e por isso não precisa reconfigurá-la de memória amanhã.
+    const comFeriado: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: [{ data: "2026-08-17", fechada: true }],
+    };
+
+    expect(comFeriado.faixas?.[1]).toEqual(ALMOCO_E_JANTAR.faixas?.[1]);
+  });
+
+  it("@spec:AC-912 exceção pode ABRIR fora da grade, com as horas dela", () => {
+    // Véspera de Natal com horário estendido, ou o domingo em que a loja abre
+    // por causa do Dia das Mães.
+    const domingoAberto: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: [
+        { data: "2026-08-16", fechada: false, abre: "10:00", fecha: "16:00" },
+      ],
+    };
+
+    // Domingo, 16, ao meio-dia: a grade não tem faixa, a exceção tem.
+    expect(situacaoDaLoja(domingoAberto, emSaoPaulo(16, 12)).aberta).toBe(true);
+    expect(situacaoDaLoja(domingoAberto, emSaoPaulo(16, 17)).aberta).toBe(
+      false,
+    );
+  });
+
+  it("@spec:AC-912 a próxima abertura pula o dia que é exceção fechada", () => {
+    // Sem isto, a busca prometeria "abre amanhã às 11h" no dia em que amanhã é
+    // feriado cadastrado — e a pessoa voltaria para encontrar a loja fechada.
+    const comFeriado: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: [{ data: "2026-08-17", fechada: true }],
+    };
+
+    // Domingo, 16, meio-dia: segunda é feriado, então a próxima é terça.
+    expect(situacaoDaLoja(comFeriado, emSaoPaulo(16, 12)).proximaAbertura).toBe(
+      "abre terça às 11h",
+    );
+  });
+
+  it("@spec:AC-912 férias de uma semana inteira não prometem abertura que não vem", () => {
+    const ferias: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      excecoes: Array.from({ length: 9 }, (_, i) => ({
+        data: `2026-08-${String(17 + i).padStart(2, "0")}`,
+        fechada: true,
+        motivo: "Férias",
+      })),
+    };
+
+    const situacao = situacaoDaLoja(ferias, emSaoPaulo(17, 12));
+
+    expect(situacao.aberta).toBe(false);
+    expect(situacao.proximaAbertura).toBeNull();
+  });
+});
+
+describe("estados que vencem o horário (AC-401, AC-911)", () => {
+  it("@spec:AC-401 @spec:AC-911 loja em pausa aparece fechada mesmo dentro da faixa", () => {
     // Ela pausou justamente para não receber pedido. Deixar o horário decidir
     // faria a pausa não servir para nada.
     const emPausa: HorarioDaLoja = {
@@ -156,7 +244,23 @@ describe("estados que vencem o horário (AC-401)", () => {
     expect(situacao.motivo).toBe("PAUSA");
   });
 
-  it("@spec:AC-401 pausa vencida volta a valer o horário, sem ninguém despausar", () => {
+  it("@spec:AC-911 a pausa NÃO desconfigura a semana: a grade continua lá", () => {
+    // É o que o critério promete ao dono cuja cozinha atolou: ele para de
+    // receber agora e, ao desligar, volta a receber no horário de sempre.
+    const emPausa: HorarioDaLoja = {
+      ...ALMOCO_E_JANTAR,
+      estado: "TEMPORARILY_CLOSED",
+      fechadaAte: emSaoPaulo(17, 20),
+    };
+
+    expect(situacaoDaLoja(emPausa, emSaoPaulo(17, 12)).aberta).toBe(false);
+    // Desligada a pausa, sem tocar em mais nada:
+    const semPausa: HorarioDaLoja = { ...emPausa, estado: "SCHEDULE" };
+    expect(situacaoDaLoja(semPausa, emSaoPaulo(17, 12)).aberta).toBe(true);
+    expect(semPausa.faixas).toEqual(ALMOCO_E_JANTAR.faixas);
+  });
+
+  it("@spec:AC-911 pausa vencida volta a valer o horário, sem ninguém despausar", () => {
     const pausaVencida: HorarioDaLoja = {
       ...ALMOCO_E_JANTAR,
       estado: "TEMPORARILY_CLOSED",

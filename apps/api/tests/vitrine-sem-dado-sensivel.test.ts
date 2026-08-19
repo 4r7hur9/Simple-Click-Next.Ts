@@ -27,9 +27,10 @@ import {
   identificarLoja,
   lojaDaVitrine,
 } from "../src/modules/storefront/resolver-loja.usecase.ts";
+import { horarioDaLoja } from "../src/modules/stores/horarios.usecase.ts";
 import type {
   IdentificacaoDaLoja,
-  LojaPublica,
+  VitrineDaLoja,
 } from "../src/modules/storefront/resolver-loja.usecase.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 
@@ -37,6 +38,9 @@ let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let ativa: LojaDeTeste;
 let suspensa: LojaDeTeste;
+
+/** Instante fixo: segunda, 17 de agosto de 2026, meio-dia em São Paulo. */
+const AGORA = new Date(Date.UTC(2026, 7, 17, 15, 0));
 
 const CHAVE_PIX = "loja-do-teste@pix.exemplo.test";
 const DOCUMENTO = "12345678000199";
@@ -95,21 +99,21 @@ afterAll(async () => {
  */
 async function visitaAnonima(apelido: string): Promise<{
   identificacao: IdentificacaoDaLoja;
-  publica: LojaPublica | null;
+  vitrine: VitrineDaLoja | null;
 }> {
   const identificacao = await comoRequisicao(acesso, { papel: "PUBLIC" }, () =>
     identificarLoja({ apelido }),
   );
 
-  if (!identificacao.encontrada) return { identificacao, publica: null };
+  if (!identificacao.encontrada) return { identificacao, vitrine: null };
 
-  const publica = await comoRequisicao(
+  const vitrine = await comoRequisicao(
     acesso,
     { papel: "PUBLIC", lojaId: identificacao.id },
-    () => lojaDaVitrine(),
+    async () => lojaDaVitrine(AGORA, await horarioDaLoja(AGORA)),
   );
 
-  return { identificacao, publica };
+  return { identificacao, vitrine };
 }
 
 describe("a página da loja mostra o negócio (AC-400)", () => {
@@ -119,10 +123,12 @@ describe("a página da loja mostra o negócio (AC-400)", () => {
       const visita = await visitaAnonima(ativa.apelido);
 
       expect(visita.identificacao.encontrada).toBe(true);
-      if (visita.publica === null) return;
-      expect(visita.publica.nome).toBe("Sabor da Esquina");
-      expect(visita.publica.boasVindas).toBe("Comida caseira todo dia");
-      expect(visita.publica.cores).toEqual({ primaria: "#0f6e5c" });
+      if (visita.vitrine === null) return;
+      expect(visita.vitrine?.publica.nome).toBe("Sabor da Esquina");
+      expect(visita.vitrine?.publica.boasVindas).toBe(
+        "Comida caseira todo dia",
+      );
+      expect(visita.vitrine?.publica.cores).toEqual({ primaria: "#0f6e5c" });
     },
     ESPERA_LONGA,
   );
@@ -132,14 +138,148 @@ describe("a página da loja mostra o negócio (AC-400)", () => {
     async () => {
       const visita = await visitaAnonima(ativa.apelido);
       expect(visita.identificacao.encontrada).toBe(true);
-      if (visita.publica === null) return;
+      if (visita.vitrine === null) return;
 
-      expect(visita.publica.enderecoParaRetirada?.logradouro).toBe(
+      expect(visita.vitrine?.publica.enderecoParaRetirada?.logradouro).toBe(
         "Rua das Flores",
       );
       const comoTexto = JSON.stringify(visita);
       expect(comoTexto).not.toContain("01000000");
       expect(comoTexto).not.toContain("23.55");
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a vitrine diz se a loja está aberta agora (AC-401)", () => {
+  it(
+    "@spec:AC-401 dentro do horário a loja aparece aberta",
+    async () => {
+      // Segunda ao meio-dia, com a grade cadastrada no banco.
+      await migrador.query(
+        `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
+         VALUES ($1, 1, '11:00', '15:00'), ($1, 1, '18:00', '23:00')`,
+        [ativa.id],
+      );
+
+      const visita = await visitaAnonima(ativa.apelido);
+
+      expect(visita.vitrine?.abertura.aberta).toBe(true);
+      expect(visita.vitrine?.abertura.motivo).toBe("ABERTA");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-401 fora do horário a loja avisa, e diz quando abre",
+    async () => {
+      // Segunda às 16h: passou do almoço, o jantar ainda não começou.
+      const dezesseisHoras = new Date(Date.UTC(2026, 7, 17, 19, 0));
+      const identificacao = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC" },
+        () => identificarLoja({ apelido: ativa.apelido }),
+      );
+      expect(identificacao.encontrada).toBe(true);
+      if (!identificacao.encontrada) return;
+
+      const vitrine = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: identificacao.id },
+        async () =>
+          lojaDaVitrine(dezesseisHoras, await horarioDaLoja(dezesseisHoras)),
+      );
+
+      expect(vitrine?.abertura.aberta).toBe(false);
+      expect(vitrine?.abertura.proximaAbertura).toBe("abre hoje às 18h");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-401 @spec:AC-912 exceção datada fecha a loja mesmo dentro do horário",
+    async () => {
+      // O feriado é cadastrado, a grade continua intacta, e a vitrine fecha.
+      await migrador.query(
+        `INSERT INTO app.store_hour_exceptions (store_id, on_date, is_closed, reason)
+         VALUES ($1, DATE '2026-08-17', true, 'Feriado municipal')
+         ON CONFLICT (store_id, on_date) DO UPDATE SET reason = EXCLUDED.reason`,
+        [ativa.id],
+      );
+
+      const visita = await visitaAnonima(ativa.apelido);
+
+      expect(visita.vitrine?.abertura.aberta).toBe(false);
+      expect(visita.vitrine?.abertura.motivo).toBe("EXCECAO");
+      expect(visita.vitrine?.abertura.explicacaoDaExcecao).toBe(
+        "Feriado municipal",
+      );
+
+      // E a grade semanal continua onde estava: o dono não a desconfigurou.
+      const grade = await migrador.query<{ n: string }>(
+        `SELECT count(*)::text AS n FROM app.store_hours WHERE store_id = $1`,
+        [ativa.id],
+      );
+      expect(Number(grade.rows[0]?.n)).toBe(2);
+
+      await migrador.query(
+        `DELETE FROM app.store_hour_exceptions WHERE store_id = $1`,
+        [ativa.id],
+      );
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-401 @spec:AC-911 o fechamento temporário fecha a vitrine sem tocar na grade",
+    async () => {
+      await migrador.query(
+        `UPDATE app.stores
+            SET open_state = 'TEMPORARILY_CLOSED',
+                temporarily_closed_until = TIMESTAMPTZ '2026-08-17 23:00-03'
+          WHERE id = $1`,
+        [ativa.id],
+      );
+
+      const visita = await visitaAnonima(ativa.apelido);
+      expect(visita.vitrine?.abertura.aberta).toBe(false);
+      expect(visita.vitrine?.abertura.motivo).toBe("PAUSA");
+
+      // Desligado o fechamento, a loja volta a receber — e ninguém redigitou
+      // horário nenhum, que é o que o critério promete a quem atolou na cozinha.
+      await migrador.query(
+        `UPDATE app.stores SET open_state = 'SCHEDULE',
+                temporarily_closed_until = NULL WHERE id = $1`,
+        [ativa.id],
+      );
+      const depois = await visitaAnonima(ativa.apelido);
+      expect(depois.vitrine?.abertura.aberta).toBe(true);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-401 loja sem horário cadastrado fica fechada, sem prometer abertura",
+    async () => {
+      // Prometer "abre segunda" sem faixa cadastrada seria inventar informação
+      // que o dono nunca deu.
+      const semGrade = await criarLoja({ nome: "Loja Sem Horario" });
+      const identificacao = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC" },
+        () => identificarLoja({ apelido: semGrade.apelido }),
+      );
+      expect(identificacao.encontrada).toBe(true);
+      if (!identificacao.encontrada) return;
+
+      const vitrine = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: identificacao.id },
+        async () => lojaDaVitrine(AGORA, await horarioDaLoja(AGORA)),
+      );
+
+      expect(vitrine?.abertura.aberta).toBe(false);
+      expect(vitrine?.abertura.proximaAbertura).toBeNull();
     },
     ESPERA_LONGA,
   );
@@ -265,9 +405,9 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
       // não passa por esta.
       const visita = await visitaAnonima(ativa.apelido);
       expect(visita.identificacao.encontrada).toBe(true);
-      if (visita.publica === null) return;
+      if (visita.vitrine === null) return;
 
-      expect(Object.keys(visita.publica).sort()).toEqual([
+      expect(Object.keys(visita.vitrine?.publica).sort()).toEqual([
         "apelido",
         "boasVindas",
         "capa",

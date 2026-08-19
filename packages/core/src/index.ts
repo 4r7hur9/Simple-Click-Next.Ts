@@ -18,6 +18,7 @@ export {
 export { momentoNaLoja, situacaoDaLoja } from "./horario-loja.ts";
 export type {
   EstadoDeAbertura,
+  ExcecaoDatada,
   FaixaDeHorario,
   HorarioDaLoja,
   SituacaoDeAbertura,
