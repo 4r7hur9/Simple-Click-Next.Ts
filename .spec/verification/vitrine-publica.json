@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-19T18:44:09.001Z",
-  "gitRev": "4bda1be",
+  "timestamp": "2026-08-19T19:19:26.368Z",
+  "gitRev": "e1a9657",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 822,
+  "testsParsed": 834,
   "results": {
     "AC-400": {
       "status": "pass",

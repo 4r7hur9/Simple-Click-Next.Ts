@@ -9,7 +9,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./styles/theme.css": "./styles/theme.css",
-    "./styles/componentes.css": "./styles/componentes.css"
+    "./styles/componentes.css": "./styles/componentes.css",
+    "./styles/narrativa.css": "./styles/narrativa.css"
   },
   "files": [
     "src",

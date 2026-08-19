@@ -1,0 +1,136 @@
+/*
+ * Narrativa por rolagem — o esqueleto das seções.
+ *
+ * Só as LANDINGS usam esta folha. A vitrine, o carrinho e o painel não a
+ * importam, e o motivo está na regra do peso da skill `design-de-front`: quem
+ * está com fome e com rede ruim não paga por narrativa.
+ *
+ * Depende de `theme.css`, que declara `--altura-da-secao` e `--secoes-visiveis`.
+ */
+
+/*
+ * Uma seção da narrativa.
+ *
+ * A altura vem da régua, e não de `100vh` escrito à mão: numa tela comprida a
+ * régua já divide o espaço entre duas ou três seções, e uma altura fixa aqui
+ * desfaria isso.
+ */
+.sc-secao {
+  display: grid;
+  place-items: center;
+  block-size: var(--altura-da-secao);
+  min-block-size: var(--altura-minima-da-secao, auto);
+  padding-inline: var(--espaco-5);
+  /*
+   * O recorte de área segura importa no aparelho com entalhe e na barra de
+   * gestos: sem ele o conteúdo encosta na borda arredondada e some um pedaço.
+   */
+  padding-block: max(var(--espaco-6), env(safe-area-inset-top))
+    max(var(--espaco-6), env(safe-area-inset-bottom));
+  overflow: clip;
+}
+
+/*
+ * O conteúdo tem TETO.
+ *
+ * Metade de uma vertical 4K ainda são 2160px. Um cartão esticado até lá não
+ * fica imponente, fica quebrado — e a leitura vira um pescoço subindo e
+ * descendo. A sobra vira respiro nas pontas, e é isso que o `margin-block: auto`
+ * faz dentro da grade.
+ */
+.sc-secao__conteudo {
+  inline-size: 100%;
+  max-inline-size: 65ch; /* a medida confortável de leitura, em qualquer tela */
+  max-block-size: 900px;
+  margin-block: auto;
+}
+
+/*
+ * Conteúdo que não é texto — imagem, mundo 3D, grade de cartões — pode passar
+ * da medida de leitura, mas não do teto de altura.
+ */
+.sc-secao__conteudo--largo {
+  max-inline-size: min(100%, 1200px);
+}
+
+/*
+ * PÁGINA DUPLA: numa tela comprida, prender as duas seções ao mesmo tempo
+ * desperdiça a altura que sobra. A de cima fica parada com o argumento, a de
+ * baixo passa com os exemplos.
+ *
+ * Só existe onde há espaço para as duas. Abaixo disso, o modificador não faz
+ * nada e as seções seguem uma de cada vez.
+ */
+@media (min-height: 1100px) {
+  .sc-pagina-dupla {
+    display: grid;
+    grid-template-rows: repeat(var(--secoes-visiveis), 1fr);
+    block-size: 100svh;
+  }
+
+  .sc-pagina-dupla__fixa {
+    position: sticky;
+    inset-block-start: 0;
+    block-size: var(--altura-da-secao);
+    display: grid;
+    place-items: center;
+  }
+}
+
+/*
+ * Tipo que NÃO cresce com a tela.
+ *
+ * É a tentação óbvia e o erro mais comum: altura sobrando vira letra maior, e a
+ * leitura piora. A escala aqui responde à LARGURA, com teto — e o teto é o que
+ * impede o título de virar um cartaz num monitor de 27 polegadas.
+ */
+.sc-secao__titulo {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin-block: 0 var(--espaco-4);
+}
+
+.sc-secao__texto {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.6;
+  color: var(--cor-tinta-suave);
+}
+
+/*
+ * Barra de progresso da narrativa. Anima `scaleX`, nunca `width`: largura
+ * recalcula o layout a cada quadro, e a transformação não.
+ */
+.sc-progresso {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 3px;
+  background: var(--cor-primaria);
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: 10;
+}
+
+/*
+ * Movimento reduzido recebe o ESTADO FINAL, e não a ausência.
+ *
+ * O erro comum é esconder o elemento e animar a entrada: quem pediu para parar
+ * de mexer fica sem o conteúdo, não sem a animação.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sc-secao,
+  .sc-secao__conteudo,
+  .sc-pagina-dupla__fixa {
+    position: static;
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .sc-progresso {
+    display: none;
+  }
+}
