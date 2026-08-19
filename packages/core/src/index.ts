@@ -15,6 +15,13 @@ export {
   LIMITE_PADRAO_DO_LINK,
   medirComprimentoNoLink,
 } from "./cupom-texto.ts";
+export { momentoNaLoja, situacaoDaLoja } from "./horario-loja.ts";
+export type {
+  EstadoDeAbertura,
+  FaixaDeHorario,
+  HorarioDaLoja,
+  SituacaoDeAbertura,
+} from "./horario-loja.ts";
 export { conferirCarrinho } from "./pedido-total.ts";
 export type {
   Conferencia,

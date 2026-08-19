@@ -2,17 +2,17 @@
 
 > feature: vitrine-publica
 
-## T-400 — Resolução da loja pelo endereço e página de apresentação [pendente]
+## T-400 — Resolução da loja pelo endereço e página de apresentação [em-andamento]
 
 - Refs: US-400, AC-400, AC-401, AC-402
-- Arquivos: apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/src/modules/storefront/resolver-loja.usecase.test.ts, apps/web/src/proxy.ts, apps/web/src/app/(loja)/l/[slug]/page.tsx, apps/web/src/app/(loja)/l/[slug]/layout.tsx, apps/web/src/app/(loja)/l/[slug]/not-found.tsx
-- Notas: a resolução usa função dedicada que devolve apenas os campos permitidos, porque o contexto da loja ainda não existe nesse momento. Loja inexistente e suspensa respondem igual, sem revelar se o endereço já existiu.
+- Arquivos: apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts
+- Notas: PARADA no AC-401. A resolução da loja (AC-400) e a resposta igual para inexistente e suspensa (AC-402) estão prontas e provadas contra o banco. Falta "a loja está aberta agora", que o AC-401 pede: o CÁLCULO existe e está provado em `packages/core/src/horario-da-loja.ts` — fuso da loja, várias faixas por dia, pausa que vence sozinha —, mas o horário não tem onde ser GUARDADO. O modelo de dados prevê a tabela `store_hours`, que nenhuma migração criou ainda, e criá-la aqui seria entrar na configuração da loja por uma porta lateral. As PÁGINAS do site saíram desta lista e entram junto com a rota HTTP que expõe a resolução — a resolução em si, que é o que os três critérios pedem, está pronta e provada contra o banco. A resolução usa função dedicada que devolve apenas os campos permitidos, porque o contexto da loja ainda não existe nesse momento. São DOIS passos: identificar sem contexto, e ler com contexto numa transação nova — o contexto é definido uma vez, no início da transação, e uma função única precisaria trocá-lo no meio, furando a garantia que sustenta o isolamento. Loja inexistente e suspensa respondem igual, sem revelar se o endereço já existiu.
 - Esforço: alto
 
-## T-401 — Saída pública com lista de campos permitidos [pendente]
+## T-401 — Saída pública com lista de campos permitidos [concluida]
 
 - Refs: US-400, AC-904
-- Arquivos: apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/dto-publico.test.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts
+- Arquivos: apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/dto-publico.test.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, packages/database/migrations/0014_vitrine_le_a_apresentacao.sql
 - Notas: fecha o risco que o crítico apontou e que foi observado no concorrente — chave PIX, telefone e configuração interna nunca saem na resposta pública. Lista do que é permitido, nunca do que é proibido.
 - Esforço: alto
 
