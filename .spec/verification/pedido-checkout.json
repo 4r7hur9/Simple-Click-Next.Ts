@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T12:43:30.624Z",
-  "gitRev": "a7e4d80",
+  "timestamp": "2026-08-19T12:51:13.468Z",
+  "gitRev": "a7ab32d",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 664,
+  "testsParsed": 679,
   "results": {
     "AC-506": {
       "status": "pass",
@@ -67,6 +67,11 @@
       "testName": "texto do pedido para o WhatsApp @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link",
       "method": "vitest-json"
     },
+    "AC-520": {
+      "status": "pass",
+      "testName": "enviar abre a conversa com o texto pronto (AC-520) @spec:AC-520 o clique abre o endereço da loja em aba isolada @spec:AC-520 o clique abre o endereço da loja em aba isolada",
+      "method": "vitest-json"
+    },
     "AC-521": {
       "status": "pass",
       "testName": "encurtamento controlado do texto (AC-521) @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber",
@@ -75,6 +80,11 @@
     "AC-522": {
       "status": "pass",
       "testName": "acento, cedilha, emoji e quebra de linha (AC-522) @spec:AC-522 acento, cedilha e emoji chegam íntegros e as quebras de linha são preservadas @spec:AC-522 acento, cedilha e emoji chegam íntegros e as quebras de linha são preservadas",
+      "method": "vitest-json"
+    },
+    "AC-523": {
+      "status": "pass",
+      "testName": "falha no envio não perde o pedido (AC-523) @spec:AC-523 antes de qualquer clique a tela já garante que o pedido está registrado @spec:AC-523 antes de qualquer clique a tela já garante que o pedido está registrado",
       "method": "vitest-json"
     }
   },

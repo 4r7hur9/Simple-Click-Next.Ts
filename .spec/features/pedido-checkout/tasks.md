@@ -58,10 +58,10 @@
 - Notas: função pura testada por comparação com texto esperado. Acento e emoji íntegros, quebras de linha preservadas. Texto longo é encurtado de forma controlada, com o link de acompanhamento levando ao detalhe completo.
 - Esforço: alto
 
-## T-508 — Abertura do WhatsApp com o texto pronto [pendente]
+## T-508 — Abertura do WhatsApp com o texto pronto [concluida]
 
 - Refs: US-504, AC-520, AC-523
-- Arquivos: apps/web/src/features/checkout/EnvioWhatsApp.tsx, apps/web/src/features/checkout/EnvioWhatsApp.test.ts, apps/web/src/lib/whatsapp.ts, apps/web/src/lib/whatsapp.test.ts
+- Arquivos: apps/web/src/features/checkout/EnvioWhatsApp.tsx, apps/web/tests/envio-whatsapp.test.tsx, apps/web/src/lib/whatsapp.ts, apps/web/src/lib/whatsapp.test.ts
 - Notas: o cliente envia para o número da loja. A abertura precisa acontecer no mesmo gesto do usuário, senão o navegador bloqueia. Se falhar ou o cliente fechar antes, o pedido continua registrado e há caminho para reenviar, mais alternativa de copiar o texto.
 - Esforço: alto
 
