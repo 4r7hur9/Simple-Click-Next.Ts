@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-18T19:22:33.974Z",
-  "gitRev": "a708f66",
+  "timestamp": "2026-08-19T11:10:23.384Z",
+  "gitRev": "ee808b8",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 620,
+  "testsParsed": 630,
   "results": {
     "AC-506": {
       "status": "pass",
@@ -35,6 +35,16 @@
     "AC-513": {
       "status": "pass",
       "testName": "nada de cartão na tela (AC-513) @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido",
+      "method": "vitest-json"
+    },
+    "AC-514": {
+      "status": "pass",
+      "testName": "código do pedido (AC-514) @spec:AC-514 a primeira venda da loja é A-0001, e não um número da plataforma @spec:AC-514 a primeira venda da loja é A-0001, e não um número da plataforma",
+      "method": "vitest-json"
+    },
+    "AC-518": {
+      "status": "pass",
+      "testName": "endereço público do acompanhamento (AC-518) @spec:AC-518 o endereço tem pelo menos 128 bits de aleatoriedade @spec:AC-518 o endereço tem pelo menos 128 bits de aleatoriedade",
       "method": "vitest-json"
     },
     "AC-519": {

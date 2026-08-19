@@ -377,6 +377,11 @@ describe("portão de qualidade — o comando único", () => {
       ["guardas estruturais do banco", /guardas estruturais do banco/i],
       ["telas e acessibilidade", /(telas|site).*acessibilidade/i],
       ["auditoria da especificação", /auditoria da especificação/i],
+      // Entrou depois de uma deriva real: duas migrações foram editadas
+      // depois de aplicadas, o banco local ficou com nove colunas a menos e
+      // nada acusou por duas fatias inteiras. As outras etapas de banco rodam
+      // contra bancos efêmeros, que nascem do zero e por isso nunca derivam.
+      ["banco local em dia com as migrações", /banco local em dia/i],
     ];
 
     for (const [exigencia, padrao] of exigencias) {

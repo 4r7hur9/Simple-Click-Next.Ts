@@ -114,6 +114,12 @@
 - Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova, pela regra `cores/sem-cor-literal` que mora em `packages/config-eslint/cores.js`. A cor escolhida pela loja tem contraste ajustado automaticamente por cálculo de luminância do WCAG (`contraste.ts`); `tokens.ts` é o espelho em TypeScript de `theme.css`, porque o cálculo roda no servidor, e a divergência entre os dois reprova por teste. A acessibilidade da vitrine é medida com axe em jsdom — o navegador de verdade entra na T-020.
 - Esforço: alto
 
+## T-021 — O banco declarado e o banco real não se separam em silêncio [concluida]
+
+- Refs: US-003, AC-044, AC-045
+- Arquivos: packages/database/prisma/schema.prisma, packages/database/tests/esquema-cobre-o-banco.test.ts, packages/database/src/migrate.test.ts, vitest.config.ts
+- Notas: nasceu de uma deriva real — as migrações 0007 e 0008 foram editadas depois de aplicadas, e como criam com "se não existir", reaplicar não alterou nada: a tabela de pedidos ficou com 28 colunas enquanto o arquivo declarava 45, faltando a chave que impede pedido duplicado. Duas verificações fecham os dois lados: uma reprova tabela sem modelo tipado (com lista de adiamento nomeada, que só pode encolher), outra reprova migração alterada depois de aplicada. A segunda já existia como comportamento testado e não era chamada por ninguém sem pedir.
+
 ## T-017 — Portão de qualidade local, com ganchos [concluida]
 
 - Refs: US-005, AC-017, AC-018, AC-019, AC-020, AC-040, AC-041, AC-042, AC-043

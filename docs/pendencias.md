@@ -713,4 +713,26 @@ Enquanto a lista abaixo estiver vazia, nunca aconteceu.
   Para quitar: volte a esta versão, rode `bash infra/scripts/verificar.sh`
   até sair limpo e apague esta linha.
 
+- **19/08/2026 · `ee808b8` no ramo `main`** — enviado sem passar pelo portão.
+  Motivo: não informado — quem pulou não declarou
+  Ficou sem verificação: separação de ambientes · cliente tipado do banco · formatação · qualidade de código · segredo no código · auditoria da especificação · verificação de tipos · contrato publicado em dia · testes de unidade · testes do site (estados e acessibilidade) · testes do cache (Redis de teste) · testes de fila (Redis) · banco local em dia com as migrações · testes de integração (banco efêmero) · migração compatível com a versão anterior · guardas estruturais do banco.
+  Para quitar: volte a esta versão, rode `bash infra/scripts/verificar.sh`
+  até sair limpo e apague esta linha.
+
 <!-- portao-contornado:fim -->
+
+## Teste intermitente do limite de tentativas (AC-119)
+
+**Observado em 18/08/2026.** Durante uma regravação de provas, o critério AC-119
+(excesso de tentativas para a mesma conta) reprovou uma vez e passou nas
+execuções seguintes, isolado e em conjunto, sem nenhuma alteração no código.
+
+Por que isto está anotado em vez de esquecido: teste que falha às vezes ensina o
+time a reexecutar em vez de investigar, e a partir daí ele deixa de ser prova.
+O critério trata de espera crescente entre tentativas, ou seja, depende de
+tempo — a suspeita é de tolerância curta demais para uma máquina ocupada, e não
+de defeito na regra.
+
+**O que fazer:** rodar `pnpm vitest run --project cache-int apps/api/src/core/limite`
+em laço e, se reproduzir, folgar a tolerância de tempo em vez de aumentar o
+limite de repetições.

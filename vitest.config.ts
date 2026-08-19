@@ -171,6 +171,9 @@ export default defineConfig({
             // projeto e deixaria de rodar em silêncio — que é o pior jeito de
             // um teste falhar.
             "packages/database/seed/**/*.test.ts",
+            // A prova de que o esquema declarado cobre o banco (AC-044) mora
+            // fora de `src/` porque não é código de produção — é verificação.
+            "packages/database/tests/**/*.test.ts",
             "packages/testing/src/**/*.test.ts",
             "packages/testing/tests/**/*.test.ts",
             // A publicação aplica migração antes de trocar a versão (AC-029), e

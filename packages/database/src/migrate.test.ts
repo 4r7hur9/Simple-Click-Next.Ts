@@ -540,7 +540,7 @@ describe("aplicador de migrações", () => {
   );
 
   it(
-    "acusa pelo nome a migração já aplicada cujo arquivo mudou depois",
+    "@spec:AC-045 acusa pelo nome a migração já aplicada cujo arquivo mudou depois",
     async () => {
       const temporario = diretorioComMigracaoNova(
         "0004_catalogo.sql",

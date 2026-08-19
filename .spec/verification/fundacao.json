@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-18T19:21:53.881Z",
-  "gitRev": "a708f66",
+  "timestamp": "2026-08-19T11:09:43.723Z",
+  "gitRev": "ee808b8",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 620,
+  "testsParsed": 630,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -60,6 +60,16 @@
     "AC-011": {
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas @spec:AC-011 as requisições realmente se sobrepuseram em conexões reaproveitadas",
+      "method": "vitest-json"
+    },
+    "AC-044": {
+      "status": "pass",
+      "testName": "o esquema declarado cobre o banco (AC-044) @spec:AC-044 nenhuma tabela existe no banco sem modelo tipado, fora as adiadas por decisão @spec:AC-044 nenhuma tabela existe no banco sem modelo tipado, fora as adiadas por decisão",
+      "method": "vitest-json"
+    },
+    "AC-045": {
+      "status": "pass",
+      "testName": "aplicador de migrações @spec:AC-045 acusa pelo nome a migração já aplicada cujo arquivo mudou depois @spec:AC-045 acusa pelo nome a migração já aplicada cujo arquivo mudou depois",
       "method": "vitest-json"
     },
     "AC-012": {

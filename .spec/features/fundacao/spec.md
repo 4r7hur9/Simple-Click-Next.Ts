@@ -97,6 +97,18 @@ ler dados de outra, para que um erro de programação não vire vazamento de dad
 - **Quando** muitas requisições alternadas entre duas lojas são executadas em paralelo
 - **Então** nenhuma requisição enxerga dado da outra loja, porque o contexto vive na transação e é descartado ao fim dela
 
+#### AC-044 — Tabela do banco sem modelo tipado reprova a verificação
+
+- **Dado** uma migração que cria uma tabela nova no banco
+- **Quando** a verificação completa roda
+- **Então** ela reprova enquanto a tabela não tiver modelo no esquema declarado ou não estiver numa lista de adiamento com motivo escrito — porque tabela sem modelo tipado obriga quem escreve o código a usar SQL cru, e SQL cru contorna o caminho único que sustenta o isolamento por linha
+
+#### AC-045 — Migração alterada depois de aplicada reprova a verificação
+
+- **Dado** um arquivo de migração que já foi aplicado no banco desta máquina
+- **Quando** o arquivo é editado e a verificação completa roda
+- **Então** ela reprova apontando o arquivo pelo nome — porque as migrações criam com "se não existir", reaplicar não altera tabela existente, e o banco fica em silêncio com uma estrutura diferente da que o repositório declara
+
 #### AC-012 — Migração roda com credencial separada da aplicação
 
 - **Dado** o processo de migração do banco

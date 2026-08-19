@@ -146,6 +146,22 @@ portao_etapa "testes de fila (Redis)" \
   "trabalho em segundo plano contra um Redis de verdade, cada arquivo no seu espaço de nomes" \
   pnpm vitest run --project filas
 
+# O banco desta máquina bate com as migrações do repositório?
+#
+# Esta etapa nasceu de um erro real: as migrações 0007 e 0008 foram EDITADAS
+# depois de já terem sido aplicadas aqui. Como elas criam com `IF NOT EXISTS`,
+# reaplicar não alterou nada — a tabela de pedidos ficou com 28 colunas enquanto
+# o arquivo declarava 45, faltando justamente a chave que impede pedido
+# duplicado. Nada reclamou por duas migrações inteiras.
+#
+# O aplicador já sabia detectar (ele compara a soma de verificação de cada
+# arquivo com a registrada), mas ninguém o chamava sem pedir. As demais etapas
+# de banco rodam contra bancos EFÊMEROS, criados do zero a cada execução: elas
+# nunca derivam, e por isso nunca acusariam isto.
+portao_etapa "banco local em dia com as migrações" \
+  "nenhuma migração foi alterada depois de aplicada nesta máquina" \
+  pnpm --filter @simpleclick/database run migrar:verificar
+
 # Cada arquivo deste grupo recebe um banco próprio, criado de um molde já
 # migrado e apagado no fim (AC-003, AC-042). O banco de desenvolvimento não é
 # tocado — e é essa propriedade que faz duas execuções seguidas darem o mesmo

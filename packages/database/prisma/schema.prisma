@@ -12,8 +12,13 @@
 // Dinheiro é sempre `BigInt` em centavos (P-005). Ponto flutuante não aparece
 // neste arquivo, e a constituição verifica isso mecanicamente.
 //
-// Cobre o que as migrações 0001–0006 criam. As demais entidades entram junto
-// com as migrações das fatias seguintes.
+// Cobre o que as migrações 0001–0006 criam, mais as entidades de pedido e
+// carrinho da 0008. As onze tabelas de catálogo da 0007 (categorias, variações,
+// preços, grupos de opção, atributos) ainda não têm modelo: elas entram junto
+// com as tarefas do catálogo, e a lista está escrita em
+// `packages/database/tests/esquema-cobre-o-banco.test.ts`, que reprova se ela
+// crescer sem ninguém decidir. Tabela sem modelo tipado obriga quem escreve
+// código a usar SQL cru, que é justamente o que o arranjo do Prisma proíbe.
 
 // O gerador escreve TypeScript em `../gerado/cliente`, que não é versionado e
 // nasce de `pnpm --filter @simpleclick/database gerar`. Módulos ESM porque o
@@ -51,14 +56,15 @@ model Identity {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  admin           PlatformAdmin?  @relation("AdminDaPlataforma")
-  adminsConcedios PlatformAdmin[] @relation("QuemConcedeu")
-  lojasCriadas    Store[]         @relation("QuemCriouALoja")
-  vinculos        StoreMember[]   @relation("VinculoDaIdentidade")
-  convitesFeitos  StoreMember[]   @relation("QuemConvidou")
-  produtosCriados Product[]       @relation("QuemCriouOProduto")
-  clientesDeLoja  StoreCustomer[]
-  atosAuditados   AuditLog[]
+  admin            PlatformAdmin?     @relation("AdminDaPlataforma")
+  adminsConcedios  PlatformAdmin[]    @relation("QuemConcedeu")
+  lojasCriadas     Store[]            @relation("QuemCriouALoja")
+  vinculos         StoreMember[]      @relation("VinculoDaIdentidade")
+  convitesFeitos   StoreMember[]      @relation("QuemConvidou")
+  produtosCriados  Product[]          @relation("QuemCriouOProduto")
+  clientesDeLoja   StoreCustomer[]
+  atosAuditados    AuditLog[]
+  mudancasDeStatus OrderStatusEntry[] @relation("QuemMudouOStatus")
 
   @@map("identities")
   @@schema("app")
@@ -135,14 +141,22 @@ model Store {
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  ramo         VerticalPreset  @relation(fields: [verticalCode], references: [code])
-  quemCriou    Identity?       @relation("QuemCriouALoja", fields: [createdBy], references: [id])
-  configuracao StoreSettings?
-  enderecos    StoreDomain[]
-  membros      StoreMember[]
-  produtos     Product[]
-  clientes     StoreCustomer[]
-  auditoria    AuditLog[]
+  ramo               VerticalPreset     @relation(fields: [verticalCode], references: [code])
+  quemCriou          Identity?          @relation("QuemCriouALoja", fields: [createdBy], references: [id])
+  configuracao       StoreSettings?
+  enderecos          StoreDomain[]
+  membros            StoreMember[]
+  produtos           Product[]
+  clientes           StoreCustomer[]
+  auditoria          AuditLog[]
+  contadores         StoreSequence[]
+  pedidos            Order[]
+  contatos           OrderContact[]
+  itensDePedido      OrderItem[]
+  opcoesDeItem       OrderItemOption[]
+  historicoDePedidos OrderStatusEntry[]
+  carrinhos          Cart[]
+  itensDeCarrinho    CartItem[]
 
   @@map("stores")
   @@schema("app")
@@ -190,15 +204,15 @@ model StoreDomain {
 /// Vínculo entre identidade e loja, com papel. Separa "quem sou" de "o que
 /// posso naquela loja".
 model StoreMember {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId           String    @map("store_id") @db.Uuid
-  identityId        String    @map("identity_id") @db.Uuid
-  role              String
-  permissions       Json      @default("{}") @db.JsonB
-  invitedBy         String?   @map("invited_by") @db.Uuid
-  inviteAcceptedAt  DateTime? @map("invite_accepted_at") @db.Timestamptz(6)
-  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId          String    @map("store_id") @db.Uuid
+  identityId       String    @map("identity_id") @db.Uuid
+  role             String
+  permissions      Json      @default("{}") @db.JsonB
+  invitedBy        String?   @map("invited_by") @db.Uuid
+  inviteAcceptedAt DateTime? @map("invite_accepted_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   loja         Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade   Identity  @relation("VinculoDaIdentidade", fields: [identityId], references: [id])
@@ -210,46 +224,49 @@ model StoreMember {
 
 /// O produto genérico: uma tabela para comida, roupa, peça e eletrônico.
 model Product {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId               String                  @map("store_id") @db.Uuid
+  id                    String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId               String                   @map("store_id") @db.Uuid
   name                  String
   slug                  String
   description           String?
-  shortDescription      String?                 @map("short_description")
-  productType           String                  @default("SIMPLE") @map("product_type")
-  verticalCode          String                  @map("vertical_code")
-  verticalSchemaVersion Int                     @default(1) @map("vertical_schema_version")
-  status                String                  @default("DRAFT")
-  isAvailable           Boolean                 @default(true) @map("is_available")
-  unavailableUntil      DateTime?               @map("unavailable_until") @db.Timestamptz(6)
-  unitLabel             String                  @default("un") @map("unit_label")
-  trackStock            Boolean                 @default(false) @map("track_stock")
-  sortOrder             Int                     @default(0) @map("sort_order")
-  isFeatured            Boolean                 @default(false) @map("is_featured")
-  attributes            Json                    @default("{}") @db.JsonB
+  shortDescription      String?                  @map("short_description")
+  productType           String                   @default("SIMPLE") @map("product_type")
+  verticalCode          String                   @map("vertical_code")
+  verticalSchemaVersion Int                      @default(1) @map("vertical_schema_version")
+  status                String                   @default("DRAFT")
+  isAvailable           Boolean                  @default(true) @map("is_available")
+  unavailableUntil      DateTime?                @map("unavailable_until") @db.Timestamptz(6)
+  unitLabel             String                   @default("un") @map("unit_label")
+  trackStock            Boolean                  @default(false) @map("track_stock")
+  sortOrder             Int                      @default(0) @map("sort_order")
+  isFeatured            Boolean                  @default(false) @map("is_featured")
+  attributes            Json                     @default("{}") @db.JsonB
   // Centavos inteiros, sempre. R$ 19,99 vezes 3 tem de dar exatamente
   // R$ 59,97 na vitrine, no fechamento, no WhatsApp e no cupom impresso.
-  priceMinCents         BigInt?                 @map("price_min_cents")
-  priceMaxCents         BigInt?                 @map("price_max_cents")
-  displayPriceCents     BigInt?                 @map("display_price_cents")
-  compareAtCents        BigInt?                 @map("compare_at_cents")
-  hasVariants           Boolean                 @default(false) @map("has_variants")
-  fractionSlots         Int?                    @map("fraction_slots") @db.SmallInt
-  fractionPricing       String?                 @map("fraction_pricing")
-  prepTimeMinutes       Int?                    @map("prep_time_minutes")
-  seoTitle              String?                 @map("seo_title")
-  seoDescription        String?                 @map("seo_description")
+  priceMinCents         BigInt?                  @map("price_min_cents")
+  priceMaxCents         BigInt?                  @map("price_max_cents")
+  displayPriceCents     BigInt?                  @map("display_price_cents")
+  compareAtCents        BigInt?                  @map("compare_at_cents")
+  hasVariants           Boolean                  @default(false) @map("has_variants")
+  fractionSlots         Int?                     @map("fraction_slots") @db.SmallInt
+  fractionPricing       String?                  @map("fraction_pricing")
+  prepTimeMinutes       Int?                     @map("prep_time_minutes")
+  seoTitle              String?                  @map("seo_title")
+  seoDescription        String?                  @map("seo_description")
   // Coluna gerada pelo banco a partir de nome e descrição. O Prisma não a
   // escreve: quem a mantém é o próprio PostgreSQL.
   searchTsv             Unsupported("tsvector")? @map("search_tsv")
-  deletedAt             DateTime?               @map("deleted_at") @db.Timestamptz(6)
-  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
-  createdBy             String?                 @map("created_by") @db.Uuid
+  deletedAt             DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  createdBy             String?                  @map("created_by") @db.Uuid
 
   loja      Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
   ramo      VerticalPreset @relation(fields: [verticalCode], references: [code])
   quemCriou Identity?      @relation("QuemCriouOProduto", fields: [createdBy], references: [id])
+
+  itensDePedido   OrderItem[]
+  itensDeCarrinho CartItem[]
 
   @@map("products")
   @@schema("app")
@@ -278,6 +295,9 @@ model StoreCustomer {
   loja       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade Identity? @relation(fields: [identityId], references: [id])
 
+  pedidos   Order[]
+  carrinhos Cart[]
+
   @@map("store_customers")
   @@schema("app")
 }
@@ -301,5 +321,246 @@ model AuditLog {
   autor Identity? @relation(fields: [actorId], references: [id])
 
   @@map("audit_log")
+  @@schema("app")
+}
+
+/// Contador do número do pedido, POR LOJA. Uma sequência global do PostgreSQL
+/// não serve: a loja recém-aberta receberia um número que revela quanto a
+/// plataforma inteira já vendeu, e com buracos enormes entre um pedido e o
+/// seguinte da mesma loja. O incremento é atômico, na função
+/// `app.proximo_numero_de_pedido`.
+model StoreSequence {
+  storeId   String   @map("store_id") @db.Uuid
+  kind      String
+  prefix    String   @default("")
+  lastValue BigInt   @default(0) @map("last_value")
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([storeId, kind])
+  @@map("store_sequences")
+  @@schema("app")
+}
+
+/// O pedido. NÃO guarda dado pessoal: nome, telefone e endereço moram em
+/// `OrderContact`, e é isso que torna o apagamento a pedido do titular uma
+/// alteração de uma linha só. Todo valor em dinheiro é inteiro em centavos, e
+/// as parcelas são guardadas separadas do total para que a conta possa ser
+/// explicada ao cliente e ao dono.
+model Order {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId                String    @map("store_id") @db.Uuid
+  number                 BigInt
+  code                   String
+  publicToken            String    @unique(map: "orders_public_token_uk") @map("public_token")
+  storeCustomerId        String?   @map("store_customer_id") @db.Uuid
+  status                 String    @default("PENDING")
+  channel                String    @default("ONLINE")
+  fulfillment            String    @default("DELIVERY")
+  paymentMethod          String?   @map("payment_method")
+  changeForCents         BigInt?   @map("change_for_cents")
+  pixKeySnapshot         String?   @map("pix_key_snapshot")
+  pixHolderSnapshot      String?   @map("pix_holder_snapshot")
+  subtotalCents          BigInt    @default(0) @map("subtotal_cents")
+  itemsTotalCents        BigInt    @default(0) @map("items_total_cents")
+  couponDiscountCents    BigInt    @default(0) @map("coupon_discount_cents")
+  deliveryFeeCents       BigInt    @default(0) @map("delivery_fee_cents")
+  deliveryFeeMode        String?   @map("delivery_fee_mode")
+  pickupDiscountCents    BigInt    @default(0) @map("pickup_discount_cents")
+  discountCents          BigInt    @default(0) @map("discount_cents")
+  totalCents             BigInt    @default(0) @map("total_cents")
+  currency               String    @default("BRL") @db.Char(3)
+  paymentStatus          String    @default("PENDING") @map("payment_status")
+  pixKeyTypeSnapshot     String?   @map("pix_key_type_snapshot")
+  pixAccountNameSnapshot String?   @map("pix_account_name_snapshot")
+  pixBrcodeSnapshot      String?   @map("pix_brcode_snapshot")
+  couponId               String?   @map("coupon_id") @db.Uuid
+  couponCodeSnapshot     String?   @map("coupon_code_snapshot")
+  customerNote           String?   @map("customer_note")
+  storeNote              String?   @map("store_note")
+  idempotencyKey         String?   @map("idempotency_key")
+  whatsappMessageChars   Int?      @map("whatsapp_message_chars")
+  scheduledFor           DateTime? @map("scheduled_for") @db.Timestamptz(6)
+  updatedAt              DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  costTotalCents         BigInt?   @map("cost_total_cents")
+  notes                  String?
+  whatsappClickedAt      DateTime? @map("whatsapp_clicked_at") @db.Timestamptz(6)
+  whatsappConfirmedAt    DateTime? @map("whatsapp_confirmed_at") @db.Timestamptz(6)
+  storeTimezone          String    @default("America/Sao_Paulo") @map("store_timezone")
+  placedAt               DateTime  @default(now()) @map("placed_at") @db.Timestamptz(6)
+  acceptedAt             DateTime? @map("accepted_at") @db.Timestamptz(6)
+  completedAt            DateTime? @map("completed_at") @db.Timestamptz(6)
+  cancelledAt            DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason           String?   @map("cancel_reason")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  loja    Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  cliente StoreCustomer? @relation(fields: [storeCustomerId], references: [id])
+
+  contato   OrderContact?
+  itens     OrderItem[]
+  historico OrderStatusEntry[]
+
+  @@map("orders")
+  @@schema("app")
+}
+
+/// Os dados pessoais do pedido, separados dele de propósito. Um pedido por
+/// contato, e é por isso que a chave primária é o próprio pedido.
+model OrderContact {
+  orderId        String    @id @map("order_id") @db.Uuid
+  storeId        String    @map("store_id") @db.Uuid
+  name           String
+  phoneE164      String    @map("phone_e164")
+  phoneHmac      String?   @map("phone_hmac")
+  email          String?
+  docNumber      String?   @map("doc_number")
+  recipientName  String?   @map("recipient_name")
+  street         String?
+  number         String?
+  complement     String?
+  neighborhood   String?
+  city           String?
+  uf             String?   @db.Char(2)
+  zip            String?
+  referencePoint String?   @map("reference_point")
+  lat            Decimal?  @db.Decimal(10, 7)
+  lng            Decimal?  @db.Decimal(10, 7)
+  anonymizedAt   DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  pedido Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  loja   Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("order_contacts")
+  @@schema("app")
+}
+
+/// Item comprado, como CÓPIA CONGELADA do momento da compra (P-010). Nome,
+/// preço e variação são texto e número guardados aqui — a referência ao produto
+/// existe para relatório, e nunca para ler preço. A tabela não tem política de
+/// alteração nem de remoção: a imutabilidade é imposta pelo banco.
+model OrderItem {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId            String   @map("store_id") @db.Uuid
+  orderId            String   @map("order_id") @db.Uuid
+  productId          String?  @map("product_id") @db.Uuid
+  variantId          String?  @map("variant_id") @db.Uuid
+  productName        String   @map("product_name")
+  variantName        String?  @map("variant_name")
+  skuSnapshot        String?  @map("sku_snapshot")
+  quantity           Int
+  unitPriceCents     BigInt   @map("unit_price_cents")
+  compareAtCents     BigInt?  @map("compare_at_cents")
+  unitCostCents      BigInt?  @map("unit_cost_cents")
+  priceKindSnapshot  String?  @map("price_kind_snapshot")
+  attributesSnapshot Json     @default("{}") @map("attributes_snapshot")
+  optionsTotalCents  BigInt   @default(0) @map("options_total_cents")
+  lineTotalCents     BigInt   @map("line_total_cents")
+  note               String?
+  fractionIndex      Int?     @map("fraction_index") @db.SmallInt
+  sortOrder          Int      @default(0) @map("sort_order")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pedido  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  loja    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  produto Product? @relation(fields: [productId], references: [id])
+
+  opcoes OrderItemOption[]
+
+  @@map("order_items")
+  @@schema("app")
+}
+
+/// Escolha registrada num item ("sem cebola", "borda recheada"), também como
+/// cópia congelada: o nome do grupo e o da opção são texto guardado aqui.
+model OrderItemOption {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId              String   @map("store_id") @db.Uuid
+  orderItemId          String   @map("order_item_id") @db.Uuid
+  optionGroupId        String?  @map("option_group_id") @db.Uuid
+  optionItemId         String?  @map("option_item_id") @db.Uuid
+  groupNameSnapshot    String   @map("group_name_snapshot")
+  optionNameSnapshot   String   @map("option_name_snapshot")
+  kindSnapshot         String?  @map("kind_snapshot")
+  externalCodeSnapshot String?  @map("external_code_snapshot")
+  action               String   @default("ADD")
+  quantity             Int      @default(1)
+  priceDeltaCents      BigInt   @default(0) @map("price_delta_cents")
+  sortOrder            Int      @default(0) @map("sort_order")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  item OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  loja Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("order_item_options")
+  @@schema("app")
+}
+
+/// Cada passo do pedido pela fila da loja. O pedido MUDA de estado e nunca é
+/// apagado — por isso o histórico é só de acréscimo.
+model OrderStatusEntry {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId             String   @map("store_id") @db.Uuid
+  orderId             String   @map("order_id") @db.Uuid
+  fromStatus          String?  @map("from_status")
+  toStatus            String   @map("to_status")
+  changedByIdentityId String?  @map("changed_by_identity_id") @db.Uuid
+  actorRole           String?  @map("actor_role")
+  reason              String?
+  occurredAt          DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pedido    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  loja      Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  quemMudou Identity? @relation("QuemMudouOStatus", fields: [changedByIdentityId], references: [id])
+
+  @@map("order_status_history")
+  @@schema("app")
+}
+
+/// Carrinho antes de virar pedido. Ao contrário do pedido, as chaves aqui são
+/// VIVAS: o carrinho aponta para o produto de verdade, justamente para avisar
+/// quando o preço mudou entre montar e fechar.
+model Cart {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId         String    @map("store_id") @db.Uuid
+  storeCustomerId String?   @map("store_customer_id") @db.Uuid
+  sessionToken    String    @map("session_token")
+  channel         String    @default("ONLINE")
+  convertedAt     DateTime? @map("converted_at") @db.Timestamptz(6)
+  abandonedAt     DateTime? @map("abandoned_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja    Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  cliente StoreCustomer? @relation(fields: [storeCustomerId], references: [id])
+
+  itens CartItem[]
+
+  @@map("carts")
+  @@schema("app")
+}
+
+/// Item do carrinho, ainda ligado ao produto vivo.
+model CartItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  cartId    String   @map("cart_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  variantId String?  @map("variant_id") @db.Uuid
+  quantity  Int      @default(1)
+  notes     String?
+  options   Json     @default("[]")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  carrinho Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  loja     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  produto  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
   @@schema("app")
 }
