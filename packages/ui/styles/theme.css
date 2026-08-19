@@ -101,6 +101,28 @@
 
   /* --- movimento --- */
   --transicao-rapida: 120ms ease-out;
+
+  /*
+   * --- pontos de quebra ---
+   *
+   * A régua sai dos aparelhos que o DevTools traz, e não de números redondos.
+   * O piso é 344px, o Galaxy Z Fold fechado — o menor da lista, e o que o P-012
+   * chama de "menor breakpoint suportado". Um layout que não cabe ali estoura no
+   * portão, e estoura na mão de gente de verdade.
+   *
+   * Estes valores são REFERÊNCIA para quem escreve a folha. O CSS ainda não
+   * aceita variável dentro de `@media`, então a consulta é escrita com o número;
+   * tê-los declarados aqui é o que impede cada arquivo de inventar o seu.
+   */
+  --quebra-dobravel: 344px; /* Galaxy Z Fold 5 fechado */
+  --quebra-celular: 360px; /* Galaxy S8+, Android comum */
+  --quebra-celular-medio: 390px; /* iPhone 12 a 14 */
+  --quebra-celular-grande: 430px; /* iPhone 14 Pro Max */
+  --quebra-duo: 540px; /* Surface Duo, dobrável aberto */
+  --quebra-tablet: 768px; /* iPad Mini retrato */
+  --quebra-tablet-largo: 1024px; /* iPad Pro retrato, Nest Hub */
+  --quebra-desktop: 1280px; /* Nest Hub Max, notebook */
+  --quebra-desktop-largo: 1536px; /* monitor */
 }
 
 /*

@@ -114,6 +114,12 @@
 - Notas: cor e espaçamento vêm de valores declarados; cor escrita direto no componente reprova, pela regra `cores/sem-cor-literal` que mora em `packages/config-eslint/cores.js`. A cor escolhida pela loja tem contraste ajustado automaticamente por cálculo de luminância do WCAG (`contraste.ts`); `tokens.ts` é o espelho em TypeScript de `theme.css`, porque o cálculo roda no servidor, e a divergência entre os dois reprova por teste. A acessibilidade da vitrine é medida com axe em jsdom — o navegador de verdade entra na T-020.
 - Esforço: alto
 
+## T-022 — Régua de front-end: pontos de quebra e a regra do peso [concluida]
+
+- Refs: US-004, AC-014, AC-015
+- Arquivos: .claude/skills/design-de-front/SKILL.md, .claude/skills/design-de-front/references/scroll-story.md, .claude/skills/design-de-front/references/mundo-3d.md, packages/ui/styles/theme.css, packages/ui/tests/pontos-de-quebra.test.ts
+- Notas: os pontos de quebra saem dos aparelhos do DevTools, e não de números redondos — o piso é 344px, o dobrável fechado, que é o que o P-012 chama de menor breakpoint suportado. A skill separa as superfícies por PRESSA de quem está nelas: narrativa por rolagem com GSAP e Three.js nas landings, onde a pessoa está decidindo assinar; micro-interação no fluxo de pedido, onde ela está com fome e rede ruim. Isso não é gosto: o AC-415 exige a vitrine em 2,5s sem depender de script, e Three.js não desenha nada sem script.
+
 ## T-021 — O banco declarado e o banco real não se separam em silêncio [concluida]
 
 - Refs: US-003, AC-044, AC-045
