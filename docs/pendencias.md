@@ -736,3 +736,17 @@ de defeito na regra.
 **O que fazer:** rodar `pnpm vitest run --project cache-int apps/api/src/core/limite`
 em laço e, se reproduzir, folgar a tolerância de tempo em vez de aumentar o
 limite de repetições.
+
+## Carrinho ainda não tem caminho de escrita para o cliente (T-500)
+
+**Observado em 19/08/2026, junto com a migração 0009.** A migração 0008 escreveu
+as políticas de `carts` e `cart_items` só para a equipe da loja
+(`app.is_store_staff()`). O cliente não consegue criar nem alterar o próprio
+carrinho — a mesma lacuna que a 0009 corrigiu para o pedido.
+
+Não foi corrigida junto de propósito: escrever política sem um caso de uso que a
+exercite é escrever no escuro, e o carrinho ainda não tem o seu. A T-500
+("carrinho que sobrevive ao recarregar") é quem fecha isso, e a política deve
+seguir o mesmo desenho da 0009 — o que autoriza a escrita é um dado que só o
+dono do carrinho conhece, declarado no contexto da requisição, e não o simples
+fato de haver uma loja no contexto.

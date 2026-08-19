@@ -37,11 +37,11 @@
 - Notas: chave com nome do recebedor e confirmação visual de cópia. O pedido guarda a chave que valia no momento. Nenhuma etapa pede dado de cartão nem cobra de verdade. Troco informado quando o pagamento é em dinheiro.
 - Esforço: medio
 
-## T-505 — Criação do pedido com número por loja e sem duplicata [pendente]
+## T-505 — Criação do pedido com número por loja e sem duplicata [concluida]
 
 - Refs: US-503, AC-514, AC-516, AC-517, AC-518
-- Arquivos: apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/src/modules/orders/criar-pedido.usecase.test.ts, apps/api/src/modules/orders/numero-pedido.ts, apps/api/src/modules/orders/numero-pedido.test.ts, apps/api/tests/pedido-idempotente.test.ts, packages/database/migrations/0008_pedidos.sql
-- Notas: número sequencial por loja com incremento atômico. Envio repetido devolve o mesmo pedido em vez de criar outro. Loja fechada não aceita e preserva o carrinho. Convidado fecha pedido sem conta e recebe o link.
+- Arquivos: apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/src/modules/orders/numero-pedido.ts, apps/api/src/modules/orders/numero-pedido.test.ts, apps/api/tests/pedido-idempotente.test.ts, packages/database/migrations/0008_pedidos.sql, packages/database/migrations/0009_checkout_do_cliente.sql, packages/database/migrations/0010_busca_por_chave_de_fechamento.sql, packages/database/migrations/0011_indices_cobrem_a_busca_do_fechamento.sql, packages/database/guards/g5_indice_cobre_politica.sql, infra/tests/pre-deploy.int.test.ts, apps/api/src/core/contexto.ts, apps/api/src/core/db.ts
+- Notas: o caso de uso não tem teste de unidade próprio — ele é indivisível do banco (numeração atômica, índice único parcial, políticas de isolamento), e a prova inteira mora em `pedido-idempotente.test.ts`. Número sequencial por loja com incremento atômico. Envio repetido devolve o mesmo pedido em vez de criar outro. Loja fechada não aceita e preserva o carrinho. Convidado fecha pedido sem conta e recebe o link.
 - Esforço: max
 
 ## T-506 — Pedido é cópia congelada do momento da compra [pendente]

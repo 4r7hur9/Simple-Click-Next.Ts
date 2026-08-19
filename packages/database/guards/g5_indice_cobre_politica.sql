@@ -15,9 +15,25 @@
 -- direta e por isso não é cobrado.
 --
 -- As colunas citadas pelas políticas são descobertas casando o nome de cada
--- coluna da tabela, como palavra inteira, no texto do conjunto da política.
--- Palavra inteira importa: `store_id` não pode casar dentro de
--- `app.current_store_id()`.
+-- coluna da tabela, como palavra inteira, no texto da política. Palavra inteira
+-- importa: `store_id` não pode casar dentro de `app.current_store_id()`.
+--
+-- DUAS PRECISÕES, ambas descobertas quando as políticas de fechamento do
+-- cliente entraram (migrações 0009 e 0010) e a guarda acusou cinco problemas
+-- dos quais três não existiam:
+--
+-- 1. SÓ O `USING` CONTA, e não o `WITH CHECK`. O `USING` filtra linhas que já
+--    existem, e é ele que cavalga no índice. O `WITH CHECK` é avaliado sobre a
+--    linha que está sendo escrita, que está na memória — nenhum índice é
+--    consultado. Cobrar coluna de política de inserção engordaria cada entrada
+--    de índice da tabela inteira para não economizar leitura nenhuma.
+--
+-- 2. REFERÊNCIA A OUTRA TABELA NÃO CONTA. Política com subconsulta escreve
+--    `o.id = i.order_id`, e o casamento por palavra inteira acha `id` ali
+--    dentro — só que aquele `id` é da tabela `orders`, não desta. Antes de
+--    casar, toda referência qualificada por apelido some do texto; a
+--    referência à própria tabela sobrevive porque ela vem escrita por extenso,
+--    como `app.order_items.store_id`, e é protegida antes da limpeza.
 --
 -- Devolve linha quando há problema. Qualquer linha reprova.
 -- ===========================================================================
@@ -47,8 +63,15 @@ colunas_de_politica AS (
       ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
    WHERE n.nspname = 'app'
      AND p.polpermissive
-     AND (coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' '
-       || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), ''))
+     -- Só o filtro de linhas existentes: veja a precisão 1 no cabeçalho.
+     AND p.polqual IS NOT NULL
+     AND regexp_replace(
+           -- A referência à PRÓPRIA tabela é protegida antes da limpeza, senão
+           -- ela sumiria junto com as referências às outras.
+           replace(pg_get_expr(p.polqual, p.polrelid),
+                   'app.' || c.relname || '.', '@@'),
+           -- Some toda referência qualificada por apelido: veja a precisão 2.
+           '\m[a-z_][a-z_0-9]*\.[a-z_][a-z_0-9]*\M', ' ', 'g')
          ~ ('\m' || a.attname || '\M')
 )
 SELECT format('app.%s / %s', co.tabela, co.indice) AS objeto,

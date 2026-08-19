@@ -244,6 +244,27 @@ describe("publicação com o banco no ar", () => {
 // Migração que falha: publicação interrompida, sem estado misto
 // ---------------------------------------------------------------------------
 
+/**
+ * Índice da última migração que CRIA TABELA.
+ *
+ * A colisão simulada por esta prova é "alguém criou à mão uma tabela com o nome
+ * que a migração nova usa" — a forma mais comum de uma migração falhar no meio.
+ * Só serve migração que crie tabela, e a última do diretório nem sempre cria:
+ * migração de índice, de política ou de correção de dado não cria nenhuma.
+ */
+function ultimoIndiceComTabela(arquivos: readonly string[]): number {
+  for (let i = arquivos.length - 1; i >= 0; i -= 1) {
+    const sql = readFileSync(
+      join(DIRETORIO_DE_MIGRACOES, arquivos[i] as string),
+      "utf8",
+    );
+    if (/CREATE TABLE (?:IF NOT EXISTS )?app\.\w+/i.test(sql)) return i;
+  }
+  throw new Error(
+    "nenhuma migração do projeto cria tabela — esta prova não tem colisão a simular",
+  );
+}
+
 describe("publicação com migração que falha no meio", () => {
   let banco: BancoDaProva;
   let cliente: pg.Client;
@@ -251,6 +272,8 @@ describe("publicação com migração que falha no meio", () => {
   let temporario: string;
   /** A migração que esta publicação traria, e que vai falhar. */
   let migracaoQueFalha = "";
+  /** Quantas migrações já estavam aplicadas antes dela. */
+  let aplicadasAntes = 0;
 
   beforeAll(async () => {
     banco = await criarBancoVazio("falha");
@@ -261,7 +284,15 @@ describe("publicação com migração que falha no meio", () => {
     const arquivos = readdirSync(DIRETORIO_DE_MIGRACOES).sort((a, b) =>
       a.localeCompare(b, "en"),
     );
-    for (const arquivo of arquivos.slice(0, arquivos.length - 1)) {
+
+    // A migração que fica de fora é a ÚLTIMA QUE CRIA TABELA, e não a última do
+    // diretório. A diferença apareceu quando entrou uma migração que só cria
+    // índice: o teste procurou tabela onde não havia, o preparo estourou, e os
+    // três casos passaram a ser PULADOS — sem reprovar nada. Prova que some em
+    // silêncio é pior que prova que falha, porque o portão continua verde.
+    const indiceDaQueFalha = ultimoIndiceComTabela(arquivos);
+    aplicadasAntes = indiceDaQueFalha;
+    for (const arquivo of arquivos.slice(0, indiceDaQueFalha)) {
       copyFileSync(
         join(DIRETORIO_DE_MIGRACOES, arquivo),
         join(temporario, arquivo),
@@ -284,7 +315,7 @@ describe("publicação com migração que falha no meio", () => {
     // primeira migração nova que entrou no projeto — a última deixou de ser a
     // que ele imaginava. Teste que quebra a cada migração acrescentada é teste
     // que alguém desativa.
-    const ultima = arquivos[arquivos.length - 1] as string;
+    const ultima = arquivos[indiceDaQueFalha] as string;
     migracaoQueFalha = ultima;
     const sqlDaUltima = readFileSync(
       join(DIRETORIO_DE_MIGRACOES, ultima),
@@ -329,8 +360,11 @@ describe("publicação com migração que falha no meio", () => {
 
   it("@spec:AC-029 não deixa o banco em estado misto: da migração que falhou, nada entrou", async () => {
     // O livro de controle continua com as cinco de antes, e só elas.
+    // A contagem vem do MESMO índice que montou o cenário: escrever aqui
+    // "todas menos a última" voltaria a quebrar na próxima migração que não
+    // criar tabela, que é como esta prova sumiu da primeira vez.
     const registradas = await migracoesRegistradas(cliente);
-    expect(registradas).toHaveLength(lerMigracoes().length - 1);
+    expect(registradas).toHaveLength(aplicadasAntes);
     expect(registradas).not.toContain(migracaoQueFalha);
 
     // E nenhum objeto da migração que falhou sobrou pelo caminho: índice,

@@ -64,6 +64,15 @@ export interface DadosDoContexto {
    * esse token alcança, por parâmetro dedicado (`app.order_token`).
    */
   readonly tokenDoPedido?: string | undefined;
+  /**
+   * Chave que o cliente gerou para o fechamento, e que ele repete quando tenta
+   * de novo. O banco a usa para deixar a segunda tentativa ENXERGAR o pedido
+   * que a primeira criou — sem isso, a política de acompanhamento por token
+   * esconderia justamente o pedido que precisa ser devolvido, e a cozinha
+   * receberia dois pedidos iguais. Apresentar a chave é, na prática, provar que
+   * foi você quem fez a primeira tentativa.
+   */
+  readonly chaveDoFechamento?: string | undefined;
   /** Identificador da requisição, para correlacionar registro e erro. */
   readonly requisicaoId?: string | undefined;
 }
@@ -75,6 +84,7 @@ export interface ContextoDaRequisicao {
   readonly usuarioId: string | undefined;
   readonly papel: PapelDeAcesso;
   readonly tokenDoPedido: string | undefined;
+  readonly chaveDoFechamento: string | undefined;
   /**
    * Transação aberta por `core/db.ts` para esta requisição, ou `undefined`
    * fora dela.
@@ -133,6 +143,7 @@ export function criarContexto(
     // Papel ausente é PUBLIC: o menor privilégio, nunca o maior.
     papel: dados.papel ?? "PUBLIC",
     tokenDoPedido: dados.tokenDoPedido,
+    chaveDoFechamento: dados.chaveDoFechamento,
     transacao: undefined,
   };
 }

@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T11:10:23.384Z",
-  "gitRev": "ee808b8",
+  "timestamp": "2026-08-19T12:01:08.683Z",
+  "gitRev": "1fa6fe7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 630,
+  "testsParsed": 647,
   "results": {
     "AC-506": {
       "status": "pass",
@@ -39,12 +39,22 @@
     },
     "AC-514": {
       "status": "pass",
-      "testName": "código do pedido (AC-514) @spec:AC-514 a primeira venda da loja é A-0001, e não um número da plataforma @spec:AC-514 a primeira venda da loja é A-0001, e não um número da plataforma",
+      "testName": "pedido recebe número e entra na fila (AC-514) @spec:AC-514 o pedido nasce com status de aguardando e o primeiro passo do histórico @spec:AC-514 o pedido nasce com status de aguardando e o primeiro passo do histórico",
+      "method": "vitest-json"
+    },
+    "AC-516": {
+      "status": "pass",
+      "testName": "enviar duas vezes não cria dois pedidos (AC-516) @spec:AC-516 a segunda tentativa com a mesma chave devolve o mesmo pedido @spec:AC-516 a segunda tentativa com a mesma chave devolve o mesmo pedido",
+      "method": "vitest-json"
+    },
+    "AC-517": {
+      "status": "pass",
+      "testName": "loja fechada não aceita pedido novo (AC-517) @spec:AC-517 nenhum pedido é gravado, e a recusa diz quando a loja abre @spec:AC-517 nenhum pedido é gravado, e a recusa diz quando a loja abre",
       "method": "vitest-json"
     },
     "AC-518": {
       "status": "pass",
-      "testName": "endereço público do acompanhamento (AC-518) @spec:AC-518 o endereço tem pelo menos 128 bits de aleatoriedade @spec:AC-518 o endereço tem pelo menos 128 bits de aleatoriedade",
+      "testName": "pedido de convidado é registrado sem conta (AC-518) @spec:AC-518 o pedido é criado sem cliente cadastrado e devolve o link de acompanhamento @spec:AC-518 o pedido é criado sem cliente cadastrado e devolve o link de acompanhamento",
       "method": "vitest-json"
     },
     "AC-519": {

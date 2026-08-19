@@ -90,6 +90,11 @@ export const PARAMETROS_DE_CONTEXTO = [
   "app.user_id",
   "app.role",
   "app.order_token",
+  // A chave que o cliente repete quando tenta de novo. Entrou junto com a
+  // migração 0010: sem ela, a segunda tentativa não ENXERGA o pedido que a
+  // primeira criou, porque a única leitura que o cliente tem é por token de
+  // acompanhamento — e o token da segunda tentativa é outro.
+  "app.checkout_key",
 ] as const;
 
 const MAX_DE_CONEXOES_PADRAO = 10;
@@ -268,7 +273,8 @@ async function aplicarContextoNaTransacao(
     SELECT set_config('app.store_id',    ${contexto.lojaId ?? ""},       true),
            set_config('app.user_id',     ${contexto.usuarioId ?? ""},    true),
            set_config('app.role',        ${contexto.papel},              true),
-           set_config('app.order_token', ${contexto.tokenDoPedido ?? ""}, true)`;
+           set_config('app.order_token', ${contexto.tokenDoPedido ?? ""}, true),
+           set_config('app.checkout_key', ${contexto.chaveDoFechamento ?? ""}, true)`;
 }
 
 // ---------------------------------------------------------------------------
