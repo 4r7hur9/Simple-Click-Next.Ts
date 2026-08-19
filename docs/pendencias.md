@@ -800,3 +800,20 @@ exercite é escrever no escuro, e o carrinho ainda não tem o seu. A T-500
 seguir o mesmo desenho da 0009 — o que autoriza a escrita é um dado que só o
 dono do carrinho conhece, declarado no contexto da requisição, e não o simples
 fato de haver uma loja no contexto.
+
+## A página do fechamento espera as rotas HTTP (T-502 → T-400/T-401)
+
+**Anotado em 19/08/2026, ao fechar a T-502.** O formulário de fechamento, os
+campos de endereço condicional e a validação de borda estão prontos e provados.
+Falta a PÁGINA que os monta em `app/(loja)/l/[slug]/checkout/page.tsx`.
+
+Ela não foi escrita agora por dependência real, e não por escolha: a tabela de
+fronteiras não autoriza o site a falar com o banco. Toda leitura passa pela API
+por HTTP, e as rotas públicas da loja vêm com a vitrine (T-400 resolve a loja
+pelo endereço, T-401 define a saída pública). Escrever a página antes disso
+produziria uma casca sem de onde carregar a configuração da loja — e uma casca
+que passa no portão é pior que uma ausência anotada.
+
+**O que fazer quando T-400 e T-401 estiverem prontas:** montar a página com
+`FormularioCheckout`, `ResumoDoPedido`, `SeletorDePagamento` e `CaixaPix`, que
+já existem, e ligar o envio ao caso de uso de criação do pedido.

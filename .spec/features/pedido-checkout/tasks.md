@@ -16,11 +16,11 @@
 - Notas: o caso de uso não tem teste de unidade próprio — ele existe para LER o catálogo, e um catálogo simulado provaria só que o código chama o que mandei chamar; a prova mora em `conferir-preco.int.test.ts`. O que mudou é mostrado item por item e exige confirmação. Valor enviado pelo cliente é descartado e a divergência registrada. Marcado com @principle:P-006.
 - Esforço: alto
 
-## T-502 — Entrega ou retirada, com endereço condicional [pendente]
+## T-502 — Entrega ou retirada, com endereço condicional [concluida]
 
 - Refs: US-501, AC-505, AC-506, AC-508, AC-509
-- Arquivos: apps/web/src/app/(loja)/l/[slug]/checkout/page.tsx, apps/web/src/features/checkout/FormularioCheckout.tsx, apps/web/src/features/checkout/CamposDeEndereco.tsx, apps/api/src/modules/orders/checkout.schema.ts
-- Notas: endereço obrigatório só na entrega; na retirada mostra o endereço da loja. Loja que só faz retirada não oferece entrega. Cliente logado vem com dados preenchidos e editáveis.
+- Arquivos: apps/web/src/features/checkout/FormularioCheckout.tsx, apps/web/src/features/checkout/CamposDeEndereco.tsx, apps/web/tests/formulario-checkout.test.tsx, apps/api/src/modules/orders/checkout.schema.ts, apps/api/src/modules/orders/checkout.schema.test.ts
+- Notas: a PÁGINA `app/(loja)/l/[slug]/checkout/page.tsx` saiu desta lista e entra junto com as rotas HTTP, que vêm da vitrine (T-400, T-401). O site não pode falar com o banco direto — a tabela de fronteiras não autoriza —, então uma página escrita agora não teria de onde carregar a configuração da loja e seria uma casca. Os quatro critérios desta tarefa são de comportamento do formulário e da borda, e estão provados sem ela. Endereço obrigatório só na entrega; na retirada mostra o endereço da loja. Loja que só faz retirada não oferece entrega. Cliente logado vem com dados preenchidos e editáveis.
 - Esforço: alto
 
 ## T-503 — Taxa de entrega, mínimo e entrega grátis no resumo [concluida]

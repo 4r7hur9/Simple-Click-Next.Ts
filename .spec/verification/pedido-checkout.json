@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T15:57:46.118Z",
-  "gitRev": "9a1ad04",
+  "timestamp": "2026-08-19T16:46:43.674Z",
+  "gitRev": "3d441fe",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 735,
+  "testsParsed": 760,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -32,14 +32,29 @@
       "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar",
       "method": "vitest-json"
     },
+    "AC-505": {
+      "status": "pass",
+      "testName": "a escolha decide se o endereço existe (AC-505) @spec:AC-505 na entrega os campos de endereço aparecem @spec:AC-505 na entrega os campos de endereço aparecem",
+      "method": "vitest-json"
+    },
     "AC-506": {
       "status": "pass",
-      "testName": "loja que só faz retirada (AC-506) @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega",
+      "testName": "a loja só oferece o que ela faz (AC-506) @spec:AC-506 loja que só faz retirada NÃO mostra a opção de entrega @spec:AC-506 loja que só faz retirada NÃO mostra a opção de entrega",
       "method": "vitest-json"
     },
     "AC-507": {
       "status": "pass",
       "testName": "resumo de valores na tela (AC-507) @spec:AC-507 a tela mostra itens, taxa em linha separada e total @spec:AC-507 a tela mostra itens, taxa em linha separada e total",
+      "method": "vitest-json"
+    },
+    "AC-508": {
+      "status": "pass",
+      "testName": "os campos pendentes são apontados antes de enviar (AC-508) @spec:AC-508 formulário vazio não envia e aponta todos os pendentes de uma vez @spec:AC-508 formulário vazio não envia e aponta todos os pendentes de uma vez",
+      "method": "vitest-json"
+    },
+    "AC-509": {
+      "status": "pass",
+      "testName": "quem já pediu chega com os dados preenchidos (AC-509) @spec:AC-509 nome, telefone e endereço vêm preenchidos @spec:AC-509 nome, telefone e endereço vêm preenchidos",
       "method": "vitest-json"
     },
     "AC-510": {
