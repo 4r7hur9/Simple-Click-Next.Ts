@@ -534,6 +534,37 @@ describe("auditoria da especificação — o que conta como prova", () => {
 });
 
 // ---------------------------------------------------------------------------
+// AC-017 — a explicação da falha chega junto do veredito
+// ---------------------------------------------------------------------------
+
+describe("o portão explica a etapa que reprovou", () => {
+  it("@spec:AC-017 o resumo repete as últimas linhas de cada etapa que reprovou", () => {
+    // O portão tem dezesseis etapas e leva minutos. Sem esta repetição, a
+    // explicação de uma falha fica centenas de linhas acima do veredito: quem
+    // lê rola para cima procurando, ou reexecuta filtrando a saída e não vê
+    // nada — que é como uma falha intermitente vira "roda de novo que passa".
+    const nome = `fora-de-formato-${process.pid}.ts`;
+    const alvo = join(RAIZ, nome);
+    try {
+      writeFileSync(alvo, "const   x   =    1\n");
+
+      const execucao = rodar("bash", [VERIFICAR, "--somente", "formatação"], {
+        cwd: RAIZ,
+      });
+
+      expect(execucao.saida).toContain("últimas linhas de");
+      // E o trecho repetido é o que EXPLICA: o nome do arquivo culpado.
+      const resumo = execucao.saida.slice(
+        execucao.saida.indexOf("últimas linhas de"),
+      );
+      expect(resumo).toContain(nome);
+    } finally {
+      rmSync(alvo, { force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // AC-020 e AC-040 — o gancho antes do registro
 // ---------------------------------------------------------------------------
 

@@ -733,9 +733,21 @@ O critério trata de espera crescente entre tentativas, ou seja, depende de
 tempo — a suspeita é de tolerância curta demais para uma máquina ocupada, e não
 de defeito na regra.
 
-**O que fazer:** rodar `pnpm vitest run --project cache-int apps/api/src/core/limite`
-em laço e, se reproduzir, folgar a tolerância de tempo em vez de aumentar o
-limite de repetições.
+**Segunda ocorrência em 19/08/2026**, também durante uma execução do portão, e
+também passando isolada. Oito execuções seguidas — cinco isoladas e três com a
+máquina carregada por outra suíte — não reproduziram. O relógio do teste é
+VIRTUAL (`cenario.avancar`), então a suspeita inicial de tolerância curta está
+descartada: a falha não é de asserção de tempo, e sim de conexão com o Redis ou
+de espera de conexão sob carga.
+
+**O que mudou para a próxima vez:** o portão passou a repetir, no resumo, as
+últimas linhas da etapa que reprovou. Nas duas ocorrências o motivo se perdeu
+porque a explicação ficava centenas de linhas acima do veredito. A próxima
+ocorrência vai dizer o que foi.
+
+**O que fazer:** ler o trecho que o portão repetir. Se for espera de conexão,
+folgar a espera do cliente de Redis nos testes; se for chave colidindo, olhar o
+espaço de nomes por arquivo.
 
 ## Carrinho ainda não tem caminho de escrita para o cliente (T-500)
 

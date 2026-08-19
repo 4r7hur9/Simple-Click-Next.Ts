@@ -1,11 +1,11 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-19T12:50:12.412Z",
-  "gitRev": "a7ab32d",
+  "timestamp": "2026-08-19T12:58:22.861Z",
+  "gitRev": "601b042",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 679,
+  "exitCode": 1,
+  "testsParsed": 680,
   "results": {
     "AC-906": {
       "status": "pass",

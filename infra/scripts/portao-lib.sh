@@ -46,6 +46,8 @@ PORTAO_NOMES=()      # nome de cada etapa declarada, na ordem de declaração
 PORTAO_EXECUTADAS=0  # quantas realmente rodaram (o filtro pode deixar de fora)
 PORTAO_APROVADAS=0
 PORTAO_REPROVADAS=() # nome das que reprovaram
+PORTAO_DIARIOS=()    # arquivo com a saída de cada etapa, para apagar no fim
+PORTAO_DIARIOS_REPROVADOS=() # só os das que reprovaram, para o resumo repetir
 PORTAO_INICIO=$SECONDS
 
 # Retrato do repositório tirado AGORA, antes de a primeira etapa rodar. É este
@@ -152,11 +154,22 @@ portao_etapa() {
 
   local inicio=$SECONDS
   local veredito=0
+  # A saída é MOSTRADA ao vivo e GUARDADA ao mesmo tempo. O motivo é prático: o
+  # portão tem dezesseis etapas e leva minutos, e quando uma reprova a
+  # explicação fica soterrada centenas de linhas acima do veredito. Quem lê rola
+  # para cima procurando, ou — pior — reexecuta filtrando a saída e não vê nada.
+  # Guardando, o resumo repete o trecho da falha ao lado do nome dela.
+  local diario
+  diario="$(mktemp "${TMPDIR:-/tmp}/portao-etapa-XXXXXX")"
+  PORTAO_DIARIOS[${#PORTAO_DIARIOS[@]}]="$diario"
+
   case "$destino" in
     ensaio-aprova) veredito=0 ;;
     ensaio-reprova) veredito=1 ;;
     *)
-      if "$@"; then veredito=0; else veredito=1; fi
+      # `PIPESTATUS` porque o código que importa é o do comando, não o do `tee`.
+      if "$@" 2>&1 | tee "$diario"; then :; fi
+      veredito=${PIPESTATUS[0]}
       ;;
   esac
   local gasto=$((SECONDS - inicio))
@@ -168,6 +181,7 @@ portao_etapa() {
       "$PORTAO_VERDE" "$nome" "$PORTAO_NORMAL" "$verifica" "$gasto"
   else
     PORTAO_REPROVADAS[${#PORTAO_REPROVADAS[@]}]="$nome"
+    PORTAO_DIARIOS_REPROVADOS[${#PORTAO_DIARIOS_REPROVADOS[@]}]="$diario"
     printf '%s  ✘ %s%s — %s (%ss)\n' \
       "$PORTAO_VERMELHO" "$nome" "$PORTAO_NORMAL" "$verifica" "$gasto"
   fi
@@ -185,6 +199,15 @@ portao_etapa() {
 #
 # Sem esta memória, `registrar-pulo.sh` não teria como saber que uma versão foi
 # enviada sem passar pelo portão — que é exatamente o que AC-043 manda registrar.
+
+# Apaga os arquivos de saída das etapas. Só é chamado quando o portão fica
+# limpo: se alguma reprovou, os arquivos ficam para quem quiser ler inteiro.
+portao_limpar_diarios() {
+  local arquivo
+  for arquivo in "${PORTAO_DIARIOS[@]}"; do
+    [ -n "$arquivo" ] && rm -f "$arquivo"
+  done
+}
 
 portao_arquivo_de_registro() {
   if [ -n "${PORTAO_REGISTRO:-}" ]; then
@@ -254,8 +277,23 @@ portao_resumo() {
   if [ "$reprovadas" -eq 0 ]; then
     printf '%s✔ portão limpo%s\n' "$PORTAO_VERDE" "$PORTAO_NORMAL"
     portao_registrar_aprovacao
+    portao_limpar_diarios
     return 0
   fi
+
+  # O trecho final de cada etapa que reprovou, AO LADO do veredito. Sem isto, a
+  # explicação fica centenas de linhas acima e quem lê acaba reexecutando só
+  # para vê-la — que é como uma falha intermitente vira "roda de novo que passa".
+  local indice=0
+  while [ "$indice" -lt "$reprovadas" ]; do
+    local diario="${PORTAO_DIARIOS_REPROVADOS[$indice]:-}"
+    if [ -n "$diario" ] && [ -s "$diario" ]; then
+      printf '\n%s─ últimas linhas de "%s" ─%s\n' \
+        "$PORTAO_NEGRITO" "${PORTAO_REPROVADAS[$indice]}" "$PORTAO_NORMAL"
+      tail -n "${PORTAO_LINHAS_DA_FALHA:-25}" "$diario" | sed 's/^/    /'
+    fi
+    indice=$((indice + 1))
+  done
 
   printf '%s✘ portão reprovou em %s etapa(s):%s\n' \
     "$PORTAO_VERMELHO" "$reprovadas" "$PORTAO_NORMAL"
