@@ -2,11 +2,11 @@
 
 > feature: pedido-checkout
 
-## T-500 — Carrinho que sobrevive ao recarregar [pendente]
+## T-500 — Carrinho que sobrevive ao recarregar [concluida]
 
 - Refs: US-500, AC-500, AC-501, AC-502
-- Arquivos: apps/web/src/features/carrinho/useCarrinho.ts, apps/web/src/features/carrinho/useCarrinho.test.ts, apps/web/src/features/carrinho/GavetaCarrinho.tsx, apps/web/src/features/carrinho/LinhaCarrinho.tsx, apps/api/src/modules/cart/carrinho.usecase.ts, apps/api/src/modules/cart/carrinho.usecase.test.ts
-- Notas: carrinho de uma loja nunca se mistura com o de outra. Item que chega a zero sai. Carrinho vazio convida a voltar à vitrine.
+- Arquivos: apps/web/src/features/carrinho/useCarrinho.ts, apps/web/src/features/carrinho/useCarrinho.test.tsx, apps/web/src/features/carrinho/GavetaCarrinho.tsx, apps/web/src/features/carrinho/LinhaCarrinho.tsx, apps/web/tests/carrinho-gaveta.test.tsx, apps/api/src/modules/cart/carrinho.usecase.ts, apps/api/tests/carrinho.int.test.ts, packages/database/migrations/0012_carrinho_do_visitante.sql, packages/database/migrations/0013_indice_do_carrinho_cobre_a_sessao.sql, apps/api/src/core/contexto.ts, apps/api/src/core/db.ts
+- Notas: o caso de uso não tem teste de unidade próprio — carrinho é indivisível do banco (persistência entre requisições e isolamento por sessão são políticas, não código), e a prova mora em `carrinho.int.test.ts`. Carrinho de uma loja nunca se mistura com o de outra. Item que chega a zero sai. Carrinho vazio convida a voltar à vitrine.
 - Esforço: alto
 
 ## T-501 — Conferência de preço e disponibilidade antes de fechar [pendente]

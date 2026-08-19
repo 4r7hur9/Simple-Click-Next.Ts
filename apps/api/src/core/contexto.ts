@@ -73,6 +73,12 @@ export interface DadosDoContexto {
    * foi você quem fez a primeira tentativa.
    */
   readonly chaveDoFechamento?: string | undefined;
+  /**
+   * Sessão do carrinho do visitante. É o que o banco usa para decidir QUAL
+   * carrinho a requisição alcança — sem ela, um visitante enxergaria o carrinho
+   * de todos os outros da mesma loja (migração 0012).
+   */
+  readonly sessaoDoCarrinho?: string | undefined;
   /** Identificador da requisição, para correlacionar registro e erro. */
   readonly requisicaoId?: string | undefined;
 }
@@ -85,6 +91,7 @@ export interface ContextoDaRequisicao {
   readonly papel: PapelDeAcesso;
   readonly tokenDoPedido: string | undefined;
   readonly chaveDoFechamento: string | undefined;
+  readonly sessaoDoCarrinho: string | undefined;
   /**
    * Transação aberta por `core/db.ts` para esta requisição, ou `undefined`
    * fora dela.
@@ -144,6 +151,7 @@ export function criarContexto(
     papel: dados.papel ?? "PUBLIC",
     tokenDoPedido: dados.tokenDoPedido,
     chaveDoFechamento: dados.chaveDoFechamento,
+    sessaoDoCarrinho: dados.sessaoDoCarrinho,
     transacao: undefined,
   };
 }

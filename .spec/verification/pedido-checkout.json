@@ -1,12 +1,27 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T13:05:49.597Z",
-  "gitRev": "3301d51",
+  "timestamp": "2026-08-19T13:49:49.476Z",
+  "gitRev": "1cae00f",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 680,
+  "testsParsed": 707,
   "results": {
+    "AC-500": {
+      "status": "pass",
+      "testName": "item adicionado aparece no carrinho (AC-500) @spec:AC-500 o item chega com quantidade, observação e as opções escolhidas @spec:AC-500 o item chega com quantidade, observação e as opções escolhidas",
+      "method": "vitest-json"
+    },
+    "AC-501": {
+      "status": "pass",
+      "testName": "mudar quantidade e remover item (AC-501) @spec:AC-501 aumentar e diminuir a quantidade muda a linha @spec:AC-501 aumentar e diminuir a quantidade muda a linha",
+      "method": "vitest-json"
+    },
+    "AC-502": {
+      "status": "pass",
+      "testName": "o carrinho sobrevive e não se mistura (AC-502) @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado",
+      "method": "vitest-json"
+    },
     "AC-506": {
       "status": "pass",
       "testName": "loja que só faz retirada (AC-506) @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega",

@@ -749,7 +749,24 @@ ocorrência vai dizer o que foi.
 folgar a espera do cliente de Redis nos testes; se for chave colidindo, olhar o
 espaço de nomes por arquivo.
 
-## Carrinho ainda não tem caminho de escrita para o cliente (T-500)
+## RESOLVIDO — Carrinho: o problema era o oposto do anotado (T-500)
+
+**Corrigido em 19/08/2026 pela migração 0012.** A anotação abaixo estava errada
+no diagnóstico, e vale manter registrada porque o erro é instrutivo: eu supus
+que as políticas de carrinho copiavam as de pedido e exigiam ser da equipe. Não
+exigiam. Elas se chamam `carts_staff_*` e pedem apenas que exista loja no
+contexto — e todo visitante da vitrine tem loja no contexto, é assim que ele vê
+os produtos.
+
+O problema não era falta de acesso: era acesso demais. Qualquer visitante
+anônimo podia LER o carrinho de todos os outros daquela loja, ALTERÁ-LOS e
+APAGÁ-LOS. O nome da política escondeu isso — quem lê `carts_staff_select`
+assume que a conferência está ali.
+
+**Lição:** nome de política não é verificação. A guarda G2 confere que existe
+política por comando, não que a condição dentro dela faz sentido.
+
+## (anotação original, com o diagnóstico errado)
 
 **Observado em 19/08/2026, junto com a migração 0009.** A migração 0008 escreveu
 as políticas de `carts` e `cart_items` só para a equipe da loja

@@ -95,6 +95,9 @@ export const PARAMETROS_DE_CONTEXTO = [
   // primeira criou, porque a única leitura que o cliente tem é por token de
   // acompanhamento — e o token da segunda tentativa é outro.
   "app.checkout_key",
+  // Qual carrinho esta requisição alcança. Entrou com a migração 0012, que
+  // consertou políticas de carrinho abertas a qualquer visitante da loja.
+  "app.cart_session",
 ] as const;
 
 const MAX_DE_CONEXOES_PADRAO = 10;
@@ -274,7 +277,8 @@ async function aplicarContextoNaTransacao(
            set_config('app.user_id',     ${contexto.usuarioId ?? ""},    true),
            set_config('app.role',        ${contexto.papel},              true),
            set_config('app.order_token', ${contexto.tokenDoPedido ?? ""}, true),
-           set_config('app.checkout_key', ${contexto.chaveDoFechamento ?? ""}, true)`;
+           set_config('app.checkout_key', ${contexto.chaveDoFechamento ?? ""}, true),
+           set_config('app.cart_session', ${contexto.sessaoDoCarrinho ?? ""}, true)`;
 }
 
 // ---------------------------------------------------------------------------
