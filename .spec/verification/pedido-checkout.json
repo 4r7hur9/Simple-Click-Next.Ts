@@ -1,10 +1,10 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T12:59:50.221Z",
-  "gitRev": "601b042",
+  "timestamp": "2026-08-19T13:05:49.597Z",
+  "gitRev": "3301d51",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 1,
+  "exitCode": 0,
   "testsParsed": 680,
   "results": {
     "AC-506": {

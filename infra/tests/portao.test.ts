@@ -561,7 +561,12 @@ describe("o portão explica a etapa que reprovou", () => {
     } finally {
       rmSync(alvo, { force: true });
     }
-  });
+    // Espera folgada de propósito: esta prova roda o Prettier sobre o
+    // repositório inteiro, num processo separado. Isolada leva ~2s; junto com a
+    // suíte completa, disputando processador com as outras, passa dos 5s
+    // padrão. Foi assim que ela nasceu verde e reprovou na primeira execução
+    // cheia — o mesmo jeito que um teste vira intermitente.
+  }, 60_000);
 });
 
 // ---------------------------------------------------------------------------
