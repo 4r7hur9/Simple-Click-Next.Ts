@@ -721,7 +721,28 @@ Enquanto a lista abaixo estiver vazia, nunca aconteceu.
 
 <!-- portao-contornado:fim -->
 
-## Teste intermitente do limite de tentativas (AC-119)
+## RESOLVIDO — Teste intermitente do limite de tentativas (AC-119/AC-120)
+
+**Diagnosticado e corrigido em 19/08/2026, na terceira ocorrência.** O motivo
+apareceu assim que o portão passou a guardar a saída da etapa que reprova: não
+era o AC-119 nem tolerância de tempo curta, era o teste do AC-120 estourando os
+30 segundos do projeto.
+
+Ele é o mais pesado do arquivo: 38 requisições HTTP de verdade — 11 para
+estourar o limite da conta, 26 para estourar o da origem, 1 para conferir o
+veredito —, cada uma conversando várias vezes com o Redis. Sozinho leva cerca de
+dois segundos; com a suíte inteira disputando o mesmo Redis, passou de 30.
+
+**A correção** foi dar espera própria a ESSE teste (dois minutos), e não subir o
+limite do projeto: subir todos esconderia um teste genuinamente travado atrás de
+dois minutos de paciência.
+
+**A lição:** duas investigações anteriores falharam porque o motivo se perdia
+entre centenas de linhas de saída do portão. A terceira levou minutos, porque o
+portão guardou o diário da etapa. Ferramenta de diagnóstico paga por si na
+primeira vez que é usada.
+
+## (anotação original, com as duas primeiras ocorrências)
 
 **Observado em 18/08/2026.** Durante uma regravação de provas, o critério AC-119
 (excesso de tentativas para a mesma conta) reprovou uma vez e passou nas

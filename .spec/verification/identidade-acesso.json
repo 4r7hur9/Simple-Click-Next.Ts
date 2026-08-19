@@ -1,11 +1,11 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-08-19T13:49:15.984Z",
-  "gitRev": "1cae00f",
+  "timestamp": "2026-08-19T15:57:21.767Z",
+  "gitRev": "9a1ad04",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 707,
+  "testsParsed": 735,
   "results": {
     "AC-119": {
       "status": "pass",
@@ -39,6 +39,10 @@
     }
   },
   "principles": {
+    "P-006": {
+      "status": "pass",
+      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
+    },
     "P-003": {
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"

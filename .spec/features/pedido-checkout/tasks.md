@@ -9,11 +9,11 @@
 - Notas: o caso de uso não tem teste de unidade próprio — carrinho é indivisível do banco (persistência entre requisições e isolamento por sessão são políticas, não código), e a prova mora em `carrinho.int.test.ts`. Carrinho de uma loja nunca se mistura com o de outra. Item que chega a zero sai. Carrinho vazio convida a voltar à vitrine.
 - Esforço: alto
 
-## T-501 — Conferência de preço e disponibilidade antes de fechar [pendente]
+## T-501 — Conferência de preço e disponibilidade antes de fechar [concluida]
 
 - Refs: US-500, AC-503, AC-504
-- Arquivos: packages/core/src/pedido-total.ts, packages/core/src/pedido-total.test.ts, apps/api/src/modules/cart/conferir-preco.usecase.ts, apps/api/src/modules/cart/conferir-preco.usecase.test.ts, apps/web/src/features/checkout/AvisoDeMudanca.tsx
-- Notas: o que mudou é mostrado item por item e exige confirmação. Valor enviado pelo cliente é descartado e a divergência registrada. Marcado com @principle:P-006.
+- Arquivos: packages/core/src/pedido-total.ts, packages/core/src/pedido-total.test.ts, packages/core/src/index.ts, apps/api/src/modules/cart/conferir-preco.usecase.ts, apps/api/tests/conferir-preco.int.test.ts, apps/web/src/features/checkout/AvisoDeMudanca.tsx, apps/web/tests/aviso-de-mudanca.test.tsx
+- Notas: o caso de uso não tem teste de unidade próprio — ele existe para LER o catálogo, e um catálogo simulado provaria só que o código chama o que mandei chamar; a prova mora em `conferir-preco.int.test.ts`. O que mudou é mostrado item por item e exige confirmação. Valor enviado pelo cliente é descartado e a divergência registrada. Marcado com @principle:P-006.
 - Esforço: alto
 
 ## T-502 — Entrega ou retirada, com endereço condicional [pendente]

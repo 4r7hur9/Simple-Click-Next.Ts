@@ -548,38 +548,61 @@ describe("limite de tentativas por origem", () => {
 // ---------------------------------------------------------------------------
 
 describe("prioridade entre conta e origem", () => {
-  it("@spec:AC-120 com os dois estourados, a resposta é a da conta", async () => {
-    const cenario = cenarioDeEntrada();
-    const atacante = "203.0.113.51";
+  /**
+   * Espera própria, e maior que a do projeto, para O TESTE MAIS PESADO do
+   * arquivo.
+   *
+   * Ele faz 38 requisições HTTP de verdade — 11 para estourar a conta, 26 para
+   * estourar a origem, 1 para conferir o veredito —, e cada uma conversa
+   * várias vezes com o Redis. Sozinho leva cerca de dois segundos; com a suíte
+   * inteira disputando o mesmo Redis, já passou dos 30 segundos do projeto três
+   * vezes, e em todas passou sozinho depois. O diagnóstico só apareceu quando o
+   * portão passou a guardar a saída da etapa que reprova.
+   *
+   * A espera é DESTE teste e não do projeto: subir o limite de todos esconderia
+   * um teste genuinamente travado atrás de dois minutos de paciência.
+   */
+  const ESPERA_DO_MAIS_PESADO = 120_000;
 
-    // Estoura a conta primeiro (11 tentativas na mesma conta)…
-    for (let tentativa = 1; tentativa <= 11; tentativa += 1) {
-      await tentarEntrar(
+  it(
+    "@spec:AC-120 com os dois estourados, a resposta é a da conta",
+    async () => {
+      const cenario = cenarioDeEntrada();
+      const atacante = "203.0.113.51";
+
+      // Estoura a conta primeiro (11 tentativas na mesma conta)…
+      for (let tentativa = 1; tentativa <= 11; tentativa += 1) {
+        await tentarEntrar(
+          cenario,
+          { conta: CONTA, senha: chuteErrado() },
+          atacante,
+        );
+      }
+      // …e depois o volume da origem, que continuou contando.
+      for (let numero = 1; numero <= ATE_BARRAR_A_ORIGEM; numero += 1) {
+        await tentarEntrar(
+          cenario,
+          {
+            conta: `vitima-${numero}@loja.exemplo`,
+            senha: chuteErrado(numero),
+          },
+          atacante,
+        );
+      }
+
+      const barrada = await tentarEntrar(
         cenario,
-        { conta: CONTA, senha: chuteErrado() },
+        { conta: CONTA, senha: SENHA_CORRETA },
         atacante,
       );
-    }
-    // …e depois o volume da origem, que continuou contando.
-    for (let numero = 1; numero <= ATE_BARRAR_A_ORIGEM; numero += 1) {
-      await tentarEntrar(
-        cenario,
-        { conta: `vitima-${numero}@loja.exemplo`, senha: chuteErrado(numero) },
-        atacante,
-      );
-    }
 
-    const barrada = await tentarEntrar(
-      cenario,
-      { conta: CONTA, senha: SENHA_CORRETA },
-      atacante,
-    );
-
-    expect(barrada.status).toBe(429);
-    // A informação útil para o dono legítimo é que a CONTA dele está sob
-    // ataque, e não que o endereço dele está cheio.
-    expect(barrada.body.escopo).toBe("conta");
-  });
+      expect(barrada.status).toBe(429);
+      // A informação útil para o dono legítimo é que a CONTA dele está sob
+      // ataque, e não que o endereço dele está cheio.
+      expect(barrada.body.escopo).toBe("conta");
+    },
+    ESPERA_DO_MAIS_PESADO,
+  );
 
   it("@spec:AC-119 requisição sem conta nomeada ainda conta para a origem", async () => {
     const cenario = cenarioDeEntrada();

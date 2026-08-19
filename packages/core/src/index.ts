@@ -15,6 +15,15 @@ export {
   LIMITE_PADRAO_DO_LINK,
   medirComprimentoNoLink,
 } from "./cupom-texto.ts";
+export { conferirCarrinho } from "./pedido-total.ts";
+export type {
+  Conferencia,
+  ItemParaConferir,
+  ItemPrecificado,
+  MudancaNoCarrinho,
+  ProdutoAgora,
+  TipoDeMudanca,
+} from "./pedido-total.ts";
 export { calcularValores, emReais } from "./taxa-entrega.ts";
 export type {
   ConfiguracaoDeEntrega,

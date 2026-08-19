@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-19T13:49:49.476Z",
-  "gitRev": "1cae00f",
+  "timestamp": "2026-08-19T15:57:46.118Z",
+  "gitRev": "9a1ad04",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 707,
+  "testsParsed": 735,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -20,6 +20,16 @@
     "AC-502": {
       "status": "pass",
       "testName": "o carrinho sobrevive e não se mistura (AC-502) @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado",
+      "method": "vitest-json"
+    },
+    "AC-503": {
+      "status": "pass",
+      "testName": "o que mudou é conferido contra o catálogo vivo (AC-503) @spec:AC-503 preço que mudou desde que a tela mostrou é avisado com os dois valores @spec:AC-503 preço que mudou desde que a tela mostrou é avisado com os dois valores",
+      "method": "vitest-json"
+    },
+    "AC-504": {
+      "status": "pass",
+      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar",
       "method": "vitest-json"
     },
     "AC-506": {
@@ -104,6 +114,10 @@
     }
   },
   "principles": {
+    "P-006": {
+      "status": "pass",
+      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
+    },
     "P-003": {
       "status": "pass",
       "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
