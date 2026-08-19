@@ -817,3 +817,11 @@ que passa no portão é pior que uma ausência anotada.
 **O que fazer quando T-400 e T-401 estiverem prontas:** montar a página com
 `FormularioCheckout`, `ResumoDoPedido`, `SeletorDePagamento` e `CaixaPix`, que
 já existem, e ligar o envio ao caso de uso de criação do pedido.
+
+**A T-510 (ponta a ponta do fechamento) espera a mesma coisa.** Um teste de
+navegador precisa de uma página para abrir. Os 24 critérios da feature de
+fechamento estão provados por teste de unidade, de tela e de integração contra
+PostgreSQL; o que a ponta a ponta acrescenta é a costura entre eles, e ela só
+existe depois das rotas. A feature fica com 24 de 24 critérios e 10 de 11
+tarefas até lá — e é assim que deve aparecer no acompanhamento, sem arredondar
+para "pronta".
