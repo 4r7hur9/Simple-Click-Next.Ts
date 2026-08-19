@@ -123,6 +123,60 @@
   --quebra-tablet-largo: 1024px; /* iPad Pro retrato, Nest Hub */
   --quebra-desktop: 1280px; /* Nest Hub Max, notebook */
   --quebra-desktop-largo: 1536px; /* monitor */
+
+  /*
+   * --- pontos de quebra por ALTURA ---
+   *
+   * Largura sozinha não descreve uma tela. Um iPad em retrato e um Nest Hub têm
+   * a mesma largura de 1024px e alturas de 1366 e 600 — a mesma regra serve mal
+   * aos dois. E numa TV em pé, ou num dobrável aberto na vertical, uma seção de
+   * altura cheia vira um bloco de dois mil pixels com vazio no meio.
+   *
+   * A resposta é mostrar MAIS DE UMA seção por vez conforme a tela cresce em
+   * altura, em vez de esticar uma só. A escada abaixo é o que decide quantas.
+   */
+  --quebra-altura-baixa: 600px; /* Nest Hub, celular deitado */
+  --quebra-altura-media: 840px; /* Galaxy Z Fold aberto em pé, iPad Mini */
+  --quebra-altura-alta: 1100px; /* iPad Air em pé */
+  --quebra-altura-muito-alta: 1700px; /* TV em pé, monitor vertical */
+
+  /*
+   * --- quantas seções cabem ---
+   *
+   * `svh` e não `vh`: no celular, `vh` conta a tela COM a barra de endereço
+   * escondida, então a seção nasce mais alta que o espaço visível e o rodapé
+   * dela fica cortado até a pessoa rolar. `svh` mede o menor estado, que é o
+   * que ela vê enquanto a barra está lá.
+   */
+  --secoes-visiveis: 1;
+  --altura-da-secao: calc(100svh / var(--secoes-visiveis));
+}
+
+/* Tela alta: duas seções por vez, em vez de uma esticada. */
+@media (min-height: 1100px) {
+  :root {
+    --secoes-visiveis: 2;
+  }
+}
+
+/* TV em pé e monitor vertical: três, pelo mesmo motivo. */
+@media (min-height: 1700px) {
+  :root {
+    --secoes-visiveis: 3;
+  }
+}
+
+/*
+ * Tela BAIXA e deitada — celular na horizontal, Nest Hub. Aqui o problema é o
+ * oposto: a seção de altura cheia não tem espaço para o texto respirar. Ela
+ * deixa de ser altura fixa e passa a ser altura mínima, crescendo com o
+ * conteúdo em vez de espremê-lo.
+ */
+@media (max-height: 600px) {
+  :root {
+    --altura-da-secao: auto;
+    --altura-minima-da-secao: 100svh;
+  }
 }
 
 /*

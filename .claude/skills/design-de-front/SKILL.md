@@ -83,6 +83,36 @@ P-012 chama de "menor breakpoint suportado".
 | `desktop`        | 1280px      | Nest Hub Max, notebook       |
 | `desktop-largo`  | 1536px      | monitor                      |
 
+### Altura também é ponto de quebra
+
+Largura sozinha não descreve uma tela. Um iPad em retrato e um Nest Hub têm a
+mesma largura de 1024px e alturas de 1366 e 600 — a mesma regra serve mal aos
+dois.
+
+| Nome                | A partir de | Aparelho que manda           |
+| ------------------- | ----------- | ---------------------------- |
+| `altura-baixa`      | 600px       | Nest Hub, celular deitado    |
+| `altura-media`      | 840px       | Fold aberto em pé, iPad Mini |
+| `altura-alta`       | 1100px      | iPad Air em pé               |
+| `altura-muito-alta` | 1700px      | TV em pé, monitor vertical   |
+
+**Tela alta mostra MAIS seções, não uma esticada.** A partir de 1100px cabem
+duas; de 1700px, três. `--altura-da-secao` já faz a divisão:
+
+```css
+.secao {
+  block-size: var(--altura-da-secao);
+}
+```
+
+A medida é `svh` e não `vh`. No celular, `vh` conta a tela COM a barra de
+endereço escondida: a seção nasce mais alta que o espaço visível e o rodapé fica
+cortado até a pessoa rolar.
+
+**Tela baixa e deitada tem o problema oposto.** Abaixo de 600px de altura a
+seção deixa de ter altura fixa e passa a ter altura MÍNIMA, crescendo com o
+conteúdo em vez de espremê-lo.
+
 **Escreva de baixo para cima.** O estilo base atende o dobrável fechado, e cada
 `min-width` acrescenta. O contrário obriga a desfazer regra em cada quebra, e é
 onde nasce o estouro horizontal que o portão reprova.
@@ -126,9 +156,58 @@ recursos e o caminho alternativo para quem não tem WebGL estão em
 O que nunca muda: **o mundo 3D é decoração para o leitor de tela**
 (`aria-hidden="true"`), e a página precisa contar a mesma história sem ele.
 
+## Telas compridas
+
+Duas seções visíveis ao mesmo tempo mudam a narrativa, e não só o tamanho. Quem
+não ajustar mais nada acaba com uma história que se conta sozinha antes de a
+pessoa chegar nela.
+
+**A âncora passa a ser a vaga, não a janela.** Com uma seção por tela,
+`start: "top 80%"` significa "quando esta seção vai entrar". Com duas, a segunda
+já está na tela desde o começo — e dispara junto com a primeira. Tudo anima de
+uma vez, e o efeito de revelação some.
+
+```ts
+// Uma seção por tela: a janela é a vaga.
+start: "top 80%";
+
+// Duas por tela: a vaga é metade da janela.
+start: () => `top ${80 / secoesVisiveis()}%`;
+```
+
+**Grude uma, deixe a outra andar.** Numa tela comprida, prender as duas ao mesmo
+tempo desperdiça a altura que a tela tem de sobra. O padrão que funciona é o de
+página dupla: a de cima fica parada com o argumento, a de baixo passa com os
+exemplos.
+
+**Não cresça o tipo com a tela.** É a tentação óbvia e o erro mais comum. A
+medida confortável de leitura continua sendo cerca de 65 caracteres por linha,
+numa TV de 2 metros ou num tablet. Altura sobrando vira mais respiro e mais
+conteúdo — nunca letra maior.
+
+**Ponha um teto no bloco de conteúdo.** Numa vertical de 4K, metade da tela ainda
+são 2160px. Um cartão esticado até lá não fica imponente, fica quebrado.
+
+```css
+.secao__conteudo {
+  max-block-size: 900px;
+  margin-block: auto; /* centra na vaga, com o respiro sobrando nas pontas */
+}
+```
+
+**TV em pé na loja não é tela comprida: é outro produto.** Se a intenção for o
+cardápio na parede da lanchonete, ninguém está rolando — a tela avança sozinha,
+fica ligada o dia inteiro e é vista de três metros de distância. Isso é modo de
+apresentação, com avanço por tempo e corpo de texto grande, e não um ponto de
+quebra da vitrine. Vale construir; não vale confundir com este documento.
+
+Medir em três alturas cobre o assunto: **1366px** (iPad Pro em pé), **1920px**
+(TV vertical em Full HD) e **2560px** (monitor vertical grande).
+
 ## Antes de dar por pronta
 
 - [ ] Roda em 344px sem estouro horizontal
+- [ ] Roda em 1366px e 1920px de altura sem seção esticada nem vazio no meio
 - [ ] `prefers-reduced-motion` entrega o estado final, não a ausência
 - [ ] O conteúdo está legível com script desligado
 - [ ] Nenhum `ScrollTrigger` sem `trigger` visível
