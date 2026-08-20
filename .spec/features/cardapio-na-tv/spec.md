@@ -71,6 +71,12 @@ que quem está na fila decida o pedido antes de chegar no balcão.
 - **Quando** a exibição avança
 - **Então** aquele produto não aparece, porque cardápio de parede não tem como ser corrigido a caneta e mostrar o que acabou gera pedido que a cozinha vai recusar
 
+#### AC-931 — A tela leva o cardápio para o celular de quem está na fila
+
+- **Dado** a exibição rodando na televisão da loja
+- **Quando** alguém na fila aponta a câmera do celular para a tela
+- **Então** um código legível por câmera leva à vitrine daquela loja, em tamanho que a câmera reconhece a três metros, presente em toda tela do rodízio e não só numa — porque quem decidiu pedir não vai esperar a televisão dar a volta
+
 ## Suposições
 
 - **ASM-030** — A televisão abre um navegador, por aparelho de TV, computador
@@ -91,5 +97,9 @@ que quem está na fila decida o pedido antes de chegar no balcão.
   categoria escolhida pelo dono — para a loja poder ter uma TV de lanches e
   outra de bebidas? _status: aberta_
 - **Q-036** — Entra código de leitura por câmera na tela, para a pessoa abrir o
-  cardápio no próprio celular e já pedir? É a ponte entre a parede e o pedido, e
-  muda o desenho da tela. _status: aberta_
+  cardápio no próprio celular e já pedir? _status: respondida em 19/08/2026 —
+  **sim**. Virou o AC-931. A consequência para o desenho está registrada ali: o
+  código fica em TODA tela do rodízio, e não só numa, porque quem decidiu pedir
+  não vai esperar a televisão dar a volta. E precisa ser reconhecível a três
+  metros, que é a distância da fila — o que o torna um elemento grande, e não um
+  selo de canto._

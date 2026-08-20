@@ -1,25 +1,25 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-19T19:19:26.368Z",
-  "gitRev": "e1a9657",
+  "timestamp": "2026-08-20T11:52:42.845Z",
+  "gitRev": "e283283",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 834,
+  "testsParsed": 842,
   "results": {
     "AC-400": {
       "status": "pass",
-      "testName": "a página da loja mostra o negócio (AC-400) @spec:AC-400 nome, ramo e boas-vindas chegam à vitrine @spec:AC-400 nome, ramo e boas-vindas chegam à vitrine",
+      "testName": "a rota entrega a vitrine (AC-400, AC-401) @spec:AC-400 a loja chega pelo apelido, com o que a vitrine mostra @spec:AC-400 a loja chega pelo apelido, com o que a vitrine mostra",
       "method": "vitest-json"
     },
     "AC-401": {
       "status": "pass",
-      "testName": "a vitrine diz se a loja está aberta agora (AC-401) @spec:AC-401 dentro do horário a loja aparece aberta @spec:AC-401 dentro do horário a loja aparece aberta",
+      "testName": "a rota entrega a vitrine (AC-400, AC-401) @spec:AC-401 a resposta diz se a loja está aberta agora, no fuso dela @spec:AC-401 a resposta diz se a loja está aberta agora, no fuso dela",
       "method": "vitest-json"
     },
     "AC-402": {
       "status": "pass",
-      "testName": "loja suspensa e inexistente respondem igual (AC-402) @spec:AC-402 endereço que nunca existiu diz apenas que a loja não está disponível @spec:AC-402 endereço que nunca existiu diz apenas que a loja não está disponível",
+      "testName": "inexistente e suspensa respondem igual (AC-402) @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico",
       "method": "vitest-json"
     }
   },
@@ -38,7 +38,7 @@
     },
     "P-009": {
       "status": "pass",
-      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco"
+      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
     "P-011": {
       "status": "pass",

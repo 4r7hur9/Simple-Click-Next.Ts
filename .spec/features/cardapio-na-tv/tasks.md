@@ -23,6 +23,13 @@
 - Notas: a televisão fica ligada o dia inteiro, então a atualização não pode depender de recarregar a página. Queda de internet mantém o último cardápio recebido, e não tela de erro.
 - Esforço: alto
 
+## T-954 — Ponte da parede para o celular [pendente]
+
+- Refs: US-908, AC-931
+- Arquivos: apps/web/src/features/tv/CodigoParaOCelular.tsx, apps/web/src/features/tv/codigo.ts, apps/web/src/features/tv/codigo.test.ts
+- Notas: o código aparece em TODA tela do rodízio, e não só numa — quem decidiu pedir não espera a televisão dar a volta. Tamanho pensado para leitura a três metros, o que faz dele elemento grande e não selo de canto. O endereço leva à vitrine daquela loja, e carrega de onde a pessoa veio para o dono saber que a TV converteu.
+- Esforço: medio
+
 ## T-953 — Teste de ponta a ponta da exibição [pendente]
 
 - Refs: US-908, AC-925, AC-929

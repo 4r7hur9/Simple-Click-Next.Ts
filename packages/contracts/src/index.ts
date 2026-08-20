@@ -42,3 +42,13 @@ export {
   ETIQUETAS_DO_CONTRATO,
   ROTAS_DO_CONTRATO,
 } from "./rotas.ts";
+
+export {
+  esquemaDaVitrine,
+  esquemaDeAbertura,
+  esquemaDeEnderecoDaLoja,
+  esquemaDeLojaPublica,
+  esquemaDoApelido,
+  rotaDaVitrine,
+} from "./vitrine.ts";
+export type { LojaPublicaNoContrato, Vitrine } from "./vitrine.ts";

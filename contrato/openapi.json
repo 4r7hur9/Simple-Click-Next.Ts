@@ -19,6 +19,10 @@
     {
       "name": "saude",
       "description": "Sinais de vida e prontidão da API"
+    },
+    {
+      "name": "vitrine",
+      "description": "O que o público vê de uma loja. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna."
     }
   ],
   "paths": {
@@ -53,10 +57,183 @@
           }
         }
       }
+    },
+    "/v1/vitrine/{apelido}": {
+      "get": {
+        "operationId": "get_v1_vitrine_por_apelido",
+        "summary": "A loja como o público a vê",
+        "tags": [
+          "vitrine"
+        ],
+        "description": "Devolve o que a vitrine mostra de uma loja: nome, apresentação, cores, endereço para retirada e se ela está aberta agora, no fuso dela. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna. Loja inexistente e loja suspensa respondem igual.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Vitrine"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada recusada pelo contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Abertura": {
+        "type": "object",
+        "properties": {
+          "aberta": {
+            "type": "boolean"
+          },
+          "proximaAbertura": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "motivo": {
+            "type": "string",
+            "enum": [
+              "ABERTA",
+              "FORA_DO_HORARIO",
+              "PAUSA",
+              "ENCERRADA",
+              "EXCECAO"
+            ]
+          },
+          "explicacaoDaExcecao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "aberta",
+          "proximaAbertura",
+          "motivo"
+        ],
+        "additionalProperties": false
+      },
+      "EnderecoDaLoja": {
+        "type": "object",
+        "properties": {
+          "logradouro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "numero": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complemento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bairro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cidade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "uf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logradouro",
+          "numero",
+          "complemento",
+          "bairro",
+          "cidade",
+          "uf"
+        ],
+        "additionalProperties": false
+      },
       "Erro": {
         "type": "object",
         "properties": {
@@ -94,6 +271,405 @@
         "required": [
           "servico",
           "status"
+        ],
+        "additionalProperties": false
+      },
+      "LojaPublica": {
+        "type": "object",
+        "properties": {
+          "apelido": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "ramo": {
+            "type": "string"
+          },
+          "fusoHorario": {
+            "type": "string"
+          },
+          "moeda": {
+            "type": "string"
+          },
+          "formasDeEntrega": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "boasVindas": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cores": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enderecoParaRetirada": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "logradouro": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "numero": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "complemento": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "bairro": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "cidade": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "uf": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "logradouro",
+                  "numero",
+                  "complemento",
+                  "bairro",
+                  "cidade",
+                  "uf"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "apelido",
+          "nome",
+          "ramo",
+          "fusoHorario",
+          "moeda",
+          "formasDeEntrega",
+          "boasVindas",
+          "logo",
+          "capa",
+          "cores",
+          "enderecoParaRetirada"
+        ],
+        "additionalProperties": false
+      },
+      "Vitrine": {
+        "type": "object",
+        "properties": {
+          "loja": {
+            "type": "object",
+            "properties": {
+              "apelido": {
+                "type": "string"
+              },
+              "nome": {
+                "type": "string"
+              },
+              "ramo": {
+                "type": "string"
+              },
+              "fusoHorario": {
+                "type": "string"
+              },
+              "moeda": {
+                "type": "string"
+              },
+              "formasDeEntrega": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "boasVindas": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "logo": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "capa": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "cores": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "enderecoParaRetirada": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "logradouro": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "numero": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "complemento": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "bairro": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "cidade": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "uf": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "logradouro",
+                      "numero",
+                      "complemento",
+                      "bairro",
+                      "cidade",
+                      "uf"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "apelido",
+              "nome",
+              "ramo",
+              "fusoHorario",
+              "moeda",
+              "formasDeEntrega",
+              "boasVindas",
+              "logo",
+              "capa",
+              "cores",
+              "enderecoParaRetirada"
+            ],
+            "additionalProperties": false
+          },
+          "abertura": {
+            "type": "object",
+            "properties": {
+              "aberta": {
+                "type": "boolean"
+              },
+              "proximaAbertura": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "motivo": {
+                "type": "string",
+                "enum": [
+                  "ABERTA",
+                  "FORA_DO_HORARIO",
+                  "PAUSA",
+                  "ENCERRADA",
+                  "EXCECAO"
+                ]
+              },
+              "explicacaoDaExcecao": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "aberta",
+              "proximaAbertura",
+              "motivo"
+            ],
+            "additionalProperties": false
+          },
+          "redirecionarPara": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "loja",
+          "abertura",
+          "redirecionarPara"
         ],
         "additionalProperties": false
       }

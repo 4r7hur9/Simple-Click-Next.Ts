@@ -70,10 +70,17 @@ describe("documento de contrato publicado", () => {
     const esquemas = componentes["schemas"] as ObjetoJson;
 
     expect(documento["openapi"]).toMatch(/^3\.1\./);
-    expect(Object.keys(caminhos)).toEqual(["/"]);
+    // As duas listas são INVENTÁRIO, e mudam por decisão: rota ou esquema novo
+    // no documento é promessa nova ao aplicativo nativo, e passar por aqui é o
+    // momento em que alguém confere que a promessa é intencional.
+    expect(Object.keys(caminhos)).toEqual(["/", "/v1/vitrine/{apelido}"]);
     expect(Object.keys(esquemas).sort()).toEqual([
+      "Abertura",
+      "EnderecoDaLoja",
       "Erro",
       "IdentificacaoDaApi",
+      "LojaPublica",
+      "Vitrine",
     ]);
     // Toda rota descreve o erro pela mesma referência: cliente nativo gera um
     // tipo de erro, não um por rota.

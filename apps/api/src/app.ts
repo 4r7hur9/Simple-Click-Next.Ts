@@ -4,6 +4,12 @@ import { corsDeOrigensFechadas, origensDoAmbiente } from "./core/cors.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
+import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
+import {
+  criarRotasDaVitrine,
+  PREFIXO_DA_VITRINE,
+  type OpcoesDaVitrine,
+} from "./modules/storefront/vitrine.routes.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -23,6 +29,11 @@ export interface OpcoesDoApp {
    * de abrir todas.
    */
   readonly origens?: readonly string[];
+  /**
+   * Como a vitrine alcança o banco e que horas são. Trocável para a prova
+   * exercitar a rota sem subir servidor e sem depender do relógio da máquina.
+   */
+  readonly vitrine?: Partial<OpcoesDaVitrine>;
 }
 
 /**
@@ -61,6 +72,18 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
   app.use(PREFIXO_DE_SAUDE, criarRotasDeSaude());
+
+  // A vitrine é pública por natureza: é o endereço que o cliente abre antes de
+  // existir sessão, conta ou loja no contexto. Ela mesma descobre qual loja
+  // atende aquele apelido.
+  // A COMPOSIÇÃO ACONTECE AQUI, e não dentro do módulo: ler o horário é do
+  // módulo da loja, montar a vitrine é do módulo da vitrine, e a tabela de
+  // fronteiras não deixa um importar o outro. `app.ts` não pertence a camada
+  // nenhuma justamente por ser a borda — é o único lugar que enxerga os dois.
+  app.use(
+    PREFIXO_DA_VITRINE,
+    criarRotasDaVitrine({ lerHorario: horarioDaLoja, ...opcoes.vitrine }),
+  );
 
   app.get("/", (_req, res) => {
     res.json(IDENTIFICACAO_DA_API);

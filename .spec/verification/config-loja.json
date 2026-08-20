@@ -1,15 +1,15 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-19T19:17:45.212Z",
-  "gitRev": "e1a9657",
+  "timestamp": "2026-08-20T11:50:56.069Z",
+  "gitRev": "e283283",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 834,
+  "testsParsed": 842,
   "results": {
     "AC-904": {
       "status": "pass",
-      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco",
+      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo",
       "method": "vitest-json"
     },
     "AC-906": {
@@ -68,7 +68,7 @@
     },
     "P-009": {
       "status": "pass",
-      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco"
+      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
     "P-011": {
       "status": "pass",

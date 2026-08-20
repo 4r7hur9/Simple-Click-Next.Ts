@@ -10,9 +10,17 @@ import type { z } from "zod";
 import { esquemaDeErro } from "./erro.ts";
 import { montarCatalogo, type RotaDoContrato } from "./rota.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
+import {
+  esquemaDaVitrine,
+  esquemaDeAbertura,
+  esquemaDeEnderecoDaLoja,
+  esquemaDeLojaPublica,
+  rotaDaVitrine,
+} from "./vitrine.ts";
 
 export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeIdentificacao,
+  rotaDaVitrine,
 ]);
 
 /**
@@ -26,6 +34,10 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
   Object.freeze({
     Erro: esquemaDeErro,
     IdentificacaoDaApi: esquemaDeIdentificacaoDaApi,
+    Vitrine: esquemaDaVitrine,
+    LojaPublica: esquemaDeLojaPublica,
+    Abertura: esquemaDeAbertura,
+    EnderecoDaLoja: esquemaDeEnderecoDaLoja,
   });
 
 /**
@@ -41,4 +53,6 @@ export const ERROS_DE_TODA_ROTA: readonly number[] = Object.freeze([404]);
 export const ETIQUETAS_DO_CONTRATO: Readonly<Record<string, string>> =
   Object.freeze({
     saude: "Sinais de vida e prontidão da API",
+    vitrine:
+      "O que o público vê de uma loja. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna.",
   });
