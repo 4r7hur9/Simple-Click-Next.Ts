@@ -17,13 +17,15 @@
  * colorida: sem ele, a landing chegaria cinza e ganharia cor só depois que o
  * script rodasse — e quem tem script bloqueado nunca a veria.
  *
- * A reserva é a PRIMEIRA COR DA PALETA da loja, e não a cor do sistema. Duas
- * razões: é a que já vem marcada na prévia, então a página não muda de cor no
- * primeiro toque de quem não trocou nada; e ela é quente, o que serve melhor a
- * um produto de comida e comércio de rua do que o azul institucional.
+ * A reserva é a COR INICIAL DA LANDING declarada em `tokens.ts`, e não a cor do
+ * sistema: é a mesma que a prévia já traz marcada, então a página não muda de
+ * cor sozinha no primeiro quadro depois que o script roda.
+ *
+ * O valor está escrito aqui porque o CSS não lê TypeScript. Se aquele mudar,
+ * este muda junto — o comentário ao lado do valor é o que amarra os dois.
  */
 .sc-lp {
-  --cor-da-landing: #b3261e; /* Brasa, a primeira de `PALETA_DE_LOJA` */
+  --cor-da-landing: #0f6e5c; /* Mata — espelha `COR_INICIAL_DA_LANDING` */
 
   /*
    * A COR DO SISTEMA NÃO ENTRA AQUI. A landing tinha azul em botão, marcador,
@@ -1019,24 +1021,41 @@
 }
 
 /*
- * O desenho herda a cor da landing, que é a que a pessoa escolheu. Foto ficaria
- * presa na cor de quem a tirou; traço acompanha.
+ * O DESENHO É DA COR DA TINTA, e não da cor escolhida.
+ *
+ * Ele herdava a cor da landing, e enquanto ela era vermelha isso funcionava. Com
+ * a landing verde, o traço verde sobre o fundo escuro — que também puxa para o
+ * verde — ficou tão perto do fundo que a figura sumia: uma foto de teste mostrou
+ * os papéis quase invisíveis.
+ *
+ * Tinta resolve nos dois temas de uma vez, e sem escolher lado nenhum: é branca
+ * no escuro e quase preta no claro, sempre no contraste máximo contra o fundo
+ * que estiver atrás. A opacidade é o que a mantém decoração — ela não pode
+ * competir com o texto, que é da mesma cor.
+ *
+ * Traço e não foto continua valendo: foto ficaria presa na cor de quem a tirou.
  */
 .sc-lp__desenho {
   inline-size: 100%;
   max-inline-size: 24rem;
   block-size: auto;
-  color: var(--cor-da-landing);
+  color: var(--cor-tinta);
+  opacity: 0.5;
 }
 
 /* --- os pontos ganham marca de verificado -------------------------------
  *
- * A MARCA É VERDE, e não da cor da marca como o resto da página.
+ * A MARCA É VERDE EM TODAS AS LISTAS, inclusive na de problemas.
  *
- * Ela acompanhava `--cor-da-landing`, e com o tema vermelho o resultado era uma
- * lista de vantagens com dez sinais vermelhos: a forma dizia "confere" e a cor
- * dizia "erro". A cor vence essa disputa — vermelho é recusa em qualquer lugar,
- * e ninguém lê o desenho do risquinho antes de reagir à cor dele.
+ * Ela acompanhava `--cor-da-landing`, e com o tema vermelho a página ficava com
+ * dez sinais vermelhos ao lado de vantagens: a forma dizia "confere" e a cor
+ * dizia "erro". A cor vence essa disputa — ninguém lê o desenho do risquinho
+ * antes de reagir à cor dele.
+ *
+ * A lista do primeiro capítulo chegou a ter marca própria, em vermelho, para
+ * não dizer "aprovado" ao lado de "pedido anotado errado". Foi revertido: o
+ * dono do produto pediu verde em todas, e ali a marca lê como item conferido de
+ * uma lista do que dói hoje — que é o que ela é.
  *
  * É o mesmo verde de aprovação que o produto usa no resto do sistema, e por
  * isso ele muda junto com o tema sem nenhuma regra extra aqui.
@@ -1064,31 +1083,6 @@
   border-inline-start: 2px solid var(--cor-sucesso);
   border-block-end: 2px solid var(--cor-sucesso);
   transform: rotate(-45deg);
-}
-
-/*
- * A LISTA DE PROBLEMAS NÃO LEVA MARCA DE APROVADO.
- *
- * Ela levava, e a página ficava com um "confere" verde ao lado de "pedido
- * anotado errado que vira reclamação na entrega" — a forma dizia uma coisa e a
- * frase dizia outra. A cor chega antes da leitura: ninguém confere o desenho do
- * risquinho antes de reagir a ela.
- *
- * Aqui a marca é um traço, na cor da marca. Não é um "x" de erro, que soaria
- * como recusa do produto; é o sinal de item de uma lista do que dói hoje.
- */
-.sc-lp__pontos--problema li::before {
-  background: color-mix(in oklab, var(--cor-da-landing) 16%, transparent);
-}
-
-.sc-lp__pontos--problema li::after {
-  inset-inline-start: 0.28rem;
-  inset-block-start: 0.72em;
-  inline-size: 0.45rem;
-  block-size: 0;
-  border-inline-start: none;
-  border-block-end: 2px solid var(--cor-da-landing);
-  transform: none;
 }
 
 .sc-lp__pontos li {

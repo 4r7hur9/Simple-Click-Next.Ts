@@ -176,6 +176,20 @@ export interface CorDeLoja {
  * tela de configuração do dono leem a mesma lista — duas cópias ofereceriam
  * cores diferentes no mesmo produto.
  */
+/**
+ * A cor com que a landing NASCE, antes de a pessoa escolher outra.
+ *
+ * É a "Mata" da paleta abaixo, e não a primeira da lista. A landing já nasceu em
+ * azul de sistema e depois em Brasa; ficou verde porque é a cor com que a página
+ * quer ser lida — a mesma da marca de aprovado das listas e do gráfico que sobe.
+ *
+ * Sai daqui, e não de um valor escrito na folha de estilo, porque duas partes
+ * precisam concordar sobre ela: o CSS, que pinta a página antes de qualquer
+ * script, e a prévia, que precisa nascer com esta opção já marcada. Escritas
+ * separadas divergem no primeiro dia em que alguém mudar uma delas.
+ */
+export const COR_INICIAL_DA_LANDING = "#0f6e5c";
+
 export const PALETA_DE_LOJA: readonly CorDeLoja[] = Object.freeze([
   { nome: "Brasa", valor: "#b3261e" },
   { nome: "Laranja", valor: "#b3541e" },

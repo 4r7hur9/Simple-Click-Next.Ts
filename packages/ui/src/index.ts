@@ -74,5 +74,5 @@ export {
   TINTAS_EXTREMAS,
 } from "./tokens";
 export type { NomeDoTema, PaletaDeCores } from "./tokens";
-export { PALETA_DE_LOJA } from "./tokens";
+export { COR_INICIAL_DA_LANDING, PALETA_DE_LOJA } from "./tokens";
 export type { CorDeLoja } from "./tokens";

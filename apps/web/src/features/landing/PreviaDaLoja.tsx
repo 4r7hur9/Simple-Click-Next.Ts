@@ -19,7 +19,11 @@
  * divergiria da real no dia em que uma das duas mudasse.
  */
 import { useEffect, useId, useState } from "react";
-import { PALETA_DE_LOJA, TemaDaLoja } from "@simpleclick/ui";
+import {
+  COR_INICIAL_DA_LANDING,
+  PALETA_DE_LOJA,
+  TemaDaLoja,
+} from "@simpleclick/ui";
 
 import { anunciarCor } from "../../lib/cor-da-landing.ts";
 import { iniciaisDe } from "../../lib/iniciais.ts";
@@ -53,7 +57,10 @@ const NOME_PADRAO = "Sua Loja";
 export function PreviaDaLoja({ itens, total, mensagem }: PreviaDaLojaProps) {
   const campo = useId();
   const [nome, setNome] = useState("");
-  const [cor, setCor] = useState<string>(CORES[0]?.valor ?? "");
+  // NASCE NA COR DA LANDING, e não na primeira da paleta. As duas precisam
+  // concordar: a página já chega pintada do servidor, e um padrão diferente aqui
+  // faria a página trocar de cor sozinha no primeiro quadro depois do script.
+  const [cor, setCor] = useState<string>(COR_INICIAL_DA_LANDING);
 
   const nomeExibido = nome.trim() === "" ? NOME_PADRAO : nome.trim();
 

@@ -28,15 +28,6 @@ interface Capitulo {
   readonly texto: string;
   /** O que a pessoa ganha, em três frases curtas. */
   readonly pontos?: readonly string[];
-  /**
-   * Que marca a lista leva.
-   *
-   * NÃO É DETALHE VISUAL. O primeiro capítulo lista PROBLEMAS, e a marca de
-   * aprovado verde ao lado de "pedido anotado errado" diz o contrário do que a
-   * frase diz — a cor chega antes da leitura, e ninguém confere o desenho do
-   * risquinho antes de reagir a ela.
-   */
-  readonly marca: "problema" | "ganho";
   /** O que o botão deste capítulo diz, quando não é a frase padrão. */
   readonly chamada?: string;
 }
@@ -44,7 +35,6 @@ interface Capitulo {
 const CAPITULOS: readonly Capitulo[] = [
   {
     id: "problema",
-    marca: "problema",
     sobrancelha: "O dia a dia hoje",
     titulo: "Pedido no papel, preço no grito",
     texto:
@@ -57,7 +47,6 @@ const CAPITULOS: readonly Capitulo[] = [
   },
   {
     id: "produto",
-    marca: "ganho",
     sobrancelha: "Com o SimpleClick",
     // NÃO PODE REPETIR O TÍTULO DE ABERTURA. Era "Seu cardápio online, seu
     // pedido organizado", quase a mesma frase do herói: a pessoa rolava três
@@ -75,7 +64,6 @@ const CAPITULOS: readonly Capitulo[] = [
   },
   {
     id: "controle",
-    marca: "ganho",
     sobrancelha: "No fim do dia",
     titulo: "Você sabe quanto entrou, e de quê",
     texto:
@@ -102,7 +90,6 @@ const CAPITULOS: readonly Capitulo[] = [
    */
   {
     id: "preco",
-    marca: "ganho",
     sobrancelha: "Quanto custa",
     titulo: "Nada, e sem asterisco",
     chamada: "Começar agora, de graça",
@@ -266,9 +253,7 @@ export function HistoriaDaLanding({
                 <p className="sc-lp__texto">{capitulo.texto}</p>
 
                 {capitulo.pontos ? (
-                  <ul
-                    className={`sc-lp__pontos sc-lp__pontos--${capitulo.marca}`}
-                  >
+                  <ul className="sc-lp__pontos">
                     {capitulo.pontos.map((ponto) => (
                       <li key={ponto}>{ponto}</li>
                     ))}
