@@ -273,6 +273,8 @@
  */
 .sc-loja__nome {
   margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
   font-size: clamp(1.75rem, 7vw, 2.75rem);
   line-height: 1.05;
   letter-spacing: -0.03em;

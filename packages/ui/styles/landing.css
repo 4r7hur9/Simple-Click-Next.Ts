@@ -144,6 +144,8 @@
 
 .sc-lp__titulo-maior {
   margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
   font-size: clamp(2rem, 7vw, 3.5rem);
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -152,6 +154,8 @@
 
 .sc-lp__titulo {
   margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 650;
   font-size: clamp(1.625rem, 5.5vw, 2.5rem);
   line-height: 1.1;
   letter-spacing: -0.025em;
@@ -761,4 +765,93 @@
 .sc-lp__demo {
   background: var(--cor-superficie);
   border-block: 1px solid var(--cor-borda);
+}
+
+/* =========================================================================
+ * OS CAPÍTULOS, EM DUAS COLUNAS
+ *
+ * Quatro blocos com o mesmo desenho e o mesmo alinhamento leem como formulário,
+ * e a pessoa para de olhar no terceiro — o olho aprende o padrão e pula. A
+ * alternância quebra isso sem inventar um layout novo por seção.
+ * ========================================================================= */
+
+.sc-lp__conteudo--dois {
+  max-inline-size: 62rem;
+  display: grid;
+  gap: var(--espaco-6);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .sc-lp__conteudo--dois {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--espaco-7);
+  }
+
+  /*
+   * No capítulo invertido o desenho vem primeiro na TELA e continua depois na
+   * LEITURA: quem ouve a página recebe o texto antes da decoração, que é a
+   * ordem que importa. Trocar a ordem no documento inverteria as duas.
+   */
+  .sc-lp__capitulo--invertido .sc-lp__coluna {
+    order: 2;
+  }
+
+  .sc-lp__capitulo--invertido .sc-lp__figura {
+    order: 1;
+  }
+}
+
+.sc-lp__coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+}
+
+.sc-lp__figura {
+  display: grid;
+  place-items: center;
+  min-inline-size: 0;
+}
+
+/*
+ * O desenho herda a cor da landing, que é a que a pessoa escolheu. Foto ficaria
+ * presa na cor de quem a tirou; traço acompanha.
+ */
+.sc-lp__desenho {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+  block-size: auto;
+  color: var(--cor-da-landing);
+}
+
+/* --- os pontos ganham marca de verificado ------------------------------- */
+
+.sc-lp__pontos li::before {
+  /* Um ponto redondo é ruído; uma marca diz "isto você ganha". */
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.3em;
+  inline-size: 1rem;
+  block-size: 1rem;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--cor-da-landing) 18%, transparent);
+}
+
+.sc-lp__pontos li::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.3rem;
+  inset-block-start: 0.62em;
+  inline-size: 0.35rem;
+  block-size: 0.2rem;
+  border-inline-start: 2px solid var(--cor-da-landing);
+  border-block-end: 2px solid var(--cor-da-landing);
+  transform: rotate(-45deg);
+}
+
+.sc-lp__pontos li {
+  padding-inline-start: var(--espaco-6);
 }

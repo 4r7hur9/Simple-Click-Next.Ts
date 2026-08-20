@@ -72,9 +72,20 @@
   --espaco-8: 4rem;
 
   /* --- tipografia --- */
+  /*
+   * As duas famílias da marca, com a pilha de sistema atrás.
+   *
+   * A reserva não é enfeite: enquanto a definitiva não chega — e para quem
+   * bloqueia recurso de terceiro, ou está numa rede que cortou —, é ela que
+   * desenha a página. Sem a pilha, o navegador cairia no Times New Roman e a
+   * tela inteira mudaria de peso e de altura de linha.
+   */
+  --fonte-titulo:
+    var(--fonte-titulo-da-marca), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --fonte-base:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    var(--fonte-corpo), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
   --fonte-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --texto-xs: 0.75rem;
   --texto-sm: 0.875rem;

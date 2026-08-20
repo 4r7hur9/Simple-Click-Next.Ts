@@ -18,6 +18,8 @@
 
 import type { ReactNode } from "react";
 
+import { DESENHOS } from "./desenhos.tsx";
+
 /** Uma seção da história, na ordem em que ela se conta. */
 interface Capitulo {
   readonly id: string;
@@ -177,39 +179,61 @@ export function HistoriaDaLanding({
         </section>
       ) : null}
 
-      {CAPITULOS.map((capitulo, indice) => (
-        <section
-          className="sc-lp__capitulo"
-          data-capitulo={capitulo.id}
-          key={capitulo.id}
-        >
-          <div className="sc-lp__conteudo">
-            <p className="sc-lp__sobrancelha">{capitulo.sobrancelha}</p>
-            <h2 className="sc-lp__titulo">{capitulo.titulo}</h2>
-            <p className="sc-lp__texto">{capitulo.texto}</p>
+      {CAPITULOS.map((capitulo, indice) => {
+        const Desenho = DESENHOS[capitulo.id];
+        // A COMPOSIÇÃO ALTERNA de capítulo para capítulo. Quatro blocos com o
+        // mesmo desenho e o mesmo alinhamento leem como formulário, e a pessoa
+        // para de olhar no terceiro — o olho aprende o padrão e pula.
+        const invertido = indice % 2 === 1;
 
-            {capitulo.pontos ? (
-              <ul className="sc-lp__pontos">
-                {capitulo.pontos.map((ponto) => (
-                  <li key={ponto}>{ponto}</li>
-                ))}
-              </ul>
-            ) : null}
+        return (
+          <section
+            className={`sc-lp__capitulo${invertido ? " sc-lp__capitulo--invertido" : ""}`}
+            data-capitulo={capitulo.id}
+            key={capitulo.id}
+          >
+            <div className="sc-lp__conteudo sc-lp__conteudo--dois">
+              <div className="sc-lp__coluna">
+                <p className="sc-lp__sobrancelha">{capitulo.sobrancelha}</p>
+                <h2 className="sc-lp__titulo">{capitulo.titulo}</h2>
+                <p className="sc-lp__texto">{capitulo.texto}</p>
 
-            {/*
-              Cada capítulo tem caminho para começar (AC-937). Quem se convenceu
-              no segundo não deve precisar rolar até o fim nem voltar ao topo —
-              a decisão acontece onde ela acontece.
-            */}
-            <p className="sc-lp__chamada">
-              <Comecar
-                href={linkParaComecar}
-                discreto={indice < CAPITULOS.length - 1}
-              />
-            </p>
-          </div>
-        </section>
-      ))}
+                {capitulo.pontos ? (
+                  <ul className="sc-lp__pontos">
+                    {capitulo.pontos.map((ponto) => (
+                      <li key={ponto}>{ponto}</li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {/*
+                  Cada capítulo tem caminho para começar (AC-937). Quem se
+                  convenceu no segundo não deve precisar rolar até o fim nem
+                  voltar ao topo — a decisão acontece onde ela acontece.
+                */}
+                <p className="sc-lp__chamada">
+                  <Comecar
+                    href={linkParaComecar}
+                    discreto={indice < CAPITULOS.length - 1}
+                  />
+                </p>
+              </div>
+
+              {/*
+                O desenho é decoração: a história é contada pelo texto, e por
+                isso ele some para quem ouve a página. Vetorial e não imagem —
+                acompanha a cor escolhida, e não pesa na rede de quem está no
+                celular.
+              */}
+              {Desenho ? (
+                <div className="sc-lp__figura">
+                  <Desenho className="sc-lp__desenho" />
+                </div>
+              ) : null}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

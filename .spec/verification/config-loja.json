@@ -1,10 +1,10 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-20T15:09:28.934Z",
-  "gitRev": "ab73a1d",
+  "timestamp": "2026-08-20T16:06:02.239Z",
+  "gitRev": "2c8c394",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 1,
+  "exitCode": 0,
   "testsParsed": 920,
   "results": {
     "AC-904": {
