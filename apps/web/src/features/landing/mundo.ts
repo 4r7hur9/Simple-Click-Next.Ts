@@ -1,56 +1,68 @@
 /**
- * O mundo em três dimensões da landing: rotas de entrega (AC-935).
+ * O mundo em três dimensões da landing: a receita virando (AC-935).
  *
- * O QUE ELE MOSTRA: a loja no centro, e entregas se abrindo para o bairro. As
- * rotas se desenham conforme a pessoa rola — e é isso que o produto faz com o
- * negócio de quem chega aqui: transforma um balcão numa loja que alcança gente.
+ * O QUE ELE MOSTRA: duas séries de barras. A vermelha cai — é o negócio que
+ * anota pedido no papel, perde o cliente que não achou o preço e fecha o mês sem
+ * saber quanto entrou. A verde sobe, e as barras dela ganham a marca no topo,
+ * ligadas por uma linha: é a trajetória depois que o cardápio está no ar.
  *
- * DUAS VERSÕES ANTERIORES FORAM DESCARTADAS, e o motivo é o mesmo. Primeiro
- * cubos: forma abstrata não fala com quem vende pastel. Depois comandas de
- * papel: coerentes com o negócio, mas em opacidade baixa e desfocadas por trás
- * do texto elas perdiam a proporção e liam como quadrados. Linha e ponto se
- * leem em qualquer opacidade — é a forma mais fina que ainda tem significado.
+ * É O RESULTADO, e não a metáfora do produto. Três versões anteriores foram
+ * descartadas por isso. Cubos: forma abstrata não fala com quem vende pastel.
+ * Comandas de papel: coerentes, mas em opacidade baixa perdiam a proporção e
+ * liam como quadrados. Rotas de entrega: melhores, e ainda assim explicavam o
+ * MEIO — o dono não quer rotas, quer faturamento. Barra é a forma que ele já lê
+ * no extrato do banco.
+ *
+ * AS CORES DAS SÉRIES SÃO SEMÂNTICAS, e não a da marca. Vermelho é perda e verde
+ * é ganho em qualquer lugar do mundo, e trocar isso pela cor escolhida faria a
+ * série "boa" ficar vermelha na loja que escolheu vermelho — dizendo o contrário
+ * do que a figura existe para dizer. Quem acompanha a cor da marca é o resto da
+ * página.
  *
  * O QUE ELE NÃO É: conteúdo. A página conta a história inteira sem ele, e na
- * maioria dos aparelhos ele nem é baixado — a decisão mora em `podeRodar3D.ts`
- * e acontece antes da importação. Quem chega pelo celular vê a luz de fundo, que
- * é de CSS e chega a todo mundo.
- *
- * ORÇAMENTO, do documento `mundo-3d.md` da skill: nada de textura, nada de
- * modelo externo. Duas chamadas de desenho no total — uma para os destinos, uma
- * para as rotas.
+ * maioria dos aparelhos ele nem é baixado — a decisão mora em `podeRodar3D.ts` e
+ * acontece antes da importação. Quem chega pelo celular vê a luz de fundo, que é
+ * de CSS e chega a todo mundo.
  */
 import * as THREE from "three";
 
-import { ouvirCor } from "../../lib/cor-da-landing.ts";
-
-/** Quantos destinos a loja alcança. */
-const DESTINOS = 22;
+/** Quantos meses o gráfico mostra. */
+const COLUNAS = 11;
 
 /** O teto de densidade de pixel. Acima de 2 a diferença não se percebe, e o
  * custo cresce ao quadrado: densidade 3 desenha nove vezes mais pixels que 1. */
 const DENSIDADE_MAXIMA = 2;
 
-/** Cor de reserva, até a pessoa escolher a dela. */
-const COR_DE_RESERVA = 0x1a4fd6;
+/** Perda e ganho. Os mesmos valores declarados que o resto do produto usa. */
+const COR_DA_QUEDA = 0xb3251c;
+const COR_DA_SUBIDA = 0x136c3a;
+
+const LARGURA_DA_BARRA = 0.46;
+const PASSO = 1.05;
 
 export type DesmontarMundo = () => void;
 
 /**
- * Onde cada destino fica.
+ * A altura de cada barra, de 0 a 1.
  *
- * Determinístico de propósito: o mesmo desenho a cada carregamento faz o fundo
- * ser composto, e não sorteado. O ângulo áureo distribui sem agrupar, que é o
- * que impede as rotas de virarem um leque.
+ * A queda e a subida NÃO são retas. Receita real oscila, e uma reta perfeita lê
+ * como gráfico de apresentação de vendas — que é justamente a coisa em que o
+ * dono de loja não acredita. A oscilação é determinística: o mesmo desenho a
+ * cada carregamento faz o fundo ser composto, e não sorteado.
  */
-function posicaoDoDestino(indice: number): THREE.Vector3 {
-  const angulo = indice * 2.39996;
-  const raio = 2.2 + (indice % 7) * 0.95;
-  return new THREE.Vector3(
-    Math.cos(angulo) * raio,
-    Math.sin(angulo) * raio * 0.62,
-    ((indice % 5) - 2) * 0.55,
-  );
+function alturaDaQueda(coluna: number): number {
+  const base = 1 - (coluna / (COLUNAS - 1)) * 0.72;
+  return Math.max(0.12, base + Math.sin(coluna * 1.7) * 0.07);
+}
+
+function alturaDaSubida(coluna: number): number {
+  const base = 0.14 + (coluna / (COLUNAS - 1)) * 0.82;
+  return Math.max(0.1, base + Math.sin(coluna * 2.3 + 1) * 0.06);
+}
+
+/** Onde a coluna fica no eixo horizontal, centrada no conjunto. */
+function posicaoDaColuna(coluna: number): number {
+  return (coluna - (COLUNAS - 1) / 2) * PASSO;
 }
 
 /**
@@ -64,12 +76,13 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   const cena = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera(
-    50,
+    46,
     elemento.clientWidth / Math.max(elemento.clientHeight, 1),
     0.1,
     100,
   );
-  camera.position.set(0, 0, 12);
+  camera.position.set(0, 1.2, 13);
+  camera.lookAt(0, 0.6, 0);
 
   const renderizador = new THREE.WebGLRenderer({
     antialias: true,
@@ -82,51 +95,78 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   renderizador.setSize(elemento.clientWidth, elemento.clientHeight);
   elemento.append(renderizador.domElement);
 
-  const centro = new THREE.Vector3(0, 0, 0);
-  const destinos = Array.from({ length: DESTINOS }, (_, i) =>
-    posicaoDoDestino(i),
+  // UMA geometria para todas as barras, e um conjunto instanciado por série.
+  // Uma malha por barra daria vinte e duas chamadas de desenho para o mesmo
+  // resultado — aqui são duas.
+  const geometriaDaBarra = new THREE.BoxGeometry(
+    LARGURA_DA_BARRA,
+    1,
+    LARGURA_DA_BARRA,
   );
 
-  // --- as rotas ---
-  //
-  // UM objeto de linhas para todas as rotas. Uma linha por rota daria vinte e
-  // duas chamadas de desenho para desenhar vinte e dois segmentos — o mesmo
-  // resultado, vinte e duas vezes mais caro.
-  const pontosDaRota = new Float32Array(DESTINOS * 2 * 3);
-  const geometriaDasRotas = new THREE.BufferGeometry();
-  geometriaDasRotas.setAttribute(
-    "position",
-    new THREE.BufferAttribute(pontosDaRota, 3),
-  );
-  const materialDasRotas = new THREE.LineBasicMaterial({
-    color: COR_DE_RESERVA,
+  const materialDaQueda = new THREE.MeshStandardMaterial({
+    color: COR_DA_QUEDA,
+    roughness: 0.75,
+    metalness: 0,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.75,
   });
-  const rotas = new THREE.LineSegments(geometriaDasRotas, materialDasRotas);
-  cena.add(rotas);
+  const materialDaSubida = new THREE.MeshStandardMaterial({
+    color: COR_DA_SUBIDA,
+    roughness: 0.7,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.88,
+  });
 
-  // --- os destinos ---
-  const pontosDosDestinos = new Float32Array(DESTINOS * 3);
-  const geometriaDosDestinos = new THREE.BufferGeometry();
-  geometriaDosDestinos.setAttribute(
-    "position",
-    new THREE.BufferAttribute(pontosDosDestinos, 3),
+  const queda = new THREE.InstancedMesh(
+    geometriaDaBarra,
+    materialDaQueda,
+    COLUNAS,
   );
-  const materialDosDestinos = new THREE.PointsMaterial({
-    color: COR_DE_RESERVA,
-    size: 0.16,
-    transparent: true,
-    opacity: 0.85,
-    // Sem atenuação por distância: os pontos do fundo somem, e a malha fica
-    // desequilibrada de um lado.
-    sizeAttenuation: true,
+  const subida = new THREE.InstancedMesh(
+    geometriaDaBarra,
+    materialDaSubida,
+    COLUNAS,
+  );
+  cena.add(queda, subida);
+
+  // Os NÓS no topo da série que sobe, e a linha que os liga: é a trajetória, e
+  // é ela que transforma barras soltas em "isto está indo para algum lugar".
+  // Esfera de poucos lados porque em opacidade baixa ninguém conta polígono —
+  // e ela precisa ser REDONDA, ao contrário do ponto solto do Three, que é
+  // desenhado como quadrado quando não recebe textura.
+  const geometriaDoNo = new THREE.SphereGeometry(0.13, 12, 8);
+  const materialDoNo = new THREE.MeshStandardMaterial({
+    color: COR_DA_SUBIDA,
+    roughness: 0.4,
+    metalness: 0,
   });
-  const marcas = new THREE.Points(geometriaDosDestinos, materialDosDestinos);
-  cena.add(marcas);
+  const nos = new THREE.InstancedMesh(geometriaDoNo, materialDoNo, COLUNAS);
+  cena.add(nos);
+
+  const pontosDaLinha = new Float32Array(COLUNAS * 3);
+  const geometriaDaLinha = new THREE.BufferGeometry();
+  geometriaDaLinha.setAttribute(
+    "position",
+    new THREE.BufferAttribute(pontosDaLinha, 3),
+  );
+  const materialDaLinha = new THREE.LineBasicMaterial({
+    color: COR_DA_SUBIDA,
+    transparent: true,
+    opacity: 0.6,
+  });
+  const trajetoria = new THREE.Line(geometriaDaLinha, materialDaLinha);
+  cena.add(trajetoria);
+
+  cena.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const luz = new THREE.DirectionalLight(0xffffff, 0.9);
+  luz.position.set(3, 8, 6);
+  cena.add(luz);
 
   /** Quanto da história já passou, de 0 a 1. */
   let progresso = 0;
+  let avancoDesenhado = 0;
 
   function aoRolar(): void {
     const rolavel = document.body.scrollHeight - window.innerHeight;
@@ -141,56 +181,62 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
     renderizador.setSize(largura, altura);
   }
 
-  // A COR SEGUE A ESCOLHA DA PESSOA. Sem isto, ela move a paleta e o fundo
-  // continua azul — como se a escolha não valesse nada.
-  const pararDeOuvirCor = ouvirCor((cor) => {
-    materialDasRotas.color.set(cor);
-    materialDosDestinos.color.set(cor);
-  });
+  const molde = new THREE.Object3D();
+  const ALTURA_MAXIMA = 4.2;
 
-  const ponta = new THREE.Vector3();
-  let avancoDesenhado = 0;
+  function posicionar(
+    conjunto: THREE.InstancedMesh,
+    coluna: number,
+    altura: number,
+    profundidade: number,
+  ): void {
+    molde.position.set(posicaoDaColuna(coluna), altura / 2, profundidade);
+    molde.scale.set(1, Math.max(altura, 0.001), 1);
+    molde.rotation.set(0, 0, 0);
+    molde.updateMatrix();
+    conjunto.setMatrixAt(coluna, molde.matrix);
+  }
 
   function desenhar(): void {
     // O avanço persegue o progresso da rolagem, em vez de saltar para ele: sem
-    // a perseguição, uma rolagem rápida faria as rotas piscarem de um extremo
-    // ao outro.
+    // a perseguição, uma rolagem rápida faria as barras piscarem.
     avancoDesenhado += (progresso - avancoDesenhado) * 0.06;
 
-    for (let i = 0; i < DESTINOS; i += 1) {
-      const destino = destinos[i];
-      if (destino === undefined) continue;
-
-      // Cada rota sai do centro e cresce até o destino. As de fora começam
-      // depois: a loja alcança o vizinho antes de alcançar o bairro.
-      const atrasoDaRota = (i / DESTINOS) * 0.45;
-      const avancoDaRota = Math.max(
+    for (let coluna = 0; coluna < COLUNAS; coluna += 1) {
+      // Cada coluna entra um pouco depois da anterior: o gráfico se desenha da
+      // esquerda para a direita, como quem lê. Todas crescendo juntas leriam
+      // como uma cortina subindo.
+      const atraso = (coluna / COLUNAS) * 0.5;
+      const avanco = Math.max(
         0,
-        Math.min((avancoDesenhado - atrasoDaRota) / (1 - atrasoDaRota), 1),
+        Math.min((avancoDesenhado - atraso) / (1 - atraso), 1),
       );
-      ponta.copy(centro).lerp(destino, avancoDaRota);
 
-      const rota = i * 6;
-      pontosDaRota[rota] = centro.x;
-      pontosDaRota[rota + 1] = centro.y;
-      pontosDaRota[rota + 2] = centro.z;
-      pontosDaRota[rota + 3] = ponta.x;
-      pontosDaRota[rota + 4] = ponta.y;
-      pontosDaRota[rota + 5] = ponta.z;
+      const alturaQueda = alturaDaQueda(coluna) * ALTURA_MAXIMA * avanco;
+      const alturaSubida = alturaDaSubida(coluna) * ALTURA_MAXIMA * avanco;
 
-      const marca = i * 3;
-      pontosDosDestinos[marca] = ponta.x;
-      pontosDosDestinos[marca + 1] = ponta.y;
-      pontosDosDestinos[marca + 2] = ponta.z;
+      posicionar(queda, coluna, alturaQueda, -0.7);
+      posicionar(subida, coluna, alturaSubida, 0.7);
+
+      molde.position.set(posicaoDaColuna(coluna), alturaSubida, 0.7);
+      molde.scale.setScalar(avanco);
+      molde.updateMatrix();
+      nos.setMatrixAt(coluna, molde.matrix);
+
+      const ponto = coluna * 3;
+      pontosDaLinha[ponto] = posicaoDaColuna(coluna);
+      pontosDaLinha[ponto + 1] = alturaSubida;
+      pontosDaLinha[ponto + 2] = 0.7;
     }
 
-    geometriaDasRotas.attributes["position"]!.needsUpdate = true;
-    geometriaDosDestinos.attributes["position"]!.needsUpdate = true;
+    queda.instanceMatrix.needsUpdate = true;
+    subida.instanceMatrix.needsUpdate = true;
+    nos.instanceMatrix.needsUpdate = true;
+    geometriaDaLinha.attributes["position"]!.needsUpdate = true;
 
-    // Um giro lento dá profundidade sem pedir atenção. Ele é o único movimento
+    // Um giro lento dá profundidade sem pedir atenção, e é o único movimento
     // que continua quando ninguém rola.
-    cena.rotation.y = Math.sin(avancoDesenhado * Math.PI) * 0.28;
-    cena.rotation.x = avancoDesenhado * 0.12;
+    cena.rotation.y = Math.sin(avancoDesenhado * Math.PI - 0.5) * 0.22;
 
     renderizador.render(cena, camera);
   }
@@ -213,14 +259,16 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   return () => {
     renderizador.setAnimationLoop(null);
     observador.disconnect();
-    pararDeOuvirCor();
     window.removeEventListener("scroll", aoRolar);
     window.removeEventListener("resize", aoRedimensionar);
 
-    geometriaDasRotas.dispose();
-    geometriaDosDestinos.dispose();
-    materialDasRotas.dispose();
-    materialDosDestinos.dispose();
+    geometriaDaBarra.dispose();
+    geometriaDoNo.dispose();
+    geometriaDaLinha.dispose();
+    materialDaQueda.dispose();
+    materialDaSubida.dispose();
+    materialDoNo.dispose();
+    materialDaLinha.dispose();
     renderizador.dispose();
     renderizador.domElement.remove();
   };

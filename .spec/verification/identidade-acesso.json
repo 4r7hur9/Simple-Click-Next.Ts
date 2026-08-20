@@ -1,7 +1,7 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-08-20T16:06:58.139Z",
-  "gitRev": "2c8c394",
+  "timestamp": "2026-08-20T16:20:01.775Z",
+  "gitRev": "63b0f45",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
@@ -57,15 +57,15 @@
     },
     "P-012": {
       "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",
       "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     }
   }
 }

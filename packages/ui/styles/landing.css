@@ -16,9 +16,14 @@
  * O valor de reserva existe para a página desenhada no servidor já nascer
  * colorida: sem ele, a landing chegaria cinza e ganharia cor só depois que o
  * script rodasse — e quem tem script bloqueado nunca a veria.
+ *
+ * A reserva é a PRIMEIRA COR DA PALETA da loja, e não a cor do sistema. Duas
+ * razões: é a que já vem marcada na prévia, então a página não muda de cor no
+ * primeiro toque de quem não trocou nada; e ela é quente, o que serve melhor a
+ * um produto de comida e comércio de rua do que o azul institucional.
  */
 .sc-lp {
-  --cor-da-landing: var(--cor-primaria);
+  --cor-da-landing: #b3261e; /* Brasa, a primeira de `PALETA_DE_LOJA` */
 
   position: relative;
   background: var(--cor-fundo);
