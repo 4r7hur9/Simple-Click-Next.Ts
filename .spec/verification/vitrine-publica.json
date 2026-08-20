@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-20T11:52:42.845Z",
-  "gitRev": "e283283",
+  "timestamp": "2026-08-20T12:06:57.827Z",
+  "gitRev": "e8178a7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 842,
+  "testsParsed": 856,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -40,17 +40,17 @@
       "status": "pass",
       "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
-    "P-011": {
-      "status": "pass",
-      "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
-    },
     "P-012": {
       "status": "pass",
-      "testName": "vitrine do design system @principle:P-012 não tem violação de nenhum nível na página de demonstração @principle:P-012 não tem violação de nenhum nível na página de demonstração"
+      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
     },
     "P-007": {
       "status": "pass",
       "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
     }
   }
 }

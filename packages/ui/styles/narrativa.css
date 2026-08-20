@@ -134,3 +134,68 @@
     display: none;
   }
 }
+
+/*
+ * A página pública de uma loja.
+ *
+ * Ela usa o esqueleto de seção acima, e acrescenta só o que é dela. O grosso do
+ * ritmo já vem dos valores declarados em `theme.css` — cor escrita aqui seria
+ * reprovada pelo ESLint (AC-014).
+ */
+.sc-pagina-da-loja {
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+.sc-loja__logo {
+  inline-size: 120px;
+  block-size: 120px;
+  object-fit: contain;
+  border-radius: var(--raio-2);
+  margin-block-end: var(--espaco-4);
+}
+
+.sc-loja__boas-vindas {
+  margin-block-end: var(--espaco-5);
+}
+
+.sc-loja__chamada {
+  margin-block-start: var(--espaco-5);
+}
+
+.sc-loja__formas {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--espaco-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-loja__formas li {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: 0.9375rem;
+}
+
+.sc-loja__endereco {
+  font-style: normal;
+  color: var(--cor-tinta-suave);
+}
+
+/*
+ * A primeira seção não gruda nem anima em tela BAIXA: quem abre a loja no
+ * celular deitado tem 360px de altura, e uma seção de tela cheia ali empurra o
+ * caminho para o cardápio para fora da vista.
+ */
+@media (max-height: 600px) {
+  .sc-loja__capa {
+    padding-block: var(--espaco-5);
+  }
+
+  .sc-loja__logo {
+    inline-size: 72px;
+    block-size: 72px;
+  }
+}
