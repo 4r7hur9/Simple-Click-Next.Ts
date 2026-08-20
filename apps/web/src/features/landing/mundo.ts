@@ -1,59 +1,55 @@
 /**
- * O mundo em três dimensões da landing (AC-935).
+ * O mundo em três dimensões da landing: rotas de entrega (AC-935).
  *
- * O QUE ELE MOSTRA: comandas de pedido chegando e se organizando. Começam
- * espalhadas e giradas, como o papel que se acumula no balcão, e acabam
- * empilhadas e alinhadas conforme a pessoa rola. É a mesma coisa que o produto
- * faz com o dia do dono, e é por isso que o 3D se paga NESTA página: ele é o
- * argumento, e não enfeite.
+ * O QUE ELE MOSTRA: a loja no centro, e entregas se abrindo para o bairro. As
+ * rotas se desenham conforme a pessoa rola — e é isso que o produto faz com o
+ * negócio de quem chega aqui: transforma um balcão numa loja que alcança gente.
  *
- * A PRIMEIRA VERSÃO ERAM CUBOS. Estavam corretos e não diziam nada: forma
- * abstrata não fala com quem vende pastel, e ainda disputava a leitura do texto
- * que passava por cima. Agora as peças são retangulares e finas, na proporção de
- * um papel — e a folha da landing as deixa em opacidade baixa, como atmosfera.
+ * DUAS VERSÕES ANTERIORES FORAM DESCARTADAS, e o motivo é o mesmo. Primeiro
+ * cubos: forma abstrata não fala com quem vende pastel. Depois comandas de
+ * papel: coerentes com o negócio, mas em opacidade baixa e desfocadas por trás
+ * do texto elas perdiam a proporção e liam como quadrados. Linha e ponto se
+ * leem em qualquer opacidade — é a forma mais fina que ainda tem significado.
  *
  * O QUE ELE NÃO É: conteúdo. A página conta a história inteira sem ele, e na
  * maioria dos aparelhos ele nem é baixado — a decisão mora em `podeRodar3D.ts`
- * e acontece antes da importação.
+ * e acontece antes da importação. Quem chega pelo celular vê a luz de fundo, que
+ * é de CSS e chega a todo mundo.
  *
  * ORÇAMENTO, do documento `mundo-3d.md` da skill: nada de textura, nada de
- * modelo externo, geometria simples reaproveitada. O peso é o do próprio
- * Three.js, e nenhum recurso extra viaja pela rede.
+ * modelo externo. Duas chamadas de desenho no total — uma para os destinos, uma
+ * para as rotas.
  */
 import * as THREE from "three";
 
-/** Quantas comandas. Poucas, e todas com a mesma geometria. */
-const PECAS = 16;
+import { ouvirCor } from "../../lib/cor-da-landing.ts";
+
+/** Quantos destinos a loja alcança. */
+const DESTINOS = 22;
 
 /** O teto de densidade de pixel. Acima de 2 a diferença não se percebe, e o
  * custo cresce ao quadrado: densidade 3 desenha nove vezes mais pixels que 1. */
 const DENSIDADE_MAXIMA = 2;
 
-/** O que devolve quem montou o mundo: a forma de desmontá-lo. */
+/** Cor de reserva, até a pessoa escolher a dela. */
+const COR_DE_RESERVA = 0x1a4fd6;
+
 export type DesmontarMundo = () => void;
 
-/** Posição final de cada peça, formando um bloco organizado. */
-function posicaoFinal(indice: number): THREE.Vector3 {
-  const colunas = 4;
-  const coluna = indice % colunas;
-  const linha = Math.floor(indice / colunas);
-  return new THREE.Vector3(
-    (coluna - (colunas - 1) / 2) * 1.35,
-    (linha - 1) * -1.35 + 0.6,
-    0,
-  );
-}
-
-/** Posição inicial: espalhada, como o papel que se acumula no balcão. */
-function posicaoInicial(indice: number): THREE.Vector3 {
-  // Determinística de propósito: o mesmo espalhamento a cada carregamento faz a
-  // animação ser desenhada, e não sorteada.
-  const angulo = indice * 2.39996; // ângulo áureo, distribui sem agrupar
-  const raio = 5 + (indice % 5) * 1.1;
+/**
+ * Onde cada destino fica.
+ *
+ * Determinístico de propósito: o mesmo desenho a cada carregamento faz o fundo
+ * ser composto, e não sorteado. O ângulo áureo distribui sem agrupar, que é o
+ * que impede as rotas de virarem um leque.
+ */
+function posicaoDoDestino(indice: number): THREE.Vector3 {
+  const angulo = indice * 2.39996;
+  const raio = 2.2 + (indice % 7) * 0.95;
   return new THREE.Vector3(
     Math.cos(angulo) * raio,
-    Math.sin(angulo) * raio * 0.6,
-    -3 - (indice % 4) * 2,
+    Math.sin(angulo) * raio * 0.62,
+    ((indice % 5) - 2) * 0.55,
   );
 }
 
@@ -68,16 +64,16 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   const cena = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera(
-    45,
+    50,
     elemento.clientWidth / Math.max(elemento.clientHeight, 1),
     0.1,
     100,
   );
-  camera.position.set(0, 0, 11);
+  camera.position.set(0, 0, 12);
 
   const renderizador = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true, // o fundo é o da página; o mundo não pinta atrás de si
+    alpha: true, // o fundo é a luz da página; o mundo não pinta atrás de si
     powerPreference: "low-power",
   });
   renderizador.setPixelRatio(
@@ -86,42 +82,48 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   renderizador.setSize(elemento.clientWidth, elemento.clientHeight);
   elemento.append(renderizador.domElement);
 
-  // UMA geometria e UM material, reaproveitados por todas as peças. Criar um
-  // par por peça multiplicaria as chamadas de desenho sem mudar nada do que se
-  // vê.
+  const centro = new THREE.Vector3(0, 0, 0);
+  const destinos = Array.from({ length: DESTINOS }, (_, i) =>
+    posicaoDoDestino(i),
+  );
+
+  // --- as rotas ---
   //
-  // A proporção é a de uma comanda: alta, estreita e fina. É o que faz a forma
-  // ser reconhecível mesmo em opacidade baixa e desfocada por trás do texto.
-  const geometria = new THREE.BoxGeometry(1, 1.45, 0.05);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x1a4fd6,
-    // Áspero e sem brilho: papel não reflete. Metal aqui leria como plástico, e
-    // a metáfora se perderia.
-    roughness: 0.85,
-    metalness: 0,
+  // UM objeto de linhas para todas as rotas. Uma linha por rota daria vinte e
+  // duas chamadas de desenho para desenhar vinte e dois segmentos — o mesmo
+  // resultado, vinte e duas vezes mais caro.
+  const pontosDaRota = new Float32Array(DESTINOS * 2 * 3);
+  const geometriaDasRotas = new THREE.BufferGeometry();
+  geometriaDasRotas.setAttribute(
+    "position",
+    new THREE.BufferAttribute(pontosDaRota, 3),
+  );
+  const materialDasRotas = new THREE.LineBasicMaterial({
+    color: COR_DE_RESERVA,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.55,
   });
+  const rotas = new THREE.LineSegments(geometriaDasRotas, materialDasRotas);
+  cena.add(rotas);
 
-  const grupo = new THREE.Group();
-  const pecas: THREE.Mesh[] = [];
-
-  for (let i = 0; i < PECAS; i += 1) {
-    const peca = new THREE.Mesh(geometria, material);
-    const inicio = posicaoInicial(i);
-    peca.position.copy(inicio);
-    // Giro nos três eixos: papel caído não fica de frente para ninguém.
-    peca.rotation.set(inicio.x * 0.2, inicio.y * 0.2, inicio.z * 0.15);
-    peca.scale.setScalar(0.62 + (i % 3) * 0.1);
-    grupo.add(peca);
-    pecas.push(peca);
-  }
-  cena.add(grupo);
-
-  cena.add(new THREE.AmbientLight(0xffffff, 0.65));
-  const luz = new THREE.DirectionalLight(0xffffff, 1.1);
-  luz.position.set(4, 6, 8);
-  cena.add(luz);
+  // --- os destinos ---
+  const pontosDosDestinos = new Float32Array(DESTINOS * 3);
+  const geometriaDosDestinos = new THREE.BufferGeometry();
+  geometriaDosDestinos.setAttribute(
+    "position",
+    new THREE.BufferAttribute(pontosDosDestinos, 3),
+  );
+  const materialDosDestinos = new THREE.PointsMaterial({
+    color: COR_DE_RESERVA,
+    size: 0.16,
+    transparent: true,
+    opacity: 0.85,
+    // Sem atenuação por distância: os pontos do fundo somem, e a malha fica
+    // desequilibrada de um lado.
+    sizeAttenuation: true,
+  });
+  const marcas = new THREE.Points(geometriaDosDestinos, materialDosDestinos);
+  cena.add(marcas);
 
   /** Quanto da história já passou, de 0 a 1. */
   let progresso = 0;
@@ -139,23 +141,57 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
     renderizador.setSize(largura, altura);
   }
 
-  const alvo = new THREE.Vector3();
+  // A COR SEGUE A ESCOLHA DA PESSOA. Sem isto, ela move a paleta e o fundo
+  // continua azul — como se a escolha não valesse nada.
+  const pararDeOuvirCor = ouvirCor((cor) => {
+    materialDasRotas.color.set(cor);
+    materialDosDestinos.color.set(cor);
+  });
+
+  const ponta = new THREE.Vector3();
+  let avancoDesenhado = 0;
 
   function desenhar(): void {
-    // A interpolação acontece no LAÇO DE DESENHO, e não no evento de rolagem: o
-    // evento dispara mais vezes que o quadro, e mover as peças ali faria o
-    // trabalho ser refeito e descartado várias vezes por quadro.
-    for (let i = 0; i < pecas.length; i += 1) {
-      const peca = pecas[i];
-      if (peca === undefined) continue;
-      alvo.copy(posicaoInicial(i)).lerp(posicaoFinal(i), progresso);
-      peca.position.lerp(alvo, 0.08);
-      // As comandas vão ficando de frente conforme a história avança.
-      peca.rotation.x += (0 - peca.rotation.x) * 0.05 * progresso;
-      peca.rotation.y += (0 - peca.rotation.y) * 0.05 * progresso;
-      peca.rotation.z += (0 - peca.rotation.z) * 0.05 * progresso;
+    // O avanço persegue o progresso da rolagem, em vez de saltar para ele: sem
+    // a perseguição, uma rolagem rápida faria as rotas piscarem de um extremo
+    // ao outro.
+    avancoDesenhado += (progresso - avancoDesenhado) * 0.06;
+
+    for (let i = 0; i < DESTINOS; i += 1) {
+      const destino = destinos[i];
+      if (destino === undefined) continue;
+
+      // Cada rota sai do centro e cresce até o destino. As de fora começam
+      // depois: a loja alcança o vizinho antes de alcançar o bairro.
+      const atrasoDaRota = (i / DESTINOS) * 0.45;
+      const avancoDaRota = Math.max(
+        0,
+        Math.min((avancoDesenhado - atrasoDaRota) / (1 - atrasoDaRota), 1),
+      );
+      ponta.copy(centro).lerp(destino, avancoDaRota);
+
+      const rota = i * 6;
+      pontosDaRota[rota] = centro.x;
+      pontosDaRota[rota + 1] = centro.y;
+      pontosDaRota[rota + 2] = centro.z;
+      pontosDaRota[rota + 3] = ponta.x;
+      pontosDaRota[rota + 4] = ponta.y;
+      pontosDaRota[rota + 5] = ponta.z;
+
+      const marca = i * 3;
+      pontosDosDestinos[marca] = ponta.x;
+      pontosDosDestinos[marca + 1] = ponta.y;
+      pontosDosDestinos[marca + 2] = ponta.z;
     }
-    grupo.rotation.y = (1 - progresso) * 0.35;
+
+    geometriaDasRotas.attributes["position"]!.needsUpdate = true;
+    geometriaDosDestinos.attributes["position"]!.needsUpdate = true;
+
+    // Um giro lento dá profundidade sem pedir atenção. Ele é o único movimento
+    // que continua quando ninguém rola.
+    cena.rotation.y = Math.sin(avancoDesenhado * Math.PI) * 0.28;
+    cena.rotation.x = avancoDesenhado * 0.12;
+
     renderizador.render(cena, camera);
   }
 
@@ -177,14 +213,14 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   return () => {
     renderizador.setAnimationLoop(null);
     observador.disconnect();
+    pararDeOuvirCor();
     window.removeEventListener("scroll", aoRolar);
     window.removeEventListener("resize", aoRedimensionar);
 
-    // Geometria e material são um só, compartilhados: descartar uma vez basta,
-    // e percorrer a cena descartando por peça tentaria descartar catorze vezes
-    // o mesmo recurso.
-    geometria.dispose();
-    material.dispose();
+    geometriaDasRotas.dispose();
+    geometriaDosDestinos.dispose();
+    materialDasRotas.dispose();
+    materialDosDestinos.dispose();
     renderizador.dispose();
     renderizador.domElement.remove();
   };

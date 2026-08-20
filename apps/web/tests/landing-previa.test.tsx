@@ -117,6 +117,21 @@ describe("a prévia mostra a loja de quem chegou (AC-939)", () => {
     }
   });
 
+  it("@spec:AC-939 a cor escolhida pinta a PÁGINA, e não só o celular da prévia", () => {
+    // Era o que faltava: a pessoa escolhia vermelho e o fundo continuava azul,
+    // como se a escolha não valesse nada.
+    const tela = montar();
+    const cores = [
+      ...tela.querySelectorAll<HTMLInputElement>("input[type='radio']"),
+    ];
+
+    act(() => cores[2]?.click());
+
+    expect(
+      document.documentElement.style.getPropertyValue("--cor-da-landing"),
+    ).not.toBe("");
+  });
+
   it("@spec:AC-939 cada cor tem nome de coisa, e não de código", () => {
     // "Índigo" e "#1b3a6b" não dizem nada a quem vende pastel.
     const tela = montar();
@@ -130,14 +145,38 @@ describe("a prévia mostra a loja de quem chegou (AC-939)", () => {
 });
 
 describe("a prévia mostra a mensagem que o cliente manda (AC-940)", () => {
-  it("@spec:AC-940 a mensagem aparece como ela chega, com as quebras de linha", () => {
-    // O dono já sabe como uma mensagem de pedido deveria parecer, porque recebe
-    // pedido no WhatsApp todo dia. É isso que faz ele confiar antes de testar.
+  it("@spec:AC-940 a mensagem aparece COMO ELA CHEGA: negrito no lugar dos asteriscos", () => {
+    // O dono abre o WhatsApp quarenta vezes por dia e sabe que mensagem nenhuma
+    // tem asterisco à vista. Mostrá-los crus faria a landing parecer quebrada
+    // justamente para quem mais entende do assunto.
     const tela = montar();
     const mensagem = tela.querySelector(".sc-previa__mensagem");
 
-    expect(mensagem?.textContent).toBe(MENSAGEM);
-    expect(mensagem?.tagName.toLowerCase()).toBe("pre");
+    expect(mensagem?.textContent).not.toContain("*");
+    expect(mensagem?.querySelector("strong")?.textContent).toBe(
+      "Pedido A-1042",
+    );
+  });
+
+  it("@spec:AC-940 as quebras de linha sobrevivem, porque são parte do formato", () => {
+    // Elas separam cliente, itens, entrega e pagamento. Juntá-las produziria um
+    // parágrafo único que ninguém lê no celular.
+    const tela = montar();
+    const linhas = tela.querySelectorAll(".sc-previa__linha");
+
+    expect(linhas.length).toBe(MENSAGEM.split("\n").length);
+  });
+
+  it("@spec:AC-940 a mensagem longa tem TETO, para não quebrar a página", () => {
+    // Uma mensagem de pedido tem vinte e sete linhas. Solta, ela dobra a altura
+    // da seção e empurra o resto da landing para fora da tela.
+    const tela = montar();
+    const mensagem = tela.querySelector(".sc-previa__mensagem");
+
+    expect(mensagem?.className).toContain("sc-previa__mensagem");
+    // O teto é da folha; o que se prova aqui é que a mensagem NÃO é um bloco
+    // pré-formatado solto, que era o que estourava.
+    expect(mensagem?.tagName.toLowerCase()).toBe("p");
   });
 
   it("@spec:AC-940 os itens e o total do exemplo aparecem na loja", () => {

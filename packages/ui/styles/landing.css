@@ -10,10 +10,61 @@
  * reprova quem escrever direto (AC-014).
  */
 
+/*
+ * A LANDING TEM COR PRÓPRIA, e ela é a que a pessoa escolheu na prévia.
+ *
+ * O valor de reserva existe para a página desenhada no servidor já nascer
+ * colorida: sem ele, a landing chegaria cinza e ganharia cor só depois que o
+ * script rodasse — e quem tem script bloqueado nunca a veria.
+ */
 .sc-lp {
+  --cor-da-landing: var(--cor-primaria);
+
   position: relative;
   background: var(--cor-fundo);
   color: var(--cor-tinta);
+}
+
+/* --- a luz de fundo -------------------------------------------------------
+ *
+ * Dois lavados grandes e desfocados da cor escolhida. É a única camada de fundo
+ * que funciona em TODO aparelho, inclusive no celular, onde o mundo em três
+ * dimensões é barrado pelo critério de desempenho — e é onde está a maioria de
+ * quem abre esta página. Sem ela, quem chega pelo celular via fundo liso.
+ *
+ * Fica fora do fluxo, não intercepta toque, e some para o leitor de tela.
+ */
+.sc-lp__luz {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: clip;
+}
+
+.sc-lp__lavado {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.42;
+  /* A troca de cor é suave: mudar de vermelho para azul num quadro pisca. */
+  transition: background var(--transicao-media, 320ms ease-out);
+}
+
+.sc-lp__lavado--um {
+  inline-size: min(90vw, 42rem);
+  block-size: min(90vw, 42rem);
+  inset-block-start: -18%;
+  inset-inline-end: -14%;
+  background: color-mix(in oklab, var(--cor-da-landing) 55%, transparent);
+}
+
+.sc-lp__lavado--dois {
+  inline-size: min(100vw, 48rem);
+  block-size: min(100vw, 48rem);
+  inset-block-end: -26%;
+  inset-inline-start: -20%;
+  background: color-mix(in oklab, var(--cor-da-landing) 32%, transparent);
 }
 
 /* --- a estrutura de cada tela --------------------------------------------
@@ -633,15 +684,55 @@
   box-shadow: var(--sombra-1);
 }
 
+/*
+ * A MENSAGEM TEM TETO E ROLA POR DENTRO.
+ *
+ * Ela tem vinte e sete linhas — cliente, itens, entrega, pagamento, valores e o
+ * link de acompanhamento. Solta, ela dobra a altura da seção e empurra o resto
+ * da landing para fora da tela, o que quebrava a página em todo aparelho.
+ *
+ * Rolar por dentro é o que uma mensagem longa faz no WhatsApp de verdade, então
+ * o recorte não mente sobre o produto: ele reproduz o comportamento.
+ */
 .sc-previa__mensagem {
+  display: flex;
+  flex-direction: column;
   margin: 0;
-  font-family: var(--fonte-base);
+  max-block-size: 18rem;
+  overflow-y: auto;
   font-size: 0.8125rem;
   line-height: 1.55;
-  /* A mensagem tem quebras de linha próprias, e elas são parte do formato. */
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: var(--cor-tinta);
+  /* Espaço para o desvanecer do fim não cobrir a última linha. */
+  padding-block-end: var(--espaco-3);
+}
+
+/*
+ * A linha vazia é o espaço entre os blocos da mensagem. Sem altura mínima ela
+ * colapsaria, e "Itens" colaria no cliente de cima.
+ */
+.sc-previa__linha {
+  min-block-size: 1.2em;
+}
+
+.sc-previa__mensagem strong {
+  font-weight: 650;
+}
+
+/*
+ * O desvanecer diz que há mais mensagem abaixo. Sem ele, o corte no meio de uma
+ * linha lê como texto faltando, e não como conteúdo que continua.
+ */
+.sc-previa__balao::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 1.75rem;
+  inset-inline: 1px;
+  block-size: 2.5rem;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--cor-superficie-alta));
+  border-radius: 0 0 var(--raio-3) var(--raio-1);
 }
 
 .sc-previa__hora {

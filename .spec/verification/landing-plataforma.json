@@ -1,11 +1,11 @@
 {
   "feature": "landing-plataforma",
-  "timestamp": "2026-08-20T14:47:52.158Z",
-  "gitRev": "be53037",
+  "timestamp": "2026-08-20T15:11:15.720Z",
+  "gitRev": "ab73a1d",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 905,
+  "exitCode": 1,
+  "testsParsed": 920,
   "results": {
     "AC-933": {
       "status": "pass",
@@ -39,7 +39,7 @@
     },
     "AC-940": {
       "status": "pass",
-      "testName": "a prévia mostra a mensagem que o cliente manda (AC-940) @spec:AC-940 a mensagem aparece como ela chega, com as quebras de linha @spec:AC-940 a mensagem aparece como ela chega, com as quebras de linha",
+      "testName": "a prévia mostra a mensagem que o cliente manda (AC-940) @spec:AC-940 a mensagem aparece COMO ELA CHEGA: negrito no lugar dos asteriscos @spec:AC-940 a mensagem aparece COMO ELA CHEGA: negrito no lugar dos asteriscos",
       "method": "vitest-json"
     },
     "AC-938": {

@@ -1,11 +1,11 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-20T14:44:35.640Z",
-  "gitRev": "be53037",
+  "timestamp": "2026-08-20T15:09:28.934Z",
+  "gitRev": "ab73a1d",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 905,
+  "exitCode": 1,
+  "testsParsed": 920,
   "results": {
     "AC-904": {
       "status": "pass",
@@ -19,12 +19,12 @@
     },
     "AC-907": {
       "status": "pass",
-      "testName": "entrega grátis acima de um valor (AC-907) @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça",
+      "testName": "entrega grátis na tela (AC-907) @spec:AC-907 a linha continua aparecendo, zerada e com a indicação de grátis @spec:AC-907 a linha continua aparecendo, zerada e com a indicação de grátis",
       "method": "vitest-json"
     },
     "AC-908": {
       "status": "pass",
-      "testName": "valor mínimo do pedido (AC-908) @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta",
+      "testName": "valor mínimo na tela (AC-908) @spec:AC-908 o aviso diz quanto falta e interrompe quem usa leitor de tela @spec:AC-908 o aviso diz quanto falta e interrompe quem usa leitor de tela",
       "method": "vitest-json"
     },
     "AC-909": {
@@ -72,15 +72,15 @@
     },
     "P-012": {
       "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",
       "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     }
   }
 }

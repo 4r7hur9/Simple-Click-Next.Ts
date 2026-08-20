@@ -124,6 +124,16 @@ export function HistoriaDaLanding({
   return (
     <div className="sc-lp" data-narrativa="landing">
       {/*
+        A LUZ é decoração pura, e é a única camada de fundo que chega a TODO
+        aparelho — inclusive ao celular, onde o mundo em três dimensões é
+        barrado. Vem do servidor, então quem tem script bloqueado a vê também.
+      */}
+      <div className="sc-lp__luz" aria-hidden="true">
+        <span className="sc-lp__lavado sc-lp__lavado--um" />
+        <span className="sc-lp__lavado sc-lp__lavado--dois" />
+      </div>
+
+      {/*
         A ABERTURA APARECE SEM ROLAR NADA (AC-933). Quem chegou precisa saber em
         segundos o que o produto faz, na língua dele — e ter o caminho à mão
         antes de decidir se vai rolar.

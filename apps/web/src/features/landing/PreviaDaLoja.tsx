@@ -18,10 +18,12 @@
  * versão 1 deste produto cometeu (P-006), e uma segunda conta escrita aqui
  * divergiria da real no dia em que uma das duas mudasse.
  */
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { PALETA_DE_LOJA, TemaDaLoja } from "@simpleclick/ui";
 
+import { anunciarCor } from "../../lib/cor-da-landing.ts";
 import { iniciaisDe } from "../../lib/iniciais.ts";
+import { lerMensagemDoWhatsApp } from "../../lib/texto-whatsapp.ts";
 
 /** Um item do pedido de exemplo, já formatado pelo servidor. */
 export interface ItemNaPrevia {
@@ -54,6 +56,14 @@ export function PreviaDaLoja({ itens, total, mensagem }: PreviaDaLojaProps) {
   const [cor, setCor] = useState<string>(CORES[0]?.valor ?? "");
 
   const nomeExibido = nome.trim() === "" ? NOME_PADRAO : nome.trim();
+
+  // A COR ESCOLHIDA PINTA A PÁGINA INTEIRA, e não só o celular da prévia. É o
+  // que faz a landing virar a marca de quem chegou enquanto ela ainda está
+  // decidindo — e era o que faltava: a pessoa escolhia vermelho e o fundo
+  // continuava azul, como se a escolha não valesse nada.
+  useEffect(() => {
+    anunciarCor(cor);
+  }, [cor]);
 
   return (
     <div className="sc-previa">
@@ -153,7 +163,32 @@ export function PreviaDaLoja({ itens, total, mensagem }: PreviaDaLojaProps) {
             O que chega no seu WhatsApp
           </figcaption>
           <div className="sc-previa__balao">
-            <pre className="sc-previa__mensagem">{mensagem}</pre>
+            {/*
+              A mensagem é desenhada COMO ELA CHEGA: o que está entre asteriscos
+              vira negrito, e os asteriscos somem. Mostrá-los crus faria a
+              landing parecer quebrada justamente para quem mais entende do
+              assunto — o dono de loja abre o WhatsApp quarenta vezes por dia e
+              sabe que mensagem nenhuma tem asterisco à vista.
+            */}
+            <p className="sc-previa__mensagem">
+              {/*
+                A POSIÇÃO É A IDENTIDADE aqui, e por isso ela serve de chave: as
+                linhas de uma mensagem não se reordenam nem se inserem no meio, e
+                duas linhas em branco seguidas teriam a mesma chave se ela viesse
+                do conteúdo.
+              */}
+              {lerMensagemDoWhatsApp(mensagem).map((linha, numero) => (
+                <span className="sc-previa__linha" key={`linha-${numero}`}>
+                  {linha.map((pedaco, ordem) =>
+                    pedaco.negrito ? (
+                      <strong key={`p-${ordem}`}>{pedaco.texto}</strong>
+                    ) : (
+                      <span key={`p-${ordem}`}>{pedaco.texto}</span>
+                    ),
+                  )}
+                </span>
+              ))}
+            </p>
             <span className="sc-previa__hora" aria-hidden="true">
               agora
             </span>

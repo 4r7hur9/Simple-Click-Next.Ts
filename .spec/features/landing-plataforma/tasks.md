@@ -13,7 +13,7 @@
 
 - Refs: US-910, AC-936, AC-937, AC-938
 - Arquivos: apps/web/src/features/landing/NarrativaDaLanding.tsx, apps/web/tests/landing-narrativa.test.tsx
-- Notas: GSAP com ScrollTrigger. A âncora acompanha o número de seções visíveis; movimento reduzido entrega o estado final. Seção grudada só onde há altura para isso.
+- Notas: a LUZ de fundo é de CSS e chega a TODO aparelho, inclusive ao celular onde o mundo é barrado — é onde está a maioria de quem abre a página, e antes eles viam fundo liso. GSAP com ScrollTrigger. A âncora acompanha o número de seções visíveis; movimento reduzido entrega o estado final. Seção grudada só onde há altura para isso.
 - Esforço: alto
 
 ## T-962 — O mundo em três dimensões, carregado sob condição [concluida]
@@ -26,8 +26,8 @@
 ## T-964 — A prévia viva da loja, na própria landing [concluida]
 
 - Refs: US-910, AC-939, AC-940
-- Arquivos: apps/web/src/features/landing/PreviaDaLoja.tsx, apps/web/tests/landing-previa.test.tsx, apps/web/src/server/exemplo-da-landing.ts, apps/web/src/lib/iniciais.ts, apps/web/src/lib/iniciais.test.ts, packages/ui/styles/landing.css, apps/web/src/app/page.tsx, apps/web/src/features/landing/HistoriaDaLanding.tsx
-- Notas: o visitante digita o nome do negócio e escolhe a cor, e vê a própria loja tomando forma — com o ajuste de contraste de verdade, o mesmo que o produto faz. Os produtos do exemplo são fixos e a mensagem vem PRONTA do servidor, porque a tabela de fronteiras não autoriza a camada de telas a calcular preço (P-006) — e uma segunda conta escrita aqui divergiria da real no dia em que uma das duas mudasse.
+- Arquivos: apps/web/src/features/landing/PreviaDaLoja.tsx, apps/web/tests/landing-previa.test.tsx, apps/web/src/server/exemplo-da-landing.ts, apps/web/src/lib/iniciais.ts, apps/web/src/lib/iniciais.test.ts, apps/web/src/lib/texto-whatsapp.ts, apps/web/src/lib/texto-whatsapp.test.ts, apps/web/src/lib/cor-da-landing.ts, apps/web/src/lib/cor-da-landing.test.ts, packages/ui/src/tokens.ts, packages/ui/src/index.ts, packages/ui/styles/theme.css, packages/ui/styles/landing.css, apps/web/src/app/page.tsx, apps/web/src/features/landing/HistoriaDaLanding.tsx
+- Notas: a cor escolhida pinta a PÁGINA INTEIRA, e não só o celular da prévia — antes a pessoa escolhia vermelho e o fundo continuava azul, como se a escolha não valesse nada. A mensagem é desenhada como ela CHEGA, com negrito no lugar dos asteriscos: o dono abre o WhatsApp quarenta vezes por dia e sabe que mensagem nenhuma tem asterisco à vista. E ela tem teto com rolagem própria, porque vinte e sete linhas soltas dobram a altura da seção e empurram o resto da landing para fora da tela. O visitante digita o nome do negócio e escolhe a cor, e vê a própria loja tomando forma — com o ajuste de contraste de verdade, o mesmo que o produto faz. Os produtos do exemplo são fixos e a mensagem vem PRONTA do servidor, porque a tabela de fronteiras não autoriza a camada de telas a calcular preço (P-006) — e uma segunda conta escrita aqui divergiria da real no dia em que uma das duas mudasse.
 - Esforço: alto
 
 ## T-963 — Teste de ponta a ponta da landing [pendente]
