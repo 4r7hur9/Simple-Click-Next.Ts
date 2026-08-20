@@ -14,7 +14,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { ApresentacaoDaLoja } from "../../../../features/loja/ApresentacaoDaLoja.tsx";
-import { NarrativaDaLoja } from "../../../../features/loja/NarrativaDaLoja.tsx";
+import { EntradaDaLoja } from "../../../../features/loja/EntradaDaLoja.tsx";
 import { buscarVitrine } from "../../../../server/vitrine.ts";
 
 interface ParametrosDaPagina {
@@ -69,11 +69,11 @@ export default async function PaginaDaLoja({ params }: ParametrosDaPagina) {
         linkDoCardapio={`/l/${loja.apelido}/cardapio`}
       />
       {/*
-        A narrativa vem DEPOIS do conteúdo, e não em volta dele. Ela não desenha
-        nada: acha as seções que já estão na página e as anima. Se nunca rodar,
+        A entrada vem DEPOIS do conteúdo, e não em volta dele. Ela não desenha
+        nada: acha os blocos que já estão na página e os anima. Se nunca rodar,
         a página continua inteira.
       */}
-      <NarrativaDaLoja />
+      <EntradaDaLoja />
     </main>
   );
 }

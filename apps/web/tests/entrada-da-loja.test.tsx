@@ -16,7 +16,7 @@ import {
   ApresentacaoDaLoja,
   type LojaNaTela,
 } from "../src/features/loja/ApresentacaoDaLoja";
-import { NarrativaDaLoja } from "../src/features/loja/NarrativaDaLoja";
+import { EntradaDaLoja } from "../src/features/loja/EntradaDaLoja";
 
 let raiz: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -51,12 +51,12 @@ function comAApresentacaoNaPagina(): void {
   );
 }
 
-/** Monta a narrativa sobre o que já está na página. */
-function montarNarrativa(): void {
+/** Monta a entrada sobre o que já está na página. */
+function montarEntrada(): void {
   container = document.createElement("div");
   document.body.append(container);
   raiz = createRoot(container);
-  act(() => raiz?.render(<NarrativaDaLoja />));
+  act(() => raiz?.render(<EntradaDaLoja />));
 }
 
 /** Simula alguém que pediu menos movimento no sistema. */
@@ -70,27 +70,27 @@ function comMovimentoReduzido(reduzido: boolean) {
 }
 
 describe("a animação é camada, e não requisito (P-011)", () => {
-  it("@principle:P-011 a narrativa não desenha conteúdo nenhum", () => {
+  it("@principle:P-011 a entrada não desenha conteúdo nenhum", () => {
     // Se ela desenhasse, o conteúdo dependeria de script para existir — e a
     // página deixaria de abrir em rede ruim e de ser encontrada pelo buscador.
     comMovimentoReduzido(false);
     comAApresentacaoNaPagina();
     const antes = document.body.textContent ?? "";
 
-    montarNarrativa();
+    montarEntrada();
 
     expect(container?.innerHTML).toBe("");
     expect(document.body.textContent).toContain(antes.slice(0, 40));
   });
 
-  it("@principle:P-011 com a página sem as seções, a narrativa não estoura", () => {
+  it("@principle:P-011 com a página sem os blocos, a entrada não estoura", () => {
     // Acontece quando alguém muda a marcação e esquece dela. Estourar aqui
     // derrubaria a página inteira por causa de um enfeite.
     comMovimentoReduzido(false);
-    document.body.innerHTML = "<main><p>página sem narrativa</p></main>";
+    document.body.innerHTML = "<main><p>página sem os blocos</p></main>";
 
-    expect(() => montarNarrativa()).not.toThrow();
-    expect(document.body.textContent).toContain("página sem narrativa");
+    expect(() => montarEntrada()).not.toThrow();
+    expect(document.body.textContent).toContain("página sem os blocos");
   });
 });
 
@@ -102,10 +102,12 @@ describe("movimento reduzido entrega o estado final (P-012)", () => {
     comMovimentoReduzido(true);
     comAApresentacaoNaPagina();
 
-    montarNarrativa();
+    montarEntrada();
 
     const conteudos = [
-      ...document.querySelectorAll<HTMLElement>(".sc-secao__conteudo"),
+      ...document.querySelectorAll<HTMLElement>(
+        ".sc-loja__identidade, .sc-loja__chamada, .sc-loja__detalhes",
+      ),
     ];
     expect(conteudos.length).toBeGreaterThan(0);
     for (const conteudo of conteudos) {
@@ -119,21 +121,21 @@ describe("movimento reduzido entrega o estado final (P-012)", () => {
   it("@principle:P-012 o texto continua legível com movimento reduzido", () => {
     comMovimentoReduzido(true);
     comAApresentacaoNaPagina();
-    montarNarrativa();
+    montarEntrada();
 
     expect(document.body.textContent).toContain("Sabor & Cia");
     expect(document.body.textContent).toContain("Ver o cardápio");
   });
 });
 
-describe("a narrativa se desfaz ao sair (P-011)", () => {
+describe("a entrada se desfaz ao sair (P-011)", () => {
   it("@principle:P-011 desmontar limpa o que foi criado", () => {
     // No App Router o componente monta e desmonta a cada navegação. O que não
     // for destruído continua escutando a rolagem de uma página que já não
     // existe, e depois de cinco navegações a página engasga.
     comMovimentoReduzido(false);
     comAApresentacaoNaPagina();
-    montarNarrativa();
+    montarEntrada();
 
     expect(() => act(() => raiz?.unmount())).not.toThrow();
     raiz = null;

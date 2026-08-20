@@ -20,6 +20,7 @@ import {
 const LOJA: LojaNaTela = {
   apelido: "sabor-e-cia",
   nome: "Sabor & Cia",
+  cores: { primaria: "#0f6e5c" },
   boasVindas: "Comida caseira todo dia",
   logo: "https://exemplo.test/logo.png",
   capa: null,
@@ -106,25 +107,48 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
     // dedo que ia no botão acerta outra coisa (AC-416).
     const html = desenhar();
 
-    expect(html).toMatch(/width="120"/);
-    expect(html).toMatch(/height="120"/);
+    expect(html).toMatch(/width="88"/);
+    expect(html).toMatch(/height="88"/);
   });
 
   it("@spec:AC-400 loja sem apresentação cadastrada não mostra bloco vazio", () => {
-    const semNada = { ...LOJA, boasVindas: null, logo: null };
+    const semNada = { ...LOJA, boasVindas: null };
     const html = desenhar({ loja: semNada });
 
     expect(html).not.toContain("sc-loja__boas-vindas");
-    expect(html).not.toContain("<img");
   });
 
-  it("@spec:AC-400 o caminho para o cardápio aparece no fim também", () => {
-    // Quem rolou até o fim já decidiu. Obrigá-lo a voltar ao topo para achar o
-    // botão é atrito no pior momento possível.
+  it("@spec:AC-400 tudo cabe em UMA tela, sem repetir o caminho de saída", () => {
+    // A página é uma porta, não um destino: quem chega quer o cardápio. Com uma
+    // tela só, repetir o botão seria ruído — ele já está à vista o tempo todo.
     const html = desenhar();
     const quantos = html.split('href="/l/sabor-e-cia/cardapio"').length - 1;
 
-    expect(quantos).toBeGreaterThanOrEqual(2);
+    expect(quantos).toBe(1);
+  });
+
+  it("@spec:AC-015 a página usa a COR DA LOJA, e não uma cor de modelo", () => {
+    // Sem isto, a pastelaria e a loja de roupa teriam exatamente a mesma tela —
+    // correta e genérica. O contraste é ajustado pelo design system.
+    const html = desenhar();
+
+    expect(html).toContain("--cor-primaria");
+    expect(html).toContain("#0f6e5c");
+  });
+
+  it("@spec:AC-015 loja sem cor escolhida ainda recebe um tema, e não um branco", () => {
+    const semCor = { ...LOJA, cores: null };
+
+    expect(desenhar({ loja: semCor })).toContain("--cor-primaria");
+  });
+
+  it("@spec:AC-400 loja sem logo mostra as iniciais, e não um buraco na composição", () => {
+    // A marca de quem ainda não subiu logo continua sendo a dela.
+    const semLogo = { ...LOJA, logo: null };
+    const html = desenhar({ loja: semLogo });
+
+    expect(html).toContain("SC");
+    expect(html).not.toContain("<img");
   });
 });
 
@@ -184,7 +208,7 @@ describe("loja fechada avisa e deixa navegar (AC-401)", () => {
       }),
     );
 
-    expect(lido).toContain("ainda não informou o próximo horário");
+    expect(lido).toContain("horário não informado");
   });
 
   it("@spec:AC-401 o aviso não interrompe quem usa leitor de tela", () => {

@@ -72,12 +72,26 @@ async function existeNoServidorDeTeste(nome: string): Promise<boolean> {
   }
 }
 
-/** Cadeia de conexão do banco de desenvolvimento, exigida pelo ambiente. */
+/**
+ * Cadeia de conexão do banco de desenvolvimento, para INSPECIONÁ-LO.
+ *
+ * Usa a conexão DIRETA, e não a da aplicação. O motivo apareceu no dia em que a
+ * configuração local foi corrigida: `DATABASE_URL` apontava para o
+ * superusuário, e esta prova passava porque enxergava tudo. Com a credencial
+ * certa da aplicação — que não contorna o isolamento e não alcança o esquema de
+ * migração —, o retrato falhava por falta de permissão.
+ *
+ * A correção não é devolver poder à aplicação: é usar aqui a credencial de
+ * quem inspeciona estrutura. Este retrato não exercita a aplicação; ele olha o
+ * banco de fora para provar que nada mudou.
+ */
 function urlDeDesenvolvimento(): string {
-  const url = process.env.DATABASE_URL?.trim();
+  const url = (
+    process.env.DATABASE_URL_DIRETA ?? process.env.DATABASE_URL
+  )?.trim();
   if (url === undefined || url === "") {
     throw new Error(
-      "DATABASE_URL não está definida — sem ela não há como provar que o banco de desenvolvimento ficou intacto.",
+      "DATABASE_URL_DIRETA não está definida — sem ela não há como provar que o banco de desenvolvimento ficou intacto.",
     );
   }
   return url;

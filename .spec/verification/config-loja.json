@@ -1,11 +1,11 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-20T12:42:16.442Z",
-  "gitRev": "b1d3d21",
+  "timestamp": "2026-08-20T14:02:08.122Z",
+  "gitRev": "da826ca",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 861,
+  "testsParsed": 864,
   "results": {
     "AC-904": {
       "status": "pass",
@@ -76,7 +76,7 @@
     },
     "P-011": {
       "status": "pass",
-      "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
+      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
     },
     "P-007": {
       "status": "pass",

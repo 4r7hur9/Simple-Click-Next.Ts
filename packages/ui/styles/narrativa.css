@@ -136,66 +136,373 @@
 }
 
 /*
- * A página pública de uma loja.
+ * A página pública de uma loja: UMA TELA, com a cara da loja.
  *
- * Ela usa o esqueleto de seção acima, e acrescenta só o que é dela. O grosso do
- * ritmo já vem dos valores declarados em `theme.css` — cor escrita aqui seria
- * reprovada pelo ESLint (AC-014).
+ * Duas decisões governam este bloco.
+ *
+ * A primeira é caber sem rolar. Quem abre o endereço de uma loja quer o
+ * cardápio; esta página é uma porta, e porta com três telas de rolagem até a
+ * maçaneta é atrito no pior lugar possível.
+ *
+ * A segunda é PARECER COM A LOJA. A cor que o dono escolheu chega aqui pelos
+ * valores que `TemaDaLoja` redefine, com o contraste já ajustado (AC-015): o
+ * fundo, o anel da marca e o botão saem dela. Sem isso, a pastelaria e a loja de
+ * roupa teriam exatamente a mesma tela — correta e genérica.
+ *
+ * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado, e o ESLint
+ * reprova quem escrever direto (AC-014).
  */
 .sc-pagina-da-loja {
   background: var(--cor-fundo);
   color: var(--cor-tinta);
 }
 
+.sc-loja {
+  position: relative;
+  display: block;
+  min-block-size: 100svh;
+  overflow: clip;
+}
+
+/* --- o fundo em camadas ---------------------------------------------------
+ *
+ * Dois lavados da cor da loja, grandes e desfocados, dão profundidade sem
+ * carregar imagem nenhuma — o que importa numa página que precisa abrir em rede
+ * ruim. `color-mix` tira a cor do valor declarado, então ela acompanha a loja e
+ * os dois temas sem uma linha a mais.
+ */
+.sc-loja__fundo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: clip;
+}
+
+.sc-loja__brilho {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+}
+
+.sc-loja__brilho--um {
+  inline-size: min(70vw, 30rem);
+  block-size: min(70vw, 30rem);
+  inset-block-start: -12%;
+  inset-inline-end: -18%;
+  background: color-mix(in oklab, var(--cor-primaria) 45%, transparent);
+}
+
+.sc-loja__brilho--dois {
+  inline-size: min(85vw, 34rem);
+  block-size: min(85vw, 34rem);
+  inset-block-end: -22%;
+  inset-inline-start: -22%;
+  background: color-mix(in oklab, var(--cor-primaria) 26%, transparent);
+}
+
+/* --- a tela ---------------------------------------------------------------
+ *
+ * `min-block-size`, e não `block-size`. A diferença é o que acontece quando o
+ * conteúdo não cabe: com altura fixa ele seria cortado, e o botão do cardápio
+ * sairia da vista num celular deitado de 360px de altura. Com altura mínima, a
+ * tela cresce e a pessoa rola o pouco que precisar.
+ */
+.sc-loja__tela {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-6);
+  min-block-size: 100svh;
+  inline-size: 100%;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding-inline: var(--espaco-5);
+  /* Recorte de área segura: sem ele o conteúdo encosta na borda arredondada. */
+  padding-block: max(var(--espaco-6), env(safe-area-inset-top))
+    max(var(--espaco-6), env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+/* --- a marca --------------------------------------------------------------- */
+
+.sc-loja__identidade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+/*
+ * O anel em volta da marca faz a logo pertencer à composição em vez de flutuar.
+ * Quem não subiu logo recebe as iniciais no mesmo anel: a tela não desmonta, e
+ * a marca continua sendo a da loja.
+ */
+.sc-loja__marca {
+  display: grid;
+  place-items: center;
+  inline-size: 6.5rem;
+  block-size: 6.5rem;
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  border: 1px solid color-mix(in oklab, var(--cor-primaria) 30%, transparent);
+  box-shadow:
+    0 0 0 6px color-mix(in oklab, var(--cor-primaria) 8%, transparent),
+    var(--sombra-2);
+}
+
 .sc-loja__logo {
-  inline-size: 120px;
-  block-size: 120px;
+  inline-size: 88px;
+  block-size: 88px;
   object-fit: contain;
-  border-radius: var(--raio-2);
-  margin-block-end: var(--espaco-4);
+  border-radius: 50%;
+}
+
+.sc-loja__iniciais {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cor-primaria-texto);
+}
+
+/*
+ * O tipo responde à LARGURA, com teto, e nunca à altura. Numa tela comprida a
+ * altura sobrando vira respiro — não letra maior.
+ */
+.sc-loja__nome {
+  margin: 0;
+  font-size: clamp(1.75rem, 7vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .sc-loja__boas-vindas {
-  margin-block-end: var(--espaco-5);
+  margin: 0;
+  max-inline-size: 34ch;
+  font-size: clamp(0.9375rem, 3.6vw, 1.0625rem);
+  line-height: 1.55;
+  color: var(--cor-tinta-suave);
+  text-wrap: pretty;
 }
 
+/* --- a situação ----------------------------------------------------------
+ *
+ * Marca, e não caixa de aviso: "aberta agora" é um dado da loja, tão permanente
+ * quanto o endereço dela. Emoldurar faria a tela parecer que algo deu errado.
+ */
+.sc-loja__situacao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: 999px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-loja__pulso {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--cor-borda-forte);
+  flex: none;
+}
+
+.sc-loja__situacao--aberta {
+  border-color: color-mix(in oklab, var(--cor-sucesso) 45%, transparent);
+  color: var(--cor-tinta);
+}
+
+.sc-loja__situacao--aberta .sc-loja__pulso {
+  background: var(--cor-sucesso);
+  /* O halo diz "agora" sem precisar de animação. */
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--cor-sucesso) 22%, transparent);
+}
+
+.sc-loja__situacao--fechada .sc-loja__pulso {
+  background: var(--cor-atencao);
+}
+
+/* --- o caminho de saída --------------------------------------------------- */
+
 .sc-loja__chamada {
-  margin-block-start: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+/*
+ * O botão é o motivo de a página existir. Ele tem alvo de toque generoso, peso
+ * visual acima de tudo o mais na tela, e a seta que diz para onde leva.
+ */
+.sc-loja__entrar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: 3.25rem;
+  padding-inline: var(--espaco-7);
+  border-radius: 999px;
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: 1.0625rem;
+  font-weight: 550;
+  text-decoration: none;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--cor-primaria) 30%, transparent),
+    0 10px 24px color-mix(in oklab, var(--cor-primaria) 26%, transparent);
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+.sc-loja__entrar:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--cor-primaria) 34%, transparent),
+    0 14px 30px color-mix(in oklab, var(--cor-primaria) 32%, transparent);
+}
+
+.sc-loja__entrar:active {
+  transform: translateY(0);
+}
+
+.sc-loja__entrar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-loja__seta {
+  flex: none;
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-loja__entrar:hover .sc-loja__seta {
+  transform: translateX(3px);
+}
+
+.sc-loja__nota {
+  font-size: 0.8125rem;
+  color: var(--cor-tinta-suave);
+}
+
+/* --- os detalhes ---------------------------------------------------------- */
+
+.sc-loja__detalhes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
 }
 
 .sc-loja__formas {
   list-style: none;
   padding: 0;
-  margin: 0 0 var(--espaco-4);
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--espaco-2);
 }
 
 .sc-loja__formas li {
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-1);
+  border-radius: 999px;
   padding: var(--espaco-1) var(--espaco-3);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
+  color: var(--cor-tinta-suave);
+  background: var(--cor-superficie);
 }
 
 .sc-loja__endereco {
   font-style: normal;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--cor-tinta-suave);
+  max-inline-size: 32ch;
 }
 
-/*
- * A primeira seção não gruda nem anima em tela BAIXA: quem abre a loja no
- * celular deitado tem 360px de altura, e uma seção de tela cheia ali empurra o
- * caminho para o cardápio para fora da vista.
+/* --- telas baixas ---------------------------------------------------------
+ *
+ * Celular deitado e Nest Hub: não há altura para respiro, e o conteúdo encolhe
+ * para o botão continuar alcançável sem rolar.
  */
 @media (max-height: 600px) {
-  .sc-loja__capa {
-    padding-block: var(--espaco-5);
+  .sc-loja__tela {
+    gap: var(--espaco-4);
+    padding-block: var(--espaco-4);
+  }
+
+  .sc-loja__marca {
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    box-shadow: none;
   }
 
   .sc-loja__logo {
-    inline-size: 72px;
-    block-size: 72px;
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  .sc-loja__iniciais {
+    font-size: 1.125rem;
+  }
+
+  /* O nome e o botão vencem a apresentação quando falta espaço. */
+  .sc-loja__boas-vindas {
+    display: none;
+  }
+}
+
+/* --- telas altas ----------------------------------------------------------
+ *
+ * Tablet em pé, dobrável aberto, TV. Aqui sobra altura, e ela vira RESPIRO: o
+ * bloco tem teto e fica centrado, com a sobra dividida nas pontas. Esticar o
+ * conteúdo até 2160px não ficaria imponente, ficaria quebrado.
+ */
+@media (min-height: 1100px) {
+  .sc-loja__tela {
+    gap: var(--espaco-7);
+    max-block-size: 900px;
+    margin-block: auto;
+  }
+
+  .sc-loja__marca {
+    inline-size: 8rem;
+    block-size: 8rem;
+  }
+}
+
+/* --- movimento reduzido ---------------------------------------------------
+ *
+ * Recebe o ESTADO FINAL, e não a ausência. O erro comum é esconder o elemento e
+ * animar a entrada: quem pediu para parar de mexer fica sem o conteúdo, não sem
+ * a animação.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sc-loja__tela,
+  .sc-loja__identidade,
+  .sc-loja__chamada,
+  .sc-loja__detalhes {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .sc-loja__entrar:hover {
+    transform: none;
+  }
+
+  .sc-loja__entrar:hover .sc-loja__seta {
+    transform: none;
   }
 }

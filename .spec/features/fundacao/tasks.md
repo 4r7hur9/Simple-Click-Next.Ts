@@ -55,7 +55,7 @@
 
 - Refs: AC-004, AC-036, AC-037, AC-039
 - Arquivos: packages/database/seed/index.ts, packages/database/seed/lojas.ts, packages/database/seed/catalogo.ts, packages/database/seed/pedidos.ts, packages/database/seed/deterministico.ts, packages/database/seed/seed.test.ts, vitest.config.ts
-- Notas: duas lojas de ramos diferentes, uma de comida e uma com estoque, com pedidos em todos os status. Identificadores e datas previsíveis. Recusa rodar em produção.
+- Notas: as chaves plantadas são as que o MODELO declara e a projeção pública lê — divergir produz uma semente que planta sem erro e uma vitrine que não mostra nada, o pior tipo de dado de exemplo porque passa em todo teste e falha quando alguém abre a página. Toda loja tem horário: sem ele, todas apareceriam fechadas para sempre, e dado de exemplo que não produz cenário navegável não é dado de exemplo. Duas lojas de ramos diferentes, uma de comida e uma com estoque, com pedidos em todos os status. Identificadores e datas previsíveis. Recusa rodar em produção.
 - Esforço: alto
 
 ## T-009 — Construtores de dados para teste [concluida]

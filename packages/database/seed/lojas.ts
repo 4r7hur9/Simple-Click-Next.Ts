@@ -323,20 +323,65 @@ function linhaDaLoja(loja: LojaDeExemplo, referencia: Date): LinhaDeExemplo {
   };
 }
 
+/**
+ * O horário de funcionamento de cada loja de exemplo.
+ *
+ * Sem ele, TODA loja da semente aparece fechada na vitrine — e quem abre a
+ * página para conferir o trabalho vê o aviso de fechado em vez do que foi
+ * construído. Dado de exemplo que não produz um cenário navegável não é dado de
+ * exemplo (AC-004).
+ *
+ * A pastelaria abre em duas faixas, almoço e jantar, porque é o caso que
+ * exercita mais de uma faixa no mesmo dia. A loja de roupa abre corrido, que é o
+ * comum no comércio de rua.
+ */
+function linhasDosHorarios(
+  loja: LojaDeExemplo,
+  referencia: Date,
+): LinhaDeExemplo[] {
+  const faixas = loja.ehComida
+    ? [
+        { abre: "11:00", fecha: "15:00" },
+        { abre: "18:00", fecha: "23:00" },
+      ]
+    : [{ abre: "09:00", fecha: "18:00" }];
+
+  const linhas: LinhaDeExemplo[] = [];
+  // Segunda a sábado. Domingo fica sem faixa de propósito: é o dia que mostra a
+  // vitrine dizendo "abre amanhã às 11h" em vez de só "fechada".
+  for (let dia = 1; dia <= 6; dia += 1) {
+    faixas.forEach((faixa, ordem) => {
+      linhas.push({
+        store_id: loja.id,
+        weekday: dia,
+        opens_at: faixa.abre,
+        closes_at: faixa.fecha,
+        is_closed: false,
+        sort_order: ordem,
+        created_at: referencia,
+        updated_at: referencia,
+      });
+    });
+  }
+  return linhas;
+}
+
 function linhaDasConfiguracoes(
   loja: LojaDeExemplo,
   referencia: Date,
 ): LinhaDeExemplo {
   return {
     store_id: loja.id,
+    // As chaves são as que o MODELO DE DADOS declara, e as que a projeção
+    // pública lê. Divergir aqui produziria uma semente que planta sem erro e
+    // uma vitrine que não mostra nada — o pior tipo de dado de exemplo, porque
+    // ele passa em todo teste e falha quando alguém abre a página.
     theme: json({
-      corPrimaria: loja.ehComida ? "#B3261E" : "#1B3A6B",
-      corDeFundo: "#FFFFFF",
-      fonte: "Inter",
+      primaria: loja.ehComida ? "#B3261E" : "#1B3A6B",
+      fundo: "#FFFFFF",
     }),
     landing: json({
-      titulo: loja.nome,
-      chamada: loja.ehComida
+      boasVindas: loja.ehComida
         ? "Pastel na hora, massa fina e recheio generoso."
         : "Roupa boa, preço honesto, entrega no bairro.",
       mostrarDestaques: true,
@@ -475,6 +520,10 @@ export function montarLojas(referencia: Date): readonly ConjuntoDeExemplo[] {
     {
       tabela: "store_settings",
       linhas: LOJAS.map((loja) => linhaDasConfiguracoes(loja, referencia)),
+    },
+    {
+      tabela: "store_hours",
+      linhas: LOJAS.flatMap((loja) => linhasDosHorarios(loja, referencia)),
     },
     {
       tabela: "store_domains",
