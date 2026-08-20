@@ -12,6 +12,9 @@ catalog:
   vitest: 4.1.10
   prettier: 3.9.6
   zod: 4.4.3
+  # Animação por rolagem, só nas landings. O ScrollTrigger vem no mesmo
+  # pacote e é livre desde 2024 — não há plugin pago a instalar.
+  gsap: 3.15.0
 
 # Só estes pacotes podem rodar script na instalação. Qualquer outro que peça
 # execução precisa ser aprovado aqui, de propósito — é superfície de ataque de

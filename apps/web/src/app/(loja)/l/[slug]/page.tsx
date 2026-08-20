@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { ApresentacaoDaLoja } from "../../../../features/loja/ApresentacaoDaLoja.tsx";
+import { NarrativaDaLoja } from "../../../../features/loja/NarrativaDaLoja.tsx";
 import { buscarVitrine } from "../../../../server/vitrine.ts";
 
 interface ParametrosDaPagina {
@@ -67,6 +68,12 @@ export default async function PaginaDaLoja({ params }: ParametrosDaPagina) {
         abertura={abertura}
         linkDoCardapio={`/l/${loja.apelido}/cardapio`}
       />
+      {/*
+        A narrativa vem DEPOIS do conteúdo, e não em volta dele. Ela não desenha
+        nada: acha as seções que já estão na página e as anima. Se nunca rodar,
+        a página continua inteira.
+      */}
+      <NarrativaDaLoja />
     </main>
   );
 }

@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-08-20T12:04:53.034Z",
-  "gitRev": "e8178a7",
+  "timestamp": "2026-08-20T12:41:49.957Z",
+  "gitRev": "b1d3d21",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 856,
+  "testsParsed": 861,
   "results": {},
   "principles": {
     "P-006": {
@@ -26,15 +26,15 @@
     },
     "P-012": {
       "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",
       "testName": "estados de tela do esqueleto @principle:P-011 a espera é anunciada, e não fica em tela muda @principle:P-011 a espera é anunciada, e não fica em tela muda"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     }
   }
 }

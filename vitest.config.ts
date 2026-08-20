@@ -99,6 +99,10 @@ export default defineConfig({
         oxc: conversaoDeJsx,
         test: {
           name: "web",
+          // O jsdom não implementa `matchMedia`, e componente que pergunta
+          // sobre preferência do sistema estoura ao montar — com mensagem que
+          // fala de uma função ausente, e não do componente.
+          setupFiles: ["./apps/web/tests/preparo-navegador.ts"],
           include: [
             "apps/web/tests/**/*.test.{ts,tsx}",
             "apps/web/src/**/*.test.{ts,tsx}",

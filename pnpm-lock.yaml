@@ -9,6 +9,9 @@ catalogs:
     eslint:
       specifier: 10.8.1
       version: 10.8.1
+    gsap:
+      specifier: 3.15.0
+      version: 3.15.0
     typescript:
       specifier: 6.0.3
       version: 6.0.3
@@ -138,6 +141,9 @@ importers:
       '@simpleclick/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      gsap:
+        specifier: 'catalog:'
+        version: 3.15.0
       next:
         specifier: 16.3.1
         version: 16.3.1(@types/node@26.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -2092,6 +2098,9 @@ packages:
 
   graphmatch@1.1.1:
     resolution: {integrity: sha512-5ykVn/EXM1hF0XCaWh05VbYvEiOL2lY1kBxZtaYsyvjp7cmWOU1XsAdfQBwClraEofXDT197lFbXOEVMHpvQOg==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   handlebars@4.7.9:
     resolution: {integrity: sha512-4E71E0rpOaQuJR2A3xDZ+GM1HyWYv1clR58tC8emQNeQe3RH7MAzSbat+V0wG78LQBo6m6bzSG/L4pBuCsgnUQ==}
@@ -4899,6 +4908,8 @@ snapshots:
   grammex@3.1.13: {}
 
   graphmatch@1.1.1: {}
+
+  gsap@3.15.0: {}
 
   handlebars@4.7.9:
     dependencies:
