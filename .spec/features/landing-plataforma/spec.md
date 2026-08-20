@@ -65,6 +65,18 @@ faz por mim, para que eu decida se vale meu tempo antes de me cadastrar.
 - **Quando** rolo do começo ao fim
 - **Então** as seções contam uma sequência com começo, meio e fim — o problema de quem anota pedido no papel, o produto resolvendo, e o convite para começar —, e cada seção tem um caminho para começar sem precisar voltar ao topo
 
+#### AC-939 — A landing mostra o produto funcionando, com o nome de quem chegou
+
+- **Dado** que estou avaliando o SimpleClick e ainda não me cadastrei
+- **Quando** digito o nome do meu negócio e escolho uma cor na própria landing
+- **Então** vejo, ali mesmo, uma prévia da minha loja com o meu nome e a minha cor aplicados de verdade — inclusive o contraste ajustado para o texto continuar legível na cor que escolhi —, sem cadastro, sem espera e sem sair da página
+
+#### AC-940 — A prévia mostra a mensagem que o cliente receberia
+
+- **Dado** a prévia da minha loja montada na landing
+- **Quando** vejo o exemplo de pedido
+- **Então** a mensagem de WhatsApp aparece como ela chegaria de verdade, com o nome da minha loja, os itens e o total — porque é essa mensagem que eu preciso ver antes de decidir se o produto serve
+
 #### AC-938 — Cabe em qualquer aparelho, do dobrável fechado à TV
 
 - **Dado** a landing aberta em 344px de largura e em telas de 1366px e 1920px de altura

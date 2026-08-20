@@ -1,11 +1,16 @@
 /**
  * O mundo em três dimensões da landing (AC-935).
  *
- * O QUE ELE MOSTRA: uma loja tomando forma. Peças soltas que se organizam
- * conforme a pessoa rola — que é, literalmente, o que o produto faz com o
- * negócio de quem chega aqui. É por isso que o 3D se paga NESTA página: ele é o
- * argumento, e não enfeite. A pergunta Q-037 segue aberta sobre trocar a
- * metáfora pelo pedido atravessando até a cozinha.
+ * O QUE ELE MOSTRA: comandas de pedido chegando e se organizando. Começam
+ * espalhadas e giradas, como o papel que se acumula no balcão, e acabam
+ * empilhadas e alinhadas conforme a pessoa rola. É a mesma coisa que o produto
+ * faz com o dia do dono, e é por isso que o 3D se paga NESTA página: ele é o
+ * argumento, e não enfeite.
+ *
+ * A PRIMEIRA VERSÃO ERAM CUBOS. Estavam corretos e não diziam nada: forma
+ * abstrata não fala com quem vende pastel, e ainda disputava a leitura do texto
+ * que passava por cima. Agora as peças são retangulares e finas, na proporção de
+ * um papel — e a folha da landing as deixa em opacidade baixa, como atmosfera.
  *
  * O QUE ELE NÃO É: conteúdo. A página conta a história inteira sem ele, e na
  * maioria dos aparelhos ele nem é baixado — a decisão mora em `podeRodar3D.ts`
@@ -17,8 +22,8 @@
  */
 import * as THREE from "three";
 
-/** Quantas peças formam a loja. Poucas, e todas com a mesma geometria. */
-const PECAS = 14;
+/** Quantas comandas. Poucas, e todas com a mesma geometria. */
+const PECAS = 16;
 
 /** O teto de densidade de pixel. Acima de 2 a diferença não se percebe, e o
  * custo cresce ao quadrado: densidade 3 desenha nove vezes mais pixels que 1. */
@@ -39,7 +44,7 @@ function posicaoFinal(indice: number): THREE.Vector3 {
   );
 }
 
-/** Posição inicial: espalhada, como as peças antes de alguém organizá-las. */
+/** Posição inicial: espalhada, como o papel que se acumula no balcão. */
 function posicaoInicial(indice: number): THREE.Vector3 {
   // Determinística de propósito: o mesmo espalhamento a cada carregamento faz a
   // animação ser desenhada, e não sorteada.
@@ -82,15 +87,20 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   elemento.append(renderizador.domElement);
 
   // UMA geometria e UM material, reaproveitados por todas as peças. Criar um
-  // par por peça multiplicaria as chamadas de desenho por catorze sem mudar
-  // nada do que se vê.
-  const geometria = new THREE.BoxGeometry(1, 1, 1);
+  // par por peça multiplicaria as chamadas de desenho sem mudar nada do que se
+  // vê.
+  //
+  // A proporção é a de uma comanda: alta, estreita e fina. É o que faz a forma
+  // ser reconhecível mesmo em opacidade baixa e desfocada por trás do texto.
+  const geometria = new THREE.BoxGeometry(1, 1.45, 0.05);
   const material = new THREE.MeshStandardMaterial({
     color: 0x1a4fd6,
-    roughness: 0.45,
-    metalness: 0.1,
+    // Áspero e sem brilho: papel não reflete. Metal aqui leria como plástico, e
+    // a metáfora se perderia.
+    roughness: 0.85,
+    metalness: 0,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.92,
   });
 
   const grupo = new THREE.Group();
@@ -100,8 +110,9 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
     const peca = new THREE.Mesh(geometria, material);
     const inicio = posicaoInicial(i);
     peca.position.copy(inicio);
-    peca.rotation.set(inicio.x * 0.2, inicio.y * 0.2, 0);
-    peca.scale.setScalar(0.55 + (i % 3) * 0.12);
+    // Giro nos três eixos: papel caído não fica de frente para ninguém.
+    peca.rotation.set(inicio.x * 0.2, inicio.y * 0.2, inicio.z * 0.15);
+    peca.scale.setScalar(0.62 + (i % 3) * 0.1);
     grupo.add(peca);
     pecas.push(peca);
   }
@@ -139,8 +150,10 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
       if (peca === undefined) continue;
       alvo.copy(posicaoInicial(i)).lerp(posicaoFinal(i), progresso);
       peca.position.lerp(alvo, 0.08);
+      // As comandas vão ficando de frente conforme a história avança.
       peca.rotation.x += (0 - peca.rotation.x) * 0.05 * progresso;
       peca.rotation.y += (0 - peca.rotation.y) * 0.05 * progresso;
+      peca.rotation.z += (0 - peca.rotation.z) * 0.05 * progresso;
     }
     grupo.rotation.y = (1 - progresso) * 0.35;
     renderizador.render(cena, camera);

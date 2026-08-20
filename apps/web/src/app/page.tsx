@@ -16,6 +16,8 @@ import "@simpleclick/ui/styles/landing.css";
 import type { Metadata } from "next";
 
 import { HistoriaDaLanding } from "../features/landing/HistoriaDaLanding.tsx";
+import { PreviaDaLoja } from "../features/landing/PreviaDaLoja.tsx";
+import { exemploDaLanding } from "../server/exemplo-da-landing.ts";
 import { NarrativaDaLanding } from "../features/landing/NarrativaDaLanding.tsx";
 
 export const metadata: Metadata = {
@@ -28,9 +30,22 @@ export const metadata: Metadata = {
 const LINK_PARA_COMECAR = "/entrar";
 
 export default function PaginaInicial() {
+  // O exemplo é montado AQUI, no servidor, pelo gerador de verdade — a tela não
+  // calcula preço nem monta mensagem (P-006).
+  const exemplo = exemploDaLanding();
+
   return (
     <main>
-      <HistoriaDaLanding linkParaComecar={LINK_PARA_COMECAR} />
+      <HistoriaDaLanding
+        linkParaComecar={LINK_PARA_COMECAR}
+        previa={
+          <PreviaDaLoja
+            itens={exemplo.itens}
+            total={exemplo.total}
+            mensagem={exemplo.mensagem}
+          />
+        }
+      />
       {/*
         A narrativa vem DEPOIS da história, e não em volta dela. Ela não desenha
         nada: acha os capítulos que já estão na página e os anima — e é ela quem

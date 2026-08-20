@@ -40,8 +40,19 @@
  * O conteúdo tem TETO. Metade de uma vertical 4K ainda são 2160px, e um bloco
  * esticado até lá não fica imponente, fica quebrado. A sobra vira respiro nas
  * pontas.
+ *
+ * E ELE TEM CHÃO PRÓPRIO. Isto não é enfeite: o mundo em três dimensões passa
+ * atrás da página, e texto sobre formas em movimento não se lê. O texto flutuava
+ * sobre as peças e a leitura brigava com a animação — o que é pior que não ter
+ * animação nenhuma.
+ *
+ * O chão é translúcido para o mundo continuar visível, e desfocado para ele não
+ * competir. O desfoque é MELHORIA: onde o navegador não o suporta, a cor de
+ * fundo sozinha já garante o contraste, e é por isso que ela vem antes e com
+ * opacidade suficiente para se sustentar sem ele.
  */
 .sc-lp__conteudo {
+  position: relative;
   inline-size: 100%;
   max-inline-size: 40rem;
   max-block-size: 900px;
@@ -49,6 +60,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--espaco-4);
+  padding: var(--espaco-6);
+  border-radius: var(--raio-3);
+  background: color-mix(in oklab, var(--cor-fundo) 88%, transparent);
+}
+
+/*
+ * O desfoque entra só onde ele existe. Com ele, o chão pode ser mais
+ * translúcido e o mundo aparece mais — sem ele, a regra acima já basta.
+ */
+@supports (backdrop-filter: blur(1px)) {
+  .sc-lp__conteudo {
+    background: color-mix(in oklab, var(--cor-fundo) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(1.1);
+  }
 }
 
 /* --- tipografia -----------------------------------------------------------
@@ -202,12 +227,18 @@
  * Ele fica ATRÁS do conteúdo, sem interceptar toque nem clique, e some para o
  * leitor de tela. A página conta a mesma história sem ele — e na maioria dos
  * aparelhos ele nem é baixado.
+ *
+ * A OPACIDADE É BAIXA DE PROPÓSITO. Um mundo em cheio disputa a atenção com o
+ * texto que ele deveria acompanhar, e a pessoa acaba lendo nenhum dos dois. Aqui
+ * ele é atmosfera: percebe-se que a página tem profundidade, e não se para para
+ * olhar as peças.
  */
 .sc-lp__mundo {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: 0.35;
 }
 
 .sc-lp__abertura,
@@ -258,4 +289,385 @@
   .sc-lp__mundo {
     display: none;
   }
+}
+
+/* =========================================================================
+ * A PRÉVIA VIVA
+ *
+ * O que diferencia uma landing de construtor de loja não é decoração: é mostrar
+ * o produto funcionando. Os elementos são os do negócio — um celular com a loja
+ * dentro e a mensagem do WhatsApp —, porque são as duas coisas que quem tem
+ * lanchonete reconhece de imediato.
+ * ========================================================================= */
+
+.sc-previa {
+  display: grid;
+  gap: var(--espaco-6);
+  inline-size: 100%;
+}
+
+/* --- os controles --------------------------------------------------------- */
+
+.sc-previa__controles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.sc-previa__rotulo {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 550;
+  color: var(--cor-tinta);
+  margin-block-end: var(--espaco-2);
+  padding: 0;
+}
+
+.sc-previa__campo {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+  min-block-size: 3rem;
+  padding-inline: var(--espaco-4);
+  border-radius: var(--raio-2);
+  border: 1px solid var(--cor-borda-forte);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-size: 1rem;
+}
+
+.sc-previa__campo:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-previa__cores {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.sc-previa__paleta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.sc-previa__cor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--cor-tinta-suave);
+}
+
+/*
+ * O controle nativo fica escondido mas ALCANÇÁVEL: `display: none` o tiraria da
+ * ordem de foco, e quem navega por teclado perderia a escolha de cor por
+ * completo. Escondido assim, o foco continua chegando e a amostra o mostra.
+ */
+.sc-previa__cor input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.sc-previa__amostra {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid var(--cor-borda);
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+.sc-previa__cor input:checked + .sc-previa__amostra {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 3px var(--cor-fundo),
+    0 0 0 5px var(--cor-tinta);
+}
+
+.sc-previa__cor input:focus-visible + .sc-previa__amostra {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-previa__cor input:checked ~ .sc-previa__cor-nome {
+  color: var(--cor-tinta);
+  font-weight: 550;
+}
+
+/* --- o palco -------------------------------------------------------------- */
+
+.sc-previa__palco {
+  display: grid;
+  gap: var(--espaco-6);
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .sc-previa__palco {
+    grid-template-columns: auto 1fr;
+    gap: var(--espaco-7);
+  }
+}
+
+/* --- o celular -----------------------------------------------------------
+ *
+ * É a moldura que quem tem loja reconhece: é assim que o cliente dele vai ver a
+ * loja. Mostrar num retângulo branco perderia metade do argumento.
+ */
+.sc-previa__celular {
+  position: relative;
+  inline-size: min(100%, 17rem);
+  margin-inline: auto;
+  padding: 0.75rem;
+  border-radius: 2.25rem;
+  background: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-previa__entalhe {
+  position: absolute;
+  inset-block-start: 1.15rem;
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: 4.5rem;
+  block-size: 1.1rem;
+  border-radius: 999px;
+  background: var(--cor-tinta);
+  z-index: 2;
+}
+
+.sc-previa__tela {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  border-radius: 1.6rem;
+  background: var(--cor-fundo);
+  padding: var(--espaco-6) var(--espaco-4) var(--espaco-4);
+  overflow: clip;
+  min-block-size: 26rem;
+}
+
+/*
+ * A capa é um lavado da cor escolhida. Ela é o que faz duas escolhas de cor
+ * produzirem duas lojas visivelmente diferentes — que é o argumento inteiro
+ * deste bloco.
+ */
+.sc-previa__capa {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 6.5rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--cor-primaria) 75%, transparent),
+    color-mix(in oklab, var(--cor-primaria) 12%, transparent)
+  );
+}
+
+.sc-previa__marca {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  margin-block-start: var(--espaco-4);
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  border: 2px solid var(--cor-fundo);
+  font-weight: 600;
+  color: var(--cor-primaria-texto);
+  box-shadow: var(--sombra-1);
+}
+
+.sc-previa__nome-da-loja {
+  position: relative;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--cor-tinta);
+  /* Nome longo não pode empurrar a moldura do celular. */
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+.sc-previa__situacao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin: 0 0 var(--espaco-2);
+  font-size: 0.6875rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-previa__pulso {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: 50%;
+  background: var(--cor-sucesso);
+}
+
+.sc-previa__itens {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.sc-previa__item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  font-size: 0.75rem;
+}
+
+/*
+ * A figura do produto é um bloco de cor, e não uma imagem: a landing não carrega
+ * foto nenhuma, e um retângulo cinza vazio diria "faltou carregar". Com a cor da
+ * loja, ele lê como produto sem foto — que é como a loja nova começa mesmo.
+ */
+.sc-previa__item-figura {
+  flex: none;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--raio-1);
+  background: color-mix(
+    in oklab,
+    var(--cor-primaria) 22%,
+    var(--cor-superficie-alta)
+  );
+}
+
+.sc-previa__item-texto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.sc-previa__item-texto strong {
+  font-weight: 550;
+  color: var(--cor-tinta);
+  overflow-wrap: anywhere;
+}
+
+.sc-previa__item-texto em {
+  font-style: normal;
+  font-size: 0.6875rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-previa__item-preco {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-tinta);
+}
+
+.sc-previa__total {
+  display: flex;
+  justify-content: space-between;
+  inline-size: 100%;
+  margin: var(--espaco-2) 0 0;
+  padding-block-start: var(--espaco-2);
+  border-block-start: 1px solid var(--cor-borda);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-previa__botao {
+  inline-size: 100%;
+  margin: var(--espaco-2) 0 0;
+  padding-block: var(--espaco-3);
+  border-radius: 999px;
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  text-align: center;
+}
+
+/* --- a conversa ----------------------------------------------------------
+ *
+ * É o que o dono recebe, e o motivo pelo qual ele confia no produto antes de
+ * testar: ele já sabe como uma mensagem de pedido deveria parecer, porque recebe
+ * pedido no WhatsApp todo dia.
+ */
+.sc-previa__conversa {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+}
+
+.sc-previa__conversa-titulo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-previa__balao {
+  position: relative;
+  align-self: flex-start;
+  max-inline-size: 100%;
+  padding: var(--espaco-4) var(--espaco-4) var(--espaco-5);
+  border-radius: var(--raio-3) var(--raio-3) var(--raio-3) var(--raio-1);
+  background: var(--cor-superficie-alta);
+  border: 1px solid var(--cor-borda);
+  box-shadow: var(--sombra-1);
+}
+
+.sc-previa__mensagem {
+  margin: 0;
+  font-family: var(--fonte-base);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  /* A mensagem tem quebras de linha próprias, e elas são parte do formato. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--cor-tinta);
+}
+
+.sc-previa__hora {
+  position: absolute;
+  inset-block-end: var(--espaco-2);
+  inset-inline-end: var(--espaco-3);
+  font-size: 0.625rem;
+  color: var(--cor-tinta-suave);
+}
+
+/* --- movimento reduzido --------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-previa__amostra,
+  .sc-previa__cor input:checked + .sc-previa__amostra {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* A seção da prévia precisa de mais largura que o texto: ela tem duas colunas. */
+.sc-lp__conteudo--largo {
+  max-inline-size: 64rem;
+}
+
+.sc-lp__demo {
+  background: var(--cor-superficie);
+  border-block: 1px solid var(--cor-borda);
 }

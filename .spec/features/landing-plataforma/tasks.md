@@ -23,6 +23,13 @@
 - Notas: o mundo é montado por `NarrativaDaLanding`, e não por um componente próprio — quem decide se ele existe é quem já decide o resto do movimento, e separar em dois faria a decisão morar longe de quem a toma. A decisão de carregar é tomada ANTES do download. Sem WebGL, no celular, com poucos núcleos ou com movimento reduzido, o pacote nem é baixado. Descarte explícito de geometria e textura ao sair.
 - Esforço: alto
 
+## T-964 — A prévia viva da loja, na própria landing [concluida]
+
+- Refs: US-910, AC-939, AC-940
+- Arquivos: apps/web/src/features/landing/PreviaDaLoja.tsx, apps/web/tests/landing-previa.test.tsx, apps/web/src/server/exemplo-da-landing.ts, apps/web/src/lib/iniciais.ts, apps/web/src/lib/iniciais.test.ts, packages/ui/styles/landing.css, apps/web/src/app/page.tsx, apps/web/src/features/landing/HistoriaDaLanding.tsx
+- Notas: o visitante digita o nome do negócio e escolhe a cor, e vê a própria loja tomando forma — com o ajuste de contraste de verdade, o mesmo que o produto faz. Os produtos do exemplo são fixos e a mensagem vem PRONTA do servidor, porque a tabela de fronteiras não autoriza a camada de telas a calcular preço (P-006) — e uma segunda conta escrita aqui divergiria da real no dia em que uma das duas mudasse.
+- Esforço: alto
+
 ## T-963 — Teste de ponta a ponta da landing [pendente]
 
 - Refs: US-910, AC-934, AC-938

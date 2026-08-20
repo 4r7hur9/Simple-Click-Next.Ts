@@ -16,6 +16,8 @@
  * ninguém que vende pastel.
  */
 
+import type { ReactNode } from "react";
+
 /** Uma seção da história, na ordem em que ela se conta. */
 interface Capitulo {
   readonly id: string;
@@ -68,6 +70,15 @@ const CAPITULOS: readonly Capitulo[] = [
 export interface HistoriaDaLandingProps {
   /** Para onde vai quem decidiu começar. */
   readonly linkParaComecar: string;
+  /**
+   * A prévia viva, montada por quem pode ver as regras.
+   *
+   * Chega como elemento pronto, e não é importada aqui: este componente é
+   * desenhado no servidor e precisa continuar assim, e a prévia é interativa.
+   * Recebê-la mantém a história inteira legível sem script, com a prévia
+   * entrando como uma ilha dentro dela.
+   */
+  readonly previa?: ReactNode;
 }
 
 /** O caminho para começar, repetido em cada capítulo. */
@@ -106,7 +117,10 @@ function Comecar({
   );
 }
 
-export function HistoriaDaLanding({ linkParaComecar }: HistoriaDaLandingProps) {
+export function HistoriaDaLanding({
+  linkParaComecar,
+  previa,
+}: HistoriaDaLandingProps) {
   return (
     <div className="sc-lp" data-narrativa="landing">
       {/*
@@ -133,6 +147,25 @@ export function HistoriaDaLanding({ linkParaComecar }: HistoriaDaLandingProps) {
           </p>
         </div>
       </section>
+
+      {/*
+        A PRÉVIA VEM LOGO DEPOIS DA PROMESSA, e antes dos capítulos. Quem chegou
+        acabou de ler o que o produto faz; o passo seguinte natural é ver. Deixar
+        a prévia no fim faria a maioria nunca chegar nela.
+      */}
+      {previa ? (
+        <section className="sc-lp__capitulo sc-lp__demo" data-capitulo="previa">
+          <div className="sc-lp__conteudo sc-lp__conteudo--largo">
+            <p className="sc-lp__sobrancelha">Veja funcionando</p>
+            <h2 className="sc-lp__titulo">Sua loja, agora</h2>
+            <p className="sc-lp__texto">
+              Escreva o nome do seu negócio e escolha uma cor. É assim que seu
+              cliente vai ver, e é essa a mensagem que chega no seu WhatsApp.
+            </p>
+            {previa}
+          </div>
+        </section>
+      ) : null}
 
       {CAPITULOS.map((capitulo, indice) => (
         <section

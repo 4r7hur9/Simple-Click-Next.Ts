@@ -16,6 +16,8 @@
  */
 import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 
+import { iniciaisDe } from "../../lib/iniciais.ts";
+
 /** A loja, como o contrato da API a descreve. */
 export interface LojaNaTela {
   readonly apelido: string;
@@ -73,21 +75,6 @@ function enderecoEmUmaLinha(
   return [rua, endereco.complemento, endereco.bairro, cidade]
     .filter(Boolean)
     .join(" · ");
-}
-
-/**
- * As iniciais da loja, para quando não há logo.
- *
- * Melhor que um espaço vazio e melhor que um ícone genérico: a marca de quem
- * ainda não subiu logo continua sendo a dela, e a composição não desmonta.
- */
-function iniciaisDe(nome: string): string {
-  const palavras = nome
-    .split(/\s+/)
-    .filter((palavra) => palavra.length > 2)
-    .slice(0, 2);
-  const base = palavras.length > 0 ? palavras : [nome];
-  return base.map((palavra) => palavra[0]?.toUpperCase() ?? "").join("");
 }
 
 /**

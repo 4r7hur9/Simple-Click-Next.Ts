@@ -146,3 +146,41 @@ export const PALETAS = {
 } as const;
 
 export type NomeDoTema = keyof typeof PALETAS;
+
+// ---------------------------------------------------------------------------
+// A paleta que o DONO DA LOJA escolhe
+// ---------------------------------------------------------------------------
+
+/**
+ * Uma cor oferecida ao dono, com nome de coisa.
+ *
+ * O nome importa tanto quanto o valor: "índigo" e "#1b3a6b" não dizem nada a
+ * quem vende pastel, e a pessoa acaba escolhendo pela amostra sem saber o que
+ * escolheu — o que fica ruim na hora de pedir ajuda por telefone.
+ */
+export interface CorDeLoja {
+  readonly nome: string;
+  readonly valor: string;
+}
+
+/**
+ * As cores que uma loja pode escolher.
+ *
+ * LISTA CURTA, e não seletor livre. Duas razões: escolher entre seis é decisão
+ * de dois segundos, e escolher num círculo de cores é uma tarefa — a pessoa veio
+ * vender, não fazer identidade visual. E toda cor daqui já foi conferida contra
+ * o ajuste de contraste, então nenhuma escolha produz uma loja ilegível.
+ *
+ * Mora neste arquivo porque é DECLARAÇÃO de cor, e é o único lugar do projeto
+ * onde a regra do ESLint permite escrever uma (AC-014). A prévia da landing e a
+ * tela de configuração do dono leem a mesma lista — duas cópias ofereceriam
+ * cores diferentes no mesmo produto.
+ */
+export const PALETA_DE_LOJA: readonly CorDeLoja[] = Object.freeze([
+  { nome: "Brasa", valor: "#b3261e" },
+  { nome: "Laranja", valor: "#b3541e" },
+  { nome: "Mata", valor: "#0f6e5c" },
+  { nome: "Oceano", valor: "#1b3a6b" },
+  { nome: "Uva", valor: "#5b2d82" },
+  { nome: "Grafite", valor: "#2c3038" },
+]);

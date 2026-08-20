@@ -1,11 +1,11 @@
 {
   "feature": "landing-plataforma",
-  "timestamp": "2026-08-20T14:16:07.632Z",
-  "gitRev": "95ee6ca",
+  "timestamp": "2026-08-20T14:47:52.158Z",
+  "gitRev": "be53037",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 889,
+  "testsParsed": 905,
   "results": {
     "AC-933": {
       "status": "pass",
@@ -30,6 +30,16 @@
     "AC-937": {
       "status": "pass",
       "testName": "a narrativa tem argumento (AC-937) @spec:AC-937 as seções contam começo, meio e fim, nessa ordem @spec:AC-937 as seções contam começo, meio e fim, nessa ordem",
+      "method": "vitest-json"
+    },
+    "AC-939": {
+      "status": "pass",
+      "testName": "a prévia mostra a loja de quem chegou (AC-939) @spec:AC-939 o nome digitado aparece na loja, na hora @spec:AC-939 o nome digitado aparece na loja, na hora",
+      "method": "vitest-json"
+    },
+    "AC-940": {
+      "status": "pass",
+      "testName": "a prévia mostra a mensagem que o cliente manda (AC-940) @spec:AC-940 a mensagem aparece como ela chega, com as quebras de linha @spec:AC-940 a mensagem aparece como ela chega, com as quebras de linha",
       "method": "vitest-json"
     },
     "AC-938": {
