@@ -36,8 +36,11 @@ describe("a promessa aparece antes de qualquer rolagem (AC-933)", () => {
     const abertura = html.slice(0, html.indexOf('data-capitulo="problema"'));
     const lido = comoSeLe(abertura);
 
+    // As DUAS metades do que o produto faz: o cardápio que fica no ar, e o
+    // pedido chegando escrito. Uma sem a outra deixa a abertura contando meia
+    // história — e é meia história que a pessoa leva embora se não rolar.
     expect(lido).toContain("cardápio online");
-    expect(lido).toContain("pedidos organizados");
+    expect(lido).toContain("pedidos prontos no WhatsApp");
     expect(abertura).toContain('href="/entrar"');
   });
 
@@ -58,7 +61,15 @@ describe("a promessa aparece antes de qualquer rolagem (AC-933)", () => {
   });
 
   it("@spec:AC-933 a gratuidade da versão 1 aparece junto do convite", () => {
-    expect(comoSeLe(desenhar())).toContain("Sem cartão de crédito");
+    // Em minúsculas porque o que importa é a promessa estar lá, e não a
+    // maiúscula que a frase calhou de ter quando este teste foi escrito.
+    const lido = comoSeLe(desenhar()).toLowerCase();
+
+    expect(lido).toContain("sem cartão de crédito");
+    // E o modelo INTEIRO, e não só a ausência de cartão: quem já foi queimado
+    // por "grátis" pergunta como eles ganham dinheiro, e a página que não
+    // responde deixa a pergunta trabalhando contra ela.
+    expect(lido).toContain("sem plano pago");
   });
 });
 
@@ -101,7 +112,15 @@ describe("a narrativa tem argumento (AC-937)", () => {
       (achado) => achado[1],
     );
 
-    expect(ordem).toEqual(["abertura", "problema", "produto", "controle"]);
+    // O preço vem por ÚLTIMO, e isso é parte do argumento: perguntado cedo ele
+    // é objeção, respondido depois de a pessoa querer o produto ele é alívio.
+    expect(ordem).toEqual([
+      "abertura",
+      "problema",
+      "produto",
+      "controle",
+      "preco",
+    ]);
   });
 
   it("@spec:AC-937 cada capítulo tem caminho para começar, sem voltar ao topo", () => {
@@ -110,7 +129,7 @@ describe("a narrativa tem argumento (AC-937)", () => {
     const html = desenhar();
     const capitulos = html.split('data-capitulo="').slice(1);
 
-    expect(capitulos.length).toBe(4);
+    expect(capitulos.length).toBe(5);
     for (const capitulo of capitulos) {
       expect(capitulo).toContain('href="/entrar"');
     }
@@ -121,7 +140,8 @@ describe("a narrativa tem argumento (AC-937)", () => {
     // pessoa para de ver todos eles.
     const html = desenhar();
 
-    expect(html.split("sc-lp__comecar--discreto").length - 1).toBe(2);
+    // Cheio só na abertura e no fecho do preço; discreto nos três do meio.
+    expect(html.split("sc-lp__comecar--discreto").length - 1).toBe(3);
   });
 });
 

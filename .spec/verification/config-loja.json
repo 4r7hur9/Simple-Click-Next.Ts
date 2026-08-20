@@ -1,7 +1,7 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-20T18:12:54.211Z",
-  "gitRev": "ac4f975",
+  "timestamp": "2026-08-20T19:05:43.975Z",
+  "gitRev": "8513003",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,

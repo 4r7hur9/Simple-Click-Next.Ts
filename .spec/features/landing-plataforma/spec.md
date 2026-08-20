@@ -99,4 +99,12 @@ faz por mim, para que eu decida se vale meu tempo antes de me cadastrar.
   a segunda explica o benefício. _status: aberta_
 - **Q-038** — A landing fala de preço? A versão 1 é inteiramente gratuita, e
   dizer isso converte — mas também cria expectativa quando os planos chegarem.
-  _status: aberta_
+  _status: respondida_ — **fala, e com um capítulo próprio.** O produto é
+  gratuito e NÃO existe plano pago: nem escondido, nem previsto para a versão 1.
+  A página diz isso abertamente, inclusive que ainda não há como o projeto ganhar
+  dinheiro. O risco de expectativa é real e foi aceito de olhos abertos: o custo
+  de calar é maior. Quem tem loja pequena já foi queimado por "grátis", e a
+  primeira coisa que ele pensa ao ler a palavra é "então como eles ganham
+  dinheiro?" — pergunta que, sem resposta, trabalha contra a página no momento
+  exato da decisão. Se um plano pago passar a existir, este capítulo é o
+  primeiro lugar a mudar.

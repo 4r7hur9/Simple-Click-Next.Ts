@@ -1,7 +1,7 @@
 {
   "feature": "landing-plataforma",
-  "timestamp": "2026-08-20T18:14:24.140Z",
-  "gitRev": "ac4f975",
+  "timestamp": "2026-08-20T19:08:03.496Z",
+  "gitRev": "8513003",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,

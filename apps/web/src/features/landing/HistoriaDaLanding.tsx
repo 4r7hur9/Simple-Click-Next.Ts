@@ -28,11 +28,23 @@ interface Capitulo {
   readonly texto: string;
   /** O que a pessoa ganha, em três frases curtas. */
   readonly pontos?: readonly string[];
+  /**
+   * Que marca a lista leva.
+   *
+   * NÃO É DETALHE VISUAL. O primeiro capítulo lista PROBLEMAS, e a marca de
+   * aprovado verde ao lado de "pedido anotado errado" diz o contrário do que a
+   * frase diz — a cor chega antes da leitura, e ninguém confere o desenho do
+   * risquinho antes de reagir a ela.
+   */
+  readonly marca: "problema" | "ganho";
+  /** O que o botão deste capítulo diz, quando não é a frase padrão. */
+  readonly chamada?: string;
 }
 
 const CAPITULOS: readonly Capitulo[] = [
   {
     id: "problema",
+    marca: "problema",
     sobrancelha: "O dia a dia hoje",
     titulo: "Pedido no papel, preço no grito",
     texto:
@@ -45,8 +57,14 @@ const CAPITULOS: readonly Capitulo[] = [
   },
   {
     id: "produto",
+    marca: "ganho",
     sobrancelha: "Com o SimpleClick",
-    titulo: "Seu cardápio online, seu pedido organizado",
+    // NÃO PODE REPETIR O TÍTULO DE ABERTURA. Era "Seu cardápio online, seu
+    // pedido organizado", quase a mesma frase do herói: a pessoa rolava três
+    // telas para reler o que já tinha lido, e o momento de virada da história
+    // não virava nada. Aqui ela precisa ouvir o que ainda não ouviu.
+    titulo: "O cliente monta, você só prepara",
+    chamada: "Montar meu cardápio",
     texto:
       "Você cadastra seus produtos uma vez e recebe um endereço para mandar no WhatsApp e colar no perfil. O cliente escolhe, monta o carrinho e fecha o pedido — que chega pronto para você, com tudo escrito.",
     pontos: [
@@ -57,6 +75,7 @@ const CAPITULOS: readonly Capitulo[] = [
   },
   {
     id: "controle",
+    marca: "ganho",
     sobrancelha: "No fim do dia",
     titulo: "Você sabe quanto entrou, e de quê",
     texto:
@@ -65,6 +84,34 @@ const CAPITULOS: readonly Capitulo[] = [
       "Pedidos de hoje, de três dias, de sete, ou do período que você escolher",
       "Cada pedido guarda o preço do momento da compra, para sempre",
       "Loja fechada avisa o cliente, em vez de receber pedido que você não pode atender",
+    ],
+  },
+  /*
+   * O CAPÍTULO QUE FALTAVA, e o que mais custava não ter.
+   *
+   * A página dizia "grátis" duas vezes e não explicava o modelo em lugar
+   * nenhum. Quem tem loja pequena já foi queimado por "grátis": a primeira
+   * coisa que ele pensa é "então como eles ganham dinheiro?", e uma pergunta
+   * sem resposta na cabeça de quem está decidindo vale menos que uma resposta
+   * ruim.
+   *
+   * A resposta honesta hoje é que não ganham — e dizer isso abertamente
+   * desarma a desconfiança melhor do que qualquer promessa. Ele vem DEPOIS dos
+   * outros três, quando a pessoa já quer o produto: preço perguntado cedo é
+   * objeção, preço respondido tarde é alívio.
+   */
+  {
+    id: "preco",
+    marca: "ganho",
+    sobrancelha: "Quanto custa",
+    titulo: "Nada, e sem asterisco",
+    chamada: "Começar agora, de graça",
+    texto:
+      "O SimpleClick é gratuito, com tudo o que está nesta página. Não há plano pago, não há limite de pedidos e não é preciso cartão de crédito — nem para começar, nem depois. Ainda não ganhamos dinheiro com isto: o produto está sendo construído, e quem entra agora ajuda a decidir o que vem.",
+    pontos: [
+      "Não precisa instalar nada: você usa pelo navegador, no celular ou no computador",
+      "Seu cliente não baixa aplicativo nenhum — ele abre um link e pede",
+      "Cadastrar um produto é preencher nome, preço e foto",
     ],
   },
 ];
@@ -83,13 +130,23 @@ export interface HistoriaDaLandingProps {
   readonly previa?: ReactNode;
 }
 
-/** O caminho para começar, repetido em cada capítulo. */
+/**
+ * O caminho para começar, repetido em cada capítulo.
+ *
+ * O RÓTULO MUDA COM O CAPÍTULO. Eram quatro botões dizendo "Criar minha loja",
+ * e a repetição custa duas coisas: o olho para de ver o quarto, e o botão perde
+ * a chance de responder ao que a pessoa acabou de ler. Quem se convenceu no
+ * capítulo do cardápio quer montar o cardápio; quem chegou ao preço quer ouvir
+ * de novo que não paga.
+ */
 function Comecar({
   href,
   discreto = false,
+  rotulo = "Criar minha loja",
 }: {
   readonly href: string;
   readonly discreto?: boolean;
+  readonly rotulo?: string;
 }) {
   return (
     <a
@@ -98,7 +155,7 @@ function Comecar({
       }
       href={href}
     >
-      <span>Criar minha loja</span>
+      <span>{rotulo}</span>
       <svg
         className="sc-lp__seta"
         viewBox="0 0 20 20"
@@ -143,8 +200,17 @@ export function HistoriaDaLanding({
       <section className="sc-lp__abertura" data-capitulo="abertura">
         <div className="sc-lp__conteudo">
           <p className="sc-lp__sobrancelha">Para quem vende todo dia</p>
+          {/*
+            O TÍTULO LIDERA COM O ARGUMENTO, e não com a categoria.
+            Era "Seu cardápio online e seus pedidos organizados, sem
+            mensalidade": os dois primeiros terços descrevem o que qualquer
+            concorrente também faz, e o que separa este produto num mercado
+            onde todo mundo cobra por mês estava em terceiro lugar, depois da
+            vírgula. Quem lê meia frase e decide se rola levava embora a metade
+            que não diferencia nada.
+          */}
           <h1 className="sc-lp__titulo-maior">
-            Seu cardápio online e seus pedidos organizados, sem mensalidade
+            Seu cardápio online sem pagar mensalidade
           </h1>
           <p className="sc-lp__texto sc-lp__texto--grande">
             Monte seu cardápio, mande o link para os clientes e receba os
@@ -155,7 +221,8 @@ export function HistoriaDaLanding({
             <Comecar href={linkParaComecar} />
           </p>
           <p className="sc-lp__nota">
-            Grátis, com todas as funcionalidades. Sem cartão de crédito.
+            Grátis de verdade: sem plano pago, sem limite de pedidos, sem cartão
+            de crédito.
           </p>
         </div>
       </section>
@@ -199,7 +266,9 @@ export function HistoriaDaLanding({
                 <p className="sc-lp__texto">{capitulo.texto}</p>
 
                 {capitulo.pontos ? (
-                  <ul className="sc-lp__pontos">
+                  <ul
+                    className={`sc-lp__pontos sc-lp__pontos--${capitulo.marca}`}
+                  >
                     {capitulo.pontos.map((ponto) => (
                       <li key={ponto}>{ponto}</li>
                     ))}
@@ -215,6 +284,7 @@ export function HistoriaDaLanding({
                   <Comecar
                     href={linkParaComecar}
                     discreto={indice < CAPITULOS.length - 1}
+                    {...(capitulo.chamada ? { rotulo: capitulo.chamada } : {})}
                   />
                 </p>
               </div>

@@ -270,10 +270,46 @@ export function DiaEmNumeros({ className }: DesenhoProps) {
 }
 
 /** Os desenhos, na ordem dos capítulos que os usam. */
+
+/**
+ * A etiqueta sem preço — o capítulo de quanto custa.
+ *
+ * Uma etiqueta de preço com o valor riscado e um zero no lugar. É a figura mais
+ * literal das quatro, e de propósito: as outras ilustram uma situação, esta
+ * responde a uma pergunta direta, e resposta direta não pede metáfora.
+ */
+export function EtiquetaSemPreco({ className }: DesenhoProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 220 160"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* A etiqueta, com o canto cortado e o furo do barbante. */}
+      <path d="M40 44h108l32 36-32 36H40a8 8 0 0 1-8-8V52a8 8 0 0 1 8-8Z" />
+      <circle cx="56" cy="80" r="6" />
+
+      {/* O preço que existiria, riscado. */}
+      <path d="M84 68h56" opacity="0.45" />
+      <path d="M84 92h34" opacity="0.45" />
+      <path d="M78 100l70-40" />
+
+      {/* O barbante. */}
+      <path d="M32 68c-12-6-20-14-24-24" opacity="0.5" />
+    </svg>
+  );
+}
+
 export const DESENHOS: Readonly<
   Record<string, (props: DesenhoProps) => React.JSX.Element>
 > = {
   problema: PapeisEspalhados,
   produto: DoCelularParaAConversa,
   controle: DiaEmNumeros,
+  preco: EtiquetaSemPreco,
 };
