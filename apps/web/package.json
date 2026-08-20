@@ -18,13 +18,15 @@
     "gsap": "catalog:",
     "next": "16.3.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "three": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@types/three": "0.185.0",
     "axe-core": "4.13.0",
     "jsdom": "30.0.1",
     "tailwindcss": "4.3.3",

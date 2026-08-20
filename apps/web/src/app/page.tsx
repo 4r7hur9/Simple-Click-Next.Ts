@@ -1,30 +1,42 @@
-import { consultarIdentificacaoDaApi } from "../server/api-client";
-
 /**
- * O sinal de vida é do momento: com pré-renderização, a página congelaria o
- * estado do dia do build e diria "no ar" com a API desligada.
- */
-export const dynamic = "force-dynamic";
-
-/**
- * Página inicial do esqueleto: existe para provar que o site sobe e responde
- * no endereço local (AC-001). A vitrine de verdade mora em `(loja)/l/[slug]`.
+ * A landing da plataforma (AC-933, AC-934, AC-937).
  *
- * Ela pergunta à API se está viva e lê a resposta pelo contrato compartilhado
- * (AC-006) — antes, o texto afirmava "ambiente no ar" sem ter conferido nada.
+ * Componente de SERVIDOR: a página inteira chega pronta ao navegador. Toda a
+ * história, todos os links e o caminho para começar existem sem uma linha de
+ * script — a narrativa por rolagem e o mundo em três dimensões são camadas por
+ * cima, e a ausência delas não tira conteúdo nenhum (AC-934).
+ *
+ * O sinal de vida da API saiu daqui. Ele existia para provar que o esqueleto
+ * subia, e essa prova agora mora onde ela pertence: nas verificações de saúde da
+ * própria API. Manter a landing esperando o servidor responder para poder se
+ * desenhar seria trocar a página que converte por um diagnóstico.
  */
-export default async function PaginaInicial() {
-  const api = await consultarIdentificacaoDaApi();
+import "@simpleclick/ui/styles/landing.css";
 
+import type { Metadata } from "next";
+
+import { HistoriaDaLanding } from "../features/landing/HistoriaDaLanding.tsx";
+import { NarrativaDaLanding } from "../features/landing/NarrativaDaLanding.tsx";
+
+export const metadata: Metadata = {
+  title: "SimpleClick — cardápio online e pedidos organizados",
+  description:
+    "Monte seu cardápio, mande o link para os clientes e receba os pedidos prontos no WhatsApp. Grátis, com todas as funcionalidades.",
+};
+
+/** Para onde vai quem decidiu começar. O cadastro do dono ainda não existe. */
+const LINK_PARA_COMECAR = "/entrar";
+
+export default function PaginaInicial() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center gap-3 p-6">
-      <h1 className="text-2xl font-semibold">SimpleClick</h1>
-      <p>Nenhuma loja publicada ainda.</p>
-      {api.estado === "no-ar" ? (
-        <p role="status">API: {api.descricao}.</p>
-      ) : (
-        <p role="status">API indisponível — {api.motivo}.</p>
-      )}
+    <main>
+      <HistoriaDaLanding linkParaComecar={LINK_PARA_COMECAR} />
+      {/*
+        A narrativa vem DEPOIS da história, e não em volta dela. Ela não desenha
+        nada: acha os capítulos que já estão na página e os anima — e é ela quem
+        decide, também, se o mundo em três dimensões chega a ser baixado.
+      */}
+      <NarrativaDaLanding />
     </main>
   );
 }

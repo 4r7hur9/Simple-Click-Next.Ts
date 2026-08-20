@@ -15,6 +15,9 @@ catalog:
   # Animação por rolagem, só nas landings. O ScrollTrigger vem no mesmo
   # pacote e é livre desde 2024 — não há plugin pago a instalar.
   gsap: 3.15.0
+  # Mundo em três dimensões, SÓ na landing da plataforma. A regra do peso da
+  # skill de design proíbe na vitrine, no carrinho e no painel.
+  three: 0.185.1
 
 # Só estes pacotes podem rodar script na instalação. Qualquer outro que peça
 # execução precisa ser aprovado aqui, de propósito — é superfície de ataque de

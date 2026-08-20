@@ -1,0 +1,71 @@
+{
+  "feature": "landing-plataforma",
+  "timestamp": "2026-08-20T14:16:07.632Z",
+  "gitRev": "95ee6ca",
+  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 889,
+  "results": {
+    "AC-933": {
+      "status": "pass",
+      "testName": "a promessa aparece antes de qualquer rolagem (AC-933) @spec:AC-933 a abertura diz o que o produto faz e traz o caminho para começar @spec:AC-933 a abertura diz o que o produto faz e traz o caminho para começar",
+      "method": "vitest-json"
+    },
+    "AC-934": {
+      "status": "pass",
+      "testName": "a história existe sem script (AC-934) @spec:AC-934 todo o texto vem pronto do servidor @spec:AC-934 todo o texto vem pronto do servidor",
+      "method": "vitest-json"
+    },
+    "AC-935": {
+      "status": "pass",
+      "testName": "o mundo só roda onde ele cabe (AC-935) @spec:AC-935 num computador capaz, o mundo é carregado @spec:AC-935 num computador capaz, o mundo é carregado",
+      "method": "vitest-json"
+    },
+    "AC-936": {
+      "status": "pass",
+      "testName": "movimento reduzido entrega a página inteira, parada (AC-936) @spec:AC-936 quem pediu para parar de mexer continua vendo TUDO @spec:AC-936 quem pediu para parar de mexer continua vendo TUDO",
+      "method": "vitest-json"
+    },
+    "AC-937": {
+      "status": "pass",
+      "testName": "a narrativa tem argumento (AC-937) @spec:AC-937 as seções contam começo, meio e fim, nessa ordem @spec:AC-937 as seções contam começo, meio e fim, nessa ordem",
+      "method": "vitest-json"
+    },
+    "AC-938": {
+      "status": "pass",
+      "testName": "acessibilidade da landing (AC-938) @spec:AC-938 @principle:P-012 sem violação crítica nem séria @spec:AC-938 @principle:P-012 sem violação crítica nem séria",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-006": {
+      "status": "pass",
+      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
+    },
+    "P-003": {
+      "status": "pass",
+      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+    },
+    "P-010": {
+      "status": "pass",
+      "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto"
+    },
+    "P-009": {
+      "status": "pass",
+      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+    }
+  }
+}

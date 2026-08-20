@@ -1,0 +1,261 @@
+/*
+ * A landing da plataforma.
+ *
+ * É a única página do projeto onde a pessoa chega SEM PRESSA — ela está
+ * decidindo se confia, e disposta a rolar. É por isso que aqui, e só aqui, o
+ * peso de uma narrativa se paga. A vitrine, o carrinho e o painel não importam
+ * esta folha.
+ *
+ * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado, e o ESLint
+ * reprova quem escrever direto (AC-014).
+ */
+
+.sc-lp {
+  position: relative;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+/* --- a estrutura de cada tela --------------------------------------------
+ *
+ * `min-block-size`, e não `block-size`: com altura fixa, o conteúdo que não
+ * couber seria cortado, e num celular deitado de 360px de altura o caminho para
+ * começar sairia da vista. Com altura mínima, a seção cresce.
+ *
+ * A altura vem da régua, que já divide o espaço entre duas ou três seções nas
+ * telas compridas. Escrever `100svh` aqui desfaria isso.
+ */
+.sc-lp__abertura,
+.sc-lp__capitulo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-block-size: var(--altura-da-secao);
+  padding-inline: var(--espaco-5);
+  padding-block: max(var(--espaco-7), env(safe-area-inset-top))
+    max(var(--espaco-7), env(safe-area-inset-bottom));
+}
+
+/*
+ * O conteúdo tem TETO. Metade de uma vertical 4K ainda são 2160px, e um bloco
+ * esticado até lá não fica imponente, fica quebrado. A sobra vira respiro nas
+ * pontas.
+ */
+.sc-lp__conteudo {
+  inline-size: 100%;
+  max-inline-size: 40rem;
+  max-block-size: 900px;
+  margin-block: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+/* --- tipografia -----------------------------------------------------------
+ *
+ * Responde à LARGURA, com teto, e nunca à altura. Numa tela comprida a altura
+ * sobrando vira respiro — não letra maior. A medida confortável de leitura
+ * continua sendo cerca de 65 caracteres por linha, numa TV ou num celular.
+ */
+.sc-lp__sobrancelha {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-primaria-texto);
+}
+
+.sc-lp__titulo-maior {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.sc-lp__titulo {
+  margin: 0;
+  font-size: clamp(1.625rem, 5.5vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.sc-lp__texto {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: clamp(1rem, 2.2vw, 1.125rem);
+  line-height: 1.6;
+  color: var(--cor-tinta-suave);
+  text-wrap: pretty;
+}
+
+.sc-lp__texto--grande {
+  font-size: clamp(1.0625rem, 2.6vw, 1.25rem);
+}
+
+.sc-lp__nota {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--cor-tinta-suave);
+}
+
+/* --- os pontos ------------------------------------------------------------ */
+
+.sc-lp__pontos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.sc-lp__pontos li {
+  position: relative;
+  padding-inline-start: var(--espaco-5);
+  font-size: clamp(0.9375rem, 2vw, 1rem);
+  line-height: 1.5;
+}
+
+/*
+ * A marca de item é desenhada, e não um caractere de lista: assim ela usa a cor
+ * do tema e fica alinhada à primeira linha em qualquer tamanho de fonte.
+ */
+.sc-lp__pontos li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.55em;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--cor-primaria);
+}
+
+/* --- o caminho para começar ----------------------------------------------- */
+
+.sc-lp__chamada {
+  margin: var(--espaco-2) 0 0;
+}
+
+.sc-lp__comecar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: 3.25rem;
+  padding-inline: var(--espaco-7);
+  border-radius: 999px;
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: 1.0625rem;
+  font-weight: 550;
+  text-decoration: none;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--cor-primaria) 30%, transparent),
+    0 10px 26px color-mix(in oklab, var(--cor-primaria) 24%, transparent);
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+/*
+ * Nos capítulos do meio o caminho é DISCRETO. Ele precisa estar lá para quem se
+ * convenceu ali — mas repetir o botão cheio quatro vezes transforma a página
+ * num anúncio, e a pessoa para de ver todos eles.
+ */
+.sc-lp__comecar--discreto {
+  background: transparent;
+  color: var(--cor-primaria-texto);
+  border: 1px solid var(--cor-borda-forte);
+  box-shadow: none;
+  min-block-size: 2.75rem;
+  padding-inline: var(--espaco-5);
+  font-size: 1rem;
+}
+
+.sc-lp__comecar:hover {
+  transform: translateY(-1px);
+}
+
+.sc-lp__comecar:active {
+  transform: translateY(0);
+}
+
+.sc-lp__comecar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-lp__seta {
+  flex: none;
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-lp__comecar:hover .sc-lp__seta {
+  transform: translateX(3px);
+}
+
+/* --- o mundo em três dimensões -------------------------------------------
+ *
+ * Ele fica ATRÁS do conteúdo, sem interceptar toque nem clique, e some para o
+ * leitor de tela. A página conta a mesma história sem ele — e na maioria dos
+ * aparelhos ele nem é baixado.
+ */
+.sc-lp__mundo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sc-lp__abertura,
+.sc-lp__capitulo {
+  z-index: 1;
+}
+
+/* --- telas baixas ---------------------------------------------------------
+ *
+ * Celular deitado e Nest Hub: sem altura para respiro, o conteúdo encolhe para
+ * o caminho de começar continuar alcançável.
+ */
+@media (max-height: 600px) {
+  .sc-lp__abertura,
+  .sc-lp__capitulo {
+    padding-block: var(--espaco-5);
+  }
+
+  .sc-lp__conteudo {
+    gap: var(--espaco-3);
+  }
+}
+
+/* --- movimento reduzido ---------------------------------------------------
+ *
+ * Recebe o ESTADO FINAL, e não a ausência. O erro comum é esconder o elemento e
+ * animar a entrada: quem pediu para parar de mexer fica sem o conteúdo, não sem
+ * a animação.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sc-lp__conteudo,
+  .sc-lp__abertura,
+  .sc-lp__capitulo {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .sc-lp__comecar:hover {
+    transform: none;
+  }
+
+  .sc-lp__comecar:hover .sc-lp__seta {
+    transform: none;
+  }
+
+  .sc-lp__mundo {
+    display: none;
+  }
+}

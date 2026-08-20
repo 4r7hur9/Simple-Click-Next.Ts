@@ -1,15 +1,15 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-20T14:02:34.026Z",
-  "gitRev": "da826ca",
+  "timestamp": "2026-08-20T14:14:59.733Z",
+  "gitRev": "95ee6ca",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 864,
+  "testsParsed": 889,
   "results": {
     "AC-001": {
       "status": "pass",
-      "testName": "composição do ambiente local @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site @spec:AC-001 declara roteador, banco de desenvolvimento, banco de teste, cache, API e site",
+      "testName": "armadilha silenciosa do Next 16 @spec:AC-001 não existe middleware.ts, que o Next 16 ignoraria sem avisar @spec:AC-001 não existe middleware.ts, que o Next 16 ignoraria sem avisar",
       "method": "vitest-json"
     },
     "AC-002": {
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -29,12 +29,12 @@
     },
     "AC-005": {
       "status": "pass",
-      "testName": "fronteiras entre camadas @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor @spec:AC-005 acusa quando a interface importa diretamente a camada de servidor",
+      "testName": "fronteiras no repositório real @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra @spec:AC-005 o portão acusa a interface que alcança a camada de servidor, apontando arquivo e regra",
       "method": "vitest-json"
     },
     "AC-006": {
       "status": "pass",
-      "testName": "contrato compartilhado @spec:AC-006 declara só as rotas que a API serve hoje @spec:AC-006 declara só as rotas que a API serve hoje",
+      "testName": "leitura das respostas da API pelo contrato @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site",
       "method": "vitest-json"
     },
     "AC-007": {
@@ -79,17 +79,17 @@
     },
     "AC-013": {
       "status": "pass",
-      "testName": "estados reutilizáveis @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda @spec:AC-013 a espera é anunciada com educação, e nunca fica em tela muda",
+      "testName": "a vitrine mostra os estados de cada componente base @spec:AC-013 o botão aparece pronto, carregando e desabilitado @spec:AC-013 o botão aparece pronto, carregando e desabilitado",
       "method": "vitest-json"
     },
     "AC-014": {
       "status": "pass",
-      "testName": "cor escrita direto no componente @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha @spec:AC-014 acusa hexadecimal escrito no atributo de estilo, apontando a linha",
+      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
       "method": "vitest-json"
     },
     "AC-015": {
       "status": "pass",
-      "testName": "relação de contraste do WCAG @spec:AC-015 mede luminância nos extremos com os valores da especificação @spec:AC-015 mede luminância nos extremos com os valores da especificação",
+      "testName": "a página mostra a loja sem depender de script (AC-400) @spec:AC-015 a página usa a COR DA LOJA, e não uma cor de modelo @spec:AC-015 a página usa a COR DA LOJA, e não uma cor de modelo",
       "method": "vitest-json"
     },
     "AC-016": {
@@ -252,15 +252,15 @@
     },
     "P-012": {
       "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",
       "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     }
   }
 }
