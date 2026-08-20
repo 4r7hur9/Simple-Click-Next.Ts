@@ -25,6 +25,21 @@
 .sc-lp {
   --cor-da-landing: #b3261e; /* Brasa, a primeira de `PALETA_DE_LOJA` */
 
+  /*
+   * A COR DO SISTEMA NÃO ENTRA AQUI. A landing tinha azul em botão, marcador,
+   * capa e barra de progresso, porque todos liam `--cor-primaria` — e a escolha
+   * da pessoa pintava só o fundo. O resultado era uma página em duas cores que
+   * não conversavam.
+   *
+   * Redefinir os valores no escopo da landing resolve num lugar só: cada regra
+   * que já pedia a cor primária passa a receber a escolhida, sem que nenhuma
+   * delas precise ser reescrita. E funciona antes do script, porque é cascata.
+   */
+  --cor-primaria: var(--cor-da-landing);
+  --cor-primaria-texto: var(--cor-da-landing);
+  --cor-em-primaria: #ffffff;
+  --cor-foco: var(--cor-da-landing);
+
   position: relative;
   background: var(--cor-fundo);
   color: var(--cor-tinta);
@@ -97,15 +112,18 @@
  * esticado até lá não fica imponente, fica quebrado. A sobra vira respiro nas
  * pontas.
  *
- * E ELE TEM CHÃO PRÓPRIO. Isto não é enfeite: o mundo em três dimensões passa
- * atrás da página, e texto sobre formas em movimento não se lê. O texto flutuava
- * sobre as peças e a leitura brigava com a animação — o que é pior que não ter
- * animação nenhuma.
+ * E ELE NÃO TEM CHÃO. Teve, por duas versões, e o chão era o problema: um
+ * retângulo translúcido atrás do texto escondia justamente o gráfico que ele
+ * deveria deixar passar. Translúcido o bastante para ler o texto era opaco o
+ * bastante para apagar as linhas — não existe ajuste que resolva os dois.
  *
- * O chão é translúcido para o mundo continuar visível, e desfocado para ele não
- * competir. O desfoque é MELHORIA: onde o navegador não o suporta, a cor de
- * fundo sozinha já garante o contraste, e é por isso que ela vem antes e com
- * opacidade suficiente para se sustentar sem ele.
+ * O QUE SEPARA O TEXTO DO FUNDO É UMA AURÉOLA, e não uma camada. A sombra na cor
+ * do fundo abre um vão de poucos pixels ao redor de cada letra: a linha passa
+ * atrás, some ao encostar no texto e reaparece do outro lado. O contraste é
+ * garantido onde ele importa — no contorno da letra — e em nenhum lugar além.
+ *
+ * É por isso que o mundo virou LINHA. Barra ocupa área, e área atrás de texto
+ * exige um chão. Linha não exige.
  */
 .sc-lp__conteudo {
   position: relative;
@@ -117,19 +135,12 @@
   flex-direction: column;
   gap: var(--espaco-4);
   padding: var(--espaco-6);
-  border-radius: var(--raio-3);
-  background: color-mix(in oklab, var(--cor-fundo) 88%, transparent);
-}
-
-/*
- * O desfoque entra só onde ele existe. Com ele, o chão pode ser mais
- * translúcido e o mundo aparece mais — sem ele, a regra acima já basta.
- */
-@supports (backdrop-filter: blur(1px)) {
-  .sc-lp__conteudo {
-    background: color-mix(in oklab, var(--cor-fundo) 72%, transparent);
-    backdrop-filter: blur(16px) saturate(1.1);
-  }
+  /* Três sombras, e não uma: a primeira fecha o contorno, as outras duas abrem
+     o vão. Uma sozinha na largura necessária mancharia o miolo da letra. */
+  text-shadow:
+    0 0 4px var(--cor-fundo),
+    0 0 12px var(--cor-fundo),
+    0 0 26px var(--cor-fundo);
 }
 
 /* --- tipografia -----------------------------------------------------------
@@ -298,7 +309,9 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.35;
+  /* Mais presença que na versão de barras: linha de três pixels ocupa uma
+     fração da área que a barra ocupava, e some se receber a mesma opacidade. */
+  opacity: 0.6;
 }
 
 .sc-lp__abertura,

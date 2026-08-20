@@ -1,33 +1,43 @@
 /**
  * O mundo em três dimensões da landing: a receita virando (AC-935).
  *
- * O QUE ELE MOSTRA: duas séries de barras. A vermelha cai — é o negócio que
- * anota pedido no papel, perde o cliente que não achou o preço e fecha o mês sem
- * saber quanto entrou. A verde sobe, e as barras dela ganham a marca no topo,
- * ligadas por uma linha: é a trajetória depois que o cardápio está no ar.
+ * O QUE ELE MOSTRA: três linhas que atravessam a tela de ponta a ponta. A
+ * vermelha cai — é o negócio que anota pedido no papel, perde o cliente que não
+ * achou o preço e fecha o mês sem saber quanto entrou. A verde sobe: é depois
+ * que o cardápio está no ar. A terceira é a cor da loja, e vai no meio.
  *
- * É O RESULTADO, e não a metáfora do produto. Três versões anteriores foram
- * descartadas por isso. Cubos: forma abstrata não fala com quem vende pastel.
- * Comandas de papel: coerentes, mas em opacidade baixa perdiam a proporção e
- * liam como quadrados. Rotas de entrega: melhores, e ainda assim explicavam o
- * MEIO — o dono não quer rotas, quer faturamento. Barra é a forma que ele já lê
- * no extrato do banco.
+ * SÃO LINHAS, E NÃO BARRAS NEM PONTOS. Barra ocupa área, e área atrás de texto
+ * vira mancha — foi por isso que a versão anterior precisou de um chão opaco que
+ * escondia justamente o que ele deveria deixar ver. Linha ocupa quase nada, e o
+ * texto lê por cima dela sem nenhuma camada no meio. Ponto marcado em cada
+ * vértice devolveria a mancha em miniatura, treze vezes por linha.
+ *
+ * É O RESULTADO, e não a metáfora do produto. Quatro versões foram descartadas
+ * antes: cubos (forma abstrata não fala com quem vende pastel), comandas de
+ * papel (perdiam a proporção em opacidade baixa e liam como quadrados), rotas de
+ * entrega (explicavam o MEIO — o dono não quer rota, quer faturamento) e barras
+ * (a mancha acima).
  *
  * AS CORES DAS SÉRIES SÃO SEMÂNTICAS, e não a da marca. Vermelho é perda e verde
  * é ganho em qualquer lugar do mundo, e trocar isso pela cor escolhida faria a
  * série "boa" ficar vermelha na loja que escolheu vermelho — dizendo o contrário
- * do que a figura existe para dizer. Quem acompanha a cor da marca é o resto da
- * página.
+ * do que a figura existe para dizer.
+ *
+ * A CÂMERA É ORTOGRÁFICA E MEDE EM PIXEL. Com câmera em perspectiva, o que
+ * atravessa a tela num monitor sobra fora dela num celular deitado, porque a
+ * largura visível depende da distância. Aqui uma unidade é um pixel, e "de ponta
+ * a ponta" é uma conta e não um chute.
  *
  * O QUE ELE NÃO É: conteúdo. A página conta a história inteira sem ele, e na
  * maioria dos aparelhos ele nem é baixado — a decisão mora em `podeRodar3D.ts` e
- * acontece antes da importação. Quem chega pelo celular vê a luz de fundo, que é
- * de CSS e chega a todo mundo.
+ * acontece antes da importação.
  */
 import * as THREE from "three";
 
-/** Quantos meses o gráfico mostra. */
-const COLUNAS = 11;
+import { ouvirCor } from "../../lib/cor-da-landing.ts";
+
+/** Quantos vértices cada linha tem. Ímpar, para haver um meio. */
+const PARADAS = 13;
 
 /** O teto de densidade de pixel. Acima de 2 a diferença não se percebe, e o
  * custo cresce ao quadrado: densidade 3 desenha nove vezes mais pixels que 1. */
@@ -36,33 +46,95 @@ const DENSIDADE_MAXIMA = 2;
 /** Perda e ganho. Os mesmos valores declarados que o resto do produto usa. */
 const COR_DA_QUEDA = 0xb3251c;
 const COR_DA_SUBIDA = 0x136c3a;
+/** A cor da marca, até a prévia anunciar a escolhida. */
+const COR_DE_RESERVA = 0xb3261e;
 
-const LARGURA_DA_BARRA = 0.46;
-const PASSO = 1.05;
+/** A espessura da linha, em pixel. */
+const ESPESSURA = 3;
+/** A folga além da tela, para a linha entrar e sair cortada pela borda. */
+const TRANSBORDO = 40;
 
 export type DesmontarMundo = () => void;
 
 /**
- * A altura de cada barra, de 0 a 1.
+ * A altura de cada parada, de 0 a 1.
  *
- * A queda e a subida NÃO são retas. Receita real oscila, e uma reta perfeita lê
- * como gráfico de apresentação de vendas — que é justamente a coisa em que o
- * dono de loja não acredita. A oscilação é determinística: o mesmo desenho a
- * cada carregamento faz o fundo ser composto, e não sorteado.
+ * A tendência é uma reta; a oscilação é o que a torna crível. Receita real
+ * oscila, e uma reta perfeita lê como gráfico de apresentação de vendas — que é
+ * justamente a coisa em que o dono de loja não acredita. A oscilação é
+ * determinística: o mesmo desenho a cada carregamento faz o fundo ser composto,
+ * e não sorteado.
  */
-function alturaDaQueda(coluna: number): number {
-  const base = 1 - (coluna / (COLUNAS - 1)) * 0.72;
-  return Math.max(0.12, base + Math.sin(coluna * 1.7) * 0.07);
+function alturaDaSerie(
+  parada: number,
+  inicio: number,
+  fim: number,
+  fase: number,
+): number {
+  const andamento = parada / (PARADAS - 1);
+  const tendencia = inicio + (fim - inicio) * andamento;
+  const oscilacao =
+    Math.sin(parada * 1.9 + fase) * 0.06 + Math.sin(parada * 0.7 + fase) * 0.04;
+  return Math.min(Math.max(tendencia + oscilacao, 0.04), 0.96);
 }
 
-function alturaDaSubida(coluna: number): number {
-  const base = 0.14 + (coluna / (COLUNAS - 1)) * 0.82;
-  return Math.max(0.1, base + Math.sin(coluna * 2.3 + 1) * 0.06);
-}
+/** As três séries, com onde começam, onde terminam e a cor de cada uma. */
+const SERIES = [
+  { inicio: 0.82, fim: 0.16, fase: 0, cor: COR_DA_QUEDA, opacidade: 0.85 },
+  { inicio: 0.14, fim: 0.86, fase: 2.1, cor: COR_DA_SUBIDA, opacidade: 0.95 },
+  { inicio: 0.4, fim: 0.58, fase: 4.2, cor: COR_DE_RESERVA, opacidade: 0.55 },
+] as const;
 
-/** Onde a coluna fica no eixo horizontal, centrada no conjunto. */
-function posicaoDaColuna(coluna: number): number {
-  return (coluna - (COLUNAS - 1) / 2) * PASSO;
+/** Qual das séries segue a cor escolhida na prévia. */
+const SERIE_DA_MARCA = 2;
+
+/**
+ * Transforma uma sequência de pontos numa fita com espessura.
+ *
+ * PRECISA SER FITA, e não `THREE.Line`. A linha do WebGL tem um pixel de
+ * espessura e ponto final: `linewidth` existe na interface e é ignorada em todo
+ * navegador de mesa. Um pixel some no fundo — e engrossar do lado de fora é a
+ * única saída.
+ */
+function construirFita(
+  pontos: readonly THREE.Vector2[],
+  espessura: number,
+): THREE.BufferGeometry {
+  const metade = espessura / 2;
+  const vertices = new Float32Array(pontos.length * 2 * 3);
+  const indices: number[] = [];
+
+  for (let i = 0; i < pontos.length; i += 1) {
+    const anterior = pontos[Math.max(i - 1, 0)]!;
+    const proximo = pontos[Math.min(i + 1, pontos.length - 1)]!;
+    const atual = pontos[i]!;
+
+    // A normal sai da direção entre o vizinho de trás e o da frente: usar só o
+    // segmento seguinte deixaria a quina com espessura diferente dos dois lados.
+    const dx = proximo.x - anterior.x;
+    const dy = proximo.y - anterior.y;
+    const tamanho = Math.hypot(dx, dy) || 1;
+    const nx = (-dy / tamanho) * metade;
+    const ny = (dx / tamanho) * metade;
+
+    const v = i * 6;
+    vertices[v] = atual.x + nx;
+    vertices[v + 1] = atual.y + ny;
+    vertices[v + 2] = 0;
+    vertices[v + 3] = atual.x - nx;
+    vertices[v + 4] = atual.y - ny;
+    vertices[v + 5] = 0;
+
+    if (i < pontos.length - 1) {
+      const a = i * 2;
+      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
+  }
+
+  const geometria = new THREE.BufferGeometry();
+  geometria.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+  geometria.setIndex(indices);
+  return geometria;
 }
 
 /**
@@ -74,15 +146,7 @@ function posicaoDaColuna(coluna: number): number {
  */
 export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   const cena = new THREE.Scene();
-
-  const camera = new THREE.PerspectiveCamera(
-    46,
-    elemento.clientWidth / Math.max(elemento.clientHeight, 1),
-    0.1,
-    100,
-  );
-  camera.position.set(0, 1.2, 13);
-  camera.lookAt(0, 0.6, 0);
+  const camera = new THREE.OrthographicCamera(0, 1, 1, 0, -10, 10);
 
   const renderizador = new THREE.WebGLRenderer({
     antialias: true,
@@ -92,151 +156,138 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   renderizador.setPixelRatio(
     Math.min(window.devicePixelRatio, DENSIDADE_MAXIMA),
   );
-  renderizador.setSize(elemento.clientWidth, elemento.clientHeight);
   elemento.append(renderizador.domElement);
 
-  // UMA geometria para todas as barras, e um conjunto instanciado por série.
-  // Uma malha por barra daria vinte e duas chamadas de desenho para o mesmo
-  // resultado — aqui são duas.
-  const geometriaDaBarra = new THREE.BoxGeometry(
-    LARGURA_DA_BARRA,
-    1,
-    LARGURA_DA_BARRA,
+  const grupo = new THREE.Group();
+  cena.add(grupo);
+
+  const materiais = SERIES.map(
+    (serie) =>
+      new THREE.MeshBasicMaterial({
+        color: serie.cor,
+        transparent: true,
+        opacity: serie.opacidade,
+      }),
   );
 
-  const materialDaQueda = new THREE.MeshStandardMaterial({
-    color: COR_DA_QUEDA,
-    roughness: 0.75,
-    metalness: 0,
+  // As guias verticais, como as do papel milimetrado: elas dão ao olho as
+  // paradas onde as linhas mudam de direção. Aqui `THREE.Line` serve, porque
+  // guia FINA é o que se quer — o um pixel deixa de ser limitação e vira acerto.
+  const materialDaGuia = new THREE.LineDashedMaterial({
+    color: 0x8a8a8a,
     transparent: true,
-    opacity: 0.75,
-  });
-  const materialDaSubida = new THREE.MeshStandardMaterial({
-    color: COR_DA_SUBIDA,
-    roughness: 0.7,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.88,
+    opacity: 0.28,
+    dashSize: 5,
+    gapSize: 7,
   });
 
-  const queda = new THREE.InstancedMesh(
-    geometriaDaBarra,
-    materialDaQueda,
-    COLUNAS,
-  );
-  const subida = new THREE.InstancedMesh(
-    geometriaDaBarra,
-    materialDaSubida,
-    COLUNAS,
-  );
-  cena.add(queda, subida);
-
-  // Os NÓS no topo da série que sobe, e a linha que os liga: é a trajetória, e
-  // é ela que transforma barras soltas em "isto está indo para algum lugar".
-  // Esfera de poucos lados porque em opacidade baixa ninguém conta polígono —
-  // e ela precisa ser REDONDA, ao contrário do ponto solto do Three, que é
-  // desenhado como quadrado quando não recebe textura.
-  const geometriaDoNo = new THREE.SphereGeometry(0.13, 12, 8);
-  const materialDoNo = new THREE.MeshStandardMaterial({
-    color: COR_DA_SUBIDA,
-    roughness: 0.4,
-    metalness: 0,
-  });
-  const nos = new THREE.InstancedMesh(geometriaDoNo, materialDoNo, COLUNAS);
-  cena.add(nos);
-
-  const pontosDaLinha = new Float32Array(COLUNAS * 3);
-  const geometriaDaLinha = new THREE.BufferGeometry();
-  geometriaDaLinha.setAttribute(
-    "position",
-    new THREE.BufferAttribute(pontosDaLinha, 3),
-  );
-  const materialDaLinha = new THREE.LineBasicMaterial({
-    color: COR_DA_SUBIDA,
-    transparent: true,
-    opacity: 0.6,
-  });
-  const trajetoria = new THREE.Line(geometriaDaLinha, materialDaLinha);
-  cena.add(trajetoria);
-
-  cena.add(new THREE.AmbientLight(0xffffff, 0.7));
-  const luz = new THREE.DirectionalLight(0xffffff, 0.9);
-  luz.position.set(3, 8, 6);
-  cena.add(luz);
+  let fitas: THREE.Mesh[] = [];
+  let guias: THREE.LineSegments | null = null;
 
   /** Quanto da história já passou, de 0 a 1. */
   let progresso = 0;
   let avancoDesenhado = 0;
+
+  /**
+   * Refaz a geometria para o tamanho atual da tela.
+   *
+   * Em pixel, mudar de tamanho não é escalar: escalar engrossaria a linha junto,
+   * e num monitor largo ela viraria uma faixa. Por isso a fita é reconstruída, e
+   * a espessura continua sendo três pixels em qualquer tela.
+   */
+  function remontar(): void {
+    const largura = Math.max(elemento.clientWidth, 1);
+    const altura = Math.max(elemento.clientHeight, 1);
+
+    camera.left = 0;
+    camera.right = largura;
+    camera.top = altura;
+    camera.bottom = 0;
+    camera.updateProjectionMatrix();
+    renderizador.setSize(largura, altura);
+
+    for (const fita of fitas) {
+      grupo.remove(fita);
+      fita.geometry.dispose();
+    }
+    fitas = [];
+
+    if (guias) {
+      grupo.remove(guias);
+      guias.geometry.dispose();
+      guias = null;
+    }
+
+    // A faixa vertical que as linhas ocupam. Elas não vão até a borda de cima
+    // nem de baixo: encostar no topo faz a linha parecer cortada pela janela em
+    // vez de desenhada.
+    const piso = altura * 0.16;
+    const teto = altura * 0.84;
+    const inicioX = -TRANSBORDO;
+    const passo = (largura + TRANSBORDO * 2) / (PARADAS - 1);
+
+    for (const [indice, serie] of SERIES.entries()) {
+      const pontos = Array.from({ length: PARADAS }, (_, parada) => {
+        const altura01 = alturaDaSerie(
+          parada,
+          serie.inicio,
+          serie.fim,
+          serie.fase,
+        );
+        return new THREE.Vector2(
+          inicioX + parada * passo,
+          piso + (teto - piso) * altura01,
+        );
+      });
+
+      const fita = new THREE.Mesh(
+        construirFita(pontos, ESPESSURA),
+        materiais[indice]!,
+      );
+      grupo.add(fita);
+      fitas.push(fita);
+    }
+
+    const pontosDaGuia: number[] = [];
+    for (let parada = 0; parada < PARADAS; parada += 1) {
+      const x = inicioX + parada * passo;
+      pontosDaGuia.push(x, altura * 0.06, -1, x, altura * 0.94, -1);
+    }
+    const geometriaDaGuia = new THREE.BufferGeometry();
+    geometriaDaGuia.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(pontosDaGuia, 3),
+    );
+    guias = new THREE.LineSegments(geometriaDaGuia, materialDaGuia);
+    // Sem isto o tracejado não aparece: o material precisa da distância
+    // acumulada de cada vértice para saber onde cortar o traço.
+    guias.computeLineDistances();
+    grupo.add(guias);
+  }
 
   function aoRolar(): void {
     const rolavel = document.body.scrollHeight - window.innerHeight;
     progresso = rolavel > 0 ? Math.min(window.scrollY / rolavel, 1) : 0;
   }
 
-  function aoRedimensionar(): void {
-    const largura = elemento.clientWidth;
-    const altura = Math.max(elemento.clientHeight, 1);
-    camera.aspect = largura / altura;
-    camera.updateProjectionMatrix();
-    renderizador.setSize(largura, altura);
-  }
-
-  const molde = new THREE.Object3D();
-  const ALTURA_MAXIMA = 4.2;
-
-  function posicionar(
-    conjunto: THREE.InstancedMesh,
-    coluna: number,
-    altura: number,
-    profundidade: number,
-  ): void {
-    molde.position.set(posicaoDaColuna(coluna), altura / 2, profundidade);
-    molde.scale.set(1, Math.max(altura, 0.001), 1);
-    molde.rotation.set(0, 0, 0);
-    molde.updateMatrix();
-    conjunto.setMatrixAt(coluna, molde.matrix);
-  }
-
   function desenhar(): void {
     // O avanço persegue o progresso da rolagem, em vez de saltar para ele: sem
-    // a perseguição, uma rolagem rápida faria as barras piscarem.
+    // a perseguição, uma rolagem rápida faria as linhas piscarem.
     avancoDesenhado += (progresso - avancoDesenhado) * 0.06;
 
-    for (let coluna = 0; coluna < COLUNAS; coluna += 1) {
-      // Cada coluna entra um pouco depois da anterior: o gráfico se desenha da
-      // esquerda para a direita, como quem lê. Todas crescendo juntas leriam
-      // como uma cortina subindo.
-      const atraso = (coluna / COLUNAS) * 0.5;
-      const avanco = Math.max(
-        0,
-        Math.min((avancoDesenhado - atraso) / (1 - atraso), 1),
-      );
+    // As linhas se DESENHAM da esquerda para a direita conforme a página rola,
+    // como quem acompanha o mês passando. Recortar o intervalo de desenho custa
+    // nada: a geometria inteira já está na placa, e muda só onde ela para.
+    const segmentos = PARADAS - 1;
+    const visiveis = Math.max(
+      1,
+      Math.ceil(segmentos * (0.25 + avancoDesenhado * 0.75)),
+    );
+    for (const fita of fitas) fita.geometry.setDrawRange(0, visiveis * 6);
 
-      const alturaQueda = alturaDaQueda(coluna) * ALTURA_MAXIMA * avanco;
-      const alturaSubida = alturaDaSubida(coluna) * ALTURA_MAXIMA * avanco;
-
-      posicionar(queda, coluna, alturaQueda, -0.7);
-      posicionar(subida, coluna, alturaSubida, 0.7);
-
-      molde.position.set(posicaoDaColuna(coluna), alturaSubida, 0.7);
-      molde.scale.setScalar(avanco);
-      molde.updateMatrix();
-      nos.setMatrixAt(coluna, molde.matrix);
-
-      const ponto = coluna * 3;
-      pontosDaLinha[ponto] = posicaoDaColuna(coluna);
-      pontosDaLinha[ponto + 1] = alturaSubida;
-      pontosDaLinha[ponto + 2] = 0.7;
-    }
-
-    queda.instanceMatrix.needsUpdate = true;
-    subida.instanceMatrix.needsUpdate = true;
-    nos.instanceMatrix.needsUpdate = true;
-    geometriaDaLinha.attributes["position"]!.needsUpdate = true;
-
-    // Um giro lento dá profundidade sem pedir atenção, e é o único movimento
-    // que continua quando ninguém rola.
-    cena.rotation.y = Math.sin(avancoDesenhado * Math.PI - 0.5) * 0.22;
+    // Um deslocamento pequeno para o lado dá vida sem pedir atenção. É o único
+    // movimento que não depende de a pessoa continuar rolando.
+    grupo.position.x = -avancoDesenhado * TRANSBORDO;
 
     renderizador.render(cena, camera);
   }
@@ -252,23 +303,26 @@ export function montarMundo(elemento: HTMLElement): DesmontarMundo {
   });
   observador.observe(elemento);
 
+  const pararDeOuvirCor = ouvirCor((cor) => {
+    materiais[SERIE_DA_MARCA]?.color.set(cor);
+  });
+
+  remontar();
   aoRolar();
   window.addEventListener("scroll", aoRolar, { passive: true });
-  window.addEventListener("resize", aoRedimensionar);
+  window.addEventListener("resize", remontar);
 
   return () => {
     renderizador.setAnimationLoop(null);
     observador.disconnect();
+    pararDeOuvirCor();
     window.removeEventListener("scroll", aoRolar);
-    window.removeEventListener("resize", aoRedimensionar);
+    window.removeEventListener("resize", remontar);
 
-    geometriaDaBarra.dispose();
-    geometriaDoNo.dispose();
-    geometriaDaLinha.dispose();
-    materialDaQueda.dispose();
-    materialDaSubida.dispose();
-    materialDoNo.dispose();
-    materialDaLinha.dispose();
+    for (const fita of fitas) fita.geometry.dispose();
+    guias?.geometry.dispose();
+    for (const material of materiais) material.dispose();
+    materialDaGuia.dispose();
     renderizador.dispose();
     renderizador.domElement.remove();
   };

@@ -1,7 +1,7 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-20T16:21:44.473Z",
-  "gitRev": "63b0f45",
+  "timestamp": "2026-08-20T16:48:45.856Z",
+  "gitRev": "b8d274e",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
