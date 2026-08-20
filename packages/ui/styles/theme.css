@@ -38,6 +38,7 @@
      para o link continuar legível (AC-015). */
   --cor-primaria-texto: #1a4fd6;
   --cor-sucesso: #136c3a;
+
   --cor-em-sucesso: #ffffff;
   --cor-sucesso-suave: #e6f6ec;
   --cor-erro: #b3251c;
@@ -48,6 +49,20 @@
   --cor-atencao-suave: #fdf3e2;
   --cor-info: #1a4fd6;
   --cor-info-suave: #e9eefc;
+
+  /*
+   * AS TRÊS CORES DO GRÁFICO DA LANDING.
+   *
+   * Aqui a cor é IDENTIDADE, e não julgamento: ela diz de qual ramo é a linha,
+   * e não se o número é bom. Por isso o vermelho pode subir — as três sobem. É
+   * o oposto do par sucesso/erro logo acima, onde a cor é o próprio veredito.
+   *
+   * Cada tema tem seu conjunto porque o mesmo vermelho que se lê sobre branco
+   * some sobre preto.
+   */
+  --cor-serie-um: #c0362c;
+  --cor-serie-dois: #15774b;
+  --cor-serie-tres: #2456c4;
 
   /* --- cor: tinta de último recurso ---
      Iguais nos dois temas, porque são os extremos absolutos do sRGB. Entram
@@ -210,6 +225,9 @@
     --cor-primaria-texto: #8ab4ff;
     --cor-sucesso: #69d597;
     --cor-em-sucesso: #0d1015;
+    --cor-serie-um: #f08a80;
+    --cor-serie-dois: #69d597;
+    --cor-serie-tres: #8ab4ff;
     --cor-sucesso-suave: #12281c;
     --cor-erro: #ff938c;
     --cor-em-erro: #0d1015;
@@ -245,6 +263,9 @@
   --cor-primaria-texto: #8ab4ff;
   --cor-sucesso: #69d597;
   --cor-em-sucesso: #0d1015;
+  --cor-serie-um: #f08a80;
+  --cor-serie-dois: #69d597;
+  --cor-serie-tres: #8ab4ff;
   --cor-sucesso-suave: #12281c;
   --cor-erro: #ff938c;
   --cor-em-erro: #0d1015;

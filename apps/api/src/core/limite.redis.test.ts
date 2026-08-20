@@ -34,6 +34,22 @@ import {
   type CacheDoLimiteAberto,
 } from "./limite.ts";
 
+/**
+ * Espera própria, e maior que a do projeto, para OS TESTES PESADOS do arquivo.
+ *
+ * Dois deles fazem dezenas de requisições HTTP de verdade contra um Express
+ * montado, e cada requisição conversa várias vezes com o Redis: o do teto de
+ * espera faz 77, e o da prioridade entre conta e origem faz 38. Sozinhos levam
+ * cerca de dois segundos; com a suíte inteira disputando o mesmo Redis, já
+ * passaram dos 30 segundos do projeto — e em todas as vezes passaram sozinhos
+ * depois. O diagnóstico só apareceu quando o portão passou a guardar a saída da
+ * etapa que reprova.
+ *
+ * A espera é DESTES testes e não do projeto: subir o limite de todos esconderia
+ * um teste genuinamente travado atrás de dois minutos de paciência.
+ */
+const ESPERA_DOS_PESADOS = 120_000;
+
 // ---------------------------------------------------------------------------
 // Ambiente
 // ---------------------------------------------------------------------------
@@ -325,27 +341,31 @@ describe("limite de tentativas por conta", () => {
     expect(esperas[2]).toBeGreaterThan(esperas[1] as number);
   });
 
-  it("@spec:AC-119 a espera não passa do teto configurado", async () => {
-    const cenario = cenarioDeEntrada();
+  it(
+    "@spec:AC-119 a espera não passa do teto configurado",
+    async () => {
+      const cenario = cenarioDeEntrada();
 
-    // Sete bloqueios: 60s dobrando chegaria a 3840s, e o teto é 3600s.
-    let ultima = 0;
-    for (let rodada = 1; rodada <= 7; rodada += 1) {
-      for (let tentativa = 1; tentativa <= 10; tentativa += 1) {
-        await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
+      // Sete bloqueios: 60s dobrando chegaria a 3840s, e o teto é 3600s.
+      let ultima = 0;
+      for (let rodada = 1; rodada <= 7; rodada += 1) {
+        for (let tentativa = 1; tentativa <= 10; tentativa += 1) {
+          await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
+        }
+        const barrada = await tentarEntrar(cenario, {
+          conta: CONTA,
+          senha: chuteErrado(),
+        });
+        ultima = barrada.body.esperaSegundos;
+        cenario.avancar(ultima * 1000 + 1);
       }
-      const barrada = await tentarEntrar(cenario, {
-        conta: CONTA,
-        senha: chuteErrado(),
-      });
-      ultima = barrada.body.esperaSegundos;
-      cenario.avancar(ultima * 1000 + 1);
-    }
 
-    // Castigo que cresce sem teto vira banimento permanente de quem só errou
-    // a senha muitas vezes.
-    expect(ultima).toBe(3600);
-  });
+      // Castigo que cresce sem teto vira banimento permanente de quem só errou
+      // a senha muitas vezes.
+      expect(ultima).toBe(3600);
+    },
+    ESPERA_DOS_PESADOS,
+  );
 
   it("@spec:AC-119 o dono da conta é avisado uma vez por bloqueio novo, e não a cada requisição barrada", async () => {
     const cenario = cenarioDeEntrada();
@@ -548,22 +568,6 @@ describe("limite de tentativas por origem", () => {
 // ---------------------------------------------------------------------------
 
 describe("prioridade entre conta e origem", () => {
-  /**
-   * Espera própria, e maior que a do projeto, para O TESTE MAIS PESADO do
-   * arquivo.
-   *
-   * Ele faz 38 requisições HTTP de verdade — 11 para estourar a conta, 26 para
-   * estourar a origem, 1 para conferir o veredito —, e cada uma conversa
-   * várias vezes com o Redis. Sozinho leva cerca de dois segundos; com a suíte
-   * inteira disputando o mesmo Redis, já passou dos 30 segundos do projeto três
-   * vezes, e em todas passou sozinho depois. O diagnóstico só apareceu quando o
-   * portão passou a guardar a saída da etapa que reprova.
-   *
-   * A espera é DESTE teste e não do projeto: subir o limite de todos esconderia
-   * um teste genuinamente travado atrás de dois minutos de paciência.
-   */
-  const ESPERA_DO_MAIS_PESADO = 120_000;
-
   it(
     "@spec:AC-120 com os dois estourados, a resposta é a da conta",
     async () => {
@@ -601,7 +605,7 @@ describe("prioridade entre conta e origem", () => {
       // ataque, e não que o endereço dele está cheio.
       expect(barrada.body.escopo).toBe("conta");
     },
-    ESPERA_DO_MAIS_PESADO,
+    ESPERA_DOS_PESADOS,
   );
 
   it("@spec:AC-119 requisição sem conta nomeada ainda conta para a origem", async () => {

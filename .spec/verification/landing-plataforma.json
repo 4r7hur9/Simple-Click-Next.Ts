@@ -1,10 +1,10 @@
 {
   "feature": "landing-plataforma",
-  "timestamp": "2026-08-20T16:48:09.848Z",
-  "gitRev": "b8d274e",
+  "timestamp": "2026-08-20T18:14:24.140Z",
+  "gitRev": "ac4f975",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 1,
+  "exitCode": 0,
   "testsParsed": 920,
   "results": {
     "AC-933": {

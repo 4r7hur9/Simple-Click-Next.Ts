@@ -309,9 +309,186 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Mais presença que na versão de barras: linha de três pixels ocupa uma
-     fração da área que a barra ocupava, e some se receber a mesma opacidade. */
+}
+
+/*
+ * A OPACIDADE VIVE NA TELA DE DESENHO, e não no recipiente.
+ *
+ * Ela estava no recipiente, e por isso valia também para os balões — que são
+ * números, e número apagado não se lê. Descer a regra um nível separa as duas
+ * coisas: a linha fica de fundo, o número fica legível.
+ *
+ * Mais presença que na versão de barras: linha de três pixels ocupa uma fração
+ * da área que a barra ocupava, e some se receber a mesma opacidade.
+ */
+.sc-lp__tela {
   opacity: 0.6;
+}
+
+/* --- os balões de pedidos -------------------------------------------------
+ *
+ * O formato é o de quem acompanha cotação: um marcador no pico e o número
+ * saindo dele. É a leitura que o dono de loja gostaria de ter do próprio
+ * movimento — e a razão de o marcador ir SÓ no pico é que marcar os treze
+ * vértices devolveria a mancha que fez as barras serem descartadas.
+ *
+ * A camada não é apagada como a tela: ela carrega texto.
+ */
+.sc-lp__baloes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* --- a legenda das três linhas ---------------------------------------------
+ *
+ * FIXA E À ESQUERDA, e não viajando na ponta de cada linha como já foi. A
+ * viagem existia porque as três eram do mesmo verde e o nome só podia ser
+ * ligado ao traço estando em cima dele — mas ela atropelava o texto ao cruzar
+ * a coluna, e os três nomes se empilhavam onde as linhas se cruzam.
+ *
+ * Cor própria por linha resolve o que a viagem resolvia: a bolinha casa com o
+ * traço, e o nome pode ficar parado num canto livre.
+ *
+ * A esquerda é esse canto: a coluna de texto é centrada e tem largura de teto,
+ * então sempre sobra faixa livre dos dois lados numa tela larga — e é da
+ * esquerda que a linha começa a crescer.
+ */
+.sc-lp__legenda {
+  position: absolute;
+  inset-inline-start: var(--espaco-5);
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-lp__legenda-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  color: var(--cor-tinta-suave);
+  font-size: 0.75rem;
+  font-weight: 550;
+  white-space: nowrap;
+  /* A mesma auréola do texto da página: a legenda fica sobre as linhas, e sem
+     ela um traço passando atrás corta o nome no meio. */
+  text-shadow:
+    0 0 4px var(--cor-fundo),
+    0 0 10px var(--cor-fundo);
+}
+
+/*
+ * A bolinha que casa com a linha. Ela é o elo inteiro entre a legenda e o
+ * gráfico — por isso a cor vem por `--cor-da-serie`, definida junto com a da
+ * própria linha, e não repetida aqui onde poderia divergir dela.
+ */
+.sc-lp__legenda-item::before {
+  content: "";
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border-radius: 50%;
+  background: var(--cor-da-serie);
+  flex: none;
+}
+
+.sc-lp__pico {
+  position: absolute;
+  /* O ponto marcado é o CENTRO do marcador, e não o canto: sem o deslocamento
+     de meia largura, a bolinha fica pendurada à direita e abaixo do pico. */
+  translate: -50% -50%;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 50%;
+  background: var(--cor-da-serie);
+  /* O halo separa o marcador da linha que passa por baixo dele. */
+  box-shadow: 0 0 0 4px
+    color-mix(in oklab, var(--cor-da-serie) 22%, transparent);
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity var(--transicao-media),
+    scale var(--transicao-media);
+}
+
+.sc-lp__pico[data-visivel="sim"] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* O tracejado entre o marcador e a etiqueta, como a linha de preço que atravessa
+   o gráfico até o valor. Sem ele, os dois são dois objetos soltos. */
+.sc-lp__pico::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 100%;
+  inline-size: 0.8rem;
+  block-size: 1px;
+  translate: 0 -50%;
+  background: repeating-linear-gradient(
+    to right,
+    var(--cor-da-serie) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+.sc-lp__balao {
+  position: absolute;
+  /* Centrado na altura do marcador e à direita dele — a posição da etiqueta de
+     resultado num gráfico de operação, que é a referência deste desenho. */
+  inset-block-start: 50%;
+  inset-inline-start: 1.15rem;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--raio-1);
+  /* CHEIO, e não tingido. A versão anterior era um tom claro do verde com o
+     texto no verde escuro, e sumia por cima da linha que passava atrás dela.
+     Preenchido, o balão se descola do gráfico — que é o que uma etiqueta de
+     valor precisa fazer. */
+  background: var(--cor-da-serie);
+  color: var(--cor-em-sucesso);
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px color-mix(in oklab, var(--cor-tinta) 22%, transparent);
+}
+
+.sc-lp__balao-rotulo {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  /* Some por cima do verde sem virar outra cor: o rótulo é referência, e o
+     número é a informação. */
+  opacity: 0.75;
+}
+
+.sc-lp__balao-valor {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  /* Dígito de largura fixa: sem isto o balão muda de tamanho a cada número, e a
+     coluna de etiquetas fica trêmula enquanto o gráfico cresce. */
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * A seta que aponta para o marcador. É ela que faz a etiqueta pertencer àquele
+ * pico, e não flutuar perto dele.
+ */
+.sc-lp__balao::before {
+  content: "";
+  position: absolute;
+  inset-inline-end: 100%;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  border: 0.34rem solid transparent;
+  border-inline-end-color: var(--cor-da-serie);
 }
 
 .sc-lp__abertura,
@@ -342,6 +519,14 @@
  * a animação.
  */
 @media (prefers-reduced-motion: reduce) {
+  /* O destino, na hora: quem pediu menos movimento continua vendo os números —
+     o que se perde é a chegada deles, não eles. */
+  .sc-lp__pico {
+    opacity: 1;
+    scale: 1;
+    transition: none;
+  }
+
   .sc-lp__conteudo,
   .sc-lp__abertura,
   .sc-lp__capitulo {
