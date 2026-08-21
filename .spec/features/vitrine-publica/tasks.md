@@ -16,11 +16,15 @@
 - Notas: fecha o risco que o crítico apontou e que foi observado no concorrente — chave PIX, telefone e configuração interna nunca saem na resposta pública. Lista do que é permitido, nunca do que é proibido.
 - Esforço: alto
 
-## T-402 — Catálogo público em cache por loja [pendente]
+## T-402 — Catálogo público em cache por loja [concluida]
 
-- Refs: US-401, AC-404, AC-417
-- Arquivos: apps/api/src/modules/storefront/catalogo.usecase.ts, apps/api/src/modules/storefront/catalogo.usecase.test.ts, apps/web/src/server/cache.ts, apps/web/src/app/(loja)/l/[slug]/loading.tsx, apps/web/src/app/(loja)/l/[slug]/error.tsx
-- Notas: categoria oculta e produto rascunho não aparecem de forma alguma. Mudança de preço ou publicação reflete dentro do prazo definido, sem publicação manual.
+- Refs: US-401, AC-404, AC-406, AC-407, AC-417
+- Arquivos: apps/api/src/modules/storefront/catalogo.usecase.ts, apps/api/src/modules/storefront/vitrine.routes.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/catalogo-vitrine.int.test.ts, packages/contracts/src/vitrine.ts, packages/contracts/src/index.ts, packages/contracts/src/rotas.ts, packages/database/migrations/0016_vitrine_nao_ve_categoria_oculta.sql, packages/database/migrations/0017_versao_do_catalogo_cobre_a_vitrine.sql, packages/database/prisma/schema.prisma, packages/database/tests/esquema-cobre-o-banco.test.ts, packages/testing/src/factories.ts, packages/testing/src/index.ts, apps/web/src/server/vitrine.ts
+- Notas: categoria oculta e produto rascunho não aparecem de forma alguma — e quem garante isso é a POLÍTICA do banco, não o `WHERE` da consulta. A de categorias não filtrava nada apesar do nome "storefront" (migração 0016); a de produtos já filtrava desde a 0004. Repetir o filtro na consulta daria a impressão de que a garantia mora lá.
+- Notas: a versão do catálogo é o que faz o cache vencer sozinho. O gatilho existia só em `products` desde a 0004, então ocultar uma seção ou reordenar a vitrine não contava como mudança e o cache serviria a vitrine antiga por tempo indeterminado (migração 0017). Até agora nada lia essas tabelas: a falha existia e era inalcançável.
+- Notas: os destaques vêm de consulta PRÓPRIA, e não de filtrar as seções — o produto em destaque pode não estar em categoria nenhuma, e estando em duas apareceria duas vezes.
+- Notas: a versão viaja como TEXTO e não como `bigint`. Um teste de vazamento que serializa a resposta inteira pegou isso na primeira rodada: `JSON.stringify` recusa `bigint` com erro em tempo de execução, e em produção o erro apontaria para o serializador, longe da causa.
+- Notas: três tabelas saíram da lista de adiamento do Prisma (`categories`, `product_categories`, `product_images`). Ler tabela sem modelo obrigaria a escrever SQL cru, que é o caminho por onde o isolamento entre lojas se perde sem ninguém notar.
 - Esforço: alto
 
 ## T-403 — Vitrine: categorias, filtro e destaques [pendente]

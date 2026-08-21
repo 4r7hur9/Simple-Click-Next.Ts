@@ -55,6 +55,21 @@ export interface LojaIdentificada {
   readonly apelido: string;
   /** Endereço canônico, quando o que foi usado não é o oficial. */
   readonly redirecionarPara: string | null;
+  /**
+   * A versão do catálogo naquele instante.
+   *
+   * VEM DAQUI, e não de uma segunda consulta: a função de resolução já a
+   * devolve, e pedi-la de novo custaria mais uma ida ao banco para ler um
+   * número que já está na mão.
+   *
+   * É TEXTO, e não `bigint`. A coluna é `bigint` no banco, e a tentação é
+   * carregar o tipo do banco para cima — mas este objeto acaba em JSON, e
+   * `JSON.stringify` RECUSA `bigint` com erro em tempo de execução. Um teste de
+   * vazamento que serializa a resposta inteira pegou isso na primeira rodada;
+   * em produção teria sido a rota quebrando com um erro que aponta para o
+   * serializador, longe daqui. O `bigint` fica onde ele faz sentido: no banco.
+   */
+  readonly versaoDoCatalogo: string;
 }
 
 /** A loja não está disponível — e o motivo não é dito (AC-402). */
@@ -111,6 +126,7 @@ export async function identificarLoja(
     id: linha.id,
     apelido: linha.slug,
     redirecionarPara: linha.redirect_needed ? linha.canonical_host : null,
+    versaoDoCatalogo: linha.catalog_version.toString(),
   };
 }
 

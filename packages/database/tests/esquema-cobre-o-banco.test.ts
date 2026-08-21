@@ -52,18 +52,20 @@ const ESPERA_LONGA = 120_000;
 /**
  * Tabelas que ainda não têm modelo tipado, por decisão e não por esquecimento.
  *
- * São as onze da migração 0007, o catálogo completo. Elas entram junto com as
+ * São as da migração 0007, o catálogo completo. Elas entram junto com as
  * tarefas do catálogo (T-300 em diante), quando houver código para usá-las.
  * Declarar modelo antes disso só criaria tipo que ninguém importa.
+ *
+ * Três saíram daqui na T-402: `categories`, `product_categories` e
+ * `product_images`. O catálogo público começou a lê-las, e ler tabela sem
+ * modelo obrigaria a escrever SQL cru — que é o caminho por onde o isolamento
+ * entre lojas se perde sem ninguém notar.
  *
  * ESTA LISTA SÓ PODE ENCOLHER. Quem precisar acrescentar um nome aqui está
  * decidindo adiar, e a decisão fica escrita com o nome de quem adiou no
  * histórico — que é exatamente o oposto de uma tabela sumir sem ninguém notar.
  */
 const SEM_MODELO_POR_DECISAO: ReadonlySet<string> = new Set([
-  "categories",
-  "product_categories",
-  "product_images",
   "product_variants",
   "product_prices",
   "option_groups",

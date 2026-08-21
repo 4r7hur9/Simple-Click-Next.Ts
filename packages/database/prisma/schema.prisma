@@ -159,6 +159,7 @@ model Store {
   itensDeCarrinho     CartItem[]
   storeHours          StoreHour[]
   storeHourExceptions StoreHourException[]
+  categories          Category[]
 
   @@map("stores")
   @@schema("app")
@@ -269,8 +270,98 @@ model Product {
 
   itensDePedido   OrderItem[]
   itensDeCarrinho CartItem[]
+  categorias      ProductCategory[]
+  imagens         ProductImage[]
 
   @@map("products")
+  @@schema("app")
+}
+
+/// A seção da vitrine — Lanches, Bebidas, Promoções.
+///
+/// A ORDEM É MANUAL, e não alfabética: qual seção vem primeiro é decisão de
+/// negócio do dono, e não consequência da letra com que a palavra começa.
+///
+/// OCULTAR NÃO APAGA. A categoria sai da vitrine junto com seus produtos e
+/// continua na gestão do dono, marcada como oculta — é assim que ele monta a
+/// seção de Natal em outubro sem estreá-la. Quem garante que o público não a
+/// veja é a política do banco, e não o `WHERE` de quem consulta (migração 0016).
+model Category {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId      String    @map("store_id") @db.Uuid
+  name         String
+  slug         String
+  description  String?
+  /// Subcategoria (Bebidas > Cervejas). Nasce aceitando nulo porque a pergunta
+  /// Q-303 — se um nível basta — continua aberta: deixar o lugar reservado
+  /// custa uma coluna nula, acrescentá-la depois custaria uma migração.
+  parentId     String?   @map("parent_id") @db.Uuid
+  imageAssetId String?   @map("image_asset_id") @db.Uuid
+  isVisible    Boolean   @default(true) @map("is_visible")
+  sortOrder    Int       @default(0) @map("sort_order")
+  imageUrl     String?   @map("image_url")
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  loja   Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  mae    Category?  @relation("SubcategoriaDe", fields: [parentId], references: [id])
+  filhas Category[] @relation("SubcategoriaDe")
+
+  produtos ProductCategory[]
+
+  @@map("categories")
+  @@schema("app")
+}
+
+/// Produto dentro de categoria.
+///
+/// É N:M, e não 1:N, porque o mesmo item aparece em "Promoções" e na seção
+/// dele. Com 1:N o dono duplicaria o cadastro para promover um item —
+/// fragmentando foto, descrição e, pior, as métricas dele.
+model ProductCategory {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  productId  String   @map("product_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  /// Ordem POR categoria: o mesmo produto pode ser o primeiro em Promoções e o
+  /// quinto em Lanches.
+  sortOrder  Int      @default(0) @map("sort_order")
+  /// Uma primária por produto, para o endereço canônico e a trilha de
+  /// navegação. Garantida por índice único parcial, e não por gatilho.
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  produto   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoria Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, productId, categoryId], map: "product_categories_uk")
+  @@map("product_categories")
+  @@schema("app")
+}
+
+/// A foto do produto.
+///
+/// A URL aceita nulo porque a imagem pode vir do acervo (`assetId`) em vez de
+/// apontada direto — o banco cobra que ao menos uma das duas exista.
+model ProductImage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  assetId   String?  @map("asset_id") @db.Uuid
+  url       String?
+  altText   String?  @map("alt_text")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  sortOrder Int      @default(0) @map("sort_order")
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  produto Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
   @@schema("app")
 }
 

@@ -73,7 +73,11 @@ describe("documento de contrato publicado", () => {
     // As duas listas são INVENTÁRIO, e mudam por decisão: rota ou esquema novo
     // no documento é promessa nova ao aplicativo nativo, e passar por aqui é o
     // momento em que alguém confere que a promessa é intencional.
-    expect(Object.keys(caminhos)).toEqual(["/", "/v1/vitrine/{apelido}"]);
+    expect(Object.keys(caminhos)).toEqual([
+      "/",
+      "/v1/vitrine/{apelido}",
+      "/v1/vitrine/{apelido}/catalogo",
+    ]);
     expect(Object.keys(esquemas).sort()).toEqual([
       "Abertura",
       "EnderecoDaLoja",

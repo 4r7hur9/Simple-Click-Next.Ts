@@ -645,3 +645,94 @@ function exigirLinha<T extends pg.QueryResultRow>(
   }
   return linha;
 }
+
+// ---------------------------------------------------------------------------
+// Categorias
+// ---------------------------------------------------------------------------
+
+export interface CategoriaDeTeste {
+  readonly id: string;
+  readonly lojaId: string;
+  readonly nome: string;
+  readonly apelido: string;
+  readonly visivel: boolean;
+  readonly ordem: number;
+}
+
+export interface DadosDeCategoria {
+  /** Obrigatória: categoria é dado DE UMA LOJA, e o construtor cobra isso. */
+  readonly loja: LojaDeTeste;
+  readonly nome?: string;
+  readonly apelido?: string;
+  /** Oculta não some da gestão do dono — some da vitrine. */
+  readonly visivel?: boolean;
+  readonly ordem?: number;
+}
+
+/**
+ * Cria uma categoria da loja.
+ *
+ * ROTINA COM O PAPEL DE DONO, e não com o de administração da plataforma: é
+ * assim que ela nasce na vida real, e é o que faz o teste passar pelas mesmas
+ * políticas que o produto usa. Construtor que contorna o isolamento produz
+ * dado que a aplicação não conseguiria criar.
+ */
+export async function criarCategoria(
+  dados: DadosDeCategoria,
+): Promise<CategoriaDeTeste> {
+  const sufixo = sufixoDeTeste();
+  const categoria = {
+    nome: dados.nome ?? `Categoria de teste ${sufixo}`,
+    apelido: dados.apelido ?? `categoria-de-teste-${sufixo}`,
+    visivel: dados.visivel ?? true,
+    ordem: dados.ordem ?? 0,
+  };
+
+  const id = await comoLoja(dados.loja, async (tx) => {
+    const inserido = await tx.query<{ id: string }>(
+      `INSERT INTO app.categories (store_id, name, slug, is_visible, sort_order)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [
+        dados.loja.id,
+        categoria.nome,
+        categoria.apelido,
+        categoria.visivel,
+        categoria.ordem,
+      ],
+    );
+    return exigirLinha(inserido, "categoria").id;
+  });
+
+  return { id, lojaId: dados.loja.id, ...categoria };
+}
+
+/**
+ * Põe um produto dentro de uma categoria.
+ *
+ * A ORDEM É DO VÍNCULO, e não do produto: o mesmo item é o primeiro em
+ * "Promoções" e o quinto em "Lanches", e é por isso que ela não pode morar na
+ * linha do produto.
+ */
+export async function porProdutoNaCategoria(opcoes: {
+  readonly loja: LojaDeTeste;
+  readonly produto: ProdutoDeTeste;
+  readonly categoria: CategoriaDeTeste;
+  readonly ordem?: number;
+  readonly principal?: boolean;
+}): Promise<void> {
+  await comoLoja(opcoes.loja, async (tx) => {
+    await tx.query(
+      `INSERT INTO app.product_categories
+         (store_id, product_id, category_id, sort_order, is_primary)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        opcoes.loja.id,
+        opcoes.produto.id,
+        opcoes.categoria.id,
+        opcoes.ordem ?? 0,
+        opcoes.principal ?? false,
+      ],
+    );
+  });
+}

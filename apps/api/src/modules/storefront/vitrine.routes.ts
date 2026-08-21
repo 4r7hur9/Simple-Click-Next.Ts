@@ -22,6 +22,7 @@ import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
+import { catalogoDaVitrine } from "./catalogo.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
 
 /**
@@ -87,6 +88,48 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
         abertura: vitrine.abertura,
         redirecionarPara: identificacao.redirecionarPara,
       });
+    } catch (erro) {
+      proximo(erro);
+    }
+  });
+
+  /*
+   * O CATÁLOGO TEM ENDEREÇO PRÓPRIO, e não vem junto da apresentação.
+   *
+   * São duas telas com necessidades diferentes: a apresentação da loja mostra
+   * nome, horário e boas-vindas, e é a primeira coisa que carrega; a vitrine
+   * mostra o catálogo inteiro. Servir os dois juntos faria quem só quer saber
+   * se a loja está aberta baixar o cardápio completo.
+   *
+   * Separados, as duas telas podem pedir em paralelo o que cada uma precisa — e
+   * a apresentação continua respondendo no prazo que o AC-415 cobra mesmo em
+   * loja com catálogo grande.
+   */
+  rotas.get("/:apelido/catalogo", borda, async (req, res, proximo) => {
+    try {
+      const { params } = borda.dados(req);
+      const acesso = opcoes.acesso ?? banco();
+
+      // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
+      const identificacao = await executarComoRequisicao(
+        { papel: "PUBLIC" },
+        () => acesso.emTransacao(() => identificarLoja(params)),
+      );
+
+      if (!identificacao.encontrada) {
+        throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+      }
+
+      // PASSO 2 — transação nova, com a loja declarada desde o início.
+      const catalogo = await executarComoRequisicao(
+        { papel: "PUBLIC", lojaId: identificacao.id },
+        () =>
+          acesso.emTransacao(() =>
+            catalogoDaVitrine(identificacao.versaoDoCatalogo),
+          ),
+      );
+
+      res.json(catalogo);
     } catch (erro) {
       proximo(erro);
     }

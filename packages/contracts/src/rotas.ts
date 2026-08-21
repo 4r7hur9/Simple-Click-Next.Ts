@@ -16,11 +16,13 @@ import {
   esquemaDeEnderecoDaLoja,
   esquemaDeLojaPublica,
   rotaDaVitrine,
+  rotaDoCatalogo,
 } from "./vitrine.ts";
 
 export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeIdentificacao,
   rotaDaVitrine,
+  rotaDoCatalogo,
 ]);
 
 /**

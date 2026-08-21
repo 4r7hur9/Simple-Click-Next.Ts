@@ -50,5 +50,14 @@ export {
   esquemaDeLojaPublica,
   esquemaDoApelido,
   rotaDaVitrine,
+  esquemaDoCatalogo,
+  esquemaDeProdutoNaVitrine,
+  esquemaDeSecaoDaVitrine,
+  rotaDoCatalogo,
 } from "./vitrine.ts";
-export type { LojaPublicaNoContrato, Vitrine } from "./vitrine.ts";
+export type {
+  CatalogoDaVitrineNoContrato,
+  LojaPublicaNoContrato,
+  ProdutoNaVitrineNoContrato,
+  Vitrine,
+} from "./vitrine.ts";

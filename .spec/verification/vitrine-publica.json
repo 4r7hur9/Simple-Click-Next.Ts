@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-20T20:11:06.727Z",
-  "gitRev": "1513ccf",
+  "timestamp": "2026-08-21T13:41:10.756Z",
+  "gitRev": "2f606b7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 920,
+  "testsParsed": 929,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -20,6 +20,26 @@
     "AC-402": {
       "status": "pass",
       "testName": "inexistente e suspensa respondem igual (AC-402) @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico",
+      "method": "vitest-json"
+    },
+    "AC-404": {
+      "status": "pass",
+      "testName": "a vitrine lista as seções na ordem do dono (AC-404) @spec:AC-404 mostra as categorias visíveis na ordem definida, com seus produtos @spec:AC-404 mostra as categorias visíveis na ordem definida, com seus produtos",
+      "method": "vitest-json"
+    },
+    "AC-406": {
+      "status": "pass",
+      "testName": "os destaques têm área própria (AC-406) @spec:AC-406 destaque aparece na lista de destaques, mesmo sem categoria @spec:AC-406 destaque aparece na lista de destaques, mesmo sem categoria",
+      "method": "vitest-json"
+    },
+    "AC-407": {
+      "status": "pass",
+      "testName": "loja sem catálogo não parece quebrada (AC-407) @spec:AC-407 loja recém-criada devolve listas vazias, e não erro @spec:AC-407 loja recém-criada devolve listas vazias, e não erro",
+      "method": "vitest-json"
+    },
+    "AC-417": {
+      "status": "pass",
+      "testName": "a versão do catálogo sobe a cada mudança (AC-417) @spec:AC-417 publicar produto novo sobe a versão @spec:AC-417 publicar produto novo sobe a versão",
       "method": "vitest-json"
     }
   },

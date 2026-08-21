@@ -12,7 +12,12 @@
  * chegaria como `undefined` até o meio da árvore de componentes, e o erro
  * apareceria como texto sumido em vez de falha de contrato.
  */
-import { esquemaDaVitrine, type Vitrine } from "@simpleclick/contracts";
+import {
+  esquemaDaVitrine,
+  esquemaDoCatalogo,
+  type CatalogoDaVitrineNoContrato,
+  type Vitrine,
+} from "@simpleclick/contracts";
 
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
 
@@ -85,4 +90,75 @@ export async function buscarVitrine(
   }
 
   return { estado: "encontrada", vitrine: conferido.data };
+}
+
+/** O que a vitrine recebe: o catálogo, ou o motivo de não haver catálogo. */
+export type ResultadoDoCatalogo =
+  | {
+      readonly estado: "encontrado";
+      readonly catalogo: CatalogoDaVitrineNoContrato;
+    }
+  | { readonly estado: "nao-encontrada" }
+  | { readonly estado: "indisponivel"; readonly motivo: string };
+
+/**
+ * Busca o catálogo público da loja.
+ *
+ * A MESMA JANELA DE CACHE da apresentação, e de propósito. As duas telas mudam
+ * pelo mesmo motivo — o dono mexeu na loja — e janelas diferentes fariam a
+ * página mostrar um nome de seção que o cardápio ao lado ainda não tem.
+ *
+ * CATÁLOGO VAZIO NÃO É ERRO. Loja recém-criada devolve listas vazias, e é a
+ * tela que decide dizer "estamos montando o catálogo" (AC-407). Tratar vazio
+ * como indisponibilidade faria a loja nova parecer quebrada no primeiro dia,
+ * que é justamente quando o dono está decidindo se confia no produto.
+ */
+export async function buscarCatalogo(
+  apelido: string,
+  buscar: typeof fetch = fetch,
+): Promise<ResultadoDoCatalogo> {
+  const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}/catalogo`;
+
+  let resposta: Response;
+  try {
+    resposta = await buscar(endereco, {
+      next: { revalidate: SEGUNDOS_DE_CACHE },
+      signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
+      headers: { accept: "application/json" },
+    } as RequestInit);
+  } catch (erro) {
+    const motivo = erro instanceof Error ? erro.message : "falha de rede";
+    return { estado: "indisponivel", motivo };
+  }
+
+  if (resposta.status === 404) return { estado: "nao-encontrada" };
+
+  if (!resposta.ok) {
+    return {
+      estado: "indisponivel",
+      motivo: `a API respondeu ${resposta.status}`,
+    };
+  }
+
+  let corpo: unknown;
+  try {
+    corpo = await resposta.json();
+  } catch {
+    return {
+      estado: "indisponivel",
+      motivo: "a API respondeu algo que não é JSON",
+    };
+  }
+
+  const conferido = esquemaDoCatalogo.safeParse(corpo);
+  if (!conferido.success) {
+    // Fora do contrato é indisponibilidade, e não catálogo vazio: vazio faria a
+    // loja parecer sem produto quando o problema é outro.
+    return {
+      estado: "indisponivel",
+      motivo: "a resposta da API não bate com o contrato publicado",
+    };
+  }
+
+  return { estado: "encontrado", catalogo: conferido.data };
 }

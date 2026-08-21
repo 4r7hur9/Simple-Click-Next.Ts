@@ -112,6 +112,260 @@
           }
         }
       }
+    },
+    "/v1/vitrine/{apelido}/catalogo": {
+      "get": {
+        "operationId": "get_v1_vitrine_por_apelido_catalogo",
+        "summary": "As seções e os destaques da loja",
+        "tags": [
+          "vitrine"
+        ],
+        "description": "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Loja inexistente e loja suspensa respondem igual.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "secoes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "apelido": {
+                            "type": "string"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "produtos": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "apelido": {
+                                  "type": "string"
+                                },
+                                "nome": {
+                                  "type": "string"
+                                },
+                                "chamada": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "precoCentavos": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "precoAnteriorCentavos": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "imagem": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "destaque": {
+                                  "type": "boolean"
+                                },
+                                "disponivel": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "apelido",
+                                "nome",
+                                "chamada",
+                                "precoCentavos",
+                                "precoAnteriorCentavos",
+                                "imagem",
+                                "destaque",
+                                "disponivel"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "apelido",
+                          "nome",
+                          "produtos"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "destaques": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "apelido": {
+                            "type": "string"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "chamada": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "precoCentavos": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "precoAnteriorCentavos": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "imagem": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "destaque": {
+                            "type": "boolean"
+                          },
+                          "disponivel": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "apelido",
+                          "nome",
+                          "chamada",
+                          "precoCentavos",
+                          "precoAnteriorCentavos",
+                          "imagem",
+                          "destaque",
+                          "disponivel"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "versao": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "secoes",
+                    "destaques",
+                    "versao"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada recusada pelo contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

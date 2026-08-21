@@ -37,13 +37,16 @@ import {
 /**
  * Espera própria, e maior que a do projeto, para OS TESTES PESADOS do arquivo.
  *
- * Dois deles fazem dezenas de requisições HTTP de verdade contra um Express
- * montado, e cada requisição conversa várias vezes com o Redis: o do teto de
- * espera faz 77, e o da prioridade entre conta e origem faz 38. Sozinhos levam
- * cerca de dois segundos; com a suíte inteira disputando o mesmo Redis, já
- * passaram dos 30 segundos do projeto — e em todas as vezes passaram sozinhos
- * depois. O diagnóstico só apareceu quando o portão passou a guardar a saída da
- * etapa que reprova.
+ * Eles fazem dezenas de requisições HTTP de verdade contra um Express montado, e
+ * cada requisição conversa várias vezes com o Redis. Sozinhos levam menos de um
+ * segundo; com a suíte inteira disputando o mesmo Redis, já passaram dos 30
+ * segundos do projeto — e em todas as vezes passaram sozinhos depois.
+ *
+ * DAR TEMPO NÃO BASTOU, e é bom dizer isto por escrito: o teste do teto reprovou
+ * DEPOIS de receber os dois minutos, e a conta é fácil de errar — mais tempo
+ * significa mais tempo exposto à disputa, e não menos. O conserto que funcionou
+ * foi tirar do teste as 49 requisições que não provavam nada. A espera longa
+ * fica como rede de segurança para o que sobrou.
  *
  * A espera é DESTES testes e não do projeto: subir o limite de todos esconderia
  * um teste genuinamente travado atrás de dois minutos de paciência.
@@ -192,6 +195,20 @@ interface AjustesDoCenario {
   readonly comConta?: boolean;
   readonly comOrigem?: boolean;
   readonly proxiesConfiaveis?: number;
+  /**
+   * Quantas tentativas a conta tolera antes do bloqueio.
+   *
+   * EXISTE PARA O TESTE DO TETO. Ele precisa de sete bloqueios seguidos, e com
+   * o limite de dez isso são 77 requisições HTTP de verdade contra Redis de
+   * verdade — o teste mais pesado do repositório, e o único que reprovou sob a
+   * carga do portão em rodadas diferentes.
+   *
+   * O TETO NÃO DEPENDE DO LIMITE. Quanto a espera cresce e onde ela para vem de
+   * `esperaBaseMs`, `fatorDeCrescimento` e `esperaMaximaMs`; o limite só decide
+   * quantos chutes são precisos para chegar a cada bloqueio. Baixá-lo para três
+   * tira 49 requisições que não provavam nada e mantém intacto o que se prova.
+   */
+  readonly limiteDaConta?: number;
 }
 
 /**
@@ -214,7 +231,16 @@ function cenarioDeEntrada(ajustes: AjustesDoCenario = {}): CenarioDeEntrada {
     aoBloquear: (aviso) => {
       avisos.push(aviso);
     },
-    ...(ajustes.comConta === false ? {} : { porConta: REGRA_DA_CONTA }),
+    ...(ajustes.comConta === false
+      ? {}
+      : {
+          porConta: {
+            ...REGRA_DA_CONTA,
+            ...(ajustes.limiteDaConta === undefined
+              ? {}
+              : { limite: ajustes.limiteDaConta }),
+          },
+        }),
     ...(ajustes.comOrigem === false ? {} : { porOrigem: REGRA_DA_ORIGEM }),
     ...(ajustes.proxiesConfiaveis === undefined
       ? {}
@@ -344,12 +370,17 @@ describe("limite de tentativas por conta", () => {
   it(
     "@spec:AC-119 a espera não passa do teto configurado",
     async () => {
-      const cenario = cenarioDeEntrada();
+      // LIMITE BAIXO DE PROPÓSITO. O que se prova aqui é onde a espera PARA de
+      // crescer, e isso não depende de quantos chutes levam a cada bloqueio.
+      // Com o limite padrão eram 77 requisições HTTP de verdade — o suficiente
+      // para este teste reprovar sob a carga do portão sem nada estar errado.
+      const LIMITE_ENXUTO = 3;
+      const cenario = cenarioDeEntrada({ limiteDaConta: LIMITE_ENXUTO });
 
       // Sete bloqueios: 60s dobrando chegaria a 3840s, e o teto é 3600s.
       let ultima = 0;
       for (let rodada = 1; rodada <= 7; rodada += 1) {
-        for (let tentativa = 1; tentativa <= 10; tentativa += 1) {
+        for (let tentativa = 1; tentativa <= LIMITE_ENXUTO; tentativa += 1) {
           await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
         }
         const barrada = await tentarEntrar(cenario, {

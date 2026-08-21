@@ -105,3 +105,81 @@ export const rotaDaVitrine = definirRota({
   resposta: esquemaDaVitrine,
   errosPossiveis: [400],
 });
+
+// ---------------------------------------------------------------------------
+// Catálogo
+// ---------------------------------------------------------------------------
+
+/**
+ * Um produto, como o cartão da vitrine o mostra.
+ *
+ * DINHEIRO É CENTAVO INTEIRO (P-005). Preço em ponto flutuante erra em
+ * multiplicação: R$ 19,99 três vezes dá R$ 59,969999999999999 em vez de
+ * R$ 59,97, e o cliente vê um centavo de diferença entre a vitrine e o cupom.
+ */
+export const esquemaDeProdutoNaVitrine = z.strictObject({
+  id: z.uuid(),
+  apelido: z.string(),
+  nome: z.string(),
+  /** A frase curta do cartão. Nula quando o dono não escreveu. */
+  chamada: z.string().nullable(),
+  /** Nulo quando o preço depende de variação e só se sabe no produto. */
+  precoCentavos: z.int().nonnegative().nullable(),
+  /** O preço "de", para quando há promoção. */
+  precoAnteriorCentavos: z.int().nonnegative().nullable(),
+  imagem: z.string().nullable(),
+  destaque: z.boolean(),
+  disponivel: z.boolean(),
+});
+
+export type ProdutoNaVitrineNoContrato = z.infer<
+  typeof esquemaDeProdutoNaVitrine
+>;
+
+/** Uma seção da vitrine, na ordem que o dono definiu. */
+export const esquemaDeSecaoDaVitrine = z.strictObject({
+  id: z.uuid(),
+  apelido: z.string(),
+  nome: z.string(),
+  produtos: z.array(esquemaDeProdutoNaVitrine),
+});
+
+/**
+ * O catálogo público de uma loja.
+ *
+ * A VERSÃO É TEXTO, e não número. A coluna que a origina é `bigint` no banco, e
+ * JSON não tem esse tipo — passá-la como número exigiria confiar que ela nunca
+ * passe do limite seguro do JavaScript, o que é verdade hoje e é uma aposta
+ * sobre o futuro. Texto não aposta.
+ */
+export const esquemaDoCatalogo = z.strictObject({
+  secoes: z.array(esquemaDeSecaoDaVitrine),
+  /** Os destaques, em área própria no topo. */
+  destaques: z.array(esquemaDeProdutoNaVitrine),
+  versao: z.string(),
+});
+
+export type CatalogoDaVitrineNoContrato = z.infer<typeof esquemaDoCatalogo>;
+
+/**
+ * `GET /v1/vitrine/:apelido/catalogo` — as seções e os destaques da loja.
+ *
+ * SEPARADO DA APRESENTAÇÃO de propósito: quem só quer saber se a loja está
+ * aberta não deve baixar o cardápio inteiro. As duas telas pedem em paralelo o
+ * que cada uma precisa.
+ *
+ * O que não está publicado não aparece aqui de forma alguma — categoria oculta,
+ * categoria removida e produto em rascunho são recusados pela política do
+ * banco, e não pelo filtro de quem consulta.
+ */
+export const rotaDoCatalogo = definirRota({
+  metodo: "get",
+  caminho: "/v1/vitrine/:apelido/catalogo",
+  etiqueta: "vitrine",
+  resumo: "As seções e os destaques da loja",
+  descricao:
+    "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Loja inexistente e loja suspensa respondem igual.",
+  parametros: esquemaDoApelido,
+  resposta: esquemaDoCatalogo,
+  errosPossiveis: [400],
+});

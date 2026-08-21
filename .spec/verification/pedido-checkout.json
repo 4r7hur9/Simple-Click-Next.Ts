@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-20T20:10:30.553Z",
-  "gitRev": "1513ccf",
+  "timestamp": "2026-08-21T13:40:37.866Z",
+  "gitRev": "2f606b7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 920,
+  "testsParsed": 929,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -34,22 +34,22 @@
     },
     "AC-505": {
       "status": "pass",
-      "testName": "a escolha decide se o endereço existe (AC-505) @spec:AC-505 na entrega os campos de endereço aparecem @spec:AC-505 na entrega os campos de endereço aparecem",
+      "testName": "endereço é condicional à forma de entrega (AC-505) @spec:AC-505 @principle:P-007 entrega com endereço completo é aceita @spec:AC-505 @principle:P-007 entrega com endereço completo é aceita",
       "method": "vitest-json"
     },
     "AC-506": {
       "status": "pass",
-      "testName": "a loja só oferece o que ela faz (AC-506) @spec:AC-506 loja que só faz retirada NÃO mostra a opção de entrega @spec:AC-506 loja que só faz retirada NÃO mostra a opção de entrega",
+      "testName": "loja que só faz retirada (AC-506) @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega",
       "method": "vitest-json"
     },
     "AC-507": {
       "status": "pass",
-      "testName": "resumo de valores na tela (AC-507) @spec:AC-507 a tela mostra itens, taxa em linha separada e total @spec:AC-507 a tela mostra itens, taxa em linha separada e total",
+      "testName": "taxa de entrega no resumo (AC-507, AC-906) @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas",
       "method": "vitest-json"
     },
     "AC-508": {
       "status": "pass",
-      "testName": "os campos pendentes são apontados antes de enviar (AC-508) @spec:AC-508 formulário vazio não envia e aponta todos os pendentes de uma vez @spec:AC-508 formulário vazio não envia e aponta todos os pendentes de uma vez",
+      "testName": "dados do cliente são validados antes de enviar (AC-508) @spec:AC-508 @principle:P-007 nome em branco é recusado com explicação @spec:AC-508 @principle:P-007 nome em branco é recusado com explicação",
       "method": "vitest-json"
     },
     "AC-509": {
@@ -69,12 +69,12 @@
     },
     "AC-512": {
       "status": "pass",
-      "testName": "escolha da forma de pagamento (AC-512) @spec:AC-512 as três formas configuradas aparecem como opção @spec:AC-512 as três formas configuradas aparecem como opção",
+      "testName": "formas de pagamento oferecidas (AC-512) @spec:AC-512 a loja que aceita as três formas mostra as três @spec:AC-512 a loja que aceita as três formas mostra as três",
       "method": "vitest-json"
     },
     "AC-513": {
       "status": "pass",
-      "testName": "nada de cartão na tela (AC-513) @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido @spec:AC-513 nenhum campo pede número de cartão, nem com cartão escolhido",
+      "testName": "a versão 1 não cobra e não pede cartão (AC-513) @spec:AC-513 nenhuma biblioteca de cobrança está declarada como dependência @spec:AC-513 nenhuma biblioteca de cobrança está declarada como dependência",
       "method": "vitest-json"
     },
     "AC-514": {
@@ -147,15 +147,15 @@
     },
     "P-012": {
       "status": "pass",
-      "testName": "acessibilidade da apresentação (AC-400) @spec:AC-400 @principle:P-012 sem violação crítica nem séria @spec:AC-400 @principle:P-012 sem violação crítica nem séria"
-    },
-    "P-011": {
-      "status": "pass",
-      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
     },
     "P-007": {
       "status": "pass",
       "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
     }
   }
 }

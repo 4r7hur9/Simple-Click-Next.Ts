@@ -18,7 +18,11 @@ describe("contrato compartilhado", () => {
       ROTAS_DO_CONTRATO.map(
         (rota) => `${rota.metodo} ${rota.caminhoDoDocumento}`,
       ),
-    ).toEqual(["get /", "get /v1/vitrine/{apelido}"]);
+    ).toEqual([
+      "get /",
+      "get /v1/vitrine/{apelido}",
+      "get /v1/vitrine/{apelido}/catalogo",
+    ]);
   });
 
   it("@spec:AC-006 o sinal de vida tem uma forma só, e ela é estrita", () => {
