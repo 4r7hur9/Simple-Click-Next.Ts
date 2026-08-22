@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# executar-tarefas.sh — gerado por `onp-spec plano identidade-visual-global` em 2026-08-22 05:23
+# executar-tarefas.sh — gerado por `onp-spec plano identidade-visual-global` em 2026-08-22 05:26
 # NÃO edite à mão: mudou tasks.md ou a config, regenere o plano.
 #
 # uso:
@@ -14,7 +14,7 @@
 set -u
 set -o pipefail
 
-RUN_ID='Simple-Click-Next.Ts-identidade-visual-global-mt3xnf5g'
+RUN_ID='Simple-Click-Next.Ts-identidade-visual-global-mt3xrlsh'
 FEATURE='identidade-visual-global'
 BASE_BRANCH='spec/identidade-visual-global'
 ENGINE='C:\Users\arthu\.agents\skills\onp-spec-driven\scripts\onp-spec.mjs'
@@ -190,7 +190,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' high
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' high
   ) >> "$LOG_DIR/faixa-1.log" 2>&1
   local st=$?
   mesclar_faixa 'faixa-1' 'spec/identidade-visual-global-faixa-1' "$WT" "$st" || return 1
@@ -220,7 +220,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' medium
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' medium
   ) >> "$LOG_DIR/faixa-2.log" 2>&1
   local st=$?
   mesclar_faixa 'faixa-2' 'spec/identidade-visual-global-faixa-2' "$WT" "$st" || return 1
@@ -245,7 +245,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' medium >> "$LOG_DIR/seq.log" 2>&1; then
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' medium >> "$LOG_DIR/seq.log" 2>&1; then
     # commit de segurança se o agente esqueceu (rastreabilidade > perfeição)
     if [ -n "$(git status --porcelain)" ]; then
       git add -A && git commit -q -m 'T-967 identidade-visual-global: Expor os tokens como API semântica do Tailwind 4 (auto-commit do plano)'
@@ -277,7 +277,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' high >> "$LOG_DIR/seq.log" 2>&1; then
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' high >> "$LOG_DIR/seq.log" 2>&1; then
     # commit de segurança se o agente esqueceu (rastreabilidade > perfeição)
     if [ -n "$(git status --porcelain)" ]; then
       git add -A && git commit -q -m 'T-968 identidade-visual-global: Definir a base global da interface (auto-commit do plano)'
@@ -309,7 +309,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' high >> "$LOG_DIR/seq.log" 2>&1; then
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' high >> "$LOG_DIR/seq.log" 2>&1; then
     # commit de segurança se o agente esqueceu (rastreabilidade > perfeição)
     if [ -n "$(git status --porcelain)" ]; then
       git add -A && git commit -q -m 'T-969 identidade-visual-global: Alinhar os componentes base à identidade oficial (auto-commit do plano)'
@@ -341,7 +341,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' high >> "$LOG_DIR/seq.log" 2>&1; then
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' high >> "$LOG_DIR/seq.log" 2>&1; then
     # commit de segurança se o agente esqueceu (rastreabilidade > perfeição)
     if [ -n "$(git status --porcelain)" ]; then
       git add -A && git commit -q -m 'T-970 identidade-visual-global: Preservar a personalização isolada da loja e da landing (auto-commit do plano)'
@@ -373,7 +373,7 @@ Regras inegociáveis:
 - NUNCA enfraqueça, pule (skip/todo) ou apague um teste para passar — teste pulado não é prova e o audit acusa.
 - Rode os testes localmente com `pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json` até passarem.
 - NÃO edite tasks.md, NÃO rode onp-spec verify/audit e NÃO toque em outras tarefas — o orquestrador cuida disso.
-- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5' medium >> "$LOG_DIR/seq.log" 2>&1; then
+- Ao final de CADA tarefa: `git add` só no que você tocou e um commit próprio.' 'gpt-5.6-luna' medium >> "$LOG_DIR/seq.log" 2>&1; then
     # commit de segurança se o agente esqueceu (rastreabilidade > perfeição)
     if [ -n "$(git status --porcelain)" ]; then
       git add -A && git commit -q -m 'T-971 identidade-visual-global: Completar a vitrine interna da identidade (auto-commit do plano)'

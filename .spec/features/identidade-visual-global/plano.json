@@ -1,12 +1,12 @@
 {
-  "runId": "Simple-Click-Next.Ts-identidade-visual-global-mt3xnf5g",
+  "runId": "Simple-Click-Next.Ts-identidade-visual-global-mt3xrlsh",
   "feature": "identidade-visual-global",
   "agent": "codex",
   "modo": "paralelo",
   "paralelizar": ["T-965", "T-966"],
   "modeloForcado": null,
   "esforcoForcado": null,
-  "geradoEm": "2026-08-22 05:23",
+  "geradoEm": "2026-08-22 05:26",
   "branchTrabalho": "spec/identidade-visual-global",
   "baseDir": ".spec/features/identidade-visual-global",
   "specDir": ".spec",
@@ -22,7 +22,7 @@
         {
           "id": "T-965",
           "titulo": "Instalar ativos oficiais e congelar os tokens da marca",
-          "modelo": "gpt-5",
+          "modelo": "gpt-5.6-luna",
           "esforco": "high",
           "arquivos": [
             "apps/web/public/brand/logo-primary.svg",
@@ -48,7 +48,7 @@
         {
           "id": "T-966",
           "titulo": "Aplicar Space Grotesk e Inter sem depender da rede em execução",
-          "modelo": "gpt-5",
+          "modelo": "gpt-5.6-luna",
           "esforco": "medium",
           "arquivos": [
             "apps/web/src/app/layout.tsx",
@@ -63,7 +63,7 @@
     {
       "id": "T-967",
       "titulo": "Expor os tokens como API semântica do Tailwind 4",
-      "modelo": "gpt-5",
+      "modelo": "gpt-5.6-luna",
       "esforco": "medium",
       "arquivos": [
         "apps/web/src/app/tokens.css",
@@ -75,7 +75,7 @@
     {
       "id": "T-968",
       "titulo": "Definir a base global da interface",
-      "modelo": "gpt-5",
+      "modelo": "gpt-5.6-luna",
       "esforco": "high",
       "arquivos": [
         "apps/web/src/app/globals.css",
@@ -94,7 +94,7 @@
     {
       "id": "T-969",
       "titulo": "Alinhar os componentes base à identidade oficial",
-      "modelo": "gpt-5",
+      "modelo": "gpt-5.6-luna",
       "esforco": "high",
       "arquivos": [
         "packages/ui/styles/componentes.css",
@@ -114,7 +114,7 @@
     {
       "id": "T-970",
       "titulo": "Preservar a personalização isolada da loja e da landing",
-      "modelo": "gpt-5",
+      "modelo": "gpt-5.6-luna",
       "esforco": "high",
       "arquivos": [
         "packages/ui/src/tema-loja.tsx",
@@ -127,7 +127,7 @@
     {
       "id": "T-971",
       "titulo": "Completar a vitrine interna da identidade",
-      "modelo": "gpt-5",
+      "modelo": "gpt-5.6-luna",
       "esforco": "medium",
       "arquivos": [
         "apps/web/src/app/(dev)/ui/page.tsx",

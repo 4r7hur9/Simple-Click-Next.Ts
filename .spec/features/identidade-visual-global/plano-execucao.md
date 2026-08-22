@@ -1,6 +1,6 @@
 # Plano de execução — identidade-visual-global
 
-> gerado por `onp-spec plano` em 2026-08-22 05:23 — NÃO edite à mão;
+> gerado por `onp-spec plano` em 2026-08-22 05:26 — NÃO edite à mão;
 > mudou tasks.md ou a config? Regenere: `onp-spec plano identidade-visual-global --paralelizar T-965,T-966`
 
 ## Resumo — o que vai acontecer
@@ -17,25 +17,25 @@
 
 #### faixa-1 — branch `spec/identidade-visual-global-faixa-1` — worktree `../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-1`
 
-| tarefa | título                                                 | modelo  | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------ | ------------------------------------------------------ | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T-965  | Instalar ativos oficiais e congelar os tokens da marca | `gpt-5` | high    | `apps/web/public/brand/logo-primary.svg`, `apps/web/public/brand/logo-reverse.svg`, `apps/web/public/brand/logo-monochrome-black.svg`, `apps/web/public/brand/logo-monochrome-white.svg`, `apps/web/public/brand/app-icon-light.svg`, `apps/web/public/brand/app-icon-dark.svg`, `packages/ui/styles/theme.css`, `packages/ui/src/tokens.ts`, `packages/ui/tests/tokens.test.ts`, `packages/ui/tests/contraste.test.ts` |
+| tarefa | título                                                 | modelo         | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------ | ------------------------------------------------------ | -------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-965  | Instalar ativos oficiais e congelar os tokens da marca | `gpt-5.6-luna` | high    | `apps/web/public/brand/logo-primary.svg`, `apps/web/public/brand/logo-reverse.svg`, `apps/web/public/brand/logo-monochrome-black.svg`, `apps/web/public/brand/logo-monochrome-white.svg`, `apps/web/public/brand/app-icon-light.svg`, `apps/web/public/brand/app-icon-dark.svg`, `packages/ui/styles/theme.css`, `packages/ui/src/tokens.ts`, `packages/ui/tests/tokens.test.ts`, `packages/ui/tests/contraste.test.ts` |
 
 #### faixa-2 — branch `spec/identidade-visual-global-faixa-2` — worktree `../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-2`
 
-| tarefa | título                                                         | modelo  | esforço | arquivos                                                                      |
-| ------ | -------------------------------------------------------------- | ------- | ------- | ----------------------------------------------------------------------------- |
-| T-966  | Aplicar Space Grotesk e Inter sem depender da rede em execução | `gpt-5` | medium  | `apps/web/src/app/layout.tsx`, `apps/web/tests/tipografia-identidade.test.ts` |
+| tarefa | título                                                         | modelo         | esforço | arquivos                                                                      |
+| ------ | -------------------------------------------------------------- | -------------- | ------- | ----------------------------------------------------------------------------- |
+| T-966  | Aplicar Space Grotesk e Inter sem depender da rede em execução | `gpt-5.6-luna` | medium  | `apps/web/src/app/layout.tsx`, `apps/web/tests/tipografia-identidade.test.ts` |
 
 ## Tarefas sequenciais (após as ondas, na árvore principal)
 
-| tarefa | título                                                  | modelo  | esforço | por que sequencial         |
-| ------ | ------------------------------------------------------- | ------- | ------- | -------------------------- |
-| T-967  | Expor os tokens como API semântica do Tailwind 4        | `gpt-5` | medium  | fora da seleção do usuário |
-| T-968  | Definir a base global da interface                      | `gpt-5` | high    | fora da seleção do usuário |
-| T-969  | Alinhar os componentes base à identidade oficial        | `gpt-5` | high    | fora da seleção do usuário |
-| T-970  | Preservar a personalização isolada da loja e da landing | `gpt-5` | high    | fora da seleção do usuário |
-| T-971  | Completar a vitrine interna da identidade               | `gpt-5` | medium  | fora da seleção do usuário |
+| tarefa | título                                                  | modelo         | esforço | por que sequencial         |
+| ------ | ------------------------------------------------------- | -------------- | ------- | -------------------------- |
+| T-967  | Expor os tokens como API semântica do Tailwind 4        | `gpt-5.6-luna` | medium  | fora da seleção do usuário |
+| T-968  | Definir a base global da interface                      | `gpt-5.6-luna` | high    | fora da seleção do usuário |
+| T-969  | Alinhar os componentes base à identidade oficial        | `gpt-5.6-luna` | high    | fora da seleção do usuário |
+| T-970  | Preservar a personalização isolada da loja e da landing | `gpt-5.6-luna` | high    | fora da seleção do usuário |
+| T-971  | Completar a vitrine interna da identidade               | `gpt-5.6-luna` | medium  | fora da seleção do usuário |
 
 ## Gestão de branches e commits
 
