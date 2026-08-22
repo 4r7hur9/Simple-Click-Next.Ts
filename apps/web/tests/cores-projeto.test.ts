@@ -111,7 +111,7 @@ beforeAll(async () => {
 afterAll(limpar);
 
 describe("cor escrita direto na tela, no repositório real", () => {
-  it("@spec:AC-014 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo", async () => {
+  it("@spec:AC-014 @spec:AC-948 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo", async () => {
     const { resultado } = await verificar(ARQUIVO_VIOLACAO);
     const violacoes = violacoesDeCor(resultado);
 

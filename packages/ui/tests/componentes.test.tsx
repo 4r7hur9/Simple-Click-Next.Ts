@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { isValidElement, type ReactElement } from "react";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { Aviso } from "../src/aviso";
 import { Botao } from "../src/botao";
 import { Campo } from "../src/campo";
@@ -8,6 +10,11 @@ import { Cartao } from "../src/cartao";
 import { Dialogo } from "../src/dialogo";
 import { Lista } from "../src/lista";
 import { Carregando, Erro, Esqueleto, Sucesso, Vazio } from "../src/estados";
+
+const CSS = readFileSync(
+  fileURLToPath(new URL("../styles/componentes.css", import.meta.url)),
+  "utf8",
+);
 
 /**
  * Os quatro estados dos componentes base (AC-013).
@@ -96,6 +103,19 @@ describe("estados reutilizáveis", () => {
 });
 
 describe("botão", () => {
+  it("@spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px", () => {
+    expect(CSS).toContain("border-radius: var(--raio-botao)");
+    expect(CSS).toContain("min-height: 2.75rem");
+    expect(CSS).toContain("outline: 2px solid var(--cor-foco)");
+    expect(CSS).toMatch(
+      /\.sc-botao--discreta\s*\{[\s\S]*?background-color: var\(--cor-superficie-alta\)/,
+    );
+    expect(CSS).toMatch(
+      /\.sc-botao\[disabled\]\s*\{[\s\S]*?background-color: var\(--cor-superficie\)/,
+    );
+    expect(CSS).not.toMatch(/\.sc-botao[\s\S]*?backdrop-filter/);
+  });
+
   it("@spec:AC-013 carregando bloqueia o clique de verdade, e não só troca o rótulo", () => {
     const arvore = Botao({ carregando: true, children: "Salvar" });
     const botao = encontrar(arvore, "button");
@@ -319,6 +339,21 @@ describe("lista", () => {
 });
 
 describe("aviso", () => {
+  it("@spec:AC-951 usa ícone e texto em bloco completo, nunca badge ou pílula", () => {
+    const html = renderToStaticMarkup(
+      <Aviso titulo="Pedido aceito" tom="sucesso">
+        O cliente já foi avisado.
+      </Aviso>,
+    );
+
+    expect(html).toContain("sc-aviso__titulo");
+    expect(html).not.toMatch(/badge|pill|capsula|rounded-full/i);
+    expect(CSS).toContain(".sc-aviso--sucesso .sc-aviso__titulo::before");
+    expect(CSS).toMatch(
+      /\.sc-aviso--sucesso\s*\{[\s\S]*?background-color: var\(--cor-sucesso-suave\)/,
+    );
+  });
+
   it("@spec:AC-013 o aviso de erro interrompe; os outros esperam a próxima pausa", () => {
     const erro = renderToStaticMarkup(
       <Aviso titulo="Não foi possível imprimir" tom="erro">

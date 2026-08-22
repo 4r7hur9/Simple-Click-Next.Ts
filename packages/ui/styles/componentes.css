@@ -54,8 +54,8 @@
   justify-content: center;
   gap: var(--espaco-2);
   padding: var(--espaco-2) var(--espaco-4);
-  border: 1px solid transparent;
-  border-radius: var(--raio-2);
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio-botao);
   font-family: inherit;
   font-size: var(--texto-base);
   font-weight: var(--peso-medio);
@@ -91,15 +91,18 @@
 }
 
 .sc-botao--discreta {
-  background-color: transparent;
+  background-color: var(--cor-superficie-alta);
+  border-color: var(--cor-borda-forte);
   /* Letra sobre o fundo da página usa o tom já conferido para leitura, não o
      tom de preenchimento — é neste ponto que a cor clara de uma loja some. */
   color: var(--cor-primaria-texto);
 }
 
 .sc-botao[disabled] {
+  background-color: var(--cor-superficie);
+  border-color: var(--cor-borda);
+  color: var(--cor-tinta-suave);
   cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .sc-botao[aria-busy="true"] {
@@ -286,16 +289,40 @@
   border: 1px dashed var(--cor-borda-forte);
 }
 
+.sc-estado--vazio::before,
+.sc-estado--erro::before,
+.sc-estado--sucesso::before {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+}
+
+.sc-estado--vazio::before {
+  content: "—";
+  color: var(--cor-tinta-suave);
+}
+
 .sc-estado--erro {
   background-color: var(--cor-erro-suave);
   border: 1px solid var(--cor-erro);
   color: var(--cor-tinta);
 }
 
+.sc-estado--erro::before {
+  content: "!";
+  color: var(--cor-erro);
+}
+
 .sc-estado--sucesso {
   background-color: var(--cor-sucesso-suave);
   border: 1px solid var(--cor-sucesso);
   color: var(--cor-tinta);
+}
+
+.sc-estado--sucesso::before {
+  content: "✓";
+  color: var(--cor-sucesso);
 }
 
 .sc-estado__referencia {
@@ -343,6 +370,27 @@
   margin: 0;
   font-size: var(--texto-base);
   font-weight: var(--peso-forte);
+}
+
+.sc-aviso__titulo::before {
+  margin-inline-end: var(--espaco-2);
+  font-family: var(--fonte-titulo);
+}
+
+.sc-aviso--info .sc-aviso__titulo::before {
+  content: "i";
+}
+
+.sc-aviso--sucesso .sc-aviso__titulo::before {
+  content: "✓";
+}
+
+.sc-aviso--erro .sc-aviso__titulo::before {
+  content: "!";
+}
+
+.sc-aviso--atencao .sc-aviso__titulo::before {
+  content: "△";
 }
 
 .sc-aviso--info {
@@ -412,7 +460,7 @@
 .sc-dialogo__fechar {
   border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-2);
-  background-color: transparent;
+  background-color: var(--cor-superficie);
   color: var(--cor-tinta);
   cursor: pointer;
   min-width: 2.25rem;
