@@ -57,11 +57,7 @@
  * Fica fora do fluxo, não intercepta toque, e some para o leitor de tela.
  */
 .sc-lp__luz {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: clip;
+  display: none;
 }
 
 .sc-lp__lavado {
@@ -137,12 +133,7 @@
   flex-direction: column;
   gap: var(--espaco-4);
   padding: var(--espaco-6);
-  /* Três sombras, e não uma: a primeira fecha o contorno, as outras duas abrem
-     o vão. Uma sozinha na largura necessária mancharia o miolo da letra. */
-  text-shadow:
-    0 0 4px var(--cor-fundo),
-    0 0 12px var(--cor-fundo),
-    0 0 26px var(--cor-fundo);
+  background-color: var(--cor-fundo);
 }
 
 /* --- tipografia -----------------------------------------------------------
@@ -244,15 +235,13 @@
   gap: var(--espaco-2);
   min-block-size: 3.25rem;
   padding-inline: var(--espaco-7);
-  border-radius: 999px;
+  border-radius: var(--raio-botao);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font-size: 1.0625rem;
   font-weight: 550;
   text-decoration: none;
-  box-shadow:
-    0 1px 2px color-mix(in oklab, var(--cor-primaria) 30%, transparent),
-    0 10px 26px color-mix(in oklab, var(--cor-primaria) 24%, transparent);
+  box-shadow: none;
   transition:
     transform var(--transicao-rapida),
     box-shadow var(--transicao-rapida);
@@ -264,7 +253,7 @@
  * num anúncio, e a pessoa para de ver todos eles.
  */
 .sc-lp__comecar--discreto {
-  background: transparent;
+  background: var(--cor-superficie-alta);
   color: var(--cor-primaria-texto);
   border: 1px solid var(--cor-borda-forte);
   box-shadow: none;
@@ -307,10 +296,7 @@
  * olhar as peças.
  */
 .sc-lp__mundo {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
 
 /*
@@ -432,11 +418,7 @@
   inline-size: 0.8rem;
   block-size: 1px;
   translate: 0 -50%;
-  background: repeating-linear-gradient(
-    to right,
-    var(--cor-da-serie) 0 2px,
-    transparent 2px 4px
-  );
+  border-block-start: 1px dashed var(--cor-da-serie);
 }
 
 .sc-lp__balao {
@@ -725,11 +707,7 @@
   inset-block-start: 0;
   inset-inline: 0;
   block-size: 6.5rem;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--cor-primaria) 75%, transparent),
-    color-mix(in oklab, var(--cor-primaria) 12%, transparent)
-  );
+  background: var(--cor-primaria);
 }
 
 .sc-previa__marca {
@@ -852,7 +830,7 @@
   inline-size: 100%;
   margin: var(--espaco-2) 0 0;
   padding-block: var(--espaco-3);
-  border-radius: 999px;
+  border-radius: var(--raio-botao);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font-size: 0.8125rem;
@@ -940,8 +918,7 @@
   inset-inline: 1px;
   block-size: 2.5rem;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, var(--cor-superficie-alta));
-  border-radius: 0 0 var(--raio-3) var(--raio-1);
+  display: none;
 }
 
 .sc-previa__hora {

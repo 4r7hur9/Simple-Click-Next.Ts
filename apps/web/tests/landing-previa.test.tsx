@@ -10,8 +10,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { PreviaDaLoja } from "../src/features/landing/PreviaDaLoja";
+
+const CSS_DA_LANDING = readFileSync(
+  join(process.cwd(), "packages/ui/styles/landing.css"),
+  "utf8",
+);
 
 let raiz: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -52,6 +59,20 @@ function digitar(elemento: HTMLInputElement, texto: string) {
 }
 
 describe("a prévia mostra a loja de quem chegou (AC-939)", () => {
+  it("@spec:AC-944 mantém conteúdo sobre fundo sólido e ações opacas sem pílulas", () => {
+    expect(CSS_DA_LANDING).not.toMatch(
+      /(?:repeating-)?linear-gradient|radial-gradient|backdrop-filter/i,
+    );
+    expect(CSS_DA_LANDING).toMatch(
+      /\.sc-lp__comecar--discreto\s*\{[\s\S]*?background: var\(--cor-superficie-alta\)/,
+    );
+    expect(CSS_DA_LANDING).toMatch(
+      /\.sc-previa__botao\s*\{[\s\S]*?border-radius: var\(--raio-botao\)/,
+    );
+    expect(CSS_DA_LANDING).toContain(".sc-lp__mundo {");
+    expect(CSS_DA_LANDING).toContain("display: none");
+  });
+
   it("@spec:AC-939 o nome digitado aparece na loja, na hora", () => {
     const tela = montar();
     const campo = tela.querySelector<HTMLInputElement>("input[type='text']");

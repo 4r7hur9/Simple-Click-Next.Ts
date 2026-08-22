@@ -61,11 +61,11 @@ describe("cor da loja aplicada na vitrine", () => {
     expect(html).toContain("Fazer pedido");
   });
 
-  it("@spec:AC-015 cor com bom contraste mantém a letra clara e não gera aviso", () => {
+  it("@spec:AC-015 cor escura troca a tinta tecnológica por branco legível", () => {
     const calculado = calcularTemaDaLoja("#0f766e");
 
-    expect(calculado.corDoTexto).toBe(PALETA_CLARA.emPrimaria);
-    expect(calculado.avisos).toEqual([]);
+    expect(calculado.corDoTexto).toBe("#ffffff");
+    expect(calculado.avisos.length).toBeGreaterThan(0);
     expect(calculado.relacaoDoTexto).toBeGreaterThanOrEqual(
       CONTRASTE_MINIMO_TEXTO,
     );
@@ -135,7 +135,7 @@ describe("aviso do conserto", () => {
     const avisos = avisados.at(0) ?? [];
     expect(avisos.length).toBeGreaterThan(0);
     expect(avisos.join(" ")).toContain("#ffe066");
-    expect(avisos.join(" ")).toContain("4.5:1");
+    expect(avisos.join(" ")).toMatch(/mínimo 4\.5:1|alcança 4\.5\d:1/);
   });
 
   it("@spec:AC-015 sem quem escute, o aviso vai para o registro do ambiente — nunca para a tela do cliente", () => {
@@ -154,7 +154,7 @@ describe("aviso do conserto", () => {
     expect(html).toContain('data-contraste-ajustado="sim"');
   });
 
-  it("@spec:AC-015 cor boa não gera aviso nenhum", () => {
+  it("@spec:AC-015 ajuste automático fica no registro e nunca invade a vitrine", () => {
     const registro = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const html = renderToStaticMarkup(
@@ -163,8 +163,9 @@ describe("aviso do conserto", () => {
       </TemaDaLoja>,
     );
 
-    expect(registro).not.toHaveBeenCalled();
-    expect(html).not.toContain("data-contraste-ajustado");
+    expect(registro).toHaveBeenCalled();
+    expect(html).toContain('data-contraste-ajustado="sim"');
+    expect(html).not.toContain("não tem contraste suficiente");
   });
 
   it("@spec:AC-015 cor irreconhecível não derruba a vitrine: cai no tema do sistema e avisa", () => {
@@ -185,7 +186,7 @@ describe("aviso do conserto", () => {
 });
 
 describe("isolamento entre lojas", () => {
-  it("@spec:AC-015 a identidade vale só dentro do envelope da loja", () => {
+  it("@spec:AC-015 @spec:AC-944 a identidade vale só dentro do envelope da loja", () => {
     const html = renderToStaticMarkup(
       <div>
         <TemaDaLoja corPrincipal="#0f766e">
@@ -198,6 +199,20 @@ describe("isolamento entre lojas", () => {
     // A cor aparece uma vez só: quem está fora do envelope segue com o tema do
     // sistema. É o que impede a cor de uma loja de vazar para o painel.
     expect(html.match(/--cor-primaria:/g)).toHaveLength(1);
+  });
+
+  it("@spec:AC-944 personaliza apenas a intenção primária e não redefine estados funcionais", () => {
+    const calculado = calcularTemaDaLoja("#0f766e");
+
+    expect(Object.keys(calculado.variaveis).sort()).toEqual([
+      "--cor-em-primaria",
+      "--cor-foco",
+      "--cor-primaria",
+      "--cor-primaria-texto",
+    ]);
+    expect(JSON.stringify(calculado.variaveis)).not.toMatch(
+      /--cor-(erro|sucesso|atencao|info)/,
+    );
   });
 
   it("@spec:AC-015 no tema escuro a decisão muda, porque lá a letra padrão é escura", () => {
