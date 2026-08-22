@@ -69,16 +69,16 @@ export const NOME_NO_CSS: Readonly<Record<keyof PaletaDeCores, string>> = {
 
 export const PALETA_CLARA: PaletaDeCores = {
   fundo: "#ffffff",
-  superficie: "#f5f6f8",
+  superficie: "#f5f7f4",
   superficieAlta: "#ffffff",
-  tinta: "#14171c",
-  tintaSuave: "#565c66",
-  borda: "#d3d7de",
-  bordaForte: "#7d838c",
-  primaria: "#1a4fd6",
-  emPrimaria: "#ffffff",
-  primariaSuave: "#e9eefc",
-  primariaTexto: "#1a4fd6",
+  tinta: "#0b0f0d",
+  tintaSuave: "#4d5852",
+  borda: "#a8b1ab",
+  bordaForte: "#65706a",
+  primaria: "#b7ff00",
+  emPrimaria: "#0b0f0d",
+  primariaSuave: "#e5ffb8",
+  primariaTexto: "#3f7900",
   sucesso: "#136c3a",
   emSucesso: "#ffffff",
   sucessoSuave: "#e6f6ec",
@@ -88,23 +88,23 @@ export const PALETA_CLARA: PaletaDeCores = {
   atencao: "#8a5300",
   emAtencao: "#ffffff",
   atencaoSuave: "#fdf3e2",
-  info: "#1a4fd6",
-  infoSuave: "#e9eefc",
-  foco: "#1a4fd6",
+  info: "#3f7900",
+  infoSuave: "#e5ffb8",
+  foco: "#4f8f00",
 };
 
 export const PALETA_ESCURA: PaletaDeCores = {
-  fundo: "#0d1015",
-  superficie: "#161a21",
-  superficieAlta: "#1d222b",
-  tinta: "#eef1f5",
-  tintaSuave: "#a4adba",
-  borda: "#2e3641",
-  bordaForte: "#6b7380",
-  primaria: "#8ab4ff",
-  emPrimaria: "#0d1015",
-  primariaSuave: "#141d2e",
-  primariaTexto: "#8ab4ff",
+  fundo: "#0b0f0d",
+  superficie: "#161c19",
+  superficieAlta: "#202823",
+  tinta: "#ffffff",
+  tintaSuave: "#a8b1ab",
+  borda: "#3d4742",
+  bordaForte: "#7a857e",
+  primaria: "#b7ff00",
+  emPrimaria: "#0b0f0d",
+  primariaSuave: "#293514",
+  primariaTexto: "#b7ff00",
   sucesso: "#69d597",
   emSucesso: "#0d1015",
   sucessoSuave: "#12281c",
@@ -114,9 +114,9 @@ export const PALETA_ESCURA: PaletaDeCores = {
   atencao: "#f2be5c",
   emAtencao: "#0d1015",
   atencaoSuave: "#2a2110",
-  info: "#8ab4ff",
-  infoSuave: "#141d2e",
-  foco: "#8ab4ff",
+  info: "#b7ff00",
+  infoSuave: "#293514",
+  foco: "#b7ff00",
 };
 
 /**
@@ -146,6 +146,18 @@ export const PALETAS = {
 } as const;
 
 export type NomeDoTema = keyof typeof PALETAS;
+
+/** Valores cromáticos publicados no manual oficial, sem derivação semântica. */
+export const PALETA_OFICIAL = Object.freeze({
+  verdeClick: "#b7ff00",
+  verdeDigital: "#72d900",
+  mint: "#e5ffb8",
+  grafite: "#161c19",
+  cinzaUi: "#a8b1ab",
+  nevoa: "#f5f7f4",
+  branco: "#ffffff",
+  pretoTecnologico: "#0b0f0d",
+});
 
 // ---------------------------------------------------------------------------
 // A paleta que o DONO DA LOJA escolhe
