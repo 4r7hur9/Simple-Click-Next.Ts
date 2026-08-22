@@ -1,3 +1,3 @@
-/* Os tokens vêm antes do Tailwind para que as utilidades possam usá-los. */
-@import "./tokens.css";
 @import "tailwindcss";
+/* A diretiva @theme vem depois do núcleo e aponta para a fonte única. */
+@import "./tokens.css";

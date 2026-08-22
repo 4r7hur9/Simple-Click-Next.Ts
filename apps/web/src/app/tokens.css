@@ -9,3 +9,59 @@
  */
 
 @import "@simpleclick/ui/styles/theme.css";
+
+/*
+ * API CSS-first do Tailwind 4. Os nomes abaixo não repetem valor algum: cada
+ * utilitário resolve o mesmo token semântico usado pelos componentes em CSS.
+ * `inline` é necessário porque os aliases apontam para variáveis que mudam
+ * conforme o tema e o escopo da loja.
+ */
+@theme inline {
+  --color-fundo: var(--cor-fundo);
+  --color-superficie: var(--cor-superficie);
+  --color-superficie-alta: var(--cor-superficie-alta);
+  --color-tinta: var(--cor-tinta);
+  --color-tinta-suave: var(--cor-tinta-suave);
+  --color-borda: var(--cor-borda);
+  --color-borda-forte: var(--cor-borda-forte);
+  --color-primaria: var(--cor-primaria);
+  --color-em-primaria: var(--cor-em-primaria);
+  --color-primaria-suave: var(--cor-primaria-suave);
+  --color-primaria-texto: var(--cor-primaria-texto);
+  --color-sucesso: var(--cor-sucesso);
+  --color-erro: var(--cor-erro);
+  --color-atencao: var(--cor-atencao);
+  --color-info: var(--cor-info);
+  --color-foco: var(--cor-foco);
+
+  --font-sans: var(--fonte-base);
+  --font-display: var(--fonte-titulo);
+  --font-mono: var(--fonte-mono);
+
+  --spacing: var(--espaco-1);
+  --spacing-pagina: var(--espaco-6);
+  --spacing-secao: var(--espaco-8);
+
+  --text-xs: var(--texto-xs);
+  --text-sm: var(--texto-sm);
+  --text-base: var(--texto-base);
+  --text-lg: var(--texto-lg);
+  --text-xl: var(--texto-xl);
+  --text-2xl: var(--texto-2xl);
+  --font-weight-normal: var(--peso-normal);
+  --font-weight-medium: var(--peso-medio);
+  --font-weight-semibold: var(--peso-forte);
+
+  --radius-sm: var(--raio-1);
+  --radius-button: var(--raio-botao);
+  --radius-md: var(--raio-2);
+  --radius-lg: var(--raio-3);
+
+  --shadow-sm: var(--sombra-1);
+  --shadow-md: var(--sombra-2);
+  --shadow-lg: var(--sombra-3);
+}
+
+@utility transition-brand {
+  transition: var(--transicao-rapida);
+}
