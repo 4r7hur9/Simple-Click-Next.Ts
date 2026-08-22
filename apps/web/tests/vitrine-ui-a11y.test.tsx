@@ -81,7 +81,7 @@ beforeAll(async () => {
 });
 
 describe("vitrine do design system", () => {
-  it("@spec:AC-016 a verificação avaliou de fato os componentes da página", () => {
+  it("@spec:AC-016 @spec:AC-949 a verificação avaliou de fato os componentes da página", () => {
     const avaliadas = new Set([
       ...resultado.passes.map((regra) => regra.id),
       ...resultado.violations.map((regra) => regra.id),
@@ -97,7 +97,7 @@ describe("vitrine do design system", () => {
     expect(document.querySelectorAll("ul").length).toBeGreaterThan(0);
   });
 
-  it("@spec:AC-016 não tem nenhuma violação de nível crítico ou sério", () => {
+  it("@spec:AC-016 @spec:AC-949 não tem nenhuma violação de nível crítico ou sério", () => {
     const graves = resultado.violations.filter((violacao) =>
       NIVEIS_QUE_REPROVAM.has(violacao.impact ?? ""),
     );
