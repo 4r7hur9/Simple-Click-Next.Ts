@@ -18,7 +18,9 @@ RUN_ID='SimpleClick-identidade-acesso-run-identidade-acesso-mt5v6hd2'
 FEATURE='identidade-acesso'
 BASE_BRANCH='spec/identidade-acesso'
 ENGINE='C:\Users\arthu\.agents\skills\onp-spec-driven\scripts\onp-spec.mjs'
-CODEX_FLAGS=(--sandbox 'workspace-write')
+# Worktrees share o índice do repositório principal. A execução precisa poder
+# criar o commit da faixa; o gate mecânico continua sendo obrigatório depois.
+CODEX_FLAGS=(--sandbox 'danger-full-access')
 STREAM_FLAGS=(--json)
 FALHAS=""
 COM_GATE=1
@@ -114,6 +116,16 @@ mesclar_faixa() { # $1=faixa $2=branch $3=worktree $4=exit-da-faixa
     FALHAS="$FALHAS $1"; return 1
   fi
   evento --tipo faixa --faixa "$1" --estado mesclando
+  # Um codex exec pode terminar com exit 0 mesmo sem conseguir criar o commit
+  # (por exemplo, quando o sandbox bloqueia .git). Nunca trate merge vazio como
+  # sucesso: sem diff da faixa não existe implementação para mesclar.
+  if git diff --quiet "$BASE_BRANCH..$2"; then
+    evento --tipo faixa --faixa "$1" --estado falhou
+    vermelho "✘ $1 terminou sem diff/commit — worktree mantido para inspeção: $3"
+    amarelo "  verifique o log: $LOG_DIR/$1.log"
+    FALHAS="$FALHAS $1"
+    return 1
+  fi
   if git merge --no-ff "$2" -m "merge $1 ($FEATURE)"; then
     git worktree remove --force "$3" >/dev/null 2>&1
     git branch -d "$2" >/dev/null 2>&1
