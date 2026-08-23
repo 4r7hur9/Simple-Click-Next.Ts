@@ -2,37 +2,37 @@
 
 > feature: identidade-acesso
 
-## T-100 — Cadastro de cliente final e política de senha [pendente]
+## T-100 — Cadastro de cliente final e política de senha [concluida]
 - Refs: US-100, AC-100, AC-101, AC-102
 - Arquivos: apps/api/src/modules/auth/register.usecase.ts, apps/api/src/modules/auth/register.usecase.test.ts, apps/api/src/modules/auth/auth.schema.ts, apps/api/src/modules/auth/senha.ts, apps/api/src/modules/auth/senha.test.ts, packages/contracts/src/auth.ts
 - Notas: resposta idêntica para e-mail novo e já cadastrado, para não permitir descobrir quem tem conta. Senha guardada com algoritmo de derivação resistente, conferida contra vazamentos conhecidos.
 - Esforço: alto
 
-## T-101 — Verificação de e-mail com link de uso único [pendente]
+## T-101 — Verificação de e-mail com link de uso único [concluida]
 - Refs: US-101, AC-103, AC-104
 - Arquivos: apps/api/src/modules/auth/verificar-email.usecase.ts, apps/api/src/modules/auth/verificar-email.usecase.test.ts, apps/api/src/modules/auth/codigos.repo.ts, apps/api/src/jobs/email.job.ts, apps/web/src/app/(conta)/verificar-email/page.tsx
 - Notas: link guardado como resumo criptográfico, nunca em texto. Uso único, com prazo, e reenvio limitado por período.
 - Esforço: medio
 
-## T-102 — Login com senha e desafio de segundo fator [pendente]
+## T-102 — Login com senha e desafio de segundo fator [concluida]
 - Refs: US-102, AC-105, AC-106, AC-107, AC-108
 - Arquivos: apps/api/src/modules/auth/login.usecase.ts, apps/api/src/modules/auth/login.usecase.test.ts, apps/api/src/modules/auth/segundo-fator.usecase.ts, apps/api/src/modules/auth/segundo-fator.usecase.test.ts, apps/web/src/app/(conta)/entrar/page.tsx, apps/web/src/app/(conta)/entrar/verificacao/page.tsx, apps/web/src/features/auth/LoginForm.tsx, apps/web/src/features/auth/CodigoForm.tsx
 - Notas: nenhuma sessão nasce antes do segundo fator ser aceito, quando exigido. Código de uso único, com tentativas limitadas, e invalidação do código em aberto ao bloquear.
 - Esforço: alto
 
-## T-103 — Sessão com cookie e rotação com detecção de reuso [pendente]
+## T-103 — Sessão com cookie e rotação com detecção de reuso [concluida]
 - Refs: US-103, AC-109, AC-110, AC-111
 - Arquivos: apps/api/src/modules/auth/sessao.usecase.ts, apps/api/src/modules/auth/sessao.usecase.test.ts, apps/api/src/modules/auth/token.ts, apps/api/src/modules/auth/token.test.ts, apps/web/src/server/sessao.ts, apps/web/src/server/session-cookie.ts, apps/web/src/app/api/auth/[...action]/route.ts
 - Notas: cookie inacessível a script, no domínio compartilhado do site e da API. Reuso de token de renovação revoga a família inteira e avisa por e-mail. Cliente sem cookie recebe o par no corpo, para os aplicativos nativos futuros.
 - Esforço: max
 
-## T-104 — Encerrar sessão atual e todas as sessões [pendente]
+## T-104 — Encerrar sessão atual e todas as sessões [concluida]
 - Refs: US-104, AC-112, AC-113
 - Arquivos: apps/api/src/modules/auth/logout.usecase.ts, apps/api/src/modules/auth/logout.usecase.test.ts, apps/web/src/app/(conta)/minha-conta/seguranca/page.tsx, apps/web/src/server/actions/auth.ts
 - Notas: sair revoga no servidor, não apenas apaga o cookie. Encerrar todas derruba os outros dispositivos na próxima renovação.
 - Esforço: medio
 
-## T-105 — Recuperação de senha [pendente]
+## T-105 — Recuperação de senha [concluida]
 - Refs: US-105, AC-114, AC-115
 - Arquivos: apps/api/src/modules/auth/recuperar-senha.usecase.ts, apps/api/src/modules/auth/recuperar-senha.usecase.test.ts, apps/web/src/app/(conta)/recuperar-senha/page.tsx, apps/web/src/app/(conta)/definir-senha/page.tsx
 - Notas: mesma confirmação exista ou não a conta. Nova senha revoga todas as sessões anteriores e o link deixa de funcionar.
