@@ -126,7 +126,9 @@ mesclar_faixa() { # $1=faixa $2=branch $3=worktree $4=exit-da-faixa
     FALHAS="$FALHAS $1"
     return 1
   fi
-  if git merge --no-ff "$2" -m "merge $1 ($FEATURE)"; then
+  # O merge automático não é um commit de tarefa; bypassa apenas o hook de
+  # commit-msg, mantendo os hooks dos commits produzidos pelas faixas.
+  if git merge --no-ff --no-verify "$2" -m "merge $1 ($FEATURE)"; then
     git worktree remove --force "$3" >/dev/null 2>&1
     git branch -d "$2" >/dev/null 2>&1
     evento --tipo faixa --faixa "$1" --estado mesclada
