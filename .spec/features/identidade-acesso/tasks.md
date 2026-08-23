@@ -50,7 +50,7 @@
 - Notas: segredo do aplicativo guardado cifrado, não como resumo, porque precisa ser lido para conferir. Obrigatório para a administração. Código já usado não é aceito de novo dentro da janela de validade.
 - Esforço: alto
 
-## T-108 — Convite do dono e definição da primeira senha [pendente]
+## T-108 — Convite do dono e definição da primeira senha [concluida]
 - Refs: US-101, AC-103, AC-200
 - Arquivos: apps/api/src/modules/auth/convite.usecase.ts, apps/api/src/modules/auth/convite.usecase.test.ts, apps/web/src/app/(conta)/definir-senha/page.tsx
 - Notas: fecha a lacuna apontada pelo crítico — a administração cria a loja e o responsável precisa de um caminho para assumir o acesso. Convite com prazo, uso único e reenvio.
