@@ -44,7 +44,7 @@
 - Notas: negativa de acesso não revela se o recurso existe do outro lado. Cada acesso da administração a dado de loja fica registrado. A segunda camada é a aplicação; a primeira é o banco.
 - Esforço: alto
 
-## T-107 — Aplicativo autenticador e códigos de recuperação [pendente]
+## T-107 — Aplicativo autenticador e códigos de recuperação [concluida]
 - Refs: US-108, AC-121, AC-122, AC-123, AC-124
 - Arquivos: apps/api/src/modules/auth/totp.usecase.ts, apps/api/src/modules/auth/totp.usecase.test.ts, apps/api/src/modules/auth/recovery-codes.ts, apps/api/src/modules/auth/recovery-codes.test.ts, apps/web/src/app/(conta)/minha-conta/seguranca/aplicativo/page.tsx, apps/web/src/features/auth/TotpForm.tsx
 - Notas: segredo do aplicativo guardado cifrado, não como resumo, porque precisa ser lido para conferir. Obrigatório para a administração. Código já usado não é aceito de novo dentro da janela de validade.
