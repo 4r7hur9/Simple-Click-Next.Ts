@@ -38,7 +38,7 @@
 - Notas: mesma confirmação exista ou não a conta. Nova senha revoga todas as sessões anteriores e o link deixa de funcionar.
 - Esforço: medio
 
-## T-106 — Papéis, escopo de acesso e auditoria do administrador [pendente]
+## T-106 — Papéis, escopo de acesso e auditoria do administrador [concluida]
 - Refs: US-106, AC-116, AC-117, AC-118
 - Arquivos: apps/api/src/modules/auth/autorizar.ts, apps/api/src/modules/auth/autorizar.test.ts, apps/api/src/modules/admin/auditoria.repo.ts, apps/api/tests/autorizacao-papel.test.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(admin)/admin/layout.tsx
 - Notas: negativa de acesso não revela se o recurso existe do outro lado. Cada acesso da administração a dado de loja fica registrado. A segunda camada é a aplicação; a primeira é o banco.
@@ -56,13 +56,13 @@
 - Notas: fecha a lacuna apontada pelo crítico — a administração cria a loja e o responsável precisa de um caminho para assumir o acesso. Convite com prazo, uso único e reenvio.
 - Esforço: medio
 
-## T-109 — Proteção contra tentativa e erro [pendente]
+## T-109 — Proteção contra tentativa e erro [concluida]
 - Refs: US-107, AC-119, AC-120
 - Arquivos: apps/api/src/modules/auth/lockout.ts, apps/api/src/modules/auth/lockout.test.ts, apps/api/tests/limite-login.test.ts
 - Notas: bloqueio progressivo por conta, com aviso ao dono da conta, mais limite por origem. Considera o endereço real informado pela borda confiável.
 - Esforço: medio
 
-## T-110 — Telas de ponta a ponta de acesso [pendente]
+## T-110 — Telas de ponta a ponta de acesso [concluida]
 - Refs: US-100, US-102, US-103, AC-100, AC-105, AC-109
 - Arquivos: e2e/specs/login-2fa.spec.ts, e2e/specs/cadastro.spec.ts, e2e/specs/recuperar-senha.spec.ts
 - Notas: roda também no navegador da Apple, porque o comportamento do cookie de sessão nele é critério de aceite, não detalhe.
