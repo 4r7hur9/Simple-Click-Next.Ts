@@ -1,0 +1,262 @@
+{
+  "runId": "SimpleClick-identidade-acesso-run-identidade-acesso-mt5v6hd2",
+  "feature": "identidade-acesso",
+  "agent": "codex",
+  "modo": "paralelo",
+  "paralelizar": [
+    "T-100",
+    "T-101",
+    "T-102",
+    "T-103",
+    "T-104",
+    "T-105",
+    "T-108",
+    "T-106",
+    "T-107",
+    "T-109",
+    "T-110"
+  ],
+  "modeloForcado": null,
+  "esforcoForcado": null,
+  "geradoEm": "2026-08-23 13:49",
+  "branchTrabalho": "spec/identidade-acesso",
+  "baseDir": ".spec/features/identidade-acesso",
+  "specDir": ".spec",
+  "repoName": "SimpleClick-identidade-acesso-run",
+  "logsDir": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-logs",
+  "ondas": [
+    ["faixa-1", "faixa-2", "faixa-3"],
+    ["faixa-4", "faixa-5", "faixa-6"],
+    ["faixa-7", "faixa-8", "faixa-9"],
+    ["faixa-10"]
+  ],
+  "faixas": [
+    {
+      "id": "faixa-1",
+      "branch": "spec/identidade-acesso-faixa-1",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-1",
+      "tarefas": [
+        {
+          "id": "T-100",
+          "titulo": "Cadastro de cliente final e política de senha",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/auth/register.usecase.ts",
+            "apps/api/src/modules/auth/register.usecase.test.ts",
+            "apps/api/src/modules/auth/auth.schema.ts",
+            "apps/api/src/modules/auth/senha.ts",
+            "apps/api/src/modules/auth/senha.test.ts",
+            "packages/contracts/src/auth.ts"
+          ],
+          "refs": ["US-100", "AC-100", "AC-101", "AC-102"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-2",
+      "branch": "spec/identidade-acesso-faixa-2",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-2",
+      "tarefas": [
+        {
+          "id": "T-101",
+          "titulo": "Verificação de e-mail com link de uso único",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/auth/verificar-email.usecase.ts",
+            "apps/api/src/modules/auth/verificar-email.usecase.test.ts",
+            "apps/api/src/modules/auth/codigos.repo.ts",
+            "apps/api/src/jobs/email.job.ts",
+            "apps/web/src/app/(conta)/verificar-email/page.tsx"
+          ],
+          "refs": ["US-101", "AC-103", "AC-104"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-3",
+      "branch": "spec/identidade-acesso-faixa-3",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-3",
+      "tarefas": [
+        {
+          "id": "T-102",
+          "titulo": "Login com senha e desafio de segundo fator",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/auth/login.usecase.ts",
+            "apps/api/src/modules/auth/login.usecase.test.ts",
+            "apps/api/src/modules/auth/segundo-fator.usecase.ts",
+            "apps/api/src/modules/auth/segundo-fator.usecase.test.ts",
+            "apps/web/src/app/(conta)/entrar/page.tsx",
+            "apps/web/src/app/(conta)/entrar/verificacao/page.tsx",
+            "apps/web/src/features/auth/LoginForm.tsx",
+            "apps/web/src/features/auth/CodigoForm.tsx"
+          ],
+          "refs": ["US-102", "AC-105", "AC-106", "AC-107", "AC-108"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-4",
+      "branch": "spec/identidade-acesso-faixa-4",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-4",
+      "tarefas": [
+        {
+          "id": "T-103",
+          "titulo": "Sessão com cookie e rotação com detecção de reuso",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "xhigh",
+          "arquivos": [
+            "apps/api/src/modules/auth/sessao.usecase.ts",
+            "apps/api/src/modules/auth/sessao.usecase.test.ts",
+            "apps/api/src/modules/auth/token.ts",
+            "apps/api/src/modules/auth/token.test.ts",
+            "apps/web/src/server/sessao.ts",
+            "apps/web/src/server/session-cookie.ts",
+            "apps/web/src/app/api/auth/[...action]/route.ts"
+          ],
+          "refs": ["US-103", "AC-109", "AC-110", "AC-111"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-5",
+      "branch": "spec/identidade-acesso-faixa-5",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-5",
+      "tarefas": [
+        {
+          "id": "T-104",
+          "titulo": "Encerrar sessão atual e todas as sessões",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/auth/logout.usecase.ts",
+            "apps/api/src/modules/auth/logout.usecase.test.ts",
+            "apps/web/src/app/(conta)/minha-conta/seguranca/page.tsx",
+            "apps/web/src/server/actions/auth.ts"
+          ],
+          "refs": ["US-104", "AC-112", "AC-113"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-6",
+      "branch": "spec/identidade-acesso-faixa-6",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-6",
+      "tarefas": [
+        {
+          "id": "T-105",
+          "titulo": "Recuperação de senha",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/auth/recuperar-senha.usecase.ts",
+            "apps/api/src/modules/auth/recuperar-senha.usecase.test.ts",
+            "apps/web/src/app/(conta)/recuperar-senha/page.tsx",
+            "apps/web/src/app/(conta)/definir-senha/page.tsx"
+          ],
+          "refs": ["US-105", "AC-114", "AC-115"]
+        },
+        {
+          "id": "T-108",
+          "titulo": "Convite do dono e definição da primeira senha",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/auth/convite.usecase.ts",
+            "apps/api/src/modules/auth/convite.usecase.test.ts",
+            "apps/web/src/app/(conta)/definir-senha/page.tsx"
+          ],
+          "refs": ["US-101", "AC-103", "AC-200"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-7",
+      "branch": "spec/identidade-acesso-faixa-7",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-7",
+      "tarefas": [
+        {
+          "id": "T-106",
+          "titulo": "Papéis, escopo de acesso e auditoria do administrador",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/auth/autorizar.ts",
+            "apps/api/src/modules/auth/autorizar.test.ts",
+            "apps/api/src/modules/admin/auditoria.repo.ts",
+            "apps/api/tests/autorizacao-papel.test.ts",
+            "apps/web/src/app/(painel)/painel/layout.tsx",
+            "apps/web/src/app/(admin)/admin/layout.tsx"
+          ],
+          "refs": ["US-106", "AC-116", "AC-117", "AC-118"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-8",
+      "branch": "spec/identidade-acesso-faixa-8",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-8",
+      "tarefas": [
+        {
+          "id": "T-107",
+          "titulo": "Aplicativo autenticador e códigos de recuperação",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/auth/totp.usecase.ts",
+            "apps/api/src/modules/auth/totp.usecase.test.ts",
+            "apps/api/src/modules/auth/recovery-codes.ts",
+            "apps/api/src/modules/auth/recovery-codes.test.ts",
+            "apps/web/src/app/(conta)/minha-conta/seguranca/aplicativo/page.tsx",
+            "apps/web/src/features/auth/TotpForm.tsx"
+          ],
+          "refs": ["US-108", "AC-121", "AC-122", "AC-123", "AC-124"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-9",
+      "branch": "spec/identidade-acesso-faixa-9",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-9",
+      "tarefas": [
+        {
+          "id": "T-109",
+          "titulo": "Proteção contra tentativa e erro",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/auth/lockout.ts",
+            "apps/api/src/modules/auth/lockout.test.ts",
+            "apps/api/tests/limite-login.test.ts"
+          ],
+          "refs": ["US-107", "AC-119", "AC-120"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-10",
+      "branch": "spec/identidade-acesso-faixa-10",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-10",
+      "tarefas": [
+        {
+          "id": "T-110",
+          "titulo": "Telas de ponta a ponta de acesso",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "e2e/specs/login-2fa.spec.ts",
+            "e2e/specs/cadastro.spec.ts",
+            "e2e/specs/recuperar-senha.spec.ts"
+          ],
+          "refs": ["US-100", "US-102", "US-103", "AC-100", "AC-105", "AC-109"]
+        }
+      ]
+    }
+  ],
+  "sequenciais": [],
+  "concluidas": [],
+  "avisos": []
+}
