@@ -7,20 +7,17 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 ### Onde paramos
 
 **Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas, 42 segundos. Nada quebrado — o intervalo desde o último commit é
-de calendário, não de defeito.
+0 reprovadas. Último trabalho: **25/08**, a T-403 (a vitrine ganhou tela).
 
-Último trabalho: **21/08**, `e32de68` (T-402, catálogo público da vitrine).
-
-**40 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 97 com
-teste anotado, 99 provados.
+**41 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 98 com
+teste anotado, 100 provados.
 
 | Feature              | Feito | Situação                                             |
 | -------------------- | ----- | ---------------------------------------------------- |
 | `fundacao`           | 22/22 | **fechada**                                          |
 | `pedido-checkout`    | 10/11 | falta a PÁGINA e a T-510 — a dependência já caiu     |
 | `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
-| `vitrine-publica`    | 3/10  | T-400, T-401 e T-402 entraram; **T-403 é o próximo** |
+| `vitrine-publica`    | 4/10  | T-400 a T-403 entraram; **T-404 é o próximo**        |
 | `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
 | `identidade-acesso`  | 0/11  | não começou                                          |
 | `catalogo-produtos`  | 0/14  | não começou                                          |
@@ -38,20 +35,26 @@ deste projeto — não é sinal de atraso.
 
 ### Próximo passo
 
-**T-403 — Vitrine: categorias, filtro e destaques** (AC-405, AC-406, AC-407).
+Duas frentes, e a escolha entre elas é de prioridade e não de dependência —
+nenhuma das duas está bloqueada.
 
-A T-402 já entregou o lado difícil: `GET /v1/vitrine/:apelido/catalogo`
-publicado no contrato, com categoria oculta e produto rascunho barrados pela
-POLÍTICA do banco, e `buscarCatalogo` em `apps/web/src/server/vitrine.ts` já
-confere a resposta contra o esquema. **Falta a tela.**
+**T-405 — Página de detalhe do produto** (AC-410 a AC-414). É a que fecha a
+dívida 65: hoje TODO cartão da vitrine leva a `/l/{apelido}/produto/{id}`, e
+essa página não existe. A vitrine inteira é uma sala com portas pintadas até a
+T-405 entrar. Ela também tira quatro tabelas da lista de adiamento do Prisma
+(variação, preço nomeado e grupos de escolha), então é a mais cara da feature —
+e a que mais destrava.
 
-Duas coisas se resolvem junto com ela, e estão anotadas como dívidas 59 e 60:
-o botão principal da loja aponta para uma página que não existe, e o nome
-dessa rota diverge entre o código e o mapa de telas.
+**T-404 — Busca na vitrine** (AC-408, AC-409) é a mais barata: um caso de uso na
+API que ignora acento e caixa, e um campo na tela. Não depende da T-405.
 
-Depois: o resto da vitrine (T-404 a T-409), e a página do fechamento, que
-deixou de estar bloqueada quando a T-400 e a T-401 entraram — ver a seção do
-fim deste arquivo.
+A ordem recomendada é **T-405 antes da T-404**: busca que encontra o produto e
+leva a um 404 é pior que não ter busca.
+
+Depois: T-406 (encontrabilidade), T-407 (desempenho, que é o dono do AC-415),
+T-408 (acessibilidade e teclado) e T-409 (ponta a ponta). E a página do
+fechamento, que deixou de estar bloqueada quando a T-400 e a T-401 entraram —
+ver a seção do fim deste arquivo.
 
 ### Como subir o ambiente
 
@@ -639,15 +642,38 @@ bash infra/scripts/verificar.sh  # o portão completo
      Enquanto isso, uma reprovação nesta etapa merece uma segunda execução
      antes de virar investigação.
 
-     **Reincidiu em 25/08**, e mais frequente do que o registrado: das três
-     execuções do portão naquele dia, uma reprovou nesta etapa. A etapa passou
-     isolada dois segundos depois (23 testes, 1,46s) e o portão inteiro passou
-     na execução seguinte (16 de 16, 40s). Duas observações que valem para a
-     próxima vez: a execução que reprovou levou 30,96s de testes contra 1,46s
-     da isolada, o que reforça a hipótese da carga; e o diário da etapa NÃO
-     foi guardado, porque `portao-lib.sh` grava em `mktemp` e o arquivo morre
-     com a execução — quem for investigar precisa capturar a saída inteira do
-     portão, e não só o resumo. Fica sem saber qual dos 23 testes caiu.
+     **Reincidiu duas vezes em 25/08, e a segunda foi capturada com a saída
+     inteira do portão — o que mudou o diagnóstico.** Não é o teste anotado
+     acima. É este:
+
+     ```
+     × @spec:AC-119 o dono da conta é avisado uma vez por bloqueio novo,
+       e não a cada requisição barrada          30006ms
+     Error: Test timed out in 30000ms.
+     ```
+
+     **É o mesmo defeito que a seção "RESOLVIDO — Teste intermitente do limite
+     de tentativas" descreve, no teste VIZINHO.** Aquela correção deu espera
+     própria (`ESPERA_DOS_PESADOS`, dois minutos) a DOIS testes do arquivo —
+     "a espera não passa do teto configurado" e "com os dois estourados, a
+     resposta é a da conta". Este terceiro faz 15 requisições HTTP de verdade,
+     cada uma conversando várias vezes com o Redis, e ficou com a espera padrão
+     de 30 segundos. Sozinho ele cabe; com a suíte inteira disputando o mesmo
+     Redis, não cabe.
+
+     **A correção é uma linha:** passar `ESPERA_DOS_PESADOS` como último
+     argumento deste `it`, exatamente como os dois vizinhos já fazem. Continua
+     sendo decisão da T-013, e por isso não foi aplicada junto com a T-403 —
+     mas deixou de ser investigação e virou tarefa de um minuto.
+
+     **A hipótese antiga (a chave de bloqueio expirando sozinha no Redis)
+     segue sem evidência**, e o teste que ela acusava passou nas duas
+     ocorrências. Ela pode estar errada.
+
+     **O que atrapalhou:** o diário da etapa NÃO é guardado — `portao-lib.sh`
+     grava em `mktemp` e o arquivo morre com a execução. Quem investigar
+     precisa redirecionar a saída inteira do portão para um arquivo; só o
+     resumo não diz qual teste caiu.
 
   Teste instável é dívida do portão inteiro: ele ensina a desconfiar do
   vermelho, e portão em que ninguém confia é portão que ninguém roda.
@@ -686,7 +712,16 @@ bash infra/scripts/verificar.sh  # o portão completo
     confere o que a receita MANDA acontecer: estágios separados, poda das
     dependências de desenvolvimento e usuário sem privilégio.
 
-59. **O botão principal da loja leva a uma página que não existe.**
+59. ~~**O botão principal da loja leva a uma página que não existe.**~~
+    **Resolvido pela T-403 em 25/08:** a página do catálogo entrou em
+    `apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx`, e o botão da
+    apresentação agora chega a algum lugar. A anotação original fica porque o
+    modo de falhar é instrutivo: cada lado estava provado sozinho — a
+    apresentação por teste de tela, o catálogo por teste de integração — e o
+    caminho ENTRE eles não era de ninguém. Prova por peça não vê a costura.
+
+    (anotação original)
+    **O botão principal da loja leva a uma página que não existe.**
     `apps/web/src/app/(loja)/l/[slug]/page.tsx` passa
     `linkDoCardapio={/l/${loja.apelido}/cardapio}` para a apresentação, e
     `apps/web/src/app/(loja)/l/[slug]/` não tem nenhuma pasta `cardapio`. Quem
@@ -696,7 +731,17 @@ bash infra/scripts/verificar.sh  # o portão completo
     entre uma e outra o caminho está cortado, e isso não aparece em teste
     nenhum porque cada lado é provado sozinho. **A T-403 fecha.**
 
-60. **O nome da rota do cardápio diverge entre o código e o mapa de telas.** O
+60. ~~**O nome da rota do cardápio diverge entre o código e o mapa de
+    telas.**~~ **Resolvido pela T-403 em 25/08:** venceu o mapa, e a rota é
+    `/l/{apelido}/catalogo`. O desempate não foi só "o mapa manda": `catálogo`
+    serve à loja de roupas e à de peças, e `cardápio` só serve à lanchonete —
+    e a landing vende para as três. O RÓTULO na tela continua "Ver o
+    cardápio", e a propriedade continua `linkDoCardapio`: a palavra que a
+    pessoa lê é a da loja dela, o caminho no endereço é o genérico. Os cinco
+    lugares que fixavam o endereço nos testes acompanharam.
+
+    (anotação original)
+    **O nome da rota do cardápio diverge entre o código e o mapa de telas.** O
     código chama de `/l/{slug}/cardapio`; a linha 2 da tabela de
     `.spec/design/mapa-de-telas.md` declara `/l/{slug}/catalogo`, e é ela que
     carrega os critérios AC-404 a AC-409, AC-415 a AC-417 e AC-420. Um dos dois
@@ -708,7 +753,13 @@ bash infra/scripts/verificar.sh  # o portão completo
     corrige. Os testes de `apps/web/tests/apresentacao-da-loja.test.tsx` fixam o
     endereço em quatro lugares e vão precisar acompanhar.
 
-61. **`buscarCatalogo` não tem nenhum chamador.** A T-402 escreveu a ponte
+61. ~~**`buscarCatalogo` não tem nenhum chamador.**~~ **Resolvido pela T-403
+    em 25/08:** a página do catálogo chama `buscarVitrine` e `buscarCatalogo`
+    EM PARALELO. Em série, o tempo até o primeiro produto seria a soma das
+    duas idas à API — e é justamente esse tempo que o AC-415 mede.
+
+    (anotação original)
+    **`buscarCatalogo` não tem nenhum chamador.** A T-402 escreveu a ponte
     inteira em `apps/web/src/server/vitrine.ts` — busca, conferência contra o
     esquema, tratamento de vazio como catálogo legítimo e não como erro (AC-407)
     — e nenhuma página a usa. Código sem chamador é código que ninguém sabe se
@@ -748,6 +799,22 @@ bash infra/scripts/verificar.sh  # o portão completo
     construção quebra num lugar que não parece ter nada a ver com fonte. Se
     incomodar, o caminho é versionar os arquivos `.woff2` e passar a
     `next/font/local`.
+
+65. **Todo cartão da vitrine aponta para uma página que ainda não existe.** A
+    T-403 monta a grade e os destaques, e cada cartão é um link para
+    `/l/{apelido}/produto/{id}` — a linha 3 do mapa de telas, que a **T-405**
+    entrega. Até lá, tocar num produto cai no 404.
+
+    Isto NÃO é a dívida 59 se repetindo, e a diferença importa: lá o caminho
+    tinha sido cortado sem ninguém notar; aqui ele é uma dependência declarada,
+    exigida pelo próprio critério. O AC-406 diz "cada destaque leva ao produto
+    correspondente" — sem o link, o critério não fecha. As duas saídas piores
+    eram inventar uma âncora dentro do catálogo, que faria o AC-406 parecer
+    provado e obrigaria a T-405 a desfazer; ou não linkar, deixando o critério
+    aberto sem dizer por quê.
+
+    É o mesmo formato da página do fechamento: ausência anotada, com dono e
+    prazo. **A T-405 fecha.**
 
 ## Portão contornado
 

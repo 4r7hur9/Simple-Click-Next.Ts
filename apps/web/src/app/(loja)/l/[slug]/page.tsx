@@ -66,7 +66,7 @@ export default async function PaginaDaLoja({ params }: ParametrosDaPagina) {
       <ApresentacaoDaLoja
         loja={loja}
         abertura={abertura}
-        linkDoCardapio={`/l/${loja.apelido}/cardapio`}
+        linkDoCardapio={`/l/${loja.apelido}/catalogo`}
       />
       {/*
         A entrada vem DEPOIS do conteúdo, e não em volta dele. Ela não desenha

@@ -1,0 +1,411 @@
+/*
+ * A vitrine: destaques, abas de categoria e a grade de produtos (T-403).
+ *
+ * SUPERFÍCIE DE QUEM ESTÁ COMPRANDO. A régua do projeto separa as telas pela
+ * pressa de quem está nelas, e esta é a mais apressada de todas: alguém com
+ * fome, no celular, com uma barra de sinal. Aqui não entra narrativa por
+ * rolagem, não entra 3D e não entra nada que segure o dedo — só transição
+ * curta e micro-interação.
+ *
+ * Escrito de baixo para cima: o estilo base atende o dobrável fechado de 344px,
+ * e cada `min-width` acrescenta. O contrário obriga a desfazer regra em cada
+ * quebra, que é onde nasce o estouro horizontal que o portão reprova.
+ *
+ * Depende de `theme.css`, que declara cor, espaço, raio e tipografia.
+ */
+
+.sc-vitrine {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+  min-block-size: 100svh;
+  inline-size: 100%;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  /* Área segura: sem isto o conteúdo encosta na borda arredondada do aparelho. */
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+  padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+/* --- o cabeçalho da loja --------------------------------------------------
+ *
+ * Curto de propósito. A apresentação da loja já aconteceu na página anterior;
+ * repeti-la aqui empurraria o primeiro produto para fora da primeira tela, que
+ * é o atrito exato que esta página existe para não ter.
+ */
+
+.sc-vitrine__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+}
+
+.sc-vitrine__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  text-decoration: none;
+}
+
+.sc-vitrine__voltar:hover {
+  color: var(--cor-tinta);
+  text-decoration: underline;
+}
+
+.sc-vitrine__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+/* --- as abas de categoria -------------------------------------------------
+ *
+ * A faixa gruda no topo para o AC-405 valer depois da primeira rolagem: o
+ * filtro em vigor continua visível, e voltar a "Todas" continua a um toque.
+ * Grudar não é sequestrar — a página vai onde o dedo mandar.
+ */
+
+.sc-vitrine__abas {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding-block: var(--espaco-3);
+  /* Fundo opaco: sem ele os cartões passam por baixo e o texto fica ilegível. */
+  background: var(--cor-fundo);
+  border-block-end: 1px solid var(--cor-borda);
+}
+
+.sc-vitrine__abas-lista {
+  display: flex;
+  gap: var(--espaco-2);
+  margin: 0;
+  /* A lista rola na horizontal no celular; a barra some, o dedo continua. */
+  padding: var(--espaco-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.sc-vitrine__abas-lista::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-vitrine__aba {
+  display: inline-block;
+  padding-block: var(--espaco-2);
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  /* A aba não quebra em duas linhas: "Salgados fritos" viraria dois degraus. */
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--transicao-rapida);
+}
+
+.sc-vitrine__aba:hover {
+  background: var(--cor-primaria-suave);
+}
+
+/*
+ * A aba em vigor muda FORMA e não só cor: fundo cheio e peso mais forte. Cor
+ * sozinha não chega a quem não a distingue (P-012), e `aria-current` no HTML
+ * cobre quem ouve a página.
+ */
+.sc-vitrine__aba--em-vigor {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+}
+
+.sc-vitrine__aba--em-vigor:hover {
+  background: var(--cor-primaria);
+}
+
+.sc-vitrine__filtro-em-vigor {
+  margin: 0;
+  padding-inline: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* --- os destaques ---------------------------------------------------------
+ *
+ * Tira que rola na horizontal com encaixe. Sem script: o dedo arrasta, o cartão
+ * para no lugar, e o teclado percorre porque cada cartão é um link.
+ */
+
+.sc-vitrine__destaques {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.sc-vitrine__tira {
+  display: flex;
+  gap: var(--espaco-3);
+  /* O respiro embaixo é do anel de foco, que senão fica cortado pela rolagem. */
+  margin: 0;
+  padding: var(--espaco-1);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+  overscroll-behavior-inline: contain;
+}
+
+.sc-vitrine__tira-item {
+  flex: 0 0 auto;
+  /* Cabe um cartão inteiro e a beirada do próximo — é a beirada que conta que
+   * há mais coisa para o lado. Sem ela, a tira parece uma lista que acabou. */
+  inline-size: min(60%, 14rem);
+  scroll-snap-align: start;
+}
+
+/* --- as seções e a grade --------------------------------------------------- */
+
+.sc-vitrine__secoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-7);
+}
+
+.sc-vitrine__secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.sc-vitrine__secao-nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+/*
+ * `auto-fill` com mínimo em rem: a grade decide sozinha quantas colunas cabem,
+ * de duas no dobrável fechado a seis no monitor, sem uma consulta de mídia por
+ * ponto de quebra. Ponto de quebra fixo aqui erraria no Fold, que é estreito e
+ * comprido ao mesmo tempo.
+ */
+.sc-vitrine__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-vitrine__item {
+  display: flex;
+}
+
+/* --- o cartão do produto --------------------------------------------------- */
+
+.sc-vitrine__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  inline-size: 100%;
+  padding-block-end: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  text-decoration: none;
+  overflow: clip;
+  transition:
+    border-color var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+.sc-vitrine__cartao:hover {
+  border-color: var(--cor-borda-forte);
+  box-shadow: var(--sombra-2);
+}
+
+.sc-vitrine__moldura {
+  position: relative;
+  display: block;
+  /* O espaço da foto já existe antes de ela chegar, e a página não pula. */
+  aspect-ratio: 4 / 3;
+  inline-size: 100%;
+  background: var(--cor-superficie);
+}
+
+.sc-vitrine__foto {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.sc-vitrine__sem-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-forte);
+}
+
+/* --- o produto que acabou -------------------------------------------------- */
+
+.sc-vitrine__esgotado {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-sobreposicao);
+}
+
+.sc-vitrine__esgotado-selo {
+  padding-block: var(--espaco-1);
+  padding-inline: var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/*
+ * O cartão esgotado esmaece a FOTO, e não o texto. Esmaecer o nome e o preço
+ * derrubaria o contraste deles abaixo do mínimo, e a informação de que o
+ * produto existe é justamente o que ele ainda precisa entregar.
+ */
+.sc-vitrine__cartao--esgotado .sc-vitrine__foto,
+.sc-vitrine__cartao--esgotado .sc-vitrine__sem-foto {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+
+/* --- o texto do cartão ----------------------------------------------------- */
+
+.sc-vitrine__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding-inline: var(--espaco-3);
+}
+
+.sc-vitrine__nome {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-vitrine__chamada {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  line-height: var(--altura-linha-apertada);
+  /* Duas linhas no máximo: a terceira empurra o preço para fora do cartão e
+   * desalinha a grade inteira. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sc-vitrine__precos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espaco-2);
+  margin-block-start: var(--espaco-1);
+}
+
+.sc-vitrine__preco {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-vitrine__preco--variavel {
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.sc-vitrine__preco-anterior {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+/* --- telas maiores --------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .sc-vitrine {
+    gap: var(--espaco-7);
+    padding-inline: var(--espaco-6);
+  }
+
+  .sc-vitrine__titulo {
+    font-size: var(--texto-2xl);
+  }
+
+  .sc-vitrine__secao-nome {
+    font-size: var(--texto-xl);
+  }
+
+  .sc-vitrine__grade {
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: var(--espaco-4);
+  }
+
+  .sc-vitrine__tira-item {
+    inline-size: 16rem;
+  }
+
+  .sc-vitrine__nome {
+    font-size: var(--texto-base);
+  }
+}
+
+/*
+ * Tela baixa e deitada: a faixa grudada come metade do que sobra. Num celular
+ * deitado de 360px de altura, o filtro passa a rolar com a página em vez de
+ * ocupar espaço permanente.
+ */
+@media (max-height: 600px) {
+  .sc-vitrine__abas {
+    position: static;
+  }
+}
+
+/*
+ * Quem pediu menos movimento recebe o estado final, e não a ausência de
+ * conteúdo: o que some é a transição, nunca o cartão.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sc-vitrine__cartao,
+  .sc-vitrine__aba {
+    transition: none;
+  }
+
+  .sc-vitrine__tira {
+    scroll-behavior: auto;
+  }
+}

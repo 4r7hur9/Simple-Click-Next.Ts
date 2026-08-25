@@ -27,11 +27,18 @@
 - Notas: três tabelas saíram da lista de adiamento do Prisma (`categories`, `product_categories`, `product_images`). Ler tabela sem modelo obrigaria a escrever SQL cru, que é o caminho por onde o isolamento entre lojas se perde sem ninguém notar.
 - Esforço: alto
 
-## T-403 — Vitrine: categorias, filtro e destaques [pendente]
+## T-403 — Vitrine: categorias, filtro e destaques [concluida]
 
 - Refs: US-401, AC-405, AC-406, AC-407
-- Arquivos: apps/web/src/features/vitrine/GradeDeProdutos.tsx, apps/web/src/features/vitrine/AbasDeCategoria.tsx, apps/web/src/features/vitrine/Destaques.tsx, apps/web/src/features/vitrine/CartaoEsgotado.tsx
-- Notas: destaques navegáveis com o dedo no celular. Loja sem produto explica que o catálogo está sendo montado, em vez de tela vazia.
+- Arquivos: apps/web/src/features/vitrine/GradeDeProdutos.tsx, apps/web/src/features/vitrine/AbasDeCategoria.tsx, apps/web/src/features/vitrine/Destaques.tsx, apps/web/src/features/vitrine/CartaoEsgotado.tsx, apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx, apps/web/src/lib/catalogo.ts, apps/web/src/server/catalogo-na-tela.ts, apps/web/tests/vitrine-catalogo.test.tsx, packages/ui/styles/vitrine.css, packages/ui/package.json, apps/web/src/app/(loja)/l/[slug]/page.tsx, apps/web/tests/apresentacao-da-loja.test.tsx, apps/web/tests/entrada-da-loja.test.tsx
+- Notas: o FILTRO DE CATEGORIA MORA NO SERVIDOR, e é isso que faz o AC-405 conviver com o AC-415. A escolha chega pelo endereço (`?categoria=`), o servidor devolve a página já filtrada, e cada aba é um link de verdade. Filtrar no navegador exigiria script para mostrar produto, que é exatamente o que a vitrine não pode exigir — e ainda perderia três coisas de graça: o endereço filtrado que se compartilha, o "voltar" do navegador desfazendo o filtro, e o buscador seguindo cada categoria.
+- Notas: A PÁGINA ENTROU nesta tarefa, e não estava na lista original. Sem ela a T-402 tinha publicado o catálogo na API e ninguém o consumia, e o botão principal da apresentação apontava para uma página que não existia — quem abrisse uma loja via a apresentação inteira e caía no 404 no único botão da tela. Eram as dívidas 59 e 61, e as duas fecham aqui.
+- Notas: a rota é `/l/{apelido}/catalogo`, como o mapa de telas declara, e não `/cardapio`, como o código dizia (dívida 60). O mapa é o documento que manda, e "catálogo" é a palavra que serve à loja de roupas e à de peças — "cardápio" só serve à lanchonete, e a plataforma vende para as três. O RÓTULO na tela continua "Ver o cardápio": a palavra que a pessoa lê é a da loja dela, o caminho no endereço é o genérico.
+- Notas: os DESTAQUES SOMEM quando há filtro em vigor. O AC-405 promete que escolher Bebidas mostra apenas os produtos de Bebidas, e um destaque de outra seção continuar no topo desmentiria a promessa na primeira tela.
+- Notas: a tira de destaques é `scroll-snap` do CSS, sem carrossel em script — o dedo arrasta, o cartão encaixa, o teclado percorre porque cada cartão é um link, e nada disso some para quem bloqueia script. Não há avanço automático: conteúdo que se move sozinho sem pausa é violação de acessibilidade conhecida, e o portão verifica isso por máquina.
+- Notas: `src/lib/catalogo.ts` existe por causa da TABELA DE FRONTEIRAS. Quem escreve preço é `src/server/catalogo-na-tela.ts`, que alcança `packages/core`; quem desenha é `src/features/vitrine/`, que não alcança o servidor. As duas alcançam `web-lib`, então a forma dos dados é declarada lá uma vez só — em vez de duas cópias que divergem em silêncio no dia em que uma ganhar um campo.
+- Notas: produto esgotado CONTINUA NA GRADE, marcado. Sumir com o que acabou faz a vitrine encolher e reaparecer ao longo do dia, e quem procurou a coxinha de ontem conclui que a loja parou de vender coxinha. O impedimento de COMPRAR não está aqui: mora na página do produto (AC-413, T-405), onde existe o botão que precisa ser barrado.
+- Notas: o esmaecimento do cartão esgotado é da FOTO, e não do texto — esmaecer nome e preço derrubaria o contraste deles abaixo do mínimo, e é justamente a informação que o produto ainda precisa entregar.
 - Esforço: medio
 
 ## T-404 — Busca na vitrine [pendente]

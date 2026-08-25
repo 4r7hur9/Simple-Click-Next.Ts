@@ -48,7 +48,7 @@ function desenhar(
     <ApresentacaoDaLoja
       loja={LOJA}
       abertura={ABERTA}
-      linkDoCardapio="/l/sabor-e-cia/cardapio"
+      linkDoCardapio="/l/sabor-e-cia/catalogo"
       {...sobrescrita}
     />,
   );
@@ -82,7 +82,7 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
     // buscador o segue. Botão com onClick não faz nenhuma das três.
     const html = desenhar();
 
-    expect(html).toContain('href="/l/sabor-e-cia/cardapio"');
+    expect(html).toContain('href="/l/sabor-e-cia/catalogo"');
     expect(html).not.toContain("onclick");
   });
 
@@ -122,7 +122,7 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
     // A página é uma porta, não um destino: quem chega quer o cardápio. Com uma
     // tela só, repetir o botão seria ruído — ele já está à vista o tempo todo.
     const html = desenhar();
-    const quantos = html.split('href="/l/sabor-e-cia/cardapio"').length - 1;
+    const quantos = html.split('href="/l/sabor-e-cia/catalogo"').length - 1;
 
     expect(quantos).toBe(1);
   });
@@ -178,7 +178,7 @@ describe("loja fechada avisa e deixa navegar (AC-401)", () => {
       },
     });
 
-    expect(html).toContain('href="/l/sabor-e-cia/cardapio"');
+    expect(html).toContain('href="/l/sabor-e-cia/catalogo"');
     expect(comoSeLe(html)).toContain("ver o cardápio e voltar depois");
   });
 
