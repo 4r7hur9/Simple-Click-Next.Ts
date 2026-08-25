@@ -44,6 +44,23 @@ export {
 } from "./rotas.ts";
 
 export {
+  esquemaDeEscolhaEnviada,
+  esquemaDeItemDoCarrinho,
+  esquemaDeItemParaAcrescentar,
+  esquemaDeOpcaoNoCarrinho,
+  esquemaDeQuantidadeNova,
+  esquemaDoApelidoEItem,
+  esquemaDoCarrinho,
+  rotaDeAcrescentarItem,
+  rotaDeMudarQuantidade,
+  rotaDeRemoverItem,
+  rotaDeVerCarrinho,
+} from "./carrinho.ts";
+export type {
+  CarrinhoNoContrato,
+  ItemParaAcrescentarNoContrato,
+} from "./carrinho.ts";
+export {
   esquemaDaVitrine,
   esquemaDeAbertura,
   esquemaDeEnderecoDaLoja,

@@ -20,6 +20,7 @@
  */
 import { useMemo, useState } from "react";
 
+import { adicionarAoCarrinho } from "../../lib/carrinho-do-navegador.ts";
 import {
   ancoraDoGrupo,
   calcularItem,
@@ -47,16 +48,23 @@ export interface ItemEscolhido {
 
 export interface EscolhasDoProdutoProps {
   readonly produto: ProdutoNaTela;
+  /** O apelido da loja, para a chamada saber a qual carrinho o item vai. */
+  readonly apelidoDaLoja: string;
   /**
-   * Quem leva o item ao servidor. Chega por propriedade porque a tabela de
-   * fronteiras não deixa um componente falar com a API — e porque é o que
-   * permite provar este componente sem rede.
+   * Quem leva o item ao servidor.
+   *
+   * O PADRÃO é falar com a API do próprio navegador — é o único que carrega o
+   * cookie da sessão do carrinho. A propriedade existe para a prova poder
+   * responder sem rede: sem ela, a única prova possível seria "roda contra o
+   * ambiente no ar", que falha por motivo errado e ninguém consegue rodar na
+   * própria máquina.
    */
   readonly aoAdicionar?: ((item: ItemEscolhido) => Promise<void>) | undefined;
 }
 
 export function EscolhasDoProduto({
   produto,
+  apelidoDaLoja,
   aoAdicionar,
 }: EscolhasDoProdutoProps) {
   const eixos = useMemo(
@@ -104,6 +112,8 @@ export function EscolhasDoProduto({
   const [observacao, setObservacao] = useState("");
   const [tentou, setTentou] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  /** O que dizer depois de tentar levar o item: sucesso ou o motivo da recusa. */
+  const [recado, setRecado] = useState<string | null>(null);
 
   const variacao = useMemo(() => {
     if (produto.variacoes.length === 0) return null;
@@ -236,17 +246,52 @@ export function EscolhasDoProduto({
       return;
     }
 
-    if (aoAdicionar === undefined) return;
+    const item: ItemEscolhido = {
+      produtoId: produto.id,
+      variacaoId: variacao?.id ?? null,
+      quantidade,
+      observacao: observacao.trim() === "" ? null : observacao.trim(),
+      escolhas,
+    };
 
     setEnviando(true);
+    setRecado(null);
     try {
-      await aoAdicionar({
-        produtoId: produto.id,
-        variacaoId: variacao?.id ?? null,
-        quantidade,
-        observacao: observacao.trim() === "" ? null : observacao.trim(),
-        escolhas,
+      if (aoAdicionar !== undefined) {
+        await aoAdicionar(item);
+        return;
+      }
+
+      const resultado = await adicionarAoCarrinho(apelidoDaLoja, {
+        produtoId: item.produtoId,
+        variacaoId: item.variacaoId,
+        quantidade: item.quantidade,
+        observacao: item.observacao,
+        // `itemId` vira `opcaoId`: a regra do core chama de item o que o
+        // contrato chama de opção. A tradução é aqui, na borda entre os dois.
+        escolhas: item.escolhas.map((escolha) => ({
+          grupoId: escolha.grupoId,
+          opcaoId: escolha.itemId,
+          quantidade: escolha.quantidade,
+        })),
+        // O total vai junto SÓ para a API anotar divergência. Ela recalcula com
+        // os preços dela, e é o número dela que vale (P-006).
+        totalVistoCentavos: conta.totalEmCentavos,
       });
+
+      if (resultado.estado === "adicionado") {
+        setRecado("Adicionado ao carrinho.");
+        return;
+      }
+
+      // Recusa do servidor NÃO é a mesma coisa que falha de rede, e a pessoa
+      // precisa saber qual das duas foi: uma pede recarregar a página, a outra
+      // pede tentar de novo.
+      setRecado(
+        resultado.estado === "nao-fecha"
+          ? "O cardápio mudou enquanto você escolhia. Recarregue a página para ver as opções de agora."
+          : "Não foi possível adicionar agora. Tente de novo em instantes.",
+      );
     } finally {
       setEnviando(false);
     }
@@ -291,6 +336,12 @@ export function EscolhasDoProduto({
           />
         </p>
       ) : null}
+
+      {recado === null ? null : (
+        <p className="sc-produto__recado" role="status">
+          {recado}
+        </p>
+      )}
 
       <BotaoAdicionar
         total={escreverDinheiro(conta.totalEmCentavos)}

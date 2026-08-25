@@ -180,7 +180,7 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
           </section>
         ) : null}
 
-        <EscolhasDoProduto produto={produto} />
+        <EscolhasDoProduto produto={produto} apelidoDaLoja={loja.apelido} />
       </main>
     </TemaDaLoja>
   );

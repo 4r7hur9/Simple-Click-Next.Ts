@@ -133,7 +133,7 @@ function montar(produto: ReturnType<typeof naTela>) {
   let raiz: Root;
   act(() => {
     raiz = createRoot(caixa);
-    raiz.render(<EscolhasDoProduto produto={produto} />);
+    raiz.render(<EscolhasDoProduto produto={produto} apelidoDaLoja={LOJA} />);
   });
   return {
     caixa,
@@ -273,7 +273,13 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
     let raiz: Root;
     act(() => {
       raiz = createRoot(caixa);
-      raiz.render(<EscolhasDoProduto produto={naTela()} aoAdicionar={levar} />);
+      raiz.render(
+        <EscolhasDoProduto
+          produto={naTela()}
+          apelidoDaLoja={LOJA}
+          aoAdicionar={levar}
+        />,
+      );
     });
 
     const botao = caixa.querySelector<HTMLButtonElement>(
@@ -332,7 +338,13 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
     let raiz: Root;
     act(() => {
       raiz = createRoot(caixa);
-      raiz.render(<EscolhasDoProduto produto={naTela()} aoAdicionar={levar} />);
+      raiz.render(
+        <EscolhasDoProduto
+          produto={naTela()}
+          apelidoDaLoja={LOJA}
+          aoAdicionar={levar}
+        />,
+      );
     });
 
     clicar(controleDe(caixa, "Ao ponto"));
@@ -460,7 +472,9 @@ describe("acessibilidade da página do produto (AC-410)", () => {
     caixa.appendChild(alvo);
 
     act(() => {
-      createRoot(alvo).render(<EscolhasDoProduto produto={naTela()} />);
+      createRoot(alvo).render(
+        <EscolhasDoProduto produto={naTela()} apelidoDaLoja={LOJA} />,
+      );
     });
 
     const resultado = await axe.run(caixa);

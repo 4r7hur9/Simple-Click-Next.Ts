@@ -72,6 +72,21 @@
 - Notas: normaliza máscara, espaços e ausência de código do país, e recusa número impossível — número errado gera link silenciosamente inútil.
 - Esforço: baixo
 
+## T-511 — Rotas HTTP do carrinho [concluida]
+
+- Refs: US-500, AC-411, AC-500, AC-501, AC-502
+- Arquivos: packages/contracts/src/carrinho.ts, packages/contracts/src/rotas.ts, packages/contracts/src/index.ts, packages/contracts/src/contrato.test.ts, contrato/openapi.json, apps/api/src/modules/cart/carrinho.routes.ts, apps/api/src/modules/cart/sessao-do-carrinho.ts, apps/api/src/app.ts, apps/api/src/contracts/gerar.test.ts, apps/api/tests/carrinho-rota.int.test.ts, apps/web/src/lib/carrinho-do-navegador.ts, apps/web/src/features/produto/EscolhasDoProduto.tsx, apps/web/src/app/(loja)/l/[slug]/produto/[id]/page.tsx, packages/ui/styles/produto.css
+- Notas: NASCEU DE UMA LACUNA, e não do plano. A T-500 entregou o caso de uso do carrinho e o declarou como único arquivo; nenhuma rota o expunha, e ninguém notou porque nada o chamava. A T-405 esbarrou nisso ao precisar de para onde mandar o item, e a dívida 66 registrou. Esta tarefa é o encanamento que faltava — sem ela a página do produto tem botão sem destino e a do fechamento não pode nascer.
+- Notas: O DONO DO CARRINHO É UM TOKEN DE SESSÃO, emitido pela API como cookie no primeiro contato — comprar na vitrine não exige cadastro. Mesmo desenho do token de acompanhamento do pedido: um segredo longo e aleatório, e apresentá-lo é a prova de que foi você quem montou aquele carrinho. É ele que a política do banco confere (migração 0012).
+- Notas: quem EMITE o token é a API, e não a tela. Se o cliente escolhesse o próprio, escolheria o de outra pessoa — os dois carrinhos virariam o mesmo, e o visitante veria o que o vizinho está prestes a comprar. Cookie com valor malformado é recusado e substituído.
+- Notas: a chamada sai do NAVEGADOR, e não do servidor do Next. Se o servidor do site a fizesse, o cookie seria dele e todos os visitantes dividiriam o mesmo carrinho — exatamente a falha que a 0012 corrigiu no banco. É o caminho que a decisão de 17/08 desenhou: mesmo domínio registrável, dois subdomínios, `SameSite=Lax` viajando e `core/cors.ts` com lista fechada de origens no lugar de um token anti-falsificação.
+- Notas: **fecha a segunda metade do AC-411.** A rota RECALCULA o item com `calcularItem` — a MESMA função que a tela chama — usando os preços que ela lê do catálogo, e recusa o que não fecha. O total enviado pelo cliente é anotado quando diverge e nunca compõe a conta (P-006). Os NOMES das opções são resolvidos do banco: nome vindo de fora poria texto arbitrário no cupom impresso.
+- Notas: a recusa é 409 e GENÉRICA. A tela já sabe o que falta — calculou o mesmo antes de enviar —, e quem chega aqui com item que não fecha ou está com a página aberta desde antes de o dono mexer no cardápio, ou monta requisição à mão. Nenhum dos dois precisa de um mapa do catálogo na mensagem de erro.
+- Notas: o item do carrinho NÃO carrega nome nem preço do produto, e isso é desenho. O carrinho guarda o que foi ESCOLHIDO; nome e preço vêm do catálogo no momento de conferir (AC-503), porque entre montar e fechar o dono pode ter corrigido um preço. A cópia congelada nasce no PEDIDO, e não no carrinho (AC-506).
+- Notas: o carrinho não é apagável pelo visitante — só o item. Carrinho abandonado é o rastro de quem chegou perto de comprar, e o dono precisa dele para saber onde perde venda.
+- Notas: a prova de integração precisou mandar `Origin` à mão. O navegador o manda sozinho; o supertest não, e sem ele a API responde 403 antes de a rota existir para a requisição (AC-126, AC-128). Foi assim que a primeira rodada reprovou, e o 403 estava certo.
+- Esforço: alto
+
 ## T-510 — Teste de ponta a ponta do fechamento [pendente]
 
 - Refs: US-500, US-503, US-504, AC-500, AC-514, AC-520

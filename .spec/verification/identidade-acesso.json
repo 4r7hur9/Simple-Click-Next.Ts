@@ -1,11 +1,11 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-08-25T14:09:30.372Z",
-  "gitRev": "3a2ddec",
+  "timestamp": "2026-08-25T16:12:26.957Z",
+  "gitRev": "225b6b7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1005,
+  "testsParsed": 1023,
   "results": {
     "AC-119": {
       "status": "pass",

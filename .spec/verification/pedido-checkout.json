@@ -1,25 +1,25 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-25T14:10:28.363Z",
-  "gitRev": "3a2ddec",
+  "timestamp": "2026-08-25T16:13:23.330Z",
+  "gitRev": "225b6b7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1005,
+  "testsParsed": 1023,
   "results": {
     "AC-500": {
       "status": "pass",
-      "testName": "item adicionado aparece no carrinho (AC-500) @spec:AC-500 o item chega com quantidade, observação e as opções escolhidas @spec:AC-500 o item chega com quantidade, observação e as opções escolhidas",
+      "testName": "o carrinho é de quem o montou (AC-500, AC-502) @spec:AC-500 a primeira requisição emite o cookie de sessão, com HttpOnly @spec:AC-500 a primeira requisição emite o cookie de sessão, com HttpOnly",
       "method": "vitest-json"
     },
     "AC-501": {
       "status": "pass",
-      "testName": "mudar quantidade e remover item (AC-501) @spec:AC-501 aumentar e diminuir a quantidade muda a linha @spec:AC-501 aumentar e diminuir a quantidade muda a linha",
+      "testName": "mudar e tirar itens (AC-501) @spec:AC-501 mudar a quantidade muda o total de itens @spec:AC-501 mudar a quantidade muda o total de itens",
       "method": "vitest-json"
     },
     "AC-502": {
       "status": "pass",
-      "testName": "o carrinho sobrevive e não se mistura (AC-502) @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado @spec:AC-502 outra requisição da mesma sessão encontra o carrinho montado",
+      "testName": "o carrinho é de quem o montou (AC-500, AC-502) @spec:AC-502 uma sessão NÃO enxerga o carrinho de outra @spec:AC-502 uma sessão NÃO enxerga o carrinho de outra",
       "method": "vitest-json"
     },
     "AC-503": {

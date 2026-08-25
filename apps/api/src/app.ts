@@ -3,8 +3,15 @@ import express, { type Express } from "express";
 import { corsDeOrigensFechadas, origensDoAmbiente } from "./core/cors.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
+import {
+  criarRotasDoCarrinho,
+  PREFIXO_DO_CARRINHO,
+  type OpcoesDoCarrinho,
+} from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
+import { produtoDaVitrine } from "./modules/storefront/produto.usecase.ts";
+import { identificarLoja } from "./modules/storefront/resolver-loja.usecase.ts";
 import {
   criarRotasDaVitrine,
   PREFIXO_DA_VITRINE,
@@ -34,6 +41,8 @@ export interface OpcoesDoApp {
    * exercitar a rota sem subir servidor e sem depender do relógio da máquina.
    */
   readonly vitrine?: Partial<OpcoesDaVitrine>;
+  /** O mesmo, para o carrinho. */
+  readonly carrinho?: Partial<OpcoesDoCarrinho>;
 }
 
 /**
@@ -83,6 +92,19 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     PREFIXO_DA_VITRINE,
     criarRotasDaVitrine({ lerHorario: horarioDaLoja, ...opcoes.vitrine }),
+  );
+
+  // O CARRINHO É COSTURADO AQUI PELO MESMO MOTIVO. Ele precisa resolver a loja
+  // pelo apelido e ler o produto para recalcular o preço, e as duas coisas
+  // moram no módulo da vitrine — que o módulo do carrinho não pode importar.
+  // A borda passa as duas funções; nenhum dos dois módulos conhece o outro.
+  app.use(
+    PREFIXO_DO_CARRINHO,
+    criarRotasDoCarrinho({
+      identificarLoja,
+      lerProduto: (produtoId) => produtoDaVitrine(produtoId),
+      ...opcoes.carrinho,
+    }),
   );
 
   app.get("/", (_req, res) => {

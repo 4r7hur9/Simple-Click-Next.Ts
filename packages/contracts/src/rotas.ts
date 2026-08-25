@@ -8,6 +8,16 @@
 
 import type { z } from "zod";
 import { esquemaDeErro } from "./erro.ts";
+import {
+  esquemaDeItemDoCarrinho,
+  esquemaDeItemParaAcrescentar,
+  esquemaDeOpcaoNoCarrinho,
+  esquemaDoCarrinho,
+  rotaDeAcrescentarItem,
+  rotaDeMudarQuantidade,
+  rotaDeRemoverItem,
+  rotaDeVerCarrinho,
+} from "./carrinho.ts";
 import { montarCatalogo, type RotaDoContrato } from "./rota.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
 import {
@@ -30,6 +40,10 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDaVitrine,
   rotaDoCatalogo,
   rotaDoProduto,
+  rotaDeVerCarrinho,
+  rotaDeAcrescentarItem,
+  rotaDeMudarQuantidade,
+  rotaDeRemoverItem,
 ]);
 
 /**
@@ -52,6 +66,10 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     Opcao: esquemaDeOpcao,
     Variacao: esquemaDeVariacao,
     ImagemDoProduto: esquemaDeImagemDoProduto,
+    Carrinho: esquemaDoCarrinho,
+    ItemDoCarrinho: esquemaDeItemDoCarrinho,
+    OpcaoNoCarrinho: esquemaDeOpcaoNoCarrinho,
+    ItemParaAcrescentar: esquemaDeItemParaAcrescentar,
   });
 
 /**
@@ -69,4 +87,6 @@ export const ETIQUETAS_DO_CONTRATO: Readonly<Record<string, string>> =
     saude: "Sinais de vida e prontidão da API",
     vitrine:
       "O que o público vê de uma loja. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna.",
+    carrinho:
+      "O carrinho do visitante, identificado por um token de sessão que a API emite como cookie. Comprar não exige cadastro.",
   });

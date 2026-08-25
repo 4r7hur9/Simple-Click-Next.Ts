@@ -180,11 +180,24 @@ describe("contrato como fonte única dos tipos", () => {
   });
 });
 
+/**
+ * Pastas que existem só enquanto outro teste roda.
+ *
+ * `fronteiras-projeto.test.ts` cria e apaga `__fronteira-temp` dentro de
+ * `src/features` e `src/server` para provar que a regra de fronteira acusa a
+ * violação. Os dois arquivos rodam EM PARALELO no projeto `web`, e sem esta
+ * exclusão a varredura daqui às vezes lista um arquivo que já sumiu quando
+ * chega a hora de lê-lo — uma reprovação por corrida entre testes, que ensina
+ * a desconfiar do vermelho.
+ */
+const PASTAS_DE_OUTRO_TESTE = new Set(["__fronteira-temp"]);
+
 /** Todo arquivo TypeScript do site, sem entrar em pasta de ferramenta. */
 async function listarArquivosDoSite(pasta: string): Promise<string[]> {
   const entradas = await readdir(pasta, { withFileTypes: true });
   const achados: string[] = [];
   for (const entrada of entradas) {
+    if (PASTAS_DE_OUTRO_TESTE.has(entrada.name)) continue;
     const caminho = join(pasta, entrada.name);
     if (entrada.isDirectory()) {
       achados.push(...(await listarArquivosDoSite(caminho)));

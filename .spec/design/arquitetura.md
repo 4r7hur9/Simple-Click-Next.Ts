@@ -168,7 +168,20 @@ O trecho mais importante da arquitetura, porque é o que faz o isolamento valer.
 3. **Server Component** chama `server/sessao.ts`, que verifica a sessão de fato.
    Aqui mora a autorização real da camada web.
 4. **`server/api-client.ts`** chama `api.simpleclick.app` com o token no
-   cabeçalho de autorização. É a única porta de saída HTTP do web.
+   cabeçalho de autorização. É a única porta de saída HTTP **do servidor do
+   site** — e a ressalva importa desde a T-511.
+
+   **O NAVEGADOR TAMBÉM FALA COM A API, direto**, no que depende de cookie do
+   visitante: hoje, o carrinho (`apps/web/src/lib/carrinho-do-navegador.ts`).
+   Não é exceção à regra, é o desenho: o carrinho é identificado por um cookie
+   que a API emite, e se o servidor do Next fizesse a chamada o cookie seria
+   dele — todos os visitantes dividiriam o mesmo carrinho, que é a falha que a
+   migração 0012 corrigiu no banco.
+
+   É o caminho que a decisão de 17/08 previu ao pôr site e API no mesmo domínio
+   registrável, e é por isso que os passos 5 e 6 abaixo existem: a conferência
+   de origem com lista fechada é o que substitui um token anti-falsificação.
+
 5. **`apps/api/core/cors.ts`** confere a origem contra a lista fechada e recusa o
    que não estiver nela (AC-125..AC-128).
 6. **`core/validar.ts`** valida corpo, parâmetros e consulta pelo esquema

@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-25T14:11:00.795Z",
-  "gitRev": "3a2ddec",
+  "timestamp": "2026-08-25T16:13:52.117Z",
+  "gitRev": "225b6b7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1005,
+  "testsParsed": 1023,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-402": {
       "status": "pass",
-      "testName": "inexistente e suspensa respondem igual (AC-402) @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico @spec:AC-402 loja que nunca existiu responde 404 sem detalhe técnico",
+      "testName": "loja inexistente responde como loja inexistente (AC-402) @spec:AC-402 carrinho de apelido que não existe responde 404 @spec:AC-402 carrinho de apelido que não existe responde 404",
       "method": "vitest-json"
     },
     "AC-404": {
@@ -44,22 +44,22 @@
     },
     "AC-410": {
       "status": "pass",
-      "testName": "a página do produto traz o que preciso decidir (AC-410) @spec:AC-410 devolve nome, descrição, preço e os grupos de escolha na ordem do dono @spec:AC-410 devolve nome, descrição, preço e os grupos de escolha na ordem do dono",
+      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-410 produto de outra loja responde 404, e não o produto @spec:AC-410 produto de outra loja responde 404, e não o produto",
       "method": "vitest-json"
     },
     "AC-411": {
       "status": "pass",
-      "testName": "o total acompanha as escolhas (AC-411) @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00 @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00",
+      "testName": "o servidor recalcula o item que recebe (AC-411) @spec:AC-411 o total do servidor é o mesmo que a tela calcula, com a mesma função @spec:AC-411 o total do servidor é o mesmo que a tela calcula, com a mesma função",
       "method": "vitest-json"
     },
     "AC-412": {
       "status": "pass",
-      "testName": "escolha obrigatória pendente bloqueia (AC-412) @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta",
+      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
       "method": "vitest-json"
     },
     "AC-413": {
       "status": "pass",
-      "testName": "produto indisponível é visto, e o motivo é dito (AC-413) @spec:AC-413 produto marcado como indisponível responde ESGOTADO @spec:AC-413 produto marcado como indisponível responde ESGOTADO",
+      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-413 produto indisponível não entra no carrinho @spec:AC-413 produto indisponível não entra no carrinho",
       "method": "vitest-json"
     },
     "AC-414": {

@@ -404,3 +404,18 @@
     transition: none;
   }
 }
+
+/*
+ * O recado depois de adicionar. Fica ACIMA do botão grudado, e não dentro dele:
+ * dentro, ele empurraria o total para fora da vista justamente quando a pessoa
+ * quer conferir o que acabou de acontecer.
+ */
+.sc-produto__recado {
+  margin: 0;
+  padding: var(--espaco-3);
+  border-radius: var(--raio-2);
+  background: var(--cor-sucesso-suave);
+  color: var(--cor-sucesso);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}

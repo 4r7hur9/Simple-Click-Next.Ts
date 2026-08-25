@@ -7,17 +7,27 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 ### Onde paramos
 
 **Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas. Último trabalho: **25/08**, a T-405 (a página do produto).
+0 reprovadas. Último trabalho: **25/08**, a T-511 (as rotas do carrinho).
 
-**42 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
+**43 de 129 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
 teste anotado, 105 provados.
+
+O total de tarefas subiu de 128 para 129: a **T-511 nasceu de uma lacuna**, e
+não do planejamento — a T-500 entregou o caso de uso do carrinho sem rota
+nenhuma, e ninguém notou porque nada o chamava. Está registrada como qualquer
+outra, com refs e arquivos.
+
+O número de critérios provados não se moveu com a T-511, e isso é honesto: os
+critérios do carrinho já eram provados pelo caso de uso. O que mudou é que o
+**AC-411 passou a ser provado de ponta a ponta** — a rota recalcula o item com
+a mesma função que a tela usa, e um teste compara os dois resultados.
 
 | Feature              | Feito | Situação                                             |
 | -------------------- | ----- | ---------------------------------------------------- |
 | `fundacao`           | 22/22 | **fechada**                                          |
-| `pedido-checkout`    | 10/11 | falta a PÁGINA e a T-510 — a dependência já caiu     |
+| `pedido-checkout`    | 11/12 | T-511 entrou; falta a PÁGINA do fechamento e a T-510 |
 | `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
-| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; **T-404 é o próximo**         |
+| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; falta T-404 e T-406 a T-409   |
 | `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
 | `identidade-acesso`  | 0/11  | não começou                                          |
 | `catalogo-produtos`  | 0/14  | não começou                                          |
@@ -35,26 +45,25 @@ deste projeto — não é sinal de atraso.
 
 ### Próximo passo
 
-**A rota HTTP do carrinho** (dívida 66) é a que mais destrava, e não tem tarefa
-declarada. Sem ela, o botão adicionar da página do produto não tem para onde
-levar o item, a página do fechamento não pode ser montada, e a segunda metade do
-AC-411 fica sem prova. O caso de uso já existe e é provado contra PostgreSQL
-desde a T-500 — falta o Express e o contrato.
+**A rota de conferência do carrinho** (dívida 67) — o pedaço seguinte do mesmo
+encanamento. As rotas da T-511 movem itens; nenhuma devolve PREÇO, e a gaveta do
+carrinho espera valores já escritos. O caso de uso existe desde a T-501
+(`conferir-preco.usecase.ts`) e também não tem rota. Sem ela, a página do
+fechamento continua sem poder nascer.
 
-Depois dela, em ordem de barato para caro:
+Depois dela, **a página do fechamento** — os componentes existem desde a T-502,
+e aí sim ela tem de onde carregar tudo.
 
-- **T-404 — Busca na vitrine** (AC-408, AC-409): um caso de uso na API que
-  ignora acento e caixa, e um campo na tela. Agora faz sentido, porque a busca
-  encontra o produto e leva a uma página que existe.
+Na vitrine, em ordem de barato para caro:
+
+- **T-404 — Busca** (AC-408, AC-409): um caso de uso na API e um campo na tela.
 - **T-406 — Encontrabilidade** (AC-403, AC-414): dados estruturados, endereço
-  canônico e a imagem de compartilhamento com nome e preço. A página do produto
-  já publica os metadados; falta a imagem desenhada.
+  canônico e a imagem de compartilhamento com nome e preço.
 - **T-407 — Desempenho no celular** (AC-415, AC-416): é o dono do AC-415, que
-  várias tarefas citam e nenhuma provou ainda.
+  várias tarefas citam e nenhuma provou.
 - **T-408 e T-409** — acessibilidade por teclado e o ponta a ponta da vitrine.
-
-E a página do fechamento, que espera a mesma rota do carrinho — ver a seção do
-fim deste arquivo.
+  A T-409 também fecha a dívida 68: hoje a chamada do carrinho sai do navegador
+  e nenhum teste exercita a costura real entre os dois subdomínios.
 
 ### Como subir o ambiente
 
@@ -831,7 +840,18 @@ bash infra/scripts/verificar.sh  # o portão completo
     É o mesmo formato da página do fechamento: ausência anotada, com dono e
     prazo. **A T-405 fecha.**
 
-66. **O carrinho não tem UMA rota HTTP, e isso agora bloqueia duas telas.** O
+66. ~~**O carrinho não tem UMA rota HTTP, e isso agora bloqueia duas
+    telas.**~~ **Resolvida pela T-511 em 25/08**, tarefa que nasceu desta
+    dívida e não estava no plano. Entraram quatro rotas, o token de sessão em
+    cookie e a chamada do navegador — e com elas a **segunda metade do AC-411**:
+    a rota recalcula o item com `calcularItem`, a MESMA função que a tela usa,
+    com os preços que ela lê do catálogo.
+
+    **A página do fechamento continua sem existir**, mas agora por falta de
+    tela, e não de encanamento — ver a seção do fim deste arquivo.
+
+    (anotação original)
+    **O carrinho não tem UMA rota HTTP, e isso agora bloqueia duas telas.** O
     caso de uso está completo desde a T-500 — `acrescentarItem`, `verCarrinho`,
     `mudarQuantidade`, `removerItem` em
     `apps/api/src/modules/cart/carrinho.usecase.ts`, provado contra PostgreSQL
@@ -858,6 +878,37 @@ bash infra/scripts/verificar.sh  # o portão completo
 
     **Não tem tarefa declarada no plano.** Nasce uma, ou entra na T-510 junto do
     teste de ponta a ponta do fechamento.
+
+67. **O carrinho ainda não tem rota que devolva PREÇO.** As quatro rotas da
+    T-511 movem itens: acrescentar, mudar quantidade, tirar, listar. O que elas
+    devolvem é o que foi ESCOLHIDO — identificadores, quantidade, observação e
+    os nomes das opções. Nome e preço do produto vêm do catálogo no momento de
+    conferir (AC-503), e o caso de uso que faz isso existe
+    (`conferir-preco.usecase.ts`, T-501) e **também não tem rota**.
+
+    É a mesma lacuna da dívida 66, uma camada adiante: a gaveta do carrinho
+    (`GavetaCarrinho`) espera `precoUnitario` e `totalDaLinha` já escritos, e
+    hoje ninguém os produz por HTTP. **A página do fechamento precisa disso**, e
+    é o próximo pedaço do mesmo encanamento.
+
+68. **A chamada do carrinho sai do navegador, e nenhum teste a exercita de
+    ponta a ponta.** `apps/web/src/lib/carrinho-do-navegador.ts` é provado com
+    `fetch` injetado, e a rota é provada por supertest. O que NÃO é provado é a
+    costura real entre os dois: o cookie atravessando dois subdomínios, o
+    `credentials: "include"` valendo, o CORS deixando o POST passar com a
+    origem do site.
+
+    Cada metade está certa e a junção nunca rodou — é exatamente a forma da
+    dívida 59, e o que a fecha é um teste de navegador (T-409 ou T-510). Até
+    lá, vale abrir a vitrine à mão depois de subir o ambiente.
+
+69. **`NEXT_PUBLIC_API_URL` agora é obrigatória de verdade, e continua sem
+    validação na partida.** Enquanto só o servidor do site falava com a API, a
+    variável tinha um padrão razoável e a ausência dela passava despercebida
+    (dívida 28). Agora o NAVEGADOR a usa: sem ela, o valor embutido na página é
+    `https://api.simpleclick.localhost`, que só existe na máquina de quem
+    desenvolve — em produção o carrinho falharia em todo aparelho, sem erro no
+    servidor para explicar. Entra na T-017, com as dívidas 2, 10 e 19.
 
 ## Portão contornado
 
