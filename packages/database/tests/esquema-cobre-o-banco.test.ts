@@ -66,12 +66,9 @@ const ESPERA_LONGA = 120_000;
  * histórico — que é exatamente o oposto de uma tabela sumir sem ninguém notar.
  */
 const SEM_MODELO_POR_DECISAO: ReadonlySet<string> = new Set([
-  "product_variants",
-  "product_prices",
-  "option_groups",
-  "option_items",
-  "product_option_groups",
-  "variant_option_values",
+  // As seis de variação, preço nomeado e grupo de escolha SAÍRAM daqui na
+  // T-405, que passou a lê-las para montar a página do produto. Ficam as duas
+  // de especificação tipada, que pertencem à feature `catalogo-produtos`.
   "attribute_definitions",
   "product_attributes",
 ]);

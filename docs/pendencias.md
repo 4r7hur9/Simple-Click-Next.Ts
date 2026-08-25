@@ -7,17 +7,17 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 ### Onde paramos
 
 **Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas. Último trabalho: **25/08**, a T-403 (a vitrine ganhou tela).
+0 reprovadas. Último trabalho: **25/08**, a T-405 (a página do produto).
 
-**41 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 98 com
-teste anotado, 100 provados.
+**42 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
+teste anotado, 105 provados.
 
 | Feature              | Feito | Situação                                             |
 | -------------------- | ----- | ---------------------------------------------------- |
 | `fundacao`           | 22/22 | **fechada**                                          |
 | `pedido-checkout`    | 10/11 | falta a PÁGINA e a T-510 — a dependência já caiu     |
 | `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
-| `vitrine-publica`    | 4/10  | T-400 a T-403 entraram; **T-404 é o próximo**        |
+| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; **T-404 é o próximo**         |
 | `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
 | `identidade-acesso`  | 0/11  | não começou                                          |
 | `catalogo-produtos`  | 0/14  | não começou                                          |
@@ -35,26 +35,26 @@ deste projeto — não é sinal de atraso.
 
 ### Próximo passo
 
-Duas frentes, e a escolha entre elas é de prioridade e não de dependência —
-nenhuma das duas está bloqueada.
+**A rota HTTP do carrinho** (dívida 66) é a que mais destrava, e não tem tarefa
+declarada. Sem ela, o botão adicionar da página do produto não tem para onde
+levar o item, a página do fechamento não pode ser montada, e a segunda metade do
+AC-411 fica sem prova. O caso de uso já existe e é provado contra PostgreSQL
+desde a T-500 — falta o Express e o contrato.
 
-**T-405 — Página de detalhe do produto** (AC-410 a AC-414). É a que fecha a
-dívida 65: hoje TODO cartão da vitrine leva a `/l/{apelido}/produto/{id}`, e
-essa página não existe. A vitrine inteira é uma sala com portas pintadas até a
-T-405 entrar. Ela também tira quatro tabelas da lista de adiamento do Prisma
-(variação, preço nomeado e grupos de escolha), então é a mais cara da feature —
-e a que mais destrava.
+Depois dela, em ordem de barato para caro:
 
-**T-404 — Busca na vitrine** (AC-408, AC-409) é a mais barata: um caso de uso na
-API que ignora acento e caixa, e um campo na tela. Não depende da T-405.
+- **T-404 — Busca na vitrine** (AC-408, AC-409): um caso de uso na API que
+  ignora acento e caixa, e um campo na tela. Agora faz sentido, porque a busca
+  encontra o produto e leva a uma página que existe.
+- **T-406 — Encontrabilidade** (AC-403, AC-414): dados estruturados, endereço
+  canônico e a imagem de compartilhamento com nome e preço. A página do produto
+  já publica os metadados; falta a imagem desenhada.
+- **T-407 — Desempenho no celular** (AC-415, AC-416): é o dono do AC-415, que
+  várias tarefas citam e nenhuma provou ainda.
+- **T-408 e T-409** — acessibilidade por teclado e o ponta a ponta da vitrine.
 
-A ordem recomendada é **T-405 antes da T-404**: busca que encontra o produto e
-leva a um 404 é pior que não ter busca.
-
-Depois: T-406 (encontrabilidade), T-407 (desempenho, que é o dono do AC-415),
-T-408 (acessibilidade e teclado) e T-409 (ponta a ponta). E a página do
-fechamento, que deixou de estar bloqueada quando a T-400 e a T-401 entraram —
-ver a seção do fim deste arquivo.
+E a página do fechamento, que espera a mesma rota do carrinho — ver a seção do
+fim deste arquivo.
 
 ### Como subir o ambiente
 
@@ -767,7 +767,15 @@ bash infra/scripts/verificar.sh  # o portão completo
     resolve; fica anotado para o caso de ela demorar, porque em duas semanas
     essa função vira "por que isso existe?".
 
-62. **A lista de adiamento do Prisma ainda tem oito tabelas.**
+62. **A lista de adiamento do Prisma tem DUAS tabelas** (eram oito até a
+    T-405). Ficam `attribute_definitions` e `product_attributes`, as duas de
+    especificação tipada, que pertencem à feature `catalogo-produtos`. As seis
+    de variação, preço nomeado e grupo de escolha saíram porque a T-405 passou
+    a lê-las. A lista SÓ PODE ENCOLHER, e a guarda da T-021 reprova quem
+    tentar acrescentar sem registrar o motivo.
+
+    (anotação original, de quando eram oito)
+    **A lista de adiamento do Prisma ainda tem oito tabelas.**
     `SEM_MODELO_POR_DECISAO`, em
     `packages/database/tests/esquema-cobre-o-banco.test.ts`, guarda
     `product_variants`, `product_prices`, `option_groups`, `option_items`,
@@ -800,7 +808,14 @@ bash infra/scripts/verificar.sh  # o portão completo
     incomodar, o caminho é versionar os arquivos `.woff2` e passar a
     `next/font/local`.
 
-65. **Todo cartão da vitrine aponta para uma página que ainda não existe.** A
+65. ~~**Todo cartão da vitrine aponta para uma página que ainda não
+    existe.**~~ **Resolvida pela T-405 em 25/08:** a página do produto entrou
+    em `apps/web/src/app/(loja)/l/[slug]/produto/[id]/page.tsx`, e os cartões
+    da vitrine chegam a algum lugar. A dependência era declarada e tinha dono;
+    fechou no prazo de uma tarefa.
+
+    (anotação original)
+    **Todo cartão da vitrine aponta para uma página que ainda não existe.** A
     T-403 monta a grade e os destaques, e cada cartão é um link para
     `/l/{apelido}/produto/{id}` — a linha 3 do mapa de telas, que a **T-405**
     entrega. Até lá, tocar num produto cai no 404.
@@ -815,6 +830,34 @@ bash infra/scripts/verificar.sh  # o portão completo
 
     É o mesmo formato da página do fechamento: ausência anotada, com dono e
     prazo. **A T-405 fecha.**
+
+66. **O carrinho não tem UMA rota HTTP, e isso agora bloqueia duas telas.** O
+    caso de uso está completo desde a T-500 — `acrescentarItem`, `verCarrinho`,
+    `mudarQuantidade`, `removerItem` em
+    `apps/api/src/modules/cart/carrinho.usecase.ts`, provado contra PostgreSQL
+    em `carrinho.int.test.ts`. O que não existe é o Express: nenhuma rota no
+    contrato, nenhuma montada em `app.ts`. A T-500 declarou só o caso de uso na
+    lista de arquivos, e ninguém notou porque nada o chamava.
+
+    **É a mesma forma da dívida 61** (`buscarCatalogo` sem chamador), com a
+    diferença de que aqui falta a ponta do SERVIDOR, e não a da tela.
+
+    **O que fica sem prova por causa disto:** a segunda metade do AC-411 — "o
+    valor conferido no servidor ao adicionar é o mesmo". A primeira metade está
+    provada, e a garantia SUBSTANTIVA existe: a conta é uma só
+    (`packages/core/src/item-total.ts`), e a API vai chamar exatamente a função
+    que a tela chama. O que falta é o encanamento HTTP entre as duas, e é ele
+    que um teste de ponta a ponta exercitaria.
+
+    `BotaoAdicionar` recebe quem leva o item por propriedade, então a página
+    fica pronta no dia em que a rota existir — não há casca a desfazer.
+
+    **Também é o que falta para a página do fechamento** (ver a seção do fim
+    deste arquivo): montar `checkout/page.tsx` exige ler e alterar o carrinho
+    por HTTP. As duas coisas saem da mesma tarefa.
+
+    **Não tem tarefa declarada no plano.** Nasce uma, ou entra na T-510 junto do
+    teste de ponta a ponta do fechamento.
 
 ## Portão contornado
 

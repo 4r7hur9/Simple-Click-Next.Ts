@@ -136,11 +136,24 @@ SC/
 | `apps/api/contracts`  | `contracts`                          | `apps/api/core`, módulo de domínio, banco                  |
 | `apps/web/features/*` | `ui`, `contracts`, `lib`             | `apps/api`, banco, `server/*` diretamente                  |
 | `apps/web/app/*`      | `features`, `server`, `ui`           | `apps/api`                                                 |
-| `apps/web/server/*`   | `contracts`, `core`                  | `features`                                                 |
+| `apps/web/server/*`   | `contracts`, `core`, `lib`           | `features`                                                 |
+| `apps/web/lib/*`      | `contracts`, `core`                  | `features`, `server`, `ui`, `apps/api`, banco              |
 
 Módulo fala com módulo **pelo caso de uso**, nunca importando o repositório do
 vizinho. Quando dois módulos precisam da mesma regra, ela sobe para
 `packages/core`.
+
+**`apps/web/lib` alcança `core` desde a T-405 (25/08).** O AC-411 exige que o
+total do item mude na hora enquanto a pessoa marca as opções, e que seja
+idêntico ao que o servidor cobra ao adicionar. As duas alternativas eram piores:
+perguntar ao servidor a cada caixinha marcada é uma ida à rede por clique, numa
+tela feita para rede ruim; reescrever a conta na tela é a segunda implementação
+que o P-006 existe para proibir. A regra continua sendo **uma só**, em
+`packages/core`, e a tela passa a chamá-la.
+
+A autorização é de `lib`, e **não** de `features`, de propósito: o componente
+continua recebendo tudo por propriedade — o que o mantém testável isoladamente —
+e o único caminho da tela até o cálculo passa pelo vocabulário compartilhado.
 
 ## 4. Caminho de uma requisição autenticada até o banco
 

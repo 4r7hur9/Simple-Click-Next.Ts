@@ -77,13 +77,19 @@ describe("documento de contrato publicado", () => {
       "/",
       "/v1/vitrine/{apelido}",
       "/v1/vitrine/{apelido}/catalogo",
+      "/v1/vitrine/{apelido}/produto/{produtoId}",
     ]);
     expect(Object.keys(esquemas).sort()).toEqual([
       "Abertura",
       "EnderecoDaLoja",
       "Erro",
+      "GrupoDeEscolha",
       "IdentificacaoDaApi",
+      "ImagemDoProduto",
       "LojaPublica",
+      "Opcao",
+      "Produto",
+      "Variacao",
       "Vitrine",
     ]);
     // Toda rota descreve o erro pela mesma referência: cliente nativo gera um

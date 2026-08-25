@@ -183,3 +183,144 @@ export const rotaDoCatalogo = definirRota({
   resposta: esquemaDoCatalogo,
   errosPossiveis: [400],
 });
+
+// ---------------------------------------------------------------------------
+// A página de um produto
+// ---------------------------------------------------------------------------
+
+/** Uma imagem do produto, com o espaço dela já conhecido. */
+export const esquemaDeImagemDoProduto = z.strictObject({
+  url: z.string(),
+  /** O que o leitor de tela ouve. Nulo quando o dono não escreveu. */
+  texto: z.string().nullable(),
+  /**
+   * Dimensão em pixels, quando conhecida. Vai para a marcação e é o que impede
+   * a página de pular quando a foto chega (AC-416).
+   */
+  largura: z.int().positive().nullable(),
+  altura: z.int().positive().nullable(),
+});
+
+/** Uma opção dentro de um grupo de escolha. */
+export const esquemaDeOpcao = z.strictObject({
+  id: z.uuid(),
+  nome: z.string(),
+  /** Acréscimo em centavos. Negativo quando remover algo dá desconto. */
+  acrescimoCentavos: z.int(),
+  /** Já vem marcada: o sabor mais pedido aparece selecionado. */
+  marcadaPorPadrao: z.boolean(),
+  disponivel: z.boolean(),
+});
+
+/**
+ * Um grupo de escolha do produto.
+ *
+ * OBRIGATORIEDADE É DERIVADA de `minimo >= 1`, como no banco. Um campo próprio
+ * "obrigatorio" seria redundante e abriria a chance de divergir do mínimo — que
+ * é exatamente o comentário que a migração 0007 deixou na tabela.
+ */
+export const esquemaDeGrupoDeEscolha = z.strictObject({
+  id: z.uuid(),
+  nome: z.string(),
+  descricao: z.string().nullable(),
+  /** `INGREDIENT`, `ADDON`, `VARIATION`, `FRACTION` ou `SPEC`. */
+  tipo: z.string(),
+  minimo: z.int().nonnegative(),
+  maximo: z.int().positive().nullable(),
+  permiteRepetir: z.boolean(),
+  /** Quando verdadeiro, a escolha deste grupo decide QUAL variante é vendida. */
+  eixoDeVariacao: z.boolean(),
+  opcoes: z.array(esquemaDeOpcao),
+});
+
+/** Uma variante: a unidade que de fato é vendida e que tem estoque. */
+export const esquemaDeVariacao = z.strictObject({
+  id: z.uuid(),
+  nome: z.string(),
+  precoCentavos: z.int().nonnegative().nullable(),
+  precoAnteriorCentavos: z.int().nonnegative().nullable(),
+  disponivel: z.boolean(),
+  /** A que vem escolhida ao abrir o produto. */
+  padrao: z.boolean(),
+  /**
+   * Qual opção de cada eixo identifica esta variante — "P" em Tamanho, "azul"
+   * em Cor. É o que liga a grade de escolhas à peça que tem estoque.
+   */
+  valoresDosEixos: z.array(
+    z.strictObject({ grupoId: z.uuid(), opcaoId: z.uuid() }),
+  ),
+});
+
+/**
+ * Por que um produto não pode ser comprado agora (AC-413).
+ *
+ * SÃO SÓ OS MOTIVOS QUE A API PRODUZ. "Loja fechada" não está aqui de
+ * propósito: quem sabe o horário é a rota da apresentação, que já devolve
+ * `abertura`, e a página do produto busca as duas. Declarar aqui um valor que a
+ * API nunca devolve faria o cliente do aplicativo nativo tratar um caso que não
+ * existe — e esconderia que a decisão mora em outro lugar.
+ *
+ * "Não publicado" também não entra: produto em rascunho responde 404, recusado
+ * pela política do banco. Ele não chega a ter resposta em que caber um motivo.
+ */
+export const esquemaDeIndisponibilidade = z.enum([
+  "ESGOTADO",
+  "FORA_DO_HORARIO",
+]);
+
+/** O produto como a página dele o mostra (AC-410). */
+export const esquemaDoProduto = z.strictObject({
+  id: z.uuid(),
+  apelido: z.string(),
+  nome: z.string(),
+  chamada: z.string().nullable(),
+  descricao: z.string().nullable(),
+  imagens: z.array(esquemaDeImagemDoProduto),
+  /** O preço da variante padrão, ou o do produto quando não há variante. */
+  precoCentavos: z.int().nonnegative().nullable(),
+  precoAnteriorCentavos: z.int().nonnegative().nullable(),
+  grupos: z.array(esquemaDeGrupoDeEscolha),
+  variacoes: z.array(esquemaDeVariacao),
+  disponivel: z.boolean(),
+  /** Preenchido só quando `disponivel` é falso. */
+  motivoIndisponivel: esquemaDeIndisponibilidade.nullable(),
+  /** Se o dono aceita observação escrita neste item. */
+  aceitaObservacao: z.boolean(),
+  /** A seção a que ele pertence, para a página oferecer o caminho de volta. */
+  secao: z
+    .strictObject({ id: z.uuid(), apelido: z.string(), nome: z.string() })
+    .nullable(),
+});
+
+export type ProdutoNoContrato = z.infer<typeof esquemaDoProduto>;
+export type GrupoDeEscolhaNoContrato = z.infer<typeof esquemaDeGrupoDeEscolha>;
+export type VariacaoNoContrato = z.infer<typeof esquemaDeVariacao>;
+
+/** O identificador do produto no endereço, junto do apelido da loja. */
+export const esquemaDoApelidoEProduto = esquemaDoApelido.extend({
+  produtoId: z.uuid(),
+});
+
+/**
+ * `GET /v1/vitrine/:apelido/produto/:produtoId` — a página de um produto.
+ *
+ * SEPARADA DO CATÁLOGO de propósito. O catálogo devolve o cartão: nome, foto e
+ * preço. Aqui vêm as imagens todas, a descrição, os grupos de escolha e as
+ * variantes — que é muito mais dado por produto, e que ninguém precisa baixar
+ * sessenta vezes só para ver a vitrine.
+ *
+ * Produto inexistente, em rascunho ou de categoria oculta responde 404, igual a
+ * loja inexistente e pelo mesmo motivo: distinguir contaria a quem perguntasse
+ * o que existe atrás do que não está publicado.
+ */
+export const rotaDoProduto = definirRota({
+  metodo: "get",
+  caminho: "/v1/vitrine/:apelido/produto/:produtoId",
+  etiqueta: "vitrine",
+  resumo: "A página de um produto",
+  descricao:
+    "Devolve um produto publicado de uma loja: imagens, descrição, preço, grupos de escolha com o que é obrigatório, e as variantes com preço e disponibilidade. Produto não publicado, de categoria oculta ou de loja suspensa responde 404, sem distinguir os casos.",
+  parametros: esquemaDoApelidoEProduto,
+  resposta: esquemaDoProduto,
+  errosPossiveis: [400],
+});

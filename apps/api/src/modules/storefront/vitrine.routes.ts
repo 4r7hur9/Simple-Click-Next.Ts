@@ -16,13 +16,17 @@
 
 import { Router } from "express";
 import type { HorarioDaLoja } from "@simpleclick/core";
-import { esquemaDoApelido } from "@simpleclick/contracts";
+import {
+  esquemaDoApelido,
+  esquemaDoApelidoEProduto,
+} from "@simpleclick/contracts";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
 import { catalogoDaVitrine } from "./catalogo.usecase.ts";
+import { produtoDaVitrine } from "./produto.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
 
 /**
@@ -134,6 +138,59 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
       proximo(erro);
     }
   });
+
+  /*
+   * A PÁGINA DE UM PRODUTO tem endereço próprio pelo mesmo motivo do catálogo,
+   * e com o peso invertido: aqui vem MUITO dado de UM produto — todas as
+   * imagens, a descrição inteira, os grupos de escolha e as variantes.
+   *
+   * Servir isso dentro do catálogo faria quem abre a vitrine baixar sessenta
+   * descrições e trezentas opções para ver sessenta cartões, que é o peso que o
+   * AC-415 cobra que não exista.
+   */
+  const bordaDoProduto = validar({ params: esquemaDoApelidoEProduto });
+
+  rotas.get(
+    "/:apelido/produto/:produtoId",
+    bordaDoProduto,
+    async (req, res, proximo) => {
+      try {
+        const { params } = bordaDoProduto.dados(req);
+        const acesso = opcoes.acesso ?? banco();
+        const agora = opcoes.agora?.() ?? new Date();
+
+        // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
+        const identificacao = await executarComoRequisicao(
+          { papel: "PUBLIC" },
+          () => acesso.emTransacao(() => identificarLoja(params)),
+        );
+
+        if (!identificacao.encontrada) {
+          throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+        }
+
+        // PASSO 2 — transação nova, com a loja declarada desde o início.
+        const produto = await executarComoRequisicao(
+          { papel: "PUBLIC", lojaId: identificacao.id },
+          () =>
+            acesso.emTransacao(() => produtoDaVitrine(params.produtoId, agora)),
+        );
+
+        if (produto === null) {
+          // Produto inexistente, em rascunho e de outra loja saem pela MESMA
+          // porta, e com o mesmo corpo de loja inexistente. Distinguir contaria
+          // a quem perguntasse o que existe atrás do que não está publicado —
+          // e um identificador que responde "existe mas não é seu" é um mapa do
+          // catálogo do concorrente.
+          throw erroDeDominio("nao_encontrado", { recurso: "produto" });
+        }
+
+        res.json(produto);
+      } catch (erro) {
+        proximo(erro);
+      }
+    },
+  );
 
   return rotas;
 }

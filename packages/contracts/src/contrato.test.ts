@@ -22,6 +22,7 @@ describe("contrato compartilhado", () => {
       "get /",
       "get /v1/vitrine/{apelido}",
       "get /v1/vitrine/{apelido}/catalogo",
+      "get /v1/vitrine/{apelido}/produto/{produtoId}",
     ]);
   });
 

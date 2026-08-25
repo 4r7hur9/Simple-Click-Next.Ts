@@ -12,7 +12,8 @@
     "./styles/componentes.css": "./styles/componentes.css",
     "./styles/narrativa.css": "./styles/narrativa.css",
     "./styles/landing.css": "./styles/landing.css",
-    "./styles/vitrine.css": "./styles/vitrine.css"
+    "./styles/vitrine.css": "./styles/vitrine.css",
+    "./styles/produto.css": "./styles/produto.css"
   },
   "files": [
     "src",

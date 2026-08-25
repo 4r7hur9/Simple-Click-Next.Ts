@@ -272,6 +272,8 @@ model Product {
   itensDeCarrinho CartItem[]
   categorias      ProductCategory[]
   imagens         ProductImage[]
+  variacoes       ProductVariant[]
+  gruposDeEscolha ProductOptionGroup[]
 
   @@map("products")
   @@schema("app")
@@ -696,5 +698,177 @@ model StoreHourException {
   loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   @@map("store_hour_exceptions")
+  @@schema("app")
+}
+
+/// A unidade que de fato é vendida, e a que tem estoque.
+///
+/// É AQUI QUE VARIAÇÃO DIFERE DE INGREDIENTE. Bacon acaba para o produto
+/// inteiro; camiseta tamanho M acaba só no M, e o M tem código de estoque
+/// próprio. Por isso variante é linha, e adicional é opção.
+///
+/// `stockQuantity` nulo significa "não controla estoque" — o caso da
+/// lanchonete. Zero significa "controla e acabou" — o caso da loja de roupa.
+/// As duas coisas são diferentes, e um `0` no lugar do nulo faria toda
+/// lanchonete nascer esgotada.
+model ProductVariant {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId        String    @map("store_id") @db.Uuid
+  productId      String    @map("product_id") @db.Uuid
+  name           String
+  sku            String?
+  barcode        String?
+  stockQuantity  Int?      @map("stock_quantity")
+  stockReserved  Int?      @map("stock_reserved")
+  stockMinAlert  Int?      @map("stock_min_alert")
+  weightGrams    Int?      @map("weight_grams")
+  /// A que vem escolhida ao abrir o produto: sem ela, a loja de roupa abre sem
+  /// tamanho marcado e o cliente decide antes de ver o preço.
+  isDefault      Boolean   @default(false) @map("is_default")
+  isAvailable    Boolean   @default(true) @map("is_available")
+  sortOrder      Int       @default(0) @map("sort_order")
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  produto Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  precos        ProductPrice[]
+  valoresDeEixo VariantOptionValue[]
+
+  @@map("product_variants")
+  @@schema("app")
+}
+
+/// Um preço nomeado do produto, ou da variante quando ela existe.
+///
+/// PENDURA NA VARIANTE quando há uma: pizza P e G têm preços diferentes do
+/// mesmo produto. O rótulo é do dono — "Balcão", "Terça do pastel", "Dúzia" —
+/// porque lista fixa obrigaria o negócio dele a caber no nosso vocabulário.
+model ProductPrice {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId      String    @map("store_id") @db.Uuid
+  productId    String    @map("product_id") @db.Uuid
+  variantId    String?   @map("variant_id") @db.Uuid
+  kind         String    @default("BASE")
+  label        String?
+  /// Centavos inteiros, sempre (P-005).
+  amountCents  BigInt    @map("amount_cents")
+  /// Preço de atacado que vale a partir de N unidades.
+  minQuantity  Int       @default(1) @map("min_quantity")
+  currency     String    @default("BRL") @db.Char(3)
+  sortOrder    Int       @default(0) @map("sort_order")
+  startsAt     DateTime? @map("starts_at") @db.Timestamptz(6)
+  endsAt       DateTime? @map("ends_at") @db.Timestamptz(6)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  variante ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("product_prices")
+  @@schema("app")
+}
+
+/// O grupo de escolha: sabores, adicionais, tamanho, especificação.
+///
+/// `productId` nulo significa grupo de BIBLIOTECA, reusável em vários produtos —
+/// o dono cadastra "Adicionais" uma vez e liga a vinte itens. Preenchido
+/// significa grupo que só existe naquele produto.
+///
+/// OBRIGATORIEDADE É DERIVADA de `minSelect >= 1`. Um campo próprio seria
+/// redundante e abriria a chance de divergir do mínimo.
+model OptionGroup {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId        String    @map("store_id") @db.Uuid
+  productId      String?   @map("product_id") @db.Uuid
+  name           String
+  description    String?
+  /// `INGREDIENT`, `ADDON`, `VARIATION`, `FRACTION` ou `SPEC`.
+  kind           String    @default("ADDON")
+  /// Quantas frações o grupo divide, para meio a meio e cento de salgados.
+  fractionSlots  Int?      @map("fraction_slots") @db.SmallInt
+  isActive       Boolean   @default(true) @map("is_active")
+  minSelect      Int       @default(0) @map("min_select")
+  maxSelect      Int?      @map("max_select")
+  allowRepeat    Boolean   @default(false) @map("allow_repeat")
+  maxPerOption   Int?      @map("max_per_option")
+  /// Quando verdadeiro, a escolha deste grupo resolve qual variante é vendida.
+  isVariantAxis  Boolean   @default(false) @map("is_variant_axis")
+  sortOrder      Int       @default(0) @map("sort_order")
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  itens         OptionItem[]
+  produtos      ProductOptionGroup[]
+  valoresDeEixo VariantOptionValue[]
+
+  @@map("option_groups")
+  @@schema("app")
+}
+
+/// Uma opção dentro de um grupo.
+///
+/// `priceDeltaCents` pode ser NEGATIVO: remover algo pode dar desconto.
+///
+/// Opção esgotada aparece indisponível sem bloquear o produto inteiro — só o
+/// cheddar acabou, o hambúrguer continua à venda.
+model OptionItem {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId           String    @map("store_id") @db.Uuid
+  groupId           String    @map("group_id") @db.Uuid
+  name              String
+  priceDeltaCents   BigInt    @default(0) @map("price_delta_cents")
+  /// Já vem marcada: o sabor mais pedido aparece selecionado, e quem quer outro
+  /// troca. Um clique a menos no celular, no fim do dia, é pedido a mais.
+  isDefaultSelected Boolean   @default(false) @map("is_default_selected")
+  externalCode      String?   @map("external_code")
+  isAvailable       Boolean   @default(true) @map("is_available")
+  sortOrder         Int       @default(0) @map("sort_order")
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  grupo         OptionGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  valoresDeEixo VariantOptionValue[]
+
+  @@map("option_items")
+  @@schema("app")
+}
+
+/// Liga produto a grupo, para o dono cadastrar "Adicionais" uma vez e reusar em
+/// vinte produtos. A ordem é do vínculo, e não do grupo: o mesmo grupo aparece
+/// em posições diferentes em produtos diferentes.
+model ProductOptionGroup {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  groupId   String   @map("group_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  produto Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  grupo   OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("product_option_groups")
+  @@schema("app")
+}
+
+/// Resolve a grade: qual valor de cada eixo identifica cada variante. É o que
+/// liga "P + azul" à peça que tem estoque.
+model VariantOptionValue {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId      String   @map("store_id") @db.Uuid
+  variantId    String   @map("variant_id") @db.Uuid
+  groupId      String   @map("group_id") @db.Uuid
+  optionItemId String   @map("option_item_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  variante ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  grupo    OptionGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  opcao    OptionItem     @relation(fields: [optionItemId], references: [id], onDelete: Cascade)
+
+  @@map("variant_option_values")
   @@schema("app")
 }

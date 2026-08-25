@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-25T13:06:15.089Z",
-  "gitRev": "d1f1839",
+  "timestamp": "2026-08-25T14:11:00.795Z",
+  "gitRev": "3a2ddec",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 951,
+  "testsParsed": 1005,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -40,6 +40,31 @@
     "AC-407": {
       "status": "pass",
       "testName": "loja sem catálogo não parece quebrada (AC-407) @spec:AC-407 loja recém-criada devolve listas vazias, e não erro @spec:AC-407 loja recém-criada devolve listas vazias, e não erro",
+      "method": "vitest-json"
+    },
+    "AC-410": {
+      "status": "pass",
+      "testName": "a página do produto traz o que preciso decidir (AC-410) @spec:AC-410 devolve nome, descrição, preço e os grupos de escolha na ordem do dono @spec:AC-410 devolve nome, descrição, preço e os grupos de escolha na ordem do dono",
+      "method": "vitest-json"
+    },
+    "AC-411": {
+      "status": "pass",
+      "testName": "o total acompanha as escolhas (AC-411) @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00 @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00",
+      "method": "vitest-json"
+    },
+    "AC-412": {
+      "status": "pass",
+      "testName": "escolha obrigatória pendente bloqueia (AC-412) @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta",
+      "method": "vitest-json"
+    },
+    "AC-413": {
+      "status": "pass",
+      "testName": "produto indisponível é visto, e o motivo é dito (AC-413) @spec:AC-413 produto marcado como indisponível responde ESGOTADO @spec:AC-413 produto marcado como indisponível responde ESGOTADO",
+      "method": "vitest-json"
+    },
+    "AC-414": {
+      "status": "pass",
+      "testName": "o endereço do produto pode ser compartilhado (AC-414) @spec:AC-414 a prévia do compartilhamento traz o nome e o preço @spec:AC-414 a prévia do compartilhamento traz o nome e o preço",
       "method": "vitest-json"
     },
     "AC-417": {

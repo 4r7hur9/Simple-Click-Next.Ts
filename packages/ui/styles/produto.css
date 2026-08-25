@@ -1,0 +1,406 @@
+/*
+ * A página de um produto (T-405).
+ *
+ * MESMA SUPERFÍCIE DA VITRINE, mesma régua: quem está aqui já decidiu olhar o
+ * item e quer saber o preço e apertar o botão. Nada que segure a rolagem, nada
+ * de 3D, só transição curta.
+ *
+ * O BOTÃO GRUDA NO PÉ DA TELA no celular. É a decisão de desenho que mais pesa
+ * nesta página: com quatro grupos de escolha, o botão fica a três rolagens do
+ * polegar, e a pessoa perde de vista quanto vai pagar enquanto escolhe. Grudado,
+ * o total acompanha cada marcação — que é o que o AC-411 quer dizer com "o total
+ * exibido no botão passa a R$ 46,00 imediatamente".
+ *
+ * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
+ * Depende de `theme.css`.
+ */
+
+.sc-produto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-block-size: 100svh;
+  inline-size: 100%;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+  /* O respiro do fim precisa caber o botão grudado, senão ele tampa a última
+   * opção do último grupo — que costuma ser a observação. */
+  padding-block-end: calc(var(--espaco-8) + 4.5rem);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+.sc-produto__caminho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+}
+
+/* --- a foto ---------------------------------------------------------------- */
+
+.sc-produto__figura {
+  margin: 0;
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie);
+  overflow: clip;
+}
+
+.sc-produto__foto {
+  display: block;
+  /* A proporção segura o espaço mesmo quando o catálogo não sabe a dimensão. */
+  aspect-ratio: 4 / 3;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+}
+
+.sc-produto__galeria-item {
+  flex: 0 0 auto;
+  inline-size: min(50%, 10rem);
+  scroll-snap-align: start;
+}
+
+.sc-produto__galeria-item img {
+  inline-size: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--raio-2);
+  object-fit: cover;
+}
+
+/* --- o cabeçalho ----------------------------------------------------------- */
+
+.sc-produto__cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.sc-produto__nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-produto__chamada {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-base);
+}
+
+.sc-produto__precos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.sc-produto__preco {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+
+.sc-produto__preco-anterior {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-produto__preco-convite {
+  margin: 0;
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-medio);
+}
+
+/* --- descrição e seções ---------------------------------------------------- */
+
+.sc-produto__descricao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.sc-produto__descricao p {
+  margin: 0;
+  /* Medida confortável de leitura: cerca de 65 caracteres por linha, em
+   * qualquer tela. Altura sobrando vira respiro, e nunca letra maior. */
+  max-inline-size: 65ch;
+  line-height: var(--altura-linha-base);
+}
+
+.sc-produto__secao-nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+/* --- os grupos de escolha -------------------------------------------------- */
+
+.sc-produto__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.sc-produto__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie-alta);
+}
+
+/*
+ * O grupo pendente muda BORDA e ganha faixa lateral, e não só cor de fundo:
+ * cor sozinha não é informação (P-012), e a faixa aparece mesmo em alto
+ * contraste.
+ */
+.sc-produto__grupo--pendente {
+  border-color: var(--cor-erro);
+  border-inline-start-width: 4px;
+}
+
+/* O grupo recebe foco pela rolagem do AC-412; o anel não pode sumir. */
+.sc-produto__grupo:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-produto__grupo-nome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espaco-2);
+  padding: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-produto__grupo-regra {
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-normal);
+}
+
+.sc-produto__grupo-regra--exigida {
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
+}
+
+.sc-produto__grupo-descricao {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-produto__pendencia {
+  margin: 0;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-2);
+  background: var(--cor-erro-suave);
+  color: var(--cor-erro);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.sc-produto__escolhas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.sc-produto__escolha {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  /* Alvo de toque confortável: o dedo erra a linha de 32px no ônibus. */
+  min-block-size: 2.75rem;
+  padding-inline: var(--espaco-2);
+  border-radius: var(--raio-2);
+  cursor: pointer;
+}
+
+.sc-produto__escolha:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-produto__escolha--indisponivel {
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+}
+
+.sc-produto__escolha-nome {
+  flex: 1 1 auto;
+  font-size: var(--texto-sm);
+}
+
+.sc-produto__escolha-valor {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-produto__escolha-aviso {
+  padding-inline: var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-produto__escolha-vezes {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+}
+
+/* --- a observação ---------------------------------------------------------- */
+
+.sc-produto__observacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.sc-produto__observacao textarea {
+  inline-size: 100%;
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-base);
+  resize: vertical;
+}
+
+/* --- a ação ---------------------------------------------------------------- */
+
+.sc-produto__acao {
+  position: sticky;
+  /* Grudado no PÉ, e com a área segura somada: em aparelho com barra de gestos,
+   * o botão ficaria por baixo dela. */
+  inset-block-end: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-3);
+  padding-block-end: max(var(--espaco-3), env(safe-area-inset-bottom));
+  background: var(--cor-fundo);
+  border-block-start: 1px solid var(--cor-borda);
+}
+
+.sc-produto__quantidade {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+}
+
+.sc-produto__passo {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font-size: var(--texto-lg);
+  cursor: pointer;
+}
+
+.sc-produto__passo:disabled {
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+}
+
+.sc-produto__contagem {
+  min-inline-size: 2ch;
+  text-align: center;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-produto__adicionar {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  min-block-size: 3rem;
+  padding-inline: var(--espaco-5);
+  border: none;
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+  transition: filter var(--transicao-rapida);
+}
+
+.sc-produto__adicionar:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.sc-produto__adicionar:disabled {
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+}
+
+.sc-produto__total {
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-produto__indisponivel {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* --- telas maiores --------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .sc-produto {
+    gap: var(--espaco-6);
+    padding-inline: var(--espaco-6);
+    padding-block-end: var(--espaco-8);
+  }
+
+  /*
+   * No desktop o botão DESGRUDA: a tela inteira cabe sem rolagem longa, e uma
+   * barra fixa no pé de um monitor de 27 polegadas é peso sem motivo.
+   */
+  .sc-produto__acao {
+    position: static;
+    border-block-start: none;
+  }
+
+  .sc-produto__adicionar {
+    flex: 0 1 20rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-produto__adicionar {
+    transition: none;
+  }
+}

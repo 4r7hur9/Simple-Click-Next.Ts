@@ -15,14 +15,21 @@ import {
   esquemaDeAbertura,
   esquemaDeEnderecoDaLoja,
   esquemaDeLojaPublica,
+  esquemaDeGrupoDeEscolha,
+  esquemaDeImagemDoProduto,
+  esquemaDeOpcao,
+  esquemaDeVariacao,
+  esquemaDoProduto,
   rotaDaVitrine,
   rotaDoCatalogo,
+  rotaDoProduto,
 } from "./vitrine.ts";
 
 export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeIdentificacao,
   rotaDaVitrine,
   rotaDoCatalogo,
+  rotaDoProduto,
 ]);
 
 /**
@@ -40,6 +47,11 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     LojaPublica: esquemaDeLojaPublica,
     Abertura: esquemaDeAbertura,
     EnderecoDaLoja: esquemaDeEnderecoDaLoja,
+    Produto: esquemaDoProduto,
+    GrupoDeEscolha: esquemaDeGrupoDeEscolha,
+    Opcao: esquemaDeOpcao,
+    Variacao: esquemaDeVariacao,
+    ImagemDoProduto: esquemaDeImagemDoProduto,
   });
 
 /**

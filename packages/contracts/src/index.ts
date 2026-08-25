@@ -54,10 +54,21 @@ export {
   esquemaDeProdutoNaVitrine,
   esquemaDeSecaoDaVitrine,
   rotaDoCatalogo,
+  esquemaDeGrupoDeEscolha,
+  esquemaDeImagemDoProduto,
+  esquemaDeIndisponibilidade,
+  esquemaDeOpcao,
+  esquemaDeVariacao,
+  esquemaDoApelidoEProduto,
+  esquemaDoProduto,
+  rotaDoProduto,
 } from "./vitrine.ts";
 export type {
   CatalogoDaVitrineNoContrato,
+  GrupoDeEscolhaNoContrato,
   LojaPublicaNoContrato,
   ProdutoNaVitrineNoContrato,
+  ProdutoNoContrato,
+  VariacaoNoContrato,
   Vitrine,
 } from "./vitrine.ts";

@@ -736,3 +736,229 @@ export async function porProdutoNaCategoria(opcoes: {
     );
   });
 }
+
+// ---------------------------------------------------------------------------
+// Escolhas e variações (T-405)
+// ---------------------------------------------------------------------------
+
+export interface GrupoDeTeste {
+  readonly id: string;
+  readonly lojaId: string;
+  readonly nome: string;
+  readonly minimo: number;
+  readonly maximo: number | null;
+}
+
+export interface DadosDeGrupo {
+  readonly loja: LojaDeTeste;
+  readonly nome?: string;
+  /** Obrigatoriedade é DERIVADA daqui, como no banco. */
+  readonly minimo?: number;
+  readonly maximo?: number | null;
+  readonly permiteRepetir?: boolean;
+  readonly eixoDeVariacao?: boolean;
+  readonly ativo?: boolean;
+  readonly ordem?: number;
+  /** Marca o grupo como apagado, para provar que a política o esconde. */
+  readonly apagado?: boolean;
+}
+
+/** Cria um grupo de escolha da loja (biblioteca, sem produto fixo). */
+export async function criarGrupoDeEscolha(
+  dados: DadosDeGrupo,
+): Promise<GrupoDeTeste> {
+  const sufixo = sufixoDeTeste();
+  const grupo = {
+    nome: dados.nome ?? `Grupo de teste ${sufixo}`,
+    minimo: dados.minimo ?? 0,
+    maximo: dados.maximo ?? null,
+  };
+
+  const id = await comoLoja(dados.loja, async (tx) => {
+    const inserido = await tx.query<{ id: string }>(
+      `INSERT INTO app.option_groups
+         (store_id, name, kind, min_select, max_select, allow_repeat,
+          is_variant_axis, is_active, sort_order, deleted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id`,
+      [
+        dados.loja.id,
+        grupo.nome,
+        dados.eixoDeVariacao ? "VARIATION" : "ADDON",
+        grupo.minimo,
+        grupo.maximo,
+        dados.permiteRepetir ?? false,
+        dados.eixoDeVariacao ?? false,
+        dados.ativo ?? true,
+        dados.ordem ?? 0,
+        dados.apagado === true ? new Date() : null,
+      ],
+    );
+    return exigirLinha(inserido, "grupo de escolha").id;
+  });
+
+  return { id, lojaId: dados.loja.id, ...grupo };
+}
+
+export interface OpcaoDeTeste {
+  readonly id: string;
+  readonly grupoId: string;
+  readonly nome: string;
+  readonly acrescimoCentavos: number;
+}
+
+export interface DadosDeOpcao {
+  readonly loja: LojaDeTeste;
+  readonly grupo: GrupoDeTeste;
+  readonly nome?: string;
+  /** Pode ser NEGATIVO: remover algo pode dar desconto. */
+  readonly acrescimoCentavos?: number;
+  readonly marcadaPorPadrao?: boolean;
+  readonly disponivel?: boolean;
+  readonly ordem?: number;
+  readonly apagada?: boolean;
+}
+
+/** Cria uma opção dentro de um grupo. */
+export async function criarOpcao(dados: DadosDeOpcao): Promise<OpcaoDeTeste> {
+  const sufixo = sufixoDeTeste();
+  const opcao = {
+    nome: dados.nome ?? `Opção de teste ${sufixo}`,
+    acrescimoCentavos: dados.acrescimoCentavos ?? 0,
+  };
+
+  const id = await comoLoja(dados.loja, async (tx) => {
+    const inserido = await tx.query<{ id: string }>(
+      `INSERT INTO app.option_items
+         (store_id, group_id, name, price_delta_cents, is_default_selected,
+          is_available, sort_order, deleted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        dados.loja.id,
+        dados.grupo.id,
+        opcao.nome,
+        opcao.acrescimoCentavos,
+        dados.marcadaPorPadrao ?? false,
+        dados.disponivel ?? true,
+        dados.ordem ?? 0,
+        dados.apagada === true ? new Date() : null,
+      ],
+    );
+    return exigirLinha(inserido, "opção").id;
+  });
+
+  return { id, grupoId: dados.grupo.id, ...opcao };
+}
+
+/** Liga um grupo a um produto. A ordem é do VÍNCULO, não do grupo. */
+export async function porGrupoNoProduto(opcoes: {
+  readonly loja: LojaDeTeste;
+  readonly produto: ProdutoDeTeste;
+  readonly grupo: GrupoDeTeste;
+  readonly ordem?: number;
+}): Promise<void> {
+  await comoLoja(opcoes.loja, async (tx) => {
+    await tx.query(
+      `INSERT INTO app.product_option_groups
+         (store_id, product_id, group_id, sort_order)
+       VALUES ($1, $2, $3, $4)`,
+      [opcoes.loja.id, opcoes.produto.id, opcoes.grupo.id, opcoes.ordem ?? 0],
+    );
+  });
+}
+
+export interface VariacaoDeTeste {
+  readonly id: string;
+  readonly produtoId: string;
+  readonly nome: string;
+}
+
+export interface DadosDeVariacao {
+  readonly loja: LojaDeTeste;
+  readonly produto: ProdutoDeTeste;
+  readonly nome?: string;
+  /** Preço BASE da variante, em centavos. Sem ele, a variante nasce sem preço. */
+  readonly precoCentavos?: number;
+  /** Preço promocional valendo agora. */
+  readonly precoPromocionalCentavos?: number;
+  /** Nulo é "não controla estoque"; zero é "controla e acabou". */
+  readonly estoque?: number | null;
+  readonly disponivel?: boolean;
+  readonly padrao?: boolean;
+  readonly ordem?: number;
+  readonly apagada?: boolean;
+}
+
+/** Cria uma variante do produto, com o preço dela. */
+export async function criarVariacao(
+  dados: DadosDeVariacao,
+): Promise<VariacaoDeTeste> {
+  const sufixo = sufixoDeTeste();
+  const nome = dados.nome ?? `Variação de teste ${sufixo}`;
+
+  const id = await comoLoja(dados.loja, async (tx) => {
+    const inserido = await tx.query<{ id: string }>(
+      `INSERT INTO app.product_variants
+         (store_id, product_id, name, stock_quantity, is_available,
+          is_default, sort_order, deleted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        dados.loja.id,
+        dados.produto.id,
+        nome,
+        dados.estoque === undefined ? null : dados.estoque,
+        dados.disponivel ?? true,
+        dados.padrao ?? false,
+        dados.ordem ?? 0,
+        dados.apagada === true ? new Date() : null,
+      ],
+    );
+    const variacaoId = exigirLinha(inserido, "variação").id;
+
+    if (dados.precoCentavos !== undefined) {
+      await tx.query(
+        `INSERT INTO app.product_prices
+           (store_id, product_id, variant_id, kind, amount_cents, min_quantity)
+         VALUES ($1, $2, $3, 'BASE', $4, 1)`,
+        [dados.loja.id, dados.produto.id, variacaoId, dados.precoCentavos],
+      );
+    }
+
+    if (dados.precoPromocionalCentavos !== undefined) {
+      await tx.query(
+        `INSERT INTO app.product_prices
+           (store_id, product_id, variant_id, kind, amount_cents, min_quantity)
+         VALUES ($1, $2, $3, 'PROMO', $4, 1)`,
+        [
+          dados.loja.id,
+          dados.produto.id,
+          variacaoId,
+          dados.precoPromocionalCentavos,
+        ],
+      );
+    }
+
+    return variacaoId;
+  });
+
+  return { id, produtoId: dados.produto.id, nome };
+}
+
+/** Diz qual opção de um eixo identifica uma variante — "P" em Tamanho. */
+export async function ligarVariacaoAoEixo(opcoes: {
+  readonly loja: LojaDeTeste;
+  readonly variacao: VariacaoDeTeste;
+  readonly grupo: GrupoDeTeste;
+  readonly opcao: OpcaoDeTeste;
+}): Promise<void> {
+  await comoLoja(opcoes.loja, async (tx) => {
+    await tx.query(
+      `INSERT INTO app.variant_option_values
+         (store_id, variant_id, group_id, option_item_id)
+       VALUES ($1, $2, $3, $4)`,
+      [opcoes.loja.id, opcoes.variacao.id, opcoes.grupo.id, opcoes.opcao.id],
+    );
+  });
+}

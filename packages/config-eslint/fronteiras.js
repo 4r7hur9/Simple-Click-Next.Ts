@@ -105,7 +105,17 @@ export const politicas = [
   // A camada de servidor do site é a única que fala com a API.
   permite("web-server", ["pkg-contracts", "pkg-core", "web-lib"]),
 
-  permite("web-lib", ["pkg-contracts"]),
+  // `pkg-core` entrou aqui pela T-405, e a razão é o AC-411: o total do item
+  // precisa mudar NA HORA enquanto a pessoa marca as opções, e ser idêntico ao
+  // que o servidor cobra ao adicionar. Perguntar ao servidor a cada caixinha
+  // marcada é uma ida à rede por clique, numa tela feita para rede ruim;
+  // reescrever a conta na tela é a segunda implementação que o P-006 proíbe.
+  //
+  // Então a REGRA continua sendo uma só, em `packages/core`, e a tela a chama.
+  // É `web-lib` que recebe a autorização, e não `web-features`: assim o
+  // componente continua recebendo tudo por propriedade, e o único jeito de a
+  // tela alcançar o cálculo é pelo vocabulário compartilhado.
+  permite("web-lib", ["pkg-contracts", "pkg-core"]),
 
   // Regras puras não conhecem nada do projeto — é o que as mantém testáveis
   // sem banco, sem HTTP e sem framework. Nenhuma política as autoriza a nada.

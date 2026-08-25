@@ -23,6 +23,16 @@ export type {
   HorarioDaLoja,
   SituacaoDeAbertura,
 } from "./horario-loja.ts";
+export { calcularItem } from "./item-total.ts";
+export type {
+  EscolhaFeita,
+  GrupoDeEscolha,
+  ItemDeEscolha,
+  MotivoDePendencia,
+  Pendencia,
+  PedidoDeItem,
+  TotalDoItem,
+} from "./item-total.ts";
 export { conferirCarrinho } from "./pedido-total.ts";
 export type {
   Conferencia,
