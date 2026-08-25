@@ -2,66 +2,56 @@
 
 Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 
-## Para retomar (17/08/2026)
+## Para retomar (25/08/2026)
 
 ### Onde paramos
 
-Fase **F0 (fundação)**: 10 de 20 tarefas concluídas, 245 testes passando,
-18 de 253 critérios de aceite provados.
+**Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
+0 reprovadas, 42 segundos. Nada quebrado — o intervalo desde o último commit é
+de calendário, não de defeito.
 
-| Concluída | O que entregou                                                          |
-| --------- | ----------------------------------------------------------------------- |
-| T-001     | Monorepo, ferramentas, fronteiras entre camadas verificadas pelo ESLint |
-| T-002     | Docker Compose com Traefik, `app.localhost` e `api.localhost` com TLS   |
-| T-003     | Variáveis de ambiente validadas na partida, verificador de ambientes    |
-| T-004     | Migrações, três credenciais de banco, isolamento por linha provado      |
-| T-016     | Design system com os quatro estados, contraste WCAG, regra de cor       |
-| T-019     | Esqueleto do site (Next) e da API (Express)                             |
-| T-007     | Banco de teste por arquivo, criado de molde e descartado no fim         |
-| T-010     | Isolamento provado em TODA tabela de loja, por varredura do catálogo    |
+Último trabalho: **21/08**, `e32de68` (T-402, catálogo público da vitrine).
+
+**40 de 128 tarefas concluídas.** 270 critérios de aceite declarados, 97 com
+teste anotado, 99 provados.
+
+| Feature              | Feito | Situação                                             |
+| -------------------- | ----- | ---------------------------------------------------- |
+| `fundacao`           | 22/22 | **fechada**                                          |
+| `pedido-checkout`    | 10/11 | falta a PÁGINA e a T-510 — a dependência já caiu     |
+| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
+| `vitrine-publica`    | 3/10  | T-400, T-401 e T-402 entraram; **T-403 é o próximo** |
+| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
+| `identidade-acesso`  | 0/11  | não começou                                          |
+| `catalogo-produtos`  | 0/14  | não começou                                          |
+| `pedido-operacao`    | 0/12  | não começou                                          |
+| `clientes-loja`      | 0/9   | não começou                                          |
+| `dashboard-metricas` | 0/10  | não começou                                          |
+| `admin-lojas`        | 0/10  | não começou                                          |
+| `cardapio-na-tv`     | 0/5   | não começou                                          |
+
+A contagem de critérios provados (99 de 270) parece baixa perto das tarefas
+(40 de 128), e é assim de propósito: a fundação inteira sustenta critérios de
+OUTRAS features, que só ficam provados quando a tela ou a rota daquela feature
+existir. Número que sobe devagar no começo e rápido no fim é o formato normal
+deste projeto — não é sinal de atraso.
 
 ### Próximo passo
 
-**Grupo C** — as três dependem das migrações da T-004, que já entrou:
+**T-403 — Vitrine: categorias, filtro e destaques** (AC-405, AC-406, AC-407).
 
-- **T-005** — guardas estruturais do banco (G1 a G9) no portão de qualidade
-- ~~**T-006** — caminho único de acesso ao banco, com contexto por transação~~
-  **concluída em 18/08:** `apps/api/src/core/db.ts` e `core/contexto.ts`, com
-  AC-009, AC-010 e AC-011 provados contra o PostgreSQL de teste
-- ~~**T-007** — banco de teste separado e efêmero~~ **concluída em 18/08**
+A T-402 já entregou o lado difícil: `GET /v1/vitrine/:apelido/catalogo`
+publicado no contrato, com categoria oculta e produto rascunho barrados pela
+POLÍTICA do banco, e `buscarCatalogo` em `apps/web/src/server/vitrine.ts` já
+confere a resposta contra o esquema. **Falta a tela.**
 
-- ~~**T-008** — dados de exemplo determinísticos~~ **concluída em 18/08:**
-  `packages/database/seed/`, com AC-004, AC-036, AC-037 e AC-039 provados
-  contra o PostgreSQL de teste (16 testes)
+Duas coisas se resolvem junto com ela, e estão anotadas como dívidas 59 e 60:
+o botão principal da loja aponta para uma página que não existe, e o nome
+dessa rota diverge entre o código e o mapa de telas.
 
-Depois: o resto do grupo D (T-009 construtores, T-010 prova de isolamento),
-grupo E (T-011 a T-015), grupo F (T-020) e grupo G (T-017, T-018).
-**Grupo D** — depende da T-006:
-
-- ~~**T-010** — prova de isolamento entre lojas~~ **concluída em 18/08:**
-  `apps/api/tests/isolamento-varredura.test.ts` descobre no catálogo do
-  PostgreSQL toda tabela com identificador de loja e cobra as quatro operações
-  de cada uma; `apps/api/tests/isolamento-concorrente.test.ts` leva a prova de
-  AC-011 a quatro lojas, com escrita misturada com leitura
-
-Depois: o resto do grupo D (T-008 seed, T-009 construtores), grupo E (T-011 a
-T-015), grupo F (T-020) e grupo G (T-017, T-018).
-
-**Grupo E** — as transversais da API:
-
-- ~~**T-014** — trabalho em segundo plano com repetição~~ **concluída em 18/08:**
-  `apps/api/src/jobs/`, com AC-025 e AC-026 provados contra o Redis real
-  (5 testes no projeto `filas`) e mais 14 testes de unidade. A fila de e-mail
-  está de pé de verdade; `webhook` e `impressao` ficam declaradas, e a de
-  impressão é RECUSADA no Redis por `abrirFilaEmRedis`, com a decisão de 17/08
-  na mensagem. Pendências novas: 25 a 30.
-- ~~**T-013** — borda de validação, origens autorizadas e limite de
-  tentativas~~ **concluída em 18/08:** `apps/api/src/core/validar.ts`,
-  `core/cors.ts` e `core/limite.ts`, com AC-125, AC-126, AC-127, AC-128, AC-119
-  e AC-120 provados por requisição de verdade contra Express montado (43 testes;
-  o limite fala com o Redis de teste, no projeto novo `api-redis`). A costura
-  com o auxiliar de rota da T-011 e a montagem do limite nas rotas de entrada
-  continuam por fazer — ver as dívidas 26 e 32.
+Depois: o resto da vitrine (T-404 a T-409), e a página do fechamento, que
+deixou de estar bloqueada quando a T-400 e a T-401 entraram — ver a seção do
+fim deste arquivo.
 
 ### Como subir o ambiente
 
@@ -73,10 +63,18 @@ bash infra/scripts/verificar.sh  # o portão completo
 
 ## Dívidas abertas
 
-0. **Cinco testes falham depois das migrações de catálogo e pedidos (18/08).**
+0. ~~**Cinco testes falham depois das migrações de catálogo e pedidos
+   (18/08).**~~ **Resolvido:** o portão de 25/08 passou nas 16 etapas, incluindo
+   `seed.test.ts`, `pre-deploy.int.test.ts` e os testes de integração da API.
+   As cinco divergências foram fechadas ao longo das tarefas seguintes, cada uma
+   no commit da tarefa que mexeu no esquema — que é o comportamento que os
+   testes de cobertura existem para forçar. A anotação original fica abaixo,
+   porque ela descreve o mecanismo, e o mecanismo continua valendo para a
+   próxima migração.
+
    As 20 tabelas novas fizeram testes de cobertura reprovarem — e reprovarem
    certo: eles cobram que tabela existente esteja coberta. Vinte divergências
-   foram corrigidas; estas cinco continuam:
+   foram corrigidas; estas cinco continuavam:
 
    - `seed.test.ts` — dois testes de determinismo (AC-037). O cenário compara
      dois bancos coluna a coluna e ainda encontra uma diferença de relógio: há
@@ -641,6 +639,16 @@ bash infra/scripts/verificar.sh  # o portão completo
      Enquanto isso, uma reprovação nesta etapa merece uma segunda execução
      antes de virar investigação.
 
+     **Reincidiu em 25/08**, e mais frequente do que o registrado: das três
+     execuções do portão naquele dia, uma reprovou nesta etapa. A etapa passou
+     isolada dois segundos depois (23 testes, 1,46s) e o portão inteiro passou
+     na execução seguinte (16 de 16, 40s). Duas observações que valem para a
+     próxima vez: a execução que reprovou levou 30,96s de testes contra 1,46s
+     da isolada, o que reforça a hipótese da carga; e o diário da etapa NÃO
+     foi guardado, porque `portao-lib.sh` grava em `mktemp` e o arquivo morre
+     com a execução — quem for investigar precisa capturar a saída inteira do
+     portão, e não só o resumo. Fica sem saber qual dos 23 testes caiu.
+
   Teste instável é dívida do portão inteiro: ele ensina a desconfiar do
   vermelho, e portão em que ninguém confia é portão que ninguém roda.
 
@@ -677,6 +685,69 @@ bash infra/scripts/verificar.sh  # o portão completo
     repetir isso à mão estão em `docs/publicacao.md`. O que roda no portão
     confere o que a receita MANDA acontecer: estágios separados, poda das
     dependências de desenvolvimento e usuário sem privilégio.
+
+59. **O botão principal da loja leva a uma página que não existe.**
+    `apps/web/src/app/(loja)/l/[slug]/page.tsx` passa
+    `linkDoCardapio={/l/${loja.apelido}/cardapio}` para a apresentação, e
+    `apps/web/src/app/(loja)/l/[slug]/` não tem nenhuma pasta `cardapio`. Quem
+    abrir uma loja hoje vê a apresentação inteira, aperta o único botão que ela
+    oferece e cai no 404. Não foi descuido: a T-400 entregou a apresentação e a
+    T-402 entregou o catálogo pela API, e a tela que os une é a T-403 — mas
+    entre uma e outra o caminho está cortado, e isso não aparece em teste
+    nenhum porque cada lado é provado sozinho. **A T-403 fecha.**
+
+60. **O nome da rota do cardápio diverge entre o código e o mapa de telas.** O
+    código chama de `/l/{slug}/cardapio`; a linha 2 da tabela de
+    `.spec/design/mapa-de-telas.md` declara `/l/{slug}/catalogo`, e é ela que
+    carrega os critérios AC-404 a AC-409, AC-415 a AC-417 e AC-420. Um dos dois
+    está errado e nada acusa isso hoje, porque o manifesto de rotas da T-020
+    confere COBERTURA de tela, não o nome do caminho que outra tela usa para
+    apontar. **Decidir na T-403, e mudar o lado perdedor** — o mapa é o
+    documento que manda, então trocar o código é o caminho mais barato, a menos
+    que "cardápio" seja a palavra que o dono da loja usa, e aí o mapa é que se
+    corrige. Os testes de `apps/web/tests/apresentacao-da-loja.test.tsx` fixam o
+    endereço em quatro lugares e vão precisar acompanhar.
+
+61. **`buscarCatalogo` não tem nenhum chamador.** A T-402 escreveu a ponte
+    inteira em `apps/web/src/server/vitrine.ts` — busca, conferência contra o
+    esquema, tratamento de vazio como catálogo legítimo e não como erro (AC-407)
+    — e nenhuma página a usa. Código sem chamador é código que ninguém sabe se
+    funciona de ponta a ponta, mesmo passando no portão. É a mesma T-403 que
+    resolve; fica anotado para o caso de ela demorar, porque em duas semanas
+    essa função vira "por que isso existe?".
+
+62. **A lista de adiamento do Prisma ainda tem oito tabelas.**
+    `SEM_MODELO_POR_DECISAO`, em
+    `packages/database/tests/esquema-cobre-o-banco.test.ts`, guarda
+    `product_variants`, `product_prices`, `option_groups`, `option_items`,
+    `product_option_groups`, `variant_option_values`, `attribute_definitions` e
+    `product_attributes`. A T-402 tirou três (`categories`,
+    `product_categories`, `product_images`) porque passou a lê-las. As oito que
+    ficaram são de variação, preço nomeado e grupo de escolha — ou seja, elas
+    saem da lista quando a **T-405** (detalhe do produto) e a feature
+    `catalogo-produtos` chegarem. A lista SÓ PODE ENCOLHER, e a guarda da T-021
+    reprova quem tentar acrescentar sem registrar o motivo.
+
+63. **AC-415 é citado como cumprido nas notas da T-400, e não tem teste.** A
+    nota diz que a apresentação é desenhada no servidor "que é o que o AC-415
+    exige"; a auditoria lista AC-415 (Vitrine é entregue pronta pelo servidor)
+    entre os critérios sem prova. Os dois estão certos: a página é mesmo de
+    servidor, e o critério fala da VITRINE, que ainda não existe — o dono dele é
+    a **T-407**, com medição de desempenho. Fica registrado porque nota de
+    tarefa que cita critério de outra tarefa é exatamente como um critério passa
+    a parecer provado sem estar.
+
+64. **A construção do site depende de rede para as fontes da marca.**
+    `apps/web/src/app/layout.tsx` usa `next/font/google` para
+    `Bricolage_Grotesque` e `Manrope`. A escolha está certa e é deliberada — a
+    fonte é baixada NA CONSTRUÇÃO e servida do próprio domínio, o que evita
+    entregar o endereço de quem visita a um terceiro e evita texto invisível
+    esperando o download —, mas o custo aparece do outro lado: `pnpm build` do
+    site precisa alcançar o Google, e o estágio de construção da imagem também.
+    Numa máquina sem rede, ou num ambiente de publicação com saída fechada, a
+    construção quebra num lugar que não parece ter nada a ver com fonte. Se
+    incomodar, o caminho é versionar os arquivos `.woff2` e passar a
+    `next/font/local`.
 
 ## Portão contornado
 
@@ -801,7 +872,29 @@ seguir o mesmo desenho da 0009 — o que autoriza a escrita é um dado que só o
 dono do carrinho conhece, declarado no contexto da requisição, e não o simples
 fato de haver uma loja no contexto.
 
-## A página do fechamento espera as rotas HTTP (T-502 → T-400/T-401)
+## DESTRAVADA — A página do fechamento (T-502 → T-400/T-401)
+
+**A dependência caiu em 21/08.** A T-400 e a T-401 entraram: a loja é resolvida
+pelo apelido, `GET /v1/vitrine/:apelido` está publicado no contrato e a saída
+pública já passa por lista de campos permitidos. **Não há mais nada bloqueando
+a página do fechamento** — o que falta é escrevê-la.
+
+**O que fazer, exatamente:** montar
+`apps/web/src/app/(loja)/l/[slug]/checkout/page.tsx` com `FormularioCheckout`,
+`ResumoDoPedido`, `SeletorDePagamento` e `CaixaPix`, que já existem em
+`apps/web/src/features/checkout/`, carregar a configuração da loja por
+`buscarVitrine` e ligar o envio ao caso de uso de criação do pedido. Depois
+disso a T-510 (ponta a ponta) tem página para abrir, e a feature fecha em 11/11.
+
+Uma decisão a tomar junto: a linha 5 do mapa de telas declara a rota como
+`/l/{slug}/checkout`, e é preciso conferir que o carrinho (linha 4,
+`/l/{slug}/carrinho`) não vira pré-requisito na prática — hoje o carrinho vive
+em `useCarrinho`, no navegador, sem página própria.
+
+A anotação original fica abaixo, porque ela explica POR QUE a página não nasceu
+junto com os componentes, e essa razão continua valendo para a próxima vez.
+
+### (anotação original, de quando ainda estava bloqueada)
 
 **Anotado em 19/08/2026, ao fechar a T-502.** O formulário de fechamento, os
 campos de endereço condicional e a validação de borda estão prontos e provados.
