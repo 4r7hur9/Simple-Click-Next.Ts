@@ -114,7 +114,7 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
       <main className="sc-produto">
         <nav className="sc-produto__caminho" aria-label="Você está em">
           <a className="sc-vitrine__voltar" href={produto.linkDoCatalogo}>
-            ← Cardápio
+            ← {loja.rotulos.catalogo}
           </a>
           {produto.linkDaSecao && produto.nomeDaSecao ? (
             <a className="sc-vitrine__voltar" href={produto.linkDaSecao}>
@@ -180,7 +180,11 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
           </section>
         ) : null}
 
-        <EscolhasDoProduto produto={produto} apelidoDaLoja={loja.apelido} />
+        <EscolhasDoProduto
+          produto={produto}
+          apelidoDaLoja={loja.apelido}
+          rotulos={loja.rotulos}
+        />
       </main>
     </TemaDaLoja>
   );

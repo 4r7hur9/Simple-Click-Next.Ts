@@ -160,6 +160,10 @@ export async function lojaDaVitrine(
       slug: true,
       name: true,
       verticalCode: true,
+      // O VOCABULÁRIO DO RAMO vem junto, e não numa segunda consulta: ele é
+      // usado na mesma tela, e a tabela de presets é de plataforma — a política
+      // dela deixa qualquer conexão de execução ler (migração 0003).
+      ramo: { select: { labels: true } },
       timezone: true,
       currency: true,
       fulfillmentModes: true,

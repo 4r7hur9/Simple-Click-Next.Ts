@@ -55,9 +55,20 @@ export {
   rotaDeMudarQuantidade,
   rotaDeRemoverItem,
   rotaDeVerCarrinho,
+  esquemaDaConferencia,
+  esquemaDaDeclaracao,
+  esquemaDeItemConferido,
+  esquemaDeMudancaNoCarrinho,
+  rotaDeConferirCarrinho,
+  esquemaDoContato,
+  esquemaDoPedidoCriado,
+  esquemaDoPedidoParaCriar,
+  rotaDeCriarPedido,
 } from "./carrinho.ts";
 export type {
   CarrinhoNoContrato,
+  ConferenciaNoContrato,
+  PedidoCriadoNoContrato,
   ItemParaAcrescentarNoContrato,
 } from "./carrinho.ts";
 export {
@@ -65,6 +76,7 @@ export {
   esquemaDeAbertura,
   esquemaDeEnderecoDaLoja,
   esquemaDeLojaPublica,
+  esquemaDeRotulosDoRamo,
   esquemaDoApelido,
   rotaDaVitrine,
   esquemaDoCatalogo,
@@ -79,13 +91,19 @@ export {
   esquemaDoApelidoEProduto,
   esquemaDoProduto,
   rotaDoProduto,
+  esquemaDaChavePix,
+  esquemaDaEntregaDaLoja,
+  esquemaDoFechamento,
+  rotaDoFechamento,
 } from "./vitrine.ts";
 export type {
   CatalogoDaVitrineNoContrato,
   GrupoDeEscolhaNoContrato,
   LojaPublicaNoContrato,
   ProdutoNaVitrineNoContrato,
+  FechamentoNoContrato,
   ProdutoNoContrato,
+  RotulosNoContrato,
   VariacaoNoContrato,
   Vitrine,
 } from "./vitrine.ts";

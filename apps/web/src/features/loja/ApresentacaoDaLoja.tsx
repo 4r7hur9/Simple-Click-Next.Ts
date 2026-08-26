@@ -48,8 +48,15 @@ export interface AberturaNaTela {
 export interface ApresentacaoDaLojaProps {
   readonly loja: LojaNaTela;
   readonly abertura: AberturaNaTela;
-  /** Para onde vai quem quer ver o cardápio. */
+  /** Para onde vai quem quer ver o catálogo. */
   readonly linkDoCardapio: string;
+  /**
+   * A palavra do RAMO para o catálogo — "Cardápio", "Catálogo".
+   *
+   * LOJA DE ROUPA NÃO TEM CARDÁPIO. O botão que diz "Ver o cardápio" acerta na
+   * lanchonete e erra na loja de roupas, e é o botão principal da tela.
+   */
+  readonly rotuloDoCatalogo: string;
 }
 
 const NOME_DA_ENTREGA: Record<string, string> = {
@@ -116,6 +123,7 @@ export function ApresentacaoDaLoja({
   loja,
   abertura,
   linkDoCardapio,
+  rotuloDoCatalogo,
 }: ApresentacaoDaLojaProps) {
   const temRodape =
     loja.formasDeEntrega.length > 0 || loja.enderecoParaRetirada !== null;
@@ -176,7 +184,7 @@ export function ApresentacaoDaLoja({
           */}
           <p className="sc-loja__chamada">
             <a className="sc-loja__entrar" href={linkDoCardapio}>
-              <span>Ver o cardápio</span>
+              <span>Ver o {rotuloDoCatalogo.toLowerCase()}</span>
               <svg
                 className="sc-loja__seta"
                 viewBox="0 0 20 20"
@@ -196,7 +204,8 @@ export function ApresentacaoDaLoja({
             </a>
             {!abertura.aberta ? (
               <span className="sc-loja__nota">
-                Você pode ver o cardápio e voltar depois.
+                Você pode ver o {rotuloDoCatalogo.toLowerCase()} e voltar
+                depois.
               </span>
             ) : null}
           </p>

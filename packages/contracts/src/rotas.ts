@@ -13,10 +13,19 @@ import {
   esquemaDeItemParaAcrescentar,
   esquemaDeOpcaoNoCarrinho,
   esquemaDoCarrinho,
+  esquemaDaConferencia,
+  esquemaDaDeclaracao,
+  esquemaDeItemConferido,
+  esquemaDeMudancaNoCarrinho,
   rotaDeAcrescentarItem,
+  rotaDeConferirCarrinho,
   rotaDeMudarQuantidade,
   rotaDeRemoverItem,
   rotaDeVerCarrinho,
+  esquemaDoContato,
+  esquemaDoPedidoCriado,
+  esquemaDoPedidoParaCriar,
+  rotaDeCriarPedido,
 } from "./carrinho.ts";
 import { montarCatalogo, type RotaDoContrato } from "./rota.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
@@ -25,6 +34,7 @@ import {
   esquemaDeAbertura,
   esquemaDeEnderecoDaLoja,
   esquemaDeLojaPublica,
+  esquemaDeRotulosDoRamo,
   esquemaDeGrupoDeEscolha,
   esquemaDeImagemDoProduto,
   esquemaDeOpcao,
@@ -33,6 +43,10 @@ import {
   rotaDaVitrine,
   rotaDoCatalogo,
   rotaDoProduto,
+  esquemaDaChavePix,
+  esquemaDaEntregaDaLoja,
+  esquemaDoFechamento,
+  rotaDoFechamento,
 } from "./vitrine.ts";
 
 export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
@@ -44,6 +58,9 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeAcrescentarItem,
   rotaDeMudarQuantidade,
   rotaDeRemoverItem,
+  rotaDeConferirCarrinho,
+  rotaDoFechamento,
+  rotaDeCriarPedido,
 ]);
 
 /**
@@ -59,6 +76,7 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     IdentificacaoDaApi: esquemaDeIdentificacaoDaApi,
     Vitrine: esquemaDaVitrine,
     LojaPublica: esquemaDeLojaPublica,
+    RotulosDoRamo: esquemaDeRotulosDoRamo,
     Abertura: esquemaDeAbertura,
     EnderecoDaLoja: esquemaDeEnderecoDaLoja,
     Produto: esquemaDoProduto,
@@ -70,6 +88,16 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     ItemDoCarrinho: esquemaDeItemDoCarrinho,
     OpcaoNoCarrinho: esquemaDeOpcaoNoCarrinho,
     ItemParaAcrescentar: esquemaDeItemParaAcrescentar,
+    Conferencia: esquemaDaConferencia,
+    ItemConferido: esquemaDeItemConferido,
+    MudancaNoCarrinho: esquemaDeMudancaNoCarrinho,
+    DeclaracaoDaTela: esquemaDaDeclaracao,
+    Fechamento: esquemaDoFechamento,
+    ChavePix: esquemaDaChavePix,
+    EntregaDaLoja: esquemaDaEntregaDaLoja,
+    PedidoParaCriar: esquemaDoPedidoParaCriar,
+    PedidoCriado: esquemaDoPedidoCriado,
+    ContatoDoPedido: esquemaDoContato,
   });
 
 /**

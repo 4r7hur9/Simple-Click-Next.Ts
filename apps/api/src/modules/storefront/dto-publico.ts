@@ -18,11 +18,50 @@
  * e nunca em registro de sistema (AC-904).
  */
 
+/**
+ * As palavras que o RAMO da loja usa.
+ *
+ * LOJA DE ROUPA NÃO TEM CARDÁPIO. A tela que escreve "Cardápio" para todo mundo
+ * está certa na lanchonete e errada na loja de roupas, na autopeça e na de
+ * eletrônicos — e o dono percebe isso no primeiro minuto, porque é a palavra
+ * que ele usa o dia inteiro.
+ *
+ * O vocabulário mora no banco desde a migração 0003, um conjunto por ramo, e é
+ * de lá que ele vem — não de um `if` na tela. É o que permite acrescentar um
+ * ramo novo sem tocar em componente nenhum.
+ */
+export interface RotulosDoRamo {
+  /** "Cardápio" na lanchonete, "Catálogo" na loja de roupas. */
+  readonly catalogo: string;
+  /** "Sabor", "Tamanho", "Aplicação", "Modelo", "Volume". */
+  readonly variacao: string;
+  /** "Ingredientes", "Acompanhamentos", "Especificações", "Opções". */
+  readonly grupoOpcao: string;
+  /** "O que você gostaria de comer?", "Peça, código ou aplicação". */
+  readonly buscaPlaceholder: string;
+}
+
+/**
+ * O que vale quando o ramo não diz.
+ *
+ * GENÉRICO DE PROPÓSITO. Chamar de "Catálogo" a página de uma lanchonete é
+ * impreciso; chamar de "Cardápio" a de uma autopeça é errado. Na dúvida, o
+ * padrão é o que não erra em ramo nenhum.
+ */
+export const ROTULOS_PADRAO: RotulosDoRamo = {
+  catalogo: "Catálogo",
+  variacao: "Variação",
+  grupoOpcao: "Opções",
+  buscaPlaceholder: "O que você procura?",
+};
+
 /** Como a loja aparece para quem chega pelo endereço público. */
 export interface LojaPublica {
   readonly apelido: string;
   readonly nome: string;
   readonly ramo: string;
+  /** As palavras do ramo. Nunca nulo: sem preset, valem as genéricas. */
+  readonly rotulos: RotulosDoRamo;
   readonly fusoHorario: string;
   readonly moeda: string;
   readonly formasDeEntrega: readonly string[];
@@ -55,6 +94,7 @@ export const CAMPOS_PUBLICOS_DA_LOJA: ReadonlySet<string> = new Set([
   "slug",
   "name",
   "verticalCode",
+  "ramo",
   "timezone",
   "currency",
   "fulfillmentModes",
@@ -98,6 +138,8 @@ export interface LojaDoBanco {
   readonly slug: string;
   readonly name: string;
   readonly verticalCode: string;
+  /** O preset do ramo, quando a consulta o trouxe junto. */
+  readonly ramo?: { readonly labels?: unknown } | null;
   readonly timezone: string;
   readonly currency: string;
   readonly fulfillmentModes: readonly string[];
@@ -175,12 +217,14 @@ export function lojaParaVitrine(
   loja: LojaDoBanco,
   configuracao: ConfiguracaoDoBanco = {},
 ): LojaPublica {
+  // (a montagem dos rótulos fica logo abaixo, em `rotulosDoRamo`)
   const landing = objeto(configuracao.landing);
 
   return {
     apelido: loja.slug,
     nome: loja.name,
     ramo: loja.verticalCode,
+    rotulos: rotulosDoRamo(loja.ramo?.labels),
     fusoHorario: loja.timezone,
     moeda: loja.currency,
     formasDeEntrega: [...loja.fulfillmentModes],
@@ -189,5 +233,27 @@ export function lojaParaVitrine(
     capa: texto(landing["capa"]),
     cores: coresPermitidas(configuracao.theme),
     enderecoParaRetirada: enderecoDeRetirada(loja),
+  };
+}
+
+/**
+ * Lê o vocabulário do ramo, campo a campo, com padrão genérico.
+ *
+ * A LEITURA É DEFENSIVA porque a coluna é JSON: ela aceita qualquer forma, e
+ * uma chave renomeada por engano na migração viraria `undefined` na tela — o
+ * título da página sumiria em vez de ficar impreciso. Campo a campo, o pior
+ * caso é uma palavra genérica no lugar da específica.
+ *
+ * As chaves do banco são em caixa baixa com sublinhado (`grupo_opcao`), porque
+ * é a convenção do SQL; aqui viram o que o resto do código usa.
+ */
+export function rotulosDoRamo(bruto: unknown): RotulosDoRamo {
+  const labels = objeto(bruto);
+  return {
+    catalogo: texto(labels["catalogo"]) ?? ROTULOS_PADRAO.catalogo,
+    variacao: texto(labels["variacao"]) ?? ROTULOS_PADRAO.variacao,
+    grupoOpcao: texto(labels["grupo_opcao"]) ?? ROTULOS_PADRAO.grupoOpcao,
+    buscaPlaceholder:
+      texto(labels["busca_placeholder"]) ?? ROTULOS_PADRAO.buscaPlaceholder,
   };
 }

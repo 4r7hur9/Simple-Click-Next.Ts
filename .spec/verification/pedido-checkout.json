@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-25T16:13:23.330Z",
-  "gitRev": "225b6b7",
+  "timestamp": "2026-08-26T12:05:12.204Z",
+  "gitRev": "0cddfa7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1023,
+  "testsParsed": 1069,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -24,12 +24,12 @@
     },
     "AC-503": {
       "status": "pass",
-      "testName": "o que mudou é conferido contra o catálogo vivo (AC-503) @spec:AC-503 preço que mudou desde que a tela mostrou é avisado com os dois valores @spec:AC-503 preço que mudou desde que a tela mostrou é avisado com os dois valores",
+      "testName": "a conferência cobra o que a pessoa viu (AC-503, AC-504) @spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça @spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça",
       "method": "vitest-json"
     },
     "AC-504": {
       "status": "pass",
-      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar",
+      "testName": "a conferência cobra o que a pessoa viu (AC-503, AC-504) @spec:AC-504 o total enviado pela tela NÃO entra na conta @spec:AC-504 o total enviado pela tela NÃO entra na conta",
       "method": "vitest-json"
     },
     "AC-505": {
@@ -39,12 +39,12 @@
     },
     "AC-506": {
       "status": "pass",
-      "testName": "loja que só faz retirada (AC-506) @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega @spec:AC-506 a taxa não é somada em nenhum caso quando a loja não entrega",
+      "testName": "o fechamento vê a chave PIX, e só ele (AC-510, AC-904) @spec:AC-506 loja que só faz retirada não anuncia entrega @spec:AC-506 loja que só faz retirada não anuncia entrega",
       "method": "vitest-json"
     },
     "AC-507": {
       "status": "pass",
-      "testName": "taxa de entrega no resumo (AC-507, AC-906) @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas @spec:AC-507 o resumo traz as três linhas que a tela mostra, e o total é a soma delas",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-507 entrega soma a taxa da loja, e retirada não soma nada @spec:AC-507 entrega soma a taxa da loja, e retirada não soma nada",
       "method": "vitest-json"
     },
     "AC-508": {
@@ -59,12 +59,12 @@
     },
     "AC-510": {
       "status": "pass",
-      "testName": "chave PIX exibida e copiável (AC-510) @spec:AC-510 a chave e o nome do recebedor aparecem na tela @spec:AC-510 a chave e o nome do recebedor aparecem na tela",
+      "testName": "o fechamento vê a chave PIX, e só ele (AC-510, AC-904) @spec:AC-510 a chave PIX, o tipo e o titular chegam ao fechamento @spec:AC-510 a chave PIX, o tipo e o titular chegam ao fechamento",
       "method": "vitest-json"
     },
     "AC-511": {
       "status": "pass",
-      "testName": "o pedido guarda a chave que valia no momento (AC-511) @spec:AC-511 a chave, o tipo e o recebedor são copiados para dentro do pedido @spec:AC-511 a chave, o tipo e o recebedor são copiados para dentro do pedido",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-511 pedido por PIX congela a chave que valia no momento @spec:AC-511 pedido por PIX congela a chave que valia no momento",
       "method": "vitest-json"
     },
     "AC-512": {
@@ -84,17 +84,17 @@
     },
     "AC-515": {
       "status": "pass",
-      "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra @spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra",
       "method": "vitest-json"
     },
     "AC-516": {
       "status": "pass",
-      "testName": "enviar duas vezes não cria dois pedidos (AC-516) @spec:AC-516 a segunda tentativa com a mesma chave devolve o mesmo pedido @spec:AC-516 a segunda tentativa com a mesma chave devolve o mesmo pedido",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-516 a MESMA chave devolve o MESMO pedido, e nunca um segundo @spec:AC-516 a MESMA chave devolve o MESMO pedido, e nunca um segundo",
       "method": "vitest-json"
     },
     "AC-517": {
       "status": "pass",
-      "testName": "loja fechada não aceita pedido novo (AC-517) @spec:AC-517 nenhum pedido é gravado, e a recusa diz quando a loja abre @spec:AC-517 nenhum pedido é gravado, e a recusa diz quando a loja abre",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-517 carrinho vazio é recusado, e o carrinho continua intacto @spec:AC-517 carrinho vazio é recusado, e o carrinho continua intacto",
       "method": "vitest-json"
     },
     "AC-518": {

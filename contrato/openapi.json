@@ -172,6 +172,71 @@
         }
       }
     },
+    "/v1/vitrine/{apelido}/carrinho/conferencia": {
+      "post": {
+        "operationId": "post_v1_vitrine_por_apelido_carrinho_conferencia",
+        "summary": "Confere o carrinho contra o catálogo de agora",
+        "tags": [
+          "carrinho"
+        ],
+        "description": "Confere cada item do carrinho contra o catálogo vivo e devolve o que mudou, os itens que seguem com o preço do servidor e o subtotal. Item indisponível, retirado do cardápio ou sem preço conhecido não segue. O que a tela declarou ter mostrado nunca compõe a conta: serve para dizer o que mudou e para registrar divergência.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclaracaoDaTela"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conferencia"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada recusada pelo contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vitrine/{apelido}/carrinho/itens": {
       "post": {
         "operationId": "post_v1_vitrine_por_apelido_carrinho_itens",
@@ -650,6 +715,136 @@
         }
       }
     },
+    "/v1/vitrine/{apelido}/fechamento": {
+      "get": {
+        "operationId": "get_v1_vitrine_por_apelido_fechamento",
+        "summary": "O que a loja aceita no fechamento",
+        "tags": [
+          "carrinho"
+        ],
+        "description": "Devolve as formas de pagamento que a loja aceita, a chave PIX quando ela aceita PIX, e a configuração de entrega — taxa, mínimo e entrega grátis. É a única rota do contrato que carrega a chave PIX, e ela não aparece nos dados públicos da vitrine.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fechamento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada recusada pelo contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vitrine/{apelido}/pedidos": {
+      "post": {
+        "operationId": "post_v1_vitrine_por_apelido_pedidos",
+        "summary": "Fecha o pedido",
+        "tags": [
+          "carrinho"
+        ],
+        "description": "Cria o pedido a partir do carrinho da sessão, com os preços que o servidor lê do catálogo. Recusa quando a loja está fechada, quando o carrinho está vazio e quando o subtotal não alcança o mínimo. A mesma chave de idempotência devolve o mesmo pedido, nunca um segundo.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoParaCriar"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoCriado"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Entrada recusada pelo contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflito com o estado atual do recurso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vitrine/{apelido}/produto/{produtoId}": {
       "get": {
         "operationId": "get_v1_vitrine_por_apelido_produto_por_produtoId",
@@ -856,6 +1051,307 @@
         ],
         "additionalProperties": false
       },
+      "ChavePix": {
+        "type": "object",
+        "properties": {
+          "chave": {
+            "type": "string"
+          },
+          "tipo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "titular": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "chave",
+          "tipo",
+          "titular"
+        ],
+        "additionalProperties": false
+      },
+      "Conferencia": {
+        "type": "object",
+        "properties": {
+          "mudancas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "tipo": {
+                  "type": "string",
+                  "enum": [
+                    "PRECO_SUBIU",
+                    "PRECO_CAIU",
+                    "INDISPONIVEL",
+                    "SAIU_DO_CATALOGO",
+                    "SEM_PRECO"
+                  ]
+                },
+                "deEmCentavos": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "paraEmCentavos": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "explicacao": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "itemId",
+                "nome",
+                "tipo",
+                "deEmCentavos",
+                "paraEmCentavos",
+                "explicacao"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "precisaConfirmar": {
+            "type": "boolean"
+          },
+          "itens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "produtoId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "quantidade": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "precoUnitarioCentavos": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "totalDaLinhaCentavos": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "itemId",
+                "produtoId",
+                "nome",
+                "quantidade",
+                "precoUnitarioCentavos",
+                "totalDaLinhaCentavos"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "subtotalCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "mudancas",
+          "precisaConfirmar",
+          "itens",
+          "subtotalCentavos"
+        ],
+        "additionalProperties": false
+      },
+      "ContatoDoPedido": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "telefone": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 24
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "logradouro": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "numero": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 24
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complemento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bairro": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cidade": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estado": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cep": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 9
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nome",
+          "telefone"
+        ],
+        "additionalProperties": false
+      },
+      "DeclaracaoDaTela": {
+        "type": "object",
+        "properties": {
+          "totalVistoCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "precosVistos": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "EnderecoDaLoja": {
         "type": "object",
         "properties": {
@@ -930,6 +1426,98 @@
         ],
         "additionalProperties": false
       },
+      "EntregaDaLoja": {
+        "type": "object",
+        "properties": {
+          "aceitaEntrega": {
+            "type": "boolean"
+          },
+          "aceitaRetirada": {
+            "type": "boolean"
+          },
+          "taxaCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nomeDaTaxa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gratisAcimaDeCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minimoParaEntregaCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minimoParaRetiradaCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prazoMinutos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "aceitaEntrega",
+          "aceitaRetirada",
+          "taxaCentavos",
+          "nomeDaTaxa",
+          "gratisAcimaDeCentavos",
+          "minimoParaEntregaCentavos",
+          "minimoParaRetiradaCentavos",
+          "prazoMinutos"
+        ],
+        "additionalProperties": false
+      },
       "Erro": {
         "type": "object",
         "properties": {
@@ -949,6 +1537,160 @@
         },
         "required": [
           "erro"
+        ],
+        "additionalProperties": false
+      },
+      "Fechamento": {
+        "type": "object",
+        "properties": {
+          "formasDePagamento": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pix": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "chave": {
+                    "type": "string"
+                  },
+                  "tipo": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "titular": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "chave",
+                  "tipo",
+                  "titular"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "entrega": {
+            "type": "object",
+            "properties": {
+              "aceitaEntrega": {
+                "type": "boolean"
+              },
+              "aceitaRetirada": {
+                "type": "boolean"
+              },
+              "taxaCentavos": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "nomeDaTaxa": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "gratisAcimaDeCentavos": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "minimoParaEntregaCentavos": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "minimoParaRetiradaCentavos": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "prazoMinutos": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "aceitaEntrega",
+              "aceitaRetirada",
+              "taxaCentavos",
+              "nomeDaTaxa",
+              "gratisAcimaDeCentavos",
+              "minimoParaEntregaCentavos",
+              "minimoParaRetiradaCentavos",
+              "prazoMinutos"
+            ],
+            "additionalProperties": false
+          },
+          "aceitaObservacao": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "formasDePagamento",
+          "pix",
+          "entrega",
+          "aceitaObservacao"
         ],
         "additionalProperties": false
       },
@@ -1112,6 +1854,48 @@
           "texto",
           "largura",
           "altura"
+        ],
+        "additionalProperties": false
+      },
+      "ItemConferido": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "produtoId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "precoUnitarioCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "totalDaLinhaCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "itemId",
+          "produtoId",
+          "nome",
+          "quantidade",
+          "precoUnitarioCentavos",
+          "totalDaLinhaCentavos"
         ],
         "additionalProperties": false
       },
@@ -1291,6 +2075,30 @@
           "ramo": {
             "type": "string"
           },
+          "rotulos": {
+            "type": "object",
+            "properties": {
+              "catalogo": {
+                "type": "string"
+              },
+              "variacao": {
+                "type": "string"
+              },
+              "grupoOpcao": {
+                "type": "string"
+              },
+              "buscaPlaceholder": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "catalogo",
+              "variacao",
+              "grupoOpcao",
+              "buscaPlaceholder"
+            ],
+            "additionalProperties": false
+          },
           "fusoHorario": {
             "type": "string"
           },
@@ -1435,6 +2243,7 @@
           "apelido",
           "nome",
           "ramo",
+          "rotulos",
           "fusoHorario",
           "moeda",
           "formasDeEntrega",
@@ -1443,6 +2252,65 @@
           "capa",
           "cores",
           "enderecoParaRetirada"
+        ],
+        "additionalProperties": false
+      },
+      "MudancaNoCarrinho": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "PRECO_SUBIU",
+              "PRECO_CAIU",
+              "INDISPONIVEL",
+              "SAIU_DO_CATALOGO",
+              "SEM_PRECO"
+            ]
+          },
+          "deEmCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paraEmCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "explicacao": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId",
+          "nome",
+          "tipo",
+          "deEmCentavos",
+          "paraEmCentavos",
+          "explicacao"
         ],
         "additionalProperties": false
       },
@@ -1497,6 +2365,237 @@
           "grupoNome",
           "opcaoNome",
           "quantidade"
+        ],
+        "additionalProperties": false
+      },
+      "PedidoCriado": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "numero": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "tokenPublico": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "jaExistia": {
+            "type": "boolean"
+          },
+          "subtotalCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "taxaDeEntregaCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "totalCentavos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "numero",
+          "codigo",
+          "tokenPublico",
+          "status",
+          "jaExistia",
+          "subtotalCentavos",
+          "taxaDeEntregaCentavos",
+          "totalCentavos"
+        ],
+        "additionalProperties": false
+      },
+      "PedidoParaCriar": {
+        "type": "object",
+        "properties": {
+          "contato": {
+            "type": "object",
+            "properties": {
+              "nome": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 120
+              },
+              "telefone": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 24
+              },
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "logradouro": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "numero": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 24
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "complemento": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bairro": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "cidade": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "estado": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 2
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "cep": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 9
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "nome",
+              "telefone"
+            ],
+            "additionalProperties": false
+          },
+          "entrega": {
+            "type": "string",
+            "enum": [
+              "DELIVERY",
+              "PICKUP"
+            ]
+          },
+          "formaDePagamento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trocoParaCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observacao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chaveDeIdempotencia": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 64
+          },
+          "totalVistoCentavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "contato",
+          "entrega",
+          "chaveDeIdempotencia"
         ],
         "additionalProperties": false
       },
@@ -1856,6 +2955,30 @@
         ],
         "additionalProperties": false
       },
+      "RotulosDoRamo": {
+        "type": "object",
+        "properties": {
+          "catalogo": {
+            "type": "string"
+          },
+          "variacao": {
+            "type": "string"
+          },
+          "grupoOpcao": {
+            "type": "string"
+          },
+          "buscaPlaceholder": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalogo",
+          "variacao",
+          "grupoOpcao",
+          "buscaPlaceholder"
+        ],
+        "additionalProperties": false
+      },
       "Variacao": {
         "type": "object",
         "properties": {
@@ -1946,6 +3069,30 @@
               },
               "ramo": {
                 "type": "string"
+              },
+              "rotulos": {
+                "type": "object",
+                "properties": {
+                  "catalogo": {
+                    "type": "string"
+                  },
+                  "variacao": {
+                    "type": "string"
+                  },
+                  "grupoOpcao": {
+                    "type": "string"
+                  },
+                  "buscaPlaceholder": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "catalogo",
+                  "variacao",
+                  "grupoOpcao",
+                  "buscaPlaceholder"
+                ],
+                "additionalProperties": false
               },
               "fusoHorario": {
                 "type": "string"
@@ -2091,6 +3238,7 @@
               "apelido",
               "nome",
               "ramo",
+              "rotulos",
               "fusoHorario",
               "moeda",
               "formasDeEntrega",

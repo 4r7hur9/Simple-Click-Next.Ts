@@ -33,6 +33,8 @@ export type {
   PedidoDeItem,
   TotalDoItem,
 } from "./item-total.ts";
+export { precoQueVale, precoValeAgora } from "./preco-vigente.ts";
+export type { PrecoCadastrado, PrecoVigente } from "./preco-vigente.ts";
 export { conferirCarrinho } from "./pedido-total.ts";
 export type {
   Conferencia,

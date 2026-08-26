@@ -3,15 +3,26 @@ import express, { type Express } from "express";
 import { corsDeOrigensFechadas, origensDoAmbiente } from "./core/cors.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
+import { conferirAntesDeFechar } from "./modules/cart/conferir-preco.usecase.ts";
+import { verCarrinho } from "./modules/cart/carrinho.usecase.ts";
 import {
   criarRotasDoCarrinho,
   PREFIXO_DO_CARRINHO,
   type OpcoesDoCarrinho,
 } from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
+import {
+  criarRotasDePedidos,
+  PREFIXO_DOS_PEDIDOS,
+  type OpcoesDosPedidos,
+} from "./modules/orders/pedidos.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
+import { fechamentoDaLoja } from "./modules/storefront/fechamento.usecase.ts";
 import { produtoDaVitrine } from "./modules/storefront/produto.usecase.ts";
-import { identificarLoja } from "./modules/storefront/resolver-loja.usecase.ts";
+import {
+  identificarLoja,
+  lojaDaVitrine,
+} from "./modules/storefront/resolver-loja.usecase.ts";
 import {
   criarRotasDaVitrine,
   PREFIXO_DA_VITRINE,
@@ -43,6 +54,8 @@ export interface OpcoesDoApp {
   readonly vitrine?: Partial<OpcoesDaVitrine>;
   /** O mesmo, para o carrinho. */
   readonly carrinho?: Partial<OpcoesDoCarrinho>;
+  /** O mesmo, para o fechamento do pedido. */
+  readonly pedidos?: Partial<OpcoesDosPedidos>;
 }
 
 /**
@@ -104,6 +117,39 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
       identificarLoja,
       lerProduto: (produtoId) => produtoDaVitrine(produtoId),
       ...opcoes.carrinho,
+    }),
+  );
+
+  // O FECHAMENTO É A COSTURA MAIS LARGA DO SISTEMA, e por isso ela mora aqui.
+  // Ler o carrinho e conferir preço são do módulo `cart`; resolver a loja, o
+  // horário e a configuração de entrega são de `storefront` e `stores`; criar o
+  // pedido é de `orders`. Quatro módulos, e nenhum importa o outro — a borda
+  // passa as funções, e é a única camada que enxerga os quatro.
+  app.use(
+    PREFIXO_DOS_PEDIDOS,
+    criarRotasDePedidos({
+      identificarLoja,
+      lerCarrinho: () => verCarrinho(),
+      conferirCarrinho: (carrinhoId, agora) =>
+        conferirAntesDeFechar(carrinhoId, {}, agora),
+      lerFechamento: async () => {
+        // As formas de ENTREGA vêm da loja, e não da configuração — é a coluna
+        // que o resto do sistema já usa.
+        const vitrine = await lojaDaVitrine(
+          new Date(),
+          await horarioDaLoja(new Date()),
+        );
+        if (vitrine === null) return null;
+        return fechamentoDaLoja(vitrine.publica.formasDeEntrega);
+      },
+      lerAbertura: async (agora) => {
+        const vitrine = await lojaDaVitrine(agora, await horarioDaLoja(agora));
+        return {
+          aberta: vitrine?.abertura.aberta ?? false,
+          proximaAbertura: vitrine?.abertura.proximaAbertura ?? null,
+        };
+      },
+      ...opcoes.pedidos,
     }),
   );
 

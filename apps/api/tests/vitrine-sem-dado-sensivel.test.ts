@@ -27,6 +27,7 @@ import {
   identificarLoja,
   lojaDaVitrine,
 } from "../src/modules/storefront/resolver-loja.usecase.ts";
+import { fechamentoDaLoja } from "../src/modules/storefront/fechamento.usecase.ts";
 import { horarioDaLoja } from "../src/modules/stores/horarios.usecase.ts";
 import type {
   IdentificacaoDaLoja,
@@ -78,7 +79,15 @@ beforeAll(async () => {
       ativa.id,
       JSON.stringify({ boasVindas: "Comida caseira todo dia" }),
       JSON.stringify({ primaria: "#0f6e5c" }),
-      JSON.stringify({ chavePix: CHAVE_PIX, nomeDoRecebedor: "Sabor LTDA" }),
+      // A FORMA É A DA CARGA DE EXEMPLO (`packages/database/seed/`), que nasce
+      // do modelo de dados. Este teste usava `{ chavePix, nomeDoRecebedor }`,
+      // inventado quando ele só precisava de "algo com cara de PIX" para provar
+      // que não vazava — e qualquer forma servia para isso. A T-513 passou a
+      // LER o campo, e aí a forma passou a importar.
+      JSON.stringify({
+        formas: ["PIX", "CASH"],
+        pix: { chave: CHAVE_PIX, tipo: "EMAIL", titular: "Marina Souza" },
+      }),
       JSON.stringify({ numero: WHATSAPP_DO_DONO }),
       JSON.stringify({ chaveDoAgente: "segredo-da-impressora" }),
     ],
@@ -419,7 +428,179 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         "moeda",
         "nome",
         "ramo",
+        // `rotulos` entrou na T-403/T-405 e é DECISÃO, não descuido: são as
+        // palavras do RAMO — "Cardápio" ou "Catálogo", "Sabor" ou "Tamanho".
+        // Vêm de `app.vertical_presets`, que é catálogo de PLATAFORMA: o mesmo
+        // conjunto para toda loja do ramo, sem nada do dono desta.
+        "rotulos",
       ]);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a vitrine fala a língua do RAMO (AC-400)", () => {
+  it(
+    "@spec:AC-400 lanchonete recebe cardápio; loja de roupa recebe catálogo",
+    async () => {
+      // LOJA DE ROUPA NÃO TEM CARDÁPIO. O vocabulário mora no banco, um
+      // conjunto por ramo (migração 0003), e vem por aqui — não de um `if` na
+      // tela. É o que permite acrescentar um ramo novo sem tocar em componente
+      // nenhum, inclusive nos aplicativos nativos, que leem o mesmo contrato.
+      const lanchonete = await criarLoja({
+        nome: "Pastel Bom",
+        ramo: "lanchonete",
+      });
+      const roupas = await criarLoja({ nome: "Moda Boa", ramo: "roupas" });
+
+      const daLanchonete = await visitaAnonima(lanchonete.apelido);
+      const dasRoupas = await visitaAnonima(roupas.apelido);
+
+      expect(daLanchonete.vitrine?.publica.rotulos.catalogo).toBe("Cardápio");
+      expect(dasRoupas.vitrine?.publica.rotulos.catalogo).toBe("Catálogo");
+
+      // E não é só o título: a lanchonete escolhe SABOR, a loja de roupa
+      // escolhe TAMANHO — a mesma variante no banco, duas palavras na boca de
+      // quem vende.
+      expect(daLanchonete.vitrine?.publica.rotulos.variacao).toBe("Sabor");
+      expect(dasRoupas.vitrine?.publica.rotulos.variacao).toBe("Tamanho");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-400 a autopeça pede peça por APLICAÇÃO, e a busca fala a língua dela",
+    async () => {
+      const autopecas = await criarLoja({
+        nome: "Peças Já",
+        ramo: "autopeças",
+      });
+
+      const visto = await visitaAnonima(autopecas.apelido);
+
+      expect(visto.vitrine?.publica.rotulos.variacao).toBe("Aplicação");
+      expect(visto.vitrine?.publica.rotulos.buscaPlaceholder).toContain("Peça");
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("o fechamento vê a chave PIX, e só ele (AC-510, AC-904)", () => {
+  it(
+    "@spec:AC-510 a chave PIX, o tipo e o titular chegam ao fechamento",
+    async () => {
+      // O AC-510 pede que o cliente veja a chave COM o nome do recebedor: é o
+      // que ele confere antes de mandar dinheiro para um desconhecido.
+      const visto = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: ativa.id },
+        () => fechamentoDaLoja(["DELIVERY", "PICKUP"]),
+      );
+
+      expect(visto?.pix?.chave).toBe(CHAVE_PIX);
+      expect(visto?.pix?.titular).toBe("Marina Souza");
+      expect(visto?.formasDePagamento).toContain("PIX");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-904 a MESMA chave não aparece em nada da vitrine",
+    async () => {
+      // É a outra metade do critério, e as duas provas moram lado a lado de
+      // propósito: separar faria uma envelhecer sem a outra notar.
+      const visita = await visitaAnonima(ativa.apelido);
+
+      expect(JSON.stringify(visita.vitrine?.publica)).not.toContain(CHAVE_PIX);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-904 o fechamento não devolve impressão, avisos nem o WhatsApp do dono",
+    async () => {
+      // A linha de configuração guarda tudo isso lado a lado. A função da
+      // migração 0019 devolve TRÊS colunas, e é o esquema quem garante.
+      const visto = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: ativa.id },
+        () => fechamentoDaLoja(["DELIVERY"]),
+      );
+
+      const serializado = JSON.stringify(visto);
+      expect(serializado).not.toContain(WHATSAPP_DO_DONO);
+      expect(serializado).not.toContain("printing");
+      expect(serializado).not.toContain("notifications");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-510 loja que não aceita PIX não devolve a chave, mesmo cadastrada",
+    async () => {
+      // O dono desligou o PIX; devolver a chave assim mesmo é entregar um dado
+      // que ele decidiu não usar.
+      const semPix = await criarLoja({ nome: "Só Dinheiro" });
+      await migrador.query(
+        `INSERT INTO app.store_settings (store_id, payment)
+         VALUES ($1, $2)
+         ON CONFLICT (store_id) DO UPDATE SET payment = EXCLUDED.payment`,
+        [
+          semPix.id,
+          JSON.stringify({
+            formas: ["CASH"],
+            pix: { chave: "nao-deveria-sair@pix.test", titular: "Alguém" },
+          }),
+        ],
+      );
+
+      const visto = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: semPix.id },
+        () => fechamentoDaLoja(["PICKUP"]),
+      );
+
+      expect(visto?.pix).toBeNull();
+      expect(JSON.stringify(visto)).not.toContain("nao-deveria-sair");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-507 a taxa NULA é 'a combinar', e não taxa zero",
+    async () => {
+      // Ler `?? 0` transformaria uma na outra, e a loja passaria a entregar de
+      // graça sem ter decidido isso.
+      const semTaxa = await criarLoja({ nome: "Frete a Combinar" });
+      await migrador.query(
+        `INSERT INTO app.store_settings (store_id, delivery)
+         VALUES ($1, '{}'::jsonb)
+         ON CONFLICT (store_id) DO UPDATE SET delivery = EXCLUDED.delivery`,
+        [semTaxa.id],
+      );
+
+      const visto = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: semTaxa.id },
+        () => fechamentoDaLoja(["DELIVERY"]),
+      );
+
+      expect(visto?.entrega.taxaCentavos).toBeNull();
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-506 loja que só faz retirada não anuncia entrega",
+    async () => {
+      const visto = await comoRequisicao(
+        acesso,
+        { papel: "PUBLIC", lojaId: ativa.id },
+        () => fechamentoDaLoja(["PICKUP"]),
+      );
+
+      expect(visto?.entrega.aceitaEntrega).toBe(false);
+      expect(visto?.entrega.aceitaRetirada).toBe(true);
     },
     ESPERA_LONGA,
   );

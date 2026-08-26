@@ -169,3 +169,190 @@ describe("o que mudou é dito item por item (AC-503)", () => {
     expect(conferido.subtotalEmCentavos).toBe(5000);
   });
 });
+
+describe("a conferência inclui o que a pessoa escolheu (AC-503)", () => {
+  const PRODUTO: ProdutoAgora = {
+    produtoId: "p1",
+    nome: "X-Salada",
+    precoEmCentavos: 2000,
+    disponivel: true,
+  };
+
+  it("@spec:AC-503 os acréscimos das opções entram na linha, e não saem de graça", () => {
+    // Sem isto o bacon de R$ 3,00 sairia por zero: o carrinho guarda a escolha,
+    // e o preço dela mora no catálogo.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 2,
+          acrescimosEmCentavos: 300,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.itensQueSeguem[0]?.precoUnitarioEmCentavos).toBe(2300);
+    expect(conferido.subtotalEmCentavos).toBe(4600);
+  });
+
+  it("@spec:AC-503 o preço da VARIANTE vence o do produto", () => {
+    // Pizza P e G são o mesmo produto com preços diferentes.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: 6000,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.subtotalEmCentavos).toBe(6000);
+  });
+
+  it("@spec:AC-503 duas linhas do mesmo produto podem ter preços diferentes", () => {
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: 4000,
+        },
+        {
+          itemId: "i2",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: 6000,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.subtotalEmCentavos).toBe(10000);
+  });
+
+  it("@spec:AC-503 item sem preço conhecido é RETIRADO, e não segue por zero", () => {
+    // Tratar preço desconhecido como zero deixa o pedido sair de graça, e a
+    // cozinha preparar.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: null,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.itensQueSeguem).toEqual([]);
+    expect(conferido.subtotalEmCentavos).toBe(0);
+    expect(conferido.mudancas[0]?.tipo).toBe("SEM_PRECO");
+    expect(conferido.precisaConfirmar).toBe(true);
+  });
+
+  it("@spec:AC-503 produto sem preço publicado também é retirado", () => {
+    const conferido = conferirCarrinho(
+      [{ itemId: "i1", produtoId: "p1", quantidade: 1 }],
+      [{ ...PRODUTO, precoEmCentavos: null }],
+    );
+
+    expect(conferido.itensQueSeguem).toEqual([]);
+    expect(conferido.mudancas[0]?.tipo).toBe("SEM_PRECO");
+  });
+
+  it("@spec:AC-503 a mudança de preço compara o unitário COM os acréscimos", () => {
+    // A tela mostrou R$ 23,00 (produto + bacon). Se o bacon subir para R$ 4,00,
+    // o que mudou é o unitário — e é ele que precisa ser comparado.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          acrescimosEmCentavos: 400,
+          precoVistoEmCentavos: 2300,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.mudancas[0]?.tipo).toBe("PRECO_SUBIU");
+    expect(conferido.mudancas[0]?.deEmCentavos).toBe(2300);
+    expect(conferido.mudancas[0]?.paraEmCentavos).toBe(2400);
+  });
+
+  it("@spec:AC-503 sem mudança nenhuma, o acréscimo não vira falso alarme", () => {
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          acrescimosEmCentavos: 300,
+          precoVistoEmCentavos: 2300,
+        },
+      ],
+      [PRODUTO],
+    );
+
+    expect(conferido.mudancas).toEqual([]);
+    expect(conferido.precisaConfirmar).toBe(false);
+  });
+});
+
+describe("o item conferido separa o que veio das opções (AC-515)", () => {
+  it("@spec:AC-503 o acréscimo sai destacado, para o pedido poder congelá-lo", () => {
+    // O pedido guarda os dois: o preço do produto e o que as escolhas somaram.
+    // É o que faz o cupom mostrar "X-Salada R$ 20,00 / + Bacon R$ 3,00" em vez
+    // de um total sem explicação.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          acrescimosEmCentavos: 300,
+        },
+      ],
+      [
+        {
+          produtoId: "p1",
+          nome: "X-Salada",
+          precoEmCentavos: 2000,
+          disponivel: true,
+        },
+      ],
+    );
+
+    const item = conferido.itensQueSeguem[0];
+    expect(item?.precoUnitarioEmCentavos).toBe(2300);
+    expect(item?.acrescimosEmCentavos).toBe(300);
+    // O preço do produto se recupera pela subtração, sem uma terceira coluna.
+    expect(
+      (item?.precoUnitarioEmCentavos ?? 0) - (item?.acrescimosEmCentavos ?? 0),
+    ).toBe(2000);
+  });
+
+  it("@spec:AC-503 item sem opção nenhuma tem acréscimo zero, e não indefinido", () => {
+    const conferido = conferirCarrinho(
+      [{ itemId: "i1", produtoId: "p1", quantidade: 1 }],
+      [
+        {
+          produtoId: "p1",
+          nome: "Guaraná",
+          precoEmCentavos: 600,
+          disponivel: true,
+        },
+      ],
+    );
+
+    expect(conferido.itensQueSeguem[0]?.acrescimosEmCentavos).toBe(0);
+  });
+});

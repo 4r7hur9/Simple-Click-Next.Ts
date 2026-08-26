@@ -22,6 +22,9 @@ import { prepararProduto, resumoParaCompartilhar } from "../src/server/produto";
 
 const LOJA = "sabor-e-cia";
 
+/** As palavras do ramo. A lanchonete escolhe SABOR; a loja de roupa, TAMANHO. */
+const ROTULOS = { variacao: "Sabor" };
+
 const DA_API: ProdutoNoContrato = {
   id: "11111111-1111-4111-8111-111111111111",
   apelido: "x-salada",
@@ -133,7 +136,13 @@ function montar(produto: ReturnType<typeof naTela>) {
   let raiz: Root;
   act(() => {
     raiz = createRoot(caixa);
-    raiz.render(<EscolhasDoProduto produto={produto} apelidoDaLoja={LOJA} />);
+    raiz.render(
+      <EscolhasDoProduto
+        produto={produto}
+        apelidoDaLoja={LOJA}
+        rotulos={ROTULOS}
+      />,
+    );
   });
   return {
     caixa,
@@ -277,6 +286,7 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
         <EscolhasDoProduto
           produto={naTela()}
           apelidoDaLoja={LOJA}
+          rotulos={ROTULOS}
           aoAdicionar={levar}
         />,
       );
@@ -342,6 +352,7 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
         <EscolhasDoProduto
           produto={naTela()}
           apelidoDaLoja={LOJA}
+          rotulos={ROTULOS}
           aoAdicionar={levar}
         />,
       );
@@ -473,7 +484,11 @@ describe("acessibilidade da página do produto (AC-410)", () => {
 
     act(() => {
       createRoot(alvo).render(
-        <EscolhasDoProduto produto={naTela()} apelidoDaLoja={LOJA} />,
+        <EscolhasDoProduto
+          produto={naTela()}
+          apelidoDaLoja={LOJA}
+          rotulos={ROTULOS}
+        />,
       );
     });
 

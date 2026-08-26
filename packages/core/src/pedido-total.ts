@@ -22,18 +22,54 @@ export interface ItemParaConferir {
   readonly quantidade: number;
   /** O que a tela mostrou da última vez. Só serve para dizer o que mudou. */
   readonly precoVistoEmCentavos?: number | null;
+  /**
+   * A soma dos acréscimos das opções escolhidas, POR UNIDADE, lida do catálogo
+   * AGORA — e não copiada do carrinho.
+   *
+   * Sem isto o bacon de R$ 3,00 sairia de graça: o carrinho guarda a escolha, o
+   * preço dela mora em `option_items`, e conferir só o preço do produto cobra
+   * menos do que a pessoa viu. Entrou quando o carrinho passou a receber itens
+   * com opção de verdade (T-511); antes, nenhum caminho chegava aqui com uma.
+   */
+  readonly acrescimosEmCentavos?: number;
+  /**
+   * O preço base DESTE item, quando ele não é o do produto.
+   *
+   * Existe por causa da VARIANTE: pizza P e G são o mesmo produto com preços
+   * diferentes, e o preço mora na variante. Duas linhas do carrinho podem ser
+   * o mesmo produto com preços legítimos diferentes — o que uma tabela por
+   * produto não consegue expressar.
+   *
+   * `undefined` significa "use o do produto". `null` significa "o servidor
+   * procurou e não achou preço" — a variante escolhida sumiu do cardápio —, e
+   * o item é retirado com explicação em vez de seguir de graça.
+   */
+  readonly precoBaseEmCentavos?: number | null;
 }
 
 /** O produto como o catálogo o descreve AGORA. */
 export interface ProdutoAgora {
   readonly produtoId: string;
   readonly nome: string;
-  readonly precoEmCentavos: number;
+  /**
+   * NULO quando não dá para saber o preço: produto sem preço publicado, ou
+   * produto com variantes cuja variante escolhida sumiu.
+   *
+   * Nulo NÃO é zero, e a diferença é dinheiro. Tratar preço desconhecido como
+   * zero deixa o item seguir de graça — e o pedido sai, e a cozinha prepara.
+   * Nulo faz o item ser retirado com explicação, que é o comportamento certo
+   * quando o sistema não sabe quanto cobrar.
+   */
+  readonly precoEmCentavos: number | null;
   readonly disponivel: boolean;
 }
 
 export type TipoDeMudanca =
-  "PRECO_SUBIU" | "PRECO_CAIU" | "INDISPONIVEL" | "SAIU_DO_CATALOGO";
+  | "PRECO_SUBIU"
+  | "PRECO_CAIU"
+  | "INDISPONIVEL"
+  | "SAIU_DO_CATALOGO"
+  | "SEM_PRECO";
 
 /** Uma mudança que a pessoa precisa ver antes de confirmar. */
 export interface MudancaNoCarrinho {
@@ -52,7 +88,17 @@ export interface ItemPrecificado {
   readonly produtoId: string;
   readonly nome: string;
   readonly quantidade: number;
+  /** Preço de uma unidade, JÁ com os acréscimos das opções. */
   readonly precoUnitarioEmCentavos: number;
+  /**
+   * Quanto do unitário veio das OPÇÕES.
+   *
+   * Sai separado porque o PEDIDO guarda os dois: o preço do produto e o que as
+   * escolhas somaram. É o que permite o cupom impresso mostrar "X-Salada
+   * R$ 20,00 / + Bacon R$ 3,00" em vez de um total sem explicação — e é o que
+   * o dono confere quando o cliente reclama do valor.
+   */
+  readonly acrescimosEmCentavos: number;
   readonly totalDaLinhaEmCentavos: number;
 }
 
@@ -84,19 +130,23 @@ function emReais(centavos: number): string {
 function mudancaDePreco(
   item: ItemParaConferir,
   produto: ProdutoAgora,
+  unitarioAgora: number,
 ): MudancaNoCarrinho | null {
   const visto = item.precoVistoEmCentavos;
   if (visto === null || visto === undefined) return null;
-  if (visto === produto.precoEmCentavos) return null;
+  // A comparação é com o unitário COM os acréscimos, porque é isso que a tela
+  // mostrou. Comparar só o preço do produto acusaria mudança onde não houve
+  // (ou calaria a mudança do preço de um adicional).
+  if (visto === unitarioAgora) return null;
 
-  const subiu = produto.precoEmCentavos > visto;
+  const subiu = unitarioAgora > visto;
   return {
     itemId: item.itemId,
     nome: produto.nome,
     tipo: subiu ? "PRECO_SUBIU" : "PRECO_CAIU",
     deEmCentavos: visto,
-    paraEmCentavos: produto.precoEmCentavos,
-    explicacao: `${produto.nome} ${subiu ? "subiu" : "baixou"} de ${emReais(visto)} para ${emReais(produto.precoEmCentavos)}.`,
+    paraEmCentavos: unitarioAgora,
+    explicacao: `${produto.nome} ${subiu ? "subiu" : "baixou"} de ${emReais(visto)} para ${emReais(unitarioAgora)}.`,
   };
 }
 
@@ -149,7 +199,28 @@ export function conferirCarrinho(
       continue;
     }
 
-    const doPreco = mudancaDePreco(item, produto);
+    const base =
+      item.precoBaseEmCentavos === undefined
+        ? produto.precoEmCentavos
+        : item.precoBaseEmCentavos;
+
+    if (base === null) {
+      // Preço desconhecido NÃO segue por zero. Quem esqueceu de precificar não
+      // vende por engano, e a variante que sumiu não sai de graça.
+      mudancas.push({
+        itemId: item.itemId,
+        nome: produto.nome,
+        tipo: "SEM_PRECO",
+        explicacao: `${produto.nome} está sem preço no cardápio e foi retirado do seu carrinho.`,
+      });
+      continue;
+    }
+
+    // O preço é o do CATÁLOGO, e o acréscimo também: os dois são lidos agora.
+    // O que veio da tela não entra na conta (P-006).
+    const unitario = base + (item.acrescimosEmCentavos ?? 0);
+
+    const doPreco = mudancaDePreco(item, produto, unitario);
     if (doPreco !== null) mudancas.push(doPreco);
 
     itensQueSeguem.push({
@@ -157,9 +228,9 @@ export function conferirCarrinho(
       produtoId: produto.produtoId,
       nome: produto.nome,
       quantidade: item.quantidade,
-      // O preço é o do CATÁLOGO. O que veio da tela não entra na conta.
-      precoUnitarioEmCentavos: produto.precoEmCentavos,
-      totalDaLinhaEmCentavos: produto.precoEmCentavos * item.quantidade,
+      precoUnitarioEmCentavos: unitario,
+      acrescimosEmCentavos: item.acrescimosEmCentavos ?? 0,
+      totalDaLinhaEmCentavos: unitario * item.quantidade,
     });
   }
 

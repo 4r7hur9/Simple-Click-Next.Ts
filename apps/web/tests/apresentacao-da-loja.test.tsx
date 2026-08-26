@@ -49,6 +49,7 @@ function desenhar(
       loja={LOJA}
       abertura={ABERTA}
       linkDoCardapio="/l/sabor-e-cia/catalogo"
+      rotuloDoCatalogo="Cardápio"
       {...sobrescrita}
     />,
   );
@@ -266,5 +267,41 @@ describe("acessibilidade da apresentação (AC-400)", () => {
     for (let i = 1; i < niveis.length; i += 1) {
       expect((niveis[i] ?? 0) - (niveis[i - 1] ?? 0)).toBeLessThanOrEqual(1);
     }
+  });
+});
+
+describe("a palavra é a do RAMO da loja (AC-400)", () => {
+  it("@spec:AC-400 loja de roupa não tem cardápio: o botão diz catálogo", () => {
+    // Era o defeito: a tela escrevia "Cardápio" para todo mundo. Acerta na
+    // lanchonete e erra na loja de roupas, na autopeça e na de eletrônicos — e
+    // o dono percebe no primeiro minuto, porque é a palavra que ele usa o dia
+    // inteiro.
+    const lido = comoSeLe(desenhar({ rotuloDoCatalogo: "Catálogo" }));
+
+    expect(lido).toContain("Ver o catálogo");
+    expect(lido).not.toContain("cardápio");
+  });
+
+  it("@spec:AC-400 a lanchonete continua dizendo cardápio", () => {
+    const lido = comoSeLe(desenhar({ rotuloDoCatalogo: "Cardápio" }));
+
+    expect(lido).toContain("Ver o cardápio");
+  });
+
+  it("@spec:AC-400 a nota de loja fechada usa a mesma palavra", () => {
+    // Duas palavras diferentes na mesma tela para a mesma coisa é pior que uma
+    // palavra errada: parece que são dois lugares distintos.
+    const lido = comoSeLe(
+      desenhar({
+        rotuloDoCatalogo: "Catálogo",
+        abertura: {
+          aberta: false,
+          proximaAbertura: "abre amanhã às 9h",
+          motivo: "FORA_DO_HORARIO",
+        },
+      }),
+    );
+
+    expect(lido).toContain("Você pode ver o catálogo e voltar depois.");
   });
 });

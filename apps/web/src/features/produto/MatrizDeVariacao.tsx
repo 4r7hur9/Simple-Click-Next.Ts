@@ -20,6 +20,14 @@
 import type { GrupoNaTela, VariacaoNaTela } from "../../lib/produto.ts";
 
 export interface MatrizDeVariacaoProps {
+  /**
+   * A palavra do RAMO para variação: "Sabor" na lanchonete, "Tamanho" na loja
+   * de roupas, "Aplicação" na autopeça, "Modelo" na de eletrônicos.
+   *
+   * Só é usada na lista simples — quando o produto declara EIXOS, cada eixo já
+   * tem nome próprio dado pelo dono, e sobrescrevê-lo seria pior que genérico.
+   */
+  readonly rotuloDaVariacao: string;
   readonly variacoes: readonly VariacaoNaTela[];
   /** Os grupos marcados como eixo de variação. Vazio usa a lista simples. */
   readonly eixos: readonly GrupoNaTela[];
@@ -33,6 +41,7 @@ export interface MatrizDeVariacaoProps {
 }
 
 export function MatrizDeVariacao({
+  rotuloDaVariacao,
   variacoes,
   eixos,
   escolhaDeEixo,
@@ -46,7 +55,7 @@ export function MatrizDeVariacao({
   if (eixos.length === 0) {
     return (
       <fieldset className="sc-produto__grupo">
-        <legend className="sc-produto__grupo-nome">Opções</legend>
+        <legend className="sc-produto__grupo-nome">{rotuloDaVariacao}</legend>
         <div className="sc-produto__escolhas">
           {variacoes.map((variacao) => (
             <label

@@ -42,11 +42,37 @@ export const esquemaDeAbertura = z.strictObject({
   explicacaoDaExcecao: z.string().nullable().optional(),
 });
 
+/**
+ * As palavras que o RAMO da loja usa (AC-400).
+ *
+ * LOJA DE ROUPA NÃO TEM CARDÁPIO. A tela que escreve "Cardápio" para todo mundo
+ * acerta na lanchonete e erra na loja de roupas, na autopeça e na de
+ * eletrônicos — e o dono percebe no primeiro minuto, porque é a palavra que ele
+ * usa o dia inteiro.
+ *
+ * Vem da API, e não de um `if` na tela: o vocabulário mora no banco, um
+ * conjunto por ramo, e é isso que permite acrescentar um ramo novo sem tocar em
+ * componente nenhum — inclusive nos aplicativos nativos, que leem este mesmo
+ * contrato.
+ */
+export const esquemaDeRotulosDoRamo = z.strictObject({
+  /** "Cardápio" na lanchonete, "Catálogo" na loja de roupas. */
+  catalogo: z.string(),
+  /** "Sabor", "Tamanho", "Aplicação", "Modelo", "Volume". */
+  variacao: z.string(),
+  /** "Ingredientes", "Acompanhamentos", "Especificações", "Opções". */
+  grupoOpcao: z.string(),
+  buscaPlaceholder: z.string(),
+});
+
+export type RotulosNoContrato = z.infer<typeof esquemaDeRotulosDoRamo>;
+
 /** A loja como a vitrine a mostra. */
 export const esquemaDeLojaPublica = z.strictObject({
   apelido: z.string(),
   nome: z.string(),
   ramo: z.string(),
+  rotulos: esquemaDeRotulosDoRamo,
   fusoHorario: z.string(),
   moeda: z.string(),
   formasDeEntrega: z.array(z.string()),
@@ -322,5 +348,70 @@ export const rotaDoProduto = definirRota({
     "Devolve um produto publicado de uma loja: imagens, descrição, preço, grupos de escolha com o que é obrigatório, e as variantes com preço e disponibilidade. Produto não publicado, de categoria oculta ou de loja suspensa responde 404, sem distinguir os casos.",
   parametros: esquemaDoApelidoEProduto,
   resposta: esquemaDoProduto,
+  errosPossiveis: [400],
+});
+
+// ---------------------------------------------------------------------------
+// O fechamento
+// ---------------------------------------------------------------------------
+
+/**
+ * A chave PIX da loja (AC-510).
+ *
+ * ELA SÓ EXISTE NESTA ROTA, e é a única do contrato inteiro que a carrega. O
+ * AC-904 manda a chave não aparecer nos dados públicos da vitrine; o AC-510
+ * manda ela aparecer quando o cliente escolhe pagar com PIX. Os dois convivem
+ * porque são MOMENTOS diferentes: a chave não é segredo de quem vai pagar, é
+ * segredo de quem está varrendo a plataforma para juntar chaves.
+ */
+export const esquemaDaChavePix = z.strictObject({
+  chave: z.string(),
+  /** `EMAIL`, `CPF`, `CNPJ`, `TELEFONE`, `ALEATORIA`. */
+  tipo: z.string().nullable(),
+  /** O nome de quem recebe — é o que a pessoa confere antes de pagar. */
+  titular: z.string().nullable(),
+});
+
+/** O que a loja configurou sobre entrega (AC-506, AC-507). */
+export const esquemaDaEntregaDaLoja = z.strictObject({
+  aceitaEntrega: z.boolean(),
+  aceitaRetirada: z.boolean(),
+  /** Zero é taxa zero; NULO é "a combinar". Os dois são diferentes. */
+  taxaCentavos: z.int().nonnegative().nullable(),
+  nomeDaTaxa: z.string().nullable(),
+  gratisAcimaDeCentavos: z.int().nonnegative().nullable(),
+  minimoParaEntregaCentavos: z.int().nonnegative().nullable(),
+  minimoParaRetiradaCentavos: z.int().nonnegative().nullable(),
+  prazoMinutos: z.int().nonnegative().nullable(),
+});
+
+/** O que o fechamento da loja oferece. */
+export const esquemaDoFechamento = z.strictObject({
+  /** `PIX`, `CASH`, `CARD_ON_DELIVERY`, na ordem que o dono definiu. */
+  formasDePagamento: z.array(z.string()),
+  pix: esquemaDaChavePix.nullable(),
+  entrega: esquemaDaEntregaDaLoja,
+  aceitaObservacao: z.boolean(),
+});
+
+export type FechamentoNoContrato = z.infer<typeof esquemaDoFechamento>;
+
+/**
+ * `GET /v1/vitrine/:apelido/fechamento` — o que a loja aceita e como cobra.
+ *
+ * SEPARADA DA APRESENTAÇÃO PORQUE CARREGA A CHAVE PIX. Juntá-la à vitrine
+ * entregaria a chave a todo mundo que abrisse a página da loja, que é
+ * exatamente o que o AC-904 proíbe — e ninguém que só quer ver o cardápio
+ * precisa saber a forma de pagamento.
+ */
+export const rotaDoFechamento = definirRota({
+  metodo: "get",
+  caminho: "/v1/vitrine/:apelido/fechamento",
+  etiqueta: "carrinho",
+  resumo: "O que a loja aceita no fechamento",
+  descricao:
+    "Devolve as formas de pagamento que a loja aceita, a chave PIX quando ela aceita PIX, e a configuração de entrega — taxa, mínimo e entrega grátis. É a única rota do contrato que carrega a chave PIX, e ela não aparece nos dados públicos da vitrine.",
+  parametros: esquemaDoApelido,
+  resposta: esquemaDoFechamento,
   errosPossiveis: [400],
 });

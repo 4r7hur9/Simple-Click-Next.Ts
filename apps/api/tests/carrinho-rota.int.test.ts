@@ -21,6 +21,7 @@ import {
   criarLoja,
   criarOpcao,
   criarProduto,
+  criarVariacao,
   porGrupoNoProduto,
 } from "@simpleclick/testing";
 import type {
@@ -32,7 +33,7 @@ import type {
 
 import { abrirAcessoDaAplicacao, ESPERA_LONGA } from "./apoio-de-isolamento.ts";
 import { criarApp } from "../src/app.ts";
-import { COOKIE_DA_SESSAO } from "../src/modules/cart/sessao-do-carrinho.ts";
+import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 
 /**
@@ -68,6 +69,7 @@ beforeAll(async () => {
     origens: [ORIGEM],
     vitrine: { acesso },
     carrinho: { acesso },
+    pedidos: { acesso },
   });
 
   loja = await criarLoja({ nome: "Lanchonete do Carrinho" });
@@ -101,6 +103,35 @@ beforeAll(async () => {
   });
   await porGrupoNoProduto({ loja, produto: lanche, grupo: ponto });
   aoPonto = await criarOpcao({ loja, grupo: ponto, nome: "Ao ponto" });
+
+  // A LOJA PRECISA PODER VENDER. Sem configuração de entrega ela não aceita
+  // nem entrega nem retirada — e o fechamento recusa, corretamente. Sem
+  // horário ela está fechada, e o fechamento recusa de novo. As duas recusas
+  // são o comportamento certo; o que faltava era o cenário.
+  await migrador.query(
+    `INSERT INTO app.store_settings (store_id, delivery, payment)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (store_id) DO UPDATE
+       SET delivery = EXCLUDED.delivery, payment = EXCLUDED.payment`,
+    [
+      loja.id,
+      JSON.stringify({ taxaPadraoCents: 700, retiradaNoLocal: true }),
+      JSON.stringify({
+        formas: ["PIX", "CASH"],
+        pix: { chave: "loja@pix.test", tipo: "EMAIL", titular: "Dona Zica" },
+      }),
+    ],
+  );
+
+  // Aberta todos os dias, o dia inteiro: o que se prova aqui é o fechamento,
+  // e não o horário — que tem prova própria na T-903.
+  for (let dia = 0; dia <= 6; dia += 1) {
+    await migrador.query(
+      `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
+       VALUES ($1, $2, '00:00', '23:59')`,
+      [loja.id, dia],
+    );
+  }
 }, ESPERA_LONGA);
 
 afterAll(async () => {
@@ -513,6 +544,428 @@ describe("loja inexistente responde como loja inexistente (AC-402)", () => {
       );
 
       expect(resposta.status).toBe(404);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a conferência cobra o que a pessoa viu (AC-503, AC-504)", () => {
+  /** POST na conferência, com a origem autorizada. */
+  function conferir(corpo: unknown, token: string) {
+    return request(app)
+      .post(caminho("/conferencia"))
+      .set("Origin", ORIGEM)
+      .set("Cookie", `${COOKIE_DA_SESSAO}=${token}`)
+      .send(corpo as object);
+  }
+
+  it(
+    "@spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça",
+    async () => {
+      // Sem isto o bacon de R$ 3,00 seria conferido por zero: o carrinho guarda
+      // a escolha, e o preço dela mora no catálogo.
+      const criado = await acrescentar(
+        itemValido({
+          escolhas: [
+            { grupoId: ponto.id, opcaoId: aoPonto.id, quantidade: 1 },
+            { grupoId: adicionais.id, opcaoId: bacon.id, quantidade: 1 },
+          ],
+        }),
+      );
+      const token = tokenDe(criado);
+
+      const resposta = await conferir({}, token);
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.subtotalCentavos).toBe(
+        PRECO_DO_LANCHE + ACRESCIMO_DO_BACON,
+      );
+      expect(resposta.body.itens[0].precoUnitarioCentavos).toBe(2300);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-503 sem mudança nenhuma, a conferência não pede confirmação",
+    async () => {
+      const criado = await acrescentar(itemValido());
+      const token = tokenDe(criado);
+
+      const resposta = await conferir(
+        { precosVistos: { [criado.body.itens[0].id]: PRECO_DO_LANCHE } },
+        token,
+      );
+
+      expect(resposta.body.precisaConfirmar).toBe(false);
+      expect(resposta.body.mudancas).toEqual([]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-503 preço que mudou desde a tela é mostrado item a item",
+    async () => {
+      const criado = await acrescentar(itemValido());
+      const token = tokenDe(criado);
+
+      // A tela mostrou R$ 15,00; o catálogo diz R$ 20,00.
+      const resposta = await conferir(
+        { precosVistos: { [criado.body.itens[0].id]: 1500 } },
+        token,
+      );
+
+      expect(resposta.body.precisaConfirmar).toBe(true);
+      expect(resposta.body.mudancas[0].tipo).toBe("PRECO_SUBIU");
+      expect(resposta.body.mudancas[0].deEmCentavos).toBe(1500);
+      expect(resposta.body.mudancas[0].paraEmCentavos).toBe(PRECO_DO_LANCHE);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-504 o total enviado pela tela NÃO entra na conta",
+    async () => {
+      const criado = await acrescentar(itemValido());
+      const token = tokenDe(criado);
+
+      const resposta = await conferir({ totalVistoCentavos: 1 }, token);
+
+      // O subtotal é o do servidor, e a divergência foi registrada.
+      expect(resposta.body.subtotalCentavos).toBe(PRECO_DO_LANCHE);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-503 o preço da VARIANTE vence o do produto",
+    async () => {
+      const pizza = await criarProduto({ loja, nome: "Pizza" });
+      const grande = await criarVariacao({
+        loja,
+        produto: pizza,
+        nome: "Grande",
+        precoCentavos: 6000,
+        padrao: true,
+      });
+
+      const criado = await acrescentar({
+        produtoId: pizza.id,
+        variacaoId: grande.id,
+        quantidade: 1,
+        escolhas: [],
+      });
+      const token = tokenDe(criado);
+
+      const resposta = await conferir({}, token);
+
+      // O produto não tem preço de vitrine; quem tem preço é a variante. Antes
+      // desta leitura, o item seria conferido por ZERO e sairia de graça.
+      expect(resposta.body.subtotalCentavos).toBe(6000);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-503 item sem preço conhecido é RETIRADO, e não segue por zero",
+    async () => {
+      // Produto com variantes cujo preço ninguém cadastrou.
+      const misterio = await criarProduto({ loja, nome: "Sem preço" });
+      const semPreco = await criarVariacao({
+        loja,
+        produto: misterio,
+        nome: "Única",
+        padrao: true,
+      });
+
+      const criado = await acrescentar({
+        produtoId: misterio.id,
+        variacaoId: semPreco.id,
+        quantidade: 1,
+        escolhas: [],
+      });
+      const token = tokenDe(criado);
+
+      const resposta = await conferir({}, token);
+
+      expect(resposta.body.itens).toEqual([]);
+      expect(resposta.body.subtotalCentavos).toBe(0);
+      expect(resposta.body.mudancas[0].tipo).toBe("SEM_PRECO");
+      expect(resposta.body.precisaConfirmar).toBe(true);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-503 produto que ficou indisponível é retirado com explicação",
+    async () => {
+      const some = await criarProduto({ loja, nome: "Vai acabar" });
+      const criado = await acrescentar({
+        produtoId: some.id,
+        quantidade: 1,
+        escolhas: [],
+      });
+      const token = tokenDe(criado);
+
+      await migrador.query(
+        `UPDATE app.products SET is_available = false WHERE id = $1`,
+        [some.id],
+      );
+
+      const resposta = await conferir({}, token);
+
+      expect(resposta.body.itens).toEqual([]);
+      expect(resposta.body.mudancas[0].tipo).toBe("INDISPONIVEL");
+      expect(resposta.body.mudancas[0].explicacao).toContain("acabou");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-502 a conferência é do carrinho DA SESSÃO, e não de um informado",
+    async () => {
+      // Sessão nova, sem itens: o carrinho conferido é o dela.
+      const resposta = await request(app)
+        .post(caminho("/conferencia"))
+        .set("Origin", ORIGEM)
+        .send({});
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.itens).toEqual([]);
+      expect(resposta.body.subtotalCentavos).toBe(0);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("fechar o pedido (AC-504, AC-511, AC-516, AC-517)", () => {
+  /** POST no fechamento, com a origem autorizada. */
+  function fechar(corpo: Record<string, unknown>, token: string) {
+    return request(app)
+      .post(`/v1/vitrine/${loja.apelido}/pedidos`)
+      .set("Origin", ORIGEM)
+      .set("Cookie", `${COOKIE_DA_SESSAO}=${token}`)
+      .send(corpo);
+  }
+
+  /** O mínimo que o fechamento aceita. */
+  function pedidoValido(sobrescrita: Record<string, unknown> = {}) {
+    return {
+      contato: { nome: "Ana Paula", telefone: "11988887777" },
+      entrega: "PICKUP",
+      chaveDeIdempotencia: `chave-${Math.random().toString(36).slice(2)}-teste`,
+      ...sobrescrita,
+    };
+  }
+
+  it(
+    "@spec:AC-504 o pedido nasce com os valores do SERVIDOR, não com os da tela",
+    async () => {
+      const criado = await acrescentar(itemValido());
+      const token = tokenDe(criado);
+
+      const resposta = await fechar(
+        pedidoValido({ totalVistoCentavos: 1 }),
+        token,
+      );
+
+      expect(resposta.status).toBe(201);
+      // Retirada: sem taxa. O total é o subtotal, e é o do catálogo.
+      expect(resposta.body.subtotalCentavos).toBe(PRECO_DO_LANCHE);
+      expect(resposta.body.totalCentavos).toBe(PRECO_DO_LANCHE);
+      expect(resposta.body.taxaDeEntregaCentavos).toBe(0);
+      expect(resposta.body.numero).toBeGreaterThan(0);
+      expect(resposta.body.tokenPublico).toBeTruthy();
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-516 a MESMA chave devolve o MESMO pedido, e nunca um segundo",
+    async () => {
+      // Dois toques no botão em rede ruim viram dois pedidos, e a cozinha
+      // prepara duas vezes. É o que a chave de idempotência existe para impedir.
+      const criado = await acrescentar(itemValido());
+      const token = tokenDe(criado);
+      const corpo = pedidoValido();
+
+      const primeira = await fechar(corpo, token);
+      const segunda = await fechar(corpo, token);
+
+      expect(primeira.status).toBe(201);
+      expect(primeira.body.jaExistia).toBe(false);
+      expect(segunda.body.jaExistia).toBe(true);
+      expect(segunda.body.id).toBe(primeira.body.id);
+      expect(segunda.body.numero).toBe(primeira.body.numero);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra",
+    async () => {
+      const criado = await acrescentar(
+        itemValido({
+          escolhas: [
+            { grupoId: ponto.id, opcaoId: aoPonto.id, quantidade: 1 },
+            { grupoId: adicionais.id, opcaoId: bacon.id, quantidade: 1 },
+          ],
+        }),
+      );
+      const token = tokenDe(criado);
+
+      const resposta = await fechar(pedidoValido(), token);
+      expect(resposta.status).toBe(201);
+
+      const itens = await migrador.query<{
+        product_name: string;
+        unit_price_cents: string;
+        options_total_cents: string;
+      }>(
+        `SELECT product_name, unit_price_cents, options_total_cents
+           FROM app.order_items WHERE order_id = $1`,
+        [resposta.body.id],
+      );
+
+      expect(itens.rows[0]?.product_name).toBe("X-Salada");
+      // O unitário guarda produto + acréscimo; o acréscimo fica destacado, e é
+      // isso que faz o cupom explicar o valor em vez de só somar.
+      expect(Number(itens.rows[0]?.unit_price_cents)).toBe(
+        PRECO_DO_LANCHE + ACRESCIMO_DO_BACON,
+      );
+      expect(Number(itens.rows[0]?.options_total_cents)).toBe(
+        ACRESCIMO_DO_BACON,
+      );
+
+      const opcoes = await migrador.query<{ option_name_snapshot: string }>(
+        `SELECT oio.option_name_snapshot
+           FROM app.order_item_options oio
+           JOIN app.order_items oi ON oi.id = oio.order_item_id
+          WHERE oi.order_id = $1`,
+        [resposta.body.id],
+      );
+      expect(opcoes.rows.map((l) => l.option_name_snapshot)).toContain("Bacon");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-507 entrega soma a taxa da loja, e retirada não soma nada",
+    async () => {
+      await migrador.query(
+        `INSERT INTO app.store_settings (store_id, delivery, payment)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (store_id) DO UPDATE
+           SET delivery = EXCLUDED.delivery, payment = EXCLUDED.payment`,
+        [
+          loja.id,
+          JSON.stringify({ taxaPadraoCents: 700 }),
+          JSON.stringify({ formas: ["PIX"], pix: { chave: "loja@pix.test" } }),
+        ],
+      );
+
+      const comEntrega = await acrescentar(itemValido());
+      const resposta = await fechar(
+        pedidoValido({
+          entrega: "DELIVERY",
+          contato: {
+            nome: "Ana Paula",
+            telefone: "11988887777",
+            logradouro: "Rua A",
+            numero: "10",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+          },
+        }),
+        tokenDe(comEntrega),
+      );
+
+      expect(resposta.status).toBe(201);
+      expect(resposta.body.taxaDeEntregaCentavos).toBe(700);
+      expect(resposta.body.totalCentavos).toBe(PRECO_DO_LANCHE + 700);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-511 pedido por PIX congela a chave que valia no momento",
+    async () => {
+      const criado = await acrescentar(itemValido());
+      const resposta = await fechar(
+        pedidoValido({ formaDePagamento: "PIX" }),
+        tokenDe(criado),
+      );
+      expect(resposta.status).toBe(201);
+
+      // O dono troca a chave DEPOIS.
+      await migrador.query(
+        `UPDATE app.store_settings
+            SET payment = $2 WHERE store_id = $1`,
+        [
+          loja.id,
+          JSON.stringify({
+            formas: ["PIX"],
+            pix: { chave: "chave-nova@pix.test" },
+          }),
+        ],
+      );
+
+      const guardado = await migrador.query<{ pix_key_snapshot: string }>(
+        `SELECT pix_key_snapshot FROM app.orders WHERE id = $1`,
+        [resposta.body.id],
+      );
+
+      // O pedido antigo continua mostrando a chave de quando foi feito.
+      expect(guardado.rows[0]?.pix_key_snapshot).toBe("loja@pix.test");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-517 carrinho vazio é recusado, e o carrinho continua intacto",
+    async () => {
+      const vazio = await request(app).get(caminho()).set("Origin", ORIGEM);
+      const token = tokenDe(vazio);
+
+      const resposta = await fechar(pedidoValido(), token);
+
+      expect(resposta.status).toBe(409);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-504 corpo sem chave de idempotência é recusado na borda",
+    async () => {
+      // Sem ela, dois toques no botão viram dois pedidos. É obrigatória.
+      const criado = await acrescentar(itemValido());
+      const resposta = await fechar(
+        {
+          contato: { nome: "Ana", telefone: "11988887777" },
+          entrega: "PICKUP",
+        },
+        tokenDe(criado),
+      );
+
+      expect(resposta.status).toBe(400);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-504 o corpo NÃO aceita itens: eles vêm do carrinho da sessão",
+    async () => {
+      // Aceitar itens no corpo deixaria o cliente escolher o que compra e por
+      // quanto — o erro que este critério existe para impedir.
+      const criado = await acrescentar(itemValido());
+      const resposta = await fechar(
+        pedidoValido({
+          itens: [{ nome: "Pedido de mil reais", precoCentavos: 1 }],
+        }),
+        tokenDe(criado),
+      );
+
+      expect(resposta.status).toBe(400);
     },
     ESPERA_LONGA,
   );

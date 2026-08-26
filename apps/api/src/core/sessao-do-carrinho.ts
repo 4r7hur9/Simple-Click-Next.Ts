@@ -19,6 +19,14 @@
  * diferentes o navegador recusaria o cookie e o carrinho se perderia a cada
  * requisição, que foi justamente o problema que aquela decisão evitou.
  *
+ * POR QUE ELE MORA EM `core`, e não no módulo do carrinho. Ele nasceu lá na
+ * T-511, quando só o carrinho o usava. A rota que fecha o pedido precisa da
+ * MESMA sessão — é ela que diz de quem é o carrinho que está sendo fechado —, e
+ * a tabela de fronteiras não autoriza um módulo a importar outro. A regra do
+ * projeto para isso é uma só: o que dois módulos precisam sobe. Aqui ele fica
+ * ao lado de `cors.ts` e `validar.ts`, que são da mesma natureza — cuidado de
+ * borda com o que chega pelo HTTP.
+ *
  * QUEM EMITE É A API, e não a tela. Se o cliente escolhesse o próprio token,
  * escolheria o de outra pessoa: os dois carrinhos passariam a ser o mesmo, e o
  * visitante veria o que o vizinho está prestes a comprar.

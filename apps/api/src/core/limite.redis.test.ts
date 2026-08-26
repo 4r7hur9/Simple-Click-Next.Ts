@@ -21,7 +21,15 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { Server } from "node:http";
 import { fileURLToPath } from "node:url";
-import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import express from "express";
 import request from "supertest";
 
@@ -48,10 +56,26 @@ import {
  * foi tirar do teste as 49 requisições que não provavam nada. A espera longa
  * fica como rede de segurança para o que sobrou.
  *
- * A espera é DESTES testes e não do projeto: subir o limite de todos esconderia
+ * A espera é DESTE ARQUIVO, e não do projeto: subir o limite de todos esconderia
  * um teste genuinamente travado atrás de dois minutos de paciência.
+ *
+ * POR QUE DO ARQUIVO INTEIRO, E NÃO TESTE A TESTE. A correção de 19/08 deu a
+ * espera longa a dois testes; em 25/08 um terceiro reprovou, com a mesma forma;
+ * em 26/08, um quarto. Três correções, três vezes o mesmo diagnóstico, e a cada
+ * vez o portão parado até alguém investigar.
+ *
+ * O que essas quatro têm em comum não é coincidência: TODO teste deste arquivo
+ * faz dezenas de requisições HTTP de verdade contra um Redis compartilhado. A
+ * classe é o arquivo, e é ela que precisa da espera — corrigir um por um é
+ * tratar sintoma, e a conta já foi paga três vezes.
+ *
+ * O risco de esconder um teste travado continua existindo, e continua limitado:
+ * ele vale para ESTE arquivo, cujos testes são conhecidamente pesados, e não
+ * para os outros 40 da suíte.
  */
 const ESPERA_DOS_PESADOS = 120_000;
+
+vi.setConfig({ testTimeout: ESPERA_DOS_PESADOS });
 
 // ---------------------------------------------------------------------------
 // Ambiente
@@ -398,25 +422,37 @@ describe("limite de tentativas por conta", () => {
     ESPERA_DOS_PESADOS,
   );
 
-  it("@spec:AC-119 o dono da conta é avisado uma vez por bloqueio novo, e não a cada requisição barrada", async () => {
-    const cenario = cenarioDeEntrada();
+  it(
+    "@spec:AC-119 o dono da conta é avisado uma vez por bloqueio novo, e não a cada requisição barrada",
+    async () => {
+      const cenario = cenarioDeEntrada();
 
-    for (let tentativa = 1; tentativa <= 10; tentativa += 1) {
-      await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
-    }
-    // Mais cinco tentativas já barradas: o dono não pode receber cinco e-mails.
-    for (let tentativa = 1; tentativa <= 5; tentativa += 1) {
-      await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
-    }
+      for (let tentativa = 1; tentativa <= 10; tentativa += 1) {
+        await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
+      }
+      // Mais cinco tentativas já barradas: o dono não pode receber cinco e-mails.
+      for (let tentativa = 1; tentativa <= 5; tentativa += 1) {
+        await tentarEntrar(cenario, { conta: CONTA, senha: chuteErrado() });
+      }
 
-    const daConta = cenario.avisos().filter((a) => a.escopo === "conta");
-    expect(daConta).toHaveLength(1);
-    expect(daConta[0]).toMatchObject({
-      identificador: CONTA,
-      esperaMs: 60_000,
-      bloqueiosSeguidos: 1,
-    });
-  });
+      const daConta = cenario.avisos().filter((a) => a.escopo === "conta");
+      expect(daConta).toHaveLength(1);
+      expect(daConta[0]).toMatchObject({
+        identificador: CONTA,
+        esperaMs: 60_000,
+        bloqueiosSeguidos: 1,
+      });
+    },
+    // O TERCEIRO PESADO DO ARQUIVO, e o que faltava. São 15 requisições HTTP de
+    // verdade, cada uma conversando várias vezes com o Redis. Sozinho ele cabe
+    // nos 30 segundos padrão; com a suíte inteira disputando o mesmo Redis, não
+    // cabe — e reprovava o portão sem nada de errado no código.
+    //
+    // A correção de 19/08 deu espera própria a dois testes deste arquivo e
+    // deixou este de fora. Ele reprovou de forma intermitente por dias, e virou
+    // reprovação consistente quando a suíte cresceu com a vitrine e o carrinho.
+    ESPERA_DOS_PESADOS,
+  );
 
   it("@spec:AC-119 o bloqueio é da conta atacada, e não de quem só passava por ali", async () => {
     const cenario = cenarioDeEntrada();

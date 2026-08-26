@@ -47,6 +47,7 @@ function comAApresentacaoNaPagina(): void {
       loja={LOJA}
       abertura={{ aberta: true, proximaAbertura: null, motivo: "ABERTA" }}
       linkDoCardapio="/l/sabor-e-cia/catalogo"
+      rotuloDoCatalogo="Cardápio"
     />,
   );
 }

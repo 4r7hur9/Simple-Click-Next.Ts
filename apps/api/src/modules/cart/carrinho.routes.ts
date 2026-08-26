@@ -25,6 +25,7 @@
 import { Router } from "express";
 import { calcularItem, type EscolhaFeita } from "@simpleclick/core";
 import {
+  esquemaDaDeclaracao,
   esquemaDeItemParaAcrescentar,
   esquemaDeQuantidadeNova,
   esquemaDoApelido,
@@ -35,6 +36,7 @@ import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { registrador } from "../../core/log.ts";
+import { sessaoDoCarrinho } from "../../core/sessao-do-carrinho.ts";
 import { validar } from "../../core/validar.ts";
 import {
   acrescentarItem,
@@ -43,7 +45,7 @@ import {
   verCarrinho,
   type CarrinhoAtual,
 } from "./carrinho.usecase.ts";
-import { sessaoDoCarrinho } from "./sessao-do-carrinho.ts";
+import { conferirAntesDeFechar } from "./conferir-preco.usecase.ts";
 
 /**
  * O que a rota precisa saber do catálogo para recalcular um item.
@@ -89,6 +91,8 @@ export interface IdentificacaoDaLoja {
 
 export interface OpcoesDoCarrinho {
   readonly acesso?: AcessoAoBanco;
+  /** O instante, para a prova poder fixar o relógio. */
+  readonly agora?: () => Date;
   /** Resolve a loja pelo apelido. Vem da borda, e não por importação. */
   readonly identificarLoja: (params: {
     readonly apelido: string;
@@ -110,6 +114,10 @@ export function criarRotasDoCarrinho(opcoes: OpcoesDoCarrinho): Router {
   const paraQuantidade = validar({
     params: esquemaDoApelidoEItem,
     body: esquemaDeQuantidadeNova,
+  });
+  const paraConferir = validar({
+    params: esquemaDoApelido,
+    body: esquemaDaDeclaracao,
   });
 
   /** Resolve a loja, ou recusa igual a loja inexistente (AC-402). */
@@ -232,6 +240,72 @@ export function criarRotasDoCarrinho(opcoes: OpcoesDoCarrinho): Router {
         );
 
         res.json(paraFora(carrinho));
+      } catch (erro) {
+        proximo(erro);
+      }
+    },
+  );
+
+  /*
+   * A CONFERÊNCIA é o último ponto antes de o pedido existir, e o único lugar
+   * do sistema em que o preço vira dinheiro.
+   *
+   * É POST por duas razões que valem mais que a forma: ela carrega a declaração
+   * do que a tela mostrou, e REGISTRA a divergência quando os números não
+   * batem. Um GET que escreve no registro de segurança mente sobre o que é.
+   */
+  rotas.post(
+    "/:apelido/carrinho/conferencia",
+    paraConferir,
+    async (req, res, proximo) => {
+      try {
+        const { params, body } = paraConferir.dados(req);
+        const acesso = opcoes.acesso ?? banco();
+        const agora = opcoes.agora?.() ?? new Date();
+        const sessao = sessaoDoCarrinho(req, res);
+        const lojaId = await exigirLoja(acesso, params.apelido);
+
+        const conferencia = await executarComoRequisicao(
+          { papel: "PUBLIC", lojaId, sessaoDoCarrinho: sessao },
+          () =>
+            acesso.emTransacao(async () => {
+              // O carrinho é achado pela SESSÃO, e não recebido por parâmetro:
+              // um identificador de carrinho no corpo seria o caminho para
+              // conferir — e depois fechar — o carrinho de outra pessoa.
+              const carrinho = await verCarrinho();
+              return conferirAntesDeFechar(
+                carrinho.id,
+                {
+                  totalEmCentavos: body.totalVistoCentavos ?? null,
+                  ...(body.precosVistos === undefined
+                    ? {}
+                    : { precosVistos: body.precosVistos }),
+                },
+                agora,
+              );
+            }),
+        );
+
+        res.json({
+          mudancas: conferencia.mudancas.map((mudanca) => ({
+            itemId: mudanca.itemId,
+            nome: mudanca.nome,
+            tipo: mudanca.tipo,
+            deEmCentavos: mudanca.deEmCentavos ?? null,
+            paraEmCentavos: mudanca.paraEmCentavos ?? null,
+            explicacao: mudanca.explicacao,
+          })),
+          precisaConfirmar: conferencia.precisaConfirmar,
+          itens: conferencia.itensQueSeguem.map((item) => ({
+            itemId: item.itemId,
+            produtoId: item.produtoId,
+            nome: item.nome,
+            quantidade: item.quantidade,
+            precoUnitarioCentavos: item.precoUnitarioEmCentavos,
+            totalDaLinhaCentavos: item.totalDaLinhaEmCentavos,
+          })),
+          subtotalCentavos: conferencia.subtotalEmCentavos,
+        });
       } catch (erro) {
         proximo(erro);
       }

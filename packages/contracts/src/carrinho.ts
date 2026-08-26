@@ -159,3 +159,177 @@ export const rotaDeRemoverItem = definirRota({
   resposta: esquemaDoCarrinho,
   errosPossiveis: [400, 404],
 });
+
+// ---------------------------------------------------------------------------
+// Conferência antes de fechar
+// ---------------------------------------------------------------------------
+
+/** Uma mudança que a pessoa precisa ver antes de confirmar (AC-503). */
+export const esquemaDeMudancaNoCarrinho = z.strictObject({
+  itemId: z.uuid(),
+  nome: z.string(),
+  tipo: z.enum([
+    "PRECO_SUBIU",
+    "PRECO_CAIU",
+    "INDISPONIVEL",
+    "SAIU_DO_CATALOGO",
+    "SEM_PRECO",
+  ]),
+  deEmCentavos: z.int().nonnegative().nullable(),
+  paraEmCentavos: z.int().nonnegative().nullable(),
+  /** Frase pronta para a tela, no lugar de um código que ninguém entende. */
+  explicacao: z.string(),
+});
+
+/** Um item que segue para o pedido, já com o preço do SERVIDOR. */
+export const esquemaDeItemConferido = z.strictObject({
+  itemId: z.uuid(),
+  produtoId: z.uuid(),
+  nome: z.string(),
+  quantidade: z.int().positive(),
+  precoUnitarioCentavos: z.int().nonnegative(),
+  totalDaLinhaCentavos: z.int().nonnegative(),
+});
+
+/**
+ * O veredito da conferência.
+ *
+ * OS VALORES SÃO OS DO SERVIDOR, sempre. O que a tela enviou entra apenas como
+ * referência para dizer o que mudou — e para registrar a tentativa quando o
+ * número não bate (AC-504). Ler preço do que o navegador manda é o que permite
+ * fechar um pedido de mil reais por um.
+ */
+export const esquemaDaConferencia = z.strictObject({
+  mudancas: z.array(esquemaDeMudancaNoCarrinho),
+  /** Verdadeiro quando algo mudou e a pessoa precisa confirmar de novo. */
+  precisaConfirmar: z.boolean(),
+  itens: z.array(esquemaDeItemConferido),
+  subtotalCentavos: z.int().nonnegative(),
+});
+
+export type ConferenciaNoContrato = z.infer<typeof esquemaDaConferencia>;
+
+/** O que a tela declara ter mostrado. Nunca compõe a conta. */
+export const esquemaDaDeclaracao = z.strictObject({
+  totalVistoCentavos: z.int().nonnegative().nullable().optional(),
+  /** O preço unitário que a tela mostrou de cada item. */
+  precosVistos: z.record(z.uuid(), z.int().nonnegative()).optional(),
+});
+
+/**
+ * `POST /v1/vitrine/:apelido/carrinho/conferencia` — o que mudou e quanto dá.
+ *
+ * É POST, e não GET, por duas razões que valem mais que a forma: ela carrega
+ * uma DECLARAÇÃO no corpo (o que a tela mostrou), e ela REGISTRA a divergência
+ * quando os números não batem. Um GET que escreve no registro de segurança
+ * mente sobre o que é.
+ *
+ * É O ÚLTIMO PONTO ANTES DE O PEDIDO EXISTIR, e o único lugar do sistema em que
+ * o preço vira dinheiro. Item indisponível, item que saiu do catálogo e item
+ * sem preço conhecido NÃO seguem — seguir faria a cozinha receber um pedido que
+ * ela não tem como preparar, e o cliente descobrir isso pelo telefone.
+ */
+export const rotaDeConferirCarrinho = definirRota({
+  metodo: "post",
+  caminho: "/v1/vitrine/:apelido/carrinho/conferencia",
+  etiqueta: "carrinho",
+  resumo: "Confere o carrinho contra o catálogo de agora",
+  descricao:
+    "Confere cada item do carrinho contra o catálogo vivo e devolve o que mudou, os itens que seguem com o preço do servidor e o subtotal. Item indisponível, retirado do cardápio ou sem preço conhecido não segue. O que a tela declarou ter mostrado nunca compõe a conta: serve para dizer o que mudou e para registrar divergência.",
+  parametros: esquemaDoApelido,
+  corpo: esquemaDaDeclaracao,
+  resposta: esquemaDaConferencia,
+  errosPossiveis: [400, 404],
+});
+
+// ---------------------------------------------------------------------------
+// Criar o pedido
+// ---------------------------------------------------------------------------
+
+/** Quem pediu. Convidado chega igual a cliente com conta (AC-518). */
+export const esquemaDoContato = z.strictObject({
+  nome: z.string().min(2).max(120),
+  /** Como a pessoa digitou. A API normaliza — a tela não precisa saber E.164. */
+  telefone: z.string().min(8).max(24),
+  email: z.email().nullable().optional(),
+  logradouro: z.string().max(160).nullable().optional(),
+  numero: z.string().max(24).nullable().optional(),
+  complemento: z.string().max(80).nullable().optional(),
+  bairro: z.string().max(80).nullable().optional(),
+  cidade: z.string().max(80).nullable().optional(),
+  estado: z.string().max(2).nullable().optional(),
+  cep: z.string().max(9).nullable().optional(),
+});
+
+/**
+ * O que a tela envia para fechar o pedido.
+ *
+ * NÃO HÁ ITENS AQUI, e isso é o ponto. Os itens vêm do CARRINHO daquela sessão,
+ * lidos no servidor; os preços vêm do catálogo. Aceitar itens no corpo seria
+ * deixar o cliente escolher o que compra e por quanto — o erro que o AC-504
+ * existe para impedir.
+ */
+export const esquemaDoPedidoParaCriar = z.strictObject({
+  contato: esquemaDoContato,
+  entrega: z.enum(["DELIVERY", "PICKUP"]),
+  /** `PIX`, `CASH`, `CARD_ON_DELIVERY`. */
+  formaDePagamento: z.string().nullable().optional(),
+  /** Para quanto a pessoa precisa de troco, quando paga em dinheiro (AC-512). */
+  trocoParaCentavos: z.int().nonnegative().nullable().optional(),
+  observacao: z.string().max(500).nullable().optional(),
+  /**
+   * MESMA CHAVE, MESMO PEDIDO DE VOLTA — nunca um segundo (AC-516).
+   *
+   * Obrigatória: sem ela, dois toques no botão em rede ruim viram dois pedidos,
+   * e a cozinha prepara duas vezes. A tela gera uma por tentativa de fechar.
+   */
+  chaveDeIdempotencia: z.string().min(8).max(64),
+  /** O total que a tela mostrou. Só serve para registrar divergência. */
+  totalVistoCentavos: z.int().nonnegative().nullable().optional(),
+});
+
+/** O pedido criado, com o que a tela mostra em seguida. */
+export const esquemaDoPedidoCriado = z.strictObject({
+  id: z.uuid(),
+  /** O número por loja, que é o que o dono e o cliente falam ao telefone. */
+  numero: z.int().positive(),
+  codigo: z.string(),
+  /**
+   * O token do acompanhamento. É segredo de quem pediu: quem o tem, vê o
+   * pedido — e é por isso que ele não pode ser adivinhável (AC-614).
+   */
+  tokenPublico: z.string(),
+  status: z.string(),
+  /** Verdadeiro quando este envio reencontrou um pedido que já existia. */
+  jaExistia: z.boolean(),
+  subtotalCentavos: z.int().nonnegative(),
+  taxaDeEntregaCentavos: z.int().nonnegative(),
+  totalCentavos: z.int().nonnegative(),
+});
+
+export type PedidoCriadoNoContrato = z.infer<typeof esquemaDoPedidoCriado>;
+
+/**
+ * `POST /v1/vitrine/:apelido/pedidos` — fecha o pedido.
+ *
+ * O ÚLTIMO PASSO, e o mais cuidadoso. Ele lê o carrinho da sessão, confere cada
+ * item contra o catálogo de agora, calcula a taxa de entrega, recusa o que não
+ * pode seguir — loja fechada, carrinho vazio, subtotal abaixo do mínimo — e só
+ * então cria o pedido, com os valores do SERVIDOR.
+ *
+ * O pedido nasce como CÓPIA CONGELADA do momento da compra (AC-515): nome,
+ * preço e escolhas ficam gravados como texto, e mudar o catálogo depois não
+ * mexe em pedido nenhum.
+ */
+export const rotaDeCriarPedido = definirRota({
+  metodo: "post",
+  caminho: "/v1/vitrine/:apelido/pedidos",
+  etiqueta: "carrinho",
+  resumo: "Fecha o pedido",
+  descricao:
+    "Cria o pedido a partir do carrinho da sessão, com os preços que o servidor lê do catálogo. Recusa quando a loja está fechada, quando o carrinho está vazio e quando o subtotal não alcança o mínimo. A mesma chave de idempotência devolve o mesmo pedido, nunca um segundo.",
+  parametros: esquemaDoApelido,
+  corpo: esquemaDoPedidoParaCriar,
+  resposta: esquemaDoPedidoCriado,
+  errosPossiveis: [400, 404, 409],
+});

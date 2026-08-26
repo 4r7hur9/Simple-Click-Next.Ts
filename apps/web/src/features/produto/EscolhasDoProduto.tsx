@@ -51,6 +51,14 @@ export interface EscolhasDoProdutoProps {
   /** O apelido da loja, para a chamada saber a qual carrinho o item vai. */
   readonly apelidoDaLoja: string;
   /**
+   * As palavras do RAMO.
+   *
+   * A lanchonete escolhe SABOR e a loja de roupas escolhe TAMANHO — é a mesma
+   * variante no banco e duas palavras diferentes na boca de quem vende. A
+   * escolha vem do ramo, e não de um `if` aqui dentro.
+   */
+  readonly rotulos: { readonly variacao: string };
+  /**
    * Quem leva o item ao servidor.
    *
    * O PADRÃO é falar com a API do próprio navegador — é o único que carrega o
@@ -65,6 +73,7 @@ export interface EscolhasDoProdutoProps {
 export function EscolhasDoProduto({
   produto,
   apelidoDaLoja,
+  rotulos,
   aoAdicionar,
 }: EscolhasDoProdutoProps) {
   const eixos = useMemo(
@@ -300,6 +309,7 @@ export function EscolhasDoProduto({
   return (
     <div className="sc-produto__formulario">
       <MatrizDeVariacao
+        rotuloDaVariacao={rotulos.variacao}
         variacoes={produto.variacoes}
         eixos={eixos}
         escolhaDeEixo={escolhaDeEixo}

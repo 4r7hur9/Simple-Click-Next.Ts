@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-08-25T16:11:58.535Z",
-  "gitRev": "225b6b7",
+  "timestamp": "2026-08-26T12:03:30.492Z",
+  "gitRev": "0cddfa7",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1023,
+  "testsParsed": 1069,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
+      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
       "method": "vitest-json"
     },
     "AC-004": {

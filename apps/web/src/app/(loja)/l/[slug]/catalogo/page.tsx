@@ -55,10 +55,10 @@ export async function generateMetadata({
 
   const { loja } = resultado.vitrine;
   return {
-    title: `Cardápio · ${loja.nome}`,
+    title: `${loja.rotulos.catalogo} · ${loja.nome}`,
     description:
       loja.boasVindas ??
-      `Veja o cardápio de ${loja.nome} e peça pelo WhatsApp.`,
+      `Veja o ${loja.rotulos.catalogo.toLowerCase()} de ${loja.nome} e peça pelo WhatsApp.`,
   };
 }
 
@@ -115,13 +115,13 @@ export default async function PaginaDoCatalogo({
           </a>
         </header>
 
-        <h1 className="sc-vitrine__titulo">Cardápio</h1>
+        <h1 className="sc-vitrine__titulo">{loja.rotulos.catalogo}</h1>
 
         {naTela.lojaSemCatalogo ? (
           // AC-407: loja recém-criada explica que está montando o catálogo, em
           // vez de mostrar uma tela vazia que lê como erro de carregamento.
           <Vazio
-            titulo="O cardápio está sendo montado"
+            titulo={`O ${loja.rotulos.catalogo.toLowerCase()} está sendo montado`}
             descricao={`${loja.nome} ainda não publicou produtos. Volte em breve.`}
           />
         ) : (
@@ -138,10 +138,10 @@ export default async function PaginaDoCatalogo({
               // e oferece a saída, porque vazio sem caminho é beco sem saída.
               <Vazio
                 titulo="Essa categoria não existe mais"
-                descricao="Ela pode ter sido renomeada ou retirada do cardápio."
+                descricao={`Ela pode ter sido renomeada ou retirada do ${loja.rotulos.catalogo.toLowerCase()}.`}
                 acao={
                   <a className="sc-vitrine__aba" href={naTela.linkDeTodas}>
-                    Ver o cardápio inteiro
+                    Ver o {loja.rotulos.catalogo.toLowerCase()} inteiro
                   </a>
                 }
               />

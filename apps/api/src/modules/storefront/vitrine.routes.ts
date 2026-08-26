@@ -26,6 +26,7 @@ import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
 import { catalogoDaVitrine } from "./catalogo.usecase.ts";
+import { fechamentoDaLoja } from "./fechamento.usecase.ts";
 import { produtoDaVitrine } from "./produto.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
 
@@ -191,6 +192,58 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
       }
     },
   );
+
+  /*
+   * O FECHAMENTO TEM ENDEREÇO PRÓPRIO PORQUE CARREGA A CHAVE PIX.
+   *
+   * Juntá-lo à apresentação entregaria a chave a todo mundo que abrisse a
+   * página da loja — que é exatamente o que o AC-904 proíbe. Ninguém que só
+   * quer ver o cardápio precisa saber a forma de pagamento, e quem chegou ao
+   * fechamento precisa da chave para pagar (AC-510). São momentos diferentes,
+   * e por isso são rotas diferentes.
+   */
+  rotas.get("/:apelido/fechamento", borda, async (req, res, proximo) => {
+    try {
+      const { params } = borda.dados(req);
+      const acesso = opcoes.acesso ?? banco();
+      const agora = opcoes.agora?.() ?? new Date();
+
+      // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
+      const identificacao = await executarComoRequisicao(
+        { papel: "PUBLIC" },
+        () => acesso.emTransacao(() => identificarLoja(params)),
+      );
+
+      if (!identificacao.encontrada) {
+        throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+      }
+
+      // PASSO 2 — transação nova, com a loja declarada desde o início.
+      const fechamento = await executarComoRequisicao(
+        { papel: "PUBLIC", lojaId: identificacao.id },
+        () =>
+          acesso.emTransacao(async () => {
+            // As formas de ENTREGA vêm da loja, e não da configuração: é a
+            // coluna que o resto do sistema já usa, e duas fontes para a mesma
+            // pergunta divergem no dia em que uma for editada.
+            const vitrine = await lojaDaVitrine(
+              agora,
+              await opcoes.lerHorario(agora),
+            );
+            if (vitrine === null) return null;
+            return fechamentoDaLoja(vitrine.publica.formasDeEntrega);
+          }),
+      );
+
+      if (fechamento === null) {
+        throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+      }
+
+      res.json(fechamento);
+    } catch (erro) {
+      proximo(erro);
+    }
+  });
 
   return rotas;
 }

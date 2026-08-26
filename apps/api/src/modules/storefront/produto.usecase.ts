@@ -26,6 +26,8 @@
  * `is_active` decidem se um preço SE APLICA, e isso é regra de negócio, não
  * visibilidade — preço fora da janela não é segredo, é um preço que não vale.
  */
+import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
+
 import { transacaoAtual } from "../../core/db.ts";
 
 /** Uma imagem do produto. */
@@ -119,45 +121,22 @@ interface LinhaDePreco {
   readonly variantId: string | null;
 }
 
-/** Se o preço está valendo no instante da leitura. */
-function valeAgora(preco: LinhaDePreco, agora: Date): boolean {
-  if (!preco.isActive) return false;
-  // Preço de atacado ("a partir de 10 unidades") não é o preço da vitrine: a
-  // página mostra o de uma unidade, e o de atacado aparece quando a quantidade
-  // chegar lá. Mostrá-lo aqui anunciaria um valor que ninguém paga levando um.
-  if (preco.minQuantity > 1) return false;
-  if (preco.startsAt !== null && preco.startsAt > agora) return false;
-  if (preco.endsAt !== null && preco.endsAt <= agora) return false;
-  return true;
-}
-
 /**
- * O par (preço a pagar, preço "de") de uma lista de preços.
+ * Traduz os preços do banco para o vocabulário da regra.
  *
- * A REGRA: vale o promocional quando existe um valendo agora, e o base vira o
- * preço "de". Sem promoção, vale o base e não há preço "de" — um valor riscado
- * ao lado de si mesmo é o truque de vitrine que este produto não vai fazer.
+ * A REGRA MORA NO CORE (`precoQueVale`) porque a conferência do carrinho toma a
+ * mesma decisão, e a tabela de fronteiras não deixa um módulo importar o outro.
+ * Duas cópias funcionariam hoje e divergiriam no dia em que alguém corrigisse
+ * uma delas — a vitrine anunciando promoção e o fechamento cobrando o cheio.
  */
-function escolherPreco(
-  precos: readonly LinhaDePreco[],
-  agora: Date,
-): { readonly atual: number | null; readonly anterior: number | null } {
-  const valendo = precos.filter((p) => valeAgora(p, agora));
-  const base = valendo.find((p) => p.kind === "BASE");
-  const promo = valendo.find((p) => p.kind === "PROMO");
-
-  if (promo === undefined) {
-    return { atual: base ? Number(base.amountCents) : null, anterior: null };
-  }
-
+function comoRegra(linha: LinhaDePreco): PrecoCadastrado {
   return {
-    atual: Number(promo.amountCents),
-    // Só é "de" se for MAIOR que o que se paga. Base igual ou menor que a
-    // promoção significa cadastro errado, e riscá-lo mentiria sobre o desconto.
-    anterior:
-      base && base.amountCents > promo.amountCents
-        ? Number(base.amountCents)
-        : null,
+    tipo: linha.kind,
+    valorEmCentavos: Number(linha.amountCents),
+    quantidadeMinima: linha.minQuantity,
+    ativo: linha.isActive,
+    comecaEm: linha.startsAt,
+    terminaEm: linha.endsAt,
   };
 }
 
@@ -256,12 +235,12 @@ export async function produtoDaVitrine(
   if (produto === null) return null;
 
   const variacoes: VariacaoDoProduto[] = produto.variacoes.map((variante) => {
-    const preco = escolherPreco(variante.precos, agora);
+    const preco = precoQueVale(variante.precos.map(comoRegra), agora);
     return {
       id: variante.id,
       nome: variante.name,
-      precoCentavos: preco.atual,
-      precoAnteriorCentavos: preco.anterior,
+      precoCentavos: preco.atualEmCentavos,
+      precoAnteriorCentavos: preco.anteriorEmCentavos,
       // Estoque NULO é "não controla estoque", e não "zero" — é a diferença
       // entre a lanchonete e a loja de roupa, e trocar um pelo outro faria toda
       // lanchonete nascer esgotada.

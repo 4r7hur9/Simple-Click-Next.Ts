@@ -87,6 +87,48 @@
 - Notas: a prova de integração precisou mandar `Origin` à mão. O navegador o manda sozinho; o supertest não, e sem ele a API responde 403 antes de a rota existir para a requisição (AC-126, AC-128). Foi assim que a primeira rodada reprovou, e o 403 estava certo.
 - Esforço: alto
 
+## T-512 — Rota de conferência do carrinho [concluida]
+
+- Refs: US-500, AC-503, AC-504
+- Arquivos: packages/core/src/preco-vigente.ts, packages/core/src/preco-vigente.test.ts, packages/core/src/pedido-total.ts, packages/core/src/pedido-total.test.ts, packages/core/src/index.ts, packages/contracts/src/carrinho.ts, packages/contracts/src/rotas.ts, packages/contracts/src/index.ts, packages/contracts/src/contrato.test.ts, contrato/openapi.json, apps/api/src/modules/cart/conferir-preco.usecase.ts, apps/api/src/modules/cart/carrinho.routes.ts, apps/api/src/modules/storefront/produto.usecase.ts, apps/api/src/contracts/gerar.test.ts, apps/api/tests/carrinho-rota.int.test.ts
+- Notas: **DOIS ERROS DE DINHEIRO foram achados e corrigidos ao expor a rota.** Os dois eram latentes: até a T-511 não havia como pôr no carrinho um item com opção ou com variante, então nenhum caminho chegava neles.
+- Notas: o primeiro — **o acréscimo da opção saía de graça**. A conferência somava só o preço do PRODUTO, e o carrinho guarda a escolha, não o preço dela. O bacon de R$ 3,00 seria cobrado por zero: o cliente veria R$ 23,00 na vitrine e o pedido sairia por R$ 20,00. Agora o acréscimo é lido de `option_items` NO MOMENTO de conferir, o que também faz a conta acompanhar o dono que mudou o preço do adicional.
+- Notas: o segundo — **produto com variante era conferido por ZERO**. `displayPriceCents` é nulo quando o preço mora na variante, e o código lia `?? 0n`. O comentário dizia "vale zero e não passa", mas nada filtrava zero: o item seguia, o pedido saía de graça e a cozinha preparava. Agora preço desconhecido é NULO, e nulo faz o item ser retirado com explicação (`SEM_PRECO`). Nulo não é zero, e a diferença é dinheiro.
+- Notas: `ItemParaConferir` ganhou `precoBaseEmCentavos` porque duas linhas do mesmo produto podem ter preços legítimos diferentes — pizza P e G —, e uma tabela por produto não expressa isso. `undefined` significa "use o do produto"; `null` significa "procurei e não achei".
+- Notas: a comparação de mudança de preço passou a ser com o unitário COM os acréscimos, que é o que a tela mostrou. Comparar só o preço do produto acusaria mudança onde não houve, e calaria a mudança do preço de um adicional.
+- Notas: **`precoQueVale` subiu para `packages/core`**. A regra nasceu na rota do produto (T-405) e a conferência passou a precisar da mesma decisão; a tabela de fronteiras não deixa um módulo importar o outro, e a arquitetura prescreve exatamente isto. Copiar teria funcionado no dia — o custo apareceria como a vitrine anunciando promoção e o fechamento cobrando o cheio.
+- Notas: entre dois preços do mesmo tipo valendo ao mesmo tempo, vale o MENOR. Cadastro sobreposto é engano do dono, e cobrar o maior por engano dele é o cliente pagando a conta.
+- Notas: a rota é POST, e não GET, por duas razões que valem mais que a forma: ela carrega a declaração do que a tela mostrou, e REGISTRA a divergência quando os números não batem. Um GET que escreve no registro de segurança mente sobre o que é.
+- Notas: o carrinho conferido é o DA SESSÃO, achado pelo cookie — não um identificador recebido por parâmetro, que seria o caminho para conferir, e depois fechar, o carrinho de outra pessoa.
+- Esforço: alto
+
+## T-513 — Rota de configuração do fechamento [concluida]
+
+- Refs: US-501, US-502, AC-506, AC-507, AC-510, AC-904
+- Arquivos: packages/database/migrations/0019_fechamento_le_o_pagamento.sql, apps/api/src/modules/storefront/fechamento.usecase.ts, apps/api/src/modules/storefront/vitrine.routes.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, packages/contracts/src/vitrine.ts, packages/contracts/src/rotas.ts, packages/contracts/src/index.ts, packages/contracts/src/contrato.test.ts, apps/api/src/contracts/gerar.test.ts, contrato/openapi.json
+- Notas: **É A ÚNICA ROTA DO CONTRATO QUE CARREGA A CHAVE PIX.** O AC-904 manda a chave não aparecer nos dados públicos da vitrine; o AC-510 manda ela aparecer quando o cliente escolhe pagar com PIX. Os dois convivem porque são MOMENTOS diferentes, e não permissões diferentes: a chave não é segredo de quem vai pagar — é segredo de quem está varrendo a plataforma para juntar chaves. Quem abre o cardápio não precisa dela; quem chegou ao fechamento, precisa. As duas metades do critério são provadas lado a lado, no mesmo arquivo, para uma não envelhecer sem a outra notar.
+- Notas: a leitura vem de FUNÇÃO DEDICADA (migração 0019), e não da relação — mesmo motivo da 0014. A linha de `store_settings` guarda a chave PIX ao lado da largura do papel da impressora, dos avisos internos e do WhatsApp do dono; ler a linha inteira tornaria tudo isso alcançável por quem escrevesse `select: { printing: true }` num caso de uso futuro. A função devolve TRÊS colunas, e é o esquema quem garante.
+- Notas: chave cadastrada em loja que NÃO aceita PIX não sai. O dono desligou o PIX, e devolver a chave assim mesmo é entregar um dado que ele decidiu não usar.
+- Notas: taxa NULA é "a combinar" e taxa ZERO é "não cobro frete" — ler `?? 0` transformaria a primeira na segunda, e a loja passaria a entregar de graça sem ter decidido isso. É a mesma lição de `precoEmCentavos` na T-512: nulo não é zero, e a diferença é dinheiro.
+- Notas: o que a loja aceita de ENTREGA vem da coluna da loja (`fulfillment_modes`), e não desta configuração — é a que o resto do sistema já usa, e duas fontes para a mesma pergunta divergem no dia em que uma for editada.
+- Notas: forma de pagamento desconhecida é descartada em silêncio. O dono pode ter configurado algo de uma versão futura, e mostrar um botão que a tela não sabe processar quebraria o fechamento no último passo.
+- Notas: o teste antigo guardava a chave PIX numa forma inventada (`{ chavePix, nomeDoRecebedor }`), porque ele só precisava de "algo com cara de PIX" para provar que não vazava — qualquer forma servia. Esta tarefa passou a LER o campo, e a forma passou a importar: alinhada com a da carga de exemplo, que nasce do modelo de dados. Ver a dívida 75.
+- Esforço: medio
+
+## T-514 — Rota de criação do pedido [concluida]
+
+- Refs: US-503, AC-504, AC-507, AC-511, AC-515, AC-516, AC-517
+- Arquivos: apps/api/src/modules/orders/pedidos.routes.ts, apps/api/src/app.ts, apps/api/src/core/sessao-do-carrinho.ts, apps/api/src/modules/cart/carrinho.routes.ts, packages/core/src/pedido-total.ts, packages/core/src/pedido-total.test.ts, packages/contracts/src/carrinho.ts, packages/contracts/src/rotas.ts, packages/contracts/src/index.ts, packages/contracts/src/contrato.test.ts, apps/api/src/contracts/gerar.test.ts, contrato/openapi.json, apps/api/tests/carrinho-rota.int.test.ts
+- Notas: **O CORPO NÃO TRAZ ITENS, e é esse o ponto.** Eles vêm do CARRINHO daquela sessão, lidos no servidor; os preços vêm do catálogo, lidos no mesmo instante. Aceitar itens no corpo deixaria o cliente escolher o que compra e por quanto — o erro que o AC-504 existe para impedir, e o que a primeira versão deste produto permitia. Há prova disso: corpo com `itens` é recusado na borda.
+- Notas: A ORDEM DOS PASSOS É A REGRA, e não detalhe. Conferir os itens ANTES de calcular a taxa (senão o subtotal pode não existir mais), e criar DEPOIS de conferir (senão grava preço velho). Impedimento — mínimo não alcançado, forma de entrega que a loja não faz — é recusa de NEGÓCIO e vem antes de criar: o carrinho continua intacto e a pessoa sabe o que falta.
+- Notas: o TOKEN PÚBLICO do pedido é sorteado na BORDA e declarado no contexto, e não dentro do caso de uso — o isolamento por linha confere a declaração contra a linha escrita (migração 0009), e sortear lá dentro deixaria as duas divergentes. São 32 bytes de aleatoriedade: quem tem o token vê o pedido, e número sequencial deixaria qualquer pessoa passear pelos pedidos da loja (AC-614).
+- Notas: **`sessao-do-carrinho.ts` subiu de `modules/cart` para `core`.** Ele nasceu no carrinho na T-511, quando só o carrinho o usava; o fechamento precisa da MESMA sessão, e a tabela de fronteiras não deixa um módulo importar outro. É a regra do projeto aplicada — o que dois módulos precisam sobe. Fica ao lado de `cors.ts` e `validar.ts`, que são da mesma natureza.
+- Notas: `ItemPrecificado` ganhou `acrescimosEmCentavos`, separado do unitário. O pedido guarda os dois porque o cupom precisa dizer "X-Salada R$ 20,00 / + Bacon R$ 3,00" em vez de um total sem explicação — e é o que o dono confere quando o cliente reclama do valor.
+- Notas: a chave PIX é CONGELADA no pedido quando o pagamento é PIX (AC-511), e só nesse caso. O dono trocar a dele depois não mexe em pedido nenhum — provado trocando a chave e conferindo o pedido antigo.
+- Notas: esta é a costura mais larga do sistema — quatro módulos (`cart`, `storefront`, `stores`, `orders`) e nenhum importa o outro. A borda passa as funções, e é a única camada que enxerga os quatro.
+- Notas: a primeira rodada de provas reprovou por CENÁRIO, e as recusas estavam certas: a loja de teste não tinha configuração de entrega (não aceita nem entrega nem retirada) nem horário (fechada). Duas recusas corretas de um cenário incompleto.
+- Esforço: alto
+
 ## T-510 — Teste de ponta a ponta do fechamento [pendente]
 
 - Refs: US-500, US-503, US-504, AC-500, AC-514, AC-520

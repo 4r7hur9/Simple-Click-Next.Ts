@@ -22,10 +22,13 @@ describe("contrato compartilhado", () => {
       "get /",
       "get /v1/vitrine/{apelido}",
       "get /v1/vitrine/{apelido}/carrinho",
+      "post /v1/vitrine/{apelido}/carrinho/conferencia",
       "post /v1/vitrine/{apelido}/carrinho/itens",
       "patch /v1/vitrine/{apelido}/carrinho/itens/{itemId}",
       "delete /v1/vitrine/{apelido}/carrinho/itens/{itemId}",
       "get /v1/vitrine/{apelido}/catalogo",
+      "get /v1/vitrine/{apelido}/fechamento",
+      "post /v1/vitrine/{apelido}/pedidos",
       "get /v1/vitrine/{apelido}/produto/{produtoId}",
     ]);
   });

@@ -7,35 +7,35 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 ### Onde paramos
 
 **Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas. Último trabalho: **25/08**, a T-511 (as rotas do carrinho).
+0 reprovadas. Último trabalho: **25/08**, a T-512 (a conferência do carrinho).
 
-**43 de 129 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
+**44 de 130 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
 teste anotado, 105 provados.
 
-O total de tarefas subiu de 128 para 129: a **T-511 nasceu de uma lacuna**, e
-não do planejamento — a T-500 entregou o caso de uso do carrinho sem rota
-nenhuma, e ninguém notou porque nada o chamava. Está registrada como qualquer
-outra, com refs e arquivos.
+O total de tarefas subiu de 128 para 130: a **T-511 e a T-512 nasceram de
+lacunas**, e não do planejamento — a T-500 e a T-501 entregaram os casos de uso
+do carrinho sem rota nenhuma, e ninguém notou porque nada os chamava. Estão
+registradas como qualquer outra, com refs e arquivos.
 
 O número de critérios provados não se moveu com a T-511, e isso é honesto: os
 critérios do carrinho já eram provados pelo caso de uso. O que mudou é que o
 **AC-411 passou a ser provado de ponta a ponta** — a rota recalcula o item com
 a mesma função que a tela usa, e um teste compara os dois resultados.
 
-| Feature              | Feito | Situação                                             |
-| -------------------- | ----- | ---------------------------------------------------- |
-| `fundacao`           | 22/22 | **fechada**                                          |
-| `pedido-checkout`    | 11/12 | T-511 entrou; falta a PÁGINA do fechamento e a T-510 |
-| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
-| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; falta T-404 e T-406 a T-409   |
-| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
-| `identidade-acesso`  | 0/11  | não começou                                          |
-| `catalogo-produtos`  | 0/14  | não começou                                          |
-| `pedido-operacao`    | 0/12  | não começou                                          |
-| `clientes-loja`      | 0/9   | não começou                                          |
-| `dashboard-metricas` | 0/10  | não começou                                          |
-| `admin-lojas`        | 0/10  | não começou                                          |
-| `cardapio-na-tv`     | 0/5   | não começou                                          |
+| Feature              | Feito | Situação                                              |
+| -------------------- | ----- | ----------------------------------------------------- |
+| `fundacao`           | 22/22 | **fechada**                                           |
+| `pedido-checkout`    | 12/13 | T-511 e T-512; falta a PÁGINA do fechamento e a T-510 |
+| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                      |
+| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; falta T-404 e T-406 a T-409    |
+| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine  |
+| `identidade-acesso`  | 0/11  | não começou                                           |
+| `catalogo-produtos`  | 0/14  | não começou                                           |
+| `pedido-operacao`    | 0/12  | não começou                                           |
+| `clientes-loja`      | 0/9   | não começou                                           |
+| `dashboard-metricas` | 0/10  | não começou                                           |
+| `admin-lojas`        | 0/10  | não começou                                           |
+| `cardapio-na-tv`     | 0/5   | não começou                                           |
 
 A contagem de critérios provados (99 de 270) parece baixa perto das tarefas
 (40 de 128), e é assim de propósito: a fundação inteira sustenta critérios de
@@ -45,14 +45,16 @@ deste projeto — não é sinal de atraso.
 
 ### Próximo passo
 
-**A rota de conferência do carrinho** (dívida 67) — o pedaço seguinte do mesmo
-encanamento. As rotas da T-511 movem itens; nenhuma devolve PREÇO, e a gaveta do
-carrinho espera valores já escritos. O caso de uso existe desde a T-501
-(`conferir-preco.usecase.ts`) e também não tem rota. Sem ela, a página do
-fechamento continua sem poder nascer.
+**A página do fechamento** — agora sem nada bloqueando. Os componentes existem
+desde a T-502 (`FormularioCheckout`, `ResumoDoPedido`, `SeletorDePagamento`,
+`CaixaPix`), a apresentação da loja resolve o apelido desde a T-400, e o
+carrinho tem rotas para ler, alterar e CONFERIR desde a T-511 e a T-512. O que
+falta é montar `app/(loja)/l/[slug]/checkout/page.tsx` e ligar o envio ao caso
+de uso de criação do pedido.
 
-Depois dela, **a página do fechamento** — os componentes existem desde a T-502,
-e aí sim ela tem de onde carregar tudo.
+Depois dela, a **T-510** (ponta a ponta do fechamento) fecha `pedido-checkout`
+em 13/13 — e de quebra a dívida 68, porque um teste de navegador é o que
+exercita a costura real entre os dois subdomínios.
 
 Na vitrine, em ordem de barato para caro:
 
@@ -62,8 +64,6 @@ Na vitrine, em ordem de barato para caro:
 - **T-407 — Desempenho no celular** (AC-415, AC-416): é o dono do AC-415, que
   várias tarefas citam e nenhuma provou.
 - **T-408 e T-409** — acessibilidade por teclado e o ponta a ponta da vitrine.
-  A T-409 também fecha a dívida 68: hoje a chamada do carrinho sai do navegador
-  e nenhum teste exercita a costura real entre os dois subdomínios.
 
 ### Como subir o ambiente
 
@@ -627,7 +627,8 @@ bash infra/scripts/verificar.sh  # o portão completo
     `apps/api/src/app.test.ts` ainda usa o padrão antigo — não incomoda hoje
     porque faz quatro requisições.
 
-- **Instabilidade do portão sob carga (aberta desde 18/08/2026, T-017).** A
+- ~~**Instabilidade do portão sob carga (aberta desde 18/08/2026,
+  T-017).**~~ **Fechada em 25/08**, com a última das três causas corrigida. A
   consolidação do portão exigiu rodá-lo repetidas vezes para provar que a
   mesma versão dá o mesmo resultado (AC-042), e a repetição revelou duas
   instabilidades que só aparecem com a suíte inteira rodando junto:
@@ -670,10 +671,28 @@ bash infra/scripts/verificar.sh  # o portão completo
      de 30 segundos. Sozinho ele cabe; com a suíte inteira disputando o mesmo
      Redis, não cabe.
 
-     **A correção é uma linha:** passar `ESPERA_DOS_PESADOS` como último
-     argumento deste `it`, exatamente como os dois vizinhos já fazem. Continua
-     sendo decisão da T-013, e por isso não foi aplicada junto com a T-403 —
-     mas deixou de ser investigação e virou tarefa de um minuto.
+     **Corrigido em 25/08**, junto com a T-512: o `it` passou a receber
+     `ESPERA_DOS_PESADOS` como último argumento, exatamente como os dois
+     vizinhos. O que mudou entre a T-403 e agora foi a gravidade — a
+     reprovação deixou de ser intermitente e virou consistente, porque a suíte
+     cresceu com a vitrine e o carrinho e a carga passou do que os 30 segundos
+     padrão aguentavam. De uma em quinze execuções para todas, o que travava o
+     portão em qualquer tarefa seguinte.
+
+     **A lição foi aprendida tarde, e o preço foi pago três vezes.** A correção
+     de 19/08 tratou dois testes do arquivo; em 25/08 um terceiro reprovou com
+     a mesma forma e recebeu a mesma linha; em **26/08 um quarto reprovou** —
+     desta vez o do AC-120 —, e o portão parou de novo.
+
+     Só então a correção foi para a CLASSE: `vi.setConfig({ testTimeout })` no
+     arquivo inteiro, porque o que os quatro têm em comum não é coincidência —
+     TODO teste ali faz dezenas de requisições HTTP de verdade contra um Redis
+     compartilhado. O risco de esconder um teste travado continua existindo e
+     continua limitado: vale para este arquivo, e não para os outros 40.
+
+     **O padrão a reconhecer:** quando a mesma correção é aplicada pela segunda
+     vez, o alvo certo já não é o caso — é a classe. Três diagnósticos idênticos
+     foram três oportunidades de notar isso, e as três foram gastas.
 
      **A hipótese antiga (a chave de bloqueio expirando sozinha no Redis)
      segue sem evidência**, e o teste que ela acusava passou nas duas
@@ -879,7 +898,25 @@ bash infra/scripts/verificar.sh  # o portão completo
     **Não tem tarefa declarada no plano.** Nasce uma, ou entra na T-510 junto do
     teste de ponta a ponta do fechamento.
 
-67. **O carrinho ainda não tem rota que devolva PREÇO.** As quatro rotas da
+67. ~~**O carrinho ainda não tem rota que devolva PREÇO.**~~ **Resolvida pela
+    T-512 em 25/08.** E ao expor a conferência apareceram **dois erros de
+    dinheiro**, os dois latentes até a T-511 — antes dela não havia como pôr
+    no carrinho um item com opção ou com variante, então nenhum caminho
+    chegava neles:
+
+    - **o acréscimo da opção saía de graça.** A conferência somava só o preço
+      do PRODUTO. O bacon de R$ 3,00 apareceria na vitrine e sumiria da conta:
+      o cliente veria R$ 23,00 e o pedido sairia por R$ 20,00.
+    - **produto com variante era conferido por ZERO.** `displayPriceCents` é
+      nulo quando o preço mora na variante, e o código lia `?? 0n`. O
+      comentário dizia "vale zero e não passa", mas nada filtrava zero — o
+      item seguia, o pedido saía de graça e a cozinha preparava.
+
+    Os dois estão corrigidos e provados contra PostgreSQL. A lição, que vale
+    para o resto: **nulo não é zero, e a diferença é dinheiro.**
+
+    (anotação original)
+    **O carrinho ainda não tem rota que devolva PREÇO.** As quatro rotas da
     T-511 movem itens: acrescentar, mudar quantidade, tirar, listar. O que elas
     devolvem é o que foi ESCOLHIDO — identificadores, quantidade, observação e
     os nomes das opções. Nome e preço do produto vêm do catálogo no momento de
@@ -909,6 +946,88 @@ bash infra/scripts/verificar.sh  # o portão completo
     `https://api.simpleclick.localhost`, que só existe na máquina de quem
     desenvolve — em produção o carrinho falharia em todo aparelho, sem erro no
     servidor para explicar. Entra na T-017, com as dívidas 2, 10 e 19.
+
+70. **`escolherPreco` tinha uma decisão a mais que ninguém tinha declarado.** Ao
+    subir a regra para `packages/core` (T-512), apareceu um caso sem resposta
+    escrita: dois preços do MESMO tipo valendo ao mesmo tempo. A versão da
+    T-405 pegava o primeiro que a consulta devolvesse — ou seja, a ordem do
+    banco decidia quanto o cliente pagava.
+
+    A regra passou a ser explícita: vale o MENOR. Cadastro sobreposto é engano
+    do dono, e cobrar o maior por engano dele é o cliente pagando a conta. Fica
+    anotado porque é decisão de negócio tomada por mim, e o dono pode discordar
+    — se discordar, muda numa linha e num teste.
+
+71. **A conferência ignora `is_available` da OPÇÃO e o estoque da variante.**
+    Ela lê o preço do adicional e o preço da variante, e não olha se qualquer um
+    dos dois ainda está à venda. A rota de acrescentar olha (recusa com 409),
+    então o item nasce válido — o buraco é o tempo entre pôr no carrinho e
+    fechar: o cheddar acaba, e o pedido sai com cheddar.
+
+    Não foi corrigido junto porque a resposta certa não é óbvia. Retirar o item
+    inteiro por causa de um adicional esgotado é desproporcional; retirar só o
+    adicional muda o pedido sem a pessoa pedir. As duas precisam de decisão de
+    produto, e o lugar dela é a T-505 ou a tela do fechamento.
+
+72. **A landing ainda fala "cardápio" para todo mundo.** O mesmo erro que a
+    vitrine tinha, um nível acima: `apps/web/src/app/page.tsx` e
+    `HistoriaDaLanding.tsx` dizem "Monte seu cardápio" e "Seu cardápio online
+    sem pagar mensalidade" — e a própria landing mostra três ramos no mundo em
+    três dimensões (loja de roupas, lanchonete, loja de peças).
+
+    A diferença em relação à vitrine é que **na landing não há ramo para
+    consultar**: quem chega ainda não tem loja, e é justamente ali que ele
+    decide se o produto serve para o negócio dele. A saída não é o vocabulário
+    do banco — é decisão de texto de venda, e por isso não foi corrigida junto.
+
+    Duas direções possíveis, e a escolha é do Arthur: assumir que a maioria é
+    de comida e falar "cardápio" de propósito, aceitando afastar as outras; ou
+    escrever a landing em palavra neutra e deixar os três ramos aparecerem nos
+    exemplos. Pertence à T-960.
+
+73. **`rotulos` chega à vitrine e a busca ainda não o usa.** O ramo declara
+    `buscaPlaceholder` — "O que você gostaria de comer?" na lanchonete, "Peça,
+    código ou aplicação" na autopeça —, e o campo de busca é da T-404, que não
+    existe. Quando ela nascer, o texto já está a um `loja.rotulos` de distância;
+    fica anotado para não nascer com um genérico escrito à mão.
+
+74. **`grupoOpcao` não tem consumidor, e talvez nunca tenha na vitrine.** O ramo
+    declara a palavra para o grupo de escolha ("Ingredientes", "Especificações"),
+    mas na vitrine o nome do grupo vem do que o DONO cadastrou em
+    `option_groups.name` — e sobrescrever o que ele escreveu seria pior que
+    genérico. O lugar provável deste rótulo é o PAINEL, como texto padrão ao
+    criar um grupo (feature `catalogo-produtos`). Fica no contrato porque o
+    aplicativo nativo do dono vai precisar dele pelo mesmo motivo.
+
+75. **`store_settings` é JSON livre, e as formas já divergiram.** As sete
+    colunas de configuração (`checkout`, `delivery`, `payment`, `whatsapp`,
+    `printing`, `seo`, `notifications`) são `jsonb` sem esquema — nada no banco
+    nem no código diz que forma cada uma tem.
+
+    **A divergência já aconteceu.** A carga de exemplo grava
+    `payment = { formas: [...], pix: { chave, tipo, titular } }`; o teste da
+    T-401 gravava `{ chavePix, nomeDoRecebedor }`. Ninguém notou por dois
+    motivos: nada LIA o campo, e o teste que o escrevia só provava que ele NÃO
+    vazava — para isso qualquer forma serve. A T-513 passou a ler, e a
+    divergência apareceu na primeira execução.
+
+    O alinhamento foi feito pela forma da carga, que nasce do modelo de dados.
+    O que continua aberto é a causa: **a próxima escrita pode inventar outra
+    forma do mesmo jeito.** O lugar da correção é a T-900 (configurações por
+    seção), que é quem passa a escrever essas colunas de verdade — e o formato
+    da correção é um esquema declarado, conferido na escrita, como
+    `packages/contracts` já faz com o que entra pela borda HTTP.
+
+76. **A rota do fechamento lê a vitrine inteira para saber duas coisas.** Ela
+    chama `lojaDaVitrine` só para obter `formasDeEntrega` — e paga por isso uma
+    leitura de horário, a montagem da apresentação e a chamada de
+    `storefront_settings()`. Funciona e é correto, mas é trabalho a mais numa
+    rota que a página do fechamento chama sempre.
+
+    Não foi otimizado agora porque a alternativa — uma consulta enxuta só da
+    coluna `fulfillment_modes` — precisa de mais um caminho de leitura da loja,
+    e caminho de leitura é onde o isolamento se perde quando alguém tem pressa.
+    Vale medir antes de mexer: se a T-407 apontar isto no tempo da tela, aí sim.
 
 ## Portão contornado
 
