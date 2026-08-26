@@ -171,3 +171,41 @@ export async function fechamentoDaLoja(
     aceitaObservacao: objeto(linha.checkout)["aceitaObservacao"] !== false,
   };
 }
+
+/** A linha de WhatsApp com que a loja recebe pedido (AC-520). */
+export interface WhatsAppDaLoja {
+  /** Em E.164, como o dono cadastrou. */
+  readonly numero: string;
+  /** A saudação que abre a mensagem: "Olá! Segue meu pedido:". */
+  readonly saudacao: string | null;
+}
+
+/**
+ * Lê o número com que a loja recebe pedido.
+ *
+ * FICA SEPARADO DE `fechamentoDaLoja` DE PROPÓSITO, e não por organização. O
+ * número NÃO É campo da resposta de fechamento: ele entra apenas embutido no
+ * endereço da conversa, e esse endereço só volta para quem ACABOU de criar um
+ * pedido.
+ *
+ * A razão é concreta: na prática o número da loja e o celular do dono são o
+ * MESMO — no pequeno negócio, o dono É o WhatsApp da loja. Publicá-lo na
+ * vitrine seria publicar o celular pessoal dele para qualquer pessoa que
+ * abrisse o endereço, e para todo robô que varresse a plataforma.
+ *
+ * Função separada torna difícil o acidente de serializá-lo junto de outra
+ * coisa: ela devolve o número e nada mais, e quem a chama é uma rota só.
+ */
+export async function whatsappDaLoja(): Promise<WhatsAppDaLoja | null> {
+  const tx = transacaoAtual();
+
+  const linhas = await tx.$queryRaw<
+    { whatsapp: unknown }[]
+  >`SELECT * FROM app.store_whatsapp()`;
+
+  const bruto = objeto(linhas[0]?.whatsapp);
+  const numero = texto(bruto["numero"]);
+  if (numero === null) return null;
+
+  return { numero, saudacao: texto(bruto["saudacao"]) };
+}

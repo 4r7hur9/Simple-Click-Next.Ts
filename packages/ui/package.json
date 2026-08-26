@@ -13,7 +13,8 @@
     "./styles/narrativa.css": "./styles/narrativa.css",
     "./styles/landing.css": "./styles/landing.css",
     "./styles/vitrine.css": "./styles/vitrine.css",
-    "./styles/produto.css": "./styles/produto.css"
+    "./styles/produto.css": "./styles/produto.css",
+    "./styles/fechamento.css": "./styles/fechamento.css"
   },
   "files": [
     "src",

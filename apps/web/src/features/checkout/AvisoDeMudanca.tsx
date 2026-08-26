@@ -19,7 +19,12 @@ import { Aviso, Botao } from "@simpleclick/ui";
 export interface MudancaNaTela {
   readonly itemId: string;
   readonly tipo:
-    "PRECO_SUBIU" | "PRECO_CAIU" | "INDISPONIVEL" | "SAIU_DO_CATALOGO";
+    | "PRECO_SUBIU"
+    | "PRECO_CAIU"
+    | "INDISPONIVEL"
+    | "SAIU_DO_CATALOGO"
+    /** Entrou na T-512: o produto ficou sem preço e por isso foi retirado. */
+    | "SEM_PRECO";
   readonly explicacao: string;
 }
 
@@ -38,6 +43,9 @@ const TITULOS: Record<MudancaNaTela["tipo"], string> = {
   PRECO_CAIU: "Preço baixou",
   INDISPONIVEL: "Acabou",
   SAIU_DO_CATALOGO: "Saiu do cardápio",
+  // O produto ficou sem preço no catálogo. Para quem comprou, o efeito é o
+  // mesmo de ter saído — e é assim que a tela conta, sem falar de cadastro.
+  SEM_PRECO: "Saiu do cardápio",
 };
 
 /** Troca o texto genérico pelo nome que a tela conhece. */

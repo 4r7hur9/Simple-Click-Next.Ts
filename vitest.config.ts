@@ -198,6 +198,19 @@ export default defineConfig({
           name: "cache-int",
           include: ["apps/api/src/**/*.redis.test.ts"],
           exclude: excluidos,
+          // OS DOIS ARQUIVOS DESTE PROJETO DISPUTAM O MESMO REDIS, e a disputa
+          // não deixa um deles LENTO: deixa ele PARADO. Rodando sozinho,
+          // `limite.redis.test.ts` passa em menos de dois segundos; junto do
+          // teste de cache, um dos casos ficou 120 segundos sem terminar.
+          //
+          // A causa é o par (relógio de mentira dentro da aplicação, prazo de
+          // validade de verdade no Redis) somado a duas conexões concorrentes
+          // no mesmo índice: uma espera pela outra e nunca é acordada.
+          //
+          // Serializar os dois custa alguns segundos por execução e devolve o
+          // portão. É o mesmo remédio que `api-int` usa, por causa diferente —
+          // lá são papéis do PostgreSQL, aqui é o índice do Redis.
+          fileParallelism: false,
           // O prazo de validade é aplicado pelo servidor, e provar que ele
           // vence exige esperar o relógio de verdade — poucos segundos, mas
           // acima do prazo padrão de um teste de unidade.

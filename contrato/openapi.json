@@ -2407,6 +2407,33 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "endereco": {
+                    "type": "string"
+                  },
+                  "texto": {
+                    "type": "string"
+                  },
+                  "completo": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "endereco",
+                  "texto",
+                  "completo"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2418,7 +2445,8 @@
           "jaExistia",
           "subtotalCentavos",
           "taxaDeEntregaCentavos",
-          "totalCentavos"
+          "totalCentavos",
+          "whatsapp"
         ],
         "additionalProperties": false
       },

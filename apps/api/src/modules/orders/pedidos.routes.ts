@@ -30,8 +30,17 @@
  */
 import { randomBytes } from "node:crypto";
 import { Router } from "express";
-import { calcularValores } from "@simpleclick/core";
-import type { ConfiguracaoDeEntrega } from "@simpleclick/core";
+import {
+  calcularValores,
+  gerarTextoDoPedido,
+  linkDoWhatsApp,
+  normalizarWhatsApp,
+} from "@simpleclick/core";
+import type {
+  ConfiguracaoDeEntrega,
+  ItemDoPedido,
+  PedidoParaTexto,
+} from "@simpleclick/core";
 import {
   esquemaDoApelido,
   esquemaDoPedidoParaCriar,
@@ -115,6 +124,12 @@ export interface FechamentoParaFechar {
   } | null;
 }
 
+/** A linha de WhatsApp da loja, como esta rota precisa vê-la. */
+export interface WhatsAppParaFechar {
+  readonly numero: string;
+  readonly saudacao: string | null;
+}
+
 /** Se a loja aceita pedido agora. */
 export interface AberturaParaFechar {
   readonly aberta: boolean;
@@ -134,6 +149,10 @@ export interface OpcoesDosPedidos {
   ) => Promise<ConferenciaParaFechar>;
   readonly lerFechamento: () => Promise<FechamentoParaFechar | null>;
   readonly lerAbertura: (agora: Date) => Promise<AberturaParaFechar>;
+  /** O número com que a loja recebe pedido. Nulo quando ela não cadastrou. */
+  readonly lerWhatsApp: () => Promise<WhatsAppParaFechar | null>;
+  /** O endereço do site, para o link de acompanhamento dentro da mensagem. */
+  readonly enderecoDoSite?: string | undefined;
 }
 
 export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
@@ -184,6 +203,7 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
             );
             const fechamento = await opcoes.lerFechamento();
             const abertura = await opcoes.lerAbertura(agora);
+            const whatsapp = await opcoes.lerWhatsApp();
 
             const configuracao = comoConfiguracao(fechamento);
             const valores = calcularValores(
@@ -252,7 +272,14 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
                 aberta: abertura.aberta,
                 proximaAbertura: abertura.proximaAbertura,
               },
-            ).then((criado) => ({ criado, valores }));
+            ).then((criado) => ({
+              criado,
+              valores,
+              whatsapp,
+              carrinho,
+              conferencia,
+              fechamento,
+            }));
           }),
       );
 
@@ -267,6 +294,24 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       }
 
       const pedido = resultado.criado.pedido;
+
+      // A MENSAGEM É MONTADA AQUI, e não na tela, por dois motivos. O primeiro
+      // é que só o servidor tem o pedido inteiro — nomes das escolhas, taxa
+      // com o nome que o dono deu, forma de pagamento. O segundo é o número da
+      // loja: montando aqui, ele vai embutido no endereço e nunca vira campo
+      // de resposta. Quem recebe o endereço é quem acabou de pedir.
+      const mensagem = montarMensagem({
+        pedido,
+        valores: resultado.valores,
+        whatsapp: resultado.whatsapp,
+        carrinho: resultado.carrinho,
+        conferencia: resultado.conferencia,
+        fechamento: resultado.fechamento,
+        corpo: body,
+        enderecoDoSite: opcoes.enderecoDoSite ?? "",
+        apelidoDaLoja: params.apelido,
+      });
+
       res.status(pedido.jaExistia ? 200 : 201).json({
         id: pedido.id,
         numero: pedido.numero,
@@ -277,6 +322,7 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
         subtotalCentavos: resultado.valores.subtotalEmCentavos,
         taxaDeEntregaCentavos: resultado.valores.taxaDeEntrega.valorEmCentavos,
         totalCentavos: resultado.valores.totalEmCentavos,
+        whatsapp: mensagem,
       });
     } catch (erro) {
       proximo(erro);
@@ -383,3 +429,128 @@ function registrarDivergencia(
 
 /** Onde as rotas de pedido ficam montadas. */
 export const PREFIXO_DOS_PEDIDOS = "/v1/vitrine";
+
+/** O que a montagem da mensagem precisa saber. */
+interface DadosDaMensagem {
+  readonly pedido: {
+    readonly codigo: string;
+    readonly tokenPublico: string;
+  };
+  readonly valores: ReturnType<typeof calcularValores>;
+  readonly whatsapp: WhatsAppParaFechar | null;
+  readonly carrinho: CarrinhoParaFechar;
+  readonly conferencia: ConferenciaParaFechar;
+  readonly fechamento: FechamentoParaFechar | null;
+  readonly corpo: {
+    readonly contato: {
+      readonly nome: string;
+      readonly telefone: string;
+      readonly logradouro?: string | null | undefined;
+      readonly numero?: string | null | undefined;
+      readonly complemento?: string | null | undefined;
+      readonly bairro?: string | null | undefined;
+      readonly cidade?: string | null | undefined;
+      readonly cep?: string | null | undefined;
+    };
+    readonly entrega: "DELIVERY" | "PICKUP";
+    readonly formaDePagamento?: string | null | undefined;
+    readonly trocoParaCentavos?: number | null | undefined;
+    readonly observacao?: string | null | undefined;
+  };
+  readonly enderecoDoSite: string;
+  readonly apelidoDaLoja: string;
+}
+
+/**
+ * Monta a mensagem que a pessoa manda para a loja (AC-519 a AC-522).
+ *
+ * O TEXTO VEM DE `packages/core`, que é onde a regra de encurtar mora — o
+ * `wa.me` carrega a mensagem na barra de endereços, e endereço longo é cortado
+ * em silêncio por navegador, aplicativo e sistema operacional, cada um com o
+ * seu teto.
+ *
+ * LOJA SEM NÚMERO NÃO IMPEDE O PEDIDO (AC-523). Ele já existe, já tem número e
+ * já está na fila do dono; o que falta é o caminho do WhatsApp, e a tela mostra
+ * o código para a pessoa combinar por outro meio. Devolver nulo é mais honesto
+ * que devolver um endereço que não abre nada.
+ */
+function montarMensagem(dados: DadosDaMensagem): {
+  readonly endereco: string;
+  readonly texto: string;
+  readonly completo: boolean;
+} | null {
+  if (dados.whatsapp === null) return null;
+
+  const numero = normalizarWhatsApp(dados.whatsapp.numero);
+  if (!numero.ok) {
+    // Número impossível gera link silenciosamente inútil: a pessoa toca, abre
+    // uma conversa vazia e acha que enviou. Melhor não oferecer o caminho.
+    return null;
+  }
+
+  const porItem = new Map(dados.carrinho.itens.map((i) => [i.id, i]));
+  const itens: ItemDoPedido[] = dados.conferencia.itensQueSeguem.map(
+    (precificado) => {
+      const doCarrinho = porItem.get(precificado.itemId);
+      return {
+        nome: precificado.nome,
+        quantidade: precificado.quantidade,
+        totalDaLinhaEmCentavos: precificado.totalDaLinhaEmCentavos,
+        observacao: doCarrinho?.observacao ?? null,
+        opcoes: (doCarrinho?.opcoes ?? []).map((opcao) => ({
+          grupo: opcao.grupoNome,
+          opcao: opcao.opcaoNome,
+          quantidade: opcao.quantidade ?? 1,
+        })),
+      };
+    },
+  );
+
+  const contato = dados.corpo.contato;
+  const paraTexto: PedidoParaTexto = {
+    codigo: dados.pedido.codigo,
+    cliente: { nome: contato.nome, telefone: contato.telefone },
+    itens,
+    observacao: dados.corpo.observacao ?? null,
+    entrega:
+      dados.corpo.entrega === "PICKUP"
+        ? { tipo: "PICKUP" }
+        : {
+            tipo: "DELIVERY",
+            endereco: {
+              logradouro: contato.logradouro ?? "",
+              numero: contato.numero ?? null,
+              complemento: contato.complemento ?? null,
+              bairro: contato.bairro ?? null,
+              cidade: contato.cidade ?? null,
+              cep: contato.cep ?? null,
+            },
+          },
+    taxaDeEntrega: {
+      modo: dados.valores.taxaDeEntrega.modo,
+      valorEmCentavos: dados.valores.taxaDeEntrega.valorEmCentavos,
+      nome: dados.valores.taxaDeEntrega.nome ?? null,
+    },
+    pagamento: {
+      forma: (dados.corpo.formaDePagamento ?? "CASH") as never,
+      chavePix: dados.fechamento?.pix?.chave ?? null,
+      tipoDaChavePix: dados.fechamento?.pix?.tipo ?? null,
+      nomeDoRecebedor: dados.fechamento?.pix?.titular ?? null,
+      trocoParaEmCentavos: dados.corpo.trocoParaCentavos ?? null,
+    },
+    subtotalEmCentavos: dados.valores.subtotalEmCentavos,
+    totalEmCentavos: dados.valores.totalEmCentavos,
+    linkDeAcompanhamento: `${dados.enderecoDoSite}/l/${dados.apelidoDaLoja}/pedido/${dados.pedido.tokenPublico}`,
+  };
+
+  const gerado = gerarTextoDoPedido(paraTexto);
+  const saudacao = dados.whatsapp.saudacao;
+  const texto =
+    saudacao === null ? gerado.texto : `${saudacao}\n\n${gerado.texto}`;
+
+  return {
+    endereco: linkDoWhatsApp(numero, texto),
+    texto,
+    completo: gerado.dentroDoLimite && !gerado.encurtado,
+  };
+}

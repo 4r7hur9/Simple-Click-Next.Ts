@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-26T12:05:12.204Z",
-  "gitRev": "0cddfa7",
+  "timestamp": "2026-08-26T17:02:30.616Z",
+  "gitRev": "7e20c06",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1069,
+  "testsParsed": 1087,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -109,7 +109,7 @@
     },
     "AC-520": {
       "status": "pass",
-      "testName": "enviar abre a conversa com o texto pronto (AC-520) @spec:AC-520 o clique abre o endereço da loja em aba isolada @spec:AC-520 o clique abre o endereço da loja em aba isolada",
+      "testName": "a mensagem para a loja (AC-520, AC-523) @spec:AC-520 o pedido volta com a conversa pronta, e o texto tem o que a loja precisa ler @spec:AC-520 o pedido volta com a conversa pronta, e o texto tem o que a loja precisa ler",
       "method": "vitest-json"
     },
     "AC-521": {
@@ -124,7 +124,7 @@
     },
     "AC-523": {
       "status": "pass",
-      "testName": "falha no envio não perde o pedido (AC-523) @spec:AC-523 antes de qualquer clique a tela já garante que o pedido está registrado @spec:AC-523 antes de qualquer clique a tela já garante que o pedido está registrado",
+      "testName": "a mensagem para a loja (AC-520, AC-523) @spec:AC-523 loja sem WhatsApp cadastrado NÃO perde o pedido @spec:AC-523 loja sem WhatsApp cadastrado NÃO perde o pedido",
       "method": "vitest-json"
     }
   },

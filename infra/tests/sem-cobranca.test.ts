@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join, relative } from "node:path";
 
@@ -127,7 +127,15 @@ describe("a versão 1 não cobra e não pede cartão (AC-513)", () => {
 
   it("@spec:AC-513 nenhum campo do sistema recebe número de cartão", () => {
     const textos = versionados.filter(
-      (caminho) => ehTexto(caminho) && !DISPENSADOS.has(caminho),
+      (caminho) =>
+        ehTexto(caminho) &&
+        !DISPENSADOS.has(caminho) &&
+        // O QUE VEM DO GIT É O ÍNDICE, e não o disco: arquivo APAGADO e ainda
+        // não registrado continua listado, e lê-lo estoura. Ele também não
+        // pode ter campo de cartão — não existe mais. Sem esta conferência, um
+        // arquivo removido reprova um teste que fala de outra coisa, e o motivo
+        // real fica escondido atrás de um erro de leitura.
+        existsSync(join(RAIZ, caminho)),
     );
     expect(textos.length).toBeGreaterThan(20);
 

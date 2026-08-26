@@ -1,0 +1,17 @@
+{
+  "name": "@simpleclick/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@simpleclick/config-ts": "workspace:*",
+    "@types/node": "26.2.0",
+    "typescript": "catalog:"
+  }
+}

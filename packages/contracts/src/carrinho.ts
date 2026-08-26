@@ -305,6 +305,28 @@ export const esquemaDoPedidoCriado = z.strictObject({
   subtotalCentavos: z.int().nonnegative(),
   taxaDeEntregaCentavos: z.int().nonnegative(),
   totalCentavos: z.int().nonnegative(),
+  /**
+   * A mensagem pronta para a loja, e o endereço que abre a conversa (AC-520).
+   *
+   * O NÚMERO DA LOJA NÃO É CAMPO — ele vem embutido no endereço, e o endereço
+   * só volta para quem ACABOU de criar um pedido. Na prática o número da loja e
+   * o celular do dono são o mesmo (no pequeno negócio, o dono É o WhatsApp da
+   * loja), e publicá-lo como campo seria publicar o celular pessoal dele para
+   * todo robô que varresse a plataforma.
+   *
+   * Nulo quando a loja não cadastrou número: o pedido existe do mesmo jeito, e
+   * a tela mostra o código para a pessoa combinar por outro caminho (AC-523).
+   */
+  whatsapp: z
+    .strictObject({
+      /** `https://wa.me/...` com a mensagem já codificada. */
+      endereco: z.string(),
+      /** O mesmo texto, para o caminho de copiar à mão. */
+      texto: z.string(),
+      /** Falso quando o texto não coube inteiro e foi resumido. */
+      completo: z.boolean(),
+    })
+    .nullable(),
 });
 
 export type PedidoCriadoNoContrato = z.infer<typeof esquemaDoPedidoCriado>;

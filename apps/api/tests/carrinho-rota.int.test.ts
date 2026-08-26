@@ -109,16 +109,21 @@ beforeAll(async () => {
   // horário ela está fechada, e o fechamento recusa de novo. As duas recusas
   // são o comportamento certo; o que faltava era o cenário.
   await migrador.query(
-    `INSERT INTO app.store_settings (store_id, delivery, payment)
-     VALUES ($1, $2, $3)
+    `INSERT INTO app.store_settings (store_id, delivery, payment, whatsapp)
+     VALUES ($1, $2, $3, $4)
      ON CONFLICT (store_id) DO UPDATE
-       SET delivery = EXCLUDED.delivery, payment = EXCLUDED.payment`,
+       SET delivery = EXCLUDED.delivery, payment = EXCLUDED.payment,
+           whatsapp = EXCLUDED.whatsapp`,
     [
       loja.id,
       JSON.stringify({ taxaPadraoCents: 700, retiradaNoLocal: true }),
       JSON.stringify({
         formas: ["PIX", "CASH"],
         pix: { chave: "loja@pix.test", tipo: "EMAIL", titular: "Dona Zica" },
+      }),
+      JSON.stringify({
+        numero: "+5511911112222",
+        saudacao: "Olá! Segue meu pedido:",
       }),
     ],
   );
@@ -966,6 +971,122 @@ describe("fechar o pedido (AC-504, AC-511, AC-516, AC-517)", () => {
       );
 
       expect(resposta.status).toBe(400);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a mensagem para a loja (AC-520, AC-523)", () => {
+  function fecharPedido(corpo: Record<string, unknown>, token: string) {
+    return request(app)
+      .post(`/v1/vitrine/${loja.apelido}/pedidos`)
+      .set("Origin", ORIGEM)
+      .set("Cookie", `${COOKIE_DA_SESSAO}=${token}`)
+      .send(corpo);
+  }
+
+  function pedidoSimples(sobrescrita: Record<string, unknown> = {}) {
+    return {
+      contato: { nome: "Ana Paula", telefone: "11988887777" },
+      entrega: "PICKUP",
+      chaveDeIdempotencia: `msg-${Math.random().toString(36).slice(2)}-teste`,
+      ...sobrescrita,
+    };
+  }
+
+  it(
+    "@spec:AC-520 o pedido volta com a conversa pronta, e o texto tem o que a loja precisa ler",
+    async () => {
+      const criado = await acrescentar(
+        itemValido({
+          escolhas: [
+            { grupoId: ponto.id, opcaoId: aoPonto.id, quantidade: 1 },
+            { grupoId: adicionais.id, opcaoId: bacon.id, quantidade: 1 },
+          ],
+        }),
+      );
+
+      const resposta = await fecharPedido(pedidoSimples(), tokenDe(criado));
+
+      expect(resposta.status).toBe(201);
+      expect(resposta.body.whatsapp.endereco).toContain(
+        "https://wa.me/5511911112222",
+      );
+      // O texto traz o código, o item e a escolha — é o que o dono lê para
+      // preparar. E traz a saudação que ele configurou.
+      const texto = resposta.body.whatsapp.texto as string;
+      expect(texto).toContain("Olá! Segue meu pedido:");
+      expect(texto).toContain(resposta.body.codigo);
+      expect(texto).toContain("X-Salada");
+      expect(texto).toContain("Bacon");
+      expect(texto).toContain("Ana Paula");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-520 o NÚMERO da loja não vem como campo: só embutido no endereço",
+    async () => {
+      // Na prática o número da loja é o celular do dono. Publicá-lo como campo
+      // seria entregá-lo a todo robô que varresse a plataforma.
+      const criado = await acrescentar(itemValido());
+      const resposta = await fecharPedido(pedidoSimples(), tokenDe(criado));
+
+      expect(Object.keys(resposta.body.whatsapp).sort()).toEqual([
+        "completo",
+        "endereco",
+        "texto",
+      ]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-523 loja sem WhatsApp cadastrado NÃO perde o pedido",
+    async () => {
+      const semZap = await criarLoja({ nome: "Sem Zap" });
+      await migrador.query(
+        `INSERT INTO app.store_settings (store_id, delivery, payment, whatsapp)
+         VALUES ($1, $2, $3, '{}'::jsonb)
+         ON CONFLICT (store_id) DO UPDATE
+           SET delivery = EXCLUDED.delivery, payment = EXCLUDED.payment,
+               whatsapp = EXCLUDED.whatsapp`,
+        [
+          semZap.id,
+          JSON.stringify({ retiradaNoLocal: true }),
+          JSON.stringify({ formas: ["CASH"] }),
+        ],
+      );
+      for (let dia = 0; dia <= 6; dia += 1) {
+        await migrador.query(
+          `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
+           VALUES ($1, $2, '00:00', '23:59')`,
+          [semZap.id, dia],
+        );
+      }
+      const produto = await criarProduto({
+        loja: semZap,
+        nome: "Bolo",
+        precoCentavos: 3000,
+      });
+
+      const criado = await request(app)
+        .post(`/v1/vitrine/${semZap.apelido}/carrinho/itens`)
+        .set("Origin", ORIGEM)
+        .send({ produtoId: produto.id, quantidade: 1, escolhas: [] });
+      expect(criado.status).toBe(201);
+
+      const resposta = await request(app)
+        .post(`/v1/vitrine/${semZap.apelido}/pedidos`)
+        .set("Origin", ORIGEM)
+        .set("Cookie", `${COOKIE_DA_SESSAO}=${tokenDe(criado)}`)
+        .send(pedidoSimples());
+
+      // O PEDIDO EXISTE: número, código e token. O que falta é o caminho do
+      // WhatsApp, e nulo é mais honesto que um endereço que não abre nada.
+      expect(resposta.status).toBe(201);
+      expect(resposta.body.numero).toBeGreaterThan(0);
+      expect(resposta.body.whatsapp).toBeNull();
     },
     ESPERA_LONGA,
   );

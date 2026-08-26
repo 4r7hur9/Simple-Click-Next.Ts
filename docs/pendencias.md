@@ -679,6 +679,29 @@ bash infra/scripts/verificar.sh  # o portão completo
      padrão aguentavam. De uma em quinze execuções para todas, o que travava o
      portão em qualquer tarefa seguinte.
 
+     **RESOLVIDO DE VERDADE EM 26/08, e o diagnóstico anterior estava errado.**
+     A espera longa do arquivo foi retirada: com ela, o caso do AC-119 passou a
+     levar **120 segundos e ainda assim reprovar** — o que provou que ele não é
+     lento, é **PARADO**. Nunca foi carga.
+
+     A causa está no ARRANJO dos testes, e não neles: os dois arquivos do
+     projeto `cache-int` rodavam em paralelo contra o mesmo Redis, e o par
+     (relógio de mentira dentro da aplicação, prazo de validade de verdade no
+     Redis) faz uma conexão esperar pela outra e nunca ser acordada. Com
+     `fileParallelism: false` no projeto, os 23 testes passam em **2,1
+     segundos** — o mesmo remédio que `api-int` já usava, por causa diferente.
+
+     **A nota original do arquivo estava certa e eu a ignorei:** "subir o limite
+     esconderia um teste genuinamente travado atrás de dois minutos de
+     paciência". Foi exatamente o que a espera longa fez. Ela não corrigiu nada
+     — atrasou o diagnóstico e deixou o portão duas vezes mais lento.
+
+     **O padrão, agora completo:** dar mais tempo a um teste que reprova é
+     tratá-lo como lento. Antes de fazer isso, vale conferir se ele é lento
+     mesmo — um teste que estoura QUALQUER prazo que se dê a ele não é lento, e
+     nenhuma quantidade de paciência vai consertá-lo.
+
+     (o percurso até aqui, que vale como registro do erro)
      **A lição foi aprendida tarde, e o preço foi pago três vezes.** A correção
      de 19/08 tratou dois testes do arquivo; em 25/08 um terceiro reprovou com
      a mesma forma e recebeu a mesma linha; em **26/08 um quarto reprovou** —
@@ -1028,6 +1051,179 @@ bash infra/scripts/verificar.sh  # o portão completo
     coluna `fulfillment_modes` — precisa de mais um caminho de leitura da loja,
     e caminho de leitura é onde o isolamento se perde quando alguém tem pressa.
     Vale medir antes de mexer: se a T-407 apontar isto no tempo da tela, aí sim.
+
+77. **O formulário não pede UF, e o pedido tem coluna para ela.** `EnderecoNaTela`
+    tem logradouro, número, complemento, bairro, cidade, CEP e ponto de
+    referência — não tem estado. `ContatoParaCriar` tem `estado`, e a página do
+    fechamento manda `null`.
+
+    **Não é esquecimento do formulário, é decisão dele**: entrega de bairro não
+    precisa de estado, e todo campo a mais no celular é uma desistência a mais.
+    Fica anotado porque o dia em que alguém precisar (nota fiscal, transportadora
+    com cálculo por estado) o campo já existe no banco e a origem dele não.
+
+    Na mesma linha: `pontoDeReferencia` existe no formulário e NÃO tem coluna no
+    pedido — a informação é digitada e descartada. Essa é a mais urgente das
+    duas, porque a pessoa escreve achando que o entregador vai ler.
+
+78. ~~**O passo do WhatsApp não existe na página do fechamento.**~~
+    **Resolvida em 26/08**, junto da resposta para a pergunta que ela
+    levantava. A resposta veio do banco: na carga de exemplo, **o número da
+    loja e o celular do dono são o MESMO** — e é realista, porque no pequeno
+    negócio o dono É o WhatsApp da loja.
+
+    Então o número NÃO virou campo público. Ele vai embutido no endereço da
+    conversa, montado na API ao criar o pedido, e o endereço só volta para
+    quem acabou de pedir — mesmo desenho da chave PIX, pelo mesmo motivo. A
+    resposta tem três campos e há prova disso.
+
+    (anotação original)
+    **O passo do WhatsApp não existe na página do fechamento.** O pedido é
+    criado, a tela mostra o código e o caminho de acompanhar — e para aí. O
+    AC-514 pede que o cliente MANDE o pedido para a loja no WhatsApp, e há duas
+    peças prontas para isso: `EnvioWhatsApp` (T-508) e o gerador do texto
+    (`lib/texto-whatsapp.ts`, T-507).
+
+    **O que falta é o número da loja.** Ele mora em `store_settings.whatsapp`, e
+    nenhuma rota o expõe — a de fechamento (T-513) o deixou de fora de propósito,
+    porque naquele momento a pergunta era outra. Aqui a pergunta aparece: o
+    número de WhatsApp com que a loja RECEBE pedido é público por natureza (é
+    para isso que ele existe), e é diferente do telefone do dono que o AC-904
+    protege.
+
+    Provavelmente são campos diferentes na mesma coluna, e vale conferir antes
+    de expor qualquer um. Pertence à T-508.
+
+79. **`URL_DO_SITE` não é validada na partida, e agora ela vai dentro da
+    mensagem.** O link de acompanhamento embutido no texto do WhatsApp é
+    montado com `process.env.URL_DO_SITE`, e a variável não passa pelo esquema
+    de `core/env.ts` — na falta dela, o padrão é vazio, e a mensagem sai com um
+    link relativo que não abre em aplicativo nenhum.
+
+    Não quebra nada visível no servidor: o pedido é criado, a mensagem é
+    montada, o WhatsApp abre. O que falha é o cliente tocando no link e não
+    chegando a lugar nenhum. É a mesma família das dívidas 42 e 69 — variável
+    de ambiente que só falha em produção, e em silêncio. Entra na T-017, junto
+    delas.
+
+80. **O texto da mensagem repete a conta que o pedido já congelou.** Ele é
+    gerado a partir da conferência e do carrinho, e não do PEDIDO recém-criado —
+    que é quem tem a cópia congelada de verdade (AC-515). Hoje os dois dizem a
+    mesma coisa, porque a criação usou exatamente esses valores.
+
+    O risco é de deriva: se um dia a criação ajustar algo (arredondamento,
+    desconto, item retirado), a mensagem passa a contar uma versão do pedido que
+    não é a gravada — e o cliente manda para a loja um texto que não bate com a
+    fila do dono. O conserto é ler os itens do pedido criado; não foi feito
+    agora porque exigiria uma leitura a mais na mesma transação, e o ganho é
+    contra um risco que ainda não existe.
+
+81. ~~**A T-020 está `[concluida]` e NENHUM dos seis arquivos dela
+    existe.**~~ **Entregue em 26/08**, depois de o Arthur escolher construir
+    o harness em vez de adiar. Entraram Playwright, `playwright.config.ts`,
+    o manifesto de rotas com as 50 telas e duas verificações de cobertura.
+
+    **O harness pagou por si na primeira execução** — ver a dívida 83.
+
+    O buraco do portão que a escondeu CONTINUA ABERTO: `ARQUIVO_INEXISTENTE`
+    segue classificado como backlog mesmo quando a tarefa está concluída.
+    Ver a dívida 84.
+
+    (anotação original)
+    **A T-020 está `[concluida]` e NENHUM dos seis arquivos dela existe.** A
+    tarefa declara `apps/web/src/lib/routes.ts`, `e2e/playwright.config.ts`,
+    três specs e `e2e/fixtures/auth.setup.ts`. **A pasta `e2e/` não existe, o
+    Playwright não está instalado, e `routes.ts` não foi escrito.**
+
+    A auditoria VÊ o problema e diz o certo — "que não existe (tarefa
+    concluída!)" —, mas o portão não reprova, e é aí que ele passou: em
+    `infra/scripts/audit-regressao.mjs`, `ARQUIVO_INEXISTENTE` está na lista de
+    BACKLOG ("trabalho que ainda não foi feito: conta, mas não reprova").
+
+    **Essa classificação é certa para tarefa PENDENTE e errada para tarefa
+    CONCLUÍDA.** Na pendente, o arquivo não existe porque o trabalho não foi
+    feito; na concluída, ele não existe porque a tarefa mentiu. O motor já
+    distingue as duas: o achado sai com `severity: "erro"` quando a tarefa está
+    concluída, e `"aviso"` quando está pendente. O conserto é uma condição,
+    não um casamento de texto.
+
+    **O que depende disso, em silêncio:** a metade de AC-016 que fala de
+    cobertura de TELAS (a outra metade, a página do design system, está provada
+    em `vitrine-ui-a11y.test.tsx`), e as quatro tarefas de ponta a ponta —
+    T-409 (vitrine), T-510 (fechamento), T-908 (configurações) e T-963
+    (landing). Todas as quatro declaram arquivos em `e2e/` e nenhuma delas
+    tem harness para rodar.
+
+    **É a dívida 66 outra vez, num nível acima:** a T-500 entregou o caso de uso
+    do carrinho sem rota; a T-020 declarou o harness de ponta a ponta e não
+    entregou nenhum. As duas passaram porque nada as chamava.
+
+82. **O `notFound()` responde 200 no servidor de desenvolvimento.** A página de
+    loja inexistente é a certa — ela diz "não está disponível" e não conta se o
+    endereço já existiu —, mas o status HTTP é 200. Um _soft 404_ diz ao
+    buscador que a página existe, e ele passa a indexar endereços de lojas que
+    nunca houve.
+
+    O ponta a ponta NÃO confere o status de propósito: gravar `200` como
+    esperado congelaria o comportamento errado. Quem decide a resposta de
+    produção é a construção, e o lugar de conferir isso é a **T-406**
+    (encontrabilidade), com o site construído.
+
+83. **`app/loading.tsx` quebrava o AC-415 em toda página pública — e nenhum
+    teste de unidade podia ver.** O arquivo de convenção criava um limite de
+    streaming ACIMA de tudo: o conteúdo chegava dentro de um `<template>` e só
+    era posto no lugar por script. **A vitrine sem script mostrava "Carregando…"
+    para sempre**, que é exatamente o que o critério proíbe.
+
+    Nenhum teste de unidade pegava porque todos desenham o COMPONENTE, e o
+    componente estava certo; o defeito era do arranjo de rotas. Só um navegador
+    com `javaScriptEnabled: false` vê isso, e foi a primeira coisa que o harness
+    encontrou.
+
+    **A tensão era real, e binária:** o P-011 quer estado de espera em toda
+    tela; o AC-415 quer a vitrine sem script. No Next, ou tudo acima daquele
+    limite faz streaming, ou nada faz. Resolvido a favor do AC-415, porque na
+    vitrine "carregando" nunca ajuda — o servidor já tem o dado antes de
+    responder. O componente segue em `packages/ui`, e o limite volta nas áreas
+    em que a espera é real (painel, minha conta), quando nascerem.
+
+84. **O portão não reprova arquivo faltante de tarefa CONCLUÍDA.** Em
+    `infra/scripts/audit-regressao.mjs`, `ARQUIVO_INEXISTENTE` está na lista de
+    BACKLOG. É a classificação certa para tarefa pendente — o arquivo não existe
+    porque o trabalho não foi feito — e errada para tarefa concluída, onde ele
+    não existe porque a tarefa mentiu.
+
+    **Foi por aqui que a T-020 passou**, e o mesmo buraco cobre qualquer outra.
+    O motor já distingue os dois casos: o achado sai com `severity: "erro"`
+    quando a tarefa está concluída e `"aviso"` quando pendente. O conserto é uma
+    condição sobre esse campo — não um casamento de texto.
+
+    Não foi feito junto porque muda o comportamento do portão, e mudança de
+    portão merece rodar sozinha para se ver o que ela passa a acusar.
+
+85. **O ponta a ponta escreve no banco de DESENVOLVIMENTO.** Ele usa `.env`, e
+    portanto a loja da carga de exemplo — o que é bom (prova o caminho com o
+    dado que o produto tem) e tem um custo: o cenário de fechamento vai CRIAR
+    pedidos ali, e eles ficam.
+
+    Enquanto os cenários só leem, não incomoda. Quando a T-510 entrar, vale um
+    banco próprio para o ponta a ponta — ou uma limpeza no fim. Anotado antes de
+    o primeiro pedido de teste aparecer na fila de alguém.
+
+86. **`provar.sh` roda a suíte inteira de uma vez; o portão roda projeto por
+    projeto.** São duas cargas diferentes sobre os mesmos serviços, e a gravação
+    da prova acontece na mais pesada das duas.
+
+    A consequência apareceu em 26/08: o AC-503 perdeu a prova numa execução de
+    `provar.sh`, e todos os testes que o cobrem passavam isolados e passavam
+    pelo portão. A prova reprovou por contenção — não porque o código regrediu.
+
+    É a mesma família do que a correção do `cache-int` resolveu, um nível acima:
+    lá eram dois arquivos disputando o Redis dentro de um projeto; aqui são os
+    projetos inteiros disputando Redis e PostgreSQL ao mesmo tempo. O caminho
+    provável é `provar.sh` executar projeto a projeto, como o portão faz — o
+    custo é alguns segundos a mais, e o ganho é a prova deixar de depender da
+    máquina estar folgada.
 
 ## Portão contornado
 

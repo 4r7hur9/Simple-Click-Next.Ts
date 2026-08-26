@@ -116,3 +116,181 @@ export async function adicionarAoCarrinho(
 
   return { estado: "adicionado", carrinho: conferido.data };
 }
+
+/** O que a conferência devolve, já com os valores do servidor. */
+export interface ConferenciaNaTela {
+  readonly mudancas: readonly {
+    readonly itemId: string;
+    readonly nome: string;
+    readonly tipo: string;
+    readonly deEmCentavos: number | null;
+    readonly paraEmCentavos: number | null;
+    readonly explicacao: string;
+  }[];
+  readonly precisaConfirmar: boolean;
+  readonly itens: readonly {
+    readonly itemId: string;
+    readonly produtoId: string;
+    readonly nome: string;
+    readonly quantidade: number;
+    readonly precoUnitarioCentavos: number;
+    readonly totalDaLinhaCentavos: number;
+  }[];
+  readonly subtotalCentavos: number;
+}
+
+export type ResultadoDaConferencia =
+  | { readonly estado: "conferido"; readonly conferencia: ConferenciaNaTela }
+  | { readonly estado: "falhou"; readonly motivo: string };
+
+/**
+ * Confere o carrinho contra o catálogo de agora.
+ *
+ * É POST porque carrega a declaração do que a tela mostrou, e porque REGISTRA a
+ * divergência quando os números não batem — um GET que escreve no registro de
+ * segurança mente sobre o que é.
+ */
+export async function conferirCarrinho(
+  apelidoDaLoja: string,
+  totalVistoCentavos: number | null = null,
+  buscar: typeof fetch = fetch,
+): Promise<ResultadoDaConferencia> {
+  const resposta = await chamar(
+    apelidoDaLoja,
+    "/carrinho/conferencia",
+    { totalVistoCentavos },
+    buscar,
+  );
+
+  if (resposta.estado === "conflito") {
+    // A conferência não devolve 409 hoje; se um dia devolver, ele é falha de
+    // rede do ponto de vista desta tela — ela não tem o que fazer com isso.
+    return { estado: "falhou", motivo: "a API recusou a conferência" };
+  }
+  if (resposta.estado !== "ok") return resposta;
+  return {
+    estado: "conferido",
+    conferencia: resposta.corpo as ConferenciaNaTela,
+  };
+}
+
+/** O que a tela envia para fechar o pedido. */
+export interface PedidoParaEnviar {
+  readonly contato: {
+    readonly nome: string;
+    readonly telefone: string;
+    readonly logradouro?: string | null;
+    readonly numero?: string | null;
+    readonly complemento?: string | null;
+    readonly bairro?: string | null;
+    readonly cidade?: string | null;
+    readonly estado?: string | null;
+    readonly cep?: string | null;
+  };
+  readonly entrega: "DELIVERY" | "PICKUP";
+  readonly formaDePagamento: string | null;
+  readonly trocoParaCentavos: number | null;
+  readonly observacao: string | null;
+  readonly chaveDeIdempotencia: string;
+  readonly totalVistoCentavos: number;
+}
+
+/** O pedido criado, como a tela o mostra. */
+export interface PedidoNaTela {
+  readonly id: string;
+  readonly numero: number;
+  readonly codigo: string;
+  readonly tokenPublico: string;
+  readonly jaExistia: boolean;
+  readonly subtotalCentavos: number;
+  readonly taxaDeEntregaCentavos: number;
+  readonly totalCentavos: number;
+  /**
+   * A mensagem pronta para a loja. Nula quando a loja não cadastrou número —
+   * o pedido existe do mesmo jeito, e a tela mostra o código (AC-523).
+   */
+  readonly whatsapp: {
+    readonly endereco: string;
+    readonly texto: string;
+    readonly completo: boolean;
+  } | null;
+}
+
+export type ResultadoDoFechamento =
+  | { readonly estado: "criado"; readonly pedido: PedidoNaTela }
+  /** A loja fechou, o carrinho esvaziou, ou o mínimo não foi alcançado. */
+  | { readonly estado: "nao-pode"; readonly motivo: string }
+  | { readonly estado: "falhou"; readonly motivo: string };
+
+/** Fecha o pedido. */
+export async function criarPedido(
+  apelidoDaLoja: string,
+  pedido: PedidoParaEnviar,
+  buscar: typeof fetch = fetch,
+): Promise<ResultadoDoFechamento> {
+  const resposta = await chamar(apelidoDaLoja, "/pedidos", pedido, buscar);
+
+  if (resposta.estado === "conflito") {
+    // 409 é o mundo tendo mudado desde que a página abriu — a loja fechou, o
+    // preço subiu, o item acabou. Não é erro nosso nem culpa de quem comprou.
+    return {
+      estado: "nao-pode",
+      motivo:
+        "Não foi possível fechar o pedido agora. Confira o carrinho e tente de novo.",
+    };
+  }
+  if (resposta.estado !== "ok") {
+    return { estado: "falhou", motivo: resposta.motivo };
+  }
+
+  return { estado: "criado", pedido: resposta.corpo as PedidoNaTela };
+}
+
+type Resposta =
+  | { readonly estado: "ok"; readonly corpo: unknown }
+  | { readonly estado: "conflito" }
+  | { readonly estado: "falhou"; readonly motivo: string };
+
+/**
+ * O caminho comum das três chamadas: cookie junto, JSON de ida e de volta.
+ *
+ * `credentials: "include"` NÃO É OPCIONAL em nenhuma delas — sem o cookie, a
+ * API emite uma sessão nova e a chamada fala com um carrinho vazio.
+ */
+async function chamar(
+  apelidoDaLoja: string,
+  caminho: string,
+  corpo: unknown,
+  buscar: typeof fetch,
+): Promise<Resposta> {
+  const endereco = `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(
+    apelidoDaLoja,
+  )}${caminho}`;
+
+  let resposta: Response;
+  try {
+    resposta = await buscar(endereco, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+  } catch (erro) {
+    const motivo = erro instanceof Error ? erro.message : "falha de rede";
+    return { estado: "falhou", motivo };
+  }
+
+  if (resposta.status === 409) return { estado: "conflito" };
+  if (!resposta.ok) {
+    return { estado: "falhou", motivo: `a API respondeu ${resposta.status}` };
+  }
+
+  try {
+    return { estado: "ok", corpo: await resposta.json() };
+  } catch {
+    return { estado: "falhou", motivo: "a API respondeu algo que não é JSON" };
+  }
+}

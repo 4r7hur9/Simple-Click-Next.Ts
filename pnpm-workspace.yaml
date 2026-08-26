@@ -1,6 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # O ponta a ponta mora na RAIZ, e não dentro de um app: ele atravessa o site
+  # e a API ao mesmo tempo, e pendurá-lo em um dos dois faria parecer que ele
+  # pertence àquele lado.
+  - "e2e"
 
 # Catálogo de versões: uma versão por biblioteca no monorepo inteiro.
 # Evita a classe de bug em que o site usa uma versão e a API usa outra da

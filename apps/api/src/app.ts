@@ -17,7 +17,10 @@ import {
   type OpcoesDosPedidos,
 } from "./modules/orders/pedidos.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
-import { fechamentoDaLoja } from "./modules/storefront/fechamento.usecase.ts";
+import {
+  fechamentoDaLoja,
+  whatsappDaLoja,
+} from "./modules/storefront/fechamento.usecase.ts";
 import { produtoDaVitrine } from "./modules/storefront/produto.usecase.ts";
 import {
   identificarLoja,
@@ -142,6 +145,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         if (vitrine === null) return null;
         return fechamentoDaLoja(vitrine.publica.formasDeEntrega);
       },
+      lerWhatsApp: () => whatsappDaLoja(),
+      enderecoDoSite: process.env["URL_DO_SITE"] ?? "",
       lerAbertura: async (agora) => {
         const vitrine = await lojaDaVitrine(agora, await horarioDaLoja(agora));
         return {

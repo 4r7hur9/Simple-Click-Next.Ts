@@ -1,0 +1,114 @@
+/*
+ * A página do fechamento (T-515).
+ *
+ * A SUPERFÍCIE MAIS TENSA DO FLUXO. Quem chegou aqui já decidiu comprar e está
+ * a um toque de desistir: cada campo é uma chance de abandono, e cada segundo
+ * de espera também. Nada de animação, nada que mova o botão de lugar, nada que
+ * esconda o total.
+ *
+ * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
+ * Depende de `theme.css`.
+ */
+
+.sc-fechamento__pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-block-size: 100svh;
+  inline-size: 100%;
+  max-inline-size: 40rem;
+  margin-inline: auto;
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+  padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+.sc-fechamento__caminho {
+  display: flex;
+  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+}
+
+.sc-fechamento__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-fechamento {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+/*
+ * O estado de espera e o carrinho vazio ocupam o mesmo lugar do conteúdo, e
+ * não uma faixa por cima: a página não pode saltar quando o carrinho chega.
+ */
+.sc-fechamento__estado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-6);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie-alta);
+  text-align: center;
+}
+
+.sc-fechamento__erro {
+  margin: 0;
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-2);
+  background: var(--cor-erro-suave);
+  color: var(--cor-erro);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+/* --- o pedido criado ------------------------------------------------------- */
+
+.sc-fechamento__pronto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-6);
+  border: 1px solid var(--cor-sucesso);
+  border-radius: var(--raio-3);
+  background: var(--cor-sucesso-suave);
+  color: var(--cor-tinta);
+}
+
+.sc-fechamento__pronto h2 {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+
+.sc-fechamento__pronto p {
+  margin: 0;
+  line-height: var(--altura-linha-base);
+}
+
+.sc-fechamento__acompanhar {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: var(--espaco-5);
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .sc-fechamento__pagina {
+    gap: var(--espaco-6);
+    padding-inline: var(--espaco-6);
+  }
+}

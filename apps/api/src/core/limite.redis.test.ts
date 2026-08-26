@@ -21,15 +21,7 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { Server } from "node:http";
 import { fileURLToPath } from "node:url";
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import express from "express";
 import request from "supertest";
 
@@ -75,7 +67,16 @@ import {
  */
 const ESPERA_DOS_PESADOS = 120_000;
 
-vi.setConfig({ testTimeout: ESPERA_DOS_PESADOS });
+// A ESPERA LONGA DO ARQUIVO FOI RETIRADA em 26/08, e o motivo é instrutivo:
+// com ela, o caso do AC-119 passou a levar 120 SEGUNDOS e ainda assim reprovar
+// — o que provou que ele não é lento, é PARADO. A espera longa não corrigiu
+// nada; ela escondeu a natureza do defeito atrás de dois minutos de paciência,
+// exatamente como a nota acima previa.
+//
+// A causa real estava no arranjo dos testes, e não neles: os dois arquivos do
+// projeto `cache-int` disputavam o mesmo Redis. A correção está em
+// `vitest.config.ts` — `fileParallelism: false`. Os dois casos pesados abaixo
+// mantêm a espera própria, que é rede de segurança e não remédio.
 
 // ---------------------------------------------------------------------------
 // Ambiente

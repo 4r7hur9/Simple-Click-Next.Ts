@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    "types": ["node"],
+    // O Playwright resolve os módulos como o Node os resolve, e o Node exige a
+    // extensão no import. Mesma razão de `apps/web` ter esta opção: o pacote de
+    // contrato é lido pelos dois lados, e o import precisa funcionar nos dois.
+    "allowImportingTsExtensions": true
+  },
+  "include": ["specs/**/*.ts", "fixtures/**/*.ts", "playwright.config.ts"],
+  "exclude": ["node_modules"]
+}

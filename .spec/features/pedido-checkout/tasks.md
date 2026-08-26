@@ -61,8 +61,14 @@
 ## T-508 — Abertura do WhatsApp com o texto pronto [concluida]
 
 - Refs: US-504, AC-520, AC-523
-- Arquivos: apps/web/src/features/checkout/EnvioWhatsApp.tsx, apps/web/tests/envio-whatsapp.test.tsx, apps/web/src/lib/whatsapp.ts, apps/web/src/lib/whatsapp.test.ts
+- Arquivos: apps/web/src/features/checkout/EnvioWhatsApp.tsx, apps/web/tests/envio-whatsapp.test.tsx, apps/web/src/lib/whatsapp.ts, apps/web/src/lib/whatsapp.test.ts, packages/database/migrations/0020_pedido_le_o_whatsapp_da_loja.sql, apps/api/src/modules/storefront/fechamento.usecase.ts, apps/api/src/modules/orders/pedidos.routes.ts, apps/api/src/app.ts, apps/api/tests/carrinho-rota.int.test.ts, packages/contracts/src/carrinho.ts, apps/web/src/lib/carrinho-do-navegador.ts, apps/web/src/features/checkout/FechamentoDaCompra.tsx, apps/web/tests/fechamento-pagina.test.tsx
 - Notas: o cliente envia para o número da loja. A abertura precisa acontecer no mesmo gesto do usuário, senão o navegador bloqueia. Se falhar ou o cliente fechar antes, o pedido continua registrado e há caminho para reenviar, mais alternativa de copiar o texto.
+- Notas: **LIGADA AO FLUXO EM 26/08.** O componente existia desde 19/08 e não tinha de onde vir a mensagem. Agora ela é montada NA API, ao criar o pedido, e volta na resposta — texto e endereço prontos.
+- Notas: **O NÚMERO DA LOJA NÃO É CAMPO DE RESPOSTA**, e essa foi a decisão que mais pesou. Na carga de exemplo, o número da loja e o celular do dono são O MESMO — e é realista: no pequeno negócio, o dono É o WhatsApp da loja. Publicá-lo como campo seria publicar o celular pessoal dele para qualquer pessoa que abrisse a vitrine, e para todo robô que varresse a plataforma. Ele vai EMBUTIDO no endereço da conversa, e o endereço só volta para quem acabou de criar um pedido — mesmo desenho da chave PIX (migração 0019), pelo mesmo motivo. Há prova de que a resposta tem só três campos: `endereco`, `texto` e `completo`.
+- Notas: a leitura do número mora em função própria (`app.store_whatsapp()`, migração 0020), separada da configuração de fechamento. Uma função que devolve UMA coluna e é chamada por UMA rota torna difícil o acidente de serializá-la junto de outra coisa.
+- Notas: o texto é montado no SERVIDOR porque só ele tem o pedido inteiro — nomes das escolhas, taxa com o nome que o dono deu, forma de pagamento. E porque montá-lo lá é o que mantém o número fora da tela.
+- Notas: número impossível devolve nulo em vez de link. Link com número errado abre uma conversa vazia, a pessoa acha que enviou, e o dono nunca recebe.
+- Notas: **loja sem WhatsApp NÃO perde o pedido** (AC-523). Ele existe, tem número e está na fila do dono; a tela mostra o código e explica que a loja não cadastrou WhatsApp. Nulo é mais honesto que um endereço que não abre nada.
 - Esforço: alto
 
 ## T-509 — Número de WhatsApp normalizado [concluida]
@@ -127,6 +133,21 @@
 - Notas: a chave PIX é CONGELADA no pedido quando o pagamento é PIX (AC-511), e só nesse caso. O dono trocar a dele depois não mexe em pedido nenhum — provado trocando a chave e conferindo o pedido antigo.
 - Notas: esta é a costura mais larga do sistema — quatro módulos (`cart`, `storefront`, `stores`, `orders`) e nenhum importa o outro. A borda passa as funções, e é a única camada que enxerga os quatro.
 - Notas: a primeira rodada de provas reprovou por CENÁRIO, e as recusas estavam certas: a loja de teste não tinha configuração de entrega (não aceita nem entrega nem retirada) nem horário (fechada). Duas recusas corretas de um cenário incompleto.
+- Esforço: alto
+
+## T-515 — A página do fechamento [concluida]
+
+- Refs: US-501, US-502, US-503, AC-503, AC-507, AC-508, AC-510, AC-512, AC-516
+- Arquivos: apps/web/src/app/(loja)/l/[slug]/checkout/page.tsx, apps/web/src/features/checkout/FechamentoDaCompra.tsx, apps/web/src/server/fechamento.ts, apps/web/src/lib/carrinho-do-navegador.ts, apps/web/src/features/checkout/AvisoDeMudanca.tsx, apps/web/tests/fechamento-pagina.test.tsx, packages/ui/styles/fechamento.css, packages/ui/package.json
+- Notas: **A PÁGINA ANOTADA DESDE 19/08 FINALMENTE NASCEU.** Os componentes existiam desde a T-502 e esperavam as rotas: a apresentação (T-400), o carrinho (T-511), a conferência (T-512), a configuração (T-513) e a criação (T-514). Cinco tarefas de encanamento para uma tela — e a tela levou uma sessão.
+- Notas: A DIVISÃO ENTRE SERVIDOR E NAVEGADOR é a decisão que manda. Tudo que descreve a LOJA — nome, cor, formas de pagamento, taxa, chave PIX — chega pronto do servidor, desenhado antes de qualquer script. Tudo que descreve o CARRINHO é carregado no navegador, porque o carrinho é identificado por um cookie que a API emitiu no domínio dela: se o servidor do Next fizesse a chamada, o cookie seria dele e todos os visitantes dividiriam o mesmo carrinho — a falha da migração 0012 voltando pela porta da frente.
+- Notas: a página é a ÚNICA do site que pede a chave PIX, e por isso é a única marcada como NÃO INDEXÁVEL. É página de sessão: só faz sentido para quem tem carrinho, e um buscador que a indexasse ofereceria a estranhos um endereço que abre vazio — carregando a chave da loja.
+- Notas: o cache da configuração é de 15 segundos, menor que o da vitrine. Preço de vitrine desatualizado por um minuto é um preço; chave PIX desatualizada é dinheiro indo para a conta errada.
+- Notas: a taxa é calculada na tela só para MOSTRAR — quem cobra é o servidor, que refaz a conta ao criar o pedido. Se as duas divergirem, vale a do servidor e a diferença aparece como divergência no registro.
+- Notas: o mínimo não alcançado diz QUANTO falta, e não só que falta: "pedido mínimo de R$ 60,00" manda a pessoa calcular sozinha (AC-508).
+- Notas: a chave de idempotência é uma por TENTATIVA de fechar, e não por pedido — é o que faz o segundo toque no botão reencontrar o primeiro pedido em vez de criar outro (AC-516).
+- Notas: `SEM_PRECO` entrou em `AvisoDeMudanca` como "Saiu do cardápio". Para quem comprou, o efeito é o mesmo de ter saído — e a tela não fala de cadastro com o cliente.
+- Notas: o formulário NÃO pede UF, e o pedido tem coluna para ela. Não é esquecimento: entrega de bairro não precisa de estado, e todo campo a mais no celular é uma desistência a mais. Ver a dívida 77.
 - Esforço: alto
 
 ## T-510 — Teste de ponta a ponta do fechamento [pendente]

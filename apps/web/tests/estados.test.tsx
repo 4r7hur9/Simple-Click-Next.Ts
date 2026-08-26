@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import Carregando from "../src/app/loading";
+// O ESTADO DE ESPERA VEM DO DESIGN SYSTEM, e não de um `loading.tsx` na raiz
+// do site. O arquivo de convenção foi removido em 26/08 porque ele criava um
+// limite de streaming ACIMA DE TODA PÁGINA PÚBLICA: o conteúdo chegava dentro
+// de um `<template>` e só era posto no lugar por script — e a vitrine, sem
+// script, mostrava "Carregando…" para sempre. O AC-415 exige o contrário.
+//
+// O que o P-011 pede continua existindo e continua provado: o componente é o
+// mesmo que as telas usam quando de fato esperam por algo.
+import { Carregando } from "@simpleclick/ui";
 import ErroDaTela from "../src/app/error";
 import NaoEncontrado from "../src/app/not-found";
 
