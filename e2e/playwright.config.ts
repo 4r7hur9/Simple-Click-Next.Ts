@@ -97,7 +97,15 @@ export default defineConfig({
       url: ENDERECO_DO_SITE,
       reuseExistingServer: !process.env["CI"],
       timeout: 120_000,
-      env: { NEXT_PUBLIC_API_URL: ENDERECO_DA_API },
+      env: {
+        NEXT_PUBLIC_API_URL: ENDERECO_DA_API,
+        // O SITE PRECISA SABER O PRÓPRIO ENDEREÇO (AC-403): canônico, mapa do
+        // site e prévia de compartilhamento são absolutos por definição. Sem
+        // esta linha o site usaria o padrão de desenvolvimento
+        // (`simpleclick.localhost`), e o cenário do canônico compararia o
+        // endereço de um servidor com o de outro.
+        URL_DO_SITE: ENDERECO_DO_SITE,
+      },
     },
   ],
 });

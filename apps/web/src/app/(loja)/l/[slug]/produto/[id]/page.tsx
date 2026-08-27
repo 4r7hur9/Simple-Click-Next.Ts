@@ -24,6 +24,14 @@ import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 import { EscolhasDoProduto } from "../../../../../../features/produto/EscolhasDoProduto.tsx";
 import { SeloDePreco } from "../../../../../../features/produto/SeloDePreco.tsx";
 import {
+  DadosEstruturados,
+  produtoParaBuscador,
+} from "../../../../../../lib/dados-estruturados.tsx";
+import {
+  enderecoDoProduto,
+  enderecoDoSite,
+} from "../../../../../../server/endereco-do-site.ts";
+import {
   buscarProduto,
   resumoParaCompartilhar,
 } from "../../../../../../server/produto.ts";
@@ -67,14 +75,28 @@ export async function generateMetadata({
   const comPreco = resumoParaCompartilhar(item, loja.nome);
   const capa = item.imagens[0];
 
+  const canonico = enderecoDoProduto(loja.apelido, id);
+
   return {
     title: `${item.nome} · ${loja.nome}`,
     description: comPreco,
+    // O ENDEREÇO DO PRODUTO É ÚNICO (AC-414): o mesmo item pode ser alcançado
+    // por mais de uma seção, e sem canônico o buscador trataria cada caminho
+    // como um produto diferente da mesma loja.
+    alternates: { canonical: canonico },
     openGraph: {
       title: `${item.nome} · ${loja.nome}`,
       description: comPreco,
+      url: canonico,
+      siteName: loja.nome,
+      locale: "pt_BR",
       type: "website",
       ...(capa ? { images: [{ url: capa.url }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${item.nome} · ${loja.nome}`,
+      description: comPreco,
     },
   };
 }
@@ -112,6 +134,19 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
       className="sc-pagina-da-loja"
     >
       <main className="sc-produto">
+        <DadosEstruturados
+          dados={produtoParaBuscador({
+            loja,
+            nome: produto.nome,
+            descricao: produto.descricao ?? produto.chamada,
+            imagens: produto.imagens.map((imagem) => imagem.url),
+            precoCentavos: produto.precoCentavos,
+            disponivel: produto.disponivel,
+            enderecoDoProduto: enderecoDoProduto(loja.apelido, id),
+            enderecoDoSite: enderecoDoSite(),
+          })}
+        />
+
         <nav className="sc-produto__caminho" aria-label="Você está em">
           <a className="sc-vitrine__voltar" href={produto.linkDoCatalogo}>
             ← {loja.rotulos.catalogo}

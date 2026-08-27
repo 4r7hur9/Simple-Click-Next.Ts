@@ -2084,6 +2084,9 @@
           "ramo": {
             "type": "string"
           },
+          "alimentacao": {
+            "type": "boolean"
+          },
           "rotulos": {
             "type": "object",
             "properties": {
@@ -2252,6 +2255,7 @@
           "apelido",
           "nome",
           "ramo",
+          "alimentacao",
           "rotulos",
           "fusoHorario",
           "moeda",
@@ -3107,6 +3111,9 @@
               "ramo": {
                 "type": "string"
               },
+              "alimentacao": {
+                "type": "boolean"
+              },
               "rotulos": {
                 "type": "object",
                 "properties": {
@@ -3275,6 +3282,7 @@
               "apelido",
               "nome",
               "ramo",
+              "alimentacao",
               "rotulos",
               "fusoHorario",
               "moeda",

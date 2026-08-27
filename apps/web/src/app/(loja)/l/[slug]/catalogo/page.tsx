@@ -30,6 +30,14 @@ import {
   PARAMETRO_DA_BUSCA,
   PARAMETRO_DA_CATEGORIA,
 } from "../../../../../lib/catalogo.ts";
+import {
+  cardapioDaLoja,
+  DadosEstruturados,
+} from "../../../../../lib/dados-estruturados.tsx";
+import {
+  enderecoDoCatalogo,
+  enderecoDoSite,
+} from "../../../../../server/endereco-do-site.ts";
 import { prepararCatalogo } from "../../../../../server/catalogo-na-tela.ts";
 import {
   buscarCatalogo,
@@ -61,11 +69,27 @@ export async function generateMetadata({
   }
 
   const { loja } = resultado.vitrine;
+  const titulo = `${loja.rotulos.catalogo} · ${loja.nome}`;
+  const descricao =
+    loja.boasVindas ??
+    `Veja o ${loja.rotulos.catalogo.toLowerCase()} de ${loja.nome} e peça pelo WhatsApp.`;
+
   return {
-    title: `${loja.rotulos.catalogo} · ${loja.nome}`,
-    description:
-      loja.boasVindas ??
-      `Veja o ${loja.rotulos.catalogo.toLowerCase()} de ${loja.nome} e peça pelo WhatsApp.`,
+    title: titulo,
+    description: descricao,
+    // O CANÔNICO NÃO CARREGA FILTRO NEM BUSCA (AC-403). `?categoria=bebidas` e
+    // `?busca=pao` são a mesma página vista por um recorte: indexá-los como
+    // páginas distintas espalharia a loja por dezenas de endereços quase
+    // iguais, e o buscador chama isso de conteúdo duplicado.
+    alternates: { canonical: enderecoDoCatalogo(loja.apelido) },
+    openGraph: {
+      title: titulo,
+      description: descricao,
+      url: enderecoDoCatalogo(loja.apelido),
+      siteName: loja.nome,
+      locale: "pt_BR",
+      type: "website",
+    },
   };
 }
 
@@ -130,6 +154,22 @@ export default async function PaginaDoCatalogo({
         </header>
 
         <h1 className="sc-vitrine__titulo">{loja.rotulos.catalogo}</h1>
+
+        {/*
+          O bloco descreve o CATÁLOGO INTEIRO, e por isso sai só quando não há
+          filtro nem busca: publicar o recorte como se fosse o cardápio faria o
+          buscador guardar "esta loja vende três coisas" no dia em que alguém
+          compartilhou um link filtrado.
+        */}
+        {naTela.filtroEmVigor === null && naTela.termoBuscado === null ? (
+          <DadosEstruturados
+            dados={cardapioDaLoja({
+              loja,
+              catalogo: naTela,
+              enderecoDoSite: enderecoDoSite(),
+            })}
+          />
+        ) : null}
 
         {/*
           O CAMPO FICA FORA DO `else`, e antes dos estados vazios: quem buscou e

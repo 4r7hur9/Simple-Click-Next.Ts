@@ -51,6 +51,7 @@ function prepararProduto(
     nome: produto.nome,
     chamada: produto.chamada,
     preco: escrever(produto.precoCentavos),
+    precoCentavos: produto.precoCentavos,
     // Só é "preço de" se for MAIOR que o atual. Um valor igual ou menor riscado
     // ao lado do preço faz a loja parecer que aumentou e fingiu promoção.
     precoAnterior:

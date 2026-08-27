@@ -21,6 +21,15 @@ export interface ProdutoNaTela {
   readonly chamada: string | null;
   /** Já escrito como dinheiro. Nulo quando o preço depende de variação. */
   readonly preco: string | null;
+  /**
+   * O mesmo preço em centavos inteiros, para quem NÃO LÊ (AC-403).
+   *
+   * Conviver com `preco` não desfaz o P-006: a tela continua sem fazer conta —
+   * ela recebe o escrito e o mostra. Este campo existe para os dados
+   * estruturados, e buscador não lê "R$ 7,50": ele quer o número e a moeda em
+   * campos separados, e descarta a oferta inteira quando recebe texto.
+   */
+  readonly precoCentavos: number | null;
   /** O preço "de", quando há promoção. */
   readonly precoAnterior: string | null;
   readonly imagem: string | null;

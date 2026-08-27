@@ -417,6 +417,13 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
       if (visita.vitrine === null) return;
 
       expect(Object.keys(visita.vitrine?.publica).sort()).toEqual([
+        // `alimentacao` entrou na T-406 e é DECISÃO, pela mesma razão que
+        // `rotulos`: é propriedade do RAMO (`vertical_presets.is_food`), igual
+        // para toda loja dele, e não diz nada sobre o dono desta. Existe para
+        // os dados estruturados escolherem entre `Restaurant` e `Store` — e
+        // existe no contrato, e não no `if` de cada tela, para que um ramo novo
+        // não nasça classificado errado em toda superfície ao mesmo tempo.
+        "alimentacao",
         "apelido",
         "boasVindas",
         "capa",

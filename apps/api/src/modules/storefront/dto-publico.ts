@@ -60,6 +60,8 @@ export interface LojaPublica {
   readonly apelido: string;
   readonly nome: string;
   readonly ramo: string;
+  /** Se o ramo serve comida. Decide o vocabulário do buscador (AC-403). */
+  readonly alimentacao: boolean;
   /** As palavras do ramo. Nunca nulo: sem preset, valem as genéricas. */
   readonly rotulos: RotulosDoRamo;
   readonly fusoHorario: string;
@@ -139,7 +141,10 @@ export interface LojaDoBanco {
   readonly name: string;
   readonly verticalCode: string;
   /** O preset do ramo, quando a consulta o trouxe junto. */
-  readonly ramo?: { readonly labels?: unknown } | null;
+  readonly ramo?: {
+    readonly labels?: unknown;
+    readonly isFood?: boolean;
+  } | null;
   readonly timezone: string;
   readonly currency: string;
   readonly fulfillmentModes: readonly string[];
@@ -224,6 +229,10 @@ export function lojaParaVitrine(
     apelido: loja.slug,
     nome: loja.name,
     ramo: loja.verticalCode,
+    // Ausente vale FALSO: o padrão seguro é "não é comida". Um ramo lido pela
+    // metade que virasse `Restaurant` mandaria ao buscador um cardápio que a
+    // loja de roupa não tem — e é o erro que este campo existe para não repetir.
+    alimentacao: loja.ramo?.isFood === true,
     rotulos: rotulosDoRamo(loja.ramo?.labels),
     fusoHorario: loja.timezone,
     moeda: loja.currency,

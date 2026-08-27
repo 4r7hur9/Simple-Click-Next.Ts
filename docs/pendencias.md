@@ -7,75 +7,84 @@ Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 ### Onde paramos
 
 **Portão limpo em 27/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas. Último trabalho: **27/08**, a T-404 (a busca na vitrine).
+0 reprovadas. **Ponta a ponta limpo também**: 42 cenários, nos dois tamanhos de
+tela. Último trabalho: **27/08**, a T-406 (encontrabilidade e compartilhamento).
 
-**49 de 133 tarefas concluídas.** 270 critérios de aceite declarados, 108
-provados (40,0%).
+**50 de 133 tarefas concluídas.** 270 critérios de aceite declarados, 109
+provados (40,4%).
 
-O total subiu de 130 para 133 pelo mesmo motivo de sempre: **tarefas que
-nasceram de lacunas**, e não do planejamento. A T-513, a T-514 e a T-515
-existem porque o fechamento tinha casos de uso completos e nenhuma rota que os
-expusesse — o mesmo padrão que já tinha produzido a T-511 e a T-512.
+| Feature              | Feito | Situação                                    |
+| -------------------- | ----- | ------------------------------------------- |
+| `fundacao`           | 22/22 | **fechada**                                 |
+| `pedido-checkout`    | 16/16 | **fechada**                                 |
+| `vitrine-publica`    | 7/10  | falta T-407, T-408 e T-409                  |
+| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)            |
+| `config-loja`        | 1/9   | só a T-903 (horários), a reboque da vitrine |
+| `identidade-acesso`  | 0/11  | não começou                                 |
+| `catalogo-produtos`  | 0/14  | não começou                                 |
+| `pedido-operacao`    | 0/12  | não começou                                 |
+| `clientes-loja`      | 0/9   | não começou                                 |
+| `dashboard-metricas` | 0/10  | não começou                                 |
+| `admin-lojas`        | 0/10  | não começou                                 |
+| `cardapio-na-tv`     | 0/5   | não começou                                 |
 
-| Feature              | Feito | Situação                                             |
-| -------------------- | ----- | ---------------------------------------------------- |
-| `fundacao`           | 22/22 | **fechada**                                          |
-| `pedido-checkout`    | 16/16 | **fechada**                                          |
-| `vitrine-publica`    | 6/10  | falta T-406, T-407, T-408 e T-409                    |
-| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
-| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
-| `identidade-acesso`  | 0/11  | não começou                                          |
-| `catalogo-produtos`  | 0/14  | não começou                                          |
-| `pedido-operacao`    | 0/12  | não começou                                          |
-| `clientes-loja`      | 0/9   | não começou                                          |
-| `dashboard-metricas` | 0/10  | não começou                                          |
-| `admin-lojas`        | 0/10  | não começou                                          |
-| `cardapio-na-tv`     | 0/5   | não começou                                          |
-
-A contagem de critérios provados (108 de 270) parece baixa perto das tarefas
-(49 de 133), e é assim de propósito: a fundação inteira sustenta critérios de
+A contagem de critérios provados (109 de 270) parece baixa perto das tarefas
+(50 de 133), e é assim de propósito: a fundação inteira sustenta critérios de
 OUTRAS features, que só ficam provados quando a tela ou a rota daquela feature
 existir. Número que sobe devagar no começo e rápido no fim é o formato normal
 deste projeto — não é sinal de atraso.
 
-**O caminho da compra está inteiro.** Vitrine → produto → carrinho →
-conferência → fechamento → mensagem no WhatsApp. É a primeira vez que o
-produto faz o que promete de ponta a ponta, e há teste de navegador cobrindo o
-percurso desde a T-510.
+**O caminho da compra está inteiro**, e agora é encontrável: vitrine → produto →
+carrinho → conferência → fechamento → mensagem no WhatsApp, com dados
+estruturados, endereço canônico, mapa do site por loja e prévia desenhada para
+quem compartilha.
 
-### O que a T-404 ensinou, e vale para a próxima migração
+### As três lições dos dois últimos dias
 
-`app.texto_de_busca` nasceu `IMMUTABLE STRICT`, e `STRICT` devolve nulo quando
-qualquer argumento é nulo — sem executar o corpo, onde o `coalesce` esperava.
-Descrição vazia é o caso COMUM (o dono cadastra "Coca-Cola 350ml" e segue para
-o próximo item), então metade do catálogo entraria no índice como nulo e nunca
-seria encontrada, **nem pelo próprio nome**.
+**`STRICT` na função do índice (T-404).** `app.texto_de_busca` nasceu
+`IMMUTABLE STRICT`, e `STRICT` devolve nulo quando qualquer argumento é nulo —
+sem executar o corpo, onde o `coalesce` esperava. Descrição vazia é o caso
+COMUM, então metade do catálogo entraria no índice como nulo e nunca seria
+encontrada, **nem pelo próprio nome**. Apareceu porque o teste de integração
+criou produto SEM descrição; o teste que passava era o que tinha uma.
 
-O que fez isso aparecer foi o teste de integração criar produto SEM descrição.
-O teste que passava era justamente o que tinha uma — se a suíte tivesse sido
-escrita "com os dados completos", a busca teria ido para produção quebrada para
-a maioria dos produtos, e o sintoma seria um dono jurando que cadastrou algo
-que a busca não acha.
+**A regra sobre ramos não mora na tela (T-406).** O contrato ganhou
+`alimentacao` para os dados estruturados escolherem entre `Restaurant` e
+`Store`. A tela poderia decidir olhando o código do ramo ("começa com FOOD\_"),
+e é isso que o campo evita: a regra passaria a morar em cada tela e em cada
+aplicativo nativo, e um ramo novo nasceria classificado errado em todos ao mesmo
+tempo. É a mesma lição do "loja de roupa não tem cardápio", cobrada de novo.
+
+**Só o navegador pega o que o navegador quebra (T-406).** `sitemap.ts` do
+framework não recebe `params` dentro de segmento dinâmico. O teste de unidade
+passava — porque era ele quem chamava a função, com a assinatura que ele mesmo
+inventou. A rota de verdade só falhou quando um navegador a pediu. E a execução
+completa do ponta a ponta encontrou uma corrida no PRÓPRIO fixture, que deixava
+a loja sem horário por uma janela e fazia cinco cenários caírem juntos.
 
 ### Próximo passo
 
-Na vitrine, em ordem de barato para caro:
+Na vitrine, o que resta, em ordem de barato para caro:
 
-- **T-406 — Encontrabilidade** (AC-403, AC-414): dados estruturados, endereço
-  canônico e a imagem de compartilhamento com nome e preço. É vantagem direta
-  sobre o concorrente, cujo cardápio não é indexável.
 - **T-408 — Acessibilidade por teclado** (AC-418): o axe já roda em vários
   testes de tela; falta a navegação por teclado provada.
-- **T-409 — Ponta a ponta da vitrine**: o harness do Playwright existe desde a
-  T-510, e o projeto `publico` já roda com `javaScriptEnabled: false`. Leva
+- **T-409 — Ponta a ponta da vitrine**: o harness existe e está limpo. Leva
   junto a dívida 89 (a busca sem prova de navegador).
 - **T-407 — Desempenho no celular** (AC-415, AC-416): é o dono do AC-415, que
-  meia dúzia de tarefas cita e nenhuma provou. É a mais cara das quatro, e a
-  que fecha a feature.
+  meia dúzia de tarefas cita e nenhuma provou. É a mais cara das três, e a que
+  fecha a feature.
 
 Fora da vitrine, a **dívida 84** (o portão não reprova arquivo faltante de
 tarefa concluída) merece um turno só dela: foi ela que deixou a T-020 passar
 `[concluida]` com zero arquivos entregues.
+
+### A ordem que economiza tempo
+
+Formatar ANTES de gravar a prova, e gravar a prova ANTES do portão. O Prettier
+reescreve arquivo de teste, e arquivo de teste reescrito envelhece a prova de
+TODAS as features de uma vez — o portão então reprova na auditoria e o ciclo
+recomeça. `pnpm prettier --write .` → `bash infra/scripts/provar.sh` →
+`bash infra/scripts/verificar.sh`.
 
 ### Como subir o ambiente
 
@@ -1290,6 +1299,27 @@ bash infra/scripts/verificar.sh  # o portão completo
     O harness do Playwright existe desde a T-510, e o projeto `publico` já roda
     com `javaScriptEnabled: false`. É uma tela e um `fill`+`press`. Entra na
     T-409 (ponta a ponta da vitrine), que ainda está pendente.
+
+90. **Um servidor de desenvolvimento sobrando faz o ponta a ponta reprovar
+    inteiro, e a mensagem não diz isso.** `reuseExistingServer` reaproveita o
+    que já responde na porta 3100 — inclusive um processo antigo, servindo de um
+    cache que não existe mais ou sem as variáveis que o cenário precisa. O
+    sintoma é 42 cenários caindo de uma vez, com erros que falam de canônico e
+    de carrinho.
+
+    Aconteceu duas vezes na T-406, e as duas custaram uma investigação. O que
+    resolve é derrubar 3100 e 3101 antes de rodar. O caminho provável é o
+    próprio `test:e2e` conferir se quem está na porta é dele — ou simplesmente
+    não reaproveitar.
+
+91. **A imagem de compartilhamento usa a fonte do sistema.** `next/og` não
+    conhece as duas famílias que o site carrega por `next/font`, e desenha com o
+    que tiver. A prévia sai legível, e sai com a letra de qualquer página — que
+    é justamente o que a escolha de tipografia do projeto existe para evitar.
+
+    Passar a fonte é uma opção do `ImageResponse` (`fonts:`), e exige ler o
+    arquivo `.ttf` do disco na partida da rota. Fica para quando houver um
+    arquivo de fonte versionado; hoje elas vêm do pacote do Next.
 
 ## Portão contornado
 

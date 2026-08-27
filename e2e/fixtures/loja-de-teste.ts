@@ -109,18 +109,43 @@ function conectar(): Client {
 }
 
 /**
+ * A chave da trava que serializa a montagem da loja de teste.
+ *
+ * É UM NÚMERO ARBITRÁRIO, e a única exigência é ser o mesmo em todo processo
+ * que monte esta loja. `pg_advisory_lock` trabalha sobre um inteiro, e não
+ * sobre um nome: é o preço de uma trava que não precisa de tabela.
+ */
+const TRAVA_DA_MONTAGEM = 8_140_620;
+
+/**
  * Garante a loja, a categoria, o produto e o horário.
  *
  * A ORDEM IMPORTA: a loja antes de tudo, porque tudo é escopado por ela; o
  * horário antes do produto não faria diferença, mas manter a ordem do modelo
  * mental (loja → configuração → catálogo) é o que faz esta função ser lida sem
  * esforço daqui a seis meses.
+ *
+ * A MONTAGEM INTEIRA É SERIALIZADA, e isso não é excesso de zelo. O Playwright
+ * roda os arquivos em paralelo, e cada um chama esta função no `beforeAll`: com
+ * dois processos dentro dela ao mesmo tempo, o `DELETE` de horários de um cai
+ * no meio dos `INSERT` do outro, e existe uma janela em que a loja fica SEM
+ * HORÁRIO NENHUM. Quem carregar a página nessa janela vê "a loja está fechada"
+ * — e o cenário reprova por um motivo que não é o dele, de forma intermitente.
+ *
+ * Aconteceu de verdade, na execução completa da T-406: cinco cenários caíram
+ * ao mesmo tempo, a tabela ficou com catorze linhas de horário em vez de sete,
+ * e a API respondia `aberta: true` quando perguntada depois. Intermitência que
+ * some quando se investiga é a pior que existe.
+ *
+ * A trava é do PostgreSQL e vale por sessão: ela solta sozinha quando a
+ * conexão fecha, inclusive se o processo morrer no meio.
  */
 export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
   const cliente = conectar();
   await cliente.connect();
 
   try {
+    await cliente.query("SELECT pg_advisory_lock($1)", [TRAVA_DA_MONTAGEM]);
     // PROCURA ANTES DE INSERIR, e não `ON CONFLICT`. Os índices únicos deste
     // banco são PARCIAIS (`WHERE deleted_at IS NULL`) e alguns são sobre
     // expressão (`lower(slug)`) — e `ON CONFLICT` só casa com um índice se a
@@ -226,6 +251,12 @@ export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
 
     return { id: lojaId, apelido: APELIDO_DA_LOJA, produtoId };
   } finally {
+    // `end()` solta a trava sozinho — soltá-la à mão antes é o que garante que
+    // ela caia mesmo se o `end` falhar, e o `catch` vazio existe porque uma
+    // trava que não estava presa não é problema de ninguém.
+    await cliente
+      .query("SELECT pg_advisory_unlock($1)", [TRAVA_DA_MONTAGEM])
+      .catch(() => undefined);
     await cliente.end();
   }
 }

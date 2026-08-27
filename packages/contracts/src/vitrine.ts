@@ -72,6 +72,22 @@ export const esquemaDeLojaPublica = z.strictObject({
   apelido: z.string(),
   nome: z.string(),
   ramo: z.string(),
+  /**
+   * Se o ramo é de ALIMENTAÇÃO (AC-403).
+   *
+   * PARECE REDUNDANTE COM `ramo`, e não é. Quem consome poderia decidir olhando
+   * o código ("começa com FOOD_"), e é justamente isso que este campo evita: a
+   * regra sobre ramos passaria a morar em cada tela e em cada aplicativo, e um
+   * ramo novo — "Padaria", "Pizzaria" — nasceria classificado errado em todos
+   * eles ao mesmo tempo, sem ninguém notar.
+   *
+   * O banco já sabe (`vertical_presets.is_food`), e o contrato só para de
+   * esconder. Quem precisa disso hoje são os dados estruturados: buscador
+   * entende `Restaurant` + `Menu` para quem serve comida e `Store` +
+   * `OfferCatalog` para quem vende objeto, e mandar o par errado faz o
+   * buscador desprezar o bloco inteiro.
+   */
+  alimentacao: z.boolean(),
   rotulos: esquemaDeRotulosDoRamo,
   fusoHorario: z.string(),
   moeda: z.string(),

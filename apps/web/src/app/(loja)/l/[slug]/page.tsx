@@ -15,6 +15,14 @@ import type { Metadata } from "next";
 
 import { ApresentacaoDaLoja } from "../../../../features/loja/ApresentacaoDaLoja.tsx";
 import { EntradaDaLoja } from "../../../../features/loja/EntradaDaLoja.tsx";
+import {
+  DadosEstruturados,
+  negocioDaLoja,
+} from "../../../../lib/dados-estruturados.tsx";
+import {
+  enderecoDaLoja,
+  enderecoDoSite,
+} from "../../../../server/endereco-do-site.ts";
 import { buscarVitrine } from "../../../../server/vitrine.ts";
 
 interface ParametrosDaPagina {
@@ -39,9 +47,31 @@ export async function generateMetadata({
   }
 
   const { loja } = resultado.vitrine;
+  const descricao = loja.boasVindas ?? `Peça em ${loja.nome} pelo WhatsApp.`;
+  const canonico = enderecoDaLoja(loja.apelido);
+
   return {
     title: loja.nome,
-    description: loja.boasVindas ?? `Peça em ${loja.nome} pelo WhatsApp.`,
+    description: descricao,
+    // O CANÔNICO É UM SÓ (AC-403). A mesma loja alcançável por dois caminhos
+    // divide a relevância entre os dois, e o buscador escolhe um — normalmente
+    // o que ninguém compartilhou. Declarar o oficial encerra a dúvida.
+    alternates: { canonical: canonico },
+    openGraph: {
+      title: loja.nome,
+      description: descricao,
+      url: canonico,
+      siteName: loja.nome,
+      locale: "pt_BR",
+      type: "website",
+    },
+    twitter: {
+      // `summary_large_image` porque a imagem desenhada é 1200×630: no cartão
+      // pequeno ela apareceria cortada num quadrado, sem o nome da loja.
+      card: "summary_large_image",
+      title: loja.nome,
+      description: descricao,
+    },
   };
 }
 
@@ -63,6 +93,15 @@ export default async function PaginaDaLoja({ params }: ParametrosDaPagina) {
 
   return (
     <main className="sc-pagina-da-loja">
+      {/*
+        Os dados estruturados vão no CORPO, e não no `<head>`: o buscador lê os
+        dois, e aqui o bloco fica ao lado do conteúdo que ele descreve — quem
+        editar a apresentação vê o bloco na mesma tela e lembra dele.
+      */}
+      <DadosEstruturados
+        dados={negocioDaLoja({ loja, enderecoDoSite: enderecoDoSite() })}
+      />
+
       <ApresentacaoDaLoja
         loja={loja}
         abertura={abertura}
