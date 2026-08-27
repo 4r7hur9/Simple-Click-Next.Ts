@@ -43,11 +43,18 @@
 - Notas: o esmaecimento do cartão esgotado é da FOTO, e não do texto — esmaecer nome e preço derrubaria o contraste deles abaixo do mínimo, e é justamente a informação que o produto ainda precisa entregar.
 - Esforço: medio
 
-## T-404 — Busca na vitrine [pendente]
+## T-404 — Busca na vitrine [concluida]
 
 - Refs: US-402, AC-408, AC-409
-- Arquivos: apps/api/src/modules/storefront/busca.usecase.ts, apps/api/src/modules/storefront/busca.usecase.test.ts, apps/web/src/features/vitrine/BuscaProduto.tsx
+- Arquivos: apps/api/src/modules/storefront/busca.usecase.ts, apps/api/src/modules/storefront/busca.usecase.test.ts, apps/api/src/modules/storefront/catalogo.usecase.ts, apps/api/src/modules/storefront/vitrine.routes.ts, apps/api/tests/busca-vitrine.int.test.ts, packages/database/migrations/0021_busca_ignora_acento.sql, packages/contracts/src/vitrine.ts, packages/contracts/src/index.ts, contrato/openapi.json, apps/web/src/features/vitrine/BuscaProduto.tsx, apps/web/src/lib/catalogo.ts, apps/web/src/server/catalogo-na-tela.ts, apps/web/src/server/vitrine.ts, apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx, apps/web/tests/vitrine-busca.test.tsx, packages/ui/styles/vitrine.css
 - Notas: ignora acento e caixa. Categoria sem resultado desaparece da lista. Sem resultado oferece limpar a busca.
+- Notas: A BUSCA É UM FORMULÁRIO `GET`, e não um campo que filtra enquanto se digita. Filtrar no navegador exigiria baixar o catálogo inteiro para descartar quase tudo — o peso que o AC-415 proíbe —, e filtrar por tecla seria uma ida à rede por letra numa tela feita para rede ruim. Como `GET`, ela funciona com JavaScript desligado, o resultado fica no endereço e se compartilha, e o "voltar" do navegador a desfaz sem código nosso.
+- Notas: o acento vem da migração 0021, com `app.sem_acento` escrita em `translate()` e NÃO com a extensão `unaccent`. A extensão é a resposta de manual, mas criá-la exige privilégio que `sc_migrator` não tem — e é ela quem roda a publicação. Depender de superusuário numa migração que roda em banco já em produção é apostar que alguém terá superusuário no dia da troca. O custo do `translate` é a lista de caracteres ser explícita: idioma novo pede uma linha nova.
+- Notas: **`STRICT` na função do índice teria deixado invisível todo produto sem descrição.** `app.texto_de_busca` nasceu `IMMUTABLE STRICT`, e `STRICT` devolve nulo quando qualquer argumento é nulo — sem executar o corpo, onde o `coalesce` esperava. Descrição vazia é o caso comum (o dono cadastra "Coca-Cola 350ml" e segue), então metade do catálogo entraria no índice como nulo e nunca seria encontrada, nem pelo próprio nome. Só apareceu porque o teste de integração criou produto sem descrição; o teste que passava era justamente o que tinha uma.
+- Notas: a consulta é CRUA, e é uma das poucas do projeto — `tsvector`, `plainto_tsquery` e índice de expressão não têm equivalente no Prisma, e escrevê-los por aproximação daria uma busca que ignora o índice em silêncio. A expressão é chamada PELO NOME da função: copiada, ela divergiria e o índice deixaria de ser usado sem ninguém notar. O isolamento continua com o banco — a consulta não filtra por loja, e há teste com duas lojas provando que a política é quem recusa.
+- Notas: a busca DEVOLVE IDENTIFICADORES, e quem agrupa continua sendo o catálogo. É o que faz o resultado sair "agrupado por categoria" sem uma segunda montagem, e o que faz a categoria sem acerto sumir em vez de aparecer com o cabeçalho vazio.
+- Notas: resultado vazio NÃO é loja sem catálogo, e a distinção é a tela inteira. Uma loja cheia que não vende bicicleta receberia "o cardápio está sendo montado" — uma frase sobre a LOJA, provocada por uma palavra que um visitante digitou. `lojaSemCatalogo` passou a exigir ausência de busca.
+- Notas: o termo atravessa as abas de categoria, e o link de limpar a busca não o carrega de volta. Clicar numa aba depois de buscar é ESTREITAR, não recomeçar; e o caminho de saída do vazio precisa levar a algum lugar diferente de onde a pessoa está.
 - Esforço: medio
 
 ## T-405 — Página de detalhe do produto [concluida]

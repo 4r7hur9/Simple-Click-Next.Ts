@@ -20,9 +20,16 @@ import type { Metadata } from "next";
 import { PALETA_CLARA, TemaDaLoja, Vazio } from "@simpleclick/ui";
 
 import { AbasDeCategoria } from "../../../../../features/vitrine/AbasDeCategoria.tsx";
+import {
+  BuscaProduto,
+  SemResultado,
+} from "../../../../../features/vitrine/BuscaProduto.tsx";
 import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
-import { PARAMETRO_DA_CATEGORIA } from "../../../../../lib/catalogo.ts";
+import {
+  PARAMETRO_DA_BUSCA,
+  PARAMETRO_DA_CATEGORIA,
+} from "../../../../../lib/catalogo.ts";
 import { prepararCatalogo } from "../../../../../server/catalogo-na-tela.ts";
 import {
   buscarCatalogo,
@@ -67,10 +74,16 @@ export default async function PaginaDoCatalogo({
   searchParams,
 }: ParametrosDaPagina) {
   const { slug } = await params;
-  const [vitrine, catalogo, consulta] = await Promise.all([
+
+  // A CONSULTA VEM PRIMEIRO, e é a única espera em série da página: o termo
+  // buscado muda o que se pede à API, então não há como pedir antes de lê-lo.
+  // As duas idas à API continuam em paralelo, que é o que o AC-415 mede.
+  const consulta = await searchParams;
+  const termo = primeiro(consulta[PARAMETRO_DA_BUSCA]);
+
+  const [vitrine, catalogo] = await Promise.all([
     buscarVitrine(slug),
-    buscarCatalogo(slug),
-    searchParams,
+    buscarCatalogo(slug, { busca: termo }),
   ]);
 
   // Inexistente e suspensa caem no MESMO lugar, porque a API já as respondeu
@@ -96,6 +109,7 @@ export default async function PaginaDoCatalogo({
   const naTela = prepararCatalogo(catalogo.catalogo, {
     apelidoDaLoja: loja.apelido,
     categoriaEscolhida: primeiro(consulta[PARAMETRO_DA_CATEGORIA]),
+    termoBuscado: termo,
   });
 
   return (
@@ -117,6 +131,20 @@ export default async function PaginaDoCatalogo({
 
         <h1 className="sc-vitrine__titulo">{loja.rotulos.catalogo}</h1>
 
+        {/*
+          O CAMPO FICA FORA DO `else`, e antes dos estados vazios: quem buscou e
+          não achou precisa do campo para tentar outra palavra, e escondê-lo
+          junto com a lista deixaria a pessoa com uma mensagem e nada a fazer.
+          Some só na loja sem catálogo, onde não há o que buscar.
+        */}
+        {naTela.lojaSemCatalogo ? null : (
+          <BuscaProduto
+            acao={`/l/${loja.apelido}/catalogo`}
+            termo={naTela.termoBuscado}
+            rotuloDoCatalogo={loja.rotulos.catalogo}
+          />
+        )}
+
         {naTela.lojaSemCatalogo ? (
           // AC-407: loja recém-criada explica que está montando o catálogo, em
           // vez de mostrar uma tela vazia que lê como erro de carregamento.
@@ -133,7 +161,13 @@ export default async function PaginaDoCatalogo({
 
             <Destaques destaques={naTela.destaques} />
 
-            {naTela.filtroSemAcerto ? (
+            {naTela.buscaSemAcerto ? (
+              <SemResultado
+                termo={naTela.termoBuscado ?? ""}
+                linkDeTodos={naTela.linkSemBusca}
+                rotuloDoCatalogo={loja.rotulos.catalogo}
+              />
+            ) : naTela.filtroSemAcerto ? (
               // Categoria que não existe mais não derruba a página: ela explica
               // e oferece a saída, porque vazio sem caminho é beco sem saída.
               <Vazio

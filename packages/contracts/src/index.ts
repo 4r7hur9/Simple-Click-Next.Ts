@@ -79,6 +79,7 @@ export {
   esquemaDeRotulosDoRamo,
   esquemaDoApelido,
   rotaDaVitrine,
+  esquemaDaBuscaDoCatalogo,
   esquemaDoCatalogo,
   esquemaDeProdutoNaVitrine,
   esquemaDeSecaoDaVitrine,

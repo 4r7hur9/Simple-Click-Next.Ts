@@ -53,8 +53,14 @@ export interface CatalogoNaTela {
   readonly abas: readonly AbaDeCategoria[];
   /** O nome da categoria escolhida, para a tela dizer qual filtro está valendo. */
   readonly filtroEmVigor: string | null;
-  /** Para onde vai quem quer ver tudo de novo. */
+  /** Para onde vai quem quer ver todas as categorias, sem desfazer a busca. */
   readonly linkDeTodas: string;
+  /** O que foi buscado, para o campo abrir preenchido e a mensagem repetir. */
+  readonly termoBuscado: string | null;
+  /** Buscou e a loja não tem — que é diferente de a loja não ter nada. */
+  readonly buscaSemAcerto: boolean;
+  /** Para onde vai quem quer LIMPAR A BUSCA e ver tudo de novo (AC-409). */
+  readonly linkSemBusca: string;
   /** A loja não publicou produto nenhum — que é diferente de filtro sem acerto. */
   readonly lojaSemCatalogo: boolean;
   /** A categoria pedida no endereço não existe nesta loja. */
@@ -63,6 +69,9 @@ export interface CatalogoNaTela {
 
 /** O nome do parâmetro no endereço. É o que a pessoa lê na barra do navegador. */
 export const PARAMETRO_DA_CATEGORIA = "categoria";
+
+/** O nome do parâmetro da busca. Mesma razão: ele fica visível e se compartilha. */
+export const PARAMETRO_DA_BUSCA = "busca";
 
 /** O rótulo da aba que desfaz o filtro. */
 export const ROTULO_DE_TODAS = "Todas";

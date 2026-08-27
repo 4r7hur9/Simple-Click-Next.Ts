@@ -365,13 +365,22 @@ function linhasDoResumo(
   taxa: number,
   forma: "DELIVERY" | "PICKUP",
 ): readonly LinhaDoResumo[] {
-  const linhas: LinhaDoResumo[] = [
-    {
-      chave: "itens",
-      rotulo: "Itens",
-      valor: escreverDinheiro(conferencia?.subtotalCentavos ?? 0),
-    },
-  ];
+  // CADA ITEM APARECE, e não só a soma. O AC-507 pede "o valor dos itens", e
+  // uma linha só com o subtotal atende a letra e falha o propósito: quem chega
+  // ao fechamento precisa CONFERIR o que está comprando antes de dar o nome e
+  // o telefone. Resumo que esconde o que se leva é resumo que se aceita sem
+  // ler — e a reclamação chega depois, com o pedido já na cozinha.
+  const linhas: LinhaDoResumo[] = (conferencia?.itens ?? []).map((item) => ({
+    chave: item.itemId,
+    rotulo: `${item.quantidade}× ${item.nome}`,
+    valor: escreverDinheiro(item.totalDaLinhaCentavos),
+  }));
+
+  linhas.push({
+    chave: "itens",
+    rotulo: "Itens",
+    valor: escreverDinheiro(conferencia?.subtotalCentavos ?? 0),
+  });
 
   if (forma === "DELIVERY") {
     linhas.push({

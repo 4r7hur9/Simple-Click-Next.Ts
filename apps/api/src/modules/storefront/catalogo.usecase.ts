@@ -143,10 +143,24 @@ function comoVitrine(linha: LinhaDeProduto): ProdutoNaVitrine {
  * o de outra loja, e a assinatura da função sugeriria que isso é uma coisa que
  * se faz.
  */
+export interface FiltroDoCatalogo {
+  /**
+   * Quando presente, só estes produtos entram — é a BUSCA (AC-408).
+   *
+   * Lista VAZIA significa "nada casou", e não "sem filtro": a diferença é o que
+   * separa a tela de "nenhum resultado" da tela do catálogo inteiro. Por isso o
+   * campo é a lista, e não um termo — quem decide quem casa é a busca.
+   */
+  readonly apenasProdutos?: readonly string[] | undefined;
+}
+
 export async function catalogoDaVitrine(
   versaoDoCatalogo: string,
+  filtro: FiltroDoCatalogo = {},
 ): Promise<CatalogoDaVitrine> {
   const tx = transacaoAtual();
+  const filtrando = filtro.apenasProdutos !== undefined;
+  const permitidos = new Set(filtro.apenasProdutos ?? []);
 
   // UMA consulta para as seções com seus produtos. A alternativa — uma consulta
   // por seção — faria uma loja com doze seções pagar doze idas ao banco para
@@ -168,7 +182,7 @@ export async function catalogoDaVitrine(
     },
   });
 
-  const secoes: SecaoDaVitrine[] = categorias.map((categoria) => ({
+  const todasAsSecoes: SecaoDaVitrine[] = categorias.map((categoria) => ({
     id: categoria.id,
     apelido: categoria.slug,
     nome: categoria.name,
@@ -176,9 +190,26 @@ export async function catalogoDaVitrine(
     // rascunho ou removido. O Prisma devolve o vínculo com o produto nulo, e
     // não o vínculo de fora: filtrar aqui é o que impede um buraco na lista.
     produtos: categoria.produtos.flatMap((vinculo) =>
-      vinculo.produto ? [comoVitrine(vinculo.produto)] : [],
+      vinculo.produto && (!filtrando || permitidos.has(vinculo.produto.id))
+        ? [comoVitrine(vinculo.produto)]
+        : [],
     ),
   }));
+
+  // COM BUSCA, CATEGORIA SEM ACERTO DESAPARECE (AC-408). Sem busca, ela fica: o
+  // dono criou a seção e a tela explica que ela está sendo montada. São duas
+  // telas diferentes — "não achei o que você procurou" e "esta seção ainda não
+  // tem nada" —, e trocar uma pela outra confunde quem está procurando.
+  const secoes = filtrando
+    ? todasAsSecoes.filter((secao) => secao.produtos.length > 0)
+    : todasAsSecoes;
+
+  // COM BUSCA, NÃO HÁ DESTAQUES. Eles são a vitrine do dono, e quem digitou um
+  // termo pediu outra coisa — mostrar destaque no meio do resultado seria
+  // responder uma pergunta que ninguém fez.
+  if (filtrando) {
+    return { secoes, destaques: [], versao: versaoDoCatalogo };
+  }
 
   // Os destaques vêm de consulta PRÓPRIA, e não de filtrar as seções: o produto
   // em destaque pode não estar em categoria nenhuma, e mesmo estando, ele

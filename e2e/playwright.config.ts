@@ -19,6 +19,23 @@
  */
 import { defineConfig, devices } from "@playwright/test";
 
+/**
+ * O ambiente do REPOSITÓRIO, carregado antes de tudo.
+ *
+ * Os cenários montam a loja de teste falando com o banco direto, e para isso
+ * precisam da cadeia de conexão. Sem esta linha, o processo do Playwright não
+ * a tem — e a montagem falha com uma mensagem sobre variável ausente, que é
+ * clara, mas evitável.
+ *
+ * `try` porque a ausência do arquivo não deve derrubar a configuração inteira:
+ * quem roda em ambiente com as variáveis já no processo não tem `.env`.
+ */
+try {
+  process.loadEnvFile(new URL("../.env", import.meta.url).pathname);
+} catch {
+  // Sem arquivo: vale o que já estiver no ambiente.
+}
+
 /** Onde o site atende durante o ponta a ponta. */
 export const ENDERECO_DO_SITE = "http://localhost:3100";
 

@@ -19,6 +19,7 @@ import {
   type Vitrine,
 } from "@simpleclick/contracts";
 
+import { PARAMETRO_DA_BUSCA } from "../lib/catalogo.ts";
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
 
 /** O que a página recebe: a loja, ou o motivo de não haver loja. */
@@ -101,6 +102,11 @@ export type ResultadoDoCatalogo =
   | { readonly estado: "nao-encontrada" }
   | { readonly estado: "indisponivel"; readonly motivo: string };
 
+/** O que muda o catálogo pedido. */
+export interface OpcoesDaBusca {
+  readonly busca?: string | null | undefined;
+}
+
 /**
  * Busca o catálogo público da loja.
  *
@@ -112,12 +118,20 @@ export type ResultadoDoCatalogo =
  * tela que decide dizer "estamos montando o catálogo" (AC-407). Tratar vazio
  * como indisponibilidade faria a loja nova parecer quebrada no primeiro dia,
  * que é justamente quando o dono está decidindo se confia no produto.
+ *
+ * A BUSCA VAI PARA O SERVIDOR (AC-408), e não é filtrada aqui. O banco tem o
+ * índice de texto e a regra de acento; refazer isso no Next significaria baixar
+ * o catálogo inteiro para descartar quase tudo — o peso que o AC-415 proíbe.
  */
 export async function buscarCatalogo(
   apelido: string,
+  opcoes: OpcoesDaBusca = {},
   buscar: typeof fetch = fetch,
 ): Promise<ResultadoDoCatalogo> {
-  const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}/catalogo`;
+  const termo = opcoes.busca?.trim() ?? "";
+  const consulta =
+    termo === "" ? "" : `?${PARAMETRO_DA_BUSCA}=${encodeURIComponent(termo)}`;
+  const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}/catalogo${consulta}`;
 
   let resposta: Response;
   try {

@@ -150,9 +150,15 @@
 - Notas: o formulário NÃO pede UF, e o pedido tem coluna para ela. Não é esquecimento: entrega de bairro não precisa de estado, e todo campo a mais no celular é uma desistência a mais. Ver a dívida 77.
 - Esforço: alto
 
-## T-510 — Teste de ponta a ponta do fechamento [pendente]
+## T-510 — Teste de ponta a ponta do fechamento [concluida]
 
 - Refs: US-500, US-503, US-504, AC-500, AC-514, AC-520
-- Arquivos: e2e/specs/carrinho.spec.ts, e2e/specs/checkout.spec.ts, e2e/fixtures/intercepts.ts
-- Notas: a chamada ao WhatsApp é interceptada no teste, para validar o texto gerado sem depender de rede externa.
+- Arquivos: e2e/specs/carrinho.spec.ts, e2e/specs/checkout.spec.ts, e2e/fixtures/intercepts.ts, e2e/fixtures/loja-de-teste.ts, e2e/package.json, apps/web/src/features/checkout/FechamentoDaCompra.tsx
+- Notas: a chamada ao WhatsApp é interceptada no teste, para validar o texto gerado sem depender de rede externa. A troca é instalada com `addInitScript`, ANTES de qualquer script da página: instalada depois, o componente já teria guardado a referência original. E ela devolve um objeto, e não `null` — `null` é como o navegador diz "bloqueei a janela", e o componente trata isso como falha de envio (AC-523).
+- Notas: **FECHA A DÍVIDA 68.** Cada metade estava provada e a junção nunca tinha rodado: o cookie atravessando dois endereços, o `credentials: "include"` valendo, o CORS deixando o POST passar com a origem do site. É o que só um navegador de verdade mostra.
+- Notas: o cenário monta LOJA PRÓPRIA (`e2e-lanchonete`), e não usa a da carga de exemplo. A da carga tem horário de verdade — abre às 11h —, e cenário que só passa depois do almoço não é prova, é sorte. Esta abre todos os dias, o dia inteiro, e o fluxo é o mesmo às três da manhã.
+- Notas: a montagem é IDEMPOTENTE e à prova de corrida. O Playwright roda cenários em paralelo, e dois deles podem procurar a loja ao mesmo tempo, não achar, e tentar criar — o segundo bate no índice único, que é o banco funcionando. Quem perde a corrida procura de novo e usa o que o outro criou.
+- Notas: `ON CONFLICT` não serve neste banco: os índices únicos são PARCIAIS (`WHERE deleted_at IS NULL`) e alguns são sobre expressão (`lower(slug)`), e a cláusula só casa quando a especificação bate exatamente com o índice. Procurar antes de inserir funciona com qualquer forma.
+- Notas: os pedidos criados pelo cenário são APAGADOS no fim; a loja e o carrinho ficam. Pedido de teste aparece na fila do dono, e fila com pedido de teste é fila em que ninguém confia — já o carrinho abandonado é rastro que o dono usa, e recriar a loja a cada execução seria trabalho sem ganho.
+- Notas: **o cenário encontrou uma falha de tela.** O resumo do fechamento mostrava só o subtotal e a taxa — não listava os itens. Atendia a letra do AC-507 ("o valor dos itens") e falhava o propósito: quem chega ao fechamento precisa CONFERIR o que está comprando antes de dar nome e telefone. Resumo que esconde o que se leva é resumo que se aceita sem ler, e a reclamação chega depois, com o pedido na cozinha.
 - Esforço: medio

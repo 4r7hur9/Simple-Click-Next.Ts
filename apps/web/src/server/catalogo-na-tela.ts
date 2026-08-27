@@ -20,6 +20,7 @@ import { emReais } from "@simpleclick/core";
 import type { CatalogoDaVitrineNoContrato } from "@simpleclick/contracts";
 
 import {
+  PARAMETRO_DA_BUSCA,
   PARAMETRO_DA_CATEGORIA,
   ROTULO_DE_TODAS,
   type AbaDeCategoria,
@@ -64,19 +65,36 @@ function prepararProduto(
   };
 }
 
-function enderecoDaCategoria(
+/**
+ * O endereço do catálogo com os filtros que estiverem valendo.
+ *
+ * A BUSCA ATRAVESSA AS ABAS de propósito: quem procurou "coxinha" e clica em
+ * "Salgados" está estreitando o resultado, e não recomeçando. Perder o termo ali
+ * obrigaria a digitar de novo a cada aba — e faria as duas escolhas brigarem em
+ * vez de somarem.
+ */
+function enderecoDoCatalogo(
   apelidoDaLoja: string,
   categoria: string | null,
+  busca: string | null,
 ): string {
   const base = `/l/${apelidoDaLoja}/catalogo`;
-  if (categoria === null) return base;
-  return `${base}?${PARAMETRO_DA_CATEGORIA}=${encodeURIComponent(categoria)}`;
+  const partes: string[] = [];
+  if (categoria !== null) {
+    partes.push(`${PARAMETRO_DA_CATEGORIA}=${encodeURIComponent(categoria)}`);
+  }
+  if (busca !== null) {
+    partes.push(`${PARAMETRO_DA_BUSCA}=${encodeURIComponent(busca)}`);
+  }
+  return partes.length === 0 ? base : `${base}?${partes.join("&")}`;
 }
 
 export interface OpcoesDoCatalogo {
   readonly apelidoDaLoja: string;
   /** O que veio no endereço. Nulo, vazio ou desconhecido significam "todas". */
   readonly categoriaEscolhida?: string | null | undefined;
+  /** O termo buscado. O SERVIDOR já filtrou por ele; aqui ele só é escrito. */
+  readonly termoBuscado?: string | null | undefined;
 }
 
 /**
@@ -85,7 +103,7 @@ export interface OpcoesDoCatalogo {
  */
 export function prepararCatalogo(
   catalogo: CatalogoDaVitrineNoContrato,
-  { apelidoDaLoja, categoriaEscolhida }: OpcoesDoCatalogo,
+  { apelidoDaLoja, categoriaEscolhida, termoBuscado }: OpcoesDoCatalogo,
 ): CatalogoNaTela {
   const secoes: readonly SecaoNaTela[] = catalogo.secoes.map((secao) => ({
     id: secao.id,
@@ -94,10 +112,22 @@ export function prepararCatalogo(
     produtos: secao.produtos.map((p) => prepararProduto(p, apelidoDaLoja)),
   }));
 
+  const termo =
+    termoBuscado !== null && termoBuscado !== undefined && termoBuscado !== ""
+      ? termoBuscado
+      : null;
+
+  const semProduto = secoes.every((secao) => secao.produtos.length === 0);
+
   // Loja sem catálogo é loja sem NENHUM produto em nenhuma seção — e não loja
   // sem seção. Uma loja pode ter as seções criadas e nada publicado ainda, e
   // para quem abre a vitrine as duas situações são a mesma (AC-407).
-  const lojaSemCatalogo = secoes.every((secao) => secao.produtos.length === 0);
+  //
+  // COM BUSCA VALENDO, vazio não é isso. As seções que chegam já vêm filtradas
+  // pelo termo, e dizer "o cardápio está sendo montado" para uma loja cheia que
+  // não vende coxinha seria mentir sobre a loja por causa de uma palavra.
+  const lojaSemCatalogo = termo === null && semProduto;
+  const buscaSemAcerto = termo !== null && semProduto;
 
   const pedida =
     categoriaEscolhida !== null &&
@@ -120,12 +150,12 @@ export function prepararCatalogo(
   const abas: readonly AbaDeCategoria[] = [
     {
       nome: ROTULO_DE_TODAS,
-      link: enderecoDaCategoria(apelidoDaLoja, null),
+      link: enderecoDoCatalogo(apelidoDaLoja, null, termo),
       emVigor: escolhida === null && !filtroSemAcerto,
     },
     ...secoes.map((secao) => ({
       nome: secao.nome,
-      link: enderecoDaCategoria(apelidoDaLoja, secao.apelido),
+      link: enderecoDoCatalogo(apelidoDaLoja, secao.apelido, termo),
       emVigor: escolhida !== null && secao.apelido === escolhida.apelido,
     })),
   ];
@@ -141,7 +171,10 @@ export function prepararCatalogo(
         : [],
     abas,
     filtroEmVigor: escolhida?.nome ?? null,
-    linkDeTodas: enderecoDaCategoria(apelidoDaLoja, null),
+    linkDeTodas: enderecoDoCatalogo(apelidoDaLoja, null, termo),
+    termoBuscado: termo,
+    buscaSemAcerto,
+    linkSemBusca: enderecoDoCatalogo(apelidoDaLoja, null, null),
     lojaSemCatalogo,
     filtroSemAcerto,
   };

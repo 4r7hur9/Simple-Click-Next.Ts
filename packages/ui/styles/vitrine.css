@@ -66,6 +66,71 @@
   line-height: var(--altura-linha-apertada);
 }
 
+/* --- a busca ---------------------------------------------------------------
+ *
+ * O CAMPO E O BOTÃO NA MESMA LINHA, e o botão não some no celular: sem script,
+ * ele é a única forma de enviar para quem não descobre que "enter" busca. Ele é
+ * estreito, e o campo fica com a largura que sobra.
+ */
+
+.sc-vitrine__busca {
+  display: flex;
+  gap: var(--espaco-2);
+}
+
+.sc-vitrine__busca-campo {
+  /* `min-inline-size: 0` porque campo dentro de flex não encolhe sozinho: sem
+   * ele o par estoura a largura no dobrável fechado, de 344px. */
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-block: var(--espaco-2);
+  padding-inline: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-family: inherit;
+  font-size: var(--texto-base);
+}
+
+.sc-vitrine__busca-campo::placeholder {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-vitrine__busca-botao {
+  flex: 0 0 auto;
+  padding-block: var(--espaco-2);
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio-2);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-family: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+}
+
+.sc-vitrine__sem-resultado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-7);
+  text-align: center;
+}
+
+.sc-vitrine__sem-resultado-titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.sc-vitrine__sem-resultado-texto {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
 /* --- as abas de categoria -------------------------------------------------
  *
  * A faixa gruda no topo para o AC-405 valer depois da primeira rolagem: o

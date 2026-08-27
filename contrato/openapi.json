@@ -480,6 +480,15 @@
               "maxLength": 80,
               "pattern": "^[a-z0-9-]+$"
             }
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            }
           }
         ],
         "responses": {

@@ -17,6 +17,7 @@
 import { Router } from "express";
 import type { HorarioDaLoja } from "@simpleclick/core";
 import {
+  esquemaDaBuscaDoCatalogo,
   esquemaDoApelido,
   esquemaDoApelidoEProduto,
 } from "@simpleclick/contracts";
@@ -26,6 +27,7 @@ import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
 import { catalogoDaVitrine } from "./catalogo.usecase.ts";
+import { prepararTermo, produtosQueCasam } from "./busca.usecase.ts";
 import { fechamentoDaLoja } from "./fechamento.usecase.ts";
 import { produtoDaVitrine } from "./produto.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
@@ -110,35 +112,54 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
    * a apresentação continua respondendo no prazo que o AC-415 cobra mesmo em
    * loja com catálogo grande.
    */
-  rotas.get("/:apelido/catalogo", borda, async (req, res, proximo) => {
-    try {
-      const { params } = borda.dados(req);
-      const acesso = opcoes.acesso ?? banco();
-
-      // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
-      const identificacao = await executarComoRequisicao(
-        { papel: "PUBLIC" },
-        () => acesso.emTransacao(() => identificarLoja(params)),
-      );
-
-      if (!identificacao.encontrada) {
-        throw erroDeDominio("nao_encontrado", { recurso: "loja" });
-      }
-
-      // PASSO 2 — transação nova, com a loja declarada desde o início.
-      const catalogo = await executarComoRequisicao(
-        { papel: "PUBLIC", lojaId: identificacao.id },
-        () =>
-          acesso.emTransacao(() =>
-            catalogoDaVitrine(identificacao.versaoDoCatalogo),
-          ),
-      );
-
-      res.json(catalogo);
-    } catch (erro) {
-      proximo(erro);
-    }
+  const bordaDoCatalogo = validar({
+    params: esquemaDoApelido,
+    query: esquemaDaBuscaDoCatalogo,
   });
+
+  rotas.get(
+    "/:apelido/catalogo",
+    bordaDoCatalogo,
+    async (req, res, proximo) => {
+      try {
+        const { params, query } = bordaDoCatalogo.dados(req);
+        const acesso = opcoes.acesso ?? banco();
+        const termo = prepararTermo(query.busca ?? "");
+
+        // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
+        const identificacao = await executarComoRequisicao(
+          { papel: "PUBLIC" },
+          () => acesso.emTransacao(() => identificarLoja(params)),
+        );
+
+        if (!identificacao.encontrada) {
+          throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+        }
+
+        // PASSO 2 — transação nova, com a loja declarada desde o início.
+        const catalogo = await executarComoRequisicao(
+          { papel: "PUBLIC", lojaId: identificacao.id },
+          () =>
+            acesso.emTransacao(async () => {
+              if (termo === null) {
+                return catalogoDaVitrine(identificacao.versaoDoCatalogo);
+              }
+              // A BUSCA DECIDE QUEM CASA; o catálogo decide como agrupar. Assim o
+              // resultado sai por categoria sem uma segunda montagem — e a lista
+              // VAZIA continua sendo filtro, e não ausência de filtro.
+              const acertos = await produtosQueCasam(termo);
+              return catalogoDaVitrine(identificacao.versaoDoCatalogo, {
+                apenasProdutos: acertos,
+              });
+            }),
+        );
+
+        res.json(catalogo);
+      } catch (erro) {
+        proximo(erro);
+      }
+    },
+  );
 
   /*
    * A PÁGINA DE UM PRODUTO tem endereço próprio pelo mesmo motivo do catálogo,

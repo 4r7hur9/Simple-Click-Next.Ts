@@ -3,6 +3,11 @@
   "extends": "@simpleclick/config-ts/node.json",
   "compilerOptions": {
     "types": ["node"],
+    // O CÓDIGO DA INTERCEPTAÇÃO RODA NO NAVEGADOR, dentro de `addInitScript`,
+    // e por isso fala de `window`. O resto do pacote roda no Node. Declarar a
+    // biblioteca do DOM cobre os dois — e não faz o Node ganhar API nenhuma:
+    // é só o compilador reconhecendo os nomes.
+    "lib": ["ES2023", "DOM"],
     // O Playwright resolve os módulos como o Node os resolve, e o Node exige a
     // extensão no import. Mesma razão de `apps/web` ter esta opção: o pacote de
     // contrato é lido pelos dois lados, e o import precisa funcionar nos dois.

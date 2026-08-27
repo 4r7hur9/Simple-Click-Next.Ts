@@ -2,68 +2,80 @@
 
 Dívidas conhecidas e o que retomar. Uma linha sai daqui quando deixa de valer.
 
-## Para retomar (25/08/2026)
+## Para retomar (27/08/2026)
 
 ### Onde paramos
 
-**Portão limpo em 25/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
-0 reprovadas. Último trabalho: **25/08**, a T-512 (a conferência do carrinho).
+**Portão limpo em 27/08**: 16 etapas declaradas, 16 executadas, 16 aprovadas,
+0 reprovadas. Último trabalho: **27/08**, a T-404 (a busca na vitrine).
 
-**44 de 130 tarefas concluídas.** 270 critérios de aceite declarados, 103 com
-teste anotado, 105 provados.
+**49 de 133 tarefas concluídas.** 270 critérios de aceite declarados, 108
+provados (40,0%).
 
-O total de tarefas subiu de 128 para 130: a **T-511 e a T-512 nasceram de
-lacunas**, e não do planejamento — a T-500 e a T-501 entregaram os casos de uso
-do carrinho sem rota nenhuma, e ninguém notou porque nada os chamava. Estão
-registradas como qualquer outra, com refs e arquivos.
+O total subiu de 130 para 133 pelo mesmo motivo de sempre: **tarefas que
+nasceram de lacunas**, e não do planejamento. A T-513, a T-514 e a T-515
+existem porque o fechamento tinha casos de uso completos e nenhuma rota que os
+expusesse — o mesmo padrão que já tinha produzido a T-511 e a T-512.
 
-O número de critérios provados não se moveu com a T-511, e isso é honesto: os
-critérios do carrinho já eram provados pelo caso de uso. O que mudou é que o
-**AC-411 passou a ser provado de ponta a ponta** — a rota recalcula o item com
-a mesma função que a tela usa, e um teste compara os dois resultados.
+| Feature              | Feito | Situação                                             |
+| -------------------- | ----- | ---------------------------------------------------- |
+| `fundacao`           | 22/22 | **fechada**                                          |
+| `pedido-checkout`    | 16/16 | **fechada**                                          |
+| `vitrine-publica`    | 6/10  | falta T-406, T-407, T-408 e T-409                    |
+| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                     |
+| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine |
+| `identidade-acesso`  | 0/11  | não começou                                          |
+| `catalogo-produtos`  | 0/14  | não começou                                          |
+| `pedido-operacao`    | 0/12  | não começou                                          |
+| `clientes-loja`      | 0/9   | não começou                                          |
+| `dashboard-metricas` | 0/10  | não começou                                          |
+| `admin-lojas`        | 0/10  | não começou                                          |
+| `cardapio-na-tv`     | 0/5   | não começou                                          |
 
-| Feature              | Feito | Situação                                              |
-| -------------------- | ----- | ----------------------------------------------------- |
-| `fundacao`           | 22/22 | **fechada**                                           |
-| `pedido-checkout`    | 12/13 | T-511 e T-512; falta a PÁGINA do fechamento e a T-510 |
-| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                      |
-| `vitrine-publica`    | 5/10  | T-400 a T-403 e T-405; falta T-404 e T-406 a T-409    |
-| `config-loja`        | 1/9   | só a T-903 (horários), que veio a reboque da vitrine  |
-| `identidade-acesso`  | 0/11  | não começou                                           |
-| `catalogo-produtos`  | 0/14  | não começou                                           |
-| `pedido-operacao`    | 0/12  | não começou                                           |
-| `clientes-loja`      | 0/9   | não começou                                           |
-| `dashboard-metricas` | 0/10  | não começou                                           |
-| `admin-lojas`        | 0/10  | não começou                                           |
-| `cardapio-na-tv`     | 0/5   | não começou                                           |
-
-A contagem de critérios provados (99 de 270) parece baixa perto das tarefas
-(40 de 128), e é assim de propósito: a fundação inteira sustenta critérios de
+A contagem de critérios provados (108 de 270) parece baixa perto das tarefas
+(49 de 133), e é assim de propósito: a fundação inteira sustenta critérios de
 OUTRAS features, que só ficam provados quando a tela ou a rota daquela feature
 existir. Número que sobe devagar no começo e rápido no fim é o formato normal
 deste projeto — não é sinal de atraso.
 
+**O caminho da compra está inteiro.** Vitrine → produto → carrinho →
+conferência → fechamento → mensagem no WhatsApp. É a primeira vez que o
+produto faz o que promete de ponta a ponta, e há teste de navegador cobrindo o
+percurso desde a T-510.
+
+### O que a T-404 ensinou, e vale para a próxima migração
+
+`app.texto_de_busca` nasceu `IMMUTABLE STRICT`, e `STRICT` devolve nulo quando
+qualquer argumento é nulo — sem executar o corpo, onde o `coalesce` esperava.
+Descrição vazia é o caso COMUM (o dono cadastra "Coca-Cola 350ml" e segue para
+o próximo item), então metade do catálogo entraria no índice como nulo e nunca
+seria encontrada, **nem pelo próprio nome**.
+
+O que fez isso aparecer foi o teste de integração criar produto SEM descrição.
+O teste que passava era justamente o que tinha uma — se a suíte tivesse sido
+escrita "com os dados completos", a busca teria ido para produção quebrada para
+a maioria dos produtos, e o sintoma seria um dono jurando que cadastrou algo
+que a busca não acha.
+
 ### Próximo passo
-
-**A página do fechamento** — agora sem nada bloqueando. Os componentes existem
-desde a T-502 (`FormularioCheckout`, `ResumoDoPedido`, `SeletorDePagamento`,
-`CaixaPix`), a apresentação da loja resolve o apelido desde a T-400, e o
-carrinho tem rotas para ler, alterar e CONFERIR desde a T-511 e a T-512. O que
-falta é montar `app/(loja)/l/[slug]/checkout/page.tsx` e ligar o envio ao caso
-de uso de criação do pedido.
-
-Depois dela, a **T-510** (ponta a ponta do fechamento) fecha `pedido-checkout`
-em 13/13 — e de quebra a dívida 68, porque um teste de navegador é o que
-exercita a costura real entre os dois subdomínios.
 
 Na vitrine, em ordem de barato para caro:
 
-- **T-404 — Busca** (AC-408, AC-409): um caso de uso na API e um campo na tela.
 - **T-406 — Encontrabilidade** (AC-403, AC-414): dados estruturados, endereço
-  canônico e a imagem de compartilhamento com nome e preço.
+  canônico e a imagem de compartilhamento com nome e preço. É vantagem direta
+  sobre o concorrente, cujo cardápio não é indexável.
+- **T-408 — Acessibilidade por teclado** (AC-418): o axe já roda em vários
+  testes de tela; falta a navegação por teclado provada.
+- **T-409 — Ponta a ponta da vitrine**: o harness do Playwright existe desde a
+  T-510, e o projeto `publico` já roda com `javaScriptEnabled: false`. Leva
+  junto a dívida 89 (a busca sem prova de navegador).
 - **T-407 — Desempenho no celular** (AC-415, AC-416): é o dono do AC-415, que
-  várias tarefas citam e nenhuma provou.
-- **T-408 e T-409** — acessibilidade por teclado e o ponta a ponta da vitrine.
+  meia dúzia de tarefas cita e nenhuma provou. É a mais cara das quatro, e a
+  que fecha a feature.
+
+Fora da vitrine, a **dívida 84** (o portão não reprova arquivo faltante de
+tarefa concluída) merece um turno só dela: foi ela que deixou a T-020 passar
+`[concluida]` com zero arquivos entregues.
 
 ### Como subir o ambiente
 
@@ -951,7 +963,15 @@ bash infra/scripts/verificar.sh  # o portão completo
     hoje ninguém os produz por HTTP. **A página do fechamento precisa disso**, e
     é o próximo pedaço do mesmo encanamento.
 
-68. **A chamada do carrinho sai do navegador, e nenhum teste a exercita de
+68. ~~**A chamada do carrinho sai do navegador, e nenhum teste a exercita de
+    ponta a ponta.**~~ **Fechada pela T-510 em 26/08.** O cenário põe o item
+    no carrinho pela tela, vai ao fechamento, cria o pedido e chega à
+    mensagem do WhatsApp — com o cookie atravessando dois endereços, o
+    `credentials: \"include\"` valendo e o CORS deixando o POST passar. A
+    junção que nunca tinha rodado agora roda em 9 segundos.
+
+    (anotação original)
+    **A chamada do carrinho sai do navegador, e nenhum teste a exercita de
     ponta a ponta.** `apps/web/src/lib/carrinho-do-navegador.ts` é provado com
     `fetch` injetado, e a rota é provada por supertest. O que NÃO é provado é a
     costura real entre os dois: o cookie atravessando dois subdomínios, o
@@ -1201,7 +1221,18 @@ bash infra/scripts/verificar.sh  # o portão completo
     Não foi feito junto porque muda o comportamento do portão, e mudança de
     portão merece rodar sozinha para se ver o que ela passa a acusar.
 
-85. **O ponta a ponta escreve no banco de DESENVOLVIMENTO.** Ele usa `.env`, e
+85. **O ponta a ponta escreve no banco de DESENVOLVIMENTO — atenuado, não
+    resolvido.** A T-510 deixou de usar a loja da carga e passou a montar uma
+    PRÓPRIA (`e2e-lanchonete`), idempotente, e a apagar os pedidos que cria.
+    O que sobra é uma loja a mais no banco de desenvolvimento, com apelido
+    que se reconhece de longe.
+
+    Continua valendo o caminho definitivo: banco próprio para o ponta a
+    ponta. Enquanto ele não vem, o incômodo é uma linha na lista de lojas —
+    e não pedido de teste na fila de ninguém.
+
+    (anotação original)
+    **O ponta a ponta escreve no banco de DESENVOLVIMENTO.** Ele usa `.env`, e
     portanto a loja da carga de exemplo — o que é bom (prova o caminho com o
     dado que o produto tem) e tem um custo: o cenário de fechamento vai CRIAR
     pedidos ali, e eles ficam.
@@ -1224,6 +1255,41 @@ bash infra/scripts/verificar.sh  # o portão completo
     provável é `provar.sh` executar projeto a projeto, como o portão faz — o
     custo é alguns segundos a mais, e o ganho é a prova deixar de depender da
     máquina estar folgada.
+
+87. **`products.search_tsv` ficou redundante e continua sendo mantida pelo
+    banco.** A migração 0021 criou o índice de expressão
+    `products_busca_sem_acento_ix`, que é o que a busca usa. A coluna gerada
+    `search_tsv` não é lida por ninguém desde então — e continua sendo
+    recalculada a cada escrita em `products`, junto do índice dela.
+
+    Não foi removida no mesmo passo de propósito: o AC-030 exige que a versão
+    anterior siga funcionando enquanto as duas atendem lado a lado, e
+    `DROP COLUMN` a quebraria no minuto da troca. A remoção é o segundo passo,
+    num dia em que nenhuma versão no ar a leia.
+
+    O custo de deixá-la é escrita mais lenta em `products` e índice ocupando
+    espaço — nada que se sinta hoje. O custo de esquecê-la é alguém, daqui a
+    seis meses, "consertar" a busca mexendo na coluna errada.
+
+88. **A busca corta em 200 acertos e não avisa ninguém.**
+    `MAXIMO_DE_ACERTOS` limita o que `produtosQueCasam` devolve, e a tela mostra
+    o resultado como se fosse tudo. Numa loja com mil produtos, buscar uma
+    palavra comum ("de", "com") entrega os 200 melhores por `ts_rank` e nenhum
+    sinal de que havia mais.
+
+    Hoje é teórico: nenhuma loja do produto chega perto disso. Vira real quando
+    a primeira chegar — e o sintoma será um dono jurando que cadastrou um
+    produto que "a busca não acha". O caminho é a rota devolver quantos casaram,
+    e a tela dizer "mostrando 200 de 640" com o convite a refinar.
+
+89. **A busca não tem prova de ponta a ponta, e ela é a mais barata que
+    existe.** O AC-408 e o AC-409 estão provados em três níveis — unidade,
+    banco de verdade e desenho estático da tela — mas nada percorre o caminho
+    inteiro: digitar no campo, enviar sem JavaScript, ler o resultado.
+
+    O harness do Playwright existe desde a T-510, e o projeto `publico` já roda
+    com `javaScriptEnabled: false`. É uma tela e um `fill`+`press`. Entra na
+    T-409 (ponta a ponta da vitrine), que ainda está pendente.
 
 ## Portão contornado
 

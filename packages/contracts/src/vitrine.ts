@@ -188,6 +188,19 @@ export const esquemaDoCatalogo = z.strictObject({
 export type CatalogoDaVitrineNoContrato = z.infer<typeof esquemaDoCatalogo>;
 
 /**
+ * O que a busca da vitrine aceita (AC-408).
+ *
+ * O TERMO VEM NA CONSULTA, e não no corpo: é assim que ele fica no ENDEREÇO —
+ * compartilhável, refazível pelo "voltar" do navegador, e alcançável por um
+ * formulário que funciona sem script. A vitrine não pode exigir JavaScript para
+ * mostrar produto (AC-415), e busca é mostrar produto.
+ */
+export const esquemaDaBuscaDoCatalogo = z.strictObject({
+  /** Vazio ou ausente é "sem busca", e devolve o catálogo inteiro. */
+  busca: z.string().max(60).optional(),
+});
+
+/**
  * `GET /v1/vitrine/:apelido/catalogo` — as seções e os destaques da loja.
  *
  * SEPARADO DA APRESENTAÇÃO de propósito: quem só quer saber se a loja está
@@ -206,6 +219,7 @@ export const rotaDoCatalogo = definirRota({
   descricao:
     "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Loja inexistente e loja suspensa respondem igual.",
   parametros: esquemaDoApelido,
+  consulta: esquemaDaBuscaDoCatalogo,
   resposta: esquemaDoCatalogo,
   errosPossiveis: [400],
 });
