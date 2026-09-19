@@ -1,0 +1,227 @@
+{
+  "runId": "SimpleClick-identidade-acesso-run-admin-lojas-mt69pqin",
+  "feature": "admin-lojas",
+  "agent": "codex",
+  "modo": "paralelo",
+  "paralelizar": null,
+  "modeloForcado": null,
+  "esforcoForcado": null,
+  "geradoEm": "2026-08-23 20:36",
+  "branchTrabalho": "spec/admin-lojas",
+  "baseDir": ".spec/features/admin-lojas",
+  "specDir": ".spec",
+  "repoName": "SimpleClick-identidade-acesso-run",
+  "logsDir": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs",
+  "ondas": [
+    ["faixa-1", "faixa-2", "faixa-3"],
+    ["faixa-4", "faixa-5", "faixa-6"],
+    ["faixa-7", "faixa-8", "faixa-9"],
+    ["faixa-10"]
+  ],
+  "faixas": [
+    {
+      "id": "faixa-1",
+      "branch": "spec/admin-lojas-faixa-1",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-1",
+      "tarefas": [
+        {
+          "id": "T-200",
+          "titulo": "Cadastro de loja com código sequencial e convite do dono",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/admin/criar-loja.usecase.ts",
+            "apps/api/src/modules/admin/criar-loja.usecase.test.ts",
+            "apps/api/src/modules/admin/admin.schema.ts",
+            "apps/api/src/modules/admin/documento.ts",
+            "apps/api/src/modules/admin/documento.test.ts",
+            "apps/web/src/app/(admin)/admin/lojas/nova/page.tsx",
+            "packages/contracts/src/admin.ts"
+          ],
+          "refs": ["US-200", "AC-200", "AC-201", "AC-202"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-2",
+      "branch": "spec/admin-lojas-faixa-2",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-2",
+      "tarefas": [
+        {
+          "id": "T-201",
+          "titulo": "Lista e busca de lojas",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/listar-lojas.usecase.ts",
+            "apps/api/src/modules/admin/listar-lojas.usecase.test.ts",
+            "apps/web/src/app/(admin)/admin/lojas/page.tsx",
+            "apps/web/src/features/admin/ListaLojas.tsx"
+          ],
+          "refs": ["US-202", "AC-206"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-3",
+      "branch": "spec/admin-lojas-faixa-3",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-3",
+      "tarefas": [
+        {
+          "id": "T-202",
+          "titulo": "Ficha da loja, edição e auditoria de alteração",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/editar-loja.usecase.ts",
+            "apps/api/src/modules/admin/editar-loja.usecase.test.ts",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/page.tsx",
+            "apps/web/src/features/admin/FichaLoja.tsx"
+          ],
+          "refs": ["US-202", "AC-207"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-4",
+      "branch": "spec/admin-lojas-faixa-4",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-4",
+      "tarefas": [
+        {
+          "id": "T-203",
+          "titulo": "Alteração do tipo de negócio pela administração",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/admin/alterar-vertical.usecase.ts",
+            "apps/api/src/modules/admin/alterar-vertical.usecase.test.ts",
+            "apps/api/tests/vertical-somente-admin.test.ts",
+            "apps/web/src/features/admin/SeletorVertical.tsx"
+          ],
+          "refs": ["US-202", "AC-214", "AC-323"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-5",
+      "branch": "spec/admin-lojas-faixa-5",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-5",
+      "tarefas": [
+        {
+          "id": "T-204",
+          "titulo": "Apelido alterado preserva o endereço antigo",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/alterar-apelido.usecase.ts",
+            "apps/api/src/modules/admin/alterar-apelido.usecase.test.ts",
+            "apps/web/src/proxy.ts"
+          ],
+          "refs": ["US-202", "AC-208"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-6",
+      "branch": "spec/admin-lojas-faixa-6",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-6",
+      "tarefas": [
+        {
+          "id": "T-205",
+          "titulo": "Contrato e documentos com link temporário",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "high",
+          "arquivos": [
+            "apps/api/src/modules/files/assinar-upload.usecase.ts",
+            "apps/api/src/modules/files/assinar-upload.usecase.test.ts",
+            "apps/api/src/modules/files/tipo-de-arquivo.ts",
+            "apps/api/src/modules/files/tipo-de-arquivo.test.ts",
+            "apps/api/src/modules/admin/contratos.usecase.ts",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/documentos/page.tsx"
+          ],
+          "refs": ["US-201", "AC-203", "AC-204", "AC-205"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-7",
+      "branch": "spec/admin-lojas-faixa-7",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-7",
+      "tarefas": [
+        {
+          "id": "T-206",
+          "titulo": "Suspender, reativar e excluir com retenção",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/status-loja.usecase.ts",
+            "apps/api/src/modules/admin/status-loja.usecase.test.ts",
+            "apps/web/src/features/admin/AcoesLoja.tsx",
+            "apps/web/src/app/(loja)/l/[slug]/indisponivel/page.tsx"
+          ],
+          "refs": ["US-203", "AC-209", "AC-210", "AC-211"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-8",
+      "branch": "spec/admin-lojas-faixa-8",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-8",
+      "tarefas": [
+        {
+          "id": "T-207",
+          "titulo": "Funcionalidades liberadas por loja",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/features.usecase.ts",
+            "apps/api/src/modules/admin/features.usecase.test.ts",
+            "apps/api/src/core/features.ts",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/funcionalidades/page.tsx"
+          ],
+          "refs": ["US-204", "AC-212", "AC-213"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-9",
+      "branch": "spec/admin-lojas-faixa-9",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-9",
+      "tarefas": [
+        {
+          "id": "T-208",
+          "titulo": "Histórico de auditoria consultável",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "apps/api/src/modules/admin/auditoria.usecase.ts",
+            "apps/api/src/modules/admin/auditoria.usecase.test.ts",
+            "apps/web/src/app/(admin)/admin/auditoria/page.tsx"
+          ],
+          "refs": ["US-202", "AC-118", "AC-922"]
+        }
+      ]
+    },
+    {
+      "id": "faixa-10",
+      "branch": "spec/admin-lojas-faixa-10",
+      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-10",
+      "tarefas": [
+        {
+          "id": "T-209",
+          "titulo": "Telas de ponta a ponta da administração",
+          "modelo": "gpt-5.6-terra",
+          "esforco": "medium",
+          "arquivos": [
+            "e2e/specs/admin-lojas.spec.ts",
+            "e2e/specs/admin-documentos.spec.ts"
+          ],
+          "refs": ["US-200", "US-203", "AC-200", "AC-209"]
+        }
+      ]
+    }
+  ],
+  "sequenciais": [],
+  "concluidas": [],
+  "avisos": []
+}
