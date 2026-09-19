@@ -1,3 +1,127 @@
-/* Os tokens vêm antes do Tailwind para que as utilidades possam usá-los. */
-@import "./tokens.css";
 @import "tailwindcss";
+/* A diretiva @theme vem depois do núcleo e aponta para a fonte única. */
+@import "./tokens.css";
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 344px;
+    background-color: var(--cor-fundo);
+    color: var(--cor-tinta);
+    color-scheme: light dark;
+    scroll-behavior: smooth;
+    text-rendering: optimizelegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    background-color: var(--cor-fundo);
+    color: var(--cor-tinta);
+    font-family: var(--fonte-base);
+    font-size: var(--texto-base);
+    line-height: var(--altura-linha-base);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-block: 0;
+    color: var(--cor-tinta);
+    font-family: var(--fonte-titulo);
+    font-weight: var(--peso-forte);
+    line-height: var(--altura-linha-apertada);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p,
+  ul,
+  ol,
+  dl,
+  figure,
+  blockquote {
+    margin-block: 0;
+  }
+
+  a {
+    color: var(--cor-primaria-texto);
+    font-weight: var(--peso-medio);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.2em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    color: inherit;
+    font: inherit;
+  }
+
+  button {
+    min-height: 2.75rem;
+    padding: var(--espaco-2) var(--espaco-4);
+    border: 1px solid var(--cor-primaria);
+    border-radius: var(--raio-botao);
+    background-color: var(--cor-primaria);
+    color: var(--cor-em-primaria);
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 2.75rem;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-1);
+    background-color: var(--cor-superficie-alta);
+  }
+
+  textarea {
+    min-height: 7rem;
+    resize: vertical;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--cor-foco);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--cor-primaria);
+    color: var(--cor-em-primaria);
+  }
+
+  img,
+  picture,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

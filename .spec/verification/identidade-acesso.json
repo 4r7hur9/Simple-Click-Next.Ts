@@ -1,12 +1,127 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-08-27T15:33:45.570Z",
-  "gitRev": "3df4d7b",
+  "timestamp": "2026-08-23T20:27:22.266Z",
+  "gitRev": "0818d96",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 1149,
+  "exitCode": 1,
+  "testsParsed": 981,
   "results": {
+    "AC-100": {
+      "status": "pass",
+      "testName": "cadastro de cliente final @spec:AC-100 cadastro válido cria conta pendente de verificação e envia instruções @spec:AC-100 cadastro válido cria conta pendente de verificação e envia instruções",
+      "method": "vitest-json"
+    },
+    "AC-101": {
+      "status": "pass",
+      "testName": "cadastro de cliente final @spec:AC-101 e-mail já cadastrado devolve a mesma confirmação e avisa o dono do endereço @spec:AC-101 e-mail já cadastrado devolve a mesma confirmação e avisa o dono do endereço",
+      "method": "vitest-json"
+    },
+    "AC-102": {
+      "status": "pass",
+      "testName": "cadastro de cliente final @spec:AC-102 senha fraca recusa o cadastro com cada motivo e não cria conta @spec:AC-102 senha fraca recusa o cadastro com cada motivo e não cria conta",
+      "method": "vitest-json"
+    },
+    "AC-103": {
+      "status": "pass",
+      "testName": "convite do dono @spec:AC-103 convite válido define a primeira senha, libera o acesso e não funciona uma segunda vez @spec:AC-103 convite válido define a primeira senha, libera o acesso e não funciona uma segunda vez",
+      "method": "vitest-json"
+    },
+    "AC-104": {
+      "status": "pass",
+      "testName": "verificação de e-mail @spec:AC-104 link expirado oferece reenvio, gera outro link e limita tentativas na janela @spec:AC-104 link expirado oferece reenvio, gera outro link e limita tentativas na janela",
+      "method": "vitest-json"
+    },
+    "AC-105": {
+      "status": "pass",
+      "testName": "login com senha @spec:AC-105 senha correta pede o segundo fator antes de liberar a sessão @spec:AC-105 senha correta pede o segundo fator antes de liberar a sessão",
+      "method": "vitest-json"
+    },
+    "AC-106": {
+      "status": "pass",
+      "testName": "confirmação do segundo fator @spec:AC-106 código correto cria a sessão e o código não serve de novo @spec:AC-106 código correto cria a sessão e o código não serve de novo",
+      "method": "vitest-json"
+    },
+    "AC-107": {
+      "status": "pass",
+      "testName": "confirmação do segundo fator @spec:AC-107 código errado tem cinco tentativas, bloqueia e invalida o desafio @spec:AC-107 código errado tem cinco tentativas, bloqueia e invalida o desafio",
+      "method": "vitest-json"
+    },
+    "AC-108": {
+      "status": "pass",
+      "testName": "login com senha @spec:AC-108 cliente final com segundo fator desativado entra direto, enquanto dono continua protegido @spec:AC-108 cliente final com segundo fator desativado entra direto, enquanto dono continua protegido",
+      "method": "vitest-json"
+    },
+    "AC-121": {
+      "status": "pass",
+      "testName": "aplicativo autenticador @spec:AC-121 ativação confirma o código, cifra o segredo e entrega recuperações @spec:AC-121 ativação confirma o código, cifra o segredo e entrega recuperações",
+      "method": "vitest-json"
+    },
+    "AC-122": {
+      "status": "pass",
+      "testName": "aplicativo autenticador @spec:AC-122 administrador sem aplicativo só pode ir para a configuração @spec:AC-122 administrador sem aplicativo só pode ir para a configuração",
+      "method": "vitest-json"
+    },
+    "AC-123": {
+      "status": "pass",
+      "testName": "códigos de recuperação @spec:AC-123 consumo único libera a sessão, avisa por e-mail e orienta recadastrar o aplicativo @spec:AC-123 consumo único libera a sessão, avisa por e-mail e orienta recadastrar o aplicativo",
+      "method": "vitest-json"
+    },
+    "AC-124": {
+      "status": "pass",
+      "testName": "aplicativo autenticador @spec:AC-124 código do aplicativo consumido não pode ser usado outra vez @spec:AC-124 código do aplicativo consumido não pode ser usado outra vez",
+      "method": "vitest-json"
+    },
+    "AC-109": {
+      "status": "pass",
+      "testName": "sessão web @spec:AC-109 sessão web sai só em cookie HttpOnly, Secure e SameSite, sem token no corpo @spec:AC-109 sessão web sai só em cookie HttpOnly, Secure e SameSite, sem token no corpo",
+      "method": "vitest-json"
+    },
+    "AC-110": {
+      "status": "pass",
+      "testName": "rotação de refresh @spec:AC-110 renovação troca o par, reuso revoga a família e envia um aviso @spec:AC-110 renovação troca o par, reuso revoga a família e envia um aviso",
+      "method": "vitest-json"
+    },
+    "AC-111": {
+      "status": "pass",
+      "testName": "sessão nativa @spec:AC-111 cliente nativo recebe o par no corpo e usa o acesso como Bearer na mesma API @spec:AC-111 cliente nativo recebe o par no corpo e usa o acesso como Bearer na mesma API",
+      "method": "vitest-json"
+    },
+    "AC-112": {
+      "status": "pass",
+      "testName": "encerramento de sessão @spec:AC-112 sair revoga a sessão atual no servidor e o token anterior não renova acesso @spec:AC-112 sair revoga a sessão atual no servidor e o token anterior não renova acesso",
+      "method": "vitest-json"
+    },
+    "AC-113": {
+      "status": "pass",
+      "testName": "encerramento de sessão @spec:AC-113 encerrar todas as sessões revoga a atual e a de outro dispositivo @spec:AC-113 encerrar todas as sessões revoga a atual e a de outro dispositivo",
+      "method": "vitest-json"
+    },
+    "AC-114": {
+      "status": "pass",
+      "testName": "recuperação de senha @spec:AC-114 confirma igualmente pedidos para e-mail cadastrado e desconhecido @spec:AC-114 confirma igualmente pedidos para e-mail cadastrado e desconhecido",
+      "method": "vitest-json"
+    },
+    "AC-115": {
+      "status": "pass",
+      "testName": "recuperação de senha @spec:AC-115 consome o link ao trocar a senha e revoga todas as sessões na operação atômica @spec:AC-115 consome o link ao trocar a senha e revoga todas as sessões na operação atômica",
+      "method": "vitest-json"
+    },
+    "AC-116": {
+      "status": "pass",
+      "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto",
+      "method": "vitest-json"
+    },
+    "AC-117": {
+      "status": "pass",
+      "testName": "autorização por papel @spec:AC-117 cliente final recebe rota neutra e não ganha acesso a nenhuma área de gestão @spec:AC-117 cliente final recebe rota neutra e não ganha acesso a nenhuma área de gestão",
+      "method": "vitest-json"
+    },
+    "AC-118": {
+      "status": "pass",
+      "testName": "papéis e escopo de acesso @spec:AC-118 administrador lê dados de qualquer loja e o acesso fica no histórico de auditoria @spec:AC-118 administrador lê dados de qualquer loja e o acesso fica no histórico de auditoria",
+      "method": "vitest-json"
+    },
     "AC-119": {
       "status": "pass",
       "testName": "limite de tentativas por conta @spec:AC-119 depois de dez falhas, a tentativa seguinte é barrada mesmo com a senha correta @spec:AC-119 depois de dez falhas, a tentativa seguinte é barrada mesmo com a senha correta",
@@ -39,13 +154,13 @@
     }
   },
   "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto"
+    },
     "P-006": {
       "status": "pass",
       "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
-    },
-    "P-003": {
-      "status": "pass",
-      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
     },
     "P-010": {
       "status": "pass",

@@ -85,6 +85,16 @@ export interface DadosDoEmailDeVerificacao {
   readonly urlDeVerificacao: string;
 }
 
+/** Ponte explícita entre o caso de uso e a fila de e-mail. */
+export function criarEnfileiradorDeEmailDeVerificacao(
+  fila: Pick<FilaAberta<DadosDeEmail>, "enfileirar">,
+) {
+  return {
+    enfileirar: (dados: DadosDoEmailDeVerificacao) =>
+      enfileirarEmailDeVerificacao(fila, dados),
+  };
+}
+
 /** Dados que trafegam na fila de e-mail. */
 export type DadosDeEmail = DadosDoEmailDeVerificacao;
 

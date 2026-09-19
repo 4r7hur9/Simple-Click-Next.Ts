@@ -1,4 +1,4 @@
-import { Bricolage_Grotesque, Manrope } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
@@ -24,13 +24,13 @@ import "./globals.css";
  * do Next pede peso só para quem não pode usar fonte variável. Listar pesos aqui
  * baixaria um arquivo por peso, em vez do único que cobre todos eles.
  */
-const tituloDaMarca = Bricolage_Grotesque({
+const tituloDaMarca = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
   variable: "--fonte-titulo-da-marca",
 });
 
-const textoDaMarca = Manrope({
+const textoDaMarca = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--fonte-corpo",

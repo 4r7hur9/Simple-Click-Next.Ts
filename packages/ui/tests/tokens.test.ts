@@ -11,6 +11,7 @@ import {
   NOME_NO_CSS_DAS_EXTREMAS,
   PALETA_CLARA,
   PALETA_ESCURA,
+  PALETA_OFICIAL,
   TINTAS_EXTREMAS,
   type PaletaDeCores,
 } from "../src/tokens";
@@ -66,6 +67,33 @@ const PALETAS_ESPERADAS = {
 } as const;
 
 describe("valores declarados do tema", () => {
+  it("@spec:AC-941 preserva toda a paleta cromática oficial como tokens brutos", () => {
+    expect(PALETA_OFICIAL).toEqual({
+      verdeClick: "#b7ff00",
+      verdeDigital: "#72d900",
+      mint: "#e5ffb8",
+      grafite: "#161c19",
+      cinzaUi: "#a8b1ab",
+      nevoa: "#f5f7f4",
+      branco: "#ffffff",
+      pretoTecnologico: "#0b0f0d",
+    });
+
+    const noCss = valoresDoBloco(BLOCOS.claro);
+    for (const [nome, valor] of [
+      ["--marca-verde-click", PALETA_OFICIAL.verdeClick],
+      ["--marca-verde-digital", PALETA_OFICIAL.verdeDigital],
+      ["--marca-mint", PALETA_OFICIAL.mint],
+      ["--marca-grafite", PALETA_OFICIAL.grafite],
+      ["--marca-cinza-ui", PALETA_OFICIAL.cinzaUi],
+      ["--marca-nevoa", PALETA_OFICIAL.nevoa],
+      ["--marca-branco", PALETA_OFICIAL.branco],
+      ["--marca-preto-tecnologico", PALETA_OFICIAL.pretoTecnologico],
+    ] as const) {
+      expect(noCss.get(nome)).toBe(valor);
+    }
+  });
+
   for (const tema of ["claro", "escuro"] as const) {
     it(`@spec:AC-014 o espelho em TypeScript repete exatamente o tema ${tema} da folha de estilo`, () => {
       const noCss = valoresDoBloco(BLOCOS[tema]);
@@ -124,6 +152,30 @@ describe("valores declarados do tema", () => {
   });
 });
 
+describe("ativos oficiais da marca", () => {
+  it("@spec:AC-945 publica somente as variações SVG aprovadas, sem efeitos adicionados", () => {
+    const nomes = [
+      "logo-primary.svg",
+      "logo-reverse.svg",
+      "logo-monochrome-black.svg",
+      "logo-monochrome-white.svg",
+      "app-icon-light.svg",
+      "app-icon-dark.svg",
+    ];
+
+    for (const nome of nomes) {
+      const conteudo = readFileSync(
+        fileURLToPath(
+          new URL(`../../../apps/web/public/brand/${nome}`, import.meta.url),
+        ),
+        "utf8",
+      );
+      expect(conteudo).toMatch(/<svg\b/);
+      expect(conteudo).not.toMatch(/<filter\b|drop-shadow|rotate\(/i);
+    }
+  });
+});
+
 /** Pares que o CSS dos componentes realmente empilha, um sobre o outro. */
 const paresDeTexto = (p: PaletaDeCores): [string, string, string][] => [
   ["tinta sobre fundo", p.tinta, p.fundo],
@@ -158,7 +210,7 @@ describe("legibilidade da paleta", () => {
     ["claro", PALETA_CLARA],
     ["escuro", PALETA_ESCURA],
   ] as const) {
-    it(`@spec:AC-015 todo par de texto do tema ${tema} alcança ${CONTRASTE_MINIMO_TEXTO}:1`, () => {
+    it(`@spec:AC-015 @spec:AC-943 todo par de texto do tema ${tema} alcança ${CONTRASTE_MINIMO_TEXTO}:1`, () => {
       const reprovados = paresDeTexto(paleta)
         .map(([nome, frente, fundo]) => ({
           nome,
@@ -169,7 +221,7 @@ describe("legibilidade da paleta", () => {
       expect(reprovados).toEqual([]);
     });
 
-    it(`@spec:AC-015 todo contorno e anel de foco do tema ${tema} alcança ${CONTRASTE_MINIMO_GRAFICO}:1`, () => {
+    it(`@spec:AC-015 @spec:AC-943 todo contorno e anel de foco do tema ${tema} alcança ${CONTRASTE_MINIMO_GRAFICO}:1`, () => {
       const reprovados = paresGraficos(paleta)
         .map(([nome, frente, fundo]) => ({
           nome,

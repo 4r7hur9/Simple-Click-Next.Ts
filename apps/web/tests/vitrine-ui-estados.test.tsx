@@ -108,7 +108,7 @@ describe("a vitrine mostra os estados de cada componente base", () => {
     expect(quantos(dialogos, "dialog[aria-labelledby]")).toBe(4);
   });
 
-  it("@spec:AC-013 a identidade da loja aparece nas duas situações: a que passa e a que precisa de conserto", () => {
+  it("@spec:AC-013 a identidade da loja mostra ajustes para tons claro e escuro", () => {
     const tema = secao("tema");
     const envelopes = tema.querySelectorAll<HTMLElement>(".sc-tema-loja");
 
@@ -116,9 +116,9 @@ describe("a vitrine mostra os estados de cada componente base", () => {
     for (const envelope of envelopes) {
       expect(envelope.getAttribute("style")).toContain("--cor-primaria");
     }
-    // Uma das duas cores força o conserto de contraste — é o que a página
-    // precisa demonstrar, e não só a cor que já dava certo (AC-015).
-    expect(quantos(tema, "[data-contraste-ajustado='sim']")).toBe(1);
+    // Com a tinta tecnológica oficial, cada extremo exige um ajuste diferente:
+    // o tom escuro recebe branco no botão; o claro é escurecido quando vira link.
+    expect(quantos(tema, "[data-contraste-ajustado='sim']")).toBe(2);
   });
 
   it("@spec:AC-013 a vitrine cobre os seis componentes base, e não um subconjunto", () => {
