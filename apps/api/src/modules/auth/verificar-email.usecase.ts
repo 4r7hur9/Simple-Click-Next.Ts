@@ -21,7 +21,10 @@ export interface EnfileiradorDeEmailDeVerificacao {
 }
 
 export type ResultadoDaVerificacao =
-  | { readonly situacao: "verificado"; readonly identidade: IdentidadeDeVerificacao }
+  | {
+      readonly situacao: "verificado";
+      readonly identidade: IdentidadeDeVerificacao;
+    }
   | { readonly situacao: "expirado" }
   | { readonly situacao: "invalido" };
 
@@ -56,17 +59,21 @@ export function criarCasoDeUsoDeVerificacaoDeEmail(dependencias: {
 
   return {
     async verificar(token: string): Promise<ResultadoDaVerificacao> {
-      return dependencias.codigos.consumirVerificacao(resumirTokenDeVerificacao(token), agora());
+      return dependencias.codigos.consumirVerificacao(
+        resumirTokenDeVerificacao(token),
+        agora(),
+      );
     },
 
     async reenviar(tokenDoLinkExpirado: string): Promise<ResultadoDoReenvio> {
       const instante = agora();
-      const autorizacao = await dependencias.codigos.autorizarReenvioDeLinkExpirado(
-        resumirTokenDeVerificacao(tokenDoLinkExpirado),
-        instante,
-        LIMITE_DE_REENVIOS_POR_JANELA,
-        JANELA_DE_REENVIO_EM_MS,
-      );
+      const autorizacao =
+        await dependencias.codigos.autorizarReenvioDeLinkExpirado(
+          resumirTokenDeVerificacao(tokenDoLinkExpirado),
+          instante,
+          LIMITE_DE_REENVIOS_POR_JANELA,
+          JANELA_DE_REENVIO_EM_MS,
+        );
       if (autorizacao.situacao !== "liberado") return autorizacao;
 
       const token = gerarToken();
@@ -75,7 +82,9 @@ export function criarCasoDeUsoDeVerificacaoDeEmail(dependencias: {
         identidadeId: autorizacao.identidade.id,
         resumoDoToken: resumirTokenDeVerificacao(token),
         enviadoEm: instante,
-        expiraEm: new Date(instante.getTime() + PRAZO_DO_LINK_DE_VERIFICACAO_EM_MS),
+        expiraEm: new Date(
+          instante.getTime() + PRAZO_DO_LINK_DE_VERIFICACAO_EM_MS,
+        ),
         usadoEm: null,
       };
       await dependencias.codigos.criarVerificacao(codigo);

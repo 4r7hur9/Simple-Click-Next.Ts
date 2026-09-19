@@ -23,12 +23,18 @@ export interface CodigoDeVerificacao {
 }
 
 export type ResultadoDoConsumoDoCodigo =
-  | { readonly situacao: "verificado"; readonly identidade: IdentidadeDeVerificacao }
+  | {
+      readonly situacao: "verificado";
+      readonly identidade: IdentidadeDeVerificacao;
+    }
   | { readonly situacao: "expirado" }
   | { readonly situacao: "invalido" };
 
 export type ResultadoDaAutorizacaoDeReenvio =
-  | { readonly situacao: "liberado"; readonly identidade: IdentidadeDeVerificacao }
+  | {
+      readonly situacao: "liberado";
+      readonly identidade: IdentidadeDeVerificacao;
+    }
   | { readonly situacao: "limite_atingido"; readonly disponivelEm: Date }
   | { readonly situacao: "invalido" };
 
@@ -61,7 +67,9 @@ export class CodigosRepoEmMemoria implements CodigosRepo {
     identidades: readonly IdentidadeDeVerificacao[],
     codigos: readonly CodigoDeVerificacao[] = [],
   ) {
-    this.identidades = new Map(identidades.map((identidade) => [identidade.id, identidade]));
+    this.identidades = new Map(
+      identidades.map((identidade) => [identidade.id, identidade]),
+    );
     this.codigos = [...codigos];
   }
 
@@ -70,18 +78,23 @@ export class CodigosRepoEmMemoria implements CodigosRepo {
     agora: Date,
   ): Promise<ResultadoDoConsumoDoCodigo> {
     const indice = this.codigos.findIndex(
-      (codigo) => codigo.resumoDoToken === resumoDoToken && codigo.usadoEm === null,
+      (codigo) =>
+        codigo.resumoDoToken === resumoDoToken && codigo.usadoEm === null,
     );
     if (indice < 0) return { situacao: "invalido" };
 
     const codigo = this.codigos[indice];
-    if (codigo.expiraEm.getTime() <= agora.getTime()) return { situacao: "expirado" };
+    if (codigo.expiraEm.getTime() <= agora.getTime())
+      return { situacao: "expirado" };
 
     const identidade = this.identidades.get(codigo.identidadeId);
     if (identidade === undefined) return { situacao: "invalido" };
 
     this.codigos[indice] = { ...codigo, usadoEm: agora };
-    const verificada = { ...identidade, emailVerificadoEm: identidade.emailVerificadoEm ?? agora };
+    const verificada = {
+      ...identidade,
+      emailVerificadoEm: identidade.emailVerificadoEm ?? agora,
+    };
     this.identidades.set(verificada.id, verificada);
     return { situacao: "verificado", identidade: verificada };
   }
@@ -92,18 +105,29 @@ export class CodigosRepoEmMemoria implements CodigosRepo {
     limite: number,
     janelaEmMs: number,
   ): Promise<ResultadoDaAutorizacaoDeReenvio> {
-    const codigo = this.codigos.find((item) => item.resumoDoToken === resumoDoToken);
-    if (codigo === undefined || codigo.usadoEm !== null || codigo.expiraEm.getTime() > agora.getTime()) {
+    const codigo = this.codigos.find(
+      (item) => item.resumoDoToken === resumoDoToken,
+    );
+    if (
+      codigo === undefined ||
+      codigo.usadoEm !== null ||
+      codigo.expiraEm.getTime() > agora.getTime()
+    ) {
       return { situacao: "invalido" };
     }
     const identidade = this.identidades.get(codigo.identidadeId);
     if (identidade === undefined) return { situacao: "invalido" };
 
     const inicioDaJanela = agora.getTime() - janelaEmMs;
-    const tentativasNaJanela = this.reenvios.filter((envio) => envio.getTime() > inicioDaJanela);
+    const tentativasNaJanela = this.reenvios.filter(
+      (envio) => envio.getTime() > inicioDaJanela,
+    );
     this.reenvios.splice(0, this.reenvios.length, ...tentativasNaJanela);
     if (tentativasNaJanela.length >= limite) {
-      return { situacao: "limite_atingido", disponivelEm: new Date(tentativasNaJanela[0].getTime() + janelaEmMs) };
+      return {
+        situacao: "limite_atingido",
+        disponivelEm: new Date(tentativasNaJanela[0].getTime() + janelaEmMs),
+      };
     }
 
     this.reenvios.push(agora);
