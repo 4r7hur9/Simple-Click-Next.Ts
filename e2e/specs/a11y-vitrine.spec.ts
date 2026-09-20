@@ -26,6 +26,8 @@ test("@spec:AC-419 página pública não tem violação séria ou crítica", asy
     `/l/${APELIDO_DA_LOJA}/produto/${produtoId}`,
   ]) {
     await page.goto(caminho);
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
     await page.addScriptTag({ content: axeSource });
 
     const resultado = await page.evaluate(async () => {
@@ -34,26 +36,29 @@ test("@spec:AC-419 página pública não tem violação séria ou crítica", asy
           axe: {
             run(
               alvo: Document,
-              opcoes: { rules: { "color-contrast": { enabled: boolean } } },
+              opcoes?: unknown,
             ): Promise<{
               passes: unknown[];
               violations: Array<{
                 id: string;
                 impact: string | null;
+                nodes: unknown[];
               }>;
             }>;
           };
         }
-      ).axe.run(document, {
-        rules: { "color-contrast": { enabled: false } },
-      });
+      ).axe.run(document);
       return {
         avaliadas: avaliacao.passes.length + avaliacao.violations.length,
         graves: avaliacao.violations
           .filter((violacao) =>
             ["critical", "serious"].includes(violacao.impact ?? ""),
           )
-          .map((violacao) => violacao.id),
+          .map((violacao) => ({
+            id: violacao.id,
+            impact: violacao.impact,
+            nodes: violacao.nodes,
+          })),
       };
     });
 

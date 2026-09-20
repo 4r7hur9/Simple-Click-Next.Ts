@@ -162,6 +162,7 @@
   display: block;
   min-block-size: 100svh;
   overflow: clip;
+  isolation: isolate;
 }
 
 /* --- o fundo em camadas ---------------------------------------------------
@@ -174,6 +175,7 @@
 .sc-loja__fundo {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   overflow: clip;
 }
@@ -210,6 +212,7 @@
  */
 .sc-loja__tela {
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -420,7 +423,7 @@
   border-radius: 999px;
   padding: var(--espaco-1) var(--espaco-3);
   font-size: 0.8125rem;
-  color: var(--cor-tinta-suave);
+  color: var(--cor-tinta);
   background: var(--cor-superficie);
 }
 
@@ -428,7 +431,7 @@
   font-style: normal;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--cor-tinta-suave);
+  color: var(--cor-tinta);
   max-inline-size: 32ch;
 }
 
