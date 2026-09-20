@@ -39,6 +39,8 @@ export interface DeclaracaoDoCliente {
 async function catalogoAgora(
   tx: TransacaoDoBanco,
   produtoIds: readonly string[],
+  quantidades: ReadonlyMap<string, number>,
+  agora: Date,
 ): Promise<ProdutoAgora[]> {
   if (produtoIds.length === 0) return [];
 
@@ -53,16 +55,44 @@ async function catalogoAgora(
     },
   });
 
+  const precos = await tx.productPrice.findMany({
+    where: { productId: { in: [...produtoIds] }, variantId: null },
+    select: {
+      productId: true,
+      kind: true,
+      amountCents: true,
+      minQuantity: true,
+      isActive: true,
+      startsAt: true,
+      endsAt: true,
+    },
+  });
+  const porProduto = new Map<string, typeof precos>();
+  for (const preco of precos) {
+    const doProduto = porProduto.get(preco.productId) ?? [];
+    doProduto.push(preco);
+    porProduto.set(preco.productId, doProduto);
+  }
+
   return produtos.map((produto) => ({
     produtoId: produto.id,
     nome: produto.name,
     // Produto sem preço publicado vale NULO, e não zero: nulo faz o item ser
     // retirado com explicação; zero o faria seguir de graça, o pedido sair e a
     // cozinha preparar. Quem esqueceu de precificar não vende por engano.
-    precoEmCentavos:
-      produto.displayPriceCents === null
-        ? null
-        : Number(produto.displayPriceCents),
+    precoEmCentavos: (() => {
+      const precosDoProduto = porProduto.get(produto.id);
+      if (precosDoProduto === undefined) {
+        return produto.displayPriceCents === null
+          ? null
+          : Number(produto.displayPriceCents);
+      }
+      return precoQueVale(
+        precosDoProduto.map(comoRegra),
+        agora,
+        quantidades.get(produto.id) ?? 1,
+      ).atualEmCentavos;
+    })(),
     // Rascunho e arquivado não são compráveis, mesmo marcados como disponíveis:
     // o dono pode ter tirado o produto do ar sem mexer no interruptor.
     disponivel: produto.isAvailable && produto.status === "PUBLISHED",
@@ -242,6 +272,14 @@ export async function conferirAntesDeFechar(
     ),
   ]);
 
+  const quantidades = new Map<string, number>();
+  for (const linha of linhas) {
+    quantidades.set(
+      linha.productId,
+      (quantidades.get(linha.productId) ?? 0) + linha.quantity,
+    );
+  }
+
   const itens: ItemParaConferir[] = linhas.map((linha) => ({
     itemId: linha.id,
     produtoId: linha.productId,
@@ -259,6 +297,8 @@ export async function conferirAntesDeFechar(
   const catalogo = await catalogoAgora(
     tx,
     itens.map((item) => item.produtoId),
+    quantidades,
+    agora,
   );
 
   const conferido = conferirCarrinho(

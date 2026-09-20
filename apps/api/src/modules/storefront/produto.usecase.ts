@@ -118,7 +118,7 @@ interface LinhaDePreco {
   readonly isActive: boolean;
   readonly startsAt: Date | null;
   readonly endsAt: Date | null;
-  readonly variantId: string | null;
+  readonly variantId?: string | null;
 }
 
 /**
@@ -234,6 +234,19 @@ export async function produtoDaVitrine(
 
   if (produto === null) return null;
 
+  const precosDoProduto = await tx.productPrice.findMany({
+    where: { productId: produto.id, variantId: null },
+    select: {
+      kind: true,
+      amountCents: true,
+      minQuantity: true,
+      isActive: true,
+      startsAt: true,
+      endsAt: true,
+    },
+  });
+  const precoDoProduto = precoQueVale(precosDoProduto.map(comoRegra), agora);
+
   const variacoes: VariacaoDoProduto[] = produto.variacoes.map((variante) => {
     const preco = precoQueVale(variante.precos.map(comoRegra), agora);
     return {
@@ -290,10 +303,14 @@ export async function produtoDaVitrine(
           ],
     ),
     precoCentavos: semVariantes
-      ? emCentavos(produto.displayPriceCents)
+      ? precosDoProduto.length > 0
+        ? precoDoProduto.atualEmCentavos
+        : emCentavos(produto.displayPriceCents)
       : (daVariante?.precoCentavos ?? null),
     precoAnteriorCentavos: semVariantes
-      ? emCentavos(produto.compareAtCents)
+      ? precosDoProduto.length > 0
+        ? precoDoProduto.anteriorEmCentavos
+        : emCentavos(produto.compareAtCents)
       : (daVariante?.precoAnteriorCentavos ?? null),
     grupos: produto.gruposDeEscolha.flatMap((vinculo) =>
       // O vínculo pode apontar para grupo que a política recusa — apagado ou

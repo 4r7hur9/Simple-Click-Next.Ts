@@ -278,6 +278,15 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       isPrimary: true,
                     },
                   });
+                  await tx.productPrice.create({
+                    data: {
+                      storeId: lojaId,
+                      productId: produto.id,
+                      kind: "BASE",
+                      label: "Preço base",
+                      amountCents: entrada.data.precoCentavos,
+                    },
+                  });
                   return tx.product.findUniqueOrThrow({
                     where: { id: produto.id },
                     select: selecaoDoProduto,
@@ -388,6 +397,37 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                         : { isAvailable: entrada.data.disponivel }),
                     },
                   });
+                  if (entrada.data.precoCentavos !== undefined) {
+                    const base = await tx.productPrice.findFirst({
+                      where: {
+                        storeId: lojaId,
+                        productId: atual.id,
+                        variantId: null,
+                        kind: "BASE",
+                      },
+                      orderBy: { createdAt: "asc" },
+                      select: { id: true },
+                    });
+                    if (base === null) {
+                      await tx.productPrice.create({
+                        data: {
+                          storeId: lojaId,
+                          productId: atual.id,
+                          kind: "BASE",
+                          label: "Preço base",
+                          amountCents: entrada.data.precoCentavos,
+                        },
+                      });
+                    } else {
+                      await tx.productPrice.update({
+                        where: { id: base.id },
+                        data: {
+                          amountCents: entrada.data.precoCentavos,
+                          updatedAt: new Date(),
+                        },
+                      });
+                    }
+                  }
                   return tx.product.findUniqueOrThrow({
                     where: { id: atual.id },
                     select: selecaoDoProduto,
@@ -476,6 +516,17 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                         productId: produto.id,
                         categoryId: categoria.categoryId,
                         isPrimary: true,
+                      },
+                    });
+                  }
+                  if (original.displayPriceCents !== null) {
+                    await tx.productPrice.create({
+                      data: {
+                        storeId: lojaId,
+                        productId: produto.id,
+                        kind: "BASE",
+                        label: "Preço base",
+                        amountCents: original.displayPriceCents,
                       },
                     });
                   }

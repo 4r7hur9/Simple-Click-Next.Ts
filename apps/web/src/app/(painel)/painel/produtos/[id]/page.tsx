@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { FormularioProduto } from "../../../../../features/painel-catalogo/FormularioProduto.tsx";
 import { EnvioDeImagem } from "../../../../../features/painel-catalogo/EnvioDeImagem.tsx";
+import { LinhasDePreco } from "../../../../../features/painel-catalogo/LinhasDePreco.tsx";
 
 interface Props {
   readonly params: Promise<{ id: string }>;
@@ -67,6 +68,7 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
       </h1>
       <FormularioProduto produto={produto} />
       <EnvioDeImagem produtoId={produto.id} />
+      <LinhasDePreco produtoId={produto.id} />
     </div>
   );
 }

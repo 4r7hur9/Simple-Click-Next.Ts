@@ -22,6 +22,8 @@
  * em `product_categories`, e não no produto: o mesmo item é o primeiro em
  * "Promoções" e o quinto em "Lanches".
  */
+import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
+
 import { transacaoAtual } from "../../core/db.ts";
 
 /** Um produto, como a vitrine o mostra. */
@@ -121,17 +123,50 @@ interface LinhaDeProduto {
   readonly imagens: { readonly url: string | null }[];
 }
 
-function comoVitrine(linha: LinhaDeProduto): ProdutoNaVitrine {
+function comoVitrine(
+  linha: LinhaDeProduto,
+  preco?: {
+    readonly atualEmCentavos: number | null;
+    readonly anteriorEmCentavos: number | null;
+  },
+): ProdutoNaVitrine {
   return {
     id: linha.id,
     apelido: linha.slug,
     nome: linha.name,
     chamada: linha.shortDescription,
-    precoCentavos: emCentavos(linha.displayPriceCents),
-    precoAnteriorCentavos: emCentavos(linha.compareAtCents),
+    precoCentavos:
+      preco === undefined
+        ? emCentavos(linha.displayPriceCents)
+        : preco.atualEmCentavos,
+    precoAnteriorCentavos:
+      preco === undefined
+        ? emCentavos(linha.compareAtCents)
+        : preco.anteriorEmCentavos,
     imagem: linha.imagens[0]?.url ?? null,
     destaque: linha.isFeatured,
     disponivel: linha.isAvailable,
+  };
+}
+
+interface LinhaDePrecoDoProduto {
+  readonly productId: string;
+  readonly kind: string;
+  readonly amountCents: bigint;
+  readonly minQuantity: number;
+  readonly isActive: boolean;
+  readonly startsAt: Date | null;
+  readonly endsAt: Date | null;
+}
+
+function comoRegraDeProduto(linha: LinhaDePrecoDoProduto): PrecoCadastrado {
+  return {
+    tipo: linha.kind,
+    valorEmCentavos: Number(linha.amountCents),
+    quantidadeMinima: linha.minQuantity,
+    ativo: linha.isActive,
+    comecaEm: linha.startsAt,
+    terminaEm: linha.endsAt,
   };
 }
 
@@ -182,6 +217,50 @@ export async function catalogoDaVitrine(
     },
   });
 
+  const idsDosProdutos = [
+    ...new Set(
+      categorias.flatMap((categoria) =>
+        categoria.produtos.flatMap((vinculo) =>
+          vinculo.produto === null ? [] : [vinculo.produto.id],
+        ),
+      ),
+    ),
+  ];
+  const precos =
+    idsDosProdutos.length === 0
+      ? []
+      : await tx.productPrice.findMany({
+          where: { productId: { in: idsDosProdutos }, variantId: null },
+          select: {
+            productId: true,
+            kind: true,
+            amountCents: true,
+            minQuantity: true,
+            isActive: true,
+            startsAt: true,
+            endsAt: true,
+          },
+        });
+  const precosPorProduto = new Map<string, LinhaDePrecoDoProduto[]>();
+  for (const preco of precos) {
+    const doProduto = precosPorProduto.get(preco.productId) ?? [];
+    doProduto.push(preco);
+    precosPorProduto.set(preco.productId, doProduto);
+  }
+  const vigentePorProduto = new Map<
+    string,
+    {
+      readonly atualEmCentavos: number | null;
+      readonly anteriorEmCentavos: number | null;
+    }
+  >();
+  for (const [produtoId, linhas] of precosPorProduto) {
+    vigentePorProduto.set(
+      produtoId,
+      precoQueVale(linhas.map(comoRegraDeProduto), new Date()),
+    );
+  }
+
   const todasAsSecoes: SecaoDaVitrine[] = categorias.map((categoria) => ({
     id: categoria.id,
     apelido: categoria.slug,
@@ -191,7 +270,12 @@ export async function catalogoDaVitrine(
     // não o vínculo de fora: filtrar aqui é o que impede um buraco na lista.
     produtos: categoria.produtos.flatMap((vinculo) =>
       vinculo.produto && (!filtrando || permitidos.has(vinculo.produto.id))
-        ? [comoVitrine(vinculo.produto)]
+        ? [
+            comoVitrine(
+              vinculo.produto,
+              vigentePorProduto.get(vinculo.produto.id),
+            ),
+          ]
         : [],
     ),
   }));
@@ -222,7 +306,9 @@ export async function catalogoDaVitrine(
 
   return {
     secoes,
-    destaques: destaques.map(comoVitrine),
+    destaques: destaques.map((produto) =>
+      comoVitrine(produto, vigentePorProduto.get(produto.id)),
+    ),
     versao: versaoDoCatalogo,
   };
 }

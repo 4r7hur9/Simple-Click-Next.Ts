@@ -34,7 +34,7 @@
 
 - Refs: US-302, AC-309, AC-310, AC-311, AC-312
 - Arquivos: packages/core/src/dinheiro.ts, packages/core/src/dinheiro.test.ts, packages/core/src/preco-aplicavel.ts, packages/core/src/preco-aplicavel.test.ts, apps/api/src/modules/catalog/precos.usecase.ts, apps/api/src/modules/catalog/precos.usecase.test.ts, apps/web/src/features/painel-catalogo/LinhasDePreco.tsx
-- Notas: centavos inteiros do início ao fim; três unidades de R$ 19,99 dão exatamente R$ 59,97. Preço vindo do cliente é descartado e a tentativa registrada. Marcado com @principle:P-005 e @principle:P-006.
+- Notas: primeira fatia funcional local cria, lista, ativa/desativa e remove preços nomeados de produto em centavos inteiros, mantendo a projeção legada sincronizada para a vitrine. A regra compartilhada de preço vigente já atende base/promoção e quantidade mínima; integração completa de atacado no fluxo de compra, prova anotada e auditoria formal continuam pendentes. Marcado com @principle:P-005 e @principle:P-006.
 - Esforço: alto
 
 ## T-305 — Grupos de escolha que atendem ingrediente e variação [pendente]
