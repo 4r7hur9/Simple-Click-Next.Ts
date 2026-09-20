@@ -30,6 +30,18 @@ export default function LayoutDaConfiguracao({
         >
           Contato
         </Link>
+        <Link
+          className="sc-botao sc-botao--fantasma"
+          href="/painel/config/pagamento"
+        >
+          Pagamento
+        </Link>
+        <Link
+          className="sc-botao sc-botao--fantasma"
+          href="/painel/config/entrega"
+        >
+          Entrega
+        </Link>
       </nav>
       {children}
     </div>

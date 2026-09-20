@@ -12,15 +12,15 @@
 ## T-901 — Chave PIX e formas de pagamento [pendente]
 
 - Refs: US-900, AC-900, AC-901, AC-902, AC-903, AC-904
-- Arquivos: apps/api/src/modules/stores/pix.usecase.ts, apps/api/src/modules/stores/pix.usecase.test.ts, packages/core/src/chave-pix.ts, packages/core/src/chave-pix.test.ts, apps/web/src/app/(painel)/painel/config/pagamento/page.tsx, apps/web/src/features/config/FormularioPix.tsx
-- Notas: validação por tipo de chave — CPF, CNPJ, telefone, e-mail ou aleatória. Loja sem chave não oferece PIX. Trocar a chave não altera pedido antigo. A chave nunca sai na resposta pública nem em registro.
+- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/pagamento/page.tsx, apps/web/src/features/config/FormularioPagamento.tsx
+- Notas: a primeira fatia funcional local persiste formas de pagamento e chave PIX por tipo (CPF, CNPJ, telefone, e-mail ou aleatória). PIX exige chave e titular; a chave não sai no DTO público. A prova formal específica de caso de uso, validação por documento e auditoria permanece pendente.
 - Esforço: alto
 
 ## T-902 — Entrega, retirada, taxa e valor mínimo [pendente]
 
 - Refs: US-901, AC-905, AC-906, AC-907, AC-908
-- Arquivos: apps/api/src/modules/stores/entrega.usecase.ts, apps/api/src/modules/stores/entrega.usecase.test.ts, apps/web/src/app/(painel)/painel/config/entrega/page.tsx, apps/web/src/features/config/FormularioEntrega.tsx
-- Notas: desativar os dois modos impede finalizar pedido e avisa o dono no painel. Entrega grátis acima de valor e mínimo por modo de recebimento.
+- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/entrega/page.tsx, apps/web/src/features/config/FormularioEntrega.tsx
+- Notas: a primeira fatia funcional local persiste entrega, retirada, taxa, gratuidade, mínimos e prazo. Desativar os dois modos é aceito na configuração, mas a regra de bloqueio do fechamento e o aviso no painel ainda exigem a implementação formal desta tarefa.
 - Esforço: medio
 
 ## T-903 — Horário de funcionamento, fechar agora e exceções [concluida]

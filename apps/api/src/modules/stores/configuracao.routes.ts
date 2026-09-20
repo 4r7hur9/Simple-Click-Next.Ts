@@ -30,6 +30,41 @@ const esquemaDoContato = z.strictObject({
   publico: z.boolean(),
 });
 
+const TIPOS_DE_PIX = ["CPF", "CNPJ", "TELEFONE", "EMAIL", "ALEATORIA"] as const;
+const FORMAS_DE_PAGAMENTO = ["PIX", "CASH", "CARD_ON_DELIVERY"] as const;
+
+const esquemaDoPagamento = z
+  .strictObject({
+    formas: z.array(z.enum(FORMAS_DE_PAGAMENTO)).max(3),
+    pix: z
+      .strictObject({
+        tipo: z.enum(TIPOS_DE_PIX),
+        chave: z.string().trim().min(1).max(120),
+        titular: z.string().trim().min(1).max(160),
+      })
+      .nullable(),
+  })
+  .superRefine((valor, contexto) => {
+    if (valor.formas.includes("PIX") && valor.pix === null) {
+      contexto.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["pix"],
+        message: "Informe a chave PIX para ativar esta forma.",
+      });
+    }
+  });
+
+const esquemaDaEntrega = z.strictObject({
+  aceitaEntrega: z.boolean(),
+  aceitaRetirada: z.boolean(),
+  taxaCentavos: z.number().int().nonnegative().nullable(),
+  nomeDaTaxa: z.string().trim().max(80).nullable(),
+  gratisAcimaDeCentavos: z.number().int().nonnegative().nullable(),
+  minimoParaEntregaCentavos: z.number().int().nonnegative().nullable(),
+  minimoParaRetiradaCentavos: z.number().int().nonnegative().nullable(),
+  prazoMinutos: z.number().int().nonnegative().nullable(),
+});
+
 export interface ChegadaNaLoja {
   readonly host?: string | null;
   readonly apelido?: string | null;
@@ -47,6 +82,12 @@ function objeto(valor: unknown): Record<string, unknown> {
 
 function texto(valor: unknown): string | null {
   return typeof valor === "string" && valor.trim() !== "" ? valor : null;
+}
+
+function centavos(valor: unknown): number | null {
+  return typeof valor === "number" && Number.isInteger(valor) && valor >= 0
+    ? valor
+    : null;
 }
 
 function normalizarNumero(numero: string): string {
@@ -178,6 +219,187 @@ export function criarRotasDasConfiguracoes(
             WHERE store_id = ${lojaId}
           `,
                 ),
+            );
+            resposta.status(204).end();
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.get(
+    "/:apelido/configuracao/pagamento",
+    async (requisicao, resposta, proximo) => {
+      try {
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const configuracao = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao((tx) =>
+                  tx.storeSettings.findUnique({
+                    where: { storeId: lojaId },
+                    select: { payment: true },
+                  }),
+                ),
+            );
+            const pagamento = objeto(configuracao?.payment);
+            const pix = objeto(pagamento.pix);
+            const formas = Array.isArray(pagamento.formas)
+              ? pagamento.formas.filter(
+                  (forma): forma is string =>
+                    typeof forma === "string" &&
+                    FORMAS_DE_PAGAMENTO.includes(
+                      forma as (typeof FORMAS_DE_PAGAMENTO)[number],
+                    ),
+                )
+              : [];
+            resposta.json({
+              formas,
+              pix:
+                texto(pix.chave) === null
+                  ? null
+                  : {
+                      tipo: texto(pix.tipo) ?? "ALEATORIA",
+                      chave: texto(pix.chave),
+                      titular: texto(pix.titular) ?? "",
+                    },
+            });
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.put(
+    "/:apelido/configuracao/pagamento",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDoPagamento.safeParse(requisicao.body);
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(
+                  (tx) => tx.$executeRaw`
+                    UPDATE app.store_settings
+                    SET payment = payment || ${JSON.stringify({ formas: entrada.data.formas, pix: entrada.data.pix })}::jsonb,
+                        updated_at = now()
+                    WHERE store_id = ${lojaId}
+                  `,
+                ),
+            );
+            resposta.status(204).end();
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.get(
+    "/:apelido/configuracao/entrega",
+    async (requisicao, resposta, proximo) => {
+      try {
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const configuracao = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const [loja, settings] = await Promise.all([
+                    tx.store.findUnique({
+                      where: { id: lojaId },
+                      select: { fulfillmentModes: true },
+                    }),
+                    tx.storeSettings.findUnique({
+                      where: { storeId: lojaId },
+                      select: { delivery: true },
+                    }),
+                  ]);
+                  return { loja, settings };
+                }),
+            );
+            const entrega = objeto(configuracao.settings?.delivery);
+            resposta.json({
+              aceitaEntrega:
+                configuracao.loja?.fulfillmentModes.includes("DELIVERY") ??
+                false,
+              aceitaRetirada:
+                configuracao.loja?.fulfillmentModes.includes("PICKUP") ?? false,
+              taxaCentavos: centavos(entrega.taxaPadraoCents),
+              nomeDaTaxa: texto(entrega.nomeDaTaxa),
+              gratisAcimaDeCentavos: centavos(entrega.gratisAcimaDeCents),
+              minimoParaEntregaCentavos: centavos(entrega.minimoEntregaCents),
+              minimoParaRetiradaCentavos: centavos(entrega.minimoRetiradaCents),
+              prazoMinutos: centavos(entrega.prazoMinutos),
+            });
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.put(
+    "/:apelido/configuracao/entrega",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDaEntrega.safeParse(requisicao.body);
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const modos = [
+                    ...(entrada.data.aceitaEntrega ? ["DELIVERY"] : []),
+                    ...(entrada.data.aceitaRetirada ? ["PICKUP"] : []),
+                  ];
+                  await tx.$executeRaw`
+                    UPDATE app.stores
+                    SET fulfillment_modes = ${modos}::text[]
+                    WHERE id = ${lojaId}
+                  `;
+                  await tx.$executeRaw`
+                    UPDATE app.store_settings
+                    SET delivery = delivery || ${JSON.stringify({
+                      taxaPadraoCents: entrada.data.taxaCentavos,
+                      nomeDaTaxa: entrada.data.nomeDaTaxa,
+                      gratisAcimaDeCents: entrada.data.gratisAcimaDeCentavos,
+                      minimoEntregaCents:
+                        entrada.data.minimoParaEntregaCentavos,
+                      minimoRetiradaCents:
+                        entrada.data.minimoParaRetiradaCentavos,
+                      prazoMinutos: entrada.data.prazoMinutos,
+                    })}::jsonb,
+                        updated_at = now()
+                    WHERE store_id = ${lojaId}
+                  `;
+                }),
             );
             resposta.status(204).end();
           },

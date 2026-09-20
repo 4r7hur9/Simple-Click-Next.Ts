@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
 
-const SECOES = new Set(["aparencia", "contato"]);
+const SECOES = new Set(["aparencia", "contato", "pagamento", "entrega"]);
 const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
   process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
 
@@ -41,6 +41,7 @@ async function encaminhar(
       revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}`);
       revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/sobre`);
       revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/catalogo`);
+      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/checkout`);
     } catch {
       // A gravação já foi confirmada pela API. Em desenvolvimento, o cache
       // pode não ter um contexto de revalidação; a próxima leitura ainda
