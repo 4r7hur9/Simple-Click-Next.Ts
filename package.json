@@ -30,7 +30,7 @@
     "spec:audit": "node ~/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs audit --ci",
     "spec:verify": "node ~/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs verify",
     "db:gerar": "pnpm --filter @simpleclick/database run gerar",
-    "prepare": "lefthook install && bash infra/scripts/registrar-pulo.sh --iniciar && pnpm --filter @simpleclick/database run gerar"
+    "prepare": "lefthook install && node infra/scripts/iniciar-registro-do-portao.mjs && pnpm --filter @simpleclick/database run gerar"
   },
   "devDependencies": {
     "@simpleclick/config-eslint": "workspace:*",
