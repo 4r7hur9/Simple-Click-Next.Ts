@@ -91,7 +91,7 @@
 - Notas: sem `openingHours` no bloco de negócio, e sem `lastModified` no mapa — as duas ausências são decisão. O contrato entrega "aberta AGORA" (AC-401), que é do momento, e `openingHours` descreve a GRADE da semana: derivar a segunda da primeira faria a loja aparecer aberta de madrugada, e alguém iria até lá. `lastModified` pede a data em que aquele endereço mudou, e o que temos é `versao` — um contador. `new Date()` faria toda visita dizer "mudou agora", e o buscador aprende a ignorar o campo de quem mente.
 - Esforço: medio
 
-## T-407 — Desempenho no celular [pendente]
+## T-407 — Desempenho no celular [concluida]
 
 - Refs: US-404, AC-415, AC-416
 - Arquivos: apps/web/next.config.ts, apps/web/src/lib/imagem.ts, e2e/specs/desempenho-vitrine.spec.ts
