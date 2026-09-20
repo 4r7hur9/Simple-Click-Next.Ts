@@ -99,7 +99,7 @@
 - Modelo: gpt-5.6-luna
 - Esforço: alto
 
-## T-408 — Acessibilidade e uso por teclado [pendente]
+## T-408 — Acessibilidade e uso por teclado [concluida]
 
 - Refs: US-405, AC-418, AC-419, AC-420
 - Arquivos: e2e/specs/a11y-vitrine.spec.ts, e2e/specs/teclado-vitrine.spec.ts, packages/ui/src/foco.ts

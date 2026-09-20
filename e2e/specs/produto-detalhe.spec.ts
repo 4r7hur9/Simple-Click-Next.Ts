@@ -1,0 +1,42 @@
+import { expect, test } from "@playwright/test";
+
+const LOJA = "pastelaria-da-vila";
+
+test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async ({
+  page,
+}) => {
+  await page.goto(`/l/${LOJA}/catalogo`);
+  await page.getByRole("link", { name: /Pastel de Carne/ }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Pastel de Carne" }),
+  ).toBeVisible();
+  await expect(page.locator(".sc-produto__foto")).toHaveCount(1);
+  await expect(
+    page.getByRole("heading", { name: "Sobre o item" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Pastel de massa fina com carne moída temperada/),
+  ).toBeVisible();
+  await expect(page.getByText("R$ 7,00").first()).toBeVisible();
+  await expect(page.getByRole("group", { name: "Ingredientes" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Adicionais" })).toBeVisible();
+  await expect(page.getByLabel("Alguma observação?")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Adicionar.*R\$ 7,00/ }),
+  ).toBeVisible();
+});
+
+test("@spec:AC-410 os grupos de escolha obrigatória aparecem sinalizados antes de decidir", async ({
+  page,
+}) => {
+  await page.goto("/l/moda-boa-vista/catalogo");
+  await page.getByRole("link", { name: /Camiseta Básica/ }).click();
+
+  await expect(
+    page.getByRole("group", { name: /Tamanho.*obrigatório/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: /Cor.*obrigatório/i }),
+  ).toBeVisible();
+});
