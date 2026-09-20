@@ -3,9 +3,7 @@
 import { cookies } from "next/headers";
 
 import { enderecoDaApi } from "../api-client.ts";
-
-/** Nome compartilhado com a camada de cookie da sessão (T-103). */
-export const NOME_DO_COOKIE_DE_RENOVACAO = "sc_refresh_token";
+import { NOME_DO_COOKIE_DE_RENOVACAO } from "../session-cookie.ts";
 
 type ResultadoDaAcaoDeSessao =
   { readonly ok: true } | { readonly ok: false; readonly mensagem: string };

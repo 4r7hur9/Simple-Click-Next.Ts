@@ -1080,19 +1080,26 @@ function linhasDeValoresDeEspecificacao(): readonly LinhaDeExemplo[] {
 
 function linhasDeImagens(referencia: Date): readonly LinhaDeExemplo[] {
   return PRODUTOS.flatMap((produto) =>
-    produto.imagens.map((imagem, ordem) => ({
-      id: idDaImagem(produto, imagem),
-      store_id: produto.loja.id,
-      product_id: idDoProduto(produto),
-      asset_id: idDoArquivo(produto, imagem),
-      // Exatamente UMA principal por produto, garantida por índice único
-      // parcial na tabela — aqui a carga só respeita a regra.
-      is_primary: ordem === 0,
-      sort_order: ordem,
-      alt_text: `${produto.nome} — ${imagem}`,
-      created_at: instanteDeExemplo(referencia, -34_000 + ordem),
-      updated_at: instanteDeExemplo(referencia, -34_000 + ordem),
-    })),
+    produto.imagens.map((imagem, ordem) => {
+      const chave = `exemplo/${produto.loja.slug}/${produto.slug}-${imagem}.webp`;
+      return {
+        id: idDaImagem(produto, imagem),
+        store_id: produto.loja.id,
+        product_id: idDoProduto(produto),
+        asset_id: idDoArquivo(produto, imagem),
+        // O asset é a origem administrativa; a URL pública é o que a
+        // consulta da vitrine entrega ao navegador. Sem as duas, a carga
+        // parece ter fotos no banco, mas o catálogo público recebe nulo.
+        url: `https://res.cloudinary.com/simpleclick/image/upload/v1/${chave}`,
+        // Exatamente UMA principal por produto, garantida por índice único
+        // parcial na tabela — aqui a carga só respeita a regra.
+        is_primary: ordem === 0,
+        sort_order: ordem,
+        alt_text: `${produto.nome} — ${imagem}`,
+        created_at: instanteDeExemplo(referencia, -34_000 + ordem),
+        updated_at: instanteDeExemplo(referencia, -34_000 + ordem),
+      };
+    }),
   );
 }
 

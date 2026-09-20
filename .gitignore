@@ -48,6 +48,9 @@ infra/traefik/certs/*
 .spec/.vitest-report.json
 .spec/.jest-report.json
 
+# logs locais do servidor de desenvolvimento
+dev-server.*.log
+
 # sistema operacional e editor
 .DS_Store
 Thumbs.db

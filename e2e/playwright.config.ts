@@ -18,6 +18,7 @@
  * que não é o dele.
  */
 import { defineConfig, devices } from "@playwright/test";
+import { fileURLToPath } from "node:url";
 
 /**
  * O ambiente do REPOSITÓRIO, carregado antes de tudo.
@@ -31,7 +32,7 @@ import { defineConfig, devices } from "@playwright/test";
  * quem roda em ambiente com as variáveis já no processo não tem `.env`.
  */
 try {
-  process.loadEnvFile(new URL("../.env", import.meta.url).pathname);
+  process.loadEnvFile(fileURLToPath(new URL("../.env", import.meta.url)));
 } catch {
   // Sem arquivo: vale o que já estiver no ambiente.
 }
@@ -44,6 +45,14 @@ export const ENDERECO_DA_API = "http://localhost:3101";
 
 export default defineConfig({
   testDir: "./specs",
+  // Estes três arquivos são testes Vitest legados que vivem no pacote E2E
+  // por compartilharem fixtures de domínio. O Playwright não deve importá-los:
+  // os dois runners registram matchers globais incompatíveis.
+  testIgnore: [
+    "**/cadastro.spec.ts",
+    "**/login-2fa.spec.ts",
+    "**/recuperar-senha.spec.ts",
+  ],
   // Um cenário que depende de outro é um cenário que mente quando roda
   // sozinho. Cada arquivo monta o que precisa.
   fullyParallel: true,
@@ -79,7 +88,7 @@ export default defineConfig({
       // as cadeias de conexão ela recusa subir, e recusa certo. O Playwright
       // não carrega `.env` sozinho, e sem esta linha o site sobe, responde, e
       // devolve 404 em toda loja — um sintoma que parece de rota e é de banco.
-      command: "node --env-file=.env apps/api/src/main.ts",
+      command: "node e2e/iniciar-api.mjs",
       cwd: "..",
       url: `${ENDERECO_DA_API}/`,
       reuseExistingServer: !process.env["CI"],
@@ -92,7 +101,7 @@ export default defineConfig({
       },
     },
     {
-      command: "pnpm --filter @simpleclick/web exec next dev -p 3100",
+      command: "node e2e/iniciar-site.mjs",
       cwd: "..",
       url: ENDERECO_DO_SITE,
       reuseExistingServer: !process.env["CI"],

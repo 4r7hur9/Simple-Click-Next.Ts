@@ -11,6 +11,7 @@
  * se vale a pena ouvir tudo ou pular para a próxima seção.
  */
 import { Vazio } from "@simpleclick/ui";
+import Image from "next/image";
 
 import type { ProdutoNaTela, SecaoNaTela } from "../../lib/catalogo.ts";
 
@@ -49,7 +50,7 @@ export function CartaoDeProduto({
     >
       <span className="sc-vitrine__moldura">
         {produto.imagem ? (
-          <img
+          <Image
             className="sc-vitrine__foto"
             src={produto.imagem}
             // A imagem é decoração: o nome do produto está ao lado, em texto, e
@@ -57,7 +58,9 @@ export function CartaoDeProduto({
             alt=""
             width={LARGURA_DA_IMAGEM}
             height={ALTURA_DA_IMAGEM}
-            loading={prioridade ? "eager" : "lazy"}
+            priority={prioridade}
+            loading={prioridade ? undefined : "lazy"}
+            sizes="(max-width: 720px) calc(100vw - 2rem), 320px"
           />
         ) : (
           // Loja nova costuma não ter foto, e cartão sem moldura desalinha a

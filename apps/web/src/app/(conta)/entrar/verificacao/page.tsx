@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -21,7 +21,7 @@ async function confirmarCodigo(
   return (await resposta.json()) as RespostaDoCodigoNaTela;
 }
 
-export default function PaginaDeVerificacao() {
+function ConteudoDaVerificacao() {
   const roteador = useRouter();
   const parametros = useSearchParams();
   const desafioId = parametros.get("desafio");
@@ -44,5 +44,13 @@ export default function PaginaDeVerificacao() {
         aoRecomecarLogin={() => roteador.replace("/entrar")}
       />
     </main>
+  );
+}
+
+export default function PaginaDeVerificacao() {
+  return (
+    <Suspense fallback={<p role="status">Carregando confirmação…</p>}>
+      <ConteudoDaVerificacao />
+    </Suspense>
   );
 }
