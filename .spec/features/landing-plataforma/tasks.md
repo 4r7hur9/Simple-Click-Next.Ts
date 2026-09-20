@@ -30,7 +30,7 @@
 - Notas: a cor escolhida pinta a PÁGINA INTEIRA, e não só o celular da prévia — antes a pessoa escolhia vermelho e o fundo continuava azul, como se a escolha não valesse nada. A mensagem é desenhada como ela CHEGA, com negrito no lugar dos asteriscos: o dono abre o WhatsApp quarenta vezes por dia e sabe que mensagem nenhuma tem asterisco à vista. E ela tem teto com rolagem própria, porque vinte e sete linhas soltas dobram a altura da seção e empurram o resto da landing para fora da tela. O visitante digita o nome do negócio e escolhe a cor, e vê a própria loja tomando forma — com o ajuste de contraste de verdade, o mesmo que o produto faz. Os produtos do exemplo são fixos e a mensagem vem PRONTA do servidor, porque a tabela de fronteiras não autoriza a camada de telas a calcular preço (P-006) — e uma segunda conta escrita aqui divergiria da real no dia em que uma das duas mudasse.
 - Esforço: alto
 
-## T-963 — Teste de ponta a ponta da landing [pendente]
+## T-963 — Teste de ponta a ponta da landing [concluida]
 
 - Refs: US-910, AC-934, AC-938
 - Arquivos: e2e/specs/landing.spec.ts
