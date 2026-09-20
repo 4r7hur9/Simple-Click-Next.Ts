@@ -171,6 +171,29 @@ pedir sem depender do mouse, para que a loja também venda para mim.
 - **Quando** percorro a página inteira
 - **Então** não existe rolagem horizontal, nenhuma imagem ou texto escapa do contêiner, e os botões têm área de toque confortável
 
+### US-406 — Cliente conhece a história e os contatos públicos da loja
+
+Como cliente final, quero abrir uma página institucional da loja, para que eu
+entenda quem vende, onde posso retirar e por qual contato público posso falar.
+
+#### AC-421 — Página Sobre apresenta a identidade da loja
+
+- **Dado** uma loja ativa com texto institucional, logo e capa configurados
+- **Quando** abro `/l/{apelido}/sobre`
+- **Então** vejo a história, a logo e a capa da loja, com um caminho claro de volta para a vitrine
+
+#### AC-422 — Página Sobre publica apenas contato autorizado
+
+- **Dado** uma loja com endereço de retirada e WhatsApp marcado explicitamente como público
+- **Quando** abro a página Sobre
+- **Então** vejo esses dois dados, e nenhum telefone cadastral, e-mail, documento ou WhatsApp não público aparece na resposta
+
+#### AC-423 — Página Sobre continua útil sem JavaScript
+
+- **Dado** um navegador com JavaScript desligado
+- **Quando** abro a página Sobre
+- **Então** o conteúdo institucional, o endereço de retirada, o contato público e a navegação continuam legíveis e utilizáveis
+
 ## Fora de escopo
 
 - Carrinho, checkout e envio do pedido: ficam na feature de pedido e checkout;

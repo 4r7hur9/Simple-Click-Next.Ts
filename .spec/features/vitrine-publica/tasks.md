@@ -115,9 +115,18 @@
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 
+## T-410 — Página institucional Sobre da loja [pendente]
+
+- Refs: US-406, AC-421, AC-422, AC-423
+- Depende de: T-904, T-905
+- Arquivos: packages/contracts/src/vitrine.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx, apps/web/src/features/loja/SobreDaLoja.tsx, apps/web/tests/sobre-da-loja.test.tsx, e2e/specs/sobre-da-loja.spec.ts
+- Notas: adiciona `sobre` e `whatsappPublico` ao DTO público e a rota `/l/{apelido}/sobre`. Só publica o WhatsApp marcado explicitamente como público; telefone cadastral, e-mail, documentos e contatos privados continuam fora da allowlist. O conteúdo chega pronto do servidor e funciona sem JavaScript.
+- Modelo: gpt-5.6-luna
+- Esforço: medio
+
 ## T-421 — Fundo 3D da apresentação da loja [concluida]
 
-- Refs: US-400, AC-400, P-011, P-012
+- Refs: US-400, AC-400
 - Arquivos: apps/web/src/features/loja/MundoDaLoja.tsx, apps/web/src/features/loja/mundo-da-loja.ts, apps/web/src/features/loja/ApresentacaoDaLoja.tsx, packages/ui/styles/narrativa.css, apps/web/tests/entrada-da-loja.test.tsx, apps/web/tests/landing-mundo.test.ts
-- Notas: a apresentação mantém todo o conteúdo no servidor e recebe uma camada Three.js sob demanda no desktop capaz. Celular, WebGL ausente, conexão econômica e movimento reduzido ficam no fallback CSS, sem baixar nem montar o mundo.
+- Notas: a apresentação mantém todo o conteúdo no servidor e recebe uma camada Three.js sob demanda no desktop capaz. Celular, WebGL ausente, conexão econômica e movimento reduzido ficam no fallback CSS, sem baixar nem montar o mundo. Atende aos princípios P-011 e P-012.
 - Esforço: medio
