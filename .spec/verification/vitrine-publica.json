@@ -1,7 +1,7 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-09-20T08:30:53.698Z",
-  "gitRev": "706e23b",
+  "timestamp": "2026-09-20T08:42:32.454Z",
+  "gitRev": "447d92e",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
