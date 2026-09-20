@@ -49,13 +49,18 @@ const LOJA_COMPLETA = {
 const CONFIGURACAO = {
   landing: {
     boasVindas: "Comida caseira todo dia",
+    sobre: "Uma história de receitas de família.",
     logo: "https://exemplo.test/logo.png",
     capa: "https://exemplo.test/capa.jpg",
   },
   theme: { primaria: "#0f6e5c", fundo: "#ffffff", desconhecida: "roxo" },
   // O que NUNCA pode sair, guardado no mesmo documento:
   payment: { chavePix: "loja@sabor.com.br", nomeDoRecebedor: "Sabor & Cia" },
-  whatsapp: { numero: "5511988887777", textoPadrao: "Olá" },
+  whatsapp: {
+    numero: "5511988887777",
+    textoPadrao: "Olá",
+    publico: false,
+  },
   printing: { chaveDoAgente: "segredo-da-impressora" },
 };
 
@@ -67,6 +72,8 @@ describe("a vitrine mostra o que o dono quis mostrar (AC-904)", () => {
     expect(publica.apelido).toBe("sabor-e-cia");
     expect(publica.ramo).toBe("FOOD");
     expect(publica.boasVindas).toBe("Comida caseira todo dia");
+    expect(publica.sobre).toBe("Uma história de receitas de família.");
+    expect(publica.whatsappPublico).toBeNull();
   });
 
   it("@spec:AC-904 o endereço para retirada aparece sem CEP nem coordenada", () => {

@@ -15,6 +15,7 @@ import { banco, type AcessoAoBanco } from "../../core/db.ts";
 
 const esquemaDaAparencia = z.strictObject({
   boasVindas: z.string().trim().max(280).nullable(),
+  sobre: z.string().trim().max(2_000).nullable(),
   logo: z.string().trim().url().max(1_000).nullable(),
   capa: z.string().trim().url().max(1_000).nullable(),
   corPrimaria: z
@@ -26,6 +27,7 @@ const esquemaDaAparencia = z.strictObject({
 const esquemaDoContato = z.strictObject({
   numero: z.string().trim().min(10).max(30),
   saudacao: z.string().trim().min(1).max(280),
+  publico: z.boolean(),
 });
 
 export interface ChegadaNaLoja {
@@ -138,6 +140,7 @@ export function criarRotasDasConfiguracoes(
             const theme = objeto(configuracao?.theme);
             resposta.json({
               boasVindas: texto(landing.boasVindas),
+              sobre: texto(landing.sobre),
               logo: texto(landing.logo),
               capa: texto(landing.capa),
               corPrimaria: texto(theme.primaria),
@@ -169,7 +172,7 @@ export function criarRotasDasConfiguracoes(
                 acesso.emTransacao(
                   (tx) => tx.$executeRaw`
             UPDATE app.store_settings
-            SET landing = landing || ${JSON.stringify({ boasVindas: entrada.data.boasVindas, logo: entrada.data.logo, capa: entrada.data.capa })}::jsonb,
+            SET landing = landing || ${JSON.stringify({ boasVindas: entrada.data.boasVindas, sobre: entrada.data.sobre, logo: entrada.data.logo, capa: entrada.data.capa })}::jsonb,
                 theme = theme || ${JSON.stringify({ primaria: entrada.data.corPrimaria })}::jsonb,
                 updated_at = now()
             WHERE store_id = ${lojaId}
@@ -207,6 +210,7 @@ export function criarRotasDasConfiguracoes(
             resposta.json({
               numero: texto(whatsapp.numero),
               saudacao: texto(whatsapp.saudacao) ?? "Olá! Segue meu pedido:",
+              publico: whatsapp.publico === true,
             });
           },
         );
@@ -236,7 +240,7 @@ export function criarRotasDasConfiguracoes(
                 acesso.emTransacao(
                   (tx) => tx.$executeRaw`
             UPDATE app.store_settings
-            SET whatsapp = whatsapp || ${JSON.stringify({ numero, saudacao: entrada.data.saudacao })}::jsonb,
+            SET whatsapp = whatsapp || ${JSON.stringify({ numero, saudacao: entrada.data.saudacao, publico: entrada.data.publico })}::jsonb,
                 updated_at = now()
             WHERE store_id = ${lojaId}
           `,

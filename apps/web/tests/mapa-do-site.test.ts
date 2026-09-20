@@ -37,9 +37,11 @@ const LOJA: Vitrine["loja"] = {
   moeda: "BRL",
   formasDeEntrega: ["DELIVERY"],
   boasVindas: null,
+  sobre: null,
   logo: null,
   capa: null,
   cores: null,
+  whatsappPublico: null,
   enderecoParaRetirada: null,
 };
 
@@ -135,6 +137,7 @@ describe("o mapa lista as páginas da loja (AC-403)", () => {
 
     expect(mapa.map((pagina) => pagina.url)).toEqual([
       `${SITE}/l/sabor-e-cia`,
+      `${SITE}/l/sabor-e-cia/sobre`,
       `${SITE}/l/sabor-e-cia/catalogo`,
       `${SITE}/l/sabor-e-cia/produto/11111111-1111-4111-8111-111111111111`,
       `${SITE}/l/sabor-e-cia/produto/22222222-2222-4222-8222-222222222222`,
@@ -197,6 +200,7 @@ describe("o mapa não conta o que o AC-402 manda não contar", () => {
     // das duas páginas que estavam certas.
     expect(mapa.map((pagina) => pagina.url)).toEqual([
       `${SITE}/l/sabor-e-cia`,
+      `${SITE}/l/sabor-e-cia/sobre`,
       `${SITE}/l/sabor-e-cia/catalogo`,
     ]);
   });
@@ -216,7 +220,7 @@ describe("o XML sai no formato que o protocolo define", () => {
     expect(xml).toContain(
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     );
-    expect(xml.match(/<loc>/g)).toHaveLength(4);
+    expect(xml.match(/<loc>/g)).toHaveLength(5);
   });
 
   it("@spec:AC-402 mapa vazio continua sendo XML válido", () => {

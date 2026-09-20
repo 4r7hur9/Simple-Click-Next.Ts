@@ -30,6 +30,7 @@ import {
   enderecoDaLoja,
   enderecoDoCatalogo,
   enderecoDoProduto,
+  enderecoSobreDaLoja,
 } from "./endereco-do-site.ts";
 import { buscarCatalogo, buscarVitrine } from "./vitrine.ts";
 
@@ -64,6 +65,11 @@ export async function mapaDaLoja(
 
   const paginas: PaginaNoMapa[] = [
     { url: enderecoDaLoja(loja.apelido), mudaCom: "weekly", prioridade: 1 },
+    {
+      url: enderecoSobreDaLoja(loja.apelido),
+      mudaCom: "weekly",
+      prioridade: 0.8,
+    },
     {
       url: enderecoDoCatalogo(loja.apelido),
       mudaCom: "daily",

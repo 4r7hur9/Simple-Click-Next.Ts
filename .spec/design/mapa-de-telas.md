@@ -21,6 +21,7 @@
 | #   | Rota                       | Tela                           | Acesso  | Estados | E2E                   | Critérios                              |
 | --- | -------------------------- | ------------------------------ | ------- | ------- | --------------------- | -------------------------------------- |
 | 1   | `/l/{slug}`                | Página de apresentação da loja | público | 4E      | e2e-loja-lp           | AC-400, AC-401, AC-402, AC-403, AC-916 |
+| 1a  | `/l/{slug}/sobre`          | Página institucional da loja   | público | 4E      | e2e-sobre-da-loja     | AC-421..AC-423                         |
 | 2   | `/l/{slug}/catalogo`       | Vitrine / cardápio / catálogo  | público | 4E      | e2e-vitrine           | AC-404..AC-409, AC-415..AC-417, AC-420 |
 | 3   | `/l/{slug}/produto/{id}`   | Detalhe do produto             | público | 4E      | e2e-produto-detalhe   | AC-410..AC-414, AC-328                 |
 | 4   | `/l/{slug}/carrinho`       | Carrinho                       | público | 4E      | e2e-carrinho          | AC-500..AC-503                         |

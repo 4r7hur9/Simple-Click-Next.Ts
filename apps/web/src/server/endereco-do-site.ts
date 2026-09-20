@@ -46,6 +46,11 @@ export function enderecoDaLoja(apelido: string): string {
   return `${enderecoDoSite()}/l/${apelido}`;
 }
 
+/** O endereço canônico da página institucional da loja. */
+export function enderecoSobreDaLoja(apelido: string): string {
+  return `${enderecoDaLoja(apelido)}/sobre`;
+}
+
 /** O endereço canônico de um produto (AC-414). */
 export function enderecoDoProduto(apelido: string, produtoId: string): string {
   return `${enderecoDaLoja(apelido)}/produto/${produtoId}`;

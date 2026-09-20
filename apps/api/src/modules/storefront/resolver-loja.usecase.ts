@@ -183,7 +183,7 @@ export async function lojaDaVitrine(
   // linha inteira tornaria a chave alcançável pelo caminho público, bastando
   // alguém escrever `select: { payment: true }` num caso de uso futuro.
   const configuracao = await tx.$queryRaw<
-    { landing: unknown; theme: unknown }[]
+    { landing: unknown; theme: unknown; whatsapp: unknown }[]
   >`SELECT * FROM app.storefront_settings()`;
 
   // O HORÁRIO CHEGA PRONTO, e não é lido aqui. A tabela de fronteiras não

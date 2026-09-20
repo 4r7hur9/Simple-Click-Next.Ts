@@ -59,6 +59,14 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     arquivo: "apps/web/src/app/(loja)/l/[slug]/page.tsx",
   },
   {
+    rota: "/l/{slug}/sobre",
+    tela: "Página institucional da loja",
+    acesso: "PUBLICO",
+    quatroEstados: true,
+    criterios: "AC-421..AC-423",
+    arquivo: "apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx",
+  },
+  {
     rota: "/l/{slug}/catalogo",
     tela: "Vitrine / cardápio / catálogo",
     acesso: "PUBLICO",

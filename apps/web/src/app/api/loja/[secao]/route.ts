@@ -1,3 +1,5 @@
+import { revalidatePath } from "next/cache";
+
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
 
@@ -35,6 +37,15 @@ async function encaminhar(
 
   const corpo = await resposta.text();
   if (resposta.status === 204) {
+    try {
+      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}`);
+      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/sobre`);
+      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/catalogo`);
+    } catch {
+      // A gravação já foi confirmada pela API. Em desenvolvimento, o cache
+      // pode não ter um contexto de revalidação; a próxima leitura ainda
+      // receberá o valor novo quando a janela expirar.
+    }
     return new Response(null, {
       status: 204,
       headers: { "cache-control": "no-store" },

@@ -93,9 +93,11 @@ export const esquemaDeLojaPublica = z.strictObject({
   moeda: z.string(),
   formasDeEntrega: z.array(z.string()),
   boasVindas: z.string().nullable(),
+  sobre: z.string().nullable(),
   logo: z.string().nullable(),
   capa: z.string().nullable(),
   cores: z.record(z.string(), z.string()).nullable(),
+  whatsappPublico: z.string().nullable(),
   enderecoParaRetirada: esquemaDeEnderecoDaLoja.nullable(),
 });
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export function EditorDeMensagem() {
   const [numero, setNumero] = useState("");
   const [saudacao, setSaudacao] = useState("Olá! Segue meu pedido:");
+  const [publico, setPublico] = useState(false);
   const [estado, setEstado] = useState("Carregando contato…");
   const [salvando, setSalvando] = useState(false);
 
@@ -15,11 +16,13 @@ export function EditorDeMensagem() {
         return (await resposta.json()) as {
           numero?: string | null;
           saudacao?: string | null;
+          publico?: boolean;
         };
       })
       .then((dados) => {
         setNumero(dados.numero ?? "");
         setSaudacao(dados.saudacao ?? "Olá! Segue meu pedido:");
+        setPublico(dados.publico === true);
         setEstado("Contato carregado.");
       })
       .catch(() => setEstado("Entre novamente para editar o contato."));
@@ -33,7 +36,7 @@ export function EditorDeMensagem() {
       const resposta = await fetch("/api/loja/contato", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ numero, saudacao }),
+        body: JSON.stringify({ numero, saudacao, publico }),
       });
       if (!resposta.ok) throw new Error();
       setEstado("Contato salvo. O checkout usará este número.");
@@ -61,6 +64,23 @@ export function EditorDeMensagem() {
         />
         <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
           Aceitamos máscara, espaços ou o formato internacional.
+        </span>
+      </label>
+      <label className="flex items-start gap-3">
+        <input
+          className="mt-1 h-5 w-5"
+          type="checkbox"
+          checked={publico}
+          onChange={(evento) => setPublico(evento.target.checked)}
+        />
+        <span>
+          <span className="font-medium">
+            Exibir este WhatsApp na página Sobre
+          </span>
+          <span className="mt-1 block text-sm text-[var(--cor-tinta-suave)]">
+            Só o número marcado aqui será público. O telefone cadastral continua
+            protegido.
+          </span>
         </span>
       </label>
       <label className="block">

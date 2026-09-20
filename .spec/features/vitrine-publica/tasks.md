@@ -119,8 +119,8 @@
 
 - Refs: US-406, AC-421, AC-422, AC-423
 - Depende de: T-904, T-905
-- Arquivos: packages/contracts/src/vitrine.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx, apps/web/src/features/loja/SobreDaLoja.tsx, apps/web/tests/sobre-da-loja.test.tsx, e2e/specs/sobre-da-loja.spec.ts
-- Notas: adiciona `sobre` e `whatsappPublico` ao DTO público e a rota `/l/{apelido}/sobre`. Só publica o WhatsApp marcado explicitamente como público; telefone cadastral, e-mail, documentos e contatos privados continuam fora da allowlist. O conteúdo chega pronto do servidor e funciona sem JavaScript.
+- Arquivos: packages/database/migrations/0022_vitrine_publica_sobre.sql, packages/contracts/src/vitrine.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx, apps/web/src/features/loja/SobreDaLoja.tsx, apps/web/tests/sobre-da-loja.test.tsx, e2e/specs/sobre-da-loja.spec.ts
+- Notas: a implementação local já adiciona `sobre` e `whatsappPublico` ao DTO público e a rota `/l/{apelido}/sobre`. Só publica o WhatsApp marcado explicitamente como público; telefone cadastral, e-mail, documentos e contatos privados continuam fora da allowlist. O conteúdo chega pronto do servidor e funciona sem JavaScript. A prova Playwright formal permanece pendente por decisão de celeridade.
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 

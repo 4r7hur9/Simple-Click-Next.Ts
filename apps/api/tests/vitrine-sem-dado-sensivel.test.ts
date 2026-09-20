@@ -401,7 +401,11 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
           >`SELECT * FROM app.storefront_settings()`,
       );
 
-      expect(Object.keys(linhas[0] ?? {}).sort()).toEqual(["landing", "theme"]);
+      expect(Object.keys(linhas[0] ?? {}).sort()).toEqual([
+        "landing",
+        "theme",
+        "whatsapp",
+      ]);
     },
     ESPERA_LONGA,
   );
@@ -440,6 +444,8 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         // Vêm de `app.vertical_presets`, que é catálogo de PLATAFORMA: o mesmo
         // conjunto para toda loja do ramo, sem nada do dono desta.
         "rotulos",
+        "sobre",
+        "whatsappPublico",
       ]);
     },
     ESPERA_LONGA,

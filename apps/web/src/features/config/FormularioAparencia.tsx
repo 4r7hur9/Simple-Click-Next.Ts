@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface Aparencia {
   readonly boasVindas: string | null;
+  readonly sobre: string | null;
   readonly logo: string | null;
   readonly capa: string | null;
   readonly corPrimaria: string | null;
@@ -11,6 +12,7 @@ interface Aparencia {
 
 const VAZIA: Aparencia = {
   boasVindas: "",
+  sobre: "",
   logo: "",
   capa: "",
   corPrimaria: "",
@@ -87,6 +89,18 @@ export function FormularioAparencia() {
           onChange={(evento) => mudar("logo", evento.target.value)}
           placeholder="https://…"
         />
+      </label>
+      <label className="block">
+        <span className="font-medium">Sobre a loja</span>
+        <textarea
+          className="sc-campo mt-2 min-h-36 w-full"
+          value={formulario.sobre ?? ""}
+          onChange={(evento) => mudar("sobre", evento.target.value)}
+          maxLength={2_000}
+        />
+        <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
+          Conte a história do negócio para a página pública Sobre.
+        </span>
       </label>
       <label className="block">
         <span className="font-medium">URL da capa</span>

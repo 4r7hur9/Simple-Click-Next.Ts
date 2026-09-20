@@ -43,9 +43,11 @@ function loja(
     moeda: "BRL",
     formasDeEntrega: ["DELIVERY"],
     boasVindas: "Comida caseira todo dia",
+    sobre: null,
     logo: null,
     capa: null,
     cores: null,
+    whatsappPublico: null,
     enderecoParaRetirada: {
       logradouro: "Rua das Flores",
       numero: "10",

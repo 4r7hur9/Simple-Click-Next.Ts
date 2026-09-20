@@ -69,9 +69,13 @@ export interface LojaPublica {
   readonly formasDeEntrega: readonly string[];
   /** Nulo quando o dono não preencheu — a tela decide o que mostrar. */
   readonly boasVindas: string | null;
+  /** Texto institucional escrito pelo dono, quando publicado. */
+  readonly sobre: string | null;
   readonly logo: string | null;
   readonly capa: string | null;
   readonly cores: Readonly<Record<string, string>> | null;
+  /** Só existe quando o dono marcou explicitamente o número como público. */
+  readonly whatsappPublico: string | null;
   /** Endereço da loja, para quem vai retirar. Sem coordenadas nem documento. */
   readonly enderecoParaRetirada: EnderecoPublicoDaLoja | null;
 }
@@ -160,6 +164,7 @@ export interface LojaDoBanco {
 export interface ConfiguracaoDoBanco {
   readonly landing?: unknown;
   readonly theme?: unknown;
+  readonly whatsapp?: unknown;
 }
 
 function texto(valor: unknown): string | null {
@@ -224,6 +229,8 @@ export function lojaParaVitrine(
 ): LojaPublica {
   // (a montagem dos rótulos fica logo abaixo, em `rotulosDoRamo`)
   const landing = objeto(configuracao.landing);
+  const whatsapp = objeto(configuracao.whatsapp);
+  const publico = whatsapp.publico === true;
 
   return {
     apelido: loja.slug,
@@ -238,9 +245,11 @@ export function lojaParaVitrine(
     moeda: loja.currency,
     formasDeEntrega: [...loja.fulfillmentModes],
     boasVindas: texto(landing["boasVindas"]),
+    sobre: texto(landing["sobre"]),
     logo: texto(landing["logo"]),
     capa: texto(landing["capa"]),
     cores: coresPermitidas(configuracao.theme),
+    whatsappPublico: publico ? texto(whatsapp.numero) : null,
     enderecoParaRetirada: enderecoDeRetirada(loja),
   };
 }
