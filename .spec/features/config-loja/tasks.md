@@ -5,8 +5,8 @@
 ## T-900 — Configurações por seção, com gravação atômica e auditoria [pendente]
 
 - Refs: US-906, AC-921, AC-922, AC-923
-- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/(painel)/painel/config/layout.tsx
-- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato.
+- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/(painel)/painel/config/layout.tsx, apps/web/tests/painel-inicial.test.tsx
+- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato. O painel inicial já oferece atalhos apenas para os fluxos existentes; links de configuração só entram quando a persistência desta tarefa existir.
 - Esforço: alto
 
 ## T-901 — Chave PIX e formas de pagamento [pendente]

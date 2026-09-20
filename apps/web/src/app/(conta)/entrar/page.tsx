@@ -24,7 +24,7 @@ async function enviarLogin(entrada: {
   if (resposta.ok && corpo.autenticado === true) {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara: "/minha-conta/seguranca",
+      redirecionarPara: "/painel",
     };
   }
   return { status: "CREDENCIAIS_INVALIDAS" };

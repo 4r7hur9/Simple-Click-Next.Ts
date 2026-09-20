@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /**
@@ -10,5 +11,44 @@ import type { ReactNode } from "react";
 export default function LayoutDoPainel({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  return <main aria-label="Painel da loja">{children}</main>;
+  return (
+    <div className="min-h-screen bg-[var(--cor-papel)] text-[var(--cor-tinta)]">
+      <header className="border-b border-[var(--cor-borda)] bg-[var(--cor-superficie)]">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            href="/painel"
+            className="text-xl font-semibold tracking-[-0.04em]"
+          >
+            simpleclick
+          </Link>
+          <nav aria-label="Navegação do painel">
+            <ul className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link className="sc-botao sc-botao--fantasma" href="/painel">
+                  Visão geral
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
+                  href="/l/pastelaria-da-vila"
+                >
+                  Ver minha loja
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
+                  href="/minha-conta/seguranca"
+                >
+                  Segurança
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main aria-label="Painel da loja">{children}</main>
+    </div>
+  );
 }
