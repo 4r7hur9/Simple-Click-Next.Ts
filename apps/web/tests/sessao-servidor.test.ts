@@ -23,4 +23,19 @@ describe("sessão web", () => {
     expect(corpo).not.toContain("acesso-que-nao-pode-chegar-ao-script");
     expect(corpo).not.toContain("refresh-que-fica-no-cookie");
   });
+
+  it("mantém o cookie no host local quando o BFF roda em localhost", () => {
+    const resposta = responderSessaoDoNavegador(
+      {
+        tokenDeAcesso: "acesso-local",
+        tokenDeRenovacao: "refresh-local",
+        acessoExpiraEm: "2026-08-23T12:15:00.000Z",
+      },
+      { NODE_ENV: "development" },
+    );
+
+    const cookie = resposta.headers.get("set-cookie") ?? "";
+    expect(cookie).not.toContain("Domain=");
+    expect(cookie).toContain("sc_refresh=refresh-local");
+  });
 });

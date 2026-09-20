@@ -15,12 +15,18 @@ export const DOMINIO_PADRAO_DO_COOKIE_DE_SESSAO = "simpleclick.localhost";
 /** Domínio compartilhado, configurável sem expor nenhum segredo. */
 export function dominioDoCookieDeSessao(
   fonte: Readonly<Record<string, string | undefined>> = process.env,
-): string {
+): string | undefined {
   const declarado = fonte.NEXT_PUBLIC_SESSION_COOKIE_DOMAIN?.trim();
-  if (declarado === undefined || declarado === "") {
-    return DOMINIO_PADRAO_DO_COOKIE_DE_SESSAO;
+  if (declarado !== undefined && declarado !== "") {
+    return declarado.replace(/^\.+/, "");
   }
-  return declarado.replace(/^\.+/, "");
+
+  // Em localhost, o cookie precisa ser host-only: navegadores rejeitam ou
+  // ignoram de forma inconsistente Domain=simpleclick.localhost quando o
+  // site está sendo aberto em http://localhost:3000. O domínio compartilhado
+  // continua disponível para o ambiente TLS por configuração explícita.
+  if (fonte.NODE_ENV !== "production") return undefined;
+  return DOMINIO_PADRAO_DO_COOKIE_DE_SESSAO;
 }
 
 /** Serializa o cookie seguro do refresh para um cabeçalho Set-Cookie. */
@@ -28,15 +34,17 @@ export function serializarCookieDeRenovacao(
   tokenDeRenovacao: string,
   fonte: Readonly<Record<string, string | undefined>> = process.env,
 ): string {
-  return [
+  const dominio = dominioDoCookieDeSessao(fonte);
+  const atributos = [
     `${NOME_DO_COOKIE_DE_RENOVACAO}=${encodeURIComponent(tokenDeRenovacao)}`,
     `Max-Age=${DURACAO_DO_COOKIE_DE_RENOVACAO_EM_SEGUNDOS}`,
     "Path=/",
-    `Domain=${dominioDoCookieDeSessao(fonte)}`,
     "HttpOnly",
     "Secure",
     "SameSite=Lax",
-  ].join("; ");
+  ];
+  if (dominio !== undefined) atributos.splice(3, 0, `Domain=${dominio}`);
+  return atributos.join("; ");
 }
 
 /** Lê o refresh do cabeçalho que o navegador enviou ao servidor. */
