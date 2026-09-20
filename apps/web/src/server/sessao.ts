@@ -7,11 +7,11 @@
  * no corpo, conforme o contrato do caso de uso da API.
  */
 
-import { enderecoDaApi } from "./api-client";
+import { enderecoDaApi } from "./api-client.ts";
 import {
   adicionarCookieDeRenovacao,
   lerTokenDeRenovacaoDoCookie,
-} from "./session-cookie";
+} from "./session-cookie.ts";
 
 export const ACOES_DE_SESSAO = ["login", "renovar"] as const;
 
@@ -135,12 +135,17 @@ export async function responderAcaoDeSessao(
 
   let respostaDaApi: Response;
   try {
-    respostaDaApi = await buscar(`${enderecoDaApi()}${caminhoDaApi(acao)}`, {
+    const opcoes: RequestInit = {
       method: "POST",
       headers: cabecalhosParaApi(requisicao),
-      body: corpo,
       cache: "no-store",
-    });
+    };
+    if (corpo !== undefined) opcoes.body = corpo;
+
+    respostaDaApi = await buscar(
+      `${enderecoDaApi()}${caminhoDaApi(acao)}`,
+      opcoes,
+    );
   } catch {
     return respostaJson(503, { erro: "indisponivel" });
   }

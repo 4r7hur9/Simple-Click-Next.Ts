@@ -109,7 +109,9 @@ function lerCorpoJwt(valor: unknown): CorpoJwt {
     corpo.sid === "" ||
     typeof corpo.fid !== "string" ||
     corpo.fid === "" ||
+    typeof corpo.iat !== "number" ||
     !Number.isInteger(corpo.iat) ||
+    typeof corpo.exp !== "number" ||
     !Number.isInteger(corpo.exp) ||
     corpo.exp <= corpo.iat
   ) {

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   comoAdministracao,
@@ -55,7 +55,8 @@ describe("papéis e escopo de acesso", () => {
       nome: "Produto lido pela administração",
     });
     const repositorio = criarRepositorioDeAuditoria({
-      executar: (sql, valores) => comoAdministracao((tx) => tx.query(sql, valores)),
+      executar: (sql, valores) =>
+        comoAdministracao((tx) => tx.query(sql, [...valores])),
     });
 
     const resultado = await consultarDadosDaLojaComoAdministrador(

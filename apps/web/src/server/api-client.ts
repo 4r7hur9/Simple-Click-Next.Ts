@@ -13,7 +13,7 @@ import {
   CAMINHO_DA_IDENTIFICACAO,
   descreverIdentificacao,
   lerIdentificacao,
-} from "../lib/api-contrato";
+} from "../lib/api-contrato.ts";
 
 /**
  * Endereço da API quando o ambiente não diz outro.

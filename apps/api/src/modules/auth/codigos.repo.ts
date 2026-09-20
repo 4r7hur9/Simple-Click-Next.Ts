@@ -83,7 +83,8 @@ export class CodigosRepoEmMemoria implements CodigosRepo {
     );
     if (indice < 0) return { situacao: "invalido" };
 
-    const codigo = this.codigos[indice];
+    const codigo = this.codigos.at(indice);
+    if (codigo === undefined) return { situacao: "invalido" };
     if (codigo.expiraEm.getTime() <= agora.getTime())
       return { situacao: "expirado" };
 
@@ -123,10 +124,14 @@ export class CodigosRepoEmMemoria implements CodigosRepo {
       (envio) => envio.getTime() > inicioDaJanela,
     );
     this.reenvios.splice(0, this.reenvios.length, ...tentativasNaJanela);
-    if (tentativasNaJanela.length >= limite) {
+    const primeiraTentativa = tentativasNaJanela[0];
+    if (
+      primeiraTentativa !== undefined &&
+      tentativasNaJanela.length >= limite
+    ) {
       return {
         situacao: "limite_atingido",
-        disponivelEm: new Date(tentativasNaJanela[0].getTime() + janelaEmMs),
+        disponivelEm: new Date(primeiraTentativa.getTime() + janelaEmMs),
       };
     }
 

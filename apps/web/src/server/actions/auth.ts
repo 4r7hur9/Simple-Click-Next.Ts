@@ -55,11 +55,11 @@ async function pedirEncerramento(
 }
 
 /** Sai apenas deste navegador, revogando antes o token de renovação na API. */
-export async function sairDaConta(): Promise<ResultadoDaAcaoDeSessao> {
-  return pedirEncerramento("/v1/auth/sessoes/atual/encerrar");
+export async function sairDaConta(): Promise<void> {
+  await pedirEncerramento("/v1/auth/sessoes/atual/encerrar");
 }
 
 /** Sai de todos os navegadores e dispositivos conectados à conta. */
-export async function encerrarTodasAsSessoes(): Promise<ResultadoDaAcaoDeSessao> {
-  return pedirEncerramento("/v1/auth/sessoes/encerrar-todas");
+export async function encerrarTodasAsSessoes(): Promise<void> {
+  await pedirEncerramento("/v1/auth/sessoes/encerrar-todas");
 }
