@@ -262,6 +262,39 @@ export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
 }
 
 /**
+ * Mantém a loja semeada usada pelo cenário detalhado aberta durante o E2E.
+ * A semente representa horários reais, mas isso faria a prova depender do dia
+ * e da hora em que a suíte foi executada.
+ */
+export async function garantirPastelariaDeTesteAberta(): Promise<void> {
+  const cliente = conectar();
+  await cliente.connect();
+
+  try {
+    const loja = await cliente.query<{ id: string }>(
+      `SELECT id FROM app.stores WHERE slug = 'pastelaria-da-vila' AND deleted_at IS NULL`,
+    );
+    const lojaId = loja.rows[0]?.id;
+    if (lojaId === undefined) {
+      throw new Error("a loja pastelaria-da-vila não existe no banco de E2E");
+    }
+
+    await cliente.query(`DELETE FROM app.store_hours WHERE store_id = $1`, [
+      lojaId,
+    ]);
+    for (let dia = 0; dia <= 6; dia += 1) {
+      await cliente.query(
+        `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
+         VALUES ($1, $2, '00:00', '23:59')`,
+        [lojaId, dia],
+      );
+    }
+  } finally {
+    await cliente.end();
+  }
+}
+
+/**
  * Apaga os pedidos que os cenários criaram.
  *
  * O CARRINHO NÃO É APAGADO, e a loja também não: carrinho abandonado é rastro

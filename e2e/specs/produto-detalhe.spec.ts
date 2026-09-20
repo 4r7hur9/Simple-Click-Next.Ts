@@ -1,12 +1,21 @@
 import { expect, test } from "@playwright/test";
 
+import { garantirPastelariaDeTesteAberta } from "../fixtures/loja-de-teste.ts";
+
 const LOJA = "pastelaria-da-vila";
+
+test.beforeAll(async () => {
+  await garantirPastelariaDeTesteAberta();
+});
 
 test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async ({
   page,
 }) => {
   await page.goto(`/l/${LOJA}/catalogo`);
-  await page.getByRole("link", { name: /Pastel de Carne/ }).click();
+  await page
+    .getByRole("link", { name: /Pastel de Carne/ })
+    .first()
+    .click();
 
   await expect(
     page.getByRole("heading", { name: "Pastel de Carne" }),
@@ -31,7 +40,10 @@ test("@spec:AC-410 os grupos de escolha obrigatória aparecem sinalizados antes 
   page,
 }) => {
   await page.goto("/l/moda-boa-vista/catalogo");
-  await page.getByRole("link", { name: /Camiseta Básica/ }).click();
+  await page
+    .getByRole("link", { name: /Camiseta Básica/ })
+    .first()
+    .click();
 
   await expect(
     page.getByRole("group", { name: /Tamanho.*obrigatório/i }),

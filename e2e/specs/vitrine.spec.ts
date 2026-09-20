@@ -12,7 +12,7 @@ test("@spec:AC-404 a vitrine lista somente as categorias visíveis na ordem do d
     "Bebidas",
   ]);
   await expect(
-    page.getByRole("link", { name: /Pastel de Carne/ }),
+    page.getByRole("link", { name: /Pastel de Carne/ }).first(),
   ).toBeVisible();
   await expect(page.getByText("Pastel do Chef")).toHaveCount(0);
 });

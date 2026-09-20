@@ -96,7 +96,13 @@ export function MatrizDeVariacao({
           <fieldset className="sc-produto__grupo" key={eixo.id}>
             <legend className="sc-produto__grupo-nome">
               {eixo.nome}
-              <span className="sc-produto__grupo-regra">{eixo.regra}</span>
+              <span
+                className={`sc-produto__grupo-regra${
+                  eixo.obrigatorio ? " sc-produto__grupo-regra--exigida" : ""
+                }`}
+              >
+                {eixo.obrigatorio ? `${eixo.regra} · obrigatório` : eixo.regra}
+              </span>
             </legend>
             <div className="sc-produto__escolhas">
               {eixo.opcoes.map((opcao) => {

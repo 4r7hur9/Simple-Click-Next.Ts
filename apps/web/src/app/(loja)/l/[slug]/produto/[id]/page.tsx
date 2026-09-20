@@ -73,8 +73,6 @@ export async function generateMetadata({
   const { loja } = vitrine.vitrine;
   const item = produto.produto;
   const comPreco = resumoParaCompartilhar(item, loja.nome);
-  const capa = item.imagens[0];
-
   const canonico = enderecoDoProduto(loja.apelido, id);
 
   return {
@@ -91,7 +89,6 @@ export async function generateMetadata({
       siteName: loja.nome,
       locale: "pt_BR",
       type: "website",
-      ...(capa ? { images: [{ url: capa.url }] } : {}),
     },
     twitter: {
       card: "summary_large_image",
