@@ -54,31 +54,46 @@ export function LoginForm({
   }
 
   return (
-    <form onSubmit={(evento) => void enviar(evento)} noValidate>
-      <Campo
-        id="entrar-email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        rotulo="E-mail"
-        obrigatorio
-        value={email}
-        onChange={(evento) => setEmail(evento.target.value)}
-        desabilitado={enviando}
-      />
-      <Campo
-        id="entrar-senha"
-        name="senha"
-        type="password"
-        autoComplete="current-password"
-        rotulo="Senha"
-        obrigatorio
-        value={senha}
-        onChange={(evento) => setSenha(evento.target.value)}
-        desabilitado={enviando}
-      />
+    <form
+      className="sc-conta__form"
+      onSubmit={(evento) => void enviar(evento)}
+      noValidate
+    >
+      <div className="sc-conta__campos">
+        <Campo
+          id="entrar-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          rotulo="E-mail"
+          obrigatorio
+          value={email}
+          onChange={(evento) => setEmail(evento.target.value)}
+          desabilitado={enviando}
+        />
+        <Campo
+          id="entrar-senha"
+          name="senha"
+          type="password"
+          autoComplete="current-password"
+          rotulo="Senha"
+          obrigatorio
+          value={senha}
+          onChange={(evento) => setSenha(evento.target.value)}
+          desabilitado={enviando}
+        />
+      </div>
+      <div className="sc-conta__linha-de-apoio">
+        <span>Área protegida</span>
+        <a href="/recuperar-senha">Esqueci minha senha</a>
+      </div>
       {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
-      <Botao type="submit" carregando={enviando} rotuloDeEspera="Entrando…">
+      <Botao
+        className="sc-conta__botao"
+        type="submit"
+        carregando={enviando}
+        rotuloDeEspera="Entrando…"
+      >
         Entrar
       </Botao>
     </form>

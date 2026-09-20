@@ -1,0 +1,333 @@
+/*
+ * Telas de acesso do SimpleClick.
+ *
+ * A composição toma como referência o login-18: uma área de promessa visual
+ * e uma área de ação com um cartão único. A forma foi adaptada ao nosso tema,
+ * aos componentes acessíveis e ao conteúdo de autenticação que já existe.
+ */
+
+.sc-conta {
+  display: grid;
+  min-block-size: 100dvh;
+  place-items: center;
+  padding: var(--espaco-5);
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      color-mix(in oklab, var(--cor-primaria-suave) 70%, transparent),
+      transparent 30rem
+    ),
+    var(--cor-fundo);
+}
+
+.sc-conta__cartao {
+  display: grid;
+  inline-size: min(100%, 68rem);
+  min-block-size: min(40rem, calc(100dvh - 3rem));
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-conta__hero {
+  position: relative;
+  display: flex;
+  min-block-size: 20rem;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(var(--espaco-5), 5vw, var(--espaco-7));
+  isolation: isolate;
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+}
+
+.sc-conta__hero::before,
+.sc-conta__hero::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  border-radius: var(--raio-completo);
+  content: "";
+  pointer-events: none;
+}
+
+.sc-conta__hero::before {
+  inline-size: 22rem;
+  block-size: 22rem;
+  inset-block-start: -9rem;
+  inset-inline-end: -8rem;
+  background: color-mix(in oklab, var(--marca-verde-click) 28%, transparent);
+  filter: blur(1px);
+  opacity: 0.8;
+}
+
+.sc-conta__hero::after {
+  inline-size: 18rem;
+  block-size: 18rem;
+  inset-block-end: -10rem;
+  inset-inline-start: -7rem;
+  background: color-mix(in oklab, var(--marca-verde-digital) 22%, transparent);
+}
+
+.sc-conta__decoracao {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc-conta__bolha {
+  position: absolute;
+  display: block;
+  border: 1px solid color-mix(in oklab, var(--marca-branco) 24%, transparent);
+  border-radius: 38% 62% 58% 42%;
+  transform: rotate(26deg);
+}
+
+.sc-conta__bolha--um {
+  inline-size: 9rem;
+  block-size: 9rem;
+  inset-block-start: 18%;
+  inset-inline-end: 13%;
+}
+
+.sc-conta__bolha--dois {
+  inline-size: 4rem;
+  block-size: 4rem;
+  inset-block-start: 38%;
+  inset-inline-end: 5%;
+  border-radius: 50%;
+}
+
+.sc-conta__bolha--tres {
+  inline-size: 5.5rem;
+  block-size: 5.5rem;
+  inset-block-end: 16%;
+  inset-inline-start: 18%;
+  border-radius: 62% 38% 40% 60%;
+}
+
+.sc-conta__brilho {
+  position: absolute;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  inset-block-start: 30%;
+  inset-inline-end: 25%;
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  box-shadow:
+    0 0 0 0.6rem color-mix(in oklab, var(--marca-verde-click) 14%, transparent),
+    0 0 2rem var(--marca-verde-click);
+}
+
+.sc-conta__marca {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--espaco-2);
+  color: var(--marca-branco);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.sc-conta__marca-simbolo {
+  display: grid;
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  font-size: var(--texto-base);
+  line-height: 1;
+}
+
+.sc-conta__hero-conteudo {
+  display: grid;
+  max-inline-size: 30rem;
+  gap: var(--espaco-3);
+  margin-block: var(--espaco-7);
+}
+
+.sc-conta__hero-etiqueta,
+.sc-conta__etiqueta {
+  margin: 0;
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sc-conta__hero-etiqueta {
+  color: var(--marca-verde-click);
+}
+
+.sc-conta__hero h1 {
+  max-inline-size: 12ch;
+  color: var(--marca-branco);
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.02;
+}
+
+.sc-conta__hero-conteudo > p:not(.sc-conta__hero-etiqueta) {
+  max-inline-size: 32rem;
+  color: color-mix(in oklab, var(--marca-branco) 76%, transparent);
+  font-size: var(--texto-lg);
+}
+
+.sc-conta__beneficios {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: var(--espaco-3) 0 0;
+  padding: 0;
+  list-style: none;
+  color: color-mix(in oklab, var(--marca-branco) 88%, transparent);
+  font-size: var(--texto-sm);
+}
+
+.sc-conta__beneficios li {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.sc-conta__beneficios li::before {
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  content: "";
+}
+
+.sc-conta__hero-rodape {
+  color: color-mix(in oklab, var(--marca-branco) 56%, transparent);
+  font-size: var(--texto-xs);
+}
+
+.sc-conta__formulario {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(var(--espaco-5), 6vw, var(--espaco-8));
+}
+
+.sc-conta__cabecalho {
+  display: grid;
+  gap: var(--espaco-2);
+  margin-block-end: var(--espaco-6);
+}
+
+.sc-conta__cabecalho h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.sc-conta__cabecalho > p:last-child {
+  max-inline-size: 31rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-conta__form {
+  display: grid;
+  gap: var(--espaco-4);
+  inline-size: 100%;
+}
+
+.sc-conta__campos {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-conta__linha-de-apoio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-conta__linha-de-apoio a {
+  font-size: var(--texto-sm);
+}
+
+.sc-conta__botao {
+  inline-size: 100%;
+  min-block-size: 3.25rem;
+  border-radius: var(--raio-2);
+  font-size: var(--texto-base);
+}
+
+.sc-conta__rodape-formulario {
+  margin-block-start: var(--espaco-6);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  text-align: center;
+}
+
+@media (min-width: 700px) {
+  .sc-conta__cartao {
+    grid-template-columns: minmax(18rem, 0.92fr) minmax(22rem, 1.08fr);
+  }
+
+  .sc-conta__hero {
+    min-block-size: 100%;
+  }
+}
+
+@media (max-width: 699px) {
+  .sc-conta {
+    align-items: start;
+    padding: var(--espaco-2);
+  }
+
+  .sc-conta__cartao {
+    min-block-size: auto;
+  }
+
+  .sc-conta__hero {
+    min-block-size: 15rem;
+    padding: var(--espaco-5);
+  }
+
+  .sc-conta__hero-conteudo {
+    margin-block: var(--espaco-6) var(--espaco-4);
+  }
+
+  .sc-conta__hero h1 {
+    max-inline-size: 16ch;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .sc-conta__beneficios {
+    display: none;
+  }
+
+  .sc-conta__formulario {
+    padding: var(--espaco-6) var(--espaco-5) var(--espaco-7);
+  }
+}
+
+@media (max-width: 380px) {
+  .sc-conta__linha-de-apoio {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-conta__hero::before,
+  .sc-conta__hero::after,
+  .sc-conta__bolha {
+    transform: none;
+  }
+}

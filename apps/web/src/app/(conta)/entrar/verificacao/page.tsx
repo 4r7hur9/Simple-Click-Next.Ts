@@ -7,6 +7,7 @@ import {
   CodigoForm,
   type RespostaDoCodigoNaTela,
 } from "../../../../features/auth/CodigoForm.tsx";
+import { CascaDaConta } from "../../../../features/auth/CascaDaConta.tsx";
 
 async function confirmarCodigo(
   desafioId: string,
@@ -35,15 +36,18 @@ function ConteudoDaVerificacao() {
   }
 
   return (
-    <main>
-      <h1>Confirme seu acesso</h1>
-      <p>Informe o código de seis dígitos que enviamos ao seu e-mail.</p>
+    <CascaDaConta
+      identificadorDoTitulo="verificacao-titulo"
+      titulo="Confirme seu acesso."
+      descricao="Informe o código de seis dígitos que enviamos ao seu e-mail."
+      etiqueta="Última etapa"
+    >
       <CodigoForm
         aoConfirmar={(codigo) => confirmarCodigo(desafioId, codigo)}
         aoCriarSessao={(destino) => roteador.replace(destino)}
         aoRecomecarLogin={() => roteador.replace("/entrar")}
       />
-    </main>
+    </CascaDaConta>
   );
 }
 

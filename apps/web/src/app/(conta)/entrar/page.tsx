@@ -6,6 +6,7 @@ import {
   LoginForm,
   type RespostaDoLoginNaTela,
 } from "../../../features/auth/LoginForm.tsx";
+import { CascaDaConta } from "../../../features/auth/CascaDaConta.tsx";
 
 async function enviarLogin(entrada: {
   readonly email: string;
@@ -24,9 +25,11 @@ export default function PaginaDeEntrar() {
   const roteador = useRouter();
 
   return (
-    <main>
-      <h1>Entrar</h1>
-      <p>Use seu e-mail e sua senha para acessar sua conta.</p>
+    <CascaDaConta
+      identificadorDoTitulo="entrar-titulo"
+      titulo="Bom ter você de volta."
+      descricao="Use seu e-mail e sua senha para acessar sua conta."
+    >
       <LoginForm
         aoEntrar={enviarLogin}
         aoPedirSegundoFator={(desafioId) =>
@@ -36,6 +39,9 @@ export default function PaginaDeEntrar() {
         }
         aoCriarSessao={(destino) => roteador.replace(destino)}
       />
-    </main>
+      <p className="sc-conta__rodape-formulario">
+        Primeiro acesso? Use o convite recebido para configurar sua conta.
+      </p>
+    </CascaDaConta>
   );
 }

@@ -61,20 +61,28 @@ export function CodigoForm({
   }
 
   return (
-    <form onSubmit={(evento) => void enviar(evento)} noValidate>
-      <Campo
-        id="segundo-fator-codigo"
-        name="codigo"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        rotulo="Código de seis dígitos"
-        dica="Enviamos o código para seu e-mail."
-        obrigatorio
-        value={codigo}
-        onChange={(evento) => setCodigo(evento.target.value.replace(/\D/g, ""))}
-        desabilitado={enviando}
-      />
+    <form
+      className="sc-conta__form"
+      onSubmit={(evento) => void enviar(evento)}
+      noValidate
+    >
+      <div className="sc-conta__campos">
+        <Campo
+          id="segundo-fator-codigo"
+          name="codigo"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          rotulo="Código de seis dígitos"
+          dica="Enviamos o código para seu e-mail."
+          obrigatorio
+          value={codigo}
+          onChange={(evento) =>
+            setCodigo(evento.target.value.replace(/\D/g, ""))
+          }
+          desabilitado={enviando}
+        />
+      </div>
       {erro ? (
         <Aviso
           tom="erro"
@@ -89,7 +97,12 @@ export function CodigoForm({
           {erro}
         </Aviso>
       ) : null}
-      <Botao type="submit" carregando={enviando} rotuloDeEspera="Confirmando…">
+      <Botao
+        className="sc-conta__botao"
+        type="submit"
+        carregando={enviando}
+        rotuloDeEspera="Confirmando…"
+      >
         Confirmar código
       </Botao>
     </form>

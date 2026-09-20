@@ -9,6 +9,7 @@
  */
 
 @import "@simpleclick/ui/styles/theme.css";
+@import "@simpleclick/ui/styles/conta.css";
 
 /*
  * API CSS-first do Tailwind 4. Os nomes abaixo não repetem valor algum: cada
