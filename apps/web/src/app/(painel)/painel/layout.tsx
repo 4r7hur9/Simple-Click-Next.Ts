@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AvisosPendentes } from "../../../features/config/AvisosPendentes.tsx";
+
 /**
  * Casca sem dados do painel da loja.
  *
@@ -56,7 +58,10 @@ export default function LayoutDoPainel({
           </nav>
         </div>
       </header>
-      <main aria-label="Painel da loja">{children}</main>
+      <main aria-label="Painel da loja">
+        <AvisosPendentes />
+        {children}
+      </main>
     </div>
   );
 }

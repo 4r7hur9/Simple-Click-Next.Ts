@@ -411,6 +411,85 @@ export function criarRotasDasConfiguracoes(
   );
 
   rotas.get(
+    "/:apelido/configuracao/pendencias",
+    async (requisicao, resposta, proximo) => {
+      try {
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const estado = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const [configuracao, horarios] = await Promise.all([
+                    tx.storeSettings.findUnique({
+                      where: { storeId: lojaId },
+                      select: { payment: true, whatsapp: true },
+                    }),
+                    tx.storeHour.count({
+                      where: { storeId: lojaId, isClosed: false },
+                    }),
+                  ]);
+                  return { configuracao, horarios };
+                }),
+            );
+            const pagamento = objeto(estado.configuracao?.payment);
+            const whatsapp = objeto(estado.configuracao?.whatsapp);
+            const formas = Array.isArray(pagamento.formas)
+              ? pagamento.formas.filter(
+                  (forma): forma is string =>
+                    typeof forma === "string" &&
+                    FORMAS_DE_PAGAMENTO.includes(
+                      forma as (typeof FORMAS_DE_PAGAMENTO)[number],
+                    ),
+                )
+              : [];
+            const pendencias = [
+              ...(formas.length === 0
+                ? [
+                    {
+                      codigo: "PAGAMENTO",
+                      titulo: "Configure uma forma de pagamento",
+                      descricao:
+                        "O checkout precisa de pelo menos uma forma para receber pedidos.",
+                      href: "/painel/config/pagamento",
+                    },
+                  ]
+                : []),
+              ...(texto(whatsapp.numero) === null
+                ? [
+                    {
+                      codigo: "WHATSAPP",
+                      titulo: "Adicione seu WhatsApp",
+                      descricao:
+                        "Sem ele, o pedido ainda é registrado, mas não abre uma conversa para você.",
+                      href: "/painel/config/contato",
+                    },
+                  ]
+                : []),
+              ...(estado.horarios === 0
+                ? [
+                    {
+                      codigo: "HORARIO",
+                      titulo: "Defina o horário de funcionamento",
+                      descricao:
+                        "A vitrine precisa saber quando sua loja recebe pedidos.",
+                      href: null,
+                    },
+                  ]
+                : []),
+            ];
+            resposta.json({ pendencias });
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.get(
     "/:apelido/configuracao/contato",
     async (requisicao, resposta, proximo) => {
       try {

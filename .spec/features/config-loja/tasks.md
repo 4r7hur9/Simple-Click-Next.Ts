@@ -54,8 +54,8 @@
 ## T-907 — Avisos de configuração pendente no painel [pendente]
 
 - Refs: US-903, AC-902, AC-914
-- Arquivos: apps/api/src/modules/stores/pendencias.usecase.ts, apps/api/src/modules/stores/pendencias.usecase.test.ts, apps/web/src/features/config/AvisosPendentes.tsx
-- Notas: loja sem forma de pagamento, sem WhatsApp ou sem horário recebe aviso destacado antes de o cliente descobrir o problema no checkout.
+- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/features/config/AvisosPendentes.tsx, apps/web/src/app/(painel)/painel/layout.tsx
+- Notas: a primeira fatia funcional local consulta pagamento, WhatsApp e horário e mostra aviso destacado no painel, com atalho para as telas disponíveis. A implementação formal do caso de uso, testes anotados e tela de edição de horários continuam pendentes.
 - Esforço: baixo
 
 ## T-908 — Teste de ponta a ponta das configurações [pendente]

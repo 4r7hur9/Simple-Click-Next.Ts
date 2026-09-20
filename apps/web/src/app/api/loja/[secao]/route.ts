@@ -3,7 +3,13 @@ import { revalidatePath } from "next/cache";
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
 
-const SECOES = new Set(["aparencia", "contato", "pagamento", "entrega"]);
+const SECOES = new Set([
+  "aparencia",
+  "contato",
+  "pagamento",
+  "entrega",
+  "pendencias",
+]);
 const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
   process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
 
