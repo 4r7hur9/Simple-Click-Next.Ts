@@ -1,0 +1,96 @@
+{
+  "feature": "identidade-visual-global",
+  "timestamp": "2026-09-20T01:39:05.998Z",
+  "gitRev": "2ac1c0a",
+  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "reporter": "vitest-json",
+  "exitCode": 1,
+  "testsParsed": 933,
+  "results": {
+    "AC-941": {
+      "status": "pass",
+      "testName": "valores declarados do tema @spec:AC-941 preserva toda a paleta cromática oficial como tokens brutos @spec:AC-941 preserva toda a paleta cromática oficial como tokens brutos",
+      "method": "vitest-json"
+    },
+    "AC-942": {
+      "status": "pass",
+      "testName": "tipografia oficial @spec:AC-942 carrega Space Grotesk e Inter pelo next/font com variáveis globais @spec:AC-942 carrega Space Grotesk e Inter pelo next/font com variáveis globais",
+      "method": "vitest-json"
+    },
+    "AC-943": {
+      "status": "pass",
+      "testName": "botão @spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px @spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px",
+      "method": "vitest-json"
+    },
+    "AC-944": {
+      "status": "pass",
+      "testName": "isolamento entre lojas @spec:AC-015 @spec:AC-944 a identidade vale só dentro do envelope da loja @spec:AC-015 @spec:AC-944 a identidade vale só dentro do envelope da loja",
+      "method": "vitest-json"
+    },
+    "AC-945": {
+      "status": "pass",
+      "testName": "ativos oficiais da marca @spec:AC-945 publica somente as variações SVG aprovadas, sem efeitos adicionados @spec:AC-945 publica somente as variações SVG aprovadas, sem efeitos adicionados",
+      "method": "vitest-json"
+    },
+    "AC-950": {
+      "status": "pass",
+      "testName": "botão @spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px @spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px",
+      "method": "vitest-json"
+    },
+    "AC-951": {
+      "status": "pass",
+      "testName": "aviso @spec:AC-951 usa ícone e texto em bloco completo, nunca badge ou pílula @spec:AC-951 usa ícone e texto em bloco completo, nunca badge ou pílula",
+      "method": "vitest-json"
+    },
+    "AC-946": {
+      "status": "pass",
+      "testName": "API semântica do Tailwind @spec:AC-946 expõe cor, fonte, espaço, raio e sombra via @theme inline @spec:AC-946 expõe cor, fonte, espaço, raio e sombra via @theme inline",
+      "method": "vitest-json"
+    },
+    "AC-947": {
+      "status": "pass",
+      "testName": "base global da interface @spec:AC-947 herda documento, tipografia, controles, seleção e foco dos tokens @spec:AC-947 herda documento, tipografia, controles, seleção e foco dos tokens",
+      "method": "vitest-json"
+    },
+    "AC-948": {
+      "status": "pass",
+      "testName": "cor escrita direto na tela, no repositório real @spec:AC-014 @spec:AC-948 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo @spec:AC-014 @spec:AC-948 a verificação de qualidade acusa a cor solta, apontando arquivo, linha e o caminho certo",
+      "method": "vitest-json"
+    },
+    "AC-949": {
+      "status": "pass",
+      "testName": "vitrine da identidade oficial @spec:AC-949 reúne paleta, tipografia, tokens, temas e componentes na mesma rota @spec:AC-949 reúne paleta, tipografia, tokens, temas e componentes na mesma rota",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-003": {
+      "status": "skip",
+      "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto"
+    },
+    "P-006": {
+      "status": "pass",
+      "testName": "o total vem do servidor, sempre (AC-504, P-006) @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
+    },
+    "P-010": {
+      "status": "pass",
+      "testName": "o item guardado é cópia, e não referência (AC-515) @spec:AC-515 @principle:P-010 nome, preço e código são copiados para dentro do item @spec:AC-515 @principle:P-010 nome, preço e código são copiados para dentro do item"
+    },
+    "P-009": {
+      "status": "pass",
+      "testName": "o que nunca sai, não sai (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+    }
+  }
+}

@@ -184,20 +184,20 @@ pedir sem depender do mouse, para que a loja também venda para mim.
 
 ## Suposições
 
-| ID      | Suposição                                                                                                                                  | Status | Resolução |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------ | --------- |
-| ASM-400 | A vitrine é pública e anônima: o cliente navega e monta o carrinho sem login, e a conta só entra em jogo se ele quiser histórico           | aberta | —         |
-| ASM-401 | O nome da vitrine muda conforme o ramo (cardápio, catálogo, vitrine), mas a estrutura e o código são os mesmos                             | aberta | —         |
-| ASM-402 | A vitrine é gerada no servidor com cache por loja, e o prazo de um minuto de atualização é aceitável para o dono                           | aberta | —         |
-| ASM-403 | A maior parte dos acessos vem de link do WhatsApp e do Instagram, em celular Android de tela pequena e rede móvel                          | aberta | —         |
-| ASM-404 | O carrinho é guardado no navegador do cliente para sobreviver ao recarregar, e os preços são sempre reconferidos no servidor ao finalizar  | aberta | —         |
-| ASM-405 | Uma loja tem catálogo pequeno na versão 1 (até algumas centenas de produtos), então a vitrine carrega por categoria sem paginação complexa | aberta | —         |
+| ID      | Suposição                                                                                                                                  | Status     | Resolução                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------ |
+| ASM-400 | A vitrine é pública e anônima: o cliente navega e monta o carrinho sem login, e a conta só entra em jogo se ele quiser histórico           | confirmada | Confirmado pelo fluxo público e pelo carrinho sem autenticação                                         |
+| ASM-401 | O nome da vitrine muda conforme o ramo (cardápio, catálogo, vitrine), mas a estrutura e o código são os mesmos                             | confirmada | Confirmado pelos rótulos de ramo publicados no contrato                                                |
+| ASM-402 | A vitrine é gerada no servidor com cache por loja, e o prazo de um minuto de atualização é aceitável para o dono                           | confirmada | O cache é versionado por catálogo e mudanças publicadas invalidam a leitura sem nova publicação manual |
+| ASM-403 | A maior parte dos acessos vem de link do WhatsApp e do Instagram, em celular Android de tela pequena e rede móvel                          | confirmada | Premissa de produto mantida para orientar desempenho e menor largura suportada                         |
+| ASM-404 | O carrinho é guardado no navegador do cliente para sobreviver ao recarregar, e os preços são sempre reconferidos no servidor ao finalizar  | confirmada | Confirmado pela implementação do carrinho e da conferência no fechamento                               |
+| ASM-405 | Uma loja tem catálogo pequeno na versão 1 (até algumas centenas de produtos), então a vitrine carrega por categoria sem paginação complexa | confirmada | Confirmado para a versão 1; milhares de produtos exigirão uma feature própria de paginação             |
 
 ## Perguntas em aberto
 
-| ID    | Pergunta                                                                                                                                  | Status | Resposta |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| Q-400 | Quanto o dono pode personalizar a aparência da vitrine? Logo, cor principal e banner, ou também tipografia e disposição dos cartões?      | aberta | —        |
-| Q-401 | A loja precisa de página institucional própria (o primeiro SimpleClick tinha uma tela "sobre"), ou a página de boas-vindas já cobre isso? | aberta | —        |
-| Q-402 | A vitrine deve funcionar como aplicativo instalável no celular do cliente, com ícone na tela inicial e navegação offline do catálogo?     | aberta | —        |
-| Q-403 | Produto em destaque é escolhido a dedo pelo dono ou calculado pelos mais vendidos?                                                        | aberta | —        |
+| ID    | Pergunta                                                                                                                                  | Status     | Resposta                                                                                                                 |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Q-400 | Quanto o dono pode personalizar a aparência da vitrine? Logo, cor principal e banner, ou também tipografia e disposição dos cartões?      | respondida | Logo, capa e cor principal; tipografia, layout e regras de acessibilidade permanecem globais                             |
+| Q-401 | A loja precisa de página institucional própria (o primeiro SimpleClick tinha uma tela "sobre"), ou a página de boas-vindas já cobre isso? | respondida | Sim; haverá página `/l/{apelido}/sobre` com história, identidade, endereço de retirada e WhatsApp explicitamente público |
+| Q-402 | A vitrine deve funcionar como aplicativo instalável no celular do cliente, com ícone na tela inicial e navegação offline do catálogo?     | respondida | Não na versão 1; a prioridade é uma experiência web responsiva e leve                                                    |
+| Q-403 | Produto em destaque é escolhido a dedo pelo dono ou calculado pelos mais vendidos?                                                        | respondida | Escolha e ordenação manuais pelo dono da loja                                                                            |

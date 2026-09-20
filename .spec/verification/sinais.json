@@ -7272,6 +7272,15 @@
       "primeiraVez": "2026-09-19T22:18:06.273Z",
       "ultimaVez": "2026-09-19T22:18:06.273Z",
       "gitRev": "080dfc4"
+    },
+    "VERIFY_FALHOU::identidade-visual-global::P-003": {
+      "codigo": "VERIFY_FALHOU",
+      "feature": "identidade-visual-global",
+      "ref": "P-003",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T01:39:06.117Z",
+      "ultimaVez": "2026-09-20T01:39:06.117Z",
+      "gitRev": "2ac1c0a"
     }
   }
 }

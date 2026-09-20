@@ -35,4 +35,5 @@
 - Refs: US-910, AC-934, AC-938
 - Arquivos: e2e/specs/landing.spec.ts
 - Notas: cobre a página com script desligado e a régua de 344px de largura.
+- Modelo: gpt-5.6-luna
 - Esforço: medio

@@ -87,16 +87,19 @@ faz por mim, para que eu decida se vale meu tempo antes de me cadastrar.
 
 - **ASM-033** — A landing mora na raiz do site (`/`), e a vitrine de cada loja
   continua em `/l/{apelido}`. Domínio próprio de marketing entra depois.
-  _status: aberta_
+  _status: confirmada_ — corresponde às rotas implementadas e permanece a
+  topologia oficial da versão 1.
 - **ASM-034** — O caminho para começar leva ao cadastro do dono, que ainda não
   existe: até ele existir, o botão aponta para a página de entrada.
-  _status: aberta_
+  _status: confirmada_ — o destino provisório é `/entrar` até o fluxo de
+  cadastro do dono estar disponível.
 
 ## Perguntas em aberto
 
 - **Q-037** — O mundo em três dimensões mostra a loja tomando forma, ou o pedido
   atravessando do celular do cliente até a cozinha? A primeira explica o produto;
-  a segunda explica o benefício. _status: aberta_
+  a segunda explica o benefício. _status: respondida_ — mantém as curvas de
+  receita já implementadas, com uma série crescente para cada ramo atendido.
 - **Q-038** — A landing fala de preço? A versão 1 é inteiramente gratuita, e
   dizer isso converte — mas também cria expectativa quando os planos chegarem.
   _status: respondida_ — **fala, e com um capítulo próprio.** O produto é

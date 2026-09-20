@@ -96,6 +96,7 @@
 - Refs: US-404, AC-415, AC-416
 - Arquivos: apps/web/next.config.ts, apps/web/src/lib/imagem.ts, e2e/specs/desempenho-vitrine.spec.ts
 - Notas: conteúdo do catálogo chega pronto do servidor e a página não depende de script para mostrar produto. Espaço da imagem reservado para a página não pular.
+- Modelo: gpt-5.6-luna
 - Esforço: alto
 
 ## T-408 — Acessibilidade e uso por teclado [pendente]
@@ -103,6 +104,7 @@
 - Refs: US-405, AC-418, AC-419, AC-420
 - Arquivos: e2e/specs/a11y-vitrine.spec.ts, e2e/specs/teclado-vitrine.spec.ts, packages/ui/src/foco.ts
 - Notas: ordem lógica de foco, foco visível, e o modal do carrinho devolve o foco ao fechar. Nenhuma violação crítica ou séria. Sem rolagem horizontal na menor largura. Marcado com @principle:P-012.
+- Modelo: gpt-5.6-luna
 - Esforço: medio
 
 ## T-409 — Teste de ponta a ponta da vitrine [pendente]
@@ -110,4 +112,5 @@
 - Refs: US-401, US-403, AC-404, AC-410
 - Arquivos: e2e/specs/vitrine.spec.ts, e2e/specs/produto-detalhe.spec.ts
 - Notas: cobre navegação por categoria, busca, abertura de produto e bloqueio de escolha obrigatória.
+- Modelo: gpt-5.6-luna
 - Esforço: medio
