@@ -20,7 +20,7 @@
 
 - Refs: US-301, AC-304, AC-307, AC-308
 - Arquivos: apps/api/src/modules/catalog/produtos.usecase.ts, apps/api/src/modules/catalog/produtos.usecase.test.ts, apps/web/src/app/(painel)/painel/produtos/page.tsx, apps/web/src/app/(painel)/painel/produtos/[id]/page.tsx, apps/web/src/features/painel-catalogo/FormularioProduto.tsx
-- Notas: rascunho não aparece na vitrine nem por endereço direto. Remover não afeta pedido que já incluiu o produto.
+- Notas: primeira fatia funcional local com cadastro, edição, publicação, rascunho, duplicata e remoção lógica pela área autenticada. Rascunho não aparece na vitrine nem por endereço direto; imagens, preços por vigência, opções, estoque, testes anotados e auditoria formal continuam nas tarefas seguintes.
 - Esforço: alto
 
 ## T-303 — Imagens do produto com principal e conferência de conteúdo [pendente]

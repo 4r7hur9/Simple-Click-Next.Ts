@@ -62,6 +62,14 @@ export default function LayoutDoPainel({
                   Categorias
                 </Link>
               </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
+                  href="/painel/produtos"
+                >
+                  Produtos
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

@@ -282,6 +282,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-307, AC-308, AC-321, AC-336",
+    arquivo: "apps/web/src/app/(painel)/painel/produtos/page.tsx",
   },
   {
     rota: "/painel/produtos/novo",
@@ -290,6 +291,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     quatroEstados: true,
     criterios:
       "AC-304..AC-306, AC-309..AC-312, AC-318, AC-319, AC-322, AC-324, AC-326, AC-327",
+    arquivo: "apps/web/src/app/(painel)/painel/produtos/novo/page.tsx",
   },
   {
     rota: "/painel/produtos/{id}",
@@ -298,6 +300,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     quatroEstados: true,
     criterios:
       "AC-304..AC-306, AC-309..AC-312, AC-318, AC-319, AC-322, AC-324, AC-326, AC-327",
+    arquivo: "apps/web/src/app/(painel)/painel/produtos/[id]/page.tsx",
   },
   {
     rota: "/painel/produtos/{id}/opcoes",

@@ -42,6 +42,12 @@ const atalhos = [
     href: "/painel/categorias",
     acao: "Gerenciar categorias",
   },
+  {
+    titulo: "Cadastrar produtos",
+    descricao: "Crie, publique, duplique ou retire itens da vitrine.",
+    href: "/painel/produtos",
+    acao: "Gerenciar produtos",
+  },
 ] as const;
 
 /**
