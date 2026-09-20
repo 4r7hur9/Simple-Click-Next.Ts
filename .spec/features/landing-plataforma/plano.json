@@ -1,0 +1,29 @@
+{
+  "runId": "Simple-Click-Next.Ts-landing-plataforma-mu95h83o",
+  "feature": "landing-plataforma",
+  "agent": "codex",
+  "modo": "sequencial",
+  "paralelizar": null,
+  "modeloForcado": null,
+  "esforcoForcado": null,
+  "geradoEm": "2026-09-20 01:41",
+  "branchTrabalho": "spec/landing-plataforma",
+  "baseDir": ".spec/features/landing-plataforma",
+  "specDir": ".spec",
+  "repoName": "Simple-Click-Next.Ts",
+  "logsDir": "../onp-worktrees/Simple-Click-Next.Ts-landing-plataforma-logs",
+  "ondas": [],
+  "faixas": [],
+  "sequenciais": [
+    {
+      "id": "T-963",
+      "titulo": "Teste de ponta a ponta da landing",
+      "modelo": "gpt-5.6-luna",
+      "esforco": "medium",
+      "arquivos": ["e2e/specs/landing.spec.ts"],
+      "refs": ["US-910", "AC-934", "AC-938"]
+    }
+  ],
+  "concluidas": ["T-960", "T-961", "T-962", "T-964"],
+  "avisos": []
+}

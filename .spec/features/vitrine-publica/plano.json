@@ -1,0 +1,56 @@
+{
+  "runId": "Simple-Click-Next.Ts-vitrine-publica-mu95h8lq",
+  "feature": "vitrine-publica",
+  "agent": "codex",
+  "modo": "sequencial",
+  "paralelizar": null,
+  "modeloForcado": null,
+  "esforcoForcado": null,
+  "geradoEm": "2026-09-20 01:41",
+  "branchTrabalho": "spec/vitrine-publica",
+  "baseDir": ".spec/features/vitrine-publica",
+  "specDir": ".spec",
+  "repoName": "Simple-Click-Next.Ts",
+  "logsDir": "../onp-worktrees/Simple-Click-Next.Ts-vitrine-publica-logs",
+  "ondas": [],
+  "faixas": [],
+  "sequenciais": [
+    {
+      "id": "T-407",
+      "titulo": "Desempenho no celular",
+      "modelo": "gpt-5.6-luna",
+      "esforco": "high",
+      "arquivos": [
+        "apps/web/next.config.ts",
+        "apps/web/src/lib/imagem.ts",
+        "e2e/specs/desempenho-vitrine.spec.ts"
+      ],
+      "refs": ["US-404", "AC-415", "AC-416"]
+    },
+    {
+      "id": "T-408",
+      "titulo": "Acessibilidade e uso por teclado",
+      "modelo": "gpt-5.6-luna",
+      "esforco": "medium",
+      "arquivos": [
+        "e2e/specs/a11y-vitrine.spec.ts",
+        "e2e/specs/teclado-vitrine.spec.ts",
+        "packages/ui/src/foco.ts"
+      ],
+      "refs": ["US-405", "AC-418", "AC-419", "AC-420"]
+    },
+    {
+      "id": "T-409",
+      "titulo": "Teste de ponta a ponta da vitrine",
+      "modelo": "gpt-5.6-luna",
+      "esforco": "medium",
+      "arquivos": [
+        "e2e/specs/vitrine.spec.ts",
+        "e2e/specs/produto-detalhe.spec.ts"
+      ],
+      "refs": ["US-401", "US-403", "AC-404", "AC-410"]
+    }
+  ],
+  "concluidas": ["T-400", "T-401", "T-402", "T-403", "T-404", "T-405", "T-406"],
+  "avisos": []
+}
