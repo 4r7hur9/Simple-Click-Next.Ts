@@ -1,25 +1,25 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-08-27T15:35:59.415Z",
-  "gitRev": "3df4d7b",
+  "timestamp": "2026-09-20T08:30:53.698Z",
+  "gitRev": "706e23b",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 1149,
+  "exitCode": 1,
+  "testsParsed": 1205,
   "results": {
     "AC-400": {
       "status": "pass",
-      "testName": "a rota entrega a vitrine (AC-400, AC-401) @spec:AC-400 a loja chega pelo apelido, com o que a vitrine mostra @spec:AC-400 a loja chega pelo apelido, com o que a vitrine mostra",
+      "testName": "a página mostra a loja sem depender de script (AC-400) @spec:AC-400 nome, boas-vindas e caminho para o cardápio vêm prontos do servidor @spec:AC-400 nome, boas-vindas e caminho para o cardápio vêm prontos do servidor",
       "method": "vitest-json"
     },
     "AC-401": {
       "status": "pass",
-      "testName": "a rota entrega a vitrine (AC-400, AC-401) @spec:AC-401 a resposta diz se a loja está aberta agora, no fuso dela @spec:AC-401 a resposta diz se a loja está aberta agora, no fuso dela",
+      "testName": "o horário por dia controla a vitrine (AC-909) @spec:AC-909 @spec:AC-401 dentro da faixa a loja aparece aberta @spec:AC-909 @spec:AC-401 dentro da faixa a loja aparece aberta",
       "method": "vitest-json"
     },
     "AC-402": {
       "status": "pass",
-      "testName": "loja inexistente responde como loja inexistente (AC-402) @spec:AC-402 carrinho de apelido que não existe responde 404 @spec:AC-402 carrinho de apelido que não existe responde 404",
+      "testName": "o que nunca sai, não sai (AC-904, P-009) @spec:AC-402 o estado administrativo da loja não aparece @spec:AC-402 o estado administrativo da loja não aparece",
       "method": "vitest-json"
     },
     "AC-403": {
@@ -29,7 +29,7 @@
     },
     "AC-404": {
       "status": "pass",
-      "testName": "a vitrine lista as seções na ordem do dono (AC-404) @spec:AC-404 mostra as categorias visíveis na ordem definida, com seus produtos @spec:AC-404 mostra as categorias visíveis na ordem definida, com seus produtos",
+      "testName": "o cardápio chega pronto do servidor (AC-404) @spec:AC-404 as seções aparecem na ordem do dono, com os produtos delas @spec:AC-404 as seções aparecem na ordem do dono, com os produtos delas",
       "method": "vitest-json"
     },
     "AC-405": {
@@ -39,42 +39,42 @@
     },
     "AC-406": {
       "status": "pass",
-      "testName": "os destaques têm área própria (AC-406) @spec:AC-406 destaque aparece na lista de destaques, mesmo sem categoria @spec:AC-406 destaque aparece na lista de destaques, mesmo sem categoria",
+      "testName": "os destaques ficam em área própria no topo (AC-406) @spec:AC-406 os destaques aparecem em seção própria, antes do cardápio @spec:AC-406 os destaques aparecem em seção própria, antes do cardápio",
       "method": "vitest-json"
     },
     "AC-407": {
       "status": "pass",
-      "testName": "loja sem catálogo não parece quebrada (AC-407) @spec:AC-407 loja recém-criada devolve listas vazias, e não erro @spec:AC-407 loja recém-criada devolve listas vazias, e não erro",
+      "testName": "o resultado vem agrupado por categoria (AC-408) @spec:AC-407 loja sem produto nenhum continua sendo loja sem catálogo @spec:AC-407 loja sem produto nenhum continua sendo loja sem catálogo",
       "method": "vitest-json"
     },
     "AC-408": {
       "status": "pass",
-      "testName": "a busca acha o produto pelo nome, com ou sem acento (AC-408) @spec:AC-408 acha 'Pão de Açúcar' procurando 'pao', sem acento e em minúscula @spec:AC-408 acha 'Pão de Açúcar' procurando 'pao', sem acento e em minúscula",
+      "testName": "o termo da busca é preparado antes de chegar ao banco (AC-408) @spec:AC-408 aceita o termo digitado @spec:AC-408 aceita o termo digitado",
       "method": "vitest-json"
     },
     "AC-409": {
       "status": "pass",
-      "testName": "a busca some com a categoria que não teve acerto (AC-408) @spec:AC-409 devolve vazio quando a loja não vende o que foi procurado @spec:AC-409 devolve vazio quando a loja não vende o que foi procurado",
+      "testName": "nada encontrado diz o termo e oferece a saída (AC-409) @spec:AC-409 repete o termo digitado na mensagem @spec:AC-409 repete o termo digitado na mensagem",
       "method": "vitest-json"
     },
     "AC-410": {
       "status": "pass",
-      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-410 produto de outra loja responde 404, e não o produto @spec:AC-410 produto de outra loja responde 404, e não o produto",
+      "testName": "qual preço vale agora (AC-410) @spec:AC-410 sem promoção, vale o base e não há preço 'de' @spec:AC-410 sem promoção, vale o base e não há preço 'de'",
       "method": "vitest-json"
     },
     "AC-411": {
       "status": "pass",
-      "testName": "o servidor recalcula o item que recebe (AC-411) @spec:AC-411 o total do servidor é o mesmo que a tela calcula, com a mesma função @spec:AC-411 o total do servidor é o mesmo que a tela calcula, com a mesma função",
+      "testName": "o total acompanha as escolhas (AC-411) @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00 @spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00",
       "method": "vitest-json"
     },
     "AC-412": {
       "status": "pass",
-      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
+      "testName": "escolha obrigatória pendente bloqueia (AC-412) @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta @spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta",
       "method": "vitest-json"
     },
     "AC-413": {
       "status": "pass",
-      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-413 produto indisponível não entra no carrinho @spec:AC-413 produto indisponível não entra no carrinho",
+      "testName": "produto indisponível é visto mas não comprado (AC-413) @spec:AC-413 produto esgotado tem o botão desabilitado e a explicação ao lado @spec:AC-413 produto esgotado tem o botão desabilitado e a explicação ao lado",
       "method": "vitest-json"
     },
     "AC-414": {
@@ -87,28 +87,48 @@
       "testName": "a busca funciona sem script (AC-408, AC-415) @spec:AC-415 é um formulário GET, e não um campo que depende de JavaScript @spec:AC-415 é um formulário GET, e não um campo que depende de JavaScript",
       "method": "vitest-json"
     },
-    "AC-417": {
+    "AC-416": {
       "status": "pass",
+      "testName": "contratos declarativos da vitrine pública @spec:AC-416 reserva a foto e entrega variantes responsivas @spec:AC-416 reserva a foto e entrega variantes responsivas",
+      "method": "vitest-json"
+    },
+    "AC-417": {
+      "status": "skip",
       "testName": "a versão do catálogo sobe a cada mudança (AC-417) @spec:AC-417 publicar produto novo sobe a versão @spec:AC-417 publicar produto novo sobe a versão",
+      "method": "vitest-json"
+    },
+    "AC-418": {
+      "status": "pass",
+      "testName": "contratos declarativos da vitrine pública @spec:AC-418 declara foco visível para os links da vitrine @spec:AC-418 declara foco visível para os links da vitrine",
+      "method": "vitest-json"
+    },
+    "AC-419": {
+      "status": "pass",
+      "testName": "contratos declarativos da vitrine pública @spec:AC-419 mantém a decoração fora da camada de conteúdo @spec:AC-419 mantém a decoração fora da camada de conteúdo",
+      "method": "vitest-json"
+    },
+    "AC-420": {
+      "status": "pass",
+      "testName": "contratos declarativos da vitrine pública @spec:AC-420 garante alvo de toque mínimo no botão de busca @spec:AC-420 garante alvo de toque mínimo no botão de busca",
       "method": "vitest-json"
     }
   },
   "principles": {
-    "P-006": {
-      "status": "pass",
-      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
-    },
     "P-003": {
       "status": "pass",
-      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
+    },
+    "P-006": {
+      "status": "pass",
+      "testName": "o total vem do servidor, sempre (AC-504, P-006) @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou"
     },
     "P-010": {
       "status": "pass",
-      "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto"
+      "testName": "o item guardado é cópia, e não referência (AC-515) @spec:AC-515 @principle:P-010 nome, preço e código são copiados para dentro do item @spec:AC-515 @principle:P-010 nome, preço e código são copiados para dentro do item"
     },
     "P-009": {
       "status": "pass",
-      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
+      "testName": "o que nunca sai, não sai (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine"
     },
     "P-012": {
       "status": "pass",

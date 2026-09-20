@@ -1,11 +1,11 @@
 {
   "feature": "identidade-visual-global",
-  "timestamp": "2026-09-20T01:39:05.998Z",
-  "gitRev": "2ac1c0a",
+  "timestamp": "2026-09-20T08:19:34.618Z",
+  "gitRev": "706e23b",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 933,
+  "testsParsed": 1205,
   "results": {
     "AC-941": {
       "status": "pass",
@@ -65,20 +65,12 @@
   },
   "principles": {
     "P-003": {
-      "status": "skip",
-      "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto"
+      "status": "pass",
+      "testName": "loja A tentando alcançar dado da loja B @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto @spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto"
     },
     "P-006": {
       "status": "pass",
       "testName": "o total vem do servidor, sempre (AC-504, P-006) @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou @spec:AC-504 @principle:P-006 o preço da conta é o do catálogo, e não o que a tela mostrou"
-    },
-    "P-012": {
-      "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     },
     "P-010": {
       "status": "pass",
@@ -87,6 +79,14 @@
     "P-009": {
       "status": "pass",
       "testName": "o que nunca sai, não sai (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine @spec:AC-904 @principle:P-009 a CHAVE PIX não aparece na vitrine"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
+    },
+    "P-007": {
+      "status": "pass",
+      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
     },
     "P-011": {
       "status": "pass",

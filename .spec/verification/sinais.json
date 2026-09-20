@@ -212,118 +212,118 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-201",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-202": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-202",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-203": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-203",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-204": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-204",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-205": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-205",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-206": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-206",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-207": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-207",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-208": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-208",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-209": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-209",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-210": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-210",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-211": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-211",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-212": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-212",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::admin-lojas::AC-213": {
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-213",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "REF_QUEBRADA::catalogo-produtos::T-001": {
       "codigo": "REF_QUEBRADA",
@@ -554,208 +554,208 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-300",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-301": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-301",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-302": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-302",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-303": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-303",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-304": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-304",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-305": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-305",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-306": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-306",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-307": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-307",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-308": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-308",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-309": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-309",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-310": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-310",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-311": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-311",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-312": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-312",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-313": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-313",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-314": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-314",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-315": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-315",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-316": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-316",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-317": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-317",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-318": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-318",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-319": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-319",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-320": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-320",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-321": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-321",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-322": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-322",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "REF_QUEBRADA::clientes-loja::T-001": {
       "codigo": "REF_QUEBRADA",
@@ -905,127 +905,127 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-700",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-701": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-701",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-702": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-702",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-703": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-703",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-704": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-704",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-705": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-705",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-706": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-706",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-707": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-707",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-708": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-708",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-709": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-709",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-710": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-710",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-711": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-711",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-712": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-712",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::clientes-loja::AC-713": {
       "codigo": "AC_SEM_TESTE",
       "feature": "clientes-loja",
       "ref": "AC-713",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "REF_QUEBRADA::dashboard-metricas::T-001": {
       "codigo": "REF_QUEBRADA",
@@ -1202,154 +1202,154 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-800",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-801": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-801",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-802": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-802",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-803": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-803",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-804": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-804",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-805": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-805",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-806": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-806",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-807": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-807",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-808": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-808",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-809": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-809",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-810": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-810",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-811": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-811",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-812": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-812",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-813": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-813",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-814": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-814",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-815": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-815",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-816": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-816",
-      "ocorrencias": 263,
+      "ocorrencias": 265,
       "primeiraVez": "2026-08-17T12:48:50.013Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::fundacao::T-001": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -2687,244 +2687,244 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-600",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-601": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-601",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-602": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-602",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-603": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-603",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-604": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-604",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-605": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-605",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-606": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-606",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-607": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-607",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-608": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-608",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-609": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-609",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-610": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-610",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-611": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-611",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-612": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-612",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-613": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-613",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-614": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-614",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-615": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-615",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-616": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-616",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-617": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-617",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-618": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-618",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-619": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-619",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-620": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-620",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-621": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-621",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-622": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-622",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-623": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-623",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-624": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-624",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-625": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-625",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::pedido-operacao::AC-626": {
       "codigo": "AC_SEM_TESTE",
       "feature": "pedido-operacao",
       "ref": "AC-626",
-      "ocorrencias": 262,
+      "ocorrencias": 264,
       "primeiraVez": "2026-08-17T13:41:36.768Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "REF_QUEBRADA::vitrine-publica::T-001": {
       "codigo": "REF_QUEBRADA",
@@ -3335,10 +3335,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "fundacao",
       "ref": "AC-004",
-      "ocorrencias": 261,
+      "ocorrencias": 263,
       "primeiraVez": "2026-08-17T13:44:10.539Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::fundacao::AC-005": {
       "codigo": "AC_SEM_TESTE",
@@ -3596,10 +3596,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "admin-lojas",
       "ref": "AC-214",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TASK::catalogo-produtos::AC-323": {
       "codigo": "AC_SEM_TASK",
@@ -3740,136 +3740,136 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-323",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-324": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-324",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-325": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-325",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-326": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-326",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-327": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-327",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-328": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-328",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-329": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-329",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-330": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-330",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-331": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-331",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-332": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-332",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-333": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-333",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-334": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-334",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-335": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-335",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-336": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-336",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::catalogo-produtos::AC-337": {
       "codigo": "AC_SEM_TESTE",
       "feature": "catalogo-produtos",
       "ref": "AC-337",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::fundacao::AC-032": {
       "codigo": "AC_SEM_TESTE",
@@ -3911,19 +3911,19 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "fundacao",
       "ref": "AC-036",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::fundacao::AC-037": {
       "codigo": "AC_SEM_TESTE",
       "feature": "fundacao",
       "ref": "AC-037",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::fundacao::AC-038": {
       "codigo": "AC_SEM_TESTE",
@@ -3938,10 +3938,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "fundacao",
       "ref": "AC-039",
-      "ocorrencias": 260,
+      "ocorrencias": 262,
       "primeiraVez": "2026-08-17T14:04:45.111Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "REF_QUEBRADA::config-loja::T-001": {
       "codigo": "REF_QUEBRADA",
@@ -4181,10 +4181,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-900",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-901": {
       "codigo": "AC_SEM_TESTE",
@@ -4208,10 +4208,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-903",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-904": {
       "codigo": "AC_SEM_TESTE",
@@ -4226,10 +4226,10 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-905",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-906": {
       "codigo": "AC_SEM_TESTE",
@@ -4307,100 +4307,100 @@
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-914",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-915": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-915",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-916": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-916",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-917": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-917",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-918": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-918",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-919": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-919",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-920": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-920",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-921": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-921",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-922": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-922",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::config-loja::AC-923": {
       "codigo": "AC_SEM_TESTE",
       "feature": "config-loja",
       "ref": "AC-923",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::dashboard-metricas::AC-817": {
       "codigo": "AC_SEM_TESTE",
       "feature": "dashboard-metricas",
       "ref": "AC-817",
-      "ocorrencias": 258,
+      "ocorrencias": 260,
       "primeiraVez": "2026-08-17T14:31:51.247Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TASK::identidade-acesso::AC-125": {
       "codigo": "AC_SEM_TASK",
@@ -4631,10 +4631,10 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "fundacao",
       "ref": "T-019",
-      "ocorrencias": 269,
+      "ocorrencias": 271,
       "primeiraVez": "2026-08-17T14:35:09.726Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::fundacao::T-020": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -4649,325 +4649,325 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-200",
-      "ocorrencias": 1785,
+      "ocorrencias": 1799,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-201": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-201",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-202": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-202",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-203": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-203",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-204": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-204",
-      "ocorrencias": 535,
+      "ocorrencias": 539,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-205": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-205",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-206": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-206",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-207": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-207",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-208": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-208",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::admin-lojas::T-209": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "admin-lojas",
       "ref": "T-209",
-      "ocorrencias": 510,
+      "ocorrencias": 514,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-300": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-300",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-301": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-301",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-302": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-302",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-303": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-303",
-      "ocorrencias": 1020,
+      "ocorrencias": 1026,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-304": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-304",
-      "ocorrencias": 1785,
+      "ocorrencias": 1799,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-305": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-305",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-306": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-306",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-307": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-307",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-308": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-308",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-309": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-309",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-310": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-310",
-      "ocorrencias": 510,
+      "ocorrencias": 514,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-311": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-311",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-312": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-312",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::catalogo-produtos::T-313": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "catalogo-produtos",
       "ref": "T-313",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.654Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-700": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-700",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-701": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-701",
-      "ocorrencias": 255,
+      "ocorrencias": 257,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-702": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-702",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-703": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-703",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-704": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-704",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-705": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-705",
-      "ocorrencias": 510,
+      "ocorrencias": 514,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-706": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-706",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-707": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-707",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::clientes-loja::T-708": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "clientes-loja",
       "ref": "T-708",
-      "ocorrencias": 510,
+      "ocorrencias": 514,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-900": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-900",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-901": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-901",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-902": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-902",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-903": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -4982,136 +4982,136 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-904",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-905": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-905",
-      "ocorrencias": 1302,
+      "ocorrencias": 1312,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-906": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-906",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-907": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-907",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::config-loja::T-908": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "config-loja",
       "ref": "T-908",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-800": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-800",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-801": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-801",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-802": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-802",
-      "ocorrencias": 553,
+      "ocorrencias": 557,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-803": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-803",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-804": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-804",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-805": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-805",
-      "ocorrencias": 1785,
+      "ocorrencias": 1799,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-806": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-806",
-      "ocorrencias": 255,
+      "ocorrencias": 257,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-807": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-807",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-808": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-808",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::dashboard-metricas::T-809": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "dashboard-metricas",
       "ref": "T-809",
-      "ocorrencias": 255,
+      "ocorrencias": 257,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::identidade-acesso::T-100": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -5315,109 +5315,109 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-600",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-601": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-601",
-      "ocorrencias": 1530,
+      "ocorrencias": 1542,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-602": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-602",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-603": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-603",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-604": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-604",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-605": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-605",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-606": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-606",
-      "ocorrencias": 765,
+      "ocorrencias": 771,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-607": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-607",
-      "ocorrencias": 1020,
+      "ocorrencias": 1028,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-608": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-608",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-609": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-609",
-      "ocorrencias": 1275,
+      "ocorrencias": 1285,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-610": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-610",
-      "ocorrencias": 535,
+      "ocorrencias": 539,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-operacao::T-611": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-operacao",
       "ref": "T-611",
-      "ocorrencias": 510,
+      "ocorrencias": 514,
       "primeiraVez": "2026-08-17T14:39:50.655Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::vitrine-publica::T-400": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -5558,10 +5558,10 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "fundacao",
       "ref": "—",
-      "ocorrencias": 49,
+      "ocorrencias": 51,
       "primeiraVez": "2026-08-17T18:06:22.021Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_ORFAO::—::infra/scripts/check-mensagem.sh": {
       "codigo": "ARQUIVO_ORFAO",
@@ -5765,10 +5765,10 @@
       "codigo": "PRINCIPIO_VIOLADO",
       "feature": "—",
       "ref": "P-002",
-      "ocorrencias": 37,
+      "ocorrencias": 47,
       "primeiraVez": "2026-08-18T12:32:36.192Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "TASK_CONCLUIDA_SEM_PROVA::fundacao::T-005": {
       "codigo": "TASK_CONCLUIDA_SEM_PROVA",
@@ -6026,10 +6026,10 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "identidade-acesso",
       "ref": "—",
-      "ocorrencias": 23,
+      "ocorrencias": 25,
       "primeiraVez": "2026-08-18T14:25:42.499Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "TASK_CONCLUIDA_SEM_PROVA::fundacao::T-018": {
       "codigo": "TASK_CONCLUIDA_SEM_PROVA",
@@ -6080,19 +6080,19 @@
       "codigo": "AC_SEM_PROVA",
       "feature": "config-loja",
       "ref": "AC-901",
-      "ocorrencias": 189,
+      "ocorrencias": 191,
       "primeiraVez": "2026-08-18T15:35:06.852Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_PROVA::config-loja::AC-902": {
       "codigo": "AC_SEM_PROVA",
       "feature": "config-loja",
       "ref": "AC-902",
-      "ocorrencias": 189,
+      "ocorrencias": 191,
       "primeiraVez": "2026-08-18T15:35:06.852Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "TASK_CONCLUIDA_SEM_PROVA::fundacao::T-003": {
       "codigo": "TASK_CONCLUIDA_SEM_PROVA",
@@ -6161,19 +6161,19 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "catalogo-produtos",
       "ref": "—",
-      "ocorrencias": 21,
+      "ocorrencias": 23,
       "primeiraVez": "2026-08-18T18:23:35.438Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "VERIFY_OBSOLETO::pedido-checkout::—": {
       "codigo": "VERIFY_OBSOLETO",
       "feature": "pedido-checkout",
       "ref": "—",
-      "ocorrencias": 21,
+      "ocorrencias": 23,
       "primeiraVez": "2026-08-18T18:23:35.439Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_ORFAO::—::packages/core/src/__snapshots__/cupom-texto.test.ts.snap": {
       "codigo": "ARQUIVO_ORFAO",
@@ -6206,10 +6206,10 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "config-loja",
       "ref": "—",
-      "ocorrencias": 15,
+      "ocorrencias": 17,
       "primeiraVez": "2026-08-19T11:07:49.400Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "TASK_CONCLUIDA_SEM_PROVA::fundacao::T-021": {
       "codigo": "TASK_CONCLUIDA_SEM_PROVA",
@@ -6395,100 +6395,100 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "cardapio-na-tv",
       "ref": "T-950",
-      "ocorrencias": 219,
+      "ocorrencias": 225,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::cardapio-na-tv::T-951": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "cardapio-na-tv",
       "ref": "T-951",
-      "ocorrencias": 219,
+      "ocorrencias": 225,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::cardapio-na-tv::T-952": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "cardapio-na-tv",
       "ref": "T-952",
-      "ocorrencias": 146,
+      "ocorrencias": 150,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::cardapio-na-tv::T-953": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "cardapio-na-tv",
       "ref": "T-953",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-925": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-925",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-926": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-926",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-927": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-927",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-928": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-928",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-929": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-929",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-930": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-930",
-      "ocorrencias": 73,
+      "ocorrencias": 75,
       "primeiraVez": "2026-08-19T19:12:56.368Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "VERIFY_OBSOLETO::vitrine-publica::—": {
       "codigo": "VERIFY_OBSOLETO",
       "feature": "vitrine-publica",
       "ref": "—",
-      "ocorrencias": 13,
+      "ocorrencias": 14,
       "primeiraVez": "2026-08-19T19:12:56.369Z",
-      "ultimaVez": "2026-09-20T01:56:05.071Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_ORFAO::—::apps/web/src/lib/narrativa.ts": {
       "codigo": "ARQUIVO_ORFAO",
@@ -6503,19 +6503,19 @@
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "cardapio-na-tv",
       "ref": "T-954",
-      "ocorrencias": 201,
+      "ocorrencias": 207,
       "primeiraVez": "2026-08-19T19:56:31.225Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "AC_SEM_TESTE::cardapio-na-tv::AC-931": {
       "codigo": "AC_SEM_TESTE",
       "feature": "cardapio-na-tv",
       "ref": "AC-931",
-      "ocorrencias": 67,
+      "ocorrencias": 69,
       "primeiraVez": "2026-08-19T19:56:31.225Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "VERIFY_FALHOU::fundacao::AC-006": {
       "codigo": "VERIFY_FALHOU",
@@ -6665,10 +6665,10 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "landing-plataforma",
       "ref": "—",
-      "ocorrencias": 11,
+      "ocorrencias": 13,
       "primeiraVez": "2026-08-22T04:58:41.919Z",
-      "ultimaVez": "2026-09-19T22:18:06.272Z",
-      "gitRev": "080dfc4"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::identidade-visual-global::T-965": {
       "codigo": "ARQUIVO_INEXISTENTE",
@@ -7259,19 +7259,19 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "admin-lojas",
       "ref": "—",
-      "ocorrencias": 2,
+      "ocorrencias": 4,
       "primeiraVez": "2026-09-19T22:18:06.270Z",
-      "ultimaVez": "2026-09-20T01:56:05.069Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.684Z",
+      "gitRev": "706e23b"
     },
     "ARQUIVO_INEXISTENTE::pedido-checkout::T-511": {
       "codigo": "ARQUIVO_INEXISTENTE",
       "feature": "pedido-checkout",
       "ref": "T-511",
-      "ocorrencias": 2,
+      "ocorrencias": 4,
       "primeiraVez": "2026-09-19T22:18:06.273Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T08:22:28.685Z",
+      "gitRev": "706e23b"
     },
     "VERIFY_FALHOU::identidade-visual-global::P-003": {
       "codigo": "VERIFY_FALHOU",
@@ -7295,10 +7295,100 @@
       "codigo": "VERIFY_OBSOLETO",
       "feature": "identidade-visual-global",
       "ref": "—",
-      "ocorrencias": 1,
+      "ocorrencias": 2,
       "primeiraVez": "2026-09-20T01:56:05.070Z",
-      "ultimaVez": "2026-09-20T01:56:05.070Z",
-      "gitRev": "5680c9a"
+      "ultimaVez": "2026-09-20T03:12:45.571Z",
+      "gitRev": "b111e60"
+    },
+    "VERIFY_PULADO::vitrine-publica::AC-417": {
+      "codigo": "VERIFY_PULADO",
+      "feature": "vitrine-publica",
+      "ref": "AC-417",
+      "ocorrencias": 4,
+      "primeiraVez": "2026-09-20T03:12:40.018Z",
+      "ultimaVez": "2026-09-20T08:30:53.812Z",
+      "gitRev": "706e23b"
+    },
+    "TASK_CONCLUIDA_SEM_PROVA::vitrine-publica::T-402": {
+      "codigo": "TASK_CONCLUIDA_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "T-402",
+      "ocorrencias": 2,
+      "primeiraVez": "2026-09-20T03:12:45.571Z",
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
+    },
+    "TASK_CONCLUIDA_SEM_PROVA::vitrine-publica::T-407": {
+      "codigo": "TASK_CONCLUIDA_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "T-407",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T03:12:45.571Z",
+      "ultimaVez": "2026-09-20T03:12:45.571Z",
+      "gitRev": "b111e60"
+    },
+    "TASK_CONCLUIDA_SEM_PROVA::vitrine-publica::T-408": {
+      "codigo": "TASK_CONCLUIDA_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "T-408",
+      "ocorrencias": 3,
+      "primeiraVez": "2026-09-20T03:12:45.571Z",
+      "ultimaVez": "2026-09-20T03:12:45.571Z",
+      "gitRev": "b111e60"
+    },
+    "AC_SEM_PROVA::vitrine-publica::AC-416": {
+      "codigo": "AC_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "AC-416",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T03:12:45.571Z",
+      "ultimaVez": "2026-09-20T03:12:45.571Z",
+      "gitRev": "b111e60"
+    },
+    "AC_SEM_PROVA::vitrine-publica::AC-417": {
+      "codigo": "AC_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "AC-417",
+      "ocorrencias": 2,
+      "primeiraVez": "2026-09-20T03:12:45.571Z",
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
+    },
+    "AC_SEM_PROVA::vitrine-publica::AC-418": {
+      "codigo": "AC_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "AC-418",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T03:12:45.572Z",
+      "ultimaVez": "2026-09-20T03:12:45.572Z",
+      "gitRev": "b111e60"
+    },
+    "AC_SEM_PROVA::vitrine-publica::AC-419": {
+      "codigo": "AC_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "AC-419",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T03:12:45.572Z",
+      "ultimaVez": "2026-09-20T03:12:45.572Z",
+      "gitRev": "b111e60"
+    },
+    "AC_SEM_PROVA::vitrine-publica::AC-420": {
+      "codigo": "AC_SEM_PROVA",
+      "feature": "vitrine-publica",
+      "ref": "AC-420",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T03:12:45.572Z",
+      "ultimaVez": "2026-09-20T03:12:45.572Z",
+      "gitRev": "b111e60"
+    },
+    "ARQUIVO_ORFAO::—::infra/scripts/iniciar-registro-do-portao.mjs": {
+      "codigo": "ARQUIVO_ORFAO",
+      "feature": "—",
+      "ref": "infra/scripts/iniciar-registro-do-portao.mjs",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-20T08:22:28.686Z",
+      "ultimaVez": "2026-09-20T08:22:28.686Z",
+      "gitRev": "706e23b"
     }
   }
 }
