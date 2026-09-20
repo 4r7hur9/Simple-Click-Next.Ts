@@ -12,13 +12,22 @@ async function enviarLogin(entrada: {
   readonly email: string;
   readonly senha: string;
 }): Promise<RespostaDoLoginNaTela> {
-  const resposta = await fetch("/v1/auth/login", {
+  const resposta = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "content-type": "application/json" },
     credentials: "include",
     body: JSON.stringify(entrada),
   });
-  return (await resposta.json()) as RespostaDoLoginNaTela;
+  const corpo = (await resposta.json()) as {
+    readonly autenticado?: boolean;
+  };
+  if (resposta.ok && corpo.autenticado === true) {
+    return {
+      status: "SESSAO_CRIADA",
+      redirecionarPara: "/minha-conta/seguranca",
+    };
+  }
+  return { status: "CREDENCIAIS_INVALIDAS" };
 }
 
 export default function PaginaDeEntrar() {

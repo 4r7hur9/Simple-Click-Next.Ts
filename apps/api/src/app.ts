@@ -11,6 +11,7 @@ import {
   type OpcoesDoCarrinho,
 } from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
+import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
 import {
   criarRotasDePedidos,
   PREFIXO_DOS_PEDIDOS,
@@ -97,6 +98,11 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
   app.use(PREFIXO_DE_SAUDE, criarRotasDeSaude());
+
+  // Usuário de teste local: só existe quando uma credencial explícita foi
+  // colocada no ambiente e a rota recusa produção. A autenticação de produção
+  // entra aqui quando a persistência da identidade for conectada à API.
+  app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
 
   // A vitrine é pública por natureza: é o endereço que o cliente abre antes de
   // existir sessão, conta ou loja no contexto. Ela mesma descobre qual loja
