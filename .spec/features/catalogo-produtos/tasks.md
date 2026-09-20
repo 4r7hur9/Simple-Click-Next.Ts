@@ -27,7 +27,7 @@
 
 - Refs: US-301, AC-305, AC-306
 - Arquivos: apps/api/src/modules/catalog/imagens.usecase.ts, apps/api/src/modules/catalog/imagens.usecase.test.ts, apps/web/src/features/painel-catalogo/EnvioDeImagem.tsx, apps/web/src/lib/imagem.ts
-- Notas: principal garantida por regra do banco, não por convenção. Arquivo conferido pelos bytes. Imagem servida no tamanho adequado ao dispositivo. Depende da decisão pendente D2.
+- Notas: primeira fatia funcional local cadastra até cinco URLs HTTPS, mantém uma imagem principal por produto e reflete a principal na vitrine. A mídia continua hospedada no Cloudinary conforme D2; upload binário com assinatura, conferência dos bytes e re-encode ainda dependem das credenciais de mídia do ambiente, além de testes anotados e auditoria formal.
 - Esforço: alto
 
 ## T-304 — Preço como entidade, com regra de aplicação [pendente]
