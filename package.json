@@ -10,7 +10,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @simpleclick/web dev",
+    "dev": "pnpm dev:all",
     "lp": "pnpm --filter @simpleclick/web dev",
     "api": "pnpm --filter @simpleclick/api dev",
     "dev:all": "pnpm --parallel --filter @simpleclick/web --filter @simpleclick/api dev",

@@ -114,3 +114,10 @@
 - Notas: cobre navegação por categoria, busca, abertura de produto e bloqueio de escolha obrigatória.
 - Modelo: gpt-5.6-luna
 - Esforço: medio
+
+## T-421 — Fundo 3D da apresentação da loja [concluida]
+
+- Refs: US-400, AC-400, P-011, P-012
+- Arquivos: apps/web/src/features/loja/MundoDaLoja.tsx, apps/web/src/features/loja/mundo-da-loja.ts, apps/web/src/features/loja/ApresentacaoDaLoja.tsx, packages/ui/styles/narrativa.css, apps/web/tests/entrada-da-loja.test.tsx, apps/web/tests/landing-mundo.test.ts
+- Notas: a apresentação mantém todo o conteúdo no servidor e recebe uma camada Three.js sob demanda no desktop capaz. Celular, WebGL ausente, conexão econômica e movimento reduzido ficam no fallback CSS, sem baixar nem montar o mundo.
+- Esforço: medio

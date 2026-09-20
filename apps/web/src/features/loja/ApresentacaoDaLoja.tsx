@@ -17,6 +17,7 @@
 import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 
 import { iniciaisDe } from "../../lib/iniciais.ts";
+import { MundoDaLoja } from "./MundoDaLoja.tsx";
 
 /** A loja, como o contrato da API a descreve. */
 export interface LojaNaTela {
@@ -140,6 +141,7 @@ export function ApresentacaoDaLoja({
           para o leitor de tela.
         */}
         <div className="sc-loja__fundo" aria-hidden="true">
+          <MundoDaLoja />
           <span className="sc-loja__brilho sc-loja__brilho--um" />
           <span className="sc-loja__brilho sc-loja__brilho--dois" />
         </div>

@@ -180,8 +180,23 @@
   overflow: clip;
 }
 
+.sc-loja__mundo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.sc-loja__mundo-canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
 .sc-loja__brilho {
   position: absolute;
+  z-index: 1;
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.5;
@@ -212,7 +227,7 @@
  */
 .sc-loja__tela {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;

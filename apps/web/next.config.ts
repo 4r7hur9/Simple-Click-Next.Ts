@@ -10,6 +10,16 @@ const raizDoMonorepo = join(
   "..",
 );
 
+// O Next considera `apps/web` a raiz do projeto e não procura o `.env` do
+// monorepo acima dela. Carregar o ambiente local aqui mantém `pnpm dev` e
+// `pnpm dev:all` falando com a API real, em vez de cair silenciosamente no
+// endereço TLS reservado para o ambiente publicado.
+try {
+  process.loadEnvFile(join(raizDoMonorepo, ".env"));
+} catch {
+  // Em CI e na imagem de produção as variáveis já chegam pelo ambiente.
+}
+
 const configuracao: NextConfig = {
   reactStrictMode: true,
   // Saída autônoma: o build escreve um servidor mínimo com APENAS os arquivos
