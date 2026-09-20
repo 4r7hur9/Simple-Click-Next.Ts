@@ -37,6 +37,21 @@ const configuracao: NextConfig = {
   // monorepo: sem passo de build próprio, sem artefato para sincronizar, e a
   // alteração de um componente aparece na tela na hora.
   transpilePackages: ["@simpleclick/ui", "@simpleclick/contracts"],
+  // As imagens públicas ficam no Cloudinary. O loader transforma cada pedido
+  // na largura escolhida pelo navegador, em formato e qualidade automáticos,
+  // evitando enviar ao celular o original de 1200px da loja.
+  images: {
+    loader: "custom",
+    loaderFile: "./src/lib/imagem.ts",
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
+  },
   // Não anunciar a tecnologia do servidor: informação que só serve a quem
   // procura vulnerabilidade conhecida.
   poweredByHeader: false,
