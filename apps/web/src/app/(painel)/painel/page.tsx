@@ -36,6 +36,12 @@ const atalhos = [
     href: "/painel/config/aparencia",
     acao: "Abrir configurações",
   },
+  {
+    titulo: "Montar o catálogo",
+    descricao: "Crie categorias e defina a ordem que o cliente verá.",
+    href: "/painel/categorias",
+    acao: "Gerenciar categorias",
+  },
 ] as const;
 
 /**

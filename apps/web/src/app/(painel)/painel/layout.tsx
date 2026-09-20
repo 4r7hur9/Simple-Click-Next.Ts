@@ -54,6 +54,14 @@ export default function LayoutDoPainel({
                   Configurar loja
                 </Link>
               </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
+                  href="/painel/categorias"
+                >
+                  Categorias
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

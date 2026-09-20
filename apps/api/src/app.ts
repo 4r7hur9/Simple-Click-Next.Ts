@@ -12,6 +12,7 @@ import {
 } from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
+import { criarRotasDasCategorias } from "./modules/catalog/categorias.routes.ts";
 import {
   criarRotasDasConfiguracoes,
   type UsuarioAutenticado,
@@ -131,6 +132,31 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
             papel: "OWNER",
           };
           return usuario;
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
+
+  app.use(
+    "/v1/lojas",
+    criarRotasDasCategorias({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER",
+          };
         } catch {
           return null;
         }
