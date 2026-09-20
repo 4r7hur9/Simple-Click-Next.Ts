@@ -11,6 +11,6 @@ describe("painel inicial do ambiente de demonstração", () => {
     expect(html).toContain('href="/l/pastelaria-da-vila/catalogo"');
     expect(html).toContain('href="/l/pastelaria-da-vila/checkout"');
     expect(html).toContain('href="/minha-conta/seguranca"');
-    expect(html).not.toContain('href="/painel/config/');
+    expect(html).toContain('href="/painel/config/aparencia"');
   });
 });

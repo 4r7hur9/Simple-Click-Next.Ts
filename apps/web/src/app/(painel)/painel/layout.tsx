@@ -44,6 +44,14 @@ export default function LayoutDoPainel({
                   Segurança
                 </Link>
               </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
+                  href="/painel/config/aparencia"
+                >
+                  Configurar loja
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

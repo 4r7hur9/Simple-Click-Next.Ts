@@ -9,6 +9,7 @@
 
 import { enderecoDaApi } from "./api-client.ts";
 import {
+  adicionarCookieDeAcesso,
   adicionarCookieDeRenovacao,
   lerTokenDeRenovacaoDoCookie,
 } from "./session-cookie.ts";
@@ -83,6 +84,7 @@ export function responderSessaoDoNavegador(
     "content-type": "application/json; charset=utf-8",
   });
   adicionarCookieDeRenovacao(cabecalhos, sessao.tokenDeRenovacao, fonte);
+  adicionarCookieDeAcesso(cabecalhos, sessao.tokenDeAcesso, fonte);
 
   return new Response(JSON.stringify(corpo), {
     status: 200,

@@ -6,8 +6,10 @@
  */
 
 export const NOME_DO_COOKIE_DE_RENOVACAO = "sc_refresh";
+export const NOME_DO_COOKIE_DE_ACESSO = "sc_access";
 
 export const DURACAO_DO_COOKIE_DE_RENOVACAO_EM_SEGUNDOS = 30 * 24 * 60 * 60;
+export const DURACAO_DO_COOKIE_DE_ACESSO_EM_SEGUNDOS = 15 * 60;
 
 /** Domínio público comum usado no ambiente local com TLS. */
 export const DOMINIO_PADRAO_DO_COOKIE_DE_SESSAO = "simpleclick.localhost";
@@ -77,4 +79,34 @@ export function adicionarCookieDeRenovacao(
     "set-cookie",
     serializarCookieDeRenovacao(tokenDeRenovacao, fonte),
   );
+}
+
+/** Cookie temporário somente para a ponte de configuração local. */
+export function adicionarCookieDeAcesso(
+  cabecalhos: Headers,
+  token: string,
+  fonte: Readonly<Record<string, string | undefined>> = process.env,
+): void {
+  if (fonte.NODE_ENV === "production") return;
+  cabecalhos.append(
+    "set-cookie",
+    `${NOME_DO_COOKIE_DE_ACESSO}=${encodeURIComponent(token)}; Max-Age=${DURACAO_DO_COOKIE_DE_ACESSO_EM_SEGUNDOS}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+  );
+}
+
+export function lerTokenDeAcessoDoCookie(
+  cabecalhoCookie: string | null,
+): string | undefined {
+  if (cabecalhoCookie === null) return undefined;
+  for (const par of cabecalhoCookie.split(";")) {
+    const [nome, ...valores] = par.trim().split("=");
+    if (nome !== NOME_DO_COOKIE_DE_ACESSO || valores.length === 0) continue;
+    try {
+      const token = decodeURIComponent(valores.join("="));
+      return token === "" ? undefined : token;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
 }

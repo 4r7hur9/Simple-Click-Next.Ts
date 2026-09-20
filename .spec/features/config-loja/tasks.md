@@ -5,8 +5,8 @@
 ## T-900 — Configurações por seção, com gravação atômica e auditoria [pendente]
 
 - Refs: US-906, AC-921, AC-922, AC-923
-- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/(painel)/painel/config/layout.tsx, apps/web/tests/painel-inicial.test.tsx
-- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato. O painel inicial já oferece atalhos apenas para os fluxos existentes; links de configuração só entram quando a persistência desta tarefa existir.
+- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, apps/api/src/modules/stores/configuracao.routes.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/(painel)/painel/config/layout.tsx, apps/web/tests/painel-inicial.test.tsx
+- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato. O painel inicial já oferece atalhos para a fatia local funcional de aparência e contato; a conclusão desta tarefa ainda exige contrato, auditoria e os casos de uso definitivos.
 - Esforço: alto
 
 ## T-901 — Chave PIX e formas de pagamento [pendente]
@@ -33,15 +33,15 @@
 ## T-904 — Contato de WhatsApp e texto da mensagem [pendente]
 
 - Refs: US-903, AC-913, AC-914, AC-915
-- Arquivos: apps/api/src/modules/stores/contato.usecase.ts, apps/api/src/modules/stores/contato.usecase.test.ts, apps/web/src/app/(painel)/painel/config/contato/page.tsx, apps/web/src/features/config/EditorDeMensagem.tsx
-- Notas: número normalizado e mostrado como ficou. Sem número, o painel avisa e o pedido continua sendo registrado. Pré-visualização com pedido de exemplo; campos obrigatórios não podem ser removidos; mensagem sem marca da plataforma.
+- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/contato/page.tsx, apps/web/src/features/config/EditorDeMensagem.tsx
+- Notas: a primeira fatia funcional do ambiente local já persiste número e saudação em store_settings, com normalização brasileira. A implementação definitiva ainda precisa do caso de uso, auditoria, pré-visualização e cobertura própria desta tarefa. Sem número, o painel deve avisar e o pedido continua sendo registrado. Campos obrigatórios não podem ser removidos; mensagem sem marca da plataforma.
 - Esforço: medio
 
 ## T-905 — Apresentação da loja, logo, capa e cor [pendente]
 
 - Refs: US-904, AC-916, AC-917, AC-918
-- Arquivos: apps/api/src/modules/stores/aparencia.usecase.ts, apps/api/src/modules/stores/aparencia.usecase.test.ts, packages/ui/src/contraste.ts, packages/ui/src/contraste.test.ts, apps/web/src/app/(painel)/painel/config/aparencia/page.tsx, apps/web/src/features/config/FormularioAparencia.tsx
-- Notas: herda a página de boas-vindas do primeiro SimpleClick, agora editável. Cor da loja tem contraste ajustado automaticamente e aviso quando compromete a legibilidade. Imagem conferida pelos bytes, com orientação de formato e proporção.
+- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/aparencia/page.tsx, apps/web/src/features/config/FormularioAparencia.tsx
+- Notas: a primeira fatia funcional do ambiente local já persiste boas-vindas, logo, capa e cor em store_settings. A implementação definitiva ainda precisa do caso de uso, contraste automático, auditoria, validação pelos bytes e cobertura própria desta tarefa. Herda a página de boas-vindas do primeiro SimpleClick, agora editável.
 - Esforço: alto
 
 ## T-906 — Formato de impressão do cupom [pendente]

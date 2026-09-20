@@ -30,6 +30,12 @@ const atalhos = [
     href: "/minha-conta/seguranca",
     acao: "Abrir segurança",
   },
+  {
+    titulo: "Configurar a loja",
+    descricao: "Edite apresentação, marca, capa, cor e contato público.",
+    href: "/painel/config/aparencia",
+    acao: "Abrir configurações",
+  },
 ] as const;
 
 /**
@@ -94,12 +100,11 @@ export default function PaginaInicialDoPainel() {
       </section>
 
       <aside className="mt-8 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6">
-        <h2 className="text-xl font-semibold">Próxima etapa funcional</h2>
+        <h2 className="text-xl font-semibold">Configuração local disponível</h2>
         <p className="mt-2 leading-7 text-[var(--cor-tinta-suave)]">
-          A edição de contato, WhatsApp, apresentação, logo, capa e cor será
-          ligada ao banco nas tarefas T-900, T-904 e T-905. Até essa
-          persistência existir, o painel não mostra botões que fingem salvar
-          alterações.
+          A edição de aparência e contato salva no banco do ambiente de
+          desenvolvimento. Use a navegação da configuração para alternar entre
+          as duas telas antes de revisar a loja pública.
         </p>
       </aside>
     </div>

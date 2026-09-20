@@ -13,6 +13,14 @@ import {
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
 import {
+  criarRotasDasConfiguracoes,
+  type UsuarioAutenticado,
+} from "./modules/stores/configuracao.routes.ts";
+import {
+  tokenDoCabecalhoDeAutorizacao,
+  verificarTokenDeAcesso,
+} from "./modules/auth/token.ts";
+import {
   criarRotasDePedidos,
   PREFIXO_DOS_PEDIDOS,
   type OpcoesDosPedidos,
@@ -103,6 +111,32 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // colocada no ambiente e a rota recusa produção. A autenticação de produção
   // entra aqui quando a persistência da identidade for conectada à API.
   app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+
+  app.use(
+    "/v1/lojas",
+    criarRotasDasConfiguracoes({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          const usuario: UsuarioAutenticado = {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER",
+          };
+          return usuario;
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
 
   // A vitrine é pública por natureza: é o endereço que o cliente abre antes de
   // existir sessão, conta ou loja no contexto. Ela mesma descobre qual loja
