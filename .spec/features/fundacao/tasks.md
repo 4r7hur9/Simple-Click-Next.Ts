@@ -150,7 +150,7 @@
 ## T-020 — Manifesto de rotas e cobertura de telas [concluida]
 
 - Refs: US-004, AC-016
-- Arquivos: apps/web/src/lib/routes.ts, e2e/playwright.config.ts, e2e/package.json, e2e/tsconfig.json, e2e/specs/rotas-manifesto.spec.ts, e2e/specs/manifesto-cobre-arquivos.spec.ts, pnpm-workspace.yaml, apps/web/tests/estados.test.tsx
+- Arquivos: apps/web/src/lib/routes.ts, e2e/playwright.config.ts, e2e/iniciar-api.mjs, e2e/package.json, e2e/tsconfig.json, e2e/specs/rotas-manifesto.spec.ts, e2e/specs/manifesto-cobre-arquivos.spec.ts, pnpm-workspace.yaml, apps/web/tests/estados.test.tsx
 - Notas: o manifesto espelha design/mapa-de-telas.md. Uma tela nova sem entrada no manifesto reprova, e é isso que torna "todas as telas" verificável. Acessibilidade em cada rota, marcado com @principle:P-012 e @principle:P-011.
 - Notas: **ELA ESTAVA MARCADA COMO CONCLUÍDA SEM TER ENTREGADO NADA, e isso foi descoberto em 26/08** ao começar a T-510. Nenhum dos seis arquivos declarados existia: sem pasta `e2e/`, sem Playwright, sem `routes.ts`. A auditoria via o problema e dizia o certo — "que não existe (tarefa concluída!)" —, mas o portão não reprovava, porque `ARQUIVO_INEXISTENTE` estava classificado como backlog. Ver a dívida 81.
 - Notas: quatro tarefas de ponta a ponta dependiam disto em silêncio — T-409, T-510, T-908 e T-963. É a dívida 66 um nível acima: a T-500 entregou caso de uso sem rota, a T-020 declarou o harness e não entregou nenhum. As duas passaram porque nada as chamava.

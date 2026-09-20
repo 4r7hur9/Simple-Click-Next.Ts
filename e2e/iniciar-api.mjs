@@ -36,7 +36,11 @@ async function aquecer() {
     "http://localhost:3101/v1/vitrine/pastelaria-da-vila/catalogo",
   ];
 
-  for (let tentativa = 0; tentativa < 60; tentativa += 1) {
+  // No Windows, o primeiro carregamento do TypeScript e a abertura das
+  // conexões com PostgreSQL/Redis podem ultrapassar 15 s. Mantemos a sondagem
+  // curta, mas damos à API o mesmo minuto previsto no Playwright antes de
+  // concluir que o ambiente realmente não subiu.
+  for (let tentativa = 0; tentativa < 240; tentativa += 1) {
     try {
       const respostas = await Promise.all(rotas.map((rota) => fetch(rota)));
       if (respostas.every((resposta) => resposta.ok)) return;
@@ -46,7 +50,9 @@ async function aquecer() {
     await esperar(250);
   }
 
-  console.error("a API E2E não ficou pronta após aquecer as rotas públicas");
+  console.error(
+    "a API E2E não ficou pronta em 60 s após aquecer as rotas públicas",
+  );
   encerrar("SIGTERM");
   process.exit(1);
 }

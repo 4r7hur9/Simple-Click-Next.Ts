@@ -60,7 +60,14 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
+    ...(process.env["PLAYWRIGHT_CHANNEL"]
+      ? { channel: process.env["PLAYWRIGHT_CHANNEL"] }
+      : {}),
     baseURL: ENDERECO_DO_SITE,
+    // Permite usar o Chrome já instalado no ambiente de desenvolvimento sem
+    // alterar a prova: CI continua usando o Chromium gerenciado pelo
+    // Playwright; localmente, PLAYWRIGHT_CHANNEL=chrome evita depender de um
+    // download separado de 170 MB.
     // O rastro só é guardado quando algo reprova: guardar sempre enche o disco
     // e ninguém olha; guardar na falha é o que se abre para entender.
     trace: "retain-on-failure",
@@ -105,7 +112,10 @@ export default defineConfig({
       cwd: "..",
       url: ENDERECO_DO_SITE,
       reuseExistingServer: !process.env["CI"],
-      timeout: 120_000,
+      // O build standalone leva cerca de 100 s no Windows antes da cópia dos
+      // arquivos estáticos. O limite anterior de 120 s encerrava o launcher
+      // quando o artefato já estava pronto, mas o servidor ainda não ouvindo.
+      timeout: 240_000,
       env: {
         NEXT_PUBLIC_API_URL: ENDERECO_DA_API,
         // O SITE PRECISA SABER O PRÓPRIO ENDEREÇO (AC-403): canônico, mapa do

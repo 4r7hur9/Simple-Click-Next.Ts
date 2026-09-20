@@ -41,7 +41,8 @@ describe("contratos declarativos da vitrine pública", () => {
   it("@spec:AC-419 mantém a decoração fora da camada de conteúdo", () => {
     expect(narrativaDaLoja).toMatch(/\.sc-loja\s*\{[^}]*isolation:\s*isolate/s);
     expect(narrativaDaLoja).toMatch(/\.sc-loja__fundo\s*\{[^}]*z-index:\s*0/s);
-    expect(narrativaDaLoja).toMatch(/\.sc-loja__tela\s*\{[^}]*z-index:\s*1/s);
+    expect(narrativaDaLoja).toMatch(/\.sc-loja__mundo\s*\{[^}]*z-index:\s*0/s);
+    expect(narrativaDaLoja).toMatch(/\.sc-loja__tela\s*\{[^}]*z-index:\s*2/s);
   });
 
   it("@spec:AC-420 garante alvo de toque mínimo no botão de busca", () => {
