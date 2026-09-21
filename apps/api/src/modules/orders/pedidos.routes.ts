@@ -54,6 +54,7 @@ import { sessaoDoCarrinho } from "../../core/sessao-do-carrinho.ts";
 import { validar } from "../../core/validar.ts";
 import { criarPedido } from "./criar-pedido.usecase.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
+import { reservarEstoque } from "./reservar-estoque.ts";
 
 /**
  * O endereço público do pedido, sorteado AQUI e declarado na transação.
@@ -229,7 +230,8 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
               carrinho.id,
             );
 
-            return criarPedido(
+            const itens = itensDoPedido(carrinho, conferencia);
+            const criado = await criarPedido(
               {
                 lojaId,
                 contato: {
@@ -246,7 +248,7 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
                   estado: body.contato.estado ?? null,
                   cep: body.contato.cep ?? null,
                 },
-                itens: itensDoPedido(carrinho, conferencia),
+                itens,
                 entrega: body.entrega,
                 canal: "ONLINE",
                 formaDePagamento: body.formaDePagamento ?? null,
@@ -272,14 +274,26 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
                 aberta: abertura.aberta,
                 proximaAbertura: abertura.proximaAbertura,
               },
-            ).then((criado) => ({
+            );
+
+            // Idempotência devolve o pedido já baixado. Só a criação nova
+            // reserva saldo; repetir o checkout nunca baixa duas vezes.
+            if (criado.ok && !criado.pedido.jaExistia) {
+              await reservarEstoque({
+                lojaId,
+                pedidoId: criado.pedido.id,
+                itens,
+              });
+            }
+
+            return {
               criado,
               valores,
               whatsapp,
               carrinho,
               conferencia,
               fechamento,
-            }));
+            };
           }),
       );
 

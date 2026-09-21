@@ -61,8 +61,8 @@
 ## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [pendente]
 
 - Refs: US-307, AC-333
-- Arquivos: apps/api/src/modules/orders/reservar-estoque.ts, apps/api/src/modules/orders/reservar-estoque.test.ts, apps/api/tests/estoque-concorrente.test.ts
-- Notas: travamento da linha da variação dentro da mesma transação que cria o pedido. Estoque nunca fica negativo. Depende da decisão pendente D5.
+- Arquivos: packages/database/migrations/0024_reserva_de_estoque_no_checkout.sql, apps/api/src/modules/orders/reservar-estoque.ts, apps/api/src/modules/orders/reservar-estoque.test.ts, apps/api/src/modules/orders/pedidos.routes.ts, apps/api/tests/estoque-concorrente.test.ts
+- Notas: primeira fatia funcional local adota baixa na confirmação: função SQL com `SECURITY DEFINER` confere loja, token, pedido e item, faz atualização condicional sob trava de linha e grava movimento `PEDIDO` na mesma transação. Retry idempotente não baixa novamente; prova formal ONP e suíte global ainda pendentes.
 - Esforço: max
 
 ## T-309 — Vocabulário e layout por ramo [pendente]
