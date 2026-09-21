@@ -41,7 +41,7 @@
 
 - Refs: US-303, AC-313, AC-314, AC-315, AC-317
 - Arquivos: apps/api/src/modules/catalog/grupos-opcao.usecase.ts, apps/api/src/modules/catalog/grupos-opcao.usecase.test.ts, packages/core/src/validar-escolhas.ts, packages/core/src/validar-escolhas.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx
-- Notas: obrigatoriedade derivada do mínimo de escolhas, não coluna redundante. Opção esgotada não bloqueia o produto inteiro. Acréscimo soma antes de ir ao carrinho e é registrado separado do preço base.
+- Notas: primeira fatia funcional local cria, lista e remove logicamente grupos de ingredientes/adicionais e suas opções, com mínimo/máximo derivados e disponibilidade sem esconder opção esgotada. O carrinho já valida escolhas e soma acréscimos em centavos; eixos de variação, ordenação avançada, testes anotados e auditoria formal continuam pendentes.
 - Esforço: alto
 
 ## T-306 — Variações com código próprio e grade [pendente]

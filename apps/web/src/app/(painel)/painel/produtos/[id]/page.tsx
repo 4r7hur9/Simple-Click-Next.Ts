@@ -69,6 +69,12 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
       <FormularioProduto produto={produto} />
       <EnvioDeImagem produtoId={produto.id} />
       <LinhasDePreco produtoId={produto.id} />
+      <Link
+        className="sc-botao sc-botao--primario mt-8"
+        href={`/painel/produtos/${produto.id}/opcoes`}
+      >
+        Configurar escolhas e adicionais
+      </Link>
     </div>
   );
 }

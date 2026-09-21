@@ -16,6 +16,7 @@ import { criarRotasDasCategorias } from "./modules/catalog/categorias.routes.ts"
 import { criarRotasDosProdutos } from "./modules/catalog/produtos.routes.ts";
 import { criarRotasDasImagens } from "./modules/catalog/imagens.routes.ts";
 import { criarRotasDosPrecos } from "./modules/catalog/precos.routes.ts";
+import { criarRotasDosGruposDeEscolha } from "./modules/catalog/opcoes.routes.ts";
 import {
   criarRotasDasConfiguracoes,
   type UsuarioAutenticado,
@@ -220,6 +221,31 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDosPrecos({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
+
+  app.use(
+    "/v1/lojas",
+    criarRotasDosGruposDeEscolha({
       resolverLoja: identificarLoja,
       autenticar: (requisicao) => {
         const token = tokenDoCabecalhoDeAutorizacao(
