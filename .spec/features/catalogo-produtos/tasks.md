@@ -76,7 +76,7 @@
 
 - Refs: US-306, AC-329
 - Arquivos: apps/api/src/modules/catalog/mover-categoria.usecase.ts, apps/api/src/modules/catalog/mover-categoria.usecase.test.ts
-- Notas: valores da categoria anterior são preservados e marcados como não usados; nada é apagado sem confirmação.
+- Notas: primeira fatia de domínio calcula a mudança sem mutar nem apagar valores antigos, marca-os como não usados na categoria atual e devolve as especificações da categoria nova que ainda precisam de preenchimento. Integração com as tabelas tipadas de especificação e tela do painel permanece pendente.
 - Esforço: medio
 
 ## T-311 — Disponibilidade e janela de venda [pendente]

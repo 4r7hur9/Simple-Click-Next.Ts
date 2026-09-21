@@ -1470,6 +1470,12 @@ Enquanto a lista abaixo estiver vazia, nunca aconteceu.
   Para quitar: volte a esta versão, rode `bash infra/scripts/verificar.sh`
   até sair limpo e apague esta linha.
 
+- **21/09/2026 · `91b802e` no ramo `main`** — enviado sem passar pelo portão.
+  Motivo: não informado — quem pulou não declarou
+  Ficou sem verificação: separação de ambientes · cliente tipado do banco · formatação · qualidade de código · segredo no código · auditoria da especificação · verificação de tipos · contrato publicado em dia · testes de unidade · testes do site (estados e acessibilidade) · testes do cache (Redis de teste) · testes de fila (Redis) · banco local em dia com as migrações · testes de integração (banco efêmero) · migração compatível com a versão anterior · guardas estruturais do banco.
+  Para quitar: volte a esta versão, rode `bash infra/scripts/verificar.sh`
+  até sair limpo e apague esta linha.
+
 <!-- portao-contornado:fim -->
 
 ## RESOLVIDO — Teste intermitente do limite de tentativas (AC-119/AC-120)
