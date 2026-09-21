@@ -42,6 +42,12 @@ export default function LayoutDaConfiguracao({
         >
           Entrega
         </Link>
+        <Link
+          className="sc-botao sc-botao--fantasma"
+          href="/painel/config/impressao"
+        >
+          Impressão
+        </Link>
       </nav>
       {children}
     </div>

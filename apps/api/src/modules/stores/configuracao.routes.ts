@@ -12,6 +12,10 @@ import { z } from "zod";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
+import {
+  normalizarConfiguracaoDeImpressao,
+  esquemaDaConfiguracaoDeImpressao,
+} from "./impressao-config.usecase.ts";
 
 const esquemaDaAparencia = z.strictObject({
   boasVindas: z.string().trim().max(280).nullable(),
@@ -218,6 +222,73 @@ export function criarRotasDasConfiguracoes(
                 updated_at = now()
             WHERE store_id = ${lojaId}
           `,
+                ),
+            );
+            resposta.status(204).end();
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.get(
+    "/:apelido/configuracao/impressao",
+    async (requisicao, resposta, proximo) => {
+      try {
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const configuracao = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao((tx) =>
+                  tx.storeSettings.findUnique({
+                    where: { storeId: lojaId },
+                    select: { printing: true },
+                  }),
+                ),
+            );
+            resposta.json(
+              normalizarConfiguracaoDeImpressao(configuracao?.printing),
+            );
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.put(
+    "/:apelido/configuracao/impressao",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDaConfiguracaoDeImpressao.safeParse(
+          requisicao.body,
+        );
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const configuracao = normalizarConfiguracaoDeImpressao(
+              entrada.data,
+            );
+            await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(
+                  (tx) => tx.$executeRaw`
+              UPDATE app.store_settings
+              SET printing = ${JSON.stringify(configuracao)}::jsonb, updated_at = now()
+              WHERE store_id = ${lojaId}
+            `,
                 ),
             );
             resposta.status(204).end();

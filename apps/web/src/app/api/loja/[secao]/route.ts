@@ -9,6 +9,7 @@ const SECOES = new Set([
   "pagamento",
   "entrega",
   "pendencias",
+  "impressao",
 ]);
 const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
   process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
