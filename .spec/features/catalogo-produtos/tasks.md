@@ -54,8 +54,8 @@
 ## T-307 — Estoque por variação com movimentos [pendente]
 
 - Refs: US-307, AC-331, AC-332, AC-334, AC-335, AC-336, AC-337
-- Arquivos: packages/database/migrations/0007_estoque.sql, apps/api/src/modules/catalog/estoque.usecase.ts, apps/api/src/modules/catalog/estoque.usecase.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/estoque/page.tsx, apps/web/src/features/painel-catalogo/AjusteDeEstoque.tsx
-- Notas: todo movimento registra motivo, origem, autor e quantidade anterior. Cancelamento devolve. Ligado por ramo: nasce ativo para roupas, autopeças e eletrônicos, desligado para comida.
+- Arquivos: packages/database/migrations/0023_estoque_por_variacao.sql, packages/database/prisma/schema.prisma, apps/api/src/modules/catalog/estoque.routes.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/estoque/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/estoque/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/estoque/page.tsx, apps/web/src/features/painel-catalogo/AjusteDeEstoque.tsx
+- Notas: primeira fatia funcional local lista saldo por variação e registra ajuste manual com motivo, origem, autor, saldo anterior e posterior em histórico imutável. Estoque nulo continua significando não controlar unidades; baixa concorrente de pedido, cancelamento e ativação por ramo continuam pendentes para T-308/onda seguinte.
 - Esforço: alto
 
 ## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [pendente]
