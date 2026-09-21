@@ -23,20 +23,33 @@ interface Produto {
 
 export default function PaginaDeEdicaoDeProduto({ params }: Props) {
   const [produto, setProduto] = useState<Produto | null>(null);
-  const [mensagem, setMensagem] = useState("Carregando produto…");
+  const [estado, setEstado] = useState<"carregando" | "erro" | "sucesso">(
+    "carregando",
+  );
 
   useEffect(() => {
-    void params.then(({ id }) =>
-      fetch("/api/catalogo/produtos", { cache: "no-store" })
-        .then(async (resposta) => {
-          if (!resposta.ok) throw new Error();
-          const dados = (await resposta.json()) as { produtos: Produto[] };
-          const encontrado = dados.produtos.find((item) => item.id === id);
-          if (encontrado === undefined) throw new Error();
-          setProduto(encontrado);
-        })
-        .catch(() => setMensagem("Produto não encontrado.")),
-    );
+    let ativo = true;
+    void params
+      .then(({ id }) =>
+        fetch("/api/catalogo/produtos", { cache: "no-store" }).then(
+          async (resposta) => {
+            if (!resposta.ok) throw new Error();
+            const dados = (await resposta.json()) as { produtos: Produto[] };
+            const encontrado = dados.produtos.find((item) => item.id === id);
+            if (encontrado === undefined) throw new Error();
+            if (ativo) {
+              setProduto(encontrado);
+              setEstado("sucesso");
+            }
+          },
+        ),
+      )
+      .catch(() => {
+        if (ativo) setEstado("erro");
+      });
+    return () => {
+      ativo = false;
+    };
   }, [params]);
 
   if (produto === null) {
@@ -49,7 +62,9 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
           ← Voltar aos produtos
         </Link>
         <p role="status" className="mt-8">
-          {mensagem}
+          {estado === "carregando"
+            ? "Carregando produto…"
+            : "Produto não encontrado."}
         </p>
       </div>
     );

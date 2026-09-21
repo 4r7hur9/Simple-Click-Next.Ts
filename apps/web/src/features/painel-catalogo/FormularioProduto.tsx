@@ -48,9 +48,11 @@ export function FormularioProduto({ produto }: Props) {
         if (!resposta.ok) throw new Error();
         const dados = (await resposta.json()) as { categorias: Categoria[] };
         setCategorias(dados.categorias);
-        if (categoriaId === "" && dados.categorias[0] !== undefined) {
-          setCategoriaId(dados.categorias[0].id);
-        }
+        setCategoriaId((atual) =>
+          atual === "" && dados.categorias[0] !== undefined
+            ? dados.categorias[0].id
+            : atual,
+        );
         setMensagem(
           dados.categorias.length === 0
             ? "Crie uma categoria antes de cadastrar o produto."
@@ -58,7 +60,7 @@ export function FormularioProduto({ produto }: Props) {
         );
       })
       .catch(() => setMensagem("Não foi possível carregar as categorias."));
-  }, [categoriaId]);
+  }, []);
 
   async function salvar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
