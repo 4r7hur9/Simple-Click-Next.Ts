@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  conferirArquivoDeImagem,
+  type ResultadoDaConferenciaDaImagem,
+} from "../../lib/imagem.ts";
+
 interface Imagem {
   readonly id: string;
   readonly url: string;
@@ -19,6 +24,10 @@ export function EnvioDeImagem({ produtoId }: Props) {
   const [url, setUrl] = useState("");
   const [altText, setAltText] = useState("");
   const [principal, setPrincipal] = useState(true);
+  const [conferencia, setConferencia] =
+    useState<ResultadoDaConferenciaDaImagem | null>(null);
+  const [erroDoArquivo, setErroDoArquivo] = useState<string | null>(null);
+  const [conferindoArquivo, setConferindoArquivo] = useState(false);
   const [mensagem, setMensagem] = useState("Carregando imagens…");
   const [salvando, setSalvando] = useState(false);
 
@@ -72,6 +81,24 @@ export function EnvioDeImagem({ produtoId }: Props) {
       setMensagem("Informe uma URL HTTPS válida e tente novamente.");
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function conferirArquivo(arquivo: File | undefined) {
+    setConferencia(null);
+    setErroDoArquivo(null);
+    if (arquivo === undefined) return;
+    setConferindoArquivo(true);
+    try {
+      setConferencia(await conferirArquivoDeImagem(arquivo));
+    } catch (erro) {
+      setErroDoArquivo(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível conferir o conteúdo da imagem.",
+      );
+    } finally {
+      setConferindoArquivo(false);
     }
   }
 
@@ -162,6 +189,45 @@ export function EnvioDeImagem({ produtoId }: Props) {
           onSubmit={(evento) => void adicionar(evento)}
           className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6"
         >
+          <label>
+            <span className="text-sm font-medium">
+              Conferir arquivo antes de cadastrar a URL (opcional)
+            </span>
+            <input
+              className="sc-campo mt-2 w-full"
+              type="file"
+              accept="image/*"
+              onChange={(evento) =>
+                void conferirArquivo(evento.target.files?.[0])
+              }
+            />
+            <span className="mt-2 block text-xs text-[var(--cor-tinta-suave)]">
+              A conferência olha os bytes reais; nesta fatia, o cadastro ainda
+              usa a URL HTTPS hospedada no Cloudinary.
+            </span>
+            {conferindoArquivo ? (
+              <span className="mt-2 block text-sm" role="status">
+                Conferindo conteúdo…
+              </span>
+            ) : null}
+            {conferencia ? (
+              <span
+                className="mt-2 block text-sm text-[var(--cor-primaria)]"
+                role="status"
+              >
+                Arquivo válido ({conferencia.formato},{" "}
+                {conferencia.tamanhoBytes} bytes).
+              </span>
+            ) : null}
+            {erroDoArquivo ? (
+              <span
+                className="mt-2 block text-sm text-[var(--cor-tinta)]"
+                role="alert"
+              >
+                {erroDoArquivo}
+              </span>
+            ) : null}
+          </label>
           <label>
             <span className="text-sm font-medium">URL HTTPS da imagem</span>
             <input
