@@ -16,6 +16,10 @@ export {
   medirComprimentoNoLink,
 } from "./cupom-texto.ts";
 export { momentoNaLoja, situacaoDaLoja } from "./horario-loja.ts";
+export {
+  estaNaJanelaDeDisponibilidade,
+  type JanelaDeDisponibilidade,
+} from "./janela-disponibilidade.ts";
 export type {
   EstadoDeAbertura,
   ExcecaoDatada,

@@ -82,8 +82,8 @@
 ## T-311 — Disponibilidade e janela de venda [pendente]
 
 - Refs: US-305, AC-321, AC-322
-- Arquivos: apps/api/src/modules/catalog/disponibilidade.usecase.ts, apps/api/src/modules/catalog/disponibilidade.usecase.test.ts, packages/core/src/janela-disponibilidade.ts, packages/core/src/janela-disponibilidade.test.ts
-- Notas: esgotado aparece com selo e sem botão ativo. Janela por dia e horário avaliada no fuso da loja, sem o dono precisar mexer.
+- Arquivos: apps/api/src/modules/catalog/disponibilidade.usecase.ts, apps/api/src/modules/catalog/disponibilidade.usecase.test.ts, packages/core/src/janela-disponibilidade.ts, packages/core/src/janela-disponibilidade.test.ts, packages/core/src/index.ts
+- Notas: primeira fatia de domínio combina disponibilidade manual com janela semanal avaliada no fuso da loja: esgotado vence a janela, terça fora da janela bloqueia e sábado dentro dela libera. A integração da janela com persistência, painel e DTO completo da vitrine permanece pendente.
 - Esforço: medio
 
 ## T-312 — Filtro por especificação na vitrine [pendente]
