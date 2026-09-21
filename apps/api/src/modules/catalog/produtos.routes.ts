@@ -19,6 +19,10 @@ import type {
   IdentificacaoDaLoja,
   UsuarioAutenticado,
 } from "./categorias.routes.ts";
+import {
+  ErroDeAtributoInvalido,
+  validarAtributosDoRamo,
+} from "./atributos.usecase.ts";
 
 const statusDoProduto = z.enum(["DRAFT", "PUBLISHED"]);
 
@@ -27,6 +31,7 @@ const esquemaDaCriacao = z.strictObject({
   descricao: z.string().trim().max(2_000).nullable(),
   categoriaId: z.string().uuid(),
   precoCentavos: z.number().int().nonnegative().max(999_999_999),
+  atributos: z.record(z.string(), z.unknown()).optional(),
   status: statusDoProduto,
   disponivel: z.boolean(),
 });
@@ -37,6 +42,7 @@ const esquemaDaAtualizacao = z
     descricao: z.string().trim().max(2_000).nullable().optional(),
     categoriaId: z.string().uuid().optional(),
     precoCentavos: z.number().int().nonnegative().max(999_999_999).optional(),
+    atributos: z.record(z.string(), z.unknown()).optional(),
     status: statusDoProduto.optional(),
     disponivel: z.boolean().optional(),
   })
@@ -52,6 +58,7 @@ type LinhaDoProduto = {
   readonly displayPriceCents: bigint | null;
   readonly status: string;
   readonly isAvailable: boolean;
+  readonly attributes: unknown;
   readonly sortOrder: number;
   readonly categorias: ReadonlyArray<{
     readonly categoryId: string;
@@ -93,6 +100,7 @@ function respostaDoProduto(produto: LinhaDoProduto) {
         : Number(produto.displayPriceCents),
     status: produto.status,
     disponivel: produto.isAvailable,
+    atributos: produto.attributes,
     ordem: produto.sortOrder,
   };
 }
@@ -105,6 +113,7 @@ const selecaoDoProduto = {
   displayPriceCents: true,
   status: true,
   isAvailable: true,
+  attributes: true,
   sortOrder: true,
   categorias: {
     where: { isPrimary: true },
@@ -263,6 +272,10 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       status: entrada.data.status,
                       isAvailable: entrada.data.disponivel,
                       displayPriceCents: entrada.data.precoCentavos,
+                      attributes: validarAtributosDoRamo(
+                        loja.verticalCode,
+                        entrada.data.atributos,
+                      ),
                       priceMinCents: entrada.data.precoCentavos,
                       priceMaxCents: entrada.data.precoCentavos,
                       sortOrder: (ultima?.sortOrder ?? -1) + 1,
@@ -297,6 +310,10 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
           },
         );
       } catch (causa) {
+        if (causa instanceof ErroDeAtributoInvalido) {
+          erro(resposta, 400, "atributos_invalidos");
+          return;
+        }
         if (causa instanceof Error && causa.message === "categoria_invalida") {
           erro(resposta, 400, "categoria_invalida");
           return;
@@ -341,6 +358,8 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       priceMaxCents: true,
                       status: true,
                       isAvailable: true,
+                      attributes: true,
+                      verticalCode: true,
                     },
                   });
                   if (atual === null) return null;
@@ -395,6 +414,14 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       ...(entrada.data.disponivel === undefined
                         ? {}
                         : { isAvailable: entrada.data.disponivel }),
+                      ...(entrada.data.atributos === undefined
+                        ? {}
+                        : {
+                            attributes: validarAtributosDoRamo(
+                              atual.verticalCode,
+                              entrada.data.atributos,
+                            ),
+                          }),
                     },
                   });
                   if (entrada.data.precoCentavos !== undefined) {
@@ -442,6 +469,10 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
           },
         );
       } catch (causa) {
+        if (causa instanceof ErroDeAtributoInvalido) {
+          erro(resposta, 400, "atributos_invalidos");
+          return;
+        }
         if (causa instanceof Error && causa.message === "categoria_invalida") {
           erro(resposta, 400, "categoria_invalida");
           return;

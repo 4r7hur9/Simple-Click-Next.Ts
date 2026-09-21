@@ -74,3 +74,10 @@ export type {
   TaxaDeEntrega,
   TextoDoPedido,
 } from "./cupom-texto.ts";
+export {
+  composicaoDoRamo,
+  composicaoVazia,
+  temBloco,
+  TELAS_DO_RAMO,
+} from "./vertical.ts";
+export type { ComposicaoDoRamo, TelaDoRamo } from "./vertical.ts";

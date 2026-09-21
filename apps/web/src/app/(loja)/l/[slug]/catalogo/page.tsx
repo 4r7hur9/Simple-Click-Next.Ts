@@ -26,6 +26,7 @@ import {
 } from "../../../../../features/vitrine/BuscaProduto.tsx";
 import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
+import { BlocosPorRamo } from "../../../../../features/painel-catalogo/BlocosPorRamo.tsx";
 import {
   PARAMETRO_DA_BUSCA,
   PARAMETRO_DA_CATEGORIA,
@@ -194,12 +195,24 @@ export default async function PaginaDoCatalogo({
           />
         ) : (
           <>
-            <AbasDeCategoria
-              abas={naTela.abas}
-              filtroEmVigor={naTela.filtroEmVigor}
-            />
+            <BlocosPorRamo
+              blocos={loja.blocos}
+              tela="vitrine"
+              bloco="categorias"
+            >
+              <AbasDeCategoria
+                abas={naTela.abas}
+                filtroEmVigor={naTela.filtroEmVigor}
+              />
+            </BlocosPorRamo>
 
-            <Destaques destaques={naTela.destaques} />
+            <BlocosPorRamo
+              blocos={loja.blocos}
+              tela="vitrine"
+              bloco="destaques"
+            >
+              <Destaques destaques={naTela.destaques} />
+            </BlocosPorRamo>
 
             {naTela.buscaSemAcerto ? (
               <SemResultado

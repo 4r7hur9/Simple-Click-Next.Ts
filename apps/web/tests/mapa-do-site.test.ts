@@ -33,6 +33,11 @@ const LOJA: Vitrine["loja"] = {
     grupoOpcao: "Ingredientes",
     buscaPlaceholder: "O que você gostaria de comer?",
   },
+  blocos: {
+    cadastroProduto: ["identificacao", "preco"],
+    detalheProduto: ["foto", "descricao"],
+    vitrine: ["destaques", "categorias", "lista"],
+  },
   fusoHorario: "America/Sao_Paulo",
   moeda: "BRL",
   formasDeEntrega: ["DELIVERY"],

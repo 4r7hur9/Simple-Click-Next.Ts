@@ -97,6 +97,7 @@ export {
   esquemaDoFechamento,
   rotaDoFechamento,
 } from "./vitrine.ts";
+export { esquemaDeComposicaoDoRamo } from "./vertical.ts";
 export type {
   CatalogoDaVitrineNoContrato,
   GrupoDeEscolhaNoContrato,
@@ -108,3 +109,4 @@ export type {
   VariacaoNoContrato,
   Vitrine,
 } from "./vitrine.ts";
+export type { ComposicaoDoRamoNoContrato } from "./vertical.ts";

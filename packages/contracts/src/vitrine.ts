@@ -15,6 +15,7 @@
 import { z } from "zod";
 
 import { definirRota } from "./rota.ts";
+import { esquemaDeComposicaoDoRamo } from "./vertical.ts";
 
 /** Endereço da loja, para quem vai retirar. Sem CEP e sem coordenada. */
 export const esquemaDeEnderecoDaLoja = z.strictObject({
@@ -89,6 +90,7 @@ export const esquemaDeLojaPublica = z.strictObject({
    */
   alimentacao: z.boolean(),
   rotulos: esquemaDeRotulosDoRamo,
+  blocos: esquemaDeComposicaoDoRamo,
   fusoHorario: z.string(),
   moeda: z.string(),
   formasDeEntrega: z.array(z.string()),

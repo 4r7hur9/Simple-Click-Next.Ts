@@ -18,6 +18,8 @@
  * e nunca em registro de sistema (AC-904).
  */
 
+import { composicaoDoRamo, type ComposicaoDoRamo } from "@simpleclick/core";
+
 /**
  * As palavras que o RAMO da loja usa.
  *
@@ -64,6 +66,8 @@ export interface LojaPublica {
   readonly alimentacao: boolean;
   /** As palavras do ramo. Nunca nulo: sem preset, valem as genéricas. */
   readonly rotulos: RotulosDoRamo;
+  /** Composição das telas definida pelo preset do ramo. */
+  readonly blocos: ComposicaoDoRamo;
   readonly fusoHorario: string;
   readonly moeda: string;
   readonly formasDeEntrega: readonly string[];
@@ -147,6 +151,7 @@ export interface LojaDoBanco {
   /** O preset do ramo, quando a consulta o trouxe junto. */
   readonly ramo?: {
     readonly labels?: unknown;
+    readonly blocos?: unknown;
     readonly isFood?: boolean;
   } | null;
   readonly timezone: string;
@@ -241,6 +246,7 @@ export function lojaParaVitrine(
     // loja de roupa não tem — e é o erro que este campo existe para não repetir.
     alimentacao: loja.ramo?.isFood === true,
     rotulos: rotulosDoRamo(loja.ramo?.labels),
+    blocos: composicaoDoRamo(loja.ramo?.blocos),
     fusoHorario: loja.timezone,
     moeda: loja.currency,
     formasDeEntrega: [...loja.fulfillmentModes],
