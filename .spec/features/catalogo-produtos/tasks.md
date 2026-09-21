@@ -47,8 +47,8 @@
 ## T-306 — Variações com código próprio e grade [pendente]
 
 - Refs: US-303, AC-316
-- Arquivos: apps/api/src/modules/catalog/variacoes.usecase.ts, apps/api/src/modules/catalog/variacoes.usecase.test.ts, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx
-- Notas: é onde variação difere de ingrediente — tem código de estoque e quantidade próprios. A combinação dos eixos resolve qual variação é vendida.
+- Arquivos: apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/catalog/opcoes.routes.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx
+- Notas: primeira fatia funcional local permite marcar grupos como eixos, cadastrar variações com combinação validada, preço, SKU, estoque opcional e disponibilidade. A combinação dos eixos resolve qual variação é vendida; geração automática da matriz cartesiana, edição avançada, estoque movimentado, testes anotados e auditoria formal continuam pendentes.
 - Esforço: alto
 
 ## T-307 — Estoque por variação com movimentos [pendente]

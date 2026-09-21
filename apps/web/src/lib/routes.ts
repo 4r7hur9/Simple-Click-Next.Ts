@@ -311,6 +311,15 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     arquivo: "apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx",
   },
   {
+    rota: "/painel/produtos/{id}/variacoes",
+    tela: "Grade de variações do produto",
+    acesso: "PUBLICO",
+    quatroEstados: true,
+    criterios: "AC-316",
+    arquivo:
+      "apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx",
+  },
+  {
     rota: "/painel/produtos/{id}/estoque",
     tela: "Estoque e movimentos da variação",
     acesso: "PUBLICO",

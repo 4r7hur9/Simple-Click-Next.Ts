@@ -75,6 +75,12 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
       >
         Configurar escolhas e adicionais
       </Link>
+      <Link
+        className="sc-botao sc-botao--fantasma ml-3 mt-8"
+        href={`/painel/produtos/${produto.id}/variacoes`}
+      >
+        Configurar variações
+      </Link>
     </div>
   );
 }

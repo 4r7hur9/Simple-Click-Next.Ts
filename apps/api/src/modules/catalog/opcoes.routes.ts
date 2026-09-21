@@ -21,7 +21,7 @@ import type {
   UsuarioAutenticado,
 } from "./categorias.routes.ts";
 
-const tiposDeGrupo = z.enum(["INGREDIENT", "ADDON"]);
+const tiposDeGrupo = z.enum(["INGREDIENT", "ADDON", "VARIATION"]);
 
 const camposDoGrupo = z.strictObject({
   nome: z.string().trim().min(1).max(120),
@@ -31,6 +31,7 @@ const camposDoGrupo = z.strictObject({
   maximo: z.number().int().min(1).max(100).nullable(),
   permiteRepetir: z.boolean(),
   ativo: z.boolean(),
+  eixoDeVariacao: z.boolean().optional(),
 });
 
 const esquemaDoGrupo = camposDoGrupo.refine(
@@ -86,6 +87,7 @@ const selecaoDoGrupo = {
   minSelect: true,
   maxSelect: true,
   allowRepeat: true,
+  isVariantAxis: true,
   isActive: true,
   sortOrder: true,
   itens: {
@@ -107,6 +109,7 @@ function respostaDoGrupo(grupo: {
   readonly minSelect: number;
   readonly maxSelect: number | null;
   readonly allowRepeat: boolean;
+  readonly isVariantAxis: boolean;
   readonly isActive: boolean;
   readonly sortOrder: number;
   readonly itens: ReadonlyArray<{
@@ -127,6 +130,7 @@ function respostaDoGrupo(grupo: {
     minimo: grupo.minSelect,
     maximo: grupo.maxSelect,
     permiteRepetir: grupo.allowRepeat,
+    eixoDeVariacao: grupo.isVariantAxis,
     ativo: grupo.isActive,
     ordem: grupo.sortOrder,
     opcoes: grupo.itens.map((opcao) => ({
@@ -292,6 +296,9 @@ export function criarRotasDosGruposDeEscolha(
                       minSelect: entrada.data.minimo,
                       maxSelect: entrada.data.maximo,
                       allowRepeat: entrada.data.permiteRepetir,
+                      isVariantAxis:
+                        entrada.data.eixoDeVariacao ??
+                        entrada.data.tipo === "VARIATION",
                       isActive: entrada.data.ativo,
                       sortOrder: ordem,
                     },
@@ -388,6 +395,16 @@ export function criarRotasDosGruposDeEscolha(
                       ...(entrada.data.permiteRepetir === undefined
                         ? {}
                         : { allowRepeat: entrada.data.permiteRepetir }),
+                      ...(entrada.data.eixoDeVariacao === undefined
+                        ? {}
+                        : { isVariantAxis: entrada.data.eixoDeVariacao }),
+                      ...(entrada.data.tipo === undefined
+                        ? {}
+                        : {
+                            isVariantAxis:
+                              entrada.data.tipo === "VARIATION" ||
+                              entrada.data.eixoDeVariacao === true,
+                          }),
                       ...(entrada.data.ativo === undefined
                         ? {}
                         : { isActive: entrada.data.ativo }),

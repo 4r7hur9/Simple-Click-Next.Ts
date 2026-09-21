@@ -18,6 +18,7 @@ interface Grupo {
   readonly minimo: number;
   readonly maximo: number | null;
   readonly permiteRepetir: boolean;
+  readonly eixoDeVariacao: boolean;
   readonly ativo: boolean;
   readonly opcoes: Opcao[];
 }
@@ -33,6 +34,7 @@ const GRUPO_VAZIO = {
   minimo: "0",
   maximo: "",
   permiteRepetir: false,
+  eixoDeVariacao: false,
   ativo: true,
 };
 const OPCAO_VAZIA = {
@@ -93,10 +95,16 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
           body: JSON.stringify({
             nome: grupo.nome,
             descricao: grupo.descricao.trim() || null,
-            tipo: grupo.tipo === "INGREDIENT" ? "INGREDIENT" : "ADDON",
+            tipo:
+              grupo.tipo === "INGREDIENT"
+                ? "INGREDIENT"
+                : grupo.eixoDeVariacao
+                  ? "VARIATION"
+                  : "ADDON",
             minimo,
             maximo,
             permiteRepetir: grupo.permiteRepetir,
+            eixoDeVariacao: grupo.eixoDeVariacao || grupo.tipo === "VARIATION",
             ativo: grupo.ativo,
           }),
         },
@@ -205,6 +213,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                       : "Opcional"}{" "}
                     · máximo {item.maximo ?? "livre"} ·{" "}
                     {item.permiteRepetir ? "permite repetir" : "não repete"}
+                    {item.eixoDeVariacao ? " · eixo de variação" : ""}
                   </p>
                 </div>
                 <span className="text-xs font-semibold text-[var(--cor-primaria)]">
@@ -315,11 +324,15 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
               setGrupo((anterior) => ({
                 ...anterior,
                 tipo: evento.target.value,
+                eixoDeVariacao:
+                  evento.target.value === "VARIATION" ||
+                  anterior.eixoDeVariacao,
               }))
             }
           >
             <option value="ADDON">Adicional</option>
             <option value="INGREDIENT">Ingrediente</option>
+            <option value="VARIATION">Eixo de variação</option>
           </select>
         </label>
         <label>
@@ -365,6 +378,21 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
             }
           />
           Permitir repetir a mesma opção
+        </label>
+        <label className="flex items-center gap-3 text-sm sm:col-span-2">
+          <input
+            className="h-5 w-5"
+            type="checkbox"
+            checked={grupo.eixoDeVariacao}
+            onChange={(evento) =>
+              setGrupo((anterior) => ({
+                ...anterior,
+                eixoDeVariacao: evento.target.checked,
+                tipo: evento.target.checked ? "VARIATION" : "ADDON",
+              }))
+            }
+          />
+          Usar este grupo como eixo da grade de variações
         </label>
         <button
           className="sc-botao sc-botao--primario w-fit"
