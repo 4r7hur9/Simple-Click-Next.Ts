@@ -203,6 +203,15 @@ export const esquemaDoCatalogo = z.strictObject({
   /** Os destaques, em área própria no topo. */
   destaques: z.array(esquemaDeProdutoNaVitrine),
   versao: z.string(),
+  filtros: z
+    .array(
+      z.strictObject({
+        chave: z.string(),
+        nome: z.string(),
+        valores: z.array(z.string()),
+      }),
+    )
+    .optional(),
 });
 
 export type CatalogoDaVitrineNoContrato = z.infer<typeof esquemaDoCatalogo>;
@@ -218,6 +227,8 @@ export type CatalogoDaVitrineNoContrato = z.infer<typeof esquemaDoCatalogo>;
 export const esquemaDaBuscaDoCatalogo = z.strictObject({
   /** Vazio ou ausente é "sem busca", e devolve o catálogo inteiro. */
   busca: z.string().max(60).optional(),
+  categoria: z.string().max(80).optional(),
+  filtro: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 /**

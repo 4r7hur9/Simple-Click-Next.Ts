@@ -30,6 +30,10 @@ import { catalogoDaVitrine } from "./catalogo.usecase.ts";
 import { prepararTermo, produtosQueCasam } from "./busca.usecase.ts";
 import { fechamentoDaLoja } from "./fechamento.usecase.ts";
 import { produtoDaVitrine } from "./produto.usecase.ts";
+import {
+  filtrosDaVitrine,
+  produtosQueCasamComEspecificacoes,
+} from "./filtros.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
 
 /**
@@ -125,6 +129,12 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
         const { params, query } = bordaDoCatalogo.dados(req);
         const acesso = opcoes.acesso ?? banco();
         const termo = prepararTermo(query.busca ?? "");
+        const filtrosSelecionados =
+          query.filtro === undefined
+            ? []
+            : Array.isArray(query.filtro)
+              ? query.filtro
+              : [query.filtro];
 
         // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
         const identificacao = await executarComoRequisicao(
@@ -141,16 +151,24 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
           { papel: "PUBLIC", lojaId: identificacao.id },
           () =>
             acesso.emTransacao(async () => {
-              if (termo === null) {
-                return catalogoDaVitrine(identificacao.versaoDoCatalogo);
-              }
-              // A BUSCA DECIDE QUEM CASA; o catálogo decide como agrupar. Assim o
-              // resultado sai por categoria sem uma segunda montagem — e a lista
-              // VAZIA continua sendo filtro, e não ausência de filtro.
-              const acertos = await produtosQueCasam(termo);
+              const porTexto =
+                termo === null ? undefined : await produtosQueCasam(termo);
+              const porEspecificacao = await produtosQueCasamComEspecificacoes({
+                categoria: query.categoria,
+                filtros: filtrosSelecionados,
+              });
+              const acertos =
+                porTexto === undefined
+                  ? porEspecificacao
+                  : porEspecificacao === undefined
+                    ? porTexto
+                    : porTexto.filter((id) => porEspecificacao.includes(id));
+              const filtros = await filtrosDaVitrine({
+                categoria: query.categoria,
+              });
               return catalogoDaVitrine(identificacao.versaoDoCatalogo, {
                 apenasProdutos: acertos,
-              });
+              }).then((resultado) => ({ ...resultado, filtros }));
             }),
         );
 

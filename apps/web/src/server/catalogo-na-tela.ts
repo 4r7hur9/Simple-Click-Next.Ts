@@ -162,6 +162,7 @@ export function prepararCatalogo(
   ];
 
   return {
+    filtros: catalogo.filtros ?? [],
     secoes: escolhida === null ? secoes : [escolhida],
     // OS DESTAQUES SOMEM QUANDO HÁ FILTRO, e é o AC-405 que manda: ele promete
     // que escolher Bebidas mostra APENAS os produtos de Bebidas. Destaque de

@@ -56,6 +56,11 @@ export interface AbaDeCategoria {
 
 /** O catálogo inteiro, pronto para desenhar. */
 export interface CatalogoNaTela {
+  readonly filtros?: readonly {
+    chave: string;
+    nome: string;
+    valores: readonly string[];
+  }[];
   /** Já filtradas: quando há categoria escolhida, vem só ela. */
   readonly secoes: readonly SecaoNaTela[];
   readonly destaques: readonly ProdutoNaTela[];

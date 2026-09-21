@@ -105,6 +105,8 @@ export type ResultadoDoCatalogo =
 /** O que muda o catálogo pedido. */
 export interface OpcoesDaBusca {
   readonly busca?: string | null | undefined;
+  readonly categoria?: string | null | undefined;
+  readonly filtros?: readonly string[] | undefined;
 }
 
 /**
@@ -129,8 +131,13 @@ export async function buscarCatalogo(
   buscar: typeof fetch = fetch,
 ): Promise<ResultadoDoCatalogo> {
   const termo = opcoes.busca?.trim() ?? "";
+  const parametros = new URLSearchParams();
+  if (termo !== "") parametros.set(PARAMETRO_DA_BUSCA, termo);
+  if (opcoes.categoria) parametros.set("categoria", opcoes.categoria);
+  for (const filtro of opcoes.filtros ?? [])
+    parametros.append("filtro", filtro);
   const consulta =
-    termo === "" ? "" : `?${PARAMETRO_DA_BUSCA}=${encodeURIComponent(termo)}`;
+    parametros.toString() === "" ? "" : `?${parametros.toString()}`;
   const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}/catalogo${consulta}`;
 
   let resposta: Response;

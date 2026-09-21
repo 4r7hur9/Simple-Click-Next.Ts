@@ -26,6 +26,7 @@ import {
 } from "../../../../../features/vitrine/BuscaProduto.tsx";
 import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
+import { FiltroEspecificacao } from "../../../../../features/vitrine/FiltroEspecificacao.tsx";
 import { BlocosPorRamo } from "../../../../../features/painel-catalogo/BlocosPorRamo.tsx";
 import {
   PARAMETRO_DA_BUSCA,
@@ -105,10 +106,17 @@ export default async function PaginaDoCatalogo({
   // As duas idas à API continuam em paralelo, que é o que o AC-415 mede.
   const consulta = await searchParams;
   const termo = primeiro(consulta[PARAMETRO_DA_BUSCA]);
+  const categoria = primeiro(consulta[PARAMETRO_DA_CATEGORIA]);
+  const filtros =
+    consulta.filtro === undefined
+      ? []
+      : Array.isArray(consulta.filtro)
+        ? consulta.filtro
+        : [consulta.filtro];
 
   const [vitrine, catalogo] = await Promise.all([
     buscarVitrine(slug),
-    buscarCatalogo(slug, { busca: termo }),
+    buscarCatalogo(slug, { busca: termo, categoria, filtros }),
   ]);
 
   // Inexistente e suspensa caem no MESMO lugar, porque a API já as respondeu
@@ -205,6 +213,14 @@ export default async function PaginaDoCatalogo({
                 filtroEmVigor={naTela.filtroEmVigor}
               />
             </BlocosPorRamo>
+
+            <FiltroEspecificacao
+              filtros={naTela.filtros ?? []}
+              selecionados={filtros}
+              acao={`/l/${loja.apelido}/catalogo`}
+              categoria={categoria}
+              busca={termo}
+            />
 
             <BlocosPorRamo
               blocos={loja.blocos}
