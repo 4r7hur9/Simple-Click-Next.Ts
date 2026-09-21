@@ -6,15 +6,15 @@ const APELIDO_DA_LOJA =
 
 export async function POST(
   requisicao: Request,
-  contexto: { params: Promise<{ id: string }> },
+  contexto: { params: Promise<{ produtoId: string }> },
 ): Promise<Response> {
   const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
   if (token === undefined) {
     return Response.json({ erro: "nao_autenticado" }, { status: 401 });
   }
-  const { id } = await contexto.params;
+  const { produtoId } = await contexto.params;
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/catalogo/produtos/${encodeURIComponent(id)}/duplicar`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/catalogo/produtos/${encodeURIComponent(produtoId)}/duplicar`,
     {
       method: "POST",
       cache: "no-store",

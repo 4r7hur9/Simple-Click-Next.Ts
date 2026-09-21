@@ -6,17 +6,17 @@ const APELIDO_DA_LOJA =
 
 async function encaminhar(
   requisicao: Request,
-  contexto: { params: Promise<{ id: string }> },
+  contexto: { params: Promise<{ produtoId: string }> },
 ): Promise<Response> {
   const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
   if (token === undefined) {
     return Response.json({ erro: "nao_autenticado" }, { status: 401 });
   }
-  const { id } = await contexto.params;
+  const { produtoId } = await contexto.params;
   const corpo =
     requisicao.method === "PATCH" ? await requisicao.text() : undefined;
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/catalogo/produtos/${encodeURIComponent(id)}`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/catalogo/produtos/${encodeURIComponent(produtoId)}`,
     {
       method: requisicao.method,
       cache: "no-store",
@@ -43,14 +43,14 @@ async function encaminhar(
 
 export function PATCH(
   requisicao: Request,
-  contexto: { params: Promise<{ id: string }> },
+  contexto: { params: Promise<{ produtoId: string }> },
 ) {
   return encaminhar(requisicao, contexto);
 }
 
 export function DELETE(
   requisicao: Request,
-  contexto: { params: Promise<{ id: string }> },
+  contexto: { params: Promise<{ produtoId: string }> },
 ) {
   return encaminhar(requisicao, contexto);
 }
