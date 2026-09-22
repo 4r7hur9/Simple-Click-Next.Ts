@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 
 import { AvisoSonoro } from "./AvisoSonoro.tsx";
+import { SeloAguardando } from "./SeloAguardando.tsx";
 import {
   useAtualizarPedidos,
   type PedidoNaFila,
@@ -56,9 +57,9 @@ function CartaoDoPedido({ pedido }: { readonly pedido: PedidoNaFila }) {
         </div>
       </dl>
       {pedido.aguardandoConfirmacaoWhatsapp ? (
-        <p className="mt-4 rounded-xl bg-[var(--cor-papel)] px-3 py-2 text-sm text-[var(--cor-tinta-suave)]">
-          Aguardando confirmação do WhatsApp
-        </p>
+        <div className="mt-4">
+          <SeloAguardando />
+        </div>
       ) : null}
       <Link
         className="mt-4 inline-flex text-sm font-medium text-[var(--cor-primaria)]"
@@ -106,14 +107,16 @@ export function QuadroDePedidos() {
   const estado = useAtualizarPedidos();
   const grupos = useMemo(() => {
     const aguardandoAcao: PedidoNaFila[] = [];
+    const aguardandoWhatsapp: PedidoNaFila[] = [];
     const emPreparo: PedidoNaFila[] = [];
     const emEntrega: PedidoNaFila[] = [];
     for (const pedido of estado.pedidos) {
-      if (pedido.status === "PENDING") aguardandoAcao.push(pedido);
+      if (pedido.aguardandoConfirmacaoWhatsapp) aguardandoWhatsapp.push(pedido);
+      else if (pedido.status === "PENDING") aguardandoAcao.push(pedido);
       else if (pedido.status === "OUT_FOR_DELIVERY") emEntrega.push(pedido);
       else emPreparo.push(pedido);
     }
-    return { aguardandoAcao, emPreparo, emEntrega };
+    return { aguardandoAcao, aguardandoWhatsapp, emPreparo, emEntrega };
   }, [estado.pedidos]);
 
   if (estado.carregando) {
@@ -133,7 +136,11 @@ export function QuadroDePedidos() {
                 : "Aguardando conexão…")}
         </p>
       </div>
-      <div className="mt-8 grid gap-8 xl:grid-cols-3">
+      <div className="mt-8 grid gap-8 xl:grid-cols-4">
+        <Coluna
+          titulo="Aguardando WhatsApp"
+          pedidos={grupos.aguardandoWhatsapp}
+        />
         <Coluna titulo="Aguardando ação" pedidos={grupos.aguardandoAcao} />
         <Coluna titulo="Em preparo" pedidos={grupos.emPreparo} />
         <Coluna titulo="Em entrega" pedidos={grupos.emEntrega} />

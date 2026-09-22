@@ -47,6 +47,7 @@ function respostaDoPedido(pedido: {
   readonly fulfillment: string;
   readonly totalCents: bigint;
   readonly placedAt: Date;
+  readonly whatsappClickedAt: Date | null;
   readonly whatsappConfirmedAt: Date | null;
   readonly contato: { readonly name: string } | null;
 }): PedidoDaFila {
@@ -60,7 +61,8 @@ function respostaDoPedido(pedido: {
     cliente: pedido.contato?.name ?? "Cliente sem nome",
     totalCentavos: Number(pedido.totalCents),
     criadoEm: pedido.placedAt.toISOString(),
-    aguardandoConfirmacaoWhatsapp: pedido.whatsappConfirmedAt === null,
+    aguardandoConfirmacaoWhatsapp:
+      pedido.whatsappClickedAt !== null && pedido.whatsappConfirmedAt === null,
   };
 }
 
@@ -120,6 +122,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
                 fulfillment: true,
                 totalCents: true,
                 placedAt: true,
+                whatsappClickedAt: true,
                 whatsappConfirmedAt: true,
                 contato: { select: { name: true } },
               },

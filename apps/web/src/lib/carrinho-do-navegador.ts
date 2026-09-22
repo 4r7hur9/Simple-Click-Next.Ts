@@ -246,6 +246,57 @@ export async function criarPedido(
   return { estado: "criado", pedido: resposta.corpo as PedidoNaTela };
 }
 
+/** Registra que o cliente abriu a conversa do pedido. */
+export async function registrarCliqueNoWhatsApp(
+  apelidoDaLoja: string,
+  tokenDoPedido: string,
+  buscar: typeof fetch = fetch,
+): Promise<boolean> {
+  return registrarAcaoDoWhatsApp(
+    apelidoDaLoja,
+    tokenDoPedido,
+    "whatsapp-clique",
+    buscar,
+  );
+}
+
+/** Registra que o cliente confirmou o envio da mensagem. */
+export async function confirmarMensagemNoWhatsApp(
+  apelidoDaLoja: string,
+  tokenDoPedido: string,
+  buscar: typeof fetch = fetch,
+): Promise<boolean> {
+  return registrarAcaoDoWhatsApp(
+    apelidoDaLoja,
+    tokenDoPedido,
+    "whatsapp-confirmado",
+    buscar,
+  );
+}
+
+async function registrarAcaoDoWhatsApp(
+  apelidoDaLoja: string,
+  tokenDoPedido: string,
+  acao: "whatsapp-clique" | "whatsapp-confirmado",
+  buscar: typeof fetch,
+): Promise<boolean> {
+  try {
+    const resposta = await buscar(
+      `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(apelidoDaLoja)}/pedidos/${encodeURIComponent(tokenDoPedido)}/${acao}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { accept: "application/json" },
+      },
+    );
+    return resposta.ok;
+  } catch {
+    // A abertura da conversa e a confirmação visual não podem ser desfeitas
+    // por uma falha transitória de rede. O cliente poderá tentar novamente.
+    return false;
+  }
+}
+
 type Resposta =
   | { readonly estado: "ok"; readonly corpo: unknown }
   | { readonly estado: "conflito" }

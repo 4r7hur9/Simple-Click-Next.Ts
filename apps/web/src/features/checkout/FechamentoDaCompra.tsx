@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   conferirCarrinho,
   criarPedido,
+  registrarCliqueNoWhatsApp,
   type ConferenciaNaTela,
   type PedidoNaTela,
 } from "../../lib/carrinho-do-navegador.ts";
@@ -217,6 +218,11 @@ export function FechamentoDaCompra({
           enderecoDaConversa={pedido.whatsapp.endereco}
           textoDoPedido={pedido.whatsapp.texto}
           linkDeAcompanhamento={acompanhamento}
+          aoAbrir={() =>
+            registrarCliqueNoWhatsApp(apelidoDaLoja, pedido.tokenPublico).then(
+              () => undefined,
+            )
+          }
         />
       );
     }

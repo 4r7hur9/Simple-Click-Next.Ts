@@ -29,6 +29,8 @@ export interface EnvioWhatsAppProps {
   readonly textoDoPedido: string;
   /** Onde o cliente acompanha o pedido, com ou sem WhatsApp. */
   readonly linkDeAcompanhamento: string;
+  /** Registro assíncrono depois da abertura, sem bloquear o gesto do botão. */
+  readonly aoAbrir?: (() => Promise<void> | void) | undefined;
   readonly abrir?: typeof window.open | undefined;
   readonly copiar?: ((texto: string) => Promise<void>) | undefined;
 }
@@ -42,6 +44,7 @@ export function EnvioWhatsApp({
   enderecoDaConversa,
   textoDoPedido,
   linkDeAcompanhamento,
+  aoAbrir,
   abrir,
   copiar = copiarPeloNavegador,
 }: EnvioWhatsAppProps) {
@@ -52,7 +55,9 @@ export function EnvioWhatsApp({
     // A abertura acontece AQUI, dentro do gesto. Nada de esperar resposta de
     // servidor antes: quando a espera termina, a autorização já expirou.
     const comoAbrir = abrir ?? window.open;
-    setEnvio(abrirConversa(enderecoDaConversa, comoAbrir));
+    const resultado = abrirConversa(enderecoDaConversa, comoAbrir);
+    setEnvio(resultado);
+    if (resultado === "abriu") void aoAbrir?.();
   }
 
   async function copiarTexto() {

@@ -29,7 +29,12 @@
  * um módulo a importar outro — quem junta é `app.ts`, que é a borda.
  */
 import { randomBytes } from "node:crypto";
-import { Router } from "express";
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import {
   calcularValores,
   gerarTextoDoPedido,
@@ -55,6 +60,11 @@ import { validar } from "../../core/validar.ts";
 import { criarPedido } from "./criar-pedido.usecase.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
 import { reservarEstoque } from "./reservar-estoque.ts";
+import {
+  confirmarEnvioNoWhatsApp,
+  PedidoDaConfirmacaoNaoEncontrado,
+  registrarCliqueNoWhatsApp,
+} from "./confirmacao-whatsapp.usecase.ts";
 
 /**
  * O endereço público do pedido, sorteado AQUI e declarado na transação.
@@ -342,6 +352,74 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       proximo(erro);
     }
   });
+
+  /**
+   * O navegador abre a conversa primeiro e só depois registra o clique. Assim
+   * a chamada de rede nunca fica entre o gesto do cliente e a abertura da
+   * janela, o que faria o navegador bloquear o WhatsApp.
+   */
+  async function registrarAcaoDoWhatsApp(
+    req: Request<{ apelido: string; token: string }>,
+    res: Response,
+    proximo: NextFunction,
+    confirmado: boolean,
+  ): Promise<void> {
+    try {
+      const acesso = opcoes.acesso ?? banco();
+      const identificacao = await executarComoRequisicao(
+        { papel: "PUBLIC" },
+        () =>
+          acesso.emTransacao(() =>
+            opcoes.identificarLoja({ apelido: req.params.apelido }),
+          ),
+      );
+      if (!identificacao.encontrada || identificacao.id === undefined) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
+
+      const resultado = await executarComoRequisicao(
+        {
+          papel: "PUBLIC",
+          lojaId: identificacao.id,
+          tokenDoPedido: req.params.token,
+        },
+        () =>
+          acesso.emTransacao(() =>
+            confirmado
+              ? confirmarEnvioNoWhatsApp()
+              : registrarCliqueNoWhatsApp(),
+          ),
+      );
+
+      res.json({
+        id: resultado.id,
+        whatsappClickedAt: resultado.clicadoEm.toISOString(),
+        whatsappConfirmedAt: resultado.confirmadoEm?.toISOString() ?? null,
+        aguardandoConfirmacaoWhatsapp: resultado.aguardandoConfirmacao,
+      });
+    } catch (causa) {
+      if (causa instanceof PedidoDaConfirmacaoNaoEncontrado) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
+      proximo(causa);
+    }
+  }
+
+  rotas.post(
+    "/:apelido/pedidos/:token/whatsapp-clique",
+    (req, res, proximo) => {
+      void registrarAcaoDoWhatsApp(req, res, proximo, false);
+    },
+  );
+
+  rotas.post(
+    "/:apelido/pedidos/:token/whatsapp-confirmado",
+    (req, res, proximo) => {
+      void registrarAcaoDoWhatsApp(req, res, proximo, true);
+    },
+  );
 
   return rotas;
 }
