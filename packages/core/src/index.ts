@@ -79,6 +79,19 @@ export type {
   TextoDoPedido,
 } from "./cupom-texto.ts";
 export {
+  acrescentarHistorico,
+  decidirTransicao,
+  proximosStatus,
+  STATUS_DO_PEDIDO,
+} from "./maquina-status.ts";
+export type {
+  DecisaoDeTransicao,
+  EntradaDeHistorico,
+  FormaDeEntregaDoPedido,
+  OpcaoDeStatus,
+  StatusDoPedido,
+} from "./maquina-status.ts";
+export {
   composicaoDoRamo,
   composicaoVazia,
   temBloco,

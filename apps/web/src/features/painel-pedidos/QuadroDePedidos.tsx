@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 
 import { AvisoSonoro } from "./AvisoSonoro.tsx";
 import {
@@ -59,6 +60,12 @@ function CartaoDoPedido({ pedido }: { readonly pedido: PedidoNaFila }) {
           Aguardando confirmação do WhatsApp
         </p>
       ) : null}
+      <Link
+        className="mt-4 inline-flex text-sm font-medium text-[var(--cor-primaria)]"
+        href={`/painel/pedidos/${pedido.id}`}
+      >
+        Abrir pedido →
+      </Link>
     </article>
   );
 }
