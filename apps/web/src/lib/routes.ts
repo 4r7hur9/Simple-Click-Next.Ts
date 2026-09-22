@@ -103,6 +103,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-612..AC-615, AC-610",
+    arquivo: "apps/web/src/app/(loja)/l/[slug]/pedido/[token]/page.tsx",
   },
   {
     rota: "/l/{slug}/indisponivel",

@@ -98,6 +98,8 @@ export {
   rotaDoFechamento,
 } from "./vitrine.ts";
 export { esquemaDeComposicaoDoRamo } from "./vertical.ts";
+export { esquemaDoAcompanhamento } from "./acompanhamento.ts";
+export type { AcompanhamentoNoContrato } from "./acompanhamento.ts";
 export type {
   CatalogoDaVitrineNoContrato,
   GrupoDeEscolhaNoContrato,

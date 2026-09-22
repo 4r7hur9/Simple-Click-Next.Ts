@@ -60,6 +60,7 @@ import { validar } from "../../core/validar.ts";
 import { criarPedido } from "./criar-pedido.usecase.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
 import { reservarEstoque } from "./reservar-estoque.ts";
+import { acompanharPedido } from "./acompanhar.usecase.ts";
 import {
   confirmarEnvioNoWhatsApp,
   PedidoDaConfirmacaoNaoEncontrado,
@@ -350,6 +351,40 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       });
     } catch (erro) {
       proximo(erro);
+    }
+  });
+
+  rotas.get("/:apelido/pedido/:token", async (req, res, proximo) => {
+    try {
+      const acesso = opcoes.acesso ?? banco();
+      const identificacao = await executarComoRequisicao(
+        { papel: "PUBLIC" },
+        () =>
+          acesso.emTransacao(() =>
+            opcoes.identificarLoja({ apelido: req.params.apelido }),
+          ),
+      );
+      if (!identificacao.encontrada || identificacao.id === undefined) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
+
+      const pedido = await executarComoRequisicao(
+        {
+          papel: "PUBLIC",
+          lojaId: identificacao.id,
+          tokenDoPedido: req.params.token,
+        },
+        () => acesso.emTransacao(() => acompanharPedido()),
+      );
+      if (pedido === null) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
+
+      res.json({ pedido });
+    } catch (causa) {
+      proximo(causa);
     }
   });
 
