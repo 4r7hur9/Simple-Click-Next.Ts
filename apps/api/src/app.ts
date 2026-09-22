@@ -32,6 +32,7 @@ import {
   PREFIXO_DOS_PEDIDOS,
   type OpcoesDosPedidos,
 } from "./modules/orders/pedidos.routes.ts";
+import { criarRotasDaFila } from "./modules/orders/fila.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
   fechamentoDaLoja,
@@ -138,6 +139,31 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
             papel: "OWNER",
           };
           return usuario;
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
+
+  app.use(
+    "/v1/lojas",
+    criarRotasDaFila({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
         } catch {
           return null;
         }

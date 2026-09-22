@@ -246,6 +246,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-600..AC-603, AC-609, AC-611",
+    arquivo: "apps/web/src/app/(painel)/painel/pedidos/page.tsx",
   },
   {
     rota: "/painel/pedidos/{id}",
