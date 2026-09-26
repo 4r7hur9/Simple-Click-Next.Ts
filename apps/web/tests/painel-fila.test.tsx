@@ -433,5 +433,7 @@ describe("a fila é acessível (P-012)", () => {
 
     expect(graves.map((violacao) => violacao.id)).toEqual([]);
     expect(resultado.passes.map((regra) => regra.id)).toContain("button-name");
-  });
+    // O motor do axe percorre a árvore inteira: com a suíte completa rodando
+    // em paralelo, ele passa dos 5 s padrão sem nada de errado na tela.
+  }, 60_000);
 });

@@ -1,3 +1,16 @@
+/**
+ * As rotas do dono sobre os pedidos da loja (T-600, T-601): a fila, o detalhe
+ * de um pedido e a mudança de status.
+ *
+ * Toda leitura e toda escrita acontecem com a loja declarada no contexto, e é o
+ * isolamento por linha que garante que o pedido de outra loja não existe para
+ * esta requisição — pedido alheio pedido pelo identificador responde 404, igual
+ * a pedido que não existe.
+ *
+ * O identificador do pedido é validado na borda (P-007): formato que não é de
+ * identificador responde "não encontrado" antes de chegar ao banco, em vez de
+ * virar erro interno.
+ */
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
@@ -37,6 +50,9 @@ export interface OpcoesDaFila {
 function erro(resposta: Response, status: number, mensagem: string): void {
   resposta.status(status).json({ erro: mensagem });
 }
+
+/** O pedido pedido na rota. Formato errado é pedido que não existe. */
+const esquemaDoPedidoNaRota = z.object({ id: z.string().uuid() });
 
 const esquemaDaMudancaDeStatus = z.strictObject({
   status: z.string().trim().min(1).max(40),
@@ -93,6 +109,10 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
 
   rotas.get("/:apelido/pedidos/:id", async (requisicao, resposta, proximo) => {
     try {
+      if (!esquemaDoPedidoNaRota.safeParse(requisicao.params).success) {
+        erro(resposta, 404, "nao_encontrado");
+        return;
+      }
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },
         () =>
@@ -178,6 +198,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
         return;
       }
 
+      resposta.set("cache-control", "no-store");
       resposta.json({
         pedido: {
           id: pedido.id,
@@ -238,6 +259,10 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
     "/:apelido/pedidos/:id/status",
     async (requisicao, resposta, proximo) => {
       try {
+        if (!esquemaDoPedidoNaRota.safeParse(requisicao.params).success) {
+          erro(resposta, 404, "nao_encontrado");
+          return;
+        }
         const entrada = esquemaDaMudancaDeStatus.safeParse(requisicao.body);
         if (!entrada.success) {
           erro(resposta, 400, "entrada_invalida");

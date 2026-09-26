@@ -9,11 +9,11 @@
 - Notas: o que aguarda ação fica em destaque no topo, com tempo de espera visível. Reconexão recupera o que entrou durante a queda. Silenciar o som mantém o alerta visual e a escolha persiste. Depende da decisão pendente D3. A regra da fila (onde cada pedido cai, o que é novo, quando o som toca) mora em `packages/core/src/fila-de-pedidos.ts` e é a MESMA na API e na tela; a consulta periódica de 5 s é o caminho de retorno da ASM-602 — a conexão contínua, se vier, troca só o gatilho da leitura.
 - Esforço: alto
 
-## T-601 — Máquina de status do pedido [pendente]
+## T-601 — Máquina de status do pedido [concluida]
 
 - Refs: US-601, AC-604, AC-605, AC-606, AC-607, AC-608
-- Arquivos: packages/core/src/maquina-status.ts, packages/core/src/maquina-status.test.ts, apps/api/src/modules/orders/mudar-status.usecase.ts, apps/api/src/modules/orders/mudar-status.usecase.test.ts, apps/web/src/app/(painel)/painel/pedidos/[id]/page.tsx, apps/web/src/features/painel-pedidos/AcoesDeStatus.tsx
-- Notas: transição inválida é recusada com explicação. Pedido de retirada não passa por status de entrega. Recusa e cancelamento exigem motivo, avisam o cliente e saem do faturamento. Histórico não pode ser alterado.
+- Arquivos: packages/core/src/maquina-status.ts, packages/core/src/maquina-status.test.ts, apps/api/src/modules/orders/mudar-status.usecase.ts, apps/api/src/modules/orders/mudar-status.usecase.test.ts, apps/api/tests/mudar-status.test.ts, apps/web/src/app/(painel)/painel/pedidos/[id]/page.tsx, apps/web/src/app/api/painel/pedidos/[id]/route.ts, apps/web/src/features/painel-pedidos/AcoesDeStatus.tsx, apps/web/src/features/painel-pedidos/DetalheDoPedido.tsx, apps/web/tests/painel-detalhe-pedido.test.tsx
+- Notas: transição inválida é recusada com explicação. Pedido de retirada não passa por status de entrega. Recusa e cancelamento exigem motivo, avisam o cliente e saem do faturamento. Histórico não pode ser alterado. A mudança só vale sobre o status que foi lido (dois aparelhos aceitando juntos geram um passo só); o histórico é imutável por ausência de política de alteração e remoção (0008, guarda G8) — o privilégio de UPDATE/DELETE que o padrão do esquema concede a `sc_app`/`sc_admin` continua lá e é dívida registrada. As rotas do dono ainda não conferem se a identidade é membro da loja (dívida de toda a área do painel).
 - Esforço: alto
 
 ## T-602 — Pedido aguardando confirmação no WhatsApp [pendente]

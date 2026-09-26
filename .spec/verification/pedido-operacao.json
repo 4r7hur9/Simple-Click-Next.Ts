@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-26T15:55:15.590Z",
-  "gitRev": "55ea723",
+  "timestamp": "2026-09-26T16:33:50.750Z",
+  "gitRev": "ed51d3a",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1291,
+  "testsParsed": 1319,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -29,27 +29,27 @@
     },
     "AC-604": {
       "status": "pass",
-      "testName": "máquina de status do pedido @spec:AC-604 percorre o caminho normal de entrega até concluir @spec:AC-604 percorre o caminho normal de entrega até concluir",
+      "testName": "o caminho normal do pedido (AC-604) @spec:AC-604 aceitar, preparar, sair para entrega e concluir, cada passo com horário e quem fez @spec:AC-604 aceitar, preparar, sair para entrega e concluir, cada passo com horário e quem fez",
       "method": "vitest-json"
     },
     "AC-605": {
       "status": "pass",
-      "testName": "máquina de status do pedido @spec:AC-605 oferece pronto para retirada e não entrega para retirada local @spec:AC-605 oferece pronto para retirada e não entrega para retirada local",
+      "testName": "retirada não passa por entrega (AC-605) @spec:AC-605 em preparo, o pedido de retirada oferece pronto para retirada e nunca saiu para entrega @spec:AC-605 em preparo, o pedido de retirada oferece pronto para retirada e nunca saiu para entrega",
       "method": "vitest-json"
     },
     "AC-606": {
       "status": "pass",
-      "testName": "máquina de status do pedido @spec:AC-606 recusa voltar de concluído e mantém o caminho encerrado @spec:AC-606 recusa voltar de concluído e mantém o caminho encerrado",
+      "testName": "caminho que não existe é recusado (AC-606) @spec:AC-606 voltar um pedido concluído para em preparo é recusado com explicação, e o status fica concluído @spec:AC-606 voltar um pedido concluído para em preparo é recusado com explicação, e o status fica concluído",
       "method": "vitest-json"
     },
     "AC-607": {
       "status": "pass",
-      "testName": "máquina de status do pedido @spec:AC-607 exige motivo para cancelar e retira o pedido das vendas @spec:AC-607 exige motivo para cancelar e retira o pedido das vendas",
+      "testName": "recusar e cancelar exigem motivo e avisam o cliente (AC-607) @spec:AC-607 recusar sem motivo é recusado, e o pedido continua aguardando @spec:AC-607 recusar sem motivo é recusado, e o pedido continua aguardando",
       "method": "vitest-json"
     },
     "AC-608": {
       "status": "pass",
-      "testName": "máquina de status do pedido @spec:AC-608 acrescenta histórico sem alterar entradas anteriores @spec:AC-608 acrescenta histórico sem alterar entradas anteriores",
+      "testName": "a linha do tempo é completa e imutável (AC-608) @spec:AC-608 o detalhe mostra cada passo, o horário exato e quem fez @spec:AC-608 o detalhe mostra cada passo, o horário exato e quem fez",
       "method": "vitest-json"
     },
     "AC-609": {
@@ -91,8 +91,8 @@
       "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
     "P-012": {
-      "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
+      "status": "fail",
+      "testName": "a fila é acessível (P-012) @principle:P-012 a fila com pedidos não tem violação crítica nem séria @principle:P-012 a fila com pedidos não tem violação crítica nem séria"
     },
     "P-007": {
       "status": "pass",
