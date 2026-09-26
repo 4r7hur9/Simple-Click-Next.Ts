@@ -8,6 +8,7 @@
     "apps/*/tests/**",
     "packages/*/src/**/*.test.ts",
     "packages/*/tests/**",
+    "packages/*/seed/**/*.test.ts",
     "infra/tests/**",
     "e2e/**"
   ],
