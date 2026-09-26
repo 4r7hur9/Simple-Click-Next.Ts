@@ -431,6 +431,10 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         // não nasça classificado errado em toda superfície ao mesmo tempo.
         "alimentacao",
         "apelido",
+        // `blocos` é a composição das telas definida pelo preset do RAMO
+        // (`vertical_presets.blocos`): catálogo de plataforma, o mesmo para
+        // toda loja do ramo, como `rotulos` — nada do dono desta loja.
+        "blocos",
         "boasVindas",
         "capa",
         "cores",
