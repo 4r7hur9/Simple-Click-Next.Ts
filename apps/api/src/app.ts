@@ -33,6 +33,8 @@ import {
   type OpcoesDosPedidos,
 } from "./modules/orders/pedidos.routes.ts";
 import { criarRotasDaFila } from "./modules/orders/fila.routes.ts";
+import { criarRotasDoCupom } from "./modules/printing/cupom.routes.ts";
+import { normalizarConfiguracaoDeImpressao } from "./modules/stores/impressao-config.usecase.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
   fechamentoDaLoja,
@@ -325,6 +327,35 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     "/v1/lojas",
     criarRotasDoEstoque({
       resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
+
+  // O CUPOM É COSTURADO AQUI (T-606): emitir a via é do módulo de impressão,
+  // e interpretar a configuração de papel é do módulo da loja. A borda passa a
+  // função pronta, e nenhum dos dois módulos importa o outro.
+  app.use(
+    "/v1/lojas",
+    criarRotasDoCupom({
+      resolverLoja: identificarLoja,
+      lerConfiguracaoDoCupom: normalizarConfiguracaoDeImpressao,
       autenticar: (requisicao) => {
         const token = tokenDoCabecalhoDeAutorizacao(
           requisicao.headers.authorization,

@@ -439,6 +439,14 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     quatroEstados: true,
     criterios: "AC-118, AC-922",
   },
+  {
+    rota: "/imprimir/{id}",
+    tela: "Cupom do pedido para impressão por clique",
+    acesso: "DONO",
+    quatroEstados: true,
+    criterios: "AC-617, AC-618, AC-621",
+    arquivo: "apps/web/src/app/imprimir/[id]/page.tsx",
+  },
 ];
 
 /** Só as telas que já existem, com o arquivo que as desenha. */

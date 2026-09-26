@@ -95,6 +95,6 @@ test("@spec:AC-016 o inventário conta quantas telas faltam construir", async ()
     (tela) => tela.arquivo !== undefined,
   );
 
-  expect(MANIFESTO_DE_ROTAS.length).toBe(50);
+  expect(MANIFESTO_DE_ROTAS.length).toBe(53);
   expect(construidas.length).toBeGreaterThan(0);
 });

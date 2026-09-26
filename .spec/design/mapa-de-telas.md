@@ -86,6 +86,7 @@
 | 38  | `/painel/config/contato`   | WhatsApp e texto da mensagem               | OWNER  | 4E      | e2e-config-contato   | AC-913..AC-915                 |
 | 39  | `/painel/config/aparencia` | Apresentação, logo, capa e cor             | OWNER  | 4E      | e2e-config-aparencia | AC-916..AC-918, AC-015         |
 | 40  | `/painel/config/impressao` | Papel, conteúdo do cupom e modo automático | OWNER  | 4E      | e2e-config-impressao | AC-622, AC-626, AC-919, AC-920 |
+| 40a | `/imprimir/{id}`           | Cupom do pedido para impressão por clique  | OWNER  | 4E      | e2e-imprimir         | AC-617, AC-618, AC-621         |
 
 ## Administração da plataforma
 

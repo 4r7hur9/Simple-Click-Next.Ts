@@ -44,11 +44,11 @@
 - Notas: um só gerador de blocos, parametrizado pela largura do papel, alimenta a impressão pelo navegador e a do agente — e um teste prova que as duas saídas têm o mesmo conteúdo, risco que o crítico apontou. Acento correto exige tratar a tabela de caracteres da impressora; alinhamento exige normalizar o texto antes de contar largura. O CONTRATO dos blocos (versão 1, dois níveis: cupom semântico e linhas diagramadas) está no topo de `cupom-blocos.ts`; `cupom-escpos.ts` é a saída da impressora e a referência do agente (T-609). A via (AC-621) é `orders.print_count` (migração 0030), somada na mesma transação que gera o cupom.
 - Esforço: max
 
-## T-606 — Impressão por clique no navegador [pendente]
+## T-606 — Impressão por clique no navegador [concluida]
 
 - Refs: US-604, AC-617, AC-618
-- Arquivos: apps/web/src/app/imprimir/[id]/page.tsx, apps/web/src/app/imprimir/[id]/cupom.css, e2e/specs/imprimir.spec.ts
-- Notas: página de cupom sem o layout do aplicativo, com largura de papel configurada, para impressão direta pelo navegador sem instalar nada.
+- Arquivos: apps/web/src/app/imprimir/[id]/page.tsx, apps/web/src/app/imprimir/[id]/loading.tsx, apps/web/src/app/imprimir/[id]/cupom.css, apps/web/src/features/impressao/FolhaDoCupom.tsx, apps/web/src/features/impressao/ImprimirAoAbrir.tsx, apps/web/src/features/impressao/AcoesDaImpressao.tsx, apps/web/src/features/impressao/AvisoDoCupom.tsx, apps/web/src/features/impressao/BotaoImprimirCupom.tsx, apps/web/src/server/cupom.ts, apps/web/tests/imprimir-cupom.test.tsx, apps/api/src/modules/printing/cupom.routes.ts, apps/api/src/modules/printing/cupom.schema.ts, apps/api/tests/cupom-rota.test.ts, e2e/specs/imprimir.spec.ts
+- Notas: página de cupom sem o layout do aplicativo, com largura de papel configurada, para impressão direta pelo navegador sem instalar nada. Abrir a página emite uma via (`POST /v1/lojas/:apelido/pedidos/:id/cupom`, AC-621) e abre o diálogo de impressão do navegador; os links para ela são `<a>` comuns, nunca `Link`, para pré-carregamento não contar via. O HTML desenha as MESMAS linhas de `diagramarCupom` que a impressora recebe; a fonte da folha tem negrito próprio e `font-synthesis: none`, porque negrito sintetizado alarga a letra e tira o valor da coluna (medido no Chrome). O botão "Imprimir cupom" entrou no detalhe do pedido (`painel/pedidos/[id]/page.tsx`, da T-601).
 - Esforço: medio
 
 ## T-607 — Fila de impressão em banco com reivindicação e prazo [pendente]

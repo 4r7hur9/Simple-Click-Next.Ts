@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-26T15:53:42.172Z",
-  "gitRev": "55ea723",
+  "timestamp": "2026-09-26T17:12:27.100Z",
+  "gitRev": "ec030fe",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1306,
+  "testsParsed": 1322,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -72,6 +72,11 @@
       "testName": "acompanhamento público @spec:AC-615 mascara o telefone do cliente @spec:AC-615 mascara o telefone do cliente",
       "method": "vitest-json"
     },
+    "AC-617": {
+      "status": "pass",
+      "testName": "a rota do cupom para a impressão por clique (AC-617) @spec:AC-617 o dono pede o cupom do pedido e recebe um cupom do contrato, sem cache @spec:AC-617 o dono pede o cupom do pedido e recebe um cupom do contrato, sem cache",
+      "method": "vitest-json"
+    },
     "AC-618": {
       "status": "pass",
       "testName": "a largura configurada em cada loja vale para o cupom (AC-618) @spec:AC-618 a loja de 58 mm recebe cupom de 32 colunas e a de 80 mm, de 48, para o mesmo pedido @spec:AC-618 a loja de 58 mm recebe cupom de 32 colunas e a de 80 mm, de 48, para o mesmo pedido",
@@ -89,7 +94,7 @@
     },
     "AC-621": {
       "status": "pass",
-      "testName": "o pedido registra quantas vezes o cupom foi impresso (AC-621) @spec:AC-621 a primeira impressão é a via 1; imprimir de novo gera a 2ª via marcada, e o pedido guarda a contagem @spec:AC-621 a primeira impressão é a via 1; imprimir de novo gera a 2ª via marcada, e o pedido guarda a contagem",
+      "testName": "a rota do cupom para a impressão por clique (AC-617) @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão",
       "method": "vitest-json"
     }
   },
