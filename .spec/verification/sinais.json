@@ -7983,6 +7983,15 @@
       "primeiraVez": "2026-09-26T12:59:44.191Z",
       "ultimaVez": "2026-09-26T12:59:44.191Z",
       "gitRev": "9dbd2f6"
+    },
+    "VERIFY_FALHOU::pedido-operacao::P-003": {
+      "codigo": "VERIFY_FALHOU",
+      "feature": "pedido-operacao",
+      "ref": "P-003",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-26T15:53:42.775Z",
+      "ultimaVez": "2026-09-26T15:53:42.775Z",
+      "gitRev": "55ea723"
     }
   }
 }

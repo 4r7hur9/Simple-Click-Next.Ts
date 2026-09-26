@@ -37,11 +37,11 @@
 - Notas: o cliente logado vê os pedidos dele em todas as lojas onde comprou, por caminho dedicado — e nenhuma loja enxerga o histórico da outra.
 - Esforço: alto
 
-## T-605 — Gerador de conteúdo do cupom, uma fonte para duas saídas [pendente]
+## T-605 — Gerador de conteúdo do cupom, uma fonte para duas saídas [concluida]
 
 - Refs: US-604, AC-619, AC-620, AC-621
-- Arquivos: packages/core/src/cupom-blocos.ts, packages/core/src/cupom-blocos.test.ts, packages/core/src/cupom-largura.ts, packages/core/src/cupom-largura.test.ts, packages/core/src/**snapshots**/cupom-blocos.test.ts.snap
-- Notas: um só gerador de blocos, parametrizado pela largura do papel, alimenta a impressão pelo navegador e a do agente — e um teste prova que as duas saídas têm o mesmo conteúdo, risco que o crítico apontou. Acento correto exige tratar a tabela de caracteres da impressora; alinhamento exige normalizar o texto antes de contar largura.
+- Arquivos: packages/core/src/cupom-blocos.ts, packages/core/src/cupom-blocos.test.ts, packages/core/src/cupom-blocos.test.ts.snap, packages/core/src/cupom-largura.ts, packages/core/src/cupom-largura.test.ts, packages/core/src/cupom-escpos.ts, packages/core/src/cupom-escpos.test.ts, packages/database/migrations/0030_vias_impressas_do_pedido.sql, apps/api/src/modules/printing/cupom.usecase.ts, apps/api/tests/cupom-vias.test.ts
+- Notas: um só gerador de blocos, parametrizado pela largura do papel, alimenta a impressão pelo navegador e a do agente — e um teste prova que as duas saídas têm o mesmo conteúdo, risco que o crítico apontou. Acento correto exige tratar a tabela de caracteres da impressora; alinhamento exige normalizar o texto antes de contar largura. O CONTRATO dos blocos (versão 1, dois níveis: cupom semântico e linhas diagramadas) está no topo de `cupom-blocos.ts`; `cupom-escpos.ts` é a saída da impressora e a referência do agente (T-609). A via (AC-621) é `orders.print_count` (migração 0030), somada na mesma transação que gera o cupom.
 - Esforço: max
 
 ## T-606 — Impressão por clique no navegador [pendente]
