@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PALETA_CLARA } from "@simpleclick/ui";
 
-import { AcompanhamentoDoPedido } from "../../../../../../../features/pedido/AcompanhamentoDoPedido.tsx";
-import { buscarAcompanhamento } from "../../../../../../../lib/acompanhamento.ts";
-import { buscarVitrine } from "../../../../../../../server/vitrine.ts";
+import { AcompanhamentoDoPedido } from "../../../../../../features/pedido/AcompanhamentoDoPedido.tsx";
+import { buscarAcompanhamento } from "../../../../../../lib/acompanhamento.ts";
+import { buscarVitrine } from "../../../../../../server/vitrine.ts";
 
 interface ParametrosDaPagina {
   readonly params: Promise<{ readonly slug: string; readonly token: string }>;
