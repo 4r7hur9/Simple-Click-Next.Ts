@@ -98,3 +98,15 @@ export {
   TELAS_DO_RAMO,
 } from "./vertical.ts";
 export type { ComposicaoDoRamo, TelaDoRamo } from "./vertical.ts";
+export {
+  cnpjValido,
+  cpfValido,
+  FORMATO_DA_CHAVE_PIX,
+  validarChavePix,
+} from "./chave-pix.ts";
+export type {
+  ChavePixAceita,
+  ChavePixRecusada,
+  ResultadoDaChavePix,
+  TipoDaChavePix,
+} from "./chave-pix.ts";

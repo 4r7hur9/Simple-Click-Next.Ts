@@ -13,7 +13,7 @@
  * formato de toda recusa da API (`core/validar.ts`).
  */
 import { z } from "zod";
-import { normalizarWhatsApp } from "@simpleclick/core";
+import { normalizarWhatsApp, validarChavePix } from "@simpleclick/core";
 import {
   esquemaDaConfiguracaoDeAparencia,
   esquemaDaConfiguracaoDeContato,
@@ -32,6 +32,29 @@ export const esquemaDaSecao = z.enum(SECOES_DO_DONO);
 
 /** Os parâmetros de uma rota de configuração. */
 export const esquemaDosParametrosDaSecao = esquemaDoApelido;
+
+/**
+ * O pagamento, com a chave PIX conferida pelo tipo escolhido (AC-901).
+ *
+ * A recusa sai no campo da chave e diz o formato que aquele tipo pede. A
+ * chave aceita sai NORMALIZADA — CPF só com dígitos, telefone com +55 —,
+ * que é como o banco do cliente a procura.
+ */
+const esquemaDoPagamento = esquemaDaConfiguracaoDePagamento.transform(
+  (valor, contexto) => {
+    if (valor.pix === null) return valor;
+    const conferida = validarChavePix(valor.pix.tipo, valor.pix.chave);
+    if (!conferida.ok) {
+      contexto.addIssue({
+        code: "custom",
+        path: ["pix", "chave"],
+        message: conferida.formatoEsperado,
+      });
+      return z.NEVER;
+    }
+    return { ...valor, pix: { ...valor.pix, chave: conferida.chave } };
+  },
+);
 
 /**
  * O contato, com o número já no formato internacional (AC-913).
@@ -64,7 +87,7 @@ const esquemaDoContato = esquemaDaConfiguracaoDeContato.transform(
  * certo — sem conversão no meio do caminho.
  */
 export const ESQUEMAS_DAS_SECOES = {
-  pagamento: esquemaDaConfiguracaoDePagamento,
+  pagamento: esquemaDoPagamento,
   entrega: esquemaDaConfiguracaoDeEntrega,
   horario: esquemaDaConfiguracaoDeHorario,
   contato: esquemaDoContato,

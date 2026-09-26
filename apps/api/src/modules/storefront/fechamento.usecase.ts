@@ -161,10 +161,15 @@ export async function fechamentoDaLoja(
 
   const pagamento = objeto(linha.payment);
   const formas = formasDePagamento(pagamento);
+  const pix = chavePix(pagamento, formas);
 
   return {
-    formasDePagamento: formas,
-    pix: chavePix(pagamento, formas),
+    // PIX SEM CHAVE NÃO É OFERECIDO (AC-902). Documento antigo pode ter o PIX
+    // ligado e chave nenhuma; oferecer o botão e não ter o que mostrar na
+    // hora de pagar é o pior momento para descobrir. As outras formas seguem.
+    formasDePagamento:
+      pix === null ? formas.filter((forma) => forma !== "PIX") : formas,
+    pix,
     entrega: entregaDaLoja(objeto(linha.delivery), formasDeEntregaDaLoja),
     // Ausente vale VERDADEIRO: é o comportamento do concorrente e o que o dono
     // espera. Quem quiser desligar terá o interruptor na T-900.

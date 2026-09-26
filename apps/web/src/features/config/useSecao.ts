@@ -35,8 +35,14 @@ export interface SecaoNaTela<T> {
   readonly erros: Readonly<Record<string, string>>;
   /** Marca problemas encontrados na própria tela, antes de ir à rede. */
   readonly apontar: (erros: Readonly<Record<string, string>>) => void;
-  /** Envia o corpo; verdadeiro quando a API aceitou. */
-  readonly salvar: (corpo: unknown) => Promise<boolean>;
+  /**
+   * Envia o corpo; verdadeiro quando a API aceitou. A frase de sucesso pode
+   * ser trocada por uma que diga o que mudou para o cliente.
+   */
+  readonly salvar: (
+    corpo: unknown,
+    mensagemDeSucesso?: string,
+  ) => Promise<boolean>;
 }
 
 /** As frases que mudam de uma seção para outra. */
@@ -96,7 +102,7 @@ export function useSecao<T>(
   }, [carregar, textos.carregada]);
 
   const salvar = useCallback(
-    async (corpo: unknown): Promise<boolean> => {
+    async (corpo: unknown, mensagemDeSucesso?: string): Promise<boolean> => {
       setSalvando(true);
       setMensagem("Salvando…");
       try {
@@ -109,7 +115,7 @@ export function useSecao<T>(
         if (resposta.ok) {
           setErros({});
           await carregar();
-          setMensagem(textos.salva);
+          setMensagem(mensagemDeSucesso ?? textos.salva);
           return true;
         }
 

@@ -9,11 +9,11 @@
 - Notas: nada é salvo pela metade — a seção, as colunas da loja que ela toca e o registro na trilha entram na MESMA transação, e a recusa volta no formato de toda a API (`campos[]` com `caminho`), apontando cada campo. Cada alteração registra autor, momento, campo e valor anterior (só os campos que mudaram); chave PIX e WhatsApp saem mascarados e com ação `CONFIG_SENSIVEL_ALTERADA`. As seções são a lista fechada `SECOES_DO_DONO` do contrato — pagamento, entrega, horário, contato, apresentação e impressão —, uma rota por seção e esquema estrito: tipo de negócio, apelido, documento e contrato não têm como entrar. A tela de horário (grade, fechar agora e datas especiais) nasce aqui porque o dono precisa encontrá-la (AC-921); o cálculo continua o da T-903.
 - Esforço: alto
 
-## T-901 — Chave PIX e formas de pagamento [pendente]
+## T-901 — Chave PIX e formas de pagamento [concluida]
 
 - Refs: US-900, AC-900, AC-901, AC-902, AC-903, AC-904
-- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/pagamento/page.tsx, apps/web/src/features/config/FormularioPagamento.tsx
-- Notas: a primeira fatia funcional local persiste formas de pagamento e chave PIX por tipo (CPF, CNPJ, telefone, e-mail ou aleatória). PIX exige chave e titular; a chave não sai no DTO público. A prova formal específica de caso de uso, validação por documento e auditoria permanece pendente.
+- Arquivos: packages/core/src/chave-pix.ts, packages/core/src/chave-pix.test.ts, packages/core/src/index.ts, apps/api/src/modules/stores/configuracoes.schema.ts, apps/api/src/modules/storefront/fechamento.usecase.ts, apps/api/tests/config-pagamento.int.test.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(painel)/painel/config/pagamento/page.tsx, apps/web/src/features/config/FormularioPagamento.tsx, apps/web/src/features/config/useSecao.ts, apps/web/tests/config-pagamento.test.tsx
+- Notas: a chave é conferida pelo tipo na borda (regra pura em `packages/core/src/chave-pix.ts`: CPF e CNPJ com dígito verificador, celular com DDD, e-mail, chave aleatória) e sai normalizada; a recusa aponta `pix.chave` com o formato esperado e a chave anterior continua valendo. PIX sem chave não entra nas formas do fechamento (documento antigo incluído). O pedido guarda a chave do momento (snapshot da AC-511), provado trocando a chave entre dois pedidos. A chave nunca vai inteira para a trilha (P-009) e não sai na vitrine. O aviso por e-mail ao dono quando a chave muda (Q-901) não é critério desta tarefa e fica pendente.
 - Esforço: alto
 
 ## T-902 — Entrega, retirada, taxa e valor mínimo [pendente]
