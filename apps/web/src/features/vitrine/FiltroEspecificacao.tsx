@@ -1,3 +1,13 @@
+/**
+ * O filtro por especificação da vitrine (T-312, AC-328).
+ *
+ * UM FORMULÁRIO GET, SEM SCRIPT. Cada opção é uma caixa de marcar dentro de
+ * um formulário comum: filtrar funciona na fila do ônibus com a página ainda
+ * sem JavaScript, e o resultado fica no endereço — compartilhável e refeito
+ * pelo "voltar" do navegador. Quem decide o que vira filtro é a API: aqui só
+ * chega especificação marcada como filtrável, com os valores que os produtos
+ * publicados têm.
+ */
 type Filtro = {
   readonly chave: string;
   readonly nome: string;
@@ -12,7 +22,17 @@ export interface FiltroEspecificacaoProps {
   readonly busca: string | null;
 }
 
-/** Formulário GET: cada seleção é um link/controle funcional sem JavaScript. */
+/**
+ * O que o cliente lê em cada opção. O valor que vai no endereço não muda —
+ * só a leitura: "true" é como o banco escreve, "Sim" é como a gente fala.
+ */
+function rotuloDoValor(valor: string): string {
+  if (valor === "true") return "Sim";
+  if (valor === "false") return "Não";
+  return valor;
+}
+
+/** Formulário GET: cada seleção é um controle funcional sem JavaScript. */
 export function FiltroEspecificacao({
   filtros,
   selecionados,
@@ -40,7 +60,7 @@ export function FiltroEspecificacao({
                   value={chave}
                   defaultChecked={selecionados.includes(chave)}
                 />
-                {valor}
+                {rotuloDoValor(valor)}
               </label>
             );
           })}

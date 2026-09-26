@@ -1,4 +1,11 @@
--- 0026 — o item do pedido congela as especificações do produto (T-301, AC-330).
+-- 0026 — especificações da categoria: o pedido as congela, e o filtro da
+-- vitrine tem índice próprio.
+--
+-- Duas partes, as duas da mesma feature (catalogo-produtos):
+--   1. o item do pedido congela as especificações do produto (T-301, AC-330);
+--   2. a especificação filtrável ganha índice próprio (T-312, AC-328).
+--
+-- ── 1. O item do pedido congela as especificações ──────────────────────────
 --
 -- O QUE FALTAVA. O dono cria especificações dentro da categoria (Aro, Largura)
 -- e pode renomeá-las ou removê-las depois. O pedido é cópia congelada do
@@ -85,5 +92,24 @@ DROP TRIGGER IF EXISTS order_items_congela_especificacoes ON app.order_items;
 CREATE TRIGGER order_items_congela_especificacoes
   BEFORE INSERT ON app.order_items
   FOR EACH ROW EXECUTE FUNCTION app.congelar_especificacoes_do_item();
+
+-- ── 2. A especificação filtrável ganha índice próprio ──────────────────────
+--
+-- A vitrine pergunta "quais especificações desta categoria viram filtro?" a
+-- cada abertura de categoria. Parcial, e não sobre a tabela inteira: só a
+-- filtrável e ainda não removida interessa, e é uma fração pequena do total.
+-- O índice começa por `store_id` e o inclui na chave: é a coluna que a
+-- política cita, e sem ela a reconferência do isolamento iria ao disco (G5).
+CREATE INDEX IF NOT EXISTS attribute_definitions_filtraveis_idx
+  ON app.attribute_definitions (store_id, category_id, sort_order)
+  INCLUDE (key, label)
+  WHERE is_filterable AND deprecated_at IS NULL;
+
+-- Escolher "Aro 15" procura, entre os valores daquela especificação, os que
+-- são iguais ao escolhido. Texto é o caso comum (lista e texto livre gravam
+-- em `value_text`).
+CREATE INDEX IF NOT EXISTS product_attributes_valor_idx
+  ON app.product_attributes (store_id, definition_id, value_text)
+  INCLUDE (product_id);
 
 RESET ROLE;
