@@ -16,11 +16,11 @@
 - Notas: transição inválida é recusada com explicação. Pedido de retirada não passa por status de entrega. Recusa e cancelamento exigem motivo, avisam o cliente e saem do faturamento. Histórico não pode ser alterado. A mudança só vale sobre o status que foi lido (dois aparelhos aceitando juntos geram um passo só); o histórico é imutável por ausência de política de alteração e remoção (0008, guarda G8) — o privilégio de UPDATE/DELETE que o padrão do esquema concede a `sc_app`/`sc_admin` continua lá e é dívida registrada. As rotas do dono ainda não conferem se a identidade é membro da loja (dívida de toda a área do painel).
 - Esforço: alto
 
-## T-602 — Pedido aguardando confirmação no WhatsApp [pendente]
+## T-602 — Pedido aguardando confirmação no WhatsApp [concluida]
 
 - Refs: US-602, AC-609, AC-610, AC-611
-- Arquivos: apps/api/src/modules/orders/confirmacao-whatsapp.usecase.ts, apps/api/src/modules/orders/confirmacao-whatsapp.usecase.test.ts, apps/web/src/features/painel-pedidos/SeloAguardando.tsx, apps/web/src/features/pedido/BotaoJaEnviei.tsx
-- Notas: resolve o pedido fantasma que o crítico apontou. O estado de entrega da mensagem é separado do status do pedido. Não confirmado fica fora do faturamento e aparece contado à parte.
+- Arquivos: apps/api/src/modules/orders/confirmacao-whatsapp.usecase.ts, apps/api/src/modules/orders/confirmacao-whatsapp.usecase.test.ts, apps/api/tests/confirmacao-whatsapp.test.ts, packages/core/src/situacao-na-venda.ts, packages/core/src/situacao-na-venda.test.ts, packages/database/migrations/0025_confirmacao_whatsapp.sql, packages/database/migrations/0029_operacao_do_pedido.sql, apps/web/src/features/painel-pedidos/SeloAguardando.tsx, apps/web/src/features/pedido/BotaoJaEnviei.tsx, apps/web/tests/botao-ja-enviei.test.tsx
+- Notas: resolve o pedido fantasma que o crítico apontou. O estado de entrega da mensagem é separado do status do pedido. Não confirmado fica fora do faturamento e aparece contado à parte. A régua do que é venda mora em `packages/core/src/situacao-na-venda.ts` (`resumirVendas`): o painel de métricas (T-801) DEVE usá-la em vez de reescrever a regra. A função da 0025 nunca funcionou (nome de coluna ambíguo, erro 42702 em toda chamada) e é corrigida na 0029.
 - Esforço: alto
 
 ## T-603 — Página pública de acompanhamento [pendente]

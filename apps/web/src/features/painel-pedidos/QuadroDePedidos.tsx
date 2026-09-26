@@ -22,6 +22,7 @@ import {
   escreverDinheiroDaFila,
   escreverHorarioDaFila,
   minutosDeEspera,
+  resumirVendas,
   rotuloDaEntrega,
   rotuloDoCanal,
   type BuscarFila,
@@ -230,6 +231,9 @@ export function QuadroDePedidos({
   }
 
   const aguardando = grupos.aguardandoConfirmacao.length;
+  // A mesma régua do painel de métricas (AC-611): o que só abriu o WhatsApp
+  // não é venda, e aparece contado à parte.
+  const { naoConfirmados } = resumirVendas(estado.pedidos);
 
   return (
     <>
@@ -285,8 +289,17 @@ export function QuadroDePedidos({
             agora={instante}
             vazio="Nenhum pedido sem confirmação."
             selo={
-              grupos.aguardandoWhatsapp.length > 0 ? (
-                <SeloAguardando quantidade={grupos.aguardandoWhatsapp.length} />
+              naoConfirmados.quantidade > 0 ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <SeloAguardando quantidade={naoConfirmados.quantidade} />
+                  <span
+                    className="text-sm text-[var(--cor-tinta-suave)]"
+                    data-fora-do-faturamento
+                  >
+                    {escreverDinheiroDaFila(naoConfirmados.totalCentavos)} fora
+                    do faturamento até o dono aceitar
+                  </span>
+                </div>
               ) : undefined
             }
           />

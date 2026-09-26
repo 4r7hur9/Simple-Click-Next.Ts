@@ -13,8 +13,10 @@ import {
   descreverEspera,
   deveTocarAlerta,
   minutosDeEspera,
+  resumirVendas,
   type GruposDaFila,
   type PedidoDaFila,
+  type ResumoDeVendas,
 } from "@simpleclick/core";
 
 export {
@@ -23,8 +25,9 @@ export {
   descreverEspera,
   deveTocarAlerta,
   minutosDeEspera,
+  resumirVendas,
 };
-export type { GruposDaFila, PedidoDaFila };
+export type { GruposDaFila, PedidoDaFila, ResumoDeVendas };
 
 /** Onde a tela pede a fila: a rota do próprio site, que leva a sessão à API. */
 export const ENDERECO_DA_FILA = "/api/painel/pedidos";

@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-26T16:33:50.750Z",
-  "gitRev": "ed51d3a",
+  "timestamp": "2026-09-26T17:15:38.947Z",
+  "gitRev": "3f6cd16",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1319,
+  "testsParsed": 1339,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -54,17 +54,17 @@
     },
     "AC-609": {
       "status": "pass",
-      "testName": "pedido sem confirmação no WhatsApp vem marcado (AC-609) @spec:AC-609 o pedido que abriu o WhatsApp e não confirmou chega marcado na fila @spec:AC-609 o pedido que abriu o WhatsApp e não confirmou chega marcado na fila",
+      "testName": "pedido que abriu o WhatsApp e não enviou (AC-609) @spec:AC-609 abrir a conversa marca o pedido como aguardando confirmação na fila do dono @spec:AC-609 abrir a conversa marca o pedido como aguardando confirmação na fila do dono",
       "method": "vitest-json"
     },
     "AC-610": {
       "status": "pass",
-      "testName": "confirmação do pedido pelo WhatsApp @spec:AC-610 registra que o cliente já enviou @spec:AC-610 registra que o cliente já enviou",
+      "testName": "o cliente sinaliza que já enviou (AC-610) @spec:AC-610 o 'já enviei' tira o pedido do aguardando e registra o horário da sinalização @spec:AC-610 o 'já enviei' tira o pedido do aguardando e registra o horário da sinalização",
       "method": "vitest-json"
     },
     "AC-611": {
       "status": "pass",
-      "testName": "confirmação do pedido pelo WhatsApp @spec:AC-611 é idempotente e não apaga a confirmação anterior @spec:AC-611 é idempotente e não apaga a confirmação anterior",
+      "testName": "pedido fantasma fora do faturamento (AC-611) @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento",
       "method": "vitest-json"
     },
     "AC-615": {
@@ -91,8 +91,8 @@
       "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
     "P-012": {
-      "status": "fail",
-      "testName": "a fila é acessível (P-012) @principle:P-012 a fila com pedidos não tem violação crítica nem séria @principle:P-012 a fila com pedidos não tem violação crítica nem séria"
+      "status": "pass",
+      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
     },
     "P-007": {
       "status": "pass",

@@ -370,6 +370,38 @@ describe("pedido sem confirmação no WhatsApp fica à parte (AC-609)", () => {
   });
 });
 
+describe("pedido fantasma não infla o faturamento (AC-611)", () => {
+  it("@spec:AC-611 a fila diz quantos pedidos esperam a confirmação e quanto está fora do faturamento", async () => {
+    const tela = await montar(
+      leitor(
+        ok(
+          pedido("1", "PENDING", {
+            aguardandoConfirmacaoWhatsapp: true,
+            totalCentavos: 2_500,
+          }),
+          pedido("2", "PENDING", {
+            aguardandoConfirmacaoWhatsapp: true,
+            totalCentavos: 1_500,
+          }),
+          pedido("3", "ACCEPTED", {
+            aguardandoConfirmacaoWhatsapp: true,
+            totalCentavos: 9_000,
+          }),
+        ),
+      ),
+    );
+
+    const grupoDoWhatsapp = grupo(tela, "fila-aguardando-whatsapp");
+    expect(grupoDoWhatsapp.textContent).toContain(
+      "Aguardando confirmação no WhatsApp · 2",
+    );
+    // O aceito (pedido 3) já é venda: não entra na conta dos não confirmados.
+    expect(
+      grupoDoWhatsapp.querySelector("[data-fora-do-faturamento]")?.textContent,
+    ).toContain(escreverDinheiroDaFila(4_000));
+  });
+});
+
 describe("os quatro estados da fila (P-011)", () => {
   it("@principle:P-011 enquanto a primeira leitura não volta, a espera é anunciada", async () => {
     const tela = await montar(() => new Promise<LeituraDaFila>(() => {}));
