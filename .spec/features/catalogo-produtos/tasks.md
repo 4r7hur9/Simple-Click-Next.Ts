@@ -5,8 +5,8 @@
 ## T-300 — Categorias com ordenação e visibilidade [pendente]
 
 - Refs: US-300, AC-300, AC-301, AC-302, AC-303
-- Arquivos: apps/api/src/modules/catalog/categorias.routes.ts, apps/api/src/app.ts, apps/web/src/app/api/catalogo/categorias/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/route.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, packages/database/migrations/0007_catalogo_completo.sql
-- Notas: a primeira fatia funcional local lista, cria, oculta/mostra e ordena categorias pela área autenticada do dono, refletindo a ordem na vitrine. Apagar categoria com produtos ainda exige escolher destino, testes anotados, contrato publicado e auditoria formal.
+- Arquivos: apps/api/src/modules/catalog/categorias.routes.ts, apps/api/src/modules/catalog/categorias.usecase.ts, apps/api/src/modules/catalog/categorias.usecase.test.ts, apps/api/tests/categorias-do-painel.int.test.ts, apps/api/tests/apoio-do-painel.ts, apps/api/src/app.ts, apps/web/src/app/api/catalogo/categorias/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/route.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, apps/web/tests/painel-categorias.test.tsx, packages/database/migrations/0007_catalogo_completo.sql
+- Notas: o dono lista (com a contagem de produtos vivos), cria, oculta/mostra, ordena e apaga categorias pela área autenticada, e a vitrine pública reflete na próxima visita (a versão do catálogo sobe). Apagar categoria com produtos exige destino (AC-303): sem ele a API responde 409 com a contagem; "mover" leva os vínculos para a outra categoria sem duplicar nem perder a principal e só então apaga (remoção lógica); "ocultar" mantém categoria e produtos, fora da vitrine. A decisão mora em `categorias.usecase.ts`. A tela cobre carregando, erro com "tentar de novo", vazio e lista (P-011). Prova: integração pela rota do painel e pela vitrine pública contra banco real, mais a conversa da tela com a rota.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
