@@ -32,7 +32,8 @@ const atalhos = [
   },
   {
     titulo: "Configurar a loja",
-    descricao: "Edite apresentação, marca, capa, cor e contato público.",
+    descricao:
+      "Pagamento, entrega, horário, contato, apresentação e impressão.",
     href: "/painel/config/aparencia",
     acao: "Abrir configurações",
   },
@@ -112,11 +113,12 @@ export default function PaginaInicialDoPainel() {
       </section>
 
       <aside className="mt-8 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6">
-        <h2 className="text-xl font-semibold">Configuração local disponível</h2>
+        <h2 className="text-xl font-semibold">O que você configura</h2>
         <p className="mt-2 leading-7 text-[var(--cor-tinta-suave)]">
-          A edição de aparência e contato salva no banco do ambiente de
-          desenvolvimento. Use a navegação da configuração para alternar entre
-          as duas telas antes de revisar a loja pública.
+          Pagamento, entrega, horário, contato, apresentação e impressão ficam
+          nas configurações da loja. Cada alteração é salva inteira ou não é
+          salva, e fica registrada no histórico. Tipo de negócio, apelido,
+          documento e contrato são cuidados pela administração da plataforma.
         </p>
       </aside>
     </div>

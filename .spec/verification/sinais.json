@@ -6314,10 +6314,10 @@
       "codigo": "VERIFY_FALHOU",
       "feature": "config-loja",
       "ref": "P-003",
-      "ocorrencias": 1,
+      "ocorrencias": 3,
       "primeiraVez": "2026-08-19T18:07:13.519Z",
-      "ultimaVez": "2026-08-19T18:07:13.519Z",
-      "gitRev": "0ce35c9"
+      "ultimaVez": "2026-09-26T15:56:17.684Z",
+      "gitRev": "55ea723"
     },
     "VERIFY_FALHOU::fundacao::AC-010": {
       "codigo": "VERIFY_FALHOU",
@@ -7983,6 +7983,15 @@
       "primeiraVez": "2026-09-26T12:59:44.191Z",
       "ultimaVez": "2026-09-26T12:59:44.191Z",
       "gitRev": "9dbd2f6"
+    },
+    "VERIFY_FALHOU::config-loja::AC-904": {
+      "codigo": "VERIFY_FALHOU",
+      "feature": "config-loja",
+      "ref": "AC-904",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-09-26T15:56:17.683Z",
+      "ultimaVez": "2026-09-26T15:56:17.683Z",
+      "gitRev": "55ea723"
     }
   }
 }

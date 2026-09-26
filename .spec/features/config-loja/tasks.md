@@ -2,11 +2,11 @@
 
 > feature: config-loja
 
-## T-900 — Configurações por seção, com gravação atômica e auditoria [pendente]
+## T-900 — Configurações por seção, com gravação atômica e auditoria [concluida]
 
 - Refs: US-906, AC-921, AC-922, AC-923
-- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, apps/api/src/modules/stores/configuracao.routes.ts, packages/contracts/src/store-settings.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/(painel)/painel/config/layout.tsx, apps/web/tests/painel-inicial.test.tsx
-- Notas: nada é salvo pela metade — configuração inválida deixa a anterior valendo e aponta cada campo. Cada alteração registra autor, momento, campo e valor anterior. O dono não vê tipo de negócio, apelido, documento nem contrato. O painel inicial já oferece atalhos para a fatia local funcional de aparência e contato; a conclusão desta tarefa ainda exige contrato, auditoria e os casos de uso definitivos.
+- Arquivos: apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/src/modules/stores/configuracoes.usecase.test.ts, apps/api/src/modules/stores/configuracoes.schema.ts, apps/api/src/modules/stores/configuracao.routes.ts, packages/contracts/src/store-settings.ts, apps/api/tests/apoio-de-configuracao.ts, apps/api/tests/config-loja-secoes.int.test.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/(painel)/painel/config/layout.tsx, apps/web/src/app/(painel)/painel/config/horarios/page.tsx, apps/web/src/features/config/secoes.ts, apps/web/src/features/config/useSecao.ts, apps/web/src/features/config/ErroDoCampo.tsx, apps/web/src/features/config/FormularioHorario.tsx, apps/web/tests/apoio-config.tsx, apps/web/tests/config-secoes.test.tsx, apps/web/tests/painel-inicial.test.tsx
+- Notas: nada é salvo pela metade — a seção, as colunas da loja que ela toca e o registro na trilha entram na MESMA transação, e a recusa volta no formato de toda a API (`campos[]` com `caminho`), apontando cada campo. Cada alteração registra autor, momento, campo e valor anterior (só os campos que mudaram); chave PIX e WhatsApp saem mascarados e com ação `CONFIG_SENSIVEL_ALTERADA`. As seções são a lista fechada `SECOES_DO_DONO` do contrato — pagamento, entrega, horário, contato, apresentação e impressão —, uma rota por seção e esquema estrito: tipo de negócio, apelido, documento e contrato não têm como entrar. A tela de horário (grade, fechar agora e datas especiais) nasce aqui porque o dono precisa encontrá-la (AC-921); o cálculo continua o da T-903.
 - Esforço: alto
 
 ## T-901 — Chave PIX e formas de pagamento [pendente]

@@ -1,15 +1,15 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-08-27T15:32:24.124Z",
-  "gitRev": "3df4d7b",
+  "timestamp": "2026-09-26T15:56:16.524Z",
+  "gitRev": "55ea723",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 1149,
+  "exitCode": 1,
+  "testsParsed": 1285,
   "results": {
     "AC-904": {
-      "status": "pass",
-      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo",
+      "status": "fail",
+      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 a resposta inteira cabe nos campos que a lista permite @spec:AC-904 a resposta inteira cabe nos campos que a lista permite",
       "method": "vitest-json"
     },
     "AC-906": {
@@ -51,24 +51,49 @@
       "status": "pass",
       "testName": "normalização do número de WhatsApp (AC-913) @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número",
       "method": "vitest-json"
+    },
+    "AC-919": {
+      "status": "pass",
+      "testName": "configuração de impressão @spec:AC-919 conserva a largura escolhida para o formato do cupom @spec:AC-919 conserva a largura escolhida para o formato do cupom",
+      "method": "vitest-json"
+    },
+    "AC-920": {
+      "status": "pass",
+      "testName": "configuração de impressão @spec:AC-920 aplica as escolhas de conteúdo e mantém o essencial ativo @spec:AC-920 aplica as escolhas de conteúdo e mantém o essencial ativo",
+      "method": "vitest-json"
+    },
+    "AC-921": {
+      "status": "pass",
+      "testName": "o dono configura a operação, e não o cadastro (AC-921) @spec:AC-921 as seis seções do dono respondem: pagamento, entrega, horário, contato, apresentação e impressão @spec:AC-921 as seis seções do dono respondem: pagamento, entrega, horário, contato, apresentação e impressão",
+      "method": "vitest-json"
+    },
+    "AC-922": {
+      "status": "pass",
+      "testName": "toda alteração fica registrada (AC-922) @spec:AC-922 a trilha diz quem alterou, quando, o que mudou e o valor anterior @spec:AC-922 a trilha diz quem alterou, quando, o que mudou e o valor anterior",
+      "method": "vitest-json"
+    },
+    "AC-923": {
+      "status": "pass",
+      "testName": "configuração inválida não quebra a loja (AC-923) @spec:AC-923 a recusa aponta CADA campo com problema, e a configuração anterior continua valendo @spec:AC-923 a recusa aponta CADA campo com problema, e a configuração anterior continua valendo",
+      "method": "vitest-json"
     }
   },
   "principles": {
+    "P-003": {
+      "status": "fail",
+      "testName": "varredura do catálogo por tabela de loja @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura"
+    },
     "P-006": {
       "status": "pass",
       "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
     },
-    "P-003": {
+    "P-009": {
       "status": "pass",
-      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+      "testName": "toda alteração fica registrada (AC-922) @spec:AC-922 @principle:P-009 trocar a chave PIX fica destacado, e a trilha guarda só o final da chave @spec:AC-922 @principle:P-009 trocar a chave PIX fica destacado, e a trilha guarda só o final da chave"
     },
     "P-010": {
       "status": "pass",
       "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto"
-    },
-    "P-009": {
-      "status": "pass",
-      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
     },
     "P-012": {
       "status": "pass",
