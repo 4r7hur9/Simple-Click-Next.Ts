@@ -12,9 +12,19 @@
  * banco direto provaria o que o dono gravou, não o que o cliente vê.
  */
 import express, { type Express } from "express";
+import request from "supertest";
+import { expect } from "vitest";
+
+import {
+  criarIdentidade,
+  criarLoja,
+  criarMembro,
+  type LojaDeTeste,
+} from "@simpleclick/testing";
 
 import { criarRotasDasCategorias } from "../src/modules/catalog/categorias.routes.ts";
 import { criarRotasDosProdutos } from "../src/modules/catalog/produtos.routes.ts";
+import { criarRotasDasEspecificacoes } from "../src/modules/catalog/especificacoes.routes.ts";
 import { manipuladorDeErros } from "../src/core/erros.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { horarioDaLoja } from "../src/modules/stores/horarios.usecase.ts";
@@ -64,9 +74,103 @@ export function montarPainelDaProva(
     }),
   );
   app.use(
+    "/v1/lojas",
+    criarRotasDasEspecificacoes({
+      acesso,
+      autenticar,
+      resolverLoja: identificarLoja,
+    }),
+  );
+  app.use(
     PREFIXO_DA_VITRINE,
     criarRotasDaVitrine({ acesso, lerHorario: horarioDaLoja }),
   );
   app.use(manipuladorDeErros());
   return app;
+}
+
+// ---------------------------------------------------------------------------
+// Atalhos das provas: o dono faz pelo painel o que faria na tela
+// ---------------------------------------------------------------------------
+
+/** Uma loja nova, com o dono membro dela e logado no painel. */
+export async function lojaComDonoNoPainel(acesso: AcessoAoBanco) {
+  const loja = await criarLoja();
+  const identidade = await criarIdentidade();
+  await criarMembro({ loja, identidade });
+  const app = montarPainelDaProva(acesso, { identidadeId: identidade.id });
+  return { loja, app, identidade };
+}
+
+/** O endereço de uma rota do painel do catálogo da loja. */
+export function caminhoDoPainel(loja: LojaDeTeste, resto: string): string {
+  return `/v1/lojas/${loja.apelido}/catalogo/${resto}`;
+}
+
+/** Cria a categoria pelo painel e devolve o que a rota respondeu. */
+export async function criarCategoriaPeloPainel(
+  app: Express,
+  loja: LojaDeTeste,
+  nome: string,
+): Promise<{ readonly id: string; readonly nome: string }> {
+  const resposta = await request(app)
+    .post(caminhoDoPainel(loja, "categorias"))
+    .send({ nome, descricao: null, visivel: true });
+  expect(resposta.status).toBe(201);
+  return resposta.body as { readonly id: string; readonly nome: string };
+}
+
+/** Cadastra o produto pelo painel, publicado e à venda, salvo quando dito. */
+export async function criarProdutoPeloPainel(
+  app: Express,
+  loja: LojaDeTeste,
+  dados: {
+    readonly categoriaId: string;
+    readonly nome: string;
+    readonly descricao?: string | null;
+    readonly precoCentavos?: number;
+    readonly status?: "DRAFT" | "PUBLISHED";
+  },
+): Promise<{ readonly id: string; readonly apelido: string }> {
+  const resposta = await request(app)
+    .post(caminhoDoPainel(loja, "produtos"))
+    .send({
+      nome: dados.nome,
+      descricao: dados.descricao ?? null,
+      categoriaId: dados.categoriaId,
+      precoCentavos: dados.precoCentavos ?? 1_000,
+      status: dados.status ?? "PUBLISHED",
+      disponivel: true,
+    });
+  expect(resposta.status).toBe(201);
+  return resposta.body as { readonly id: string; readonly apelido: string };
+}
+
+/** O catálogo como o cliente o recebe pelo endereço público, sem sessão. */
+export async function catalogoPublico(
+  app: Express,
+  loja: LojaDeTeste,
+  consulta = "",
+) {
+  const resposta = await request(app).get(
+    `/v1/vitrine/${loja.apelido}/catalogo${consulta}`,
+  );
+  expect(resposta.status).toBe(200);
+  return resposta.body as {
+    readonly secoes: readonly {
+      readonly nome: string;
+      readonly apelido: string;
+      readonly produtos: readonly {
+        readonly id: string;
+        readonly nome: string;
+        readonly imagem: string | null;
+      }[];
+    }[];
+    readonly versao: string;
+    readonly filtros?: readonly {
+      readonly chave: string;
+      readonly nome: string;
+      readonly valores: readonly string[];
+    }[];
+  };
 }

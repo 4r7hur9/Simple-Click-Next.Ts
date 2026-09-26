@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 /**
@@ -324,6 +325,13 @@ export function ListaCategorias() {
                     >
                       {categoria.visivel ? "Ocultar" : "Mostrar"}
                     </button>
+                    <Link
+                      className="sc-botao sc-botao--fantasma"
+                      href={`/painel/categorias/${categoria.id}/especificacoes`}
+                      aria-label={`Especificações de ${categoria.nome}`}
+                    >
+                      Especificações
+                    </Link>
                     <button
                       className="sc-botao sc-botao--fantasma"
                       type="button"
