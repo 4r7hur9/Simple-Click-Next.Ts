@@ -33,6 +33,7 @@ import {
   type OpcoesDosPedidos,
 } from "./modules/orders/pedidos.routes.ts";
 import { criarRotasDaFila } from "./modules/orders/fila.routes.ts";
+import type { OpcoesDaFila } from "./modules/orders/fila.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
   fechamentoDaLoja,
@@ -76,6 +77,8 @@ export interface OpcoesDoApp {
   readonly carrinho?: Partial<OpcoesDoCarrinho>;
   /** O mesmo, para o fechamento do pedido. */
   readonly pedidos?: Partial<OpcoesDosPedidos>;
+  /** O mesmo, para a fila de pedidos do dono. */
+  readonly fila?: Partial<OpcoesDaFila>;
 }
 
 /**
@@ -168,6 +171,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
           return null;
         }
       },
+      ...opcoes.fila,
     }),
   );
 

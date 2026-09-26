@@ -1,92 +1,84 @@
 /**
  * Leitura da fila operacional do dono (T-600).
  *
- * A fila não altera pedidos. Ela apenas transforma o registro persistido numa
- * projeção pequena para o painel e mantém a regra de agrupamento fora da rota,
- * onde ela pode ser provada sem banco nem relógio real.
+ * A fila não altera pedido nenhum. Ela lê os pedidos em aberto da loja do
+ * contexto e devolve uma projeção pequena — sem endereço, sem telefone, sem
+ * item —, porque a tela da fila fica aberta o dia inteiro no balcão e o que ela
+ * não recebe ela não tem como mostrar a quem passa.
+ *
+ * A LEITURA É SEMPRE A FILA INTEIRA, e não "o que mudou desde a última vez".
+ * É essa escolha que faz a reconexão recuperar o que entrou durante a queda
+ * (AC-602) sem a tela precisar lembrar de nada: a regra que compara duas
+ * leituras mora em `packages/core/src/fila-de-pedidos.ts`, e a tela a usa.
  */
+import { STATUS_FORA_DA_FILA, type PedidoDaFila } from "@simpleclick/core";
 
-export const STATUS_QUE_EXIGEM_ACAO = ["PENDING"] as const;
-export const STATUS_EM_ANDAMENTO = [
-  "ACCEPTED",
-  "PREPARING",
-  "READY_FOR_PICKUP",
-  "OUT_FOR_DELIVERY",
-] as const;
+import { exigirLojaDoContexto } from "../../core/contexto.ts";
+import { transacaoAtual } from "../../core/db.ts";
 
-export interface PedidoDaFila {
+/** A linha do pedido como o banco a devolve para a fila. */
+export interface LinhaDaFila {
   readonly id: string;
-  readonly numero: number;
-  readonly codigo: string;
+  readonly number: bigint;
+  readonly code: string;
   readonly status: string;
-  readonly canal: string;
-  readonly entrega: string;
-  readonly cliente: string;
-  readonly totalCentavos: number;
-  readonly criadoEm: string;
-  readonly aguardandoConfirmacaoWhatsapp: boolean;
-}
-
-export interface GruposDaFila {
-  readonly aguardandoAcao: readonly PedidoDaFila[];
-  readonly emPreparo: readonly PedidoDaFila[];
-  readonly emEntrega: readonly PedidoDaFila[];
-  readonly demais: readonly PedidoDaFila[];
-}
-
-/** Agrupa a projeção sem perder a ordem cronológica da consulta. */
-export function agruparPedidosDaFila(
-  pedidos: readonly PedidoDaFila[],
-): GruposDaFila {
-  const aguardandoAcao: PedidoDaFila[] = [];
-  const emPreparo: PedidoDaFila[] = [];
-  const emEntrega: PedidoDaFila[] = [];
-  const demais: PedidoDaFila[] = [];
-
-  for (const pedido of pedidos) {
-    if (STATUS_QUE_EXIGEM_ACAO.includes(pedido.status as "PENDING")) {
-      aguardandoAcao.push(pedido);
-    } else if (
-      STATUS_EM_ANDAMENTO.includes(
-        pedido.status as (typeof STATUS_EM_ANDAMENTO)[number],
-      )
-    ) {
-      if (pedido.status === "OUT_FOR_DELIVERY") emEntrega.push(pedido);
-      else emPreparo.push(pedido);
-    } else {
-      demais.push(pedido);
-    }
-  }
-
-  return { aguardandoAcao, emPreparo, emEntrega, demais };
+  readonly channel: string;
+  readonly fulfillment: string;
+  readonly totalCents: bigint;
+  readonly placedAt: Date;
+  readonly whatsappClickedAt: Date | null;
+  readonly whatsappConfirmedAt: Date | null;
+  readonly contato: { readonly name: string } | null;
 }
 
 /**
- * Compara duas leituras completas. A leitura nova substitui a antiga — assim
- * uma queda seguida de reconexão recupera também os pedidos que chegaram no
- * intervalo — e só a entrada de um identificador novo dispara o som.
+ * Converte a linha do banco na projeção da fila.
+ *
+ * O pedido "aguardando o WhatsApp" é o que ABRIU a conversa e não confirmou o
+ * envio (AC-609). Pedido que nunca abriu — a loja sem número, por exemplo — não
+ * é marcado: marcar todo pedido sem confirmação faria a loja sem WhatsApp ver
+ * a fila inteira como suspeita.
  */
-export function atualizarFila(
-  anterior: readonly PedidoDaFila[],
-  atual: readonly PedidoDaFila[],
-  inicializada: boolean,
-): {
-  readonly pedidos: readonly PedidoDaFila[];
-  readonly novos: readonly PedidoDaFila[];
-} {
-  if (!inicializada) return { pedidos: atual, novos: [] };
-
-  const idsAnteriores = new Set(anterior.map((pedido) => pedido.id));
+export function projetarPedidoDaFila(linha: LinhaDaFila): PedidoDaFila {
   return {
-    pedidos: atual,
-    novos: atual.filter((pedido) => !idsAnteriores.has(pedido.id)),
+    id: linha.id,
+    numero: Number(linha.number),
+    codigo: linha.code,
+    status: linha.status,
+    canal: linha.channel,
+    entrega: linha.fulfillment,
+    cliente: linha.contato?.name ?? "Cliente sem nome",
+    totalCentavos: Number(linha.totalCents),
+    criadoEm: linha.placedAt.toISOString(),
+    aguardandoConfirmacaoWhatsapp:
+      linha.whatsappClickedAt !== null && linha.whatsappConfirmedAt === null,
   };
 }
 
-/** Um alerta visual continua válido mesmo quando o som foi silenciado. */
-export function deveTocarAlerta(
-  novos: readonly PedidoDaFila[],
-  somSilenciado: boolean,
-): boolean {
-  return novos.length > 0 && !somSilenciado;
+/**
+ * Os pedidos em aberto da loja do contexto, do mais antigo para o mais novo.
+ *
+ * O mais antigo primeiro porque é a ordem de atendimento: quem espera há mais
+ * tempo aparece no topo de cada grupo.
+ */
+export async function lerFilaDaLoja(): Promise<PedidoDaFila[]> {
+  const lojaId = exigirLojaDoContexto();
+  const linhas = await transacaoAtual().order.findMany({
+    where: { storeId: lojaId, status: { notIn: [...STATUS_FORA_DA_FILA] } },
+    orderBy: [{ placedAt: "asc" }, { number: "asc" }],
+    select: {
+      id: true,
+      number: true,
+      code: true,
+      status: true,
+      channel: true,
+      fulfillment: true,
+      totalCents: true,
+      placedAt: true,
+      whatsappClickedAt: true,
+      whatsappConfirmedAt: true,
+      contato: { select: { name: true } },
+    },
+  });
+  return linhas.map(projetarPedidoDaFila);
 }

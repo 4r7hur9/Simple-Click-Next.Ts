@@ -10,7 +10,7 @@ import {
   PedidoNaoEncontrado,
   mudarStatusDoPedido,
 } from "./mudar-status.usecase.ts";
-import type { PedidoDaFila } from "./fila.usecase.ts";
+import { lerFilaDaLoja } from "./fila.usecase.ts";
 
 interface ChegadaNaLoja {
   readonly host?: string | null;
@@ -38,34 +38,6 @@ function erro(resposta: Response, status: number, mensagem: string): void {
   resposta.status(status).json({ erro: mensagem });
 }
 
-function respostaDoPedido(pedido: {
-  readonly id: string;
-  readonly number: bigint;
-  readonly code: string;
-  readonly status: string;
-  readonly channel: string;
-  readonly fulfillment: string;
-  readonly totalCents: bigint;
-  readonly placedAt: Date;
-  readonly whatsappClickedAt: Date | null;
-  readonly whatsappConfirmedAt: Date | null;
-  readonly contato: { readonly name: string } | null;
-}): PedidoDaFila {
-  return {
-    id: pedido.id,
-    numero: Number(pedido.number),
-    codigo: pedido.code,
-    status: pedido.status,
-    canal: pedido.channel,
-    entrega: pedido.fulfillment,
-    cliente: pedido.contato?.name ?? "Cliente sem nome",
-    totalCentavos: Number(pedido.totalCents),
-    criadoEm: pedido.placedAt.toISOString(),
-    aguardandoConfirmacaoWhatsapp:
-      pedido.whatsappClickedAt !== null && pedido.whatsappConfirmedAt === null,
-  };
-}
-
 const esquemaDaMudancaDeStatus = z.strictObject({
   status: z.string().trim().min(1).max(40),
   motivo: z.string().trim().max(500).nullable().optional(),
@@ -73,7 +45,9 @@ const esquemaDaMudancaDeStatus = z.strictObject({
 
 export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
   const rotas = Router();
-  const acesso = opcoes.acesso ?? banco();
+  // Preguiçoso: montar a aplicação não pode exigir banco configurado — é o
+  // que deixa `criarApp()` ser provado sem PostgreSQL (AC-001).
+  const acesso = (): AcessoAoBanco => opcoes.acesso ?? banco();
 
   rotas.use((requisicao, resposta, proximo) => {
     const usuario = opcoes.autenticar(requisicao);
@@ -90,7 +64,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },
         () =>
-          acesso.emTransacao(() =>
+          acesso().emTransacao(() =>
             opcoes.resolverLoja({ apelido: requisicao.params.apelido }),
           ),
       );
@@ -105,32 +79,13 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
           usuarioId: resposta.locals.usuario.identidadeId,
           papel: resposta.locals.usuario.papel,
         },
-        () =>
-          acesso.emTransacao((tx) =>
-            tx.order.findMany({
-              where: {
-                storeId: identificacao.id,
-                status: { notIn: ["COMPLETED", "CANCELLED"] },
-              },
-              orderBy: { placedAt: "asc" },
-              select: {
-                id: true,
-                number: true,
-                code: true,
-                status: true,
-                channel: true,
-                fulfillment: true,
-                totalCents: true,
-                placedAt: true,
-                whatsappClickedAt: true,
-                whatsappConfirmedAt: true,
-                contato: { select: { name: true } },
-              },
-            }),
-          ),
+        () => acesso().emTransacao(() => lerFilaDaLoja()),
       );
 
-      resposta.json({ pedidos: pedidos.map(respostaDoPedido) });
+      // A fila muda a cada pedido: guardada em cache, a tela mostraria a fila
+      // de minutos atrás como se fosse a de agora.
+      resposta.set("cache-control", "no-store");
+      resposta.json({ pedidos });
     } catch (causa) {
       proximo(causa);
     }
@@ -141,7 +96,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },
         () =>
-          acesso.emTransacao(() =>
+          acesso().emTransacao(() =>
             opcoes.resolverLoja({ apelido: requisicao.params.apelido }),
           ),
       );
@@ -157,7 +112,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
           papel: resposta.locals.usuario.papel,
         },
         () =>
-          acesso.emTransacao((tx) =>
+          acesso().emTransacao((tx) =>
             tx.order.findFirst({
               where: { id: requisicao.params.id, storeId: identificacao.id },
               select: {
@@ -291,7 +246,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
         const identificacao = await executarComoRequisicao(
           { papel: "PUBLIC" },
           () =>
-            acesso.emTransacao(() =>
+            acesso().emTransacao(() =>
               opcoes.resolverLoja({ apelido: requisicao.params.apelido }),
             ),
         );
@@ -307,7 +262,7 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
             papel: resposta.locals.usuario.papel,
           },
           () =>
-            acesso.emTransacao(() =>
+            acesso().emTransacao(() =>
               mudarStatusDoPedido(
                 requisicao.params.id,
                 entrada.data.status,

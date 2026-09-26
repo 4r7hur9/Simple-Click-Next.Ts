@@ -2,11 +2,11 @@
 
 > feature: pedido-operacao
 
-## T-600 — Fila de pedidos que atualiza sozinha [pendente]
+## T-600 — Fila de pedidos que atualiza sozinha [concluida]
 
 - Refs: US-600, AC-600, AC-601, AC-602, AC-603
-- Arquivos: apps/api/src/modules/orders/fila.usecase.ts, apps/api/src/modules/orders/fila.usecase.test.ts, apps/web/src/app/(painel)/painel/pedidos/page.tsx, apps/web/src/features/painel-pedidos/QuadroDePedidos.tsx, apps/web/src/features/painel-pedidos/useAtualizarPedidos.ts, apps/web/src/features/painel-pedidos/AvisoSonoro.tsx
-- Notas: o que aguarda ação fica em destaque no topo, com tempo de espera visível. Reconexão recupera o que entrou durante a queda. Silenciar o som mantém o alerta visual e a escolha persiste. Depende da decisão pendente D3.
+- Arquivos: packages/core/src/fila-de-pedidos.ts, packages/core/src/fila-de-pedidos.test.ts, apps/api/src/modules/orders/fila.usecase.ts, apps/api/src/modules/orders/fila.usecase.test.ts, apps/api/src/modules/orders/fila.routes.ts, apps/api/tests/fila-de-pedidos.test.ts, apps/api/tests/apoio-de-pedidos.ts, apps/web/src/lib/fila-de-pedidos.ts, apps/web/src/app/(painel)/painel/pedidos/page.tsx, apps/web/src/app/api/painel/pedidos/route.ts, apps/web/src/features/painel-pedidos/QuadroDePedidos.tsx, apps/web/src/features/painel-pedidos/useAtualizarPedidos.ts, apps/web/src/features/painel-pedidos/AvisoSonoro.tsx, apps/web/tests/painel-fila.test.tsx
+- Notas: o que aguarda ação fica em destaque no topo, com tempo de espera visível. Reconexão recupera o que entrou durante a queda. Silenciar o som mantém o alerta visual e a escolha persiste. Depende da decisão pendente D3. A regra da fila (onde cada pedido cai, o que é novo, quando o som toca) mora em `packages/core/src/fila-de-pedidos.ts` e é a MESMA na API e na tela; a consulta periódica de 5 s é o caminho de retorno da ASM-602 — a conexão contínua, se vier, troca só o gatilho da leitura.
 - Esforço: alto
 
 ## T-601 — Máquina de status do pedido [pendente]

@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/**
+ * O aviso de pedido novo: som, que pode ser silenciado, e alerta visual, que
+ * não pode (AC-603).
+ *
+ * Silenciar é para o ambiente onde o som incomoda — e a escolha fica gravada
+ * NESTE navegador, porque é uma preferência do lugar (o balcão, a cozinha), e
+ * não da conta. O alerta visual continua de pé até o dono marcar os pedidos
+ * como vistos: silenciar nunca pode virar "deixar de ver o pedido".
+ */
+import { useCallback, useEffect, useState } from "react";
 
-const CHAVE_DO_SOM = "simpleclick.painel-pedidos.som-silenciado";
+/** Chave da preferência no navegador. Não guarda sessão nem dado pessoal. */
+export const CHAVE_DO_SOM_SILENCIADO =
+  "simpleclick.painel-pedidos.som-silenciado";
 
-function tocarAlerta(): void {
+/** Um bipe curto, gerado na hora: não depende de arquivo de áudio. */
+export function tocarBipe(): void {
   try {
     const contexto = new AudioContext();
     const oscilador = contexto.createOscillator();
@@ -20,54 +32,103 @@ function tocarAlerta(): void {
     oscilador.addEventListener("ended", () => void contexto.close());
   } catch {
     // O alerta visual continua sendo a fonte principal quando o navegador
-    // bloqueia áudio ou o dispositivo não oferece uma saída sonora.
+    // bloqueia áudio ou o aparelho não tem saída sonora.
   }
+}
+
+function lerPreferencia(): boolean {
+  try {
+    return window.localStorage.getItem(CHAVE_DO_SOM_SILENCIADO) === "true";
+  } catch {
+    // Navegador com armazenamento bloqueado: o padrão é o som ligado, que é o
+    // que faz o pedido novo não passar despercebido.
+    return false;
+  }
+}
+
+function gravarPreferencia(silenciado: boolean): void {
+  try {
+    window.localStorage.setItem(CHAVE_DO_SOM_SILENCIADO, String(silenciado));
+  } catch {
+    // Sem armazenamento, a escolha vale até fechar a aba — e só isso.
+  }
+}
+
+/** A escolha de silenciar, lida e gravada no navegador da loja. */
+export function useSomSilenciado(): {
+  readonly silenciado: boolean;
+  readonly alternar: () => void;
+} {
+  const [silenciado, setSilenciado] = useState(false);
+
+  useEffect(() => {
+    setSilenciado(lerPreferencia());
+  }, []);
+
+  const alternar = useCallback(() => {
+    setSilenciado((anterior) => {
+      const novoValor = !anterior;
+      gravarPreferencia(novoValor);
+      return novoValor;
+    });
+  }, []);
+
+  return { silenciado, alternar };
+}
+
+export interface AvisoSonoroProps {
+  readonly quantidadeDeNovos: number;
+  readonly silenciado: boolean;
+  readonly aoAlternarSom: () => void;
+  readonly aoMarcarComoVistos: () => void;
 }
 
 export function AvisoSonoro({
   quantidadeDeNovos,
-}: {
-  readonly quantidadeDeNovos: number;
-}) {
-  const [silenciado, setSilenciado] = useState(true);
-
-  useEffect(() => {
-    setSilenciado(window.localStorage.getItem(CHAVE_DO_SOM) === "true");
-  }, []);
-
-  useEffect(() => {
-    if (quantidadeDeNovos > 0 && !silenciado) tocarAlerta();
-  }, [quantidadeDeNovos, silenciado]);
-
-  function alternarSom(): void {
-    setSilenciado((anterior) => {
-      const novoValor = !anterior;
-      window.localStorage.setItem(CHAVE_DO_SOM, String(novoValor));
-      return novoValor;
-    });
-  }
-
+  silenciado,
+  aoAlternarSom,
+  aoMarcarComoVistos,
+}: AvisoSonoroProps) {
   return (
-    <div
-      className="flex flex-wrap items-center gap-3"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="flex flex-wrap items-center gap-3">
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {quantidadeDeNovos > 0 ? (
+          <strong className="inline-flex items-center gap-2 rounded-full bg-[var(--cor-primaria)] px-3 py-1 text-sm text-white">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 animate-pulse rounded-full bg-white"
+            />
+            {quantidadeDeNovos === 1
+              ? "1 pedido novo"
+              : `${quantidadeDeNovos} pedidos novos`}
+          </strong>
+        ) : null}
+      </div>
       {quantidadeDeNovos > 0 ? (
-        <strong className="rounded-full bg-[var(--cor-primaria)] px-3 py-1 text-sm text-white">
-          {quantidadeDeNovos === 1
-            ? "1 pedido novo"
-            : `${quantidadeDeNovos} pedidos novos`}
-        </strong>
+        <button
+          className="sc-botao sc-botao--secundario"
+          type="button"
+          onClick={aoMarcarComoVistos}
+        >
+          Marcar como vistos
+        </button>
       ) : null}
+      {/* Rótulo fixo com estado em `aria-pressed`: é assim que o leitor de
+          tela entende um botão de ligar e desligar. */}
       <button
         className="sc-botao sc-botao--fantasma"
         type="button"
         aria-pressed={silenciado}
-        onClick={alternarSom}
+        onClick={aoAlternarSom}
       >
-        {silenciado ? "Ativar som" : "Silenciar som"}
+        Silenciar som
       </button>
+      {silenciado ? (
+        <span className="text-sm text-[var(--cor-tinta-suave)]">
+          Som desligado neste computador. O pedido novo continua destacado na
+          tela.
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -98,3 +98,12 @@ export {
   TELAS_DO_RAMO,
 } from "./vertical.ts";
 export type { ComposicaoDoRamo, TelaDoRamo } from "./vertical.ts";
+export {
+  agruparPedidosDaFila,
+  atualizarFila,
+  descreverEspera,
+  deveTocarAlerta,
+  minutosDeEspera,
+  STATUS_FORA_DA_FILA,
+} from "./fila-de-pedidos.ts";
+export type { GruposDaFila, PedidoDaFila } from "./fila-de-pedidos.ts";

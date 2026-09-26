@@ -1,64 +1,75 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  agruparPedidosDaFila,
-  atualizarFila,
-  deveTocarAlerta,
-  type PedidoDaFila,
-} from "./fila.usecase.ts";
+import { projetarPedidoDaFila, type LinhaDaFila } from "./fila.usecase.ts";
 
-const agora = (id: string, status: string): PedidoDaFila => ({
-  id,
-  numero: Number(id),
-  codigo: `SC-${id}`,
-  status,
-  canal: "ONLINE",
-  entrega: "DELIVERY",
-  cliente: `Cliente ${id}`,
-  totalCentavos: 1_000,
-  criadoEm: "2026-09-22T12:00:00.000Z",
-  aguardandoConfirmacaoWhatsapp: false,
-});
+function linha(sobrescrita: Partial<LinhaDaFila> = {}): LinhaDaFila {
+  return {
+    id: "9b1f2c3d-0000-4000-8000-000000000001",
+    number: 42n,
+    code: "A-0042",
+    status: "PENDING",
+    channel: "ONLINE",
+    fulfillment: "PICKUP",
+    totalCents: 4_590n,
+    placedAt: new Date("2026-09-22T12:34:00.000Z"),
+    whatsappClickedAt: null,
+    whatsappConfirmedAt: null,
+    contato: { name: "Maria Conceição" },
+    ...sobrescrita,
+  };
+}
 
-describe("fila de pedidos", () => {
-  it("@spec:AC-600 identifica pedido novo sem depender de recarregar a página", () => {
-    const resultado = atualizarFila(
-      [agora("1", "PREPARING")],
-      [agora("1", "PREPARING"), agora("2", "PENDING")],
-      true,
+describe("projeção do pedido na fila", () => {
+  it("@spec:AC-601 cada pedido leva número, horário, cliente, valor, canal e forma de entrega", () => {
+    expect(projetarPedidoDaFila(linha())).toEqual({
+      id: "9b1f2c3d-0000-4000-8000-000000000001",
+      numero: 42,
+      codigo: "A-0042",
+      status: "PENDING",
+      canal: "ONLINE",
+      entrega: "PICKUP",
+      cliente: "Maria Conceição",
+      totalCentavos: 4_590,
+      criadoEm: "2026-09-22T12:34:00.000Z",
+      aguardandoConfirmacaoWhatsapp: false,
+    });
+  });
+
+  it("@spec:AC-601 a fila não carrega telefone nem endereço do cliente", () => {
+    const projetado = projetarPedidoDaFila(linha());
+
+    expect(Object.keys(projetado).sort()).toEqual(
+      [
+        "aguardandoConfirmacaoWhatsapp",
+        "canal",
+        "cliente",
+        "codigo",
+        "criadoEm",
+        "entrega",
+        "id",
+        "numero",
+        "status",
+        "totalCentavos",
+      ].sort(),
     );
-
-    expect(resultado.novos.map((pedido) => pedido.id)).toEqual(["2"]);
   });
 
-  it("@spec:AC-601 separa ação, preparo e entrega preservando a ordem", () => {
-    const grupos = agruparPedidosDaFila([
-      agora("1", "PREPARING"),
-      agora("2", "PENDING"),
-      agora("3", "OUT_FOR_DELIVERY"),
-    ]);
+  it("@spec:AC-609 só é marcado quem abriu a conversa e não confirmou o envio", () => {
+    const clicou = new Date("2026-09-22T12:35:00.000Z");
+    const confirmou = new Date("2026-09-22T12:36:00.000Z");
 
-    expect(grupos.aguardandoAcao.map((pedido) => pedido.id)).toEqual(["2"]);
-    expect(grupos.emPreparo.map((pedido) => pedido.id)).toEqual(["1"]);
-    expect(grupos.emEntrega.map((pedido) => pedido.id)).toEqual(["3"]);
-  });
-
-  it("@spec:AC-602 substitui a leitura antiga e recupera o pedido que chegou na queda", () => {
-    const resultado = atualizarFila(
-      [agora("1", "PENDING")],
-      [agora("1", "PENDING"), agora("2", "PENDING")],
-      true,
+    expect(
+      projetarPedidoDaFila(linha({ whatsappClickedAt: clicou }))
+        .aguardandoConfirmacaoWhatsapp,
+    ).toBe(true);
+    expect(
+      projetarPedidoDaFila(
+        linha({ whatsappClickedAt: clicou, whatsappConfirmedAt: confirmou }),
+      ).aguardandoConfirmacaoWhatsapp,
+    ).toBe(false);
+    // Loja sem WhatsApp: ninguém abre conversa, e a fila não vira suspeita.
+    expect(projetarPedidoDaFila(linha()).aguardandoConfirmacaoWhatsapp).toBe(
+      false,
     );
-
-    expect(resultado.pedidos).toHaveLength(2);
-    expect(resultado.novos).toHaveLength(1);
-  });
-
-  it("@spec:AC-603 silenciar remove apenas o som, não o alerta visual", () => {
-    const novos = [agora("2", "PENDING")];
-
-    expect(deveTocarAlerta(novos, false)).toBe(true);
-    expect(deveTocarAlerta(novos, true)).toBe(false);
-    expect(novos).toHaveLength(1);
   });
 });
