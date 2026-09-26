@@ -27,9 +27,15 @@ export function ListaProdutos() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mensagem, setMensagem] = useState("Carregando produtos…");
+  // Erro de leitura não pode se disfarçar de "nenhum produto" (P-011): o dono
+  // cadastraria de novo o que já existe.
+  const [falhou, setFalhou] = useState(false);
+  // Remover pede confirmação na própria linha, e não em caixa do navegador.
+  const [removendoId, setRemovendoId] = useState<string | null>(null);
 
   async function carregar() {
     setCarregando(true);
+    setFalhou(false);
     try {
       const resposta = await fetch("/api/catalogo/produtos", {
         cache: "no-store",
@@ -43,6 +49,7 @@ export function ListaProdutos() {
           : `${dados.produtos.length} produto(s) cadastrado(s).`,
       );
     } catch {
+      setFalhou(true);
       setMensagem("Não foi possível carregar os produtos.");
     } finally {
       setCarregando(false);
@@ -95,10 +102,10 @@ export function ListaProdutos() {
   }
 
   async function remover(produto: Produto) {
-    if (!window.confirm(`Remover “${produto.nome}” do catálogo?`)) return;
     const resposta = await fetch(`/api/catalogo/produtos/${produto.id}`, {
       method: "DELETE",
     });
+    setRemovendoId(null);
     if (!resposta.ok) {
       setMensagem("Não foi possível remover o produto.");
       return;
@@ -126,9 +133,26 @@ export function ListaProdutos() {
       </div>
 
       {carregando ? (
-        <p className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6">
+        <p
+          className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
+          aria-busy="true"
+        >
           Carregando produtos…
         </p>
+      ) : falhou ? (
+        <div
+          role="alert"
+          className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
+        >
+          <p>Não conseguimos ler seus produtos agora. Nada foi alterado.</p>
+          <button
+            className="sc-botao sc-botao--fantasma mt-4"
+            type="button"
+            onClick={() => void carregar()}
+          >
+            Tentar de novo
+          </button>
+        </div>
       ) : produtos.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-[var(--cor-borda)] p-8">
           <p>Cadastre o primeiro produto para preencher sua vitrine.</p>
@@ -189,11 +213,40 @@ export function ListaProdutos() {
                   <button
                     className="sc-botao sc-botao--fantasma"
                     type="button"
-                    onClick={() => void remover(produto)}
+                    onClick={() => setRemovendoId(produto.id)}
+                    aria-label={`Remover ${produto.nome}`}
                   >
                     Remover
                   </button>
                 </div>
+                {removendoId === produto.id ? (
+                  <div
+                    role="group"
+                    aria-label={`Confirmar a remoção de ${produto.nome}`}
+                    className="mt-4 border-t border-[var(--cor-borda)] pt-4 text-sm"
+                  >
+                    <p>
+                      {produto.nome} sai do catálogo e da vitrine. Pedidos que
+                      já o incluíram continuam como foram feitos.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        className="sc-botao sc-botao--primario"
+                        type="button"
+                        onClick={() => void remover(produto)}
+                      >
+                        Confirmar remoção
+                      </button>
+                      <button
+                        className="sc-botao sc-botao--fantasma"
+                        type="button"
+                        onClick={() => setRemovendoId(null)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </li>
             );
           })}

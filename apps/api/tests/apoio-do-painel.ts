@@ -25,6 +25,7 @@ import {
 import { criarRotasDasCategorias } from "../src/modules/catalog/categorias.routes.ts";
 import { criarRotasDosProdutos } from "../src/modules/catalog/produtos.routes.ts";
 import { criarRotasDasEspecificacoes } from "../src/modules/catalog/especificacoes.routes.ts";
+import { criarRotasDasImagens } from "../src/modules/catalog/imagens.routes.ts";
 import { manipuladorDeErros } from "../src/core/erros.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { horarioDaLoja } from "../src/modules/stores/horarios.usecase.ts";
@@ -76,6 +77,14 @@ export function montarPainelDaProva(
   app.use(
     "/v1/lojas",
     criarRotasDasEspecificacoes({
+      acesso,
+      autenticar,
+      resolverLoja: identificarLoja,
+    }),
+  );
+  app.use(
+    "/v1/lojas",
+    criarRotasDasImagens({
       acesso,
       autenticar,
       resolverLoja: identificarLoja,

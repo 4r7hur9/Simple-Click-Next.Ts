@@ -23,6 +23,72 @@ import {
   ErroDeAtributoInvalido,
   validarAtributosDoRamo,
 } from "./atributos.usecase.ts";
+import { ESTADO_DA_DUPLICATA, nomeDaDuplicata } from "./produtos.usecase.ts";
+
+/** O que a coluna JSON aceita de volta: cópia pura, sem nulo na raiz. */
+type ObjetoJson = { readonly [chave: string]: ValorJson | null };
+type ValorJson =
+  string | number | boolean | ObjetoJson | readonly (ValorJson | null)[];
+
+function copiaJson(valor: unknown): ObjetoJson {
+  return valor !== null && typeof valor === "object" && !Array.isArray(valor)
+    ? (JSON.parse(JSON.stringify(valor)) as ObjetoJson)
+    : {};
+}
+
+/**
+ * Leva para a duplicata as fotos (com a mesma principal) e os valores das
+ * especificações. As linhas são NOVAS: apagar a foto da duplicata não pode
+ * tirar a foto do original.
+ */
+async function copiarImagensEEspecificacoes(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  origemId: string,
+  destinoId: string,
+): Promise<void> {
+  const imagens = await tx.productImage.findMany({
+    where: { storeId: lojaId, productId: origemId },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: {
+      assetId: true,
+      url: true,
+      altText: true,
+      isPrimary: true,
+      sortOrder: true,
+      width: true,
+      height: true,
+    },
+  });
+  if (imagens.length > 0) {
+    await tx.productImage.createMany({
+      data: imagens.map((imagem) => ({
+        ...imagem,
+        storeId: lojaId,
+        productId: destinoId,
+      })),
+    });
+  }
+  const valores = await tx.productAttribute.findMany({
+    where: { storeId: lojaId, productId: origemId },
+    select: {
+      definitionId: true,
+      valueText: true,
+      valueNum: true,
+      valueBool: true,
+      valueDate: true,
+    },
+  });
+  if (valores.length > 0) {
+    await tx.productAttribute.createMany({
+      data: valores.map((valor) => ({
+        ...valor,
+        storeId: lojaId,
+        productId: destinoId,
+      })),
+    });
+  }
+}
 
 const statusDoProduto = z.enum(["DRAFT", "PUBLISHED"]);
 
@@ -505,8 +571,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       deletedAt: null,
                     },
                     select: {
+                      id: true,
                       name: true,
                       description: true,
+                      shortDescription: true,
+                      unitLabel: true,
+                      attributes: true,
                       displayPriceCents: true,
                       verticalCode: true,
                       categorias: {
@@ -516,7 +586,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     },
                   });
                   if (original === null) return null;
-                  const nome = `${original.name} (cópia)`.slice(0, 160);
+                  const nome = nomeDaDuplicata(original.name);
                   const ultima = await tx.product.findFirst({
                     where: { storeId: lojaId, deletedAt: null },
                     orderBy: { sortOrder: "desc" },
@@ -528,9 +598,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       name: nome,
                       slug: await slugUnico(tx, lojaId, nome),
                       description: original.description,
+                      shortDescription: original.shortDescription,
+                      unitLabel: original.unitLabel,
+                      attributes: copiaJson(original.attributes),
                       verticalCode: original.verticalCode,
-                      status: "DRAFT",
-                      isAvailable: false,
+                      status: ESTADO_DA_DUPLICATA.status,
+                      isAvailable: ESTADO_DA_DUPLICATA.disponivel,
                       displayPriceCents: original.displayPriceCents,
                       priceMinCents: original.displayPriceCents,
                       priceMaxCents: original.displayPriceCents,
@@ -561,6 +634,15 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       },
                     });
                   }
+                  // "Com os mesmos dados" (AC-307) inclui as fotos e as
+                  // especificações preenchidas: sem elas a duplicata seria um
+                  // produto novo com o nome parecido, e o dono refaria tudo.
+                  await copiarImagensEEspecificacoes(
+                    tx,
+                    lojaId,
+                    original.id,
+                    produto.id,
+                  );
                   return tx.product.findUniqueOrThrow({
                     where: { id: produto.id },
                     select: selecaoDoProduto,
