@@ -85,8 +85,8 @@
 ## T-310 — Produto que muda de categoria preserva o preenchido [pendente]
 
 - Refs: US-306, AC-329
-- Arquivos: apps/api/src/modules/catalog/mover-categoria.usecase.ts, apps/api/src/modules/catalog/mover-categoria.usecase.test.ts
-- Notas: primeira fatia de domínio calcula a mudança sem mutar nem apagar valores antigos, marca-os como não usados na categoria atual e devolve as especificações da categoria nova que ainda precisam de preenchimento. Integração com as tabelas tipadas de especificação e tela do painel permanece pendente.
+- Arquivos: apps/api/src/modules/catalog/mover-categoria.usecase.ts, apps/api/src/modules/catalog/mover-categoria.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/catalog/especificacoes.routes.ts, apps/api/tests/mover-categoria.int.test.ts, apps/web/src/features/painel-catalogo/CamposDeEspecificacao.tsx, apps/web/src/app/api/catalogo/produtos/[produtoId]/especificacoes/[especificacaoId]/route.ts, apps/web/tests/painel-mover-categoria.test.tsx
+- Notas: o domínio calcula a mudança sem mutar nem apagar valores antigos, marca-os como não usados na categoria atual, devolve as especificações da categoria nova que ainda precisam de preenchimento e planeja a troca de vínculo (`planejarTrocaDeCategoria`): só a categoria principal troca, as seções secundárias continuam, e salvar sem mudar a categoria não mexe em vínculo nenhum (antes, todo salvamento apagava e recriava os vínculos). O estado das especificações do produto traz `campos`, `paraPreencher` e `naoUsadas` (com nome e categoria de onde vieram). Descartar um valor guardado exige confirmação (409 com o que será apagado) e fica na trilha de auditoria; valor em uso não se descarta por aí. Voltar para a categoria anterior reaproveita os valores guardados. O formulário avisa, ao trocar a categoria, que nada será apagado.
 - Esforço: baixo
 - Modelo: gpt-5.6-luna
 

@@ -24,6 +24,66 @@ import {
   validarAtributosDoRamo,
 } from "./atributos.usecase.ts";
 import { ESTADO_DA_DUPLICATA, nomeDaDuplicata } from "./produtos.usecase.ts";
+import { planejarTrocaDeCategoria } from "./mover-categoria.usecase.ts";
+
+/**
+ * Leva o produto para outra categoria principal (T-310, AC-329).
+ *
+ * Os valores de especificação NÃO são tocados: eles pertencem à definição da
+ * categoria de origem e ficam guardados, marcados como não usados na nova.
+ * Só a principal troca — as seções secundárias continuam —, e o vínculo novo
+ * entra no fim da seção de destino.
+ */
+async function trocarCategoriaPrincipal(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  produtoId: string,
+  novaCategoriaId: string,
+): Promise<void> {
+  const vinculos = await tx.productCategory.findMany({
+    where: { storeId: lojaId, productId: produtoId },
+    select: { id: true, categoryId: true, isPrimary: true },
+  });
+  const plano = planejarTrocaDeCategoria(
+    vinculos.map((vinculo) => ({
+      id: vinculo.id,
+      categoriaId: vinculo.categoryId,
+      principal: vinculo.isPrimary,
+    })),
+    novaCategoriaId,
+  );
+  if (plano.tipo === "nada") return;
+
+  // Primeiro sai a principal antiga: o índice de "uma principal por produto"
+  // nunca vê duas ao mesmo tempo.
+  if (plano.apagar.length > 0) {
+    await tx.productCategory.deleteMany({
+      where: { storeId: lojaId, id: { in: [...plano.apagar] } },
+    });
+  }
+  if (plano.tornarPrincipal !== null) {
+    await tx.productCategory.update({
+      where: { id: plano.tornarPrincipal },
+      data: { isPrimary: true, updatedAt: new Date() },
+    });
+  }
+  if (plano.criarNaCategoria !== null) {
+    const ultima = await tx.productCategory.findFirst({
+      where: { storeId: lojaId, categoryId: plano.criarNaCategoria },
+      orderBy: { sortOrder: "desc" },
+      select: { sortOrder: true },
+    });
+    await tx.productCategory.create({
+      data: {
+        storeId: lojaId,
+        productId: produtoId,
+        categoryId: plano.criarNaCategoria,
+        isPrimary: true,
+        sortOrder: (ultima?.sortOrder ?? -1) + 1,
+      },
+    });
+  }
+}
 
 /** O que a coluna JSON aceita de volta: cópia pura, sem nulo na raiz. */
 type ObjetoJson = { readonly [chave: string]: ValorJson | null };
@@ -437,17 +497,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     );
                     if (categoria === null)
                       throw new Error("categoria_invalida");
-                    await tx.productCategory.deleteMany({
-                      where: { storeId: lojaId, productId: atual.id },
-                    });
-                    await tx.productCategory.create({
-                      data: {
-                        storeId: lojaId,
-                        productId: atual.id,
-                        categoryId: categoria.id,
-                        isPrimary: true,
-                      },
-                    });
+                    await trocarCategoriaPrincipal(
+                      tx,
+                      lojaId,
+                      atual.id,
+                      categoria.id,
+                    );
                   }
                   const nome = entrada.data.nome ?? atual.name;
                   const preco =

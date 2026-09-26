@@ -51,6 +51,7 @@ import {
   type ValorDeEspecificacao,
   type VersaoHistoricaDaEspecificacao,
 } from "./especificacoes.usecase.ts";
+import { moverProdutoDeCategoria } from "./mover-categoria.usecase.ts";
 
 // ---------------------------------------------------------------------------
 // Borda: o que cada rota aceita (P-007)
@@ -141,6 +142,7 @@ export const ACOES_DA_ESPECIFICACAO = {
   renomeada: "ESPECIFICACAO_RENOMEADA",
   removida: "ESPECIFICACAO_REMOVIDA",
   opcaoAcrescentada: "ESPECIFICACAO_OPCAO_ACRESCENTADA",
+  valorDescartado: "ESPECIFICACAO_VALOR_DESCARTADO",
 } as const;
 
 const ENTIDADE_DA_AUDITORIA = "attribute_definition";
@@ -926,6 +928,116 @@ export function criarRotasDasEspecificacoes(
     };
   }
 
+  /**
+   * O estado das especificações do produto, como o formulário o mostra:
+   *
+   * - `campos`: as da categoria atual, na ordem do dono, com o valor gravado;
+   * - `paraPreencher`: as da categoria atual ainda sem valor (AC-329: depois
+   *   de mover, as da categoria nova aparecem para preencher);
+   * - `naoUsadas`: os valores GUARDADOS que a categoria atual não usa — de uma
+   *   categoria anterior ou de especificação removida —, com o nome e a
+   *   categoria de onde vieram. Nada disso é apagado sem o dono confirmar.
+   */
+  async function estadoDoProduto(
+    tx: TransacaoDoBanco,
+    lojaId: string,
+    produtoId: string,
+  ) {
+    const atual = await especificacoesDoProduto(tx, lojaId, produtoId);
+    const idsDasAtivas = new Set(atual.especificacoes.map((item) => item.id));
+    const sobras = atual.linhasDeValor.filter(
+      (linha) => !idsDasAtivas.has(linha.definitionId),
+    );
+    const definicoesDasSobras =
+      sobras.length === 0
+        ? []
+        : await tx.attributeDefinition.findMany({
+            where: {
+              storeId: lojaId,
+              id: { in: sobras.map((linha) => linha.definitionId) },
+            },
+            select: {
+              id: true,
+              label: true,
+              unit: true,
+              categoryId: true,
+              deprecatedAt: true,
+            },
+          });
+    const definicaoPorId = new Map(
+      definicoesDasSobras.map((definicao) => [definicao.id, definicao]),
+    );
+    const categorias =
+      definicoesDasSobras.length === 0
+        ? []
+        : await tx.category.findMany({
+            where: {
+              storeId: lojaId,
+              id: {
+                in: [...new Set(definicoesDasSobras.map((d) => d.categoryId))],
+              },
+            },
+            select: { id: true, name: true },
+          });
+    const nomeDaCategoria = new Map(
+      categorias.map((categoria) => [categoria.id, categoria.name]),
+    );
+
+    // A regra de "usado na categoria atual" é do domínio (mover-categoria).
+    const mudanca = moverProdutoDeCategoria({
+      categoriaAtualId: atual.categoriaId ?? "",
+      valores: atual.linhasDeValor.map((linha) => ({
+        id: linha.id,
+        produtoId,
+        definicaoId: linha.definitionId,
+        categoriaId: idsDasAtivas.has(linha.definitionId)
+          ? (atual.categoriaId ?? "")
+          : (definicaoPorId.get(linha.definitionId)?.categoryId ?? ""),
+        valor: valorDaLinha(linha),
+      })),
+      especificacoesDaNovaCategoria: atual.especificacoes.map((item) => ({
+        id: item.id,
+        categoriaId: item.categoriaId,
+        chave: atual.chaves.get(item.id) ?? "",
+        rotulo: item.nome,
+        obrigatoria: item.obrigatoria,
+      })),
+    });
+
+    return {
+      produtoId,
+      categoriaId: atual.categoriaId,
+      campos: herdarEspecificacoesDaCategoria(
+        atual.especificacoes,
+        atual.categoriaId ?? "",
+        atual.valores,
+      ).map(({ especificacao, valor }) => ({
+        especificacao: respostaDaEspecificacao(especificacao, {
+          chave: atual.chaves.get(especificacao.id) ?? "",
+        }),
+        valor: valor ?? null,
+      })),
+      paraPreencher: mudanca.especificacoesParaPreencher.map((item) => item.id),
+      naoUsadas: mudanca.valoresPreservados
+        .filter((valor) => !idsDasAtivas.has(valor.definicaoId))
+        .map((valor) => {
+          const definicao = definicaoPorId.get(valor.definicaoId);
+          return {
+            especificacaoId: valor.definicaoId,
+            nome: definicao?.label ?? "",
+            unidade: definicao?.unit ?? null,
+            categoriaId: valor.categoriaId,
+            categoriaNome: nomeDaCategoria.get(valor.categoriaId) ?? null,
+            valor: valor.valor as ValorDeEspecificacao | null,
+            motivo:
+              definicao?.deprecatedAt != null || valor.usadoNaCategoriaAtual
+                ? ("removida" as const)
+                : ("outra_categoria" as const),
+          };
+        }),
+    };
+  }
+
   const DO_PRODUTO = "/:apelido/catalogo/produtos/:produtoId/especificacoes";
 
   rotas.get(DO_PRODUTO, async (requisicao, resposta, proximo) => {
@@ -933,30 +1045,76 @@ export function criarRotasDasEspecificacoes(
       await comoDono(
         requisicao,
         resposta,
-        async (tx, lojaId) => {
-          const produtoId = String(requisicao.params.produtoId);
-          const atual = await especificacoesDoProduto(tx, lojaId, produtoId);
-          return {
-            produtoId,
-            categoriaId: atual.categoriaId,
-            campos: herdarEspecificacoesDaCategoria(
-              atual.especificacoes,
-              atual.categoriaId ?? "",
-              atual.valores,
-            ).map(({ especificacao, valor }) => ({
-              especificacao: respostaDaEspecificacao(especificacao, {
-                chave: atual.chaves.get(especificacao.id) ?? "",
-              }),
-              valor: valor ?? null,
-            })),
-          };
-        },
+        (tx, lojaId) =>
+          estadoDoProduto(tx, lojaId, String(requisicao.params.produtoId)),
         (corpo) => resposta.json(corpo),
       );
     } catch (causa) {
       proximo(causa);
     }
   });
+
+  /*
+   * DESCARTAR UM VALOR GUARDADO (AC-329: "nada é apagado sem eu confirmar").
+   * Só vale para valor que a categoria atual não usa; o valor em uso se limpa
+   * pelo preenchimento. Sem confirmação, a resposta diz o que seria apagado e
+   * nada muda.
+   */
+  rotas.delete(
+    `${DO_PRODUTO}/:especificacaoId`,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDaRemocao.safeParse(requisicao.body ?? {});
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comoDono(
+          requisicao,
+          resposta,
+          async (tx, lojaId, usuario) => {
+            const produtoId = String(requisicao.params.produtoId);
+            const especificacaoId = String(requisicao.params.especificacaoId);
+            const estado = await estadoDoProduto(tx, lojaId, produtoId);
+            const guardado = estado.naoUsadas.find(
+              (item) => item.especificacaoId === especificacaoId,
+            );
+            if (guardado === undefined) {
+              const emUso = estado.campos.some(
+                (campo) => campo.especificacao.id === especificacaoId,
+              );
+              throw new Recusa(emUso ? 400 : 404, {
+                erro: emUso ? "valor_em_uso" : "nao_encontrado",
+              });
+            }
+            const descricao = `${guardado.nome}${guardado.categoriaNome ? ` (${guardado.categoriaNome})` : ""}: ${String(guardado.valor)}`;
+            if (entrada.data.confirmado !== true) {
+              throw new Recusa(409, {
+                erro: "confirmacao_necessaria",
+                aviso: `O valor guardado ${descricao} será apagado deste produto.`,
+              });
+            }
+            await tx.productAttribute.deleteMany({
+              where: {
+                storeId: lojaId,
+                productId: produtoId,
+                definitionId: especificacaoId,
+              },
+            });
+            await registrarNaTrilha(tx, lojaId, usuario, {
+              acao: ACOES_DA_ESPECIFICACAO.valorDescartado,
+              especificacaoId,
+              depois: { produtoId, descartado: descricao },
+            });
+            return estadoDoProduto(tx, lojaId, produtoId);
+          },
+          (corpo) => resposta.json(corpo),
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
 
   /*
    * PREENCHER. O que chega é sobreposto ao que já estava gravado, e o conjunto
@@ -1047,21 +1205,7 @@ export function criarRotasDasEspecificacoes(
             where: { id: produtoId },
             data: { updatedAt: new Date() },
           });
-          const depois = await especificacoesDoProduto(tx, lojaId, produtoId);
-          return {
-            produtoId,
-            categoriaId: depois.categoriaId,
-            campos: herdarEspecificacoesDaCategoria(
-              depois.especificacoes,
-              depois.categoriaId ?? "",
-              depois.valores,
-            ).map(({ especificacao, valor }) => ({
-              especificacao: respostaDaEspecificacao(especificacao, {
-                chave: depois.chaves.get(especificacao.id) ?? "",
-              }),
-              valor: valor ?? null,
-            })),
-          };
+          return estadoDoProduto(tx, lojaId, produtoId);
         },
         (corpo) => resposta.json(corpo),
       );
