@@ -26,6 +26,7 @@ import { criarRotasDasCategorias } from "../src/modules/catalog/categorias.route
 import { criarRotasDosProdutos } from "../src/modules/catalog/produtos.routes.ts";
 import { criarRotasDasEspecificacoes } from "../src/modules/catalog/especificacoes.routes.ts";
 import { criarRotasDasImagens } from "../src/modules/catalog/imagens.routes.ts";
+import type { HospedarImagem } from "../src/modules/catalog/hospedagem-de-imagem.ts";
 import { manipuladorDeErros } from "../src/core/erros.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { horarioDaLoja } from "../src/modules/stores/horarios.usecase.ts";
@@ -49,6 +50,7 @@ export interface DonoDaProva {
 export function montarPainelDaProva(
   acesso: AcessoAoBanco,
   dono: DonoDaProva | null,
+  extras: { readonly hospedarImagem?: HospedarImagem } = {},
 ): Express {
   const app = express();
   app.use(express.json({ limit: "1mb" }));
@@ -88,6 +90,9 @@ export function montarPainelDaProva(
       acesso,
       autenticar,
       resolverLoja: identificarLoja,
+      ...(extras.hospedarImagem === undefined
+        ? {}
+        : { hospedar: extras.hospedarImagem }),
     }),
   );
   app.use(
@@ -103,11 +108,18 @@ export function montarPainelDaProva(
 // ---------------------------------------------------------------------------
 
 /** Uma loja nova, com o dono membro dela e logado no painel. */
-export async function lojaComDonoNoPainel(acesso: AcessoAoBanco) {
+export async function lojaComDonoNoPainel(
+  acesso: AcessoAoBanco,
+  extras: { readonly hospedarImagem?: HospedarImagem } = {},
+) {
   const loja = await criarLoja();
   const identidade = await criarIdentidade();
   await criarMembro({ loja, identidade });
-  const app = montarPainelDaProva(acesso, { identidadeId: identidade.id });
+  const app = montarPainelDaProva(
+    acesso,
+    { identidadeId: identidade.id },
+    extras,
+  );
   return { loja, app, identidade };
 }
 
