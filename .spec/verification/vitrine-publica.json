@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-09-20T15:06:24.875Z",
-  "gitRev": "b2fb93a",
+  "timestamp": "2026-09-26T15:57:45.189Z",
+  "gitRev": "55ea723",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1206,
+  "testsParsed": 1269,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -111,12 +111,27 @@
       "status": "pass",
       "testName": "contratos declarativos da vitrine pública @spec:AC-420 garante alvo de toque mínimo no botão de busca @spec:AC-420 garante alvo de toque mínimo no botão de busca",
       "method": "vitest-json"
+    },
+    "AC-421": {
+      "status": "pass",
+      "testName": "a página Sobre mostra a loja e só o contato autorizado (AC-421, AC-422) @spec:AC-421 a história, a logo e a capa escritas pelo dono chegam à vitrine @spec:AC-421 a história, a logo e a capa escritas pelo dono chegam à vitrine",
+      "method": "vitest-json"
+    },
+    "AC-422": {
+      "status": "pass",
+      "testName": "a página Sobre mostra a loja e só o contato autorizado (AC-421, AC-422) @spec:AC-422 o endereço de retirada e o WhatsApp marcado como público chegam @spec:AC-422 o endereço de retirada e o WhatsApp marcado como público chegam",
+      "method": "vitest-json"
+    },
+    "AC-423": {
+      "status": "pass",
+      "testName": "a página Sobre continua útil sem JavaScript (AC-423) @spec:AC-423 o HTML do servidor já traz história, retirada, contato e navegação @spec:AC-423 o HTML do servidor já traz história, retirada, contato e navegação",
+      "method": "vitest-json"
     }
   },
   "principles": {
     "P-003": {
-      "status": "pass",
-      "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto"
+      "status": "fail",
+      "testName": "varredura do catálogo por tabela de loja @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura"
     },
     "P-006": {
       "status": "pass",
