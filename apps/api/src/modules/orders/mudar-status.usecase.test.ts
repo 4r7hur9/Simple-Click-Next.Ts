@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { decidirTransicao } from "@simpleclick/core";
 
+import { autorDaMudanca } from "./mudar-status.usecase.ts";
+
 describe("mudança de status do pedido", () => {
   it("@spec:AC-604 aceita cada passo válido do fluxo de entrega", () => {
     expect(decidirTransicao("PENDING", "ACCEPTED", "DELIVERY").ok).toBe(true);
@@ -49,5 +51,20 @@ describe("mudança de status do pedido", () => {
       de: "ACCEPTED",
       para: "PREPARING",
     });
+  });
+});
+
+describe("quem fez cada passo (AC-608)", () => {
+  it("@spec:AC-608 a identidade de quem mudou é guardada quando é uma identidade de verdade", () => {
+    expect(autorDaMudanca("9b1f2c3d-0000-4000-8000-000000000001")).toBe(
+      "9b1f2c3d-0000-4000-8000-000000000001",
+    );
+  });
+
+  it("@spec:AC-608 identificador que não é de identidade não impede o dono de trabalhar", () => {
+    // O usuário local de desenvolvimento não é uma linha de `identities`:
+    // gravá-lo derrubaria a mudança inteira. A trilha guarda o papel.
+    expect(autorDaMudanca("usuario-de-teste-local")).toBeNull();
+    expect(autorDaMudanca(undefined)).toBeNull();
   });
 });

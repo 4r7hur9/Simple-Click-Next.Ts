@@ -121,3 +121,19 @@ export type {
   TipoDaChavePix,
 } from "./chave-pix.ts";
 export { estaAcabando } from "./estoque.ts";
+export {
+  agruparPedidosDaFila,
+  atualizarFila,
+  descreverEspera,
+  deveTocarAlerta,
+  minutosDeEspera,
+  STATUS_FORA_DA_FILA,
+} from "./fila-de-pedidos.ts";
+export type { GruposDaFila, PedidoDaFila } from "./fila-de-pedidos.ts";
+export { resumirVendas, situacaoNaVenda } from "./situacao-na-venda.ts";
+export type {
+  ParcelaDoResumo,
+  PedidoParaVenda,
+  ResumoDeVendas,
+  SituacaoNaVenda,
+} from "./situacao-na-venda.ts";

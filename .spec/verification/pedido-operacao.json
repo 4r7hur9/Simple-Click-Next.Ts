@@ -1,0 +1,110 @@
+{
+  "feature": "pedido-operacao",
+  "timestamp": "2026-09-27T11:42:57.641Z",
+  "gitRev": "04a1853",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-operacao",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 141,
+  "results": {
+    "AC-600": {
+      "status": "pass",
+      "testName": "pedido novo chega à fila (AC-600) @spec:AC-600 o pedido feito pelo cliente está na fila na leitura seguinte, aguardando confirmação @spec:AC-600 o pedido feito pelo cliente está na fila na leitura seguinte, aguardando confirmação",
+      "method": "vitest-json"
+    },
+    "AC-601": {
+      "status": "pass",
+      "testName": "a fila traz o que o dono precisa ver (AC-601) @spec:AC-601 cada pedido vem com número, horário, cliente, valor, canal e forma de entrega @spec:AC-601 cada pedido vem com número, horário, cliente, valor, canal e forma de entrega",
+      "method": "vitest-json"
+    },
+    "AC-602": {
+      "status": "pass",
+      "testName": "reconexão não perde pedido (AC-602) @spec:AC-602 a leitura depois da queda é a fila inteira, com todos os que entraram no intervalo @spec:AC-602 a leitura depois da queda é a fila inteira, com todos os que entraram no intervalo",
+      "method": "vitest-json"
+    },
+    "AC-603": {
+      "status": "pass",
+      "testName": "silenciar tira o som, não o alerta (AC-603) @spec:AC-603 com som ligado o pedido novo toca; silenciado não toca @spec:AC-603 com som ligado o pedido novo toca; silenciado não toca",
+      "method": "vitest-json"
+    },
+    "AC-604": {
+      "status": "pass",
+      "testName": "o caminho normal do pedido (AC-604) @spec:AC-604 aceitar, preparar, sair para entrega e concluir, cada passo com horário e quem fez @spec:AC-604 aceitar, preparar, sair para entrega e concluir, cada passo com horário e quem fez",
+      "method": "vitest-json"
+    },
+    "AC-605": {
+      "status": "pass",
+      "testName": "retirada não passa por entrega (AC-605) @spec:AC-605 em preparo, o pedido de retirada oferece pronto para retirada e nunca saiu para entrega @spec:AC-605 em preparo, o pedido de retirada oferece pronto para retirada e nunca saiu para entrega",
+      "method": "vitest-json"
+    },
+    "AC-606": {
+      "status": "pass",
+      "testName": "caminho que não existe é recusado (AC-606) @spec:AC-606 voltar um pedido concluído para em preparo é recusado com explicação, e o status fica concluído @spec:AC-606 voltar um pedido concluído para em preparo é recusado com explicação, e o status fica concluído",
+      "method": "vitest-json"
+    },
+    "AC-607": {
+      "status": "pass",
+      "testName": "recusar e cancelar exigem motivo e avisam o cliente (AC-607) @spec:AC-607 recusar sem motivo é recusado, e o pedido continua aguardando @spec:AC-607 recusar sem motivo é recusado, e o pedido continua aguardando",
+      "method": "vitest-json"
+    },
+    "AC-608": {
+      "status": "pass",
+      "testName": "a linha do tempo é completa e imutável (AC-608) @spec:AC-608 o detalhe mostra cada passo, o horário exato e quem fez @spec:AC-608 o detalhe mostra cada passo, o horário exato e quem fez",
+      "method": "vitest-json"
+    },
+    "AC-609": {
+      "status": "pass",
+      "testName": "pedido que abriu o WhatsApp e não enviou (AC-609) @spec:AC-609 abrir a conversa marca o pedido como aguardando confirmação na fila do dono @spec:AC-609 abrir a conversa marca o pedido como aguardando confirmação na fila do dono",
+      "method": "vitest-json"
+    },
+    "AC-610": {
+      "status": "pass",
+      "testName": "o cliente sinaliza que já enviou (AC-610) @spec:AC-610 o 'já enviei' tira o pedido do aguardando e registra o horário da sinalização @spec:AC-610 o 'já enviei' tira o pedido do aguardando e registra o horário da sinalização",
+      "method": "vitest-json"
+    },
+    "AC-611": {
+      "status": "pass",
+      "testName": "pedido fantasma fora do faturamento (AC-611) @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento",
+      "method": "vitest-json"
+    },
+    "AC-612": {
+      "status": "pass",
+      "testName": "a página mostra o estado atual e o que já passou (AC-612) @spec:AC-612 o link devolve número, status, linha do tempo, itens, total, pagamento e contato da loja @spec:AC-612 o link devolve número, status, linha do tempo, itens, total, pagamento e contato da loja",
+      "method": "vitest-json"
+    },
+    "AC-613": {
+      "status": "pass",
+      "testName": "a página acompanha a mudança (AC-613) @spec:AC-613 a leitura seguinte à mudança já traz o status novo, e nada no caminho a guarda em cache @spec:AC-613 a leitura seguinte à mudança já traz o status novo, e nada no caminho a guarda em cache",
+      "method": "vitest-json"
+    },
+    "AC-614": {
+      "status": "pass",
+      "testName": "o endereço usa um código longo e aleatório (AC-614) @spec:AC-614 o token que o cliente recebe tem ao menos 128 bits e não carrega número, código nem identificador @spec:AC-614 o token que o cliente recebe tem ao menos 128 bits e não carrega número, código nem identificador",
+      "method": "vitest-json"
+    },
+    "AC-615": {
+      "status": "pass",
+      "testName": "a página não expõe dado além do necessário (AC-615) @spec:AC-615 o telefone do cliente vem mascarado, e endereço, e-mail e identificadores internos não vêm @spec:AC-615 o telefone do cliente vem mascarado, e endereço, e-mail e identificadores internos não vêm",
+      "method": "vitest-json"
+    },
+    "AC-616": {
+      "status": "pass",
+      "testName": "o cliente logado vê o histórico sem depender do link (AC-616) @spec:AC-616 a conta lista os pedidos feitos em todas as lojas, com o status de agora, e só os dela @spec:AC-616 a conta lista os pedidos feitos em todas as lojas, com o status de agora, e só os dela",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "o link de uma loja nunca abre pedido de outra (P-003) @spec:AC-614 @principle:P-003 o token verdadeiro de um pedido, no endereço de outra loja, não encontra nada @spec:AC-614 @principle:P-003 o token verdadeiro de um pedido, no endereço de outra loja, não encontra nada"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "a página é acessível (P-012) @principle:P-012 a página de acompanhamento não tem violação crítica nem séria @principle:P-012 a página de acompanhamento não tem violação crítica nem séria"
+    },
+    "P-011": {
+      "status": "pass",
+      "testName": "a lista cobre vazio, erro e sucesso (P-011) @principle:P-011 sem pedido nenhum, a tela diz isso e explica como o histórico aparece @principle:P-011 sem pedido nenhum, a tela diz isso e explica como o histórico aparece"
+    }
+  }
+}

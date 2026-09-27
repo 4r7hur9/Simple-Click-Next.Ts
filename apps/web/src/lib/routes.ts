@@ -204,6 +204,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-616",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/pedidos/page.tsx",
   },
   {
     rota: "/minha-conta/pedidos/{id}",
@@ -211,6 +212,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-616, AC-713",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/pedidos/[id]/page.tsx",
   },
   {
     rota: "/minha-conta/enderecos",

@@ -10,11 +10,39 @@ const ROTULOS: Record<string, string> = {
   OUT_FOR_DELIVERY: "Saiu para entrega",
   COMPLETED: "Pedido concluído",
   CANCELLED: "Pedido cancelado",
-  REJECTED: "Pedido recusado",
 };
 
+/** O status em linguagem de cliente, e não o código interno (AC-612). */
 function rotuloDoStatus(status: string): string {
-  return ROTULOS[status] ?? status;
+  return ROTULOS[status] ?? "Em andamento";
+}
+
+/**
+ * Uma frase sobre o que o status quer dizer para quem espera.
+ *
+ * "Em preparo" é claro para o dono; para o cliente, a pergunta é "e agora?".
+ */
+function explicacaoDoStatus(status: string, entrega: string): string {
+  switch (status) {
+    case "PENDING":
+      return "A loja recebeu seu pedido e vai confirmar em instantes.";
+    case "ACCEPTED":
+      return "A loja aceitou seu pedido e já vai começar a preparar.";
+    case "PREPARING":
+      return "Seu pedido está sendo preparado.";
+    case "READY_FOR_PICKUP":
+      return "Seu pedido está pronto. Pode vir buscar.";
+    case "OUT_FOR_DELIVERY":
+      return "Seu pedido saiu para entrega e já está a caminho.";
+    case "COMPLETED":
+      return entrega === "PICKUP"
+        ? "Pedido retirado. Obrigado pela compra!"
+        : "Pedido entregue. Obrigado pela compra!";
+    case "CANCELLED":
+      return "Este pedido foi cancelado pela loja.";
+    default:
+      return "A loja está cuidando do seu pedido.";
+  }
 }
 
 function horario(data: string): string {
@@ -32,9 +60,13 @@ export interface LinhaDoTempoProps {
 
 export function LinhaDoTempo({ historico }: LinhaDoTempoProps) {
   return (
-    <ol className="space-y-5">
+    <ol className="space-y-5" data-linha-do-tempo>
       {historico.map((entrada, indice) => (
-        <li key={`${entrada.ocorridoEm}-${indice}`} className="flex gap-3">
+        <li
+          key={`${entrada.ocorridoEm}-${indice}`}
+          className="flex gap-3"
+          data-passo={entrada.para}
+        >
           <span
             aria-hidden="true"
             className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[var(--cor-primaria)] ring-4 ring-[var(--cor-primaria-suave)]"
@@ -42,7 +74,9 @@ export function LinhaDoTempo({ historico }: LinhaDoTempoProps) {
           <div>
             <p className="font-semibold">{rotuloDoStatus(entrada.para)}</p>
             <p className="text-sm text-[var(--cor-tinta-suave)]">
-              {horario(entrada.ocorridoEm)}
+              <time dateTime={entrada.ocorridoEm}>
+                {horario(entrada.ocorridoEm)}
+              </time>
               {entrada.motivo ? ` · ${entrada.motivo}` : ""}
             </p>
           </div>
@@ -52,4 +86,4 @@ export function LinhaDoTempo({ historico }: LinhaDoTempoProps) {
   );
 }
 
-export { rotuloDoStatus };
+export { explicacaoDoStatus, rotuloDoStatus };

@@ -62,3 +62,59 @@ describe("máquina de status do pedido", () => {
     expect(depois[0]).toEqual(anterior[0]);
   });
 });
+
+describe("o botão diz o que o passo faz", () => {
+  it("@spec:AC-604 cada passo do caminho de entrega é oferecido com o verbo da ação", () => {
+    expect(proximosStatus("PENDING", "DELIVERY")).toEqual([
+      { status: "ACCEPTED", rotulo: "Aceito", acao: "Aceitar pedido" },
+      { status: "CANCELLED", rotulo: "Cancelado", acao: "Recusar pedido" },
+    ]);
+    expect(
+      proximosStatus("ACCEPTED", "DELIVERY").map((opcao) => opcao.acao),
+    ).toEqual(["Iniciar preparo", "Cancelar pedido"]);
+    expect(
+      proximosStatus("OUT_FOR_DELIVERY", "DELIVERY").map((opcao) => opcao.acao),
+    ).toEqual(["Concluir pedido", "Cancelar pedido"]);
+  });
+
+  it("@spec:AC-605 a retirada termina em pronto para retirada e depois concluído, sem entrega no caminho", () => {
+    let atual = "PENDING";
+    const visitados: string[] = [];
+    for (const proximo of [
+      "ACCEPTED",
+      "PREPARING",
+      "READY_FOR_PICKUP",
+      "COMPLETED",
+    ]) {
+      const decisao = decidirTransicao(atual, proximo, "PICKUP");
+      expect(decisao.ok, `${atual} → ${proximo}`).toBe(true);
+      if (decisao.ok) atual = decisao.para;
+      visitados.push(
+        ...proximosStatus(atual, "PICKUP").map((opcao) => opcao.status),
+      );
+    }
+    expect(visitados).not.toContain("OUT_FOR_DELIVERY");
+  });
+
+  it("@spec:AC-606 status desconhecido não é caminho, nem de ida nem de volta", () => {
+    expect(decidirTransicao("PENDING", "ENTREGUE", "DELIVERY")).toEqual({
+      ok: false,
+      explicacao: "Este status não existe.",
+    });
+    expect(decidirTransicao("CANCELLED", "PENDING", "DELIVERY").ok).toBe(false);
+    expect(proximosStatus("CANCELLED", "DELIVERY")).toEqual([]);
+  });
+
+  it("@spec:AC-607 motivo só com espaços não conta como motivo, e o motivo guardado vem aparado", () => {
+    expect(
+      decidirTransicao("PREPARING", "CANCELLED", "DELIVERY", "   ").ok,
+    ).toBe(false);
+    expect(
+      decidirTransicao("PREPARING", "CANCELLED", "DELIVERY", "  Sem gás  "),
+    ).toMatchObject({ ok: true, motivo: "Sem gás" });
+    // Passo que não cancela não carrega motivo, mesmo que um tenha sido dado.
+    expect(
+      decidirTransicao("PENDING", "ACCEPTED", "DELIVERY", "qualquer coisa"),
+    ).toMatchObject({ ok: true, motivo: null, contaComoVenda: true });
+  });
+});

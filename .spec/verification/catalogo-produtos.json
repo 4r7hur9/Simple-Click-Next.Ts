@@ -1,7 +1,7 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T11:07:30.803Z",
-  "gitRev": "dd601c0",
+  "timestamp": "2026-09-27T11:47:56.072Z",
+  "gitRev": "04a1853",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
