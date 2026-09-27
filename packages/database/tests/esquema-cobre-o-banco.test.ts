@@ -65,12 +65,11 @@ const ESPERA_LONGA = 120_000;
  * decidindo adiar, e a decisão fica escrita com o nome de quem adiou no
  * histórico — que é exatamente o oposto de uma tabela sumir sem ninguém notar.
  */
-const SEM_MODELO_POR_DECISAO: ReadonlySet<string> = new Set([
+const SEM_MODELO_POR_DECISAO: ReadonlySet<string> = new Set<string>([
   // As seis de variação, preço nomeado e grupo de escolha SAÍRAM daqui na
-  // T-405, que passou a lê-las para montar a página do produto. Ficam as duas
-  // de especificação tipada, que pertencem à feature `catalogo-produtos`.
-  "attribute_definitions",
-  "product_attributes",
+  // T-405, que passou a lê-las para montar a página do produto. As duas de
+  // especificação tipada saíram na T-301, quando o criador de especificações
+  // da categoria passou a gravá-las pelo painel do dono.
 ]);
 
 /** Tabelas de controle do próprio aplicador, que não são domínio. */

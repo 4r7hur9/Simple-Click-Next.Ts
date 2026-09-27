@@ -900,3 +900,64 @@ model StockMovement {
   @@map("stock_movements")
   @@schema("app")
 }
+
+/// A especificação que o dono cria DENTRO da categoria (T-301): Aro e Largura
+/// em Pneus, Tamanho e Malha em Camisetas. É o registro tipado que impede o
+/// cadastro de virar campo livre — o valor do produto só existe ligado a uma
+/// definição daqui.
+///
+/// REMOVER NÃO APAGA: `deprecatedAt` tira a especificação da categoria e do
+/// formulário, mas a linha fica, porque produto preenchido e pedido antigo
+/// continuam citando o nome da época. A história de nome e de remoção fica na
+/// trilha de auditoria.
+///
+/// Sem relação declarada com loja, categoria e produto de propósito: os
+/// modelos de lá não precisam navegar até aqui, e a chave estrangeira mora na
+/// migração 0007, que é a fonte da verdade da estrutura.
+model AttributeDefinition {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId        String    @map("store_id") @db.Uuid
+  categoryId     String    @map("category_id") @db.Uuid
+  /// Identidade estável da especificação no endereço do filtro da vitrine.
+  /// Renomear muda o rótulo, nunca a chave: link compartilhado continua valendo.
+  key            String
+  label          String
+  /// TEXT, NUMBER, ENUM ou BOOLEAN — a verificação mora no banco.
+  dataType       String    @default("TEXT") @map("data_type")
+  unit           String?
+  /// Lista fechada de valores aceitos, quando o tipo é ENUM.
+  allowedValues  Json?     @map("allowed_values") @db.JsonB
+  isRequired     Boolean   @default(false) @map("is_required")
+  isFilterable   Boolean   @default(false) @map("is_filterable")
+  sortOrder      Int       @default(0) @map("sort_order")
+  createdByOwner Boolean   @default(true) @map("created_by_owner")
+  deprecatedAt   DateTime? @map("deprecated_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  valores ProductAttribute[]
+
+  @@map("attribute_definitions")
+  @@schema("app")
+}
+
+/// O valor que um produto tem para uma especificação. Exatamente uma coluna de
+/// valor preenchida — o banco cobra. Número é `Decimal` (o `numeric` do banco),
+/// nunca ponto flutuante: 195,5 mm tem de voltar 195,5.
+model ProductAttribute {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId      String    @map("store_id") @db.Uuid
+  productId    String    @map("product_id") @db.Uuid
+  definitionId String    @map("definition_id") @db.Uuid
+  valueText    String?   @map("value_text")
+  valueNum     Decimal?  @map("value_num") @db.Decimal
+  valueBool    Boolean?  @map("value_bool")
+  valueDate    DateTime? @map("value_date") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  definicao AttributeDefinition @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+
+  @@map("product_attributes")
+  @@schema("app")
+}

@@ -2,15 +2,23 @@
  * Gestão das categorias da loja (T-300).
  *
  * A vitrine só lê categorias visíveis. Este módulo cuida da visão do dono:
- * criar, listar, ocultar/mostrar e ordenar sem atravessar o limite da loja.
- * Remoção com produtos fica reservada para a próxima fatia, quando o painel
- * também puder oferecer um destino de migração.
+ * criar, listar, ocultar/mostrar, ordenar e apagar sem atravessar o limite da
+ * loja. Apagar categoria com produtos exige destino (AC-303): a decisão mora em
+ * `categorias.usecase.ts`, e a rota só executa o que ela decidiu.
  */
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
-import { banco, type AcessoAoBanco } from "../../core/db.ts";
+import {
+  banco,
+  type AcessoAoBanco,
+  type TransacaoDoBanco,
+} from "../../core/db.ts";
+import {
+  decidirRemocaoDaCategoria,
+  planejarMudancaDeVinculos,
+} from "./categorias.usecase.ts";
 
 const esquemaDaCategoria = z.strictObject({
   nome: z.string().trim().min(1).max(100),
@@ -30,6 +38,22 @@ const esquemaDaAtualizacao = z
 
 const esquemaDaOrdem = z.strictObject({
   ids: z.array(z.string().uuid()).min(1).max(200),
+});
+
+/**
+ * O destino dos produtos de uma categoria que vai sair. Ausente é pergunta: a
+ * rota responde quantos produtos precisam de destino e não apaga nada.
+ */
+const esquemaDaRemocao = z.strictObject({
+  destino: z
+    .discriminatedUnion("acao", [
+      z.strictObject({
+        acao: z.literal("mover"),
+        categoriaId: z.string().uuid(),
+      }),
+      z.strictObject({ acao: z.literal("ocultar") }),
+    ])
+    .optional(),
 });
 
 export interface ChegadaNaLoja {
@@ -74,6 +98,7 @@ function respostaDaCategoria(categoria: {
   readonly description: string | null;
   readonly isVisible: boolean;
   readonly sortOrder: number;
+  readonly _count?: { readonly produtos: number };
 }) {
   return {
     id: categoria.id,
@@ -82,7 +107,40 @@ function respostaDaCategoria(categoria: {
     descricao: categoria.description,
     visivel: categoria.isVisible,
     ordem: categoria.sortOrder,
+    // Quantos produtos NÃO removidos moram nela: é o que o painel usa para
+    // saber, antes de apagar, se precisa perguntar o destino deles (AC-303).
+    produtos: categoria._count?.produtos ?? 0,
   };
+}
+
+/** Conta só produto vivo: o removido não precisa de destino. */
+const contagemDeProdutos = {
+  _count: {
+    select: { produtos: { where: { produto: { deletedAt: null } } } },
+  },
+} as const;
+
+/** Vínculos de produto vivo numa categoria, no formato que o plano pede. */
+async function vinculosDaCategoria(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  categoriaId: string,
+) {
+  const linhas = await tx.productCategory.findMany({
+    where: {
+      storeId: lojaId,
+      categoryId: categoriaId,
+      produto: { deletedAt: null },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { id: true, productId: true, isPrimary: true, sortOrder: true },
+  });
+  return linhas.map((linha) => ({
+    id: linha.id,
+    produtoId: linha.productId,
+    principal: linha.isPrimary,
+    ordem: linha.sortOrder,
+  }));
 }
 
 export function criarRotasDasCategorias(opcoes: OpcoesDasCategorias): Router {
@@ -141,6 +199,7 @@ export function criarRotasDasCategorias(opcoes: OpcoesDasCategorias): Router {
                       description: true,
                       isVisible: true,
                       sortOrder: true,
+                      ...contagemDeProdutos,
                     },
                   }),
                 ),
@@ -348,6 +407,7 @@ export function criarRotasDasCategorias(opcoes: OpcoesDasCategorias): Router {
                       description: true,
                       isVisible: true,
                       sortOrder: true,
+                      ...contagemDeProdutos,
                     },
                   });
                 }),
@@ -357,6 +417,169 @@ export function criarRotasDasCategorias(opcoes: OpcoesDasCategorias): Router {
               return;
             }
             resposta.json(respostaDaCategoria(atualizada));
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  /*
+   * APAGAR NÃO DEIXA PRODUTO ÓRFÃO (AC-303).
+   *
+   * Sem destino, a rota não apaga: responde 409 com quantos produtos precisam
+   * de um. Com destino "mover", os vínculos vão para a outra categoria e só
+   * então esta sai — na mesma transação, para que nenhuma leitura veja o
+   * produto sem seção. Com "ocultar", nada é apagado: a categoria fica oculta
+   * com os produtos dentro, e reaparece inteira quando o dono a mostrar.
+   *
+   * A remoção é lógica (`deleted_at`): pedido antigo e especificação preenchida
+   * continuam apontando para uma linha que existe.
+   */
+  rotas.delete(
+    "/:apelido/catalogo/categorias/:id",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDaRemocao.safeParse(requisicao.body ?? {});
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        const destino = entrada.data.destino;
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const resultado = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const categoria = await tx.category.findFirst({
+                    where: {
+                      id: requisicao.params.id,
+                      storeId: lojaId,
+                      deletedAt: null,
+                    },
+                    select: { id: true },
+                  });
+                  if (categoria === null)
+                    return { tipo: "nao_encontrada" } as const;
+
+                  const daOrigem = await vinculosDaCategoria(
+                    tx,
+                    lojaId,
+                    categoria.id,
+                  );
+                  const destinoExiste =
+                    destino?.acao === "mover"
+                      ? (await tx.category.count({
+                          where: {
+                            id: destino.categoriaId,
+                            storeId: lojaId,
+                            deletedAt: null,
+                          },
+                        })) === 1
+                      : false;
+                  const decisao = decidirRemocaoDaCategoria({
+                    categoriaId: categoria.id,
+                    produtos: daOrigem.length,
+                    destino,
+                    destinoExiste,
+                  });
+
+                  if (decisao.tipo === "exige_destino") return decisao;
+                  if (decisao.tipo === "destino_invalido") return decisao;
+
+                  if (decisao.tipo === "ocultar") {
+                    await tx.category.update({
+                      where: { id: categoria.id },
+                      data: { isVisible: false, updatedAt: new Date() },
+                    });
+                    return {
+                      tipo: "ocultada",
+                      produtos: daOrigem.length,
+                    } as const;
+                  }
+
+                  if (decisao.tipo === "mover") {
+                    const doDestino = await vinculosDaCategoria(
+                      tx,
+                      lojaId,
+                      decisao.categoriaId,
+                    );
+                    const plano = planejarMudancaDeVinculos(
+                      daOrigem,
+                      doDestino,
+                    );
+                    // A ordem importa: primeiro sai o vínculo repetido, depois
+                    // o destino herda a principal, e só então os demais mudam
+                    // de categoria — o índice único de "uma principal por
+                    // produto" nunca vê duas ao mesmo tempo.
+                    if (plano.descartar.length > 0) {
+                      await tx.productCategory.deleteMany({
+                        where: {
+                          storeId: lojaId,
+                          id: { in: [...plano.descartar] },
+                        },
+                      });
+                    }
+                    for (const id of plano.tornarPrincipal) {
+                      await tx.productCategory.update({
+                        where: { id },
+                        data: { isPrimary: true, updatedAt: new Date() },
+                      });
+                    }
+                    for (const vinculo of plano.mover) {
+                      await tx.productCategory.update({
+                        where: { id: vinculo.id },
+                        data: {
+                          categoryId: decisao.categoriaId,
+                          sortOrder: vinculo.ordem,
+                          updatedAt: new Date(),
+                        },
+                      });
+                    }
+                  }
+
+                  await tx.category.update({
+                    where: { id: categoria.id },
+                    data: { deletedAt: new Date(), updatedAt: new Date() },
+                  });
+                  return {
+                    tipo:
+                      decisao.tipo === "mover"
+                        ? ("movida" as const)
+                        : ("apagada" as const),
+                    produtos: daOrigem.length,
+                  };
+                }),
+            );
+
+            switch (resultado.tipo) {
+              case "nao_encontrada":
+                erro(resposta, 404, "nao_encontrado");
+                return;
+              case "exige_destino":
+                resposta.status(409).json({
+                  erro: "categoria_com_produtos",
+                  produtos: resultado.produtos,
+                  mensagem:
+                    "Escolha mover os produtos para outra categoria ou ocultar a categoria com eles.",
+                });
+                return;
+              case "destino_invalido":
+                resposta.status(400).json({
+                  erro: "destino_invalido",
+                  mensagem: resultado.motivo,
+                });
+                return;
+              default:
+                resposta.json({
+                  resultado: resultado.tipo,
+                  produtos: resultado.produtos,
+                });
+            }
           },
         );
       } catch (causa) {

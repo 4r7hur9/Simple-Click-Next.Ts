@@ -19,6 +19,7 @@ import { criarRotasDosPrecos } from "./modules/catalog/precos.routes.ts";
 import { criarRotasDosGruposDeEscolha } from "./modules/catalog/opcoes.routes.ts";
 import { criarRotasDasVariacoes } from "./modules/catalog/variacoes.routes.ts";
 import { criarRotasDoEstoque } from "./modules/catalog/estoque.routes.ts";
+import { criarRotasDasEspecificacoes } from "./modules/catalog/especificacoes.routes.ts";
 import {
   criarRotasDasConfiguracoes,
   type UsuarioAutenticado,
@@ -343,6 +344,33 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDoEstoque({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+    }),
+  );
+
+  // O criador de especificações da categoria e o preenchimento delas no
+  // produto (T-301): mesmo portão de autenticação do dono das rotas acima.
+  app.use(
+    "/v1/lojas",
+    criarRotasDasEspecificacoes({
       resolverLoja: identificarLoja,
       autenticar: (requisicao) => {
         const token = tokenDoCabecalhoDeAutorizacao(

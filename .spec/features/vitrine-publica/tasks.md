@@ -115,12 +115,14 @@
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 
-## T-410 — Página institucional Sobre da loja [pendente]
+## T-410 — Página institucional Sobre da loja [concluida]
 
 - Refs: US-406, AC-421, AC-422, AC-423
 - Depende de: T-904, T-905
-- Arquivos: packages/database/migrations/0022_vitrine_publica_sobre.sql, packages/contracts/src/vitrine.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx, apps/web/src/features/loja/SobreDaLoja.tsx, apps/web/tests/sobre-da-loja.test.tsx, e2e/specs/sobre-da-loja.spec.ts
-- Notas: a implementação local já adiciona `sobre` e `whatsappPublico` ao DTO público e a rota `/l/{apelido}/sobre`. Só publica o WhatsApp marcado explicitamente como público; telefone cadastral, e-mail, documentos e contatos privados continuam fora da allowlist. O conteúdo chega pronto do servidor e funciona sem JavaScript. A prova Playwright formal permanece pendente por decisão de celeridade.
+- Arquivos: packages/database/migrations/0022_vitrine_publica_sobre.sql, packages/contracts/src/vitrine.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts, apps/api/tests/vitrine-sem-dado-sensivel.test.ts, apps/web/src/app/(loja)/l/[slug]/sobre/page.tsx, apps/web/src/features/loja/SobreDaLoja.tsx, apps/web/tests/sobre-da-loja.test.tsx, e2e/specs/sobre-da-loja.spec.ts, e2e/fixtures/loja-com-sobre.ts
+- Notas: a implementação local já adiciona `sobre` e `whatsappPublico` ao DTO público e a rota `/l/{apelido}/sobre`. Só publica o WhatsApp marcado explicitamente como público; telefone cadastral, e-mail, documentos e contatos privados continuam fora da allowlist. O conteúdo chega pronto do servidor e funciona sem JavaScript.
+- Notas: **a prova fechou em 26/09, em três camadas.** A tela (`sobre-da-loja.test.tsx`) prova o HTML do servidor: história, logo, capa, volta para a vitrine, contato só quando público e nenhum `"use client"`. A API contra o banco (`vitrine-sem-dado-sensivel.test.ts`) prova que o número só sai com a marca `publico === true` — `"true"`, `1` ou `"sim"` guardados por engano não publicam — e que publicar um número não arrasta o cadastro junto. O ponta a ponta (`sobre-da-loja.spec.ts`) monta uma loja PRÓPRIA (`fixtures/loja-com-sobre.ts`), porque a das compras é regravada em paralelo, e confere a página com e sem JavaScript, o HTML inteiro e a resposta crua da API.
+- Notas: na retomada em 27/09, os mesmos cenários de navegador foram reexecutados no Chrome local: **10/10 passaram** nos projetos desktop e celular.
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 

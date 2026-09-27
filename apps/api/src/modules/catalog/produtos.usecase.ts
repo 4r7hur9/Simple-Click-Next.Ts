@@ -149,6 +149,21 @@ export function editarProduto(
   };
 }
 
+/**
+ * A duplicata nasce rascunho e fora de venda (AC-307): o dono revisa o
+ * parecido antes de ele ir ao ar. É a MESMA regra que a rota de duplicar grava
+ * no banco — ela importa daqui, e não repete.
+ */
+export const ESTADO_DA_DUPLICATA = {
+  status: "DRAFT",
+  disponivel: false,
+} as const satisfies { status: StatusDoProduto; disponivel: boolean };
+
+/** O nome da duplicata cabe no limite do nome do produto. */
+export function nomeDaDuplicata(nome: string): string {
+  return `${nome} (cópia)`.slice(0, 160);
+}
+
 /** Copia todos os dados editáveis, mas nunca copia publicação ou remoção. */
 export function duplicarProduto(
   produto: Produto,
@@ -158,9 +173,9 @@ export function duplicarProduto(
   return {
     ...produto,
     id: opcoes.id ?? randomUUID(),
-    nome: `${produto.nome} (cópia)`.slice(0, 160),
-    status: "DRAFT",
-    disponivel: false,
+    nome: nomeDaDuplicata(produto.nome),
+    status: ESTADO_DA_DUPLICATA.status,
+    disponivel: ESTADO_DA_DUPLICATA.disponivel,
     atributos: { ...produto.atributos },
     imagens: copiarImagens(produto.imagens),
     criadoEm: agora,

@@ -1,11 +1,11 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-09-27T04:06:39.769Z",
-  "gitRev": "331be20",
-  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "timestamp": "2026-09-27T05:53:03.773Z",
+  "gitRev": "5b32ae1",
+  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh config-loja",
   "reporter": "vitest-json",
-  "exitCode": 1,
-  "testsParsed": 1368,
+  "exitCode": 0,
+  "testsParsed": 222,
   "results": {
     "AC-900": {
       "status": "pass",
@@ -129,14 +129,6 @@
     }
   },
   "principles": {
-    "P-003": {
-      "status": "fail",
-      "testName": "varredura do catálogo por tabela de loja @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura @spec:AC-010 @principle:P-003 toda tabela de loja do catálogo tem construtor na varredura"
-    },
-    "P-006": {
-      "status": "pass",
-      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
-    },
     "P-009": {
       "status": "pass",
       "testName": "toda alteração fica registrada (AC-922) @spec:AC-922 @principle:P-009 trocar a chave PIX fica destacado, e a trilha guarda só o final da chave @spec:AC-922 @principle:P-009 trocar a chave PIX fica destacado, e a trilha guarda só o final da chave"
@@ -144,18 +136,6 @@
     "P-010": {
       "status": "pass",
       "testName": "trocar a chave não altera pedido já feito (AC-903) @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova"
-    },
-    "P-012": {
-      "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
-    },
-    "P-011": {
-      "status": "pass",
-      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
     }
   }
 }

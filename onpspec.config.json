@@ -8,6 +8,7 @@
     "apps/*/tests/**",
     "packages/*/src/**/*.test.ts",
     "packages/*/tests/**",
+    "packages/*/seed/**/*.test.ts",
     "infra/tests/**",
     "e2e/**"
   ],
@@ -25,6 +26,11 @@
     "build/**",
     "coverage/**",
     ".spec/**",
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/playwright-report/**",
+    "**/test-results/**",
+    "**/*.tsbuildinfo",
     "infra/compose/.env.compose",
     "infra/traefik/certs/**"
   ],

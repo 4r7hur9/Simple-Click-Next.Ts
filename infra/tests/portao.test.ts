@@ -222,6 +222,29 @@ function versaoNoRemoto(
 }
 
 /**
+ * Os códigos do projeto de mentira. CINCO DÍGITOS DE PROPÓSITO: nenhuma
+ * especificação de verdade chega a eles. A prova usava AC-901 e AC-902, e esses
+ * códigos viraram critérios reais da `config-loja` — o motor lia a etiqueta
+ * deste arquivo e passava a achar que os critérios de verdade tinham teste.
+ */
+const AC_COM_TESTE = "AC-99901";
+const AC_SEM_PROVA = "AC-99902";
+const HISTORIA_DE_EXEMPLO = "US-99901";
+const TAREFA_DE_EXEMPLO = "T-99901";
+
+/**
+ * A etiqueta de critério, montada em tempo de execução.
+ *
+ * Escrita por extenso aqui, ela seria lida pelo motor como teste DESTE
+ * repositório — e um código que não existe em especificação nenhuma vira
+ * "teste órfão" na auditoria de verdade. Montada na hora, ela só existe dentro
+ * do projeto de mentira, que é onde precisa estar.
+ */
+function etiquetaDe(criterio: string): string {
+  return ["@spec", criterio].join(":");
+}
+
+/**
  * Projeto de especificação de mentira, com dois critérios de aceite: um com
  * teste de verdade e outro que a prova de cada teste vai mexer.
  *
@@ -284,17 +307,17 @@ function projetoDeEspecificacao(rotulo: string): {
       "",
       "## Histórias",
       "",
-      "### US-901 — História de exemplo",
+      `### ${HISTORIA_DE_EXEMPLO} — História de exemplo`,
       "",
       "Como pessoa, quero uma coisa, para que outra aconteça.",
       "",
-      "#### AC-901 — Critério com teste que passa",
+      `#### ${AC_COM_TESTE} — Critério com teste que passa`,
       "",
       "- **Dado** um estado",
       "- **Quando** algo acontece",
       "- **Então** o resultado é o esperado",
       "",
-      "#### AC-902 — Critério que a prova vai deixar sem prova",
+      `#### ${AC_SEM_PROVA} — Critério que a prova vai deixar sem prova`,
       "",
       "- **Dado** um estado",
       "- **Quando** algo acontece",
@@ -307,9 +330,9 @@ function projetoDeEspecificacao(rotulo: string): {
     [
       "# Tarefas — exemplo",
       "",
-      "## T-901 — Faz a coisa [concluida]",
+      `## ${TAREFA_DE_EXEMPLO} — Faz a coisa [concluida]`,
       "",
-      "- Refs: US-901, AC-901, AC-902",
+      `- Refs: ${HISTORIA_DE_EXEMPLO}, ${AC_COM_TESTE}, ${AC_SEM_PROVA}`,
       "- Arquivos: src/coisa.mjs",
       "- Esforço: baixo",
       "",
@@ -326,7 +349,7 @@ function projetoDeEspecificacao(rotulo: string): {
       'import assert from "node:assert/strict";',
       'import { coisa } from "../src/coisa.mjs";',
       "",
-      'test("@spec:AC-901 a coisa devolve um", () => {',
+      `test("${etiquetaDe(AC_COM_TESTE)} a coisa devolve um", () => {`,
       "  assert.equal(coisa(), 1);",
       "});",
       "",
@@ -469,19 +492,25 @@ describe("auditoria da especificação — o que conta como prova", () => {
       auditoria.codigo,
       `a auditoria passou com um critério sem teste:\n${auditoria.saida}`,
     ).not.toBe(0);
-    expect(auditoria.saida).toContain("AC-902");
+    expect(auditoria.saida).toContain(AC_SEM_PROVA);
     expect(auditoria.saida).toMatch(
-      /AC-902.*não tem nenhum teste anotado com @spec:AC-902/,
+      new RegExp(
+        `${AC_SEM_PROVA}.*não tem nenhum teste anotado com ${etiquetaDe(AC_SEM_PROVA)}`,
+      ),
     );
 
     // O critério que TEM teste não pode aparecer como sem teste: se aparecesse,
     // a auditoria estaria reprovando tudo e não apontando nada.
-    expect(auditoria.saida).not.toMatch(/AC-901.*não tem nenhum teste anotado/);
+    expect(auditoria.saida).not.toMatch(
+      new RegExp(`${AC_COM_TESTE}.*não tem nenhum teste anotado`),
+    );
 
     // E a tarefa que se declarou concluída cai junto: não dá para dar por
     // pronto o que não foi verificado.
     expect(auditoria.saida).toMatch(
-      /T-901 está \[concluida\] mas o critério AC-902/,
+      new RegExp(
+        `${TAREFA_DE_EXEMPLO} está \\[concluida\\] mas o critério ${AC_SEM_PROVA}`,
+      ),
     );
   });
 
@@ -495,7 +524,7 @@ describe("auditoria da especificação — o que conta como prova", () => {
         'import test from "node:test";',
         'import assert from "node:assert/strict";',
         "",
-        'test("@spec:AC-902 o critério é provado por um teste pulado", { skip: "pulado de propósito" }, () => {',
+        `test("${etiquetaDe(AC_SEM_PROVA)} o critério é provado por um teste pulado", { skip: "pulado de propósito" }, () => {`,
         "  assert.equal(1, 1);",
         "});",
         "",
@@ -503,7 +532,7 @@ describe("auditoria da especificação — o que conta como prova", () => {
     );
 
     const provas = verificarProvas(projeto);
-    expect(provas.saida).toContain("SKIP (não é prova) AC-902");
+    expect(provas.saida).toContain(`SKIP (não é prova) ${AC_SEM_PROVA}`);
 
     // O registro de provas é o que a auditoria consome: nele, o critério do
     // teste pulado não fica com "pass".
@@ -513,22 +542,28 @@ describe("auditoria da especificação — o que conta como prova", () => {
         "utf8",
       ),
     ) as { results: Record<string, { status: string }> };
-    expect(registro.results["AC-901"]?.status).toBe("pass");
-    expect(registro.results["AC-902"]?.status).toBe("skip");
+    expect(registro.results[AC_COM_TESTE]?.status).toBe("pass");
+    expect(registro.results[AC_SEM_PROVA]?.status).toBe("skip");
 
     const auditoria = auditar(projeto);
     expect(
       auditoria.codigo,
       `a auditoria aceitou um teste pulado como prova:\n${auditoria.saida}`,
     ).not.toBe(0);
-    expect(auditoria.saida).toMatch(/AC-902.*PULADO.*skip não é prova/);
     expect(auditoria.saida).toMatch(
-      /T-901 está \[concluida\] mas o critério AC-902/,
+      new RegExp(`${AC_SEM_PROVA}.*PULADO.*skip não é prova`),
+    );
+    expect(auditoria.saida).toMatch(
+      new RegExp(
+        `${TAREFA_DE_EXEMPLO} está \\[concluida\\] mas o critério ${AC_SEM_PROVA}`,
+      ),
     );
 
     // Contraprova: o critério com teste que roda de verdade fica provado. Sem
     // isto, "reprovou" poderia significar só que a auditoria reprova sempre.
-    expect(auditoria.saida).not.toMatch(/AC-901.*skip não é prova/);
+    expect(auditoria.saida).not.toMatch(
+      new RegExp(`${AC_COM_TESTE}.*skip não é prova`),
+    );
     expect(auditoria.saida).toContain("1/2 provados");
   });
 });

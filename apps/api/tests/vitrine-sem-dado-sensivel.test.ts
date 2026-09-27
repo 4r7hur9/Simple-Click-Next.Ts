@@ -1,5 +1,7 @@
 /**
  * Prova de que a vitrine não vaza (AC-402, AC-904, P-009), contra PostgreSQL.
+ * A página Sobre (AC-421, AC-422) mora aqui pelo mesmo motivo: ela é a única
+ * tela que publica um contato, e o contato é justamente o que não pode vazar.
  *
  * A projeção em memória já está provada em `dto-publico.test.ts`. O que só o
  * banco prova é o caminho INTEIRO: uma loja de verdade, com chave PIX de
@@ -429,9 +431,9 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         // não nasça classificado errado em toda superfície ao mesmo tempo.
         "alimentacao",
         "apelido",
-        // `blocos` entrou na T-309 e é DECISÃO, pela mesma razão que `rotulos`:
-        // é a composição das telas do RAMO (`vertical_presets`), igual para
-        // toda loja dele, sem nada do dono desta.
+        // `blocos` entrou na T-309 e é a composição das telas definida pelo
+        // preset do RAMO (`vertical_presets.blocos`): catálogo de plataforma,
+        // igual para toda loja dele, sem nada do dono desta.
         "blocos",
         "boasVindas",
         "capa",
@@ -618,6 +620,174 @@ describe("o fechamento vê a chave PIX, e só ele (AC-510, AC-904)", () => {
 
       expect(visto?.entrega.aceitaEntrega).toBe(false);
       expect(visto?.entrega.aceitaRetirada).toBe(true);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a página Sobre mostra a loja e só o contato autorizado (AC-421, AC-422)", () => {
+  // Uma loja PRÓPRIA, e não a `ativa` de cima: a página Sobre precisa do
+  // WhatsApp marcado como público, e a `ativa` existe justamente para provar o
+  // caso contrário — o número do dono guardado sem a marca.
+  const WHATSAPP_PUBLICO = "5511977776666";
+  const WHATSAPP_CADASTRAL = "5511955554444";
+  const DOCUMENTO_DO_SOBRE = "98765432000110";
+  const TELEFONE_CADASTRAL = "1144445555";
+  const EMAIL_CADASTRAL = "dona-do-sobre@exemplo.test";
+  const HISTORIA = "Começamos numa garagem, com a receita da avó.";
+
+  let doSobre: LojaDeTeste;
+
+  beforeAll(async () => {
+    doSobre = await criarLoja({ nome: "Casa do Sobre" });
+
+    // O cadastro inteiro preenchido: é ele que NÃO pode aparecer.
+    await migrador.query(
+      `UPDATE app.stores
+          SET legal_name = 'Casa do Sobre Comércio LTDA', doc_number = $2,
+              doc_type = 'CNPJ', whatsapp_e164 = $3, phone1 = $4, email = $5,
+              street = 'Avenida Beira-Mar', number = '500',
+              neighborhood = 'Gonzaga', city = 'Santos', uf = 'SP',
+              zip = '11060000', lat = -23.96, lng = -46.33
+        WHERE id = $1`,
+      [
+        doSobre.id,
+        DOCUMENTO_DO_SOBRE,
+        WHATSAPP_CADASTRAL,
+        TELEFONE_CADASTRAL,
+        EMAIL_CADASTRAL,
+      ],
+    );
+
+    await migrador.query(
+      `UPDATE app.store_settings
+          SET landing = $2, whatsapp = $3, payment = $4
+        WHERE store_id = $1`,
+      [
+        doSobre.id,
+        JSON.stringify({
+          boasVindas: "Bem-vindo à Casa do Sobre",
+          sobre: HISTORIA,
+          logo: "https://exemplo.test/sobre-logo.png",
+          capa: "https://exemplo.test/sobre-capa.jpg",
+        }),
+        JSON.stringify({
+          numero: WHATSAPP_PUBLICO,
+          saudacao: "Olá!",
+          publico: true,
+        }),
+        JSON.stringify({
+          formas: ["PIX"],
+          pix: { chave: "sobre@pix.exemplo.test", tipo: "EMAIL" },
+        }),
+      ],
+    );
+  }, ESPERA_LONGA);
+
+  it(
+    "@spec:AC-421 a história, a logo e a capa escritas pelo dono chegam à vitrine",
+    async () => {
+      const visita = await visitaAnonima(doSobre.apelido);
+      expect(visita.identificacao.encontrada).toBe(true);
+
+      const publica = visita.vitrine?.publica;
+      expect(publica?.nome).toBe("Casa do Sobre");
+      expect(publica?.sobre).toBe(HISTORIA);
+      expect(publica?.logo).toBe("https://exemplo.test/sobre-logo.png");
+      expect(publica?.capa).toBe("https://exemplo.test/sobre-capa.jpg");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-422 o endereço de retirada e o WhatsApp marcado como público chegam",
+    async () => {
+      const visita = await visitaAnonima(doSobre.apelido);
+
+      const publica = visita.vitrine?.publica;
+      expect(publica?.whatsappPublico).toBe(WHATSAPP_PUBLICO);
+      expect(publica?.enderecoParaRetirada).toEqual({
+        logradouro: "Avenida Beira-Mar",
+        numero: "500",
+        complemento: null,
+        bairro: "Gonzaga",
+        cidade: "Santos",
+        uf: "SP",
+      });
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-422 @principle:P-009 nada do cadastro do dono sai junto com o contato público",
+    async () => {
+      // Publicar UM número não abre a porta para os outros: o telefone e o
+      // WhatsApp do cadastro, o e-mail e o documento continuam fora.
+      const comoTexto = JSON.stringify(await visitaAnonima(doSobre.apelido));
+
+      expect(comoTexto).toContain(WHATSAPP_PUBLICO);
+      expect(comoTexto).not.toContain(WHATSAPP_CADASTRAL);
+      expect(comoTexto).not.toContain(TELEFONE_CADASTRAL);
+      expect(comoTexto).not.toContain(EMAIL_CADASTRAL);
+      expect(comoTexto).not.toContain(DOCUMENTO_DO_SOBRE);
+      expect(comoTexto).not.toContain("Comércio LTDA");
+      expect(comoTexto).not.toContain("sobre@pix.exemplo.test");
+      expect(comoTexto).not.toContain("11060000");
+      expect(comoTexto).not.toContain("saudacao");
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-422 desmarcado o público, o mesmo número some da vitrine",
+    async () => {
+      // A marca é a ÚNICA coisa que muda: o número continua guardado, porque o
+      // fechamento do pedido ainda precisa dele para montar a mensagem.
+      await migrador.query(
+        `UPDATE app.store_settings
+            SET whatsapp = whatsapp || '{"publico": false}'::jsonb
+          WHERE store_id = $1`,
+        [doSobre.id],
+      );
+
+      const visita = await visitaAnonima(doSobre.apelido);
+
+      expect(visita.vitrine?.publica.whatsappPublico).toBeNull();
+      expect(JSON.stringify(visita)).not.toContain(WHATSAPP_PUBLICO);
+
+      await migrador.query(
+        `UPDATE app.store_settings
+            SET whatsapp = whatsapp || '{"publico": true}'::jsonb
+          WHERE store_id = $1`,
+        [doSobre.id],
+      );
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-422 marca que não é exatamente verdadeira não publica o número",
+    async () => {
+      // `"sim"`, `1` ou `"true"` guardados por engano não contam: publicar é
+      // decisão explícita, e o padrão seguro é não publicar.
+      for (const marca of ['"true"', "1", '"sim"']) {
+        await migrador.query(
+          `UPDATE app.store_settings
+              SET whatsapp = jsonb_set(whatsapp, '{publico}', $2::jsonb)
+            WHERE store_id = $1`,
+          [doSobre.id, marca],
+        );
+
+        const visita = await visitaAnonima(doSobre.apelido);
+        expect(visita.vitrine?.publica.whatsappPublico, marca).toBeNull();
+      }
+
+      await migrador.query(
+        `UPDATE app.store_settings
+            SET whatsapp = whatsapp || '{"publico": true}'::jsonb
+          WHERE store_id = $1`,
+        [doSobre.id],
+      );
     },
     ESPERA_LONGA,
   );

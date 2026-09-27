@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   moverProdutoDeCategoria,
+  planejarTrocaDeCategoria,
   type DefinicaoDeEspecificacao,
   type ValorDeEspecificacao,
 } from "./mover-categoria.usecase.ts";
@@ -63,5 +64,36 @@ describe("mudança de categoria do produto", () => {
       usadoNaCategoriaAtual: true,
     });
     expect(resultado.especificacoesParaPreencher).toEqual([]);
+  });
+});
+
+describe("trocar a categoria principal do produto", () => {
+  const vinculos = [
+    { id: "v-pneus", categoriaId: "cat-pneus", principal: true },
+    { id: "v-promocoes", categoriaId: "cat-promocoes", principal: false },
+  ];
+
+  it("@spec:AC-329 salvar sem mudar a categoria não mexe em vínculo nenhum", () => {
+    expect(planejarTrocaDeCategoria(vinculos, "cat-pneus")).toEqual({
+      tipo: "nada",
+    });
+  });
+
+  it("@spec:AC-329 mover troca só a principal e mantém as seções secundárias", () => {
+    expect(planejarTrocaDeCategoria(vinculos, "cat-rodas")).toEqual({
+      tipo: "trocar",
+      apagar: ["v-pneus"],
+      tornarPrincipal: null,
+      criarNaCategoria: "cat-rodas",
+    });
+  });
+
+  it("@spec:AC-329 se o produto já estava na nova como secundária, ela vira a principal", () => {
+    expect(planejarTrocaDeCategoria(vinculos, "cat-promocoes")).toEqual({
+      tipo: "trocar",
+      apagar: ["v-pneus"],
+      tornarPrincipal: "v-promocoes",
+      criarNaCategoria: null,
+    });
   });
 });
