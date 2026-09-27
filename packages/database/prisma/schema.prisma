@@ -216,6 +216,10 @@ model StoreMember {
   permissions      Json      @default("{}") @db.JsonB
   invitedBy        String?   @map("invited_by") @db.Uuid
   inviteAcceptedAt DateTime? @map("invite_accepted_at") @db.Timestamptz(6)
+  // Só o RESUMO do token do convite (migração 0032): o token em claro vai
+  // apenas no e-mail do responsável, e o convite aceito zera as duas colunas.
+  inviteTokenHash  String?   @map("invite_token_hash")
+  inviteExpiresAt  DateTime? @map("invite_expires_at") @db.Timestamptz(6)
   revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
