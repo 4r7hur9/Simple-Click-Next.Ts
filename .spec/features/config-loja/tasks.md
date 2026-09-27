@@ -51,11 +51,11 @@
 - Notas: largura de papel muda a formatação do mesmo pedido. O dono escolhe o que aparece, mas o essencial do pedido não pode ser desligado.
 - Esforço: medio
 
-## T-907 — Avisos de configuração pendente no painel [pendente]
+## T-907 — Avisos de configuração pendente no painel [concluida]
 
 - Refs: US-903, AC-902, AC-914
-- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/features/config/AvisosPendentes.tsx, apps/web/src/app/(painel)/painel/layout.tsx
-- Notas: a primeira fatia funcional local consulta pagamento, WhatsApp e horário e mostra aviso destacado no painel, com atalho para as telas disponíveis. A implementação formal do caso de uso, testes anotados e tela de edição de horários continuam pendentes.
+- Arquivos: apps/api/src/modules/stores/pendencias.usecase.ts, apps/api/src/modules/stores/pendencias.usecase.test.ts, apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/features/config/AvisosPendentes.tsx, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/tests/avisos-pendentes.test.tsx
+- Notas: regra pura em `pendencias.usecase.ts`: sem forma de pagamento que o checkout ofereça (PIX sem chave não conta), sem entrega nem retirada, sem WhatsApp e sem horário, cada aviso dizendo a consequência para o cliente e com atalho para a tela que resolve — inclusive a de horário. O aviso aparece destacado (tom de atenção) no topo de todo o painel; falha ao consultar não vira aviso falso.
 - Esforço: baixo
 
 ## T-908 — Teste de ponta a ponta das configurações [pendente]

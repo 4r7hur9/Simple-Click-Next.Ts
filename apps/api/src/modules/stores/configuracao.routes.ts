@@ -32,6 +32,7 @@ import {
   salvarConfiguracao,
   type RegistradorDaTrilha,
 } from "./configuracoes.usecase.ts";
+import { pendenciasDaLoja } from "./pendencias.usecase.ts";
 
 export interface ChegadaNaLoja {
   readonly host?: string | null;
@@ -118,58 +119,21 @@ export function criarRotasDasConfiguracoes(
     return { valor };
   }
 
+  const bordaDasPendencias = validar({ params: esquemaDosParametrosDaSecao });
   rotas.get(
     "/:apelido/configuracao/pendencias",
+    bordaDasPendencias,
     async (requisicao, resposta, proximo) => {
       try {
-        const lido = await naLoja(
-          requisicao.params.apelido,
-          resposta,
-          async (lojaId) => ({
-            pagamento: await lerConfiguracao("pagamento", lojaId),
-            contato: await lerConfiguracao("contato", lojaId),
-            horario: await lerConfiguracao("horario", lojaId),
-          }),
-        );
+        const { params } = bordaDasPendencias.dados(requisicao);
+        const lido = await naLoja(params.apelido, resposta, async (lojaId) => ({
+          pagamento: await lerConfiguracao("pagamento", lojaId),
+          entrega: await lerConfiguracao("entrega", lojaId),
+          contato: await lerConfiguracao("contato", lojaId),
+          horario: await lerConfiguracao("horario", lojaId),
+        }));
         if (lido === null) return;
-
-        const { pagamento, contato, horario } = lido.valor;
-        const pendencias = [
-          ...(pagamento.formas.length === 0
-            ? [
-                {
-                  codigo: "PAGAMENTO",
-                  titulo: "Configure uma forma de pagamento",
-                  descricao:
-                    "O checkout precisa de pelo menos uma forma para receber pedidos.",
-                  href: "/painel/config/pagamento",
-                },
-              ]
-            : []),
-          ...(contato.numero === ""
-            ? [
-                {
-                  codigo: "WHATSAPP",
-                  titulo: "Adicione seu WhatsApp",
-                  descricao:
-                    "Sem ele, o pedido ainda é registrado, mas não abre uma conversa para você.",
-                  href: "/painel/config/contato",
-                },
-              ]
-            : []),
-          ...(horario.semana.length === 0
-            ? [
-                {
-                  codigo: "HORARIO",
-                  titulo: "Defina o horário de funcionamento",
-                  descricao:
-                    "A vitrine precisa saber quando sua loja recebe pedidos.",
-                  href: "/painel/config/horarios",
-                },
-              ]
-            : []),
-        ];
-        resposta.json({ pendencias });
+        resposta.json({ pendencias: pendenciasDaLoja(lido.valor) });
       } catch (causa) {
         proximo(causa);
       }
