@@ -66,11 +66,11 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [pendente]
+## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [concluida]
 
 - Refs: US-307, AC-333
 - Arquivos: packages/database/migrations/0024_reserva_de_estoque_no_checkout.sql, apps/api/src/modules/orders/reservar-estoque.ts, apps/api/src/modules/orders/reservar-estoque.test.ts, apps/api/src/modules/orders/pedidos.routes.ts, apps/api/tests/estoque-concorrente.test.ts
-- Notas: primeira fatia funcional local adota baixa na confirmação: função SQL com `SECURITY DEFINER` confere loja, token, pedido e item, faz atualização condicional sob trava de linha e grava movimento `PEDIDO` na mesma transação. Retry idempotente não baixa novamente; prova formal ONP e suíte global ainda pendentes.
+- Notas: baixa na confirmação do pedido (ASM-311): função SQL com `SECURITY DEFINER` confere loja, token, pedido e item, faz atualização condicional sob trava de linha e grava movimento `PEDIDO` na mesma transação; se uma variação falha, o pedido inteiro é desfeito. Retry idempotente não baixa novamente. Prova de concorrência real: duas transações da credencial da aplicação disputam a última peça, uma vence, a outra recebe conflito e o saldo não fica negativo (AC-333). A variação sem controle de estoque passa sem baixa (migração 0027, registrada na T-307).
 - Esforço: max
 - Modelo: gpt-5.6-luna
 
