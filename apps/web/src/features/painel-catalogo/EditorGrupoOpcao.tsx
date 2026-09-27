@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { centavosDoTexto } from "../../lib/dinheiro.ts";
+
 interface Opcao {
   readonly id: string;
   readonly nome: string;
@@ -125,9 +127,12 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
   ) {
     evento.preventDefault();
     const formulario = opcoes[grupoId] ?? OPCAO_VAZIA;
-    const reais = Number(
-      formulario.acrescimo.replace(".", "").replace(",", "."),
-    );
+    // Centavos lidos como texto (AC-311): "2.50" é R$ 2,50, e não R$ 250.
+    const acrescimoCentavos = centavosDoTexto(formulario.acrescimo);
+    if (acrescimoCentavos === null) {
+      setMensagem("Acréscimo inválido. Escreva em reais, como 2,50.");
+      return;
+    }
     setSalvando(true);
     try {
       const resposta = await fetch(
@@ -137,7 +142,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             nome: formulario.nome,
-            acrescimoCentavos: Math.round(reais * 100),
+            acrescimoCentavos,
             disponivel: formulario.disponivel,
             padrao: formulario.padrao,
             codigoExterno: null,
