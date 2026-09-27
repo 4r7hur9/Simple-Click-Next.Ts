@@ -9,7 +9,7 @@
 - Notas: nome, telefone, total de pedidos, valor total e último pedido. Busca por telefone funciona independente da pontuação digitada, então o telefone é guardado também em forma normalizada.
 - Esforço: medio
 
-## T-701 — Cliente de outra loja nunca aparece [pendente]
+## T-701 — Cliente de outra loja nunca aparece [concluida]
 
 - Refs: US-700, AC-702
 - Arquivos: apps/api/tests/clientes-isolamento.test.ts
