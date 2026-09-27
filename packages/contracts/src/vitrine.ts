@@ -157,6 +157,26 @@ export const rotaDaVitrine = definirRota({
 // ---------------------------------------------------------------------------
 
 /**
+ * Por que um produto não pode ser comprado agora (AC-413).
+ *
+ * SÃO SÓ OS MOTIVOS QUE A API PRODUZ. "Loja fechada" não está aqui de
+ * propósito: quem sabe o horário é a rota da apresentação, que já devolve
+ * `abertura`, e a página do produto busca as duas. Declarar aqui um valor que a
+ * API nunca devolve faria o cliente do aplicativo nativo tratar um caso que não
+ * existe — e esconderia que a decisão mora em outro lugar.
+ *
+ * "Não publicado" também não entra: produto em rascunho responde 404, recusado
+ * pela política do banco. Ele não chega a ter resposta em que caber um motivo.
+ *
+ * `FORA_DO_HORARIO` cobre a pausa datada e a janela semanal do produto
+ * (AC-322): para quem está comprando, os dois são "não é vendido agora".
+ */
+export const esquemaDeIndisponibilidade = z.enum([
+  "ESGOTADO",
+  "FORA_DO_HORARIO",
+]);
+
+/**
  * Um produto, como o cartão da vitrine o mostra.
  *
  * DINHEIRO É CENTAVO INTEIRO (P-005). Preço em ponto flutuante erra em
@@ -176,6 +196,12 @@ export const esquemaDeProdutoNaVitrine = z.strictObject({
   imagem: z.string().nullable(),
   destaque: z.boolean(),
   disponivel: z.boolean(),
+  /**
+   * Por que o cartão não está comprável; nulo quando está (AC-321, AC-322).
+   * O mesmo vocabulário da página do produto. Opcional para o cliente antigo,
+   * que só lê `disponivel`, continuar aceitando a resposta.
+   */
+  motivoIndisponivel: esquemaDeIndisponibilidade.nullable().optional(),
 });
 
 export type ProdutoNaVitrineNoContrato = z.infer<
@@ -321,23 +347,6 @@ export const esquemaDeVariacao = z.strictObject({
     z.strictObject({ grupoId: z.uuid(), opcaoId: z.uuid() }),
   ),
 });
-
-/**
- * Por que um produto não pode ser comprado agora (AC-413).
- *
- * SÃO SÓ OS MOTIVOS QUE A API PRODUZ. "Loja fechada" não está aqui de
- * propósito: quem sabe o horário é a rota da apresentação, que já devolve
- * `abertura`, e a página do produto busca as duas. Declarar aqui um valor que a
- * API nunca devolve faria o cliente do aplicativo nativo tratar um caso que não
- * existe — e esconderia que a decisão mora em outro lugar.
- *
- * "Não publicado" também não entra: produto em rascunho responde 404, recusado
- * pela política do banco. Ele não chega a ter resposta em que caber um motivo.
- */
-export const esquemaDeIndisponibilidade = z.enum([
-  "ESGOTADO",
-  "FORA_DO_HORARIO",
-]);
 
 /** O produto como a página dele o mostra (AC-410). */
 export const esquemaDoProduto = z.strictObject({

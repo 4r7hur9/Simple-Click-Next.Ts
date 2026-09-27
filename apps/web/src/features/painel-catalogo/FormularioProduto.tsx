@@ -17,6 +17,37 @@ interface Categoria {
   readonly nome: string;
 }
 
+/**
+ * Uma faixa semanal em que o produto é vendido (AC-322).
+ *
+ * As horas são as do relógio da LOJA: quem as avalia é a API, no fuso dela.
+ * O dia segue a numeração do JavaScript, com 0 no domingo, para não haver
+ * conversão silenciosa entre a tela e a regra.
+ */
+export interface JanelaDeVenda {
+  readonly diaDaSemana: number;
+  readonly abre: string;
+  readonly fecha: string;
+}
+
+/** Os nomes que o dono lê, na ordem em que a regra os numera. */
+export const DIAS_DA_SEMANA = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+] as const;
+
+/** A janela que aparece quando o dono pede mais uma: o sábado do almoço. */
+const JANELA_NOVA: JanelaDeVenda = {
+  diaDaSemana: 6,
+  abre: "09:00",
+  fecha: "18:00",
+};
+
 interface ProdutoInicial {
   readonly id: string;
   readonly nome: string;
@@ -25,6 +56,8 @@ interface ProdutoInicial {
   readonly precoCentavos: number | null;
   readonly status: string;
   readonly disponivel: boolean;
+  /** A janela gravada; ausente no produto de antes dela existir. */
+  readonly janelas?: readonly JanelaDeVenda[] | undefined;
 }
 
 interface Props {
@@ -48,6 +81,10 @@ export function FormularioProduto({ produto }: Props) {
     produto?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
   );
   const [disponivel, setDisponivel] = useState(produto?.disponivel ?? true);
+  // A janela de venda (AC-322): sem faixa, vende sempre que a loja abre.
+  const [janelas, setJanelas] = useState<readonly JanelaDeVenda[]>(
+    produto?.janelas ?? [],
+  );
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("Carregando categorias…");
   // As especificações que o produto herda da categoria escolhida (T-301).
@@ -118,6 +155,14 @@ export function FormularioProduto({ produto }: Props) {
       .catch(() => setMensagem("Não foi possível carregar as categorias."));
   }, []);
 
+  function mudarJanela(indice: number, mudanca: Partial<JanelaDeVenda>) {
+    setJanelas((atuais) =>
+      atuais.map((janela, posicao) =>
+        posicao === indice ? { ...janela, ...mudanca } : janela,
+      ),
+    );
+  }
+
   async function salvar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     // Centavos lidos como texto (AC-311): a conta antiga apagava o ponto, e
@@ -129,6 +174,14 @@ export function FormularioProduto({ produto }: Props) {
     }
     if (categoriaId === "") {
       setMensagem("Escolha uma categoria para continuar.");
+      return;
+    }
+    // A faixa que fecha antes de abrir nunca abriria, e a API a recusa: é
+    // melhor dizer aqui, com o resto do preenchimento ainda na tela.
+    if (janelas.some((janela) => janela.abre >= janela.fecha)) {
+      setMensagem(
+        "Na janela de venda, o horário de fechar precisa vir depois do de abrir.",
+      );
       return;
     }
     const pendentes = conferirEspecificacoes(especificacoes, valoresEsp);
@@ -148,6 +201,7 @@ export function FormularioProduto({ produto }: Props) {
       precoCentavos,
       status,
       disponivel,
+      janelas: janelas.map((janela) => ({ ...janela })),
     };
     try {
       const resposta = await fetch(
@@ -250,8 +304,105 @@ export function FormularioProduto({ produto }: Props) {
             checked={disponivel}
             onChange={(evento) => setDisponivel(evento.target.checked)}
           />
-          Disponível para compra
+          <span>
+            Disponível para compra
+            <span className="block text-xs text-[var(--cor-tinta-suave)]">
+              Desmarcado, o produto aparece como esgotado na vitrine, sem sair
+              do cadastro.
+            </span>
+          </span>
         </label>
+        {/*
+          A JANELA DE VENDA (AC-322): a feijoada de sábado, o brunch de domingo.
+          O dono cadastra uma vez e a vitrine liga e desliga o produto sozinha,
+          no horário da loja. Esgotado vence a janela: desmarcar acima tira o
+          produto de venda mesmo dentro da faixa.
+        */}
+        <fieldset className="rounded-xl border border-[var(--cor-borda)] p-4 sm:col-span-2">
+          <legend className="px-1 text-sm font-medium">Janela de venda</legend>
+          <p className="text-sm text-[var(--cor-tinta-suave)]">
+            Sem janela, o produto é vendido sempre que a loja está aberta. Com
+            janela, ele só aparece comprável nos dias e horários abaixo, no
+            horário da loja.
+          </p>
+          {janelas.length === 0 ? null : (
+            <ul className="mt-4 grid gap-3">
+              {janelas.map((janela, indice) => (
+                <li
+                  // A posição é a identidade: a janela não tem chave própria
+                  // até ser gravada, e o dono reordena pouco.
+                  key={indice}
+                  className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
+                >
+                  <label>
+                    <span className="text-xs font-medium">Dia</span>
+                    <select
+                      className="sc-campo mt-1 w-full"
+                      aria-label={`Dia da janela ${indice + 1}`}
+                      value={janela.diaDaSemana}
+                      onChange={(evento) =>
+                        mudarJanela(indice, {
+                          diaDaSemana: Number(evento.target.value),
+                        })
+                      }
+                    >
+                      {DIAS_DA_SEMANA.map((nome, dia) => (
+                        <option key={nome} value={dia}>
+                          {nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span className="text-xs font-medium">Abre</span>
+                    <input
+                      className="sc-campo mt-1 w-full"
+                      type="time"
+                      aria-label={`Abre na janela ${indice + 1}`}
+                      value={janela.abre}
+                      required
+                      onChange={(evento) =>
+                        mudarJanela(indice, { abre: evento.target.value })
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span className="text-xs font-medium">Fecha</span>
+                    <input
+                      className="sc-campo mt-1 w-full"
+                      type="time"
+                      aria-label={`Fecha na janela ${indice + 1}`}
+                      value={janela.fecha}
+                      required
+                      onChange={(evento) =>
+                        mudarJanela(indice, { fecha: evento.target.value })
+                      }
+                    />
+                  </label>
+                  <button
+                    className="sc-botao sc-botao--fantasma"
+                    type="button"
+                    aria-label={`Remover janela ${indice + 1}`}
+                    onClick={() =>
+                      setJanelas((atuais) =>
+                        atuais.filter((_, posicao) => posicao !== indice),
+                      )
+                    }
+                  >
+                    Remover
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            className="sc-botao sc-botao--fantasma mt-4"
+            type="button"
+            onClick={() => setJanelas((atuais) => [...atuais, JANELA_NOVA])}
+          >
+            Adicionar dia e horário
+          </button>
+        </fieldset>
         <CamposDeEspecificacao
           categoriaId={categoriaId}
           produtoId={produtoSalvoId}

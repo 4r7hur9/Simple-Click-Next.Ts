@@ -128,6 +128,7 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
       try {
         const { params, query } = bordaDoCatalogo.dados(req);
         const acesso = opcoes.acesso ?? banco();
+        const agora = opcoes.agora?.() ?? new Date();
         const termo = prepararTermo(query.busca ?? "");
         const filtrosSelecionados =
           query.filtro === undefined
@@ -166,9 +167,11 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
               const filtros = await filtrosDaVitrine({
                 categoria: query.categoria,
               });
-              return catalogoDaVitrine(identificacao.versaoDoCatalogo, {
-                apenasProdutos: acertos,
-              }).then((resultado) => ({ ...resultado, filtros }));
+              return catalogoDaVitrine(
+                identificacao.versaoDoCatalogo,
+                { apenasProdutos: acertos },
+                agora,
+              ).then((resultado) => ({ ...resultado, filtros }));
             }),
         );
 

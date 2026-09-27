@@ -12,7 +12,12 @@
  * produto de verdade, então dá para perguntar ao catálogo quanto ele custa
  * agora e se ainda existe.
  */
-import { conferirCarrinho, precoAplicavel } from "@simpleclick/core";
+import {
+  conferirCarrinho,
+  estaNaJanelaDeDisponibilidade,
+  lerJanelasDeDisponibilidade,
+  precoAplicavel,
+} from "@simpleclick/core";
 import type {
   Conferencia,
   ExplicacaoDoPreco,
@@ -54,8 +59,28 @@ async function catalogoAgora(
       displayPriceCents: true,
       isAvailable: true,
       status: true,
+      unavailableUntil: true,
+      saleWindows: true,
     },
   });
+
+  // A JANELA DE VENDA VALE NO FECHAMENTO TAMBÉM (AC-322): o item posto no
+  // carrinho no sábado e fechado na terça sai com explicação, como o que
+  // acabou. O fuso é o da loja, lido pela política pública da própria loja.
+  const loja = await tx.store.findFirst({ select: { timezone: true } });
+  const fusoHorario = loja?.timezone ?? "America/Sao_Paulo";
+  const vendeAgora = (produto: (typeof produtos)[number]): boolean =>
+    // Rascunho e arquivado não são compráveis, mesmo marcados como
+    // disponíveis: o dono pode ter tirado o produto do ar sem mexer no
+    // interruptor. Esgotado vence a janela (AC-321).
+    produto.isAvailable &&
+    produto.status === "PUBLISHED" &&
+    (produto.unavailableUntil === null || produto.unavailableUntil <= agora) &&
+    estaNaJanelaDeDisponibilidade(
+      lerJanelasDeDisponibilidade(produto.saleWindows),
+      agora,
+      fusoHorario,
+    );
 
   const precos = await tx.productPrice.findMany({
     where: { productId: { in: [...produtoIds] }, variantId: null },
@@ -92,7 +117,7 @@ async function catalogoAgora(
           produto.displayPriceCents === null
             ? null
             : Number(produto.displayPriceCents),
-        disponivel: produto.isAvailable && produto.status === "PUBLISHED",
+        disponivel: vendeAgora(produto),
       };
     }
 
@@ -109,10 +134,7 @@ async function catalogoAgora(
       nome: produto.name,
       precoEmCentavos: aplicado?.unitarioEmCentavos ?? null,
       precoAplicado: explicacaoDe(aplicado),
-      // Rascunho e arquivado não são compráveis, mesmo marcados como
-      // disponíveis: o dono pode ter tirado o produto do ar sem mexer no
-      // interruptor.
-      disponivel: produto.isAvailable && produto.status === "PUBLISHED",
+      disponivel: vendeAgora(produto),
     };
   });
 }

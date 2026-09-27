@@ -62,6 +62,7 @@ function prepararProduto(
         : null,
     imagem: produto.imagem,
     disponivel: produto.disponivel,
+    motivoIndisponivel: produto.motivoIndisponivel ?? null,
     link: `/l/${apelidoDaLoja}/produto/${produto.id}`,
   };
 }
