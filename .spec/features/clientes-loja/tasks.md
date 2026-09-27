@@ -44,7 +44,7 @@
 - Notas: mesmo caminho de impressão do pedido do site, e presença nas métricas do dia com o canal identificado.
 - Esforço: baixo
 
-## T-706 — Histórico do cliente e repetir pedido [pendente]
+## T-706 — Histórico do cliente e repetir pedido [concluida]
 
 - Refs: US-703, AC-711, AC-712, AC-713
 - Arquivos: apps/api/src/modules/customers/historico.usecase.ts, apps/api/src/modules/orders/repetir-pedido.usecase.ts, apps/api/src/modules/orders/repetir-pedido.usecase.test.ts, apps/api/tests/clientes-historico.int.test.ts, apps/web/src/features/painel-clientes/HistoricoCliente.tsx, apps/web/src/app/api/painel/pedidos/[id]/repetir/route.ts, apps/web/tests/painel-cliente-ficha.test.tsx
