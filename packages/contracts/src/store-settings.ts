@@ -295,11 +295,12 @@ export const esquemaDaConfiguracaoDeContato = z.strictObject({
     .string("Informe o WhatsApp da loja.")
     .trim()
     .max(30, "O número tem caracteres demais."),
-  saudacao: z
-    .string("Informe a saudação.")
-    .trim()
-    .min(1, "Informe a saudação da mensagem.")
-    .max(280, "A saudação tem no máximo 280 caracteres."),
+  /**
+   * O que abre a mensagem do pedido, escrito pelo dono (AC-915). Nulo é
+   * escolha: o pedido começa direto pelo código. O corpo do pedido — código,
+   * itens, entrega, pagamento, total e link — não é editável e não sai.
+   */
+  saudacao: textoOpcional(280, "Saudação"),
   publico: z.boolean("Diga se o número aparece na página da loja."),
 });
 

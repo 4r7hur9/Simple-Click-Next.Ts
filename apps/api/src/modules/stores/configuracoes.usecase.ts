@@ -136,6 +136,9 @@ function exigirLinha(afetadas: number, oQue: string): void {
   }
 }
 
+/** A saudação que a loja tem antes de o dono escrever a dele. */
+const SAUDACAO_DE_FABRICA = "Olá! Segue meu pedido:";
+
 const FORMAS_CONHECIDAS = ["PIX", "CASH", "CARD_ON_DELIVERY"] as const;
 type FormaConhecida = (typeof FORMAS_CONHECIDAS)[number];
 const TIPOS_DE_CHAVE = [
@@ -360,7 +363,13 @@ const contato: DefinicaoDaSecao<"contato"> = {
     const documento = objeto(linha?.["whatsapp"]);
     return {
       numero: texto(documento["numero"]) ?? "",
-      saudacao: texto(documento["saudacao"]) ?? "Olá! Segue meu pedido:",
+      // Saudação AUSENTE é a de fábrica; saudação NULA é a escolha do dono de
+      // começar direto pelo pedido (AC-915). Ler as duas como a de fábrica
+      // devolveria a frase que ele acabou de apagar.
+      saudacao:
+        "saudacao" in documento
+          ? texto(documento["saudacao"])
+          : SAUDACAO_DE_FABRICA,
       publico: documento["publico"] === true,
     };
   },

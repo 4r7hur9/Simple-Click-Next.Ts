@@ -12,9 +12,14 @@ export default function PaginaDeContato() {
         Contato e mensagem
       </h1>
       <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--cor-tinta-suave)]">
-        Defina o WhatsApp que recebe os pedidos e a saudação enviada ao cliente.
+        Defina o WhatsApp que recebe os pedidos e a saudação que abre a
+        mensagem.
       </p>
-      <EditorDeMensagem />
+      <EditorDeMensagem
+        apelidoDaLoja={
+          process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila"
+        }
+      />
     </main>
   );
 }

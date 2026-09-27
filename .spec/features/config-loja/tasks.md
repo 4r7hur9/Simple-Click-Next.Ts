@@ -30,11 +30,11 @@
 - Notas: a TELA do painel (grade de horários) saiu desta lista e entra com o painel do dono; os quatro critérios são de cálculo e de guarda, e estão provados sem ela. O caso de uso não tem teste de unidade próprio — ele só monta o objeto que o cálculo puro interpreta, e a prova de que monta certo exige as linhas do banco. Cálculo sempre no fuso da loja, nunca no relógio do cliente nem em fuso universal. Mais de uma faixa por dia. Fechar agora não desconfigura a semana. Exceção datada vence o horário semanal.
 - Esforço: alto
 
-## T-904 — Contato de WhatsApp e texto da mensagem [pendente]
+## T-904 — Contato de WhatsApp e texto da mensagem [concluida]
 
 - Refs: US-903, AC-913, AC-914, AC-915
-- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/contato/page.tsx, apps/web/src/features/config/EditorDeMensagem.tsx
-- Notas: a primeira fatia funcional do ambiente local já persiste número e saudação em store_settings, com normalização brasileira. A implementação definitiva ainda precisa do caso de uso, auditoria, pré-visualização e cobertura própria desta tarefa. Sem número, o painel deve avisar e o pedido continua sendo registrado. Campos obrigatórios não podem ser removidos; mensagem sem marca da plataforma.
+- Arquivos: packages/contracts/src/store-settings.ts, packages/contracts/src/index.ts, apps/api/src/modules/stores/configuracoes.usecase.ts, apps/api/tests/config-contato.int.test.ts, apps/web/src/app/(painel)/painel/config/contato/page.tsx, apps/web/src/features/config/EditorDeMensagem.tsx, apps/web/src/lib/previa-da-mensagem.ts, apps/web/tests/config-contato.test.tsx
+- Notas: o número é normalizado pela regra de `packages/core/src/telefone.ts` na borda e na tela ("Assim fica: +55 (11) …"), e número impossível é recusado explicando o que falta. O dono edita a saudação — pode apagá-la; nula é escolha, ausente é a de fábrica —, e o corpo do pedido (código, itens, entrega, pagamento, total, link) é do sistema e não sai (ASM-905). A prévia usa o mesmo gerador do pedido de verdade, com um pedido de exemplo, e a mensagem não leva marca da plataforma. Sem número o painel avisa e o pedido continua registrado. Encerramento editável (Q-902) ficou fora: exigiria mexer na montagem da mensagem do checkout.
 - Esforço: medio
 
 ## T-905 — Apresentação da loja, logo, capa e cor [pendente]
