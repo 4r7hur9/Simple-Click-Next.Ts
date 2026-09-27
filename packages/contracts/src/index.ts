@@ -112,3 +112,37 @@ export type {
   Vitrine,
 } from "./vitrine.ts";
 export type { ComposicaoDoRamoNoContrato } from "./vertical.ts";
+export {
+  conferirDocumento,
+  documentoValido,
+  MENSAGEM_DE_DOCUMENTO_INVALIDO,
+  somenteDigitos,
+} from "./documento.ts";
+export type { DocumentoConferido, TipoDeDocumento } from "./documento.ts";
+export {
+  APELIDOS_RESERVADOS,
+  esquemaDaLojaCriada,
+  esquemaDaNovaLoja,
+  esquemaDaRecusaDeCadastro,
+  esquemaDaSituacaoDaLoja,
+  esquemaDoApelidoDaLoja,
+  esquemaDoCampoRecusado,
+  esquemaDoDocumento,
+  esquemaDoEmail,
+  esquemaDoEnderecoDaLoja,
+  esquemaDosTiposDeNegocio,
+  esquemaDoTelefone,
+  esquemaDoTipoDeNegocio,
+  esquemaDoTipoDeNegocioDisponivel,
+  FORMATO_DO_APELIDO,
+  MENSAGEM_DE_APELIDO_EM_USO,
+  SITUACOES_DA_LOJA,
+  UNIDADES_DA_FEDERACAO,
+} from "./admin.ts";
+export type {
+  LojaCriadaNoContrato,
+  NovaLojaEnviada,
+  NovaLojaNoContrato,
+  RecusaDeCadastroNoContrato,
+  TipoDeNegocioNoContrato,
+} from "./admin.ts";
