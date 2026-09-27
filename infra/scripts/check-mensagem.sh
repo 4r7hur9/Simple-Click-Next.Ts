@@ -11,7 +11,9 @@ case "$primeira" in
   Merge*|Revert*|fixup!*|squash!*) exit 0 ;;
 esac
 
-if printf '%s' "$primeira" | grep -qE '^(T-[0-9]{3} [a-z-]+|chore|docs|infra|spec|fix|feat)(\(.+\))?: .{5,}'; then
+# `test`: uma prova commitada sozinha, antes da correção — é assim que a falha
+# reproduzida fica no histórico separada do conserto dela.
+if printf '%s' "$primeira" | grep -qE '^(T-[0-9]{3} [a-z-]+|chore|docs|infra|spec|fix|feat|test)(\(.+\))?: .{5,}'; then
   exit 0
 fi
 
