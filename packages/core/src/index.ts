@@ -98,3 +98,13 @@ export {
   TELAS_DO_RAMO,
 } from "./vertical.ts";
 export type { ComposicaoDoRamo, TelaDoRamo } from "./vertical.ts";
+export {
+  centavosDoTexto,
+  ErroDeDinheiro,
+  exigirCentavos,
+  multiplicarCentavos,
+  somarCentavos,
+} from "./dinheiro.ts";
+export { precoAplicavel } from "./preco-aplicavel.ts";
+export type { PrecoAplicado } from "./preco-aplicavel.ts";
+export type { ExplicacaoDoPreco } from "./pedido-total.ts";

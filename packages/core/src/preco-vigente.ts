@@ -26,6 +26,13 @@ export interface PrecoCadastrado {
   readonly ativo: boolean;
   readonly comecaEm: Date | null;
   readonly terminaEm: Date | null;
+  /**
+   * O nome que o DONO deu ao preço: "Atacado", "Terça do pastel".
+   *
+   * Opcional porque a vitrine só precisa do número; quem precisa do nome é a
+   * tela que explica QUAL preço foi usado (AC-310), e ela o recebe daqui.
+   */
+  readonly rotulo?: string | null;
 }
 
 /** O par (o que se paga, o preço "de"). */

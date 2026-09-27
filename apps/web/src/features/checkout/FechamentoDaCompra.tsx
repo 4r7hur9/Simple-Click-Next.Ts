@@ -380,6 +380,9 @@ function linhasDoResumo(
     chave: item.itemId,
     rotulo: `${item.quantidade}× ${item.nome}`,
     valor: escreverDinheiro(item.totalDaLinhaCentavos),
+    // O PREÇO QUE NÃO É O NORMAL SE EXPLICA (AC-310): seis unidades a R$ 15,00
+    // quando a vitrine anunciava R$ 20,00 é vantagem, e sem a frase parece erro.
+    observacao: item.precoAplicado?.motivo ?? undefined,
   }));
 
   linhas.push({

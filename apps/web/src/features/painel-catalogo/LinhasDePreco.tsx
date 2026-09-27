@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { centavosDoTexto } from "../../lib/dinheiro.ts";
+
 interface Preco {
   readonly id: string;
   readonly tipo: "BASE" | "PROMO" | "WHOLESALE" | "CLUB" | string;
@@ -63,11 +65,13 @@ export function LinhasDePreco({ produtoId }: Props) {
 
   async function adicionar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    const reais = Number(formulario.valor.replace(".", "").replace(",", "."));
+    // Lido como TEXTO até virar centavos: "19,99" é 1999, e nunca passa pelo
+    // 1998.9999999999998 que a conta em ponto flutuante daria (AC-311).
+    const centavos = centavosDoTexto(formulario.valor);
     const quantidade = Number(formulario.quantidade);
     if (
-      !Number.isFinite(reais) ||
-      reais < 0 ||
+      centavos === null ||
+      centavos < 0 ||
       !Number.isInteger(quantidade) ||
       quantidade < 1
     ) {
@@ -89,7 +93,7 @@ export function LinhasDePreco({ produtoId }: Props) {
           body: JSON.stringify({
             tipo: formulario.tipo,
             rotulo: formulario.rotulo.trim() || null,
-            valorCentavos: Math.round(reais * 100),
+            valorCentavos: centavos,
             quantidadeMinima: quantidade,
             inicio: null,
             fim: null,
@@ -217,7 +221,7 @@ export function LinhasDePreco({ produtoId }: Props) {
                 rotulo: evento.target.value,
               }))
             }
-            placeholder="Ex.: Terça do pastel"
+            placeholder="Ex.: Atacado"
             maxLength={100}
           />
         </label>
