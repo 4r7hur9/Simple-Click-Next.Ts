@@ -10,6 +10,7 @@
 
 import { randomBytes, randomUUID } from "node:crypto";
 
+import type pg from "pg";
 import { bancoDoArquivo } from "@simpleclick/testing";
 
 import {
@@ -128,4 +129,44 @@ export function montarApiDaAdministracao(
       await acessoDaAplicacao.encerrar();
     },
   };
+}
+
+/**
+ * As tabelas do catálogo de uma loja, linha por linha, como o banco as guarda.
+ *
+ * É o "nada se perde" medido em vez de afirmado: a troca do tipo de negócio
+ * (AC-214, AC-320) não pode mudar UMA coluna de produto, categoria, grupo de
+ * escolha, variação ou preço. Tirar o retrato antes e depois e comparar os dois
+ * inteiros pega até o `updated_at` que um gatilho tocasse por acidente.
+ */
+export const TABELAS_DO_CATALOGO = [
+  "products",
+  "categories",
+  "product_categories",
+  "option_groups",
+  "option_items",
+  "product_option_groups",
+  "product_variants",
+  "product_prices",
+  "variant_option_values",
+  "attribute_definitions",
+  "product_attributes",
+  "product_images",
+  "stock_movements",
+] as const;
+
+export async function retratoDoCatalogo(
+  migrador: pg.Client,
+  lojaId: string,
+): Promise<Record<string, unknown[]>> {
+  const retrato: Record<string, unknown[]> = {};
+  for (const tabela of TABELAS_DO_CATALOGO) {
+    const { rows } = await migrador.query<{ linha: unknown }>(
+      `SELECT to_jsonb(t) AS linha FROM app.${tabela} t
+        WHERE t.store_id = $1 ORDER BY t.id`,
+      [lojaId],
+    );
+    retrato[tabela] = rows.map((linha) => linha.linha);
+  }
+  return retrato;
 }

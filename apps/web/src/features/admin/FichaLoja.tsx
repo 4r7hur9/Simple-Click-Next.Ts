@@ -47,6 +47,7 @@ import {
   type ValoresDaEdicao,
 } from "./edicao-da-loja.ts";
 import { ListaDaTrilha } from "./ListaDaTrilha.tsx";
+import { SeletorVertical } from "./SeletorVertical.tsx";
 
 export type EstadoDaFicha =
   | { readonly fase: "carregando" }
@@ -355,6 +356,10 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
 
       <Secao id="ficha-cadastro" titulo="Cadastro">
         <CadastroDaLoja ficha={ficha} aoSalvar={props.aoAtualizar} />
+      </Secao>
+
+      <Secao id="ficha-tipo" titulo="Tipo de negócio">
+        <SeletorVertical ficha={ficha} aoTrocar={props.aoAtualizar} />
       </Secao>
 
       <Secao id="ficha-historico" titulo="Histórico de alterações">

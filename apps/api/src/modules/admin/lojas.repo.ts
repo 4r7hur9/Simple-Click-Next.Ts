@@ -29,6 +29,10 @@ import {
   type RepositorioDoCadastro,
 } from "./criar-loja.usecase.ts";
 import type {
+  RepositorioDoTipoDeNegocio,
+  TipoDeNegocioDaPlataforma,
+} from "./alterar-vertical.usecase.ts";
+import type {
   CadastroEditavel,
   RepositorioDaEdicao,
 } from "./editar-loja.usecase.ts";
@@ -607,6 +611,91 @@ export function repositorioDaEdicao(): RepositorioDaEdicao {
   return {
     lerParaEditar,
     gravarCadastro,
+    registrar: (ato) =>
+      registrarNaTrilha({
+        lojaId: ato.lojaId,
+        atorId: ato.atorId,
+        acao: ato.acao,
+        entidade: "stores",
+        entidadeId: ato.lojaId,
+        antes: ato.antes as Readonly<Record<string, unknown>>,
+        depois: ato.depois as Readonly<Record<string, unknown>>,
+      }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Tipo de negócio (AC-214, AC-320)
+// ---------------------------------------------------------------------------
+
+interface LinhaDoTipo {
+  readonly code: string;
+  readonly label: string;
+  readonly schema_version: number;
+  readonly tracks_stock: boolean;
+}
+
+function tipoDaLinha(linha: LinhaDoTipo): TipoDeNegocioDaPlataforma {
+  return {
+    codigo: linha.code,
+    nome: linha.label,
+    versaoDoEsquema: linha.schema_version,
+    controlaEstoque: linha.tracks_stock,
+  };
+}
+
+/** O tipo atual da loja, com a linha dela TRAVADA até o fim da transação. */
+async function lerTipoAtual(
+  lojaId: string,
+): Promise<TipoDeNegocioDaPlataforma | null> {
+  const linhas = await transacaoAtual().$queryRaw<LinhaDoTipo[]>`
+    SELECT p.code, p.label, p.schema_version, p.tracks_stock
+      FROM app.stores s
+      JOIN app.vertical_presets p ON p.code = s.vertical_code
+     WHERE s.id = ${lojaId}::uuid
+       FOR UPDATE OF s`;
+  const linha = linhas[0];
+  return linha === undefined ? null : tipoDaLinha(linha);
+}
+
+async function lerTipo(
+  codigo: string,
+): Promise<TipoDeNegocioDaPlataforma | null> {
+  const linhas = await transacaoAtual().$queryRaw<LinhaDoTipo[]>`
+    SELECT code, label, schema_version, tracks_stock
+      FROM app.vertical_presets
+     WHERE code = ${codigo}`;
+  const linha = linhas[0];
+  return linha === undefined ? null : tipoDaLinha(linha);
+}
+
+/**
+ * Troca o ramo da LOJA e só dela. A versão do catálogo sobe junto: é o que
+ * faz quem guarda a vitrine por versão deixar de servir o vocabulário antigo.
+ * Produto, categoria e grupo de escolha não são tocados (AC-320).
+ */
+async function gravarTipo(
+  lojaId: string,
+  tipo: TipoDeNegocioDaPlataforma,
+): Promise<void> {
+  await exigirUmaLinhaAfetada(
+    { recurso: "loja", id: lojaId },
+    () =>
+      transacaoAtual().$executeRaw`
+      UPDATE app.stores
+         SET vertical_code = ${tipo.codigo},
+             vertical_schema_version = ${tipo.versaoDoEsquema},
+             catalog_version = catalog_version + 1
+       WHERE id = ${lojaId}::uuid`,
+  );
+}
+
+/** O repositório da troca de tipo, sobre a transação em curso. */
+export function repositorioDoTipoDeNegocio(): RepositorioDoTipoDeNegocio {
+  return {
+    lerTipoAtual,
+    lerTipo,
+    gravarTipo,
     registrar: (ato) =>
       registrarNaTrilha({
         lojaId: ato.lojaId,

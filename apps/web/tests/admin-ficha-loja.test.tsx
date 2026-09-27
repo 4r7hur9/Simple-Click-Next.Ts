@@ -28,6 +28,8 @@ import {
   exigir,
   montar,
   simularApi,
+  type ChamadaDaApi,
+  type RespostaSimulada,
 } from "./apoio-config.tsx";
 
 const LOJA_ID = "3a3c3d4e-0000-4000-8000-000000000001";
@@ -83,6 +85,31 @@ function desenhar(sobrescrita: Partial<FichaDaLojaNaTelaProps> = {}): Document {
   return document;
 }
 
+/**
+ * A API que a ficha consulta: a ficha, a lista de tipos de negócio (da seção
+ * de troca do ramo) e, quando vier, a gravação do cadastro.
+ */
+function respostasDaFicha(salva: FichaDaLojaNoContrato = FICHA) {
+  return (chamada: ChamadaDaApi): RespostaSimulada => {
+    if (chamada.url === "/api/admin/tipos-de-negocio") {
+      return {
+        status: 200,
+        corpo: {
+          tipos: [
+            {
+              codigo: "FOOD_SNACK",
+              nome: "Lanchonete",
+              controlaEstoque: false,
+            },
+            { codigo: "APPAREL", nome: "Roupas", controlaEstoque: true },
+          ],
+        },
+      };
+    }
+    return { status: 200, corpo: chamada.metodo === "PATCH" ? salva : FICHA };
+  };
+}
+
 /** Cada campo do ato como a pessoa lê: "Campo: antes → depois". */
 function camposDo(elemento: Element | null | undefined): string[] {
   return [...(elemento?.querySelectorAll("dl > div") ?? [])].map(
@@ -123,7 +150,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
   });
 
   it("@spec:AC-207 @principle:P-012 a ficha pronta não tem violação crítica nem séria de acessibilidade", async () => {
-    simularApi(() => ({ status: 200, corpo: FICHA }));
+    simularApi(respostasDaFicha());
     const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
     await esperar();
 
@@ -138,7 +165,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
   });
 
   it("@spec:AC-207 o formulário abre preenchido com o cadastro e o histórico diz quem fez o quê e quando", async () => {
-    simularApi(() => ({ status: 200, corpo: FICHA }));
+    simularApi(respostasDaFicha());
     const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
     await esperar();
 
@@ -183,11 +210,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
         ...FICHA.historico,
       ],
     };
-    const chamadas = simularApi((chamada) =>
-      chamada.metodo === "PATCH"
-        ? { status: 200, corpo: salva }
-        : { status: 200, corpo: FICHA },
-    );
+    const chamadas = simularApi(respostasDaFicha(salva));
     const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
     await esperar();
 
@@ -208,7 +231,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
   });
 
   it("@spec:AC-207 documento inválido é recusado na tela, antes de sair qualquer requisição", async () => {
-    const chamadas = simularApi(() => ({ status: 200, corpo: FICHA }));
+    const chamadas = simularApi(respostasDaFicha());
     const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
     await esperar();
 
@@ -227,7 +250,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
   });
 
   it("@spec:AC-207 salvar sem mudar nada não envia nada e diz por quê", async () => {
-    const chamadas = simularApi(() => ({ status: 200, corpo: FICHA }));
+    const chamadas = simularApi(respostasDaFicha());
     const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
     await esperar();
 

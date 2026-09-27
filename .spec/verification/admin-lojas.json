@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-09-27T18:31:17.950Z",
-  "gitRev": "f14c65e",
+  "timestamp": "2026-09-27T18:44:24.796Z",
+  "gitRev": "5517d97",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 63,
+  "testsParsed": 77,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -30,6 +30,11 @@
     "AC-207": {
       "status": "pass",
       "testName": "a ficha da loja (AC-207, AC-118) @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico",
+      "method": "vitest-json"
+    },
+    "AC-214": {
+      "status": "pass",
+      "testName": "a administração troca a lanchonete para loja de roupas (AC-214) @spec:AC-214 a vitrine passa a usar o vocabulário e o layout do ramo novo: o catálogo deixa de ser cardápio, a grade ganha destaque e os ingredientes saem de cena @spec:AC-214 a vitrine passa a usar o vocabulário e o layout do ramo novo: o catálogo deixa de ser cardápio, a grade ganha destaque e os ingredientes saem de cena",
       "method": "vitest-json"
     }
   },

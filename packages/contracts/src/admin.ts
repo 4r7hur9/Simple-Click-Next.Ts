@@ -344,6 +344,7 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   ADMIN_ACCESS: "Consulta da administração",
   CONFIG_ALTERADA: "Configuração alterada",
   CONFIG_SENSIVEL_ALTERADA: "Dado sensível alterado",
+  TIPO_DE_NEGOCIO_ALTERADO: "Tipo de negócio alterado",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
@@ -363,6 +364,7 @@ export const ROTULOS_DOS_CAMPOS_DA_LOJA: Readonly<Record<string, string>> = {
   codigo: "Código",
   apelido: "Endereço na web",
   tipoDeNegocio: "Tipo de negócio",
+  controlaEstoque: "Controle de estoque",
   status: "Situação",
 };
 
@@ -432,3 +434,20 @@ export const esquemaDaEdicaoDaLoja = z
 
 export type EdicaoDaLojaNoContrato = z.output<typeof esquemaDaEdicaoDaLoja>;
 export type EdicaoDaLojaEnviada = z.input<typeof esquemaDaEdicaoDaLoja>;
+
+// ---------------------------------------------------------------------------
+// Tipo de negócio trocado pela administração (AC-214)
+// ---------------------------------------------------------------------------
+
+/**
+ * `PUT /v1/admin/lojas/:id/tipo-de-negocio`. Endereço próprio, e não um campo
+ * da edição do cadastro: a troca muda o vocabulário e o layout de todas as
+ * telas da loja e liga o controle de estoque do ramo novo.
+ */
+export const esquemaDaTrocaDeTipoDeNegocio = z.strictObject({
+  tipoDeNegocio: esquemaDoTipoDeNegocio,
+});
+
+export type TrocaDeTipoDeNegocioEnviada = z.input<
+  typeof esquemaDaTrocaDeTipoDeNegocio
+>;

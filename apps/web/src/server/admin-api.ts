@@ -28,6 +28,11 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
   { padrao: /^tipos-de-negocio$/, metodos: ["GET"] },
   { padrao: /^lojas$/, metodos: ["GET", "POST"] },
   { padrao: new RegExp(`^lojas/${UUID}$`), metodos: ["GET", "PATCH"] },
+  // A troca do tipo de negócio (T-203, AC-214).
+  {
+    padrao: new RegExp(`^lojas/${UUID}/tipo-de-negocio$`),
+    metodos: ["PUT"],
+  },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */

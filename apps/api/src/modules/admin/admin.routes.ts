@@ -28,8 +28,10 @@ import {
   esquemasDaEdicao,
   esquemasDaFicha,
   esquemasDaListagem,
+  esquemasDaTrocaDeTipo,
   esquemasDoCadastro,
 } from "./admin.schema.ts";
+import { alterarTipoDeNegocio } from "./alterar-vertical.usecase.ts";
 import {
   cadastrarLoja,
   type DependenciasDoCadastro,
@@ -44,6 +46,7 @@ import {
   registrarConsultaDaAdministracao,
   repositorioDaEdicao,
   repositorioDoCadastro,
+  repositorioDoTipoDeNegocio,
 } from "./lojas.repo.ts";
 
 /** Papéis que uma sessão pode carregar, do jeito que o token os declara. */
@@ -283,6 +286,56 @@ export function criarRotasDaAdministracao(
             return;
           }
           resposta.json(ficha);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Tipo de negócio (AC-214, AC-320) ────────────────────────────────────
+  // Escrita exclusiva da administração: a credencial das lojas nem tem
+  // privilégio sobre a coluna, e a trava 1 já barrou qualquer token de dono.
+  const entradaDaTrocaDeTipo = validar(esquemasDaTrocaDeTipo);
+  rotas.put(
+    "/lojas/:id/tipo-de-negocio",
+    entradaDaTrocaDeTipo,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params, body } = entradaDaTrocaDeTipo.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const resultado = await acesso().emTransacao(async () => {
+            const troca = await alterarTipoDeNegocio(
+              params.id,
+              body.tipoDeNegocio,
+              administradorId,
+              repositorioDoTipoDeNegocio(),
+            );
+            if (!troca.ok) return troca;
+            return {
+              ok: true as const,
+              ficha: await lerFichaDaLoja(params.id),
+            };
+          });
+          resposta.setHeader("cache-control", "no-store");
+          if (resultado.ok && resultado.ficha !== null) {
+            resposta.json(resultado.ficha);
+            return;
+          }
+          if (!resultado.ok && resultado.motivo === "TIPO_DESCONHECIDO") {
+            resposta.status(400).json({
+              erro: "tipo_desconhecido",
+              campos: [
+                {
+                  onde: "body",
+                  caminho: "tipoDeNegocio",
+                  mensagem: "Escolha um tipo de negócio da lista.",
+                },
+              ],
+            });
+            return;
+          }
+          resposta.status(404).json({ erro: "nao_encontrado" });
         });
       } catch (causa) {
         proximo(causa);

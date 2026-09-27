@@ -170,6 +170,9 @@ export type {
   FichaDaLojaNoContrato,
   RegistroDaTrilhaNoContrato,
 } from "./admin.ts";
+// Tipo de negócio trocado pela administração (T-203).
+export { esquemaDaTrocaDeTipoDeNegocio } from "./admin.ts";
+export type { TrocaDeTipoDeNegocioEnviada } from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,
