@@ -2,7 +2,7 @@
 
 > feature: cardapio-na-tv
 
-## T-950 — Exibição que avança sozinha, sem ninguém operar [pendente]
+## T-950 — Exibição que avança sozinha, sem ninguém operar [concluida]
 
 - Refs: US-908, AC-925, AC-930
 - Arquivos: apps/web/src/features/tv/ExibicaoDeCardapio.tsx, apps/web/src/features/tv/useRodizio.ts, apps/web/src/features/tv/useRodizio.test.ts, apps/web/src/features/tv/telas.ts, apps/web/src/features/tv/telas.test.ts, apps/web/src/features/tv/ritmo.ts, apps/web/src/app/(loja)/l/[slug]/tv/page.tsx, apps/web/src/lib/routes.ts, .spec/design/mapa-de-telas.md, e2e/specs/manifesto-cobre-arquivos.spec.ts, apps/web/tests/cardapio-na-tv.test.tsx

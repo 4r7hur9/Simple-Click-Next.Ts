@@ -23,6 +23,7 @@
 | 1   | `/l/{slug}`                | Página de apresentação da loja | público | 4E      | e2e-loja-lp           | AC-400, AC-401, AC-402, AC-403, AC-916 |
 | 1a  | `/l/{slug}/sobre`          | Página institucional da loja   | público | 4E      | e2e-sobre-da-loja     | AC-421..AC-423                         |
 | 2   | `/l/{slug}/catalogo`       | Vitrine / cardápio / catálogo  | público | 4E      | e2e-vitrine           | AC-404..AC-409, AC-415..AC-417, AC-420 |
+| 2a  | `/l/{slug}/tv`             | Cardápio na TV da loja         | público | 4E      | e2e-cardapio-na-tv    | AC-925..AC-931                         |
 | 3   | `/l/{slug}/produto/{id}`   | Detalhe do produto             | público | 4E      | e2e-produto-detalhe   | AC-410..AC-414, AC-328                 |
 | 4   | `/l/{slug}/carrinho`       | Carrinho                       | público | 4E      | e2e-carrinho          | AC-500..AC-503                         |
 | 5   | `/l/{slug}/checkout`       | Fechamento do pedido           | público | 4E      | e2e-checkout          | AC-504..AC-513, AC-905..AC-908         |
@@ -102,9 +103,9 @@
 
 ## Contagem e regra de cobertura
 
-- **49 telas** no inventário: as 47 da primeira versão, mais `1a` (Sobre da
-  loja, T-410) e `31a` (grade de variações, T-306), acrescentadas sem
-  renumerar. 45 exigem os quatro estados.
+- **50 telas** no inventário: as 47 da primeira versão, mais `1a` (Sobre da
+  loja, T-410), `31a` (grade de variações, T-306) e `2a` (cardápio na TV,
+  T-950), acrescentadas sem renumerar. 46 exigem os quatro estados.
 - Cada cenário de ponta a ponta roda em três perfis de sessão (visitante, dono e
   administração), reaproveitando sessão salva para não repetir login.
 - Cada tela do inventário tem verificação de acessibilidade automatizada e
