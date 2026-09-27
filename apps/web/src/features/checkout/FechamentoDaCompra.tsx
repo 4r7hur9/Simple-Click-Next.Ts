@@ -37,6 +37,7 @@ import { CaixaPix } from "./CaixaPix.tsx";
 import { EnvioWhatsApp } from "./EnvioWhatsApp.tsx";
 import {
   FormularioCheckout,
+  type DadosConhecidos,
   type EnvioDoFechamento,
   type FormasDaLoja,
 } from "./FormularioCheckout.tsx";
@@ -70,6 +71,12 @@ export interface FechamentoDaCompraProps {
   readonly linkDoCatalogo: string;
   /** Como a loja chama o catálogo — "cardápio" ou "catálogo". */
   readonly rotuloDoCatalogo: string;
+  /**
+   * O que já se sabe de quem está pedindo: o endereço padrão salvo na conta
+   * (AC-509, T-707). Chega preenchido e editável; ausente, o formulário abre
+   * em branco, como para o convidado.
+   */
+  readonly conhecidos?: DadosConhecidos | undefined;
   /** Trocáveis para a prova responder sem rede. */
   readonly conferir?: typeof conferirCarrinho | undefined;
   readonly fechar?: typeof criarPedido | undefined;
@@ -104,6 +111,7 @@ export function FechamentoDaCompra({
   entrega,
   linkDoCatalogo,
   rotuloDoCatalogo,
+  conhecidos,
   conferir = conferirCarrinho,
   fechar = criarPedido,
 }: FechamentoDaCompraProps) {
@@ -339,6 +347,7 @@ export function FechamentoDaCompra({
 
       <FormularioCheckout
         formas={formas}
+        conhecidos={conhecidos}
         aoEnviar={(dados) => {
           setEntregaEscolhida(dados.entrega);
           void enviar(dados);

@@ -51,7 +51,7 @@
 - Notas: repetir monta pedido novo com preços atuais e aponta o que saiu do catálogo. Pedido antigo com produto removido exibe nome e preço da época, marcado como indisponível, sem quebrar a tela.
 - Esforço: alto
 
-## T-707 — Endereços salvos do cliente [pendente]
+## T-707 — Endereços salvos do cliente [concluida]
 
 - Refs: US-701, AC-703, AC-509
 - Arquivos: apps/api/src/modules/customers/enderecos.usecase.ts, apps/api/src/modules/customers/enderecos.routes.ts, packages/database/migrations/0036_enderecos_do_cliente.sql, apps/api/tests/enderecos-do-cliente.int.test.ts, apps/web/src/app/(conta)/minha-conta/enderecos/page.tsx, apps/web/src/features/conta/EnderecosSalvos.tsx, apps/web/src/lib/enderecos-da-conta.ts, apps/web/src/app/api/conta/enderecos/route.ts, apps/web/src/app/api/conta/enderecos/[id]/route.ts, apps/web/tests/conta-enderecos.test.tsx
