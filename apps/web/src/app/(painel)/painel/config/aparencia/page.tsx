@@ -12,7 +12,8 @@ export default function PaginaDeAparencia() {
         Aparência
       </h1>
       <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--cor-tinta-suave)]">
-        Atualize a mensagem, logo, capa e cor que aparecem na sua vitrine.
+        Nome de exibição, boas-vindas, sobre, logo, capa e cor da sua vitrine —
+        com a prévia de como o cliente vai ver antes de publicar.
       </p>
       <FormularioAparencia />
     </main>

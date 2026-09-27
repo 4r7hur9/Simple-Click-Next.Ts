@@ -366,6 +366,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-909..AC-912",
+    arquivo: "apps/web/src/app/(painel)/painel/config/horarios/page.tsx",
   },
   {
     rota: "/painel/config/contato",
@@ -389,6 +390,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-622, AC-626, AC-919, AC-920",
+    arquivo: "apps/web/src/app/(painel)/painel/config/impressao/page.tsx",
   },
   {
     rota: "/admin",

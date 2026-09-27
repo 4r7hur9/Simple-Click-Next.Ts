@@ -1,8 +1,8 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-09-27T05:08:10.061Z",
-  "gitRev": "97ff841",
-  "command": "\"C:/Program Files/Git/bin/bash.exe\" \"C:/Users/arthu/Desktop/SimpleClick/onp-worktrees/vitest-feature.sh\" vitrine-publica",
+  "timestamp": "2026-09-27T05:55:36.851Z",
+  "gitRev": "5b32ae1",
+  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh vitrine-publica",
   "reporter": "vitest-json",
   "exitCode": 0,
   "testsParsed": 299,

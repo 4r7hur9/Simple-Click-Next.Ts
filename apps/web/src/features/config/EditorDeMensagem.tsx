@@ -1,110 +1,220 @@
 "use client";
+/**
+ * WhatsApp da loja e texto da mensagem do pedido (US-903: AC-913, AC-915).
+ *
+ * O NÚMERO É CONFERIDO ENQUANTO O DONO DIGITA, com a mesma regra da API: a
+ * tela mostra como ele fica no formato internacional, ou o que falta nele.
+ * Número errado gera link que abre conversa inexistente — e o dono só
+ * descobriria no primeiro pedido perdido.
+ *
+ * O DONO ESCREVE A SAUDAÇÃO; o corpo do pedido é do sistema. A prévia usa o
+ * mesmo gerador do pedido de verdade, com um pedido de exemplo, e mostra o
+ * que sempre vai na mensagem — código, itens, entrega, pagamento, total e o
+ * link de acompanhamento. A mensagem sai sem marca da plataforma.
+ */
+import type { SecaoDeContato } from "@simpleclick/contracts";
 
-import { useEffect, useState } from "react";
+import {
+  conferirNumero,
+  PARTES_OBRIGATORIAS_DO_PEDIDO,
+  previaDaMensagem,
+} from "../../lib/previa-da-mensagem.ts";
+import { lerMensagemDoWhatsApp } from "../../lib/texto-whatsapp.ts";
+import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
+import { useSecao } from "./useSecao.ts";
 
-export function EditorDeMensagem() {
-  const [numero, setNumero] = useState("");
-  const [saudacao, setSaudacao] = useState("Olá! Segue meu pedido:");
-  const [publico, setPublico] = useState(false);
-  const [estado, setEstado] = useState("Carregando contato…");
-  const [salvando, setSalvando] = useState(false);
+/** O contato como a tela o edita. */
+interface ContatoNaTela {
+  readonly numero: string;
+  readonly saudacao: string;
+  readonly publico: boolean;
+}
 
-  useEffect(() => {
-    void fetch("/api/loja/contato", { cache: "no-store" })
-      .then(async (resposta) => {
-        if (!resposta.ok) throw new Error();
-        return (await resposta.json()) as {
-          numero?: string | null;
-          saudacao?: string | null;
-          publico?: boolean;
-        };
-      })
-      .then((dados) => {
-        setNumero(dados.numero ?? "");
-        setSaudacao(dados.saudacao ?? "Olá! Segue meu pedido:");
-        setPublico(dados.publico === true);
-        setEstado("Contato carregado.");
-      })
-      .catch(() => setEstado("Entre novamente para editar o contato."));
-  }, []);
+const SEM_CONTATO: ContatoNaTela = {
+  numero: "",
+  saudacao: "Olá! Segue meu pedido:",
+  publico: false,
+};
 
-  async function salvar(evento: React.FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    setSalvando(true);
-    setEstado("Salvando…");
-    try {
-      const resposta = await fetch("/api/loja/contato", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ numero, saudacao, publico }),
-      });
-      if (!resposta.ok) throw new Error();
-      setEstado("Contato salvo. O checkout usará este número.");
-    } catch {
-      setEstado("Não foi possível salvar. Confira o número com DDD.");
-    } finally {
-      setSalvando(false);
-    }
+function contatoDaApi(bruto: unknown): ContatoNaTela {
+  const lido = bruto as Partial<SecaoDeContato> | null;
+  return {
+    numero: lido?.numero ?? "",
+    saudacao: lido?.saudacao ?? "",
+    publico: lido?.publico === true,
+  };
+}
+
+function contatoParaApi(contato: ContatoNaTela): SecaoDeContato {
+  return {
+    numero: contato.numero,
+    saudacao: contato.saudacao.trim() === "" ? null : contato.saudacao,
+    publico: contato.publico,
+  };
+}
+
+const TEXTOS = {
+  carregando: "Carregando contato…",
+  carregada: "Contato carregado.",
+  salva:
+    "Contato salvo. Os próximos pedidos chegam neste número, com esta mensagem.",
+};
+
+export function EditorDeMensagem({
+  apelidoDaLoja = "sua-loja",
+}: {
+  readonly apelidoDaLoja?: string;
+}) {
+  const secao = useSecao("contato", SEM_CONTATO, contatoDaApi, TEXTOS);
+  const { dados, mudar, erros } = secao;
+  const numero =
+    dados.numero.trim() === "" ? null : conferirNumero(dados.numero);
+  const previa = lerMensagemDoWhatsApp(
+    previaDaMensagem(dados.saudacao, apelidoDaLoja),
+  );
+
+  if (secao.fase !== "pronta") {
+    return (
+      <p className="mt-8" role={secao.fase === "falhou" ? "alert" : "status"}>
+        {secao.mensagem}
+      </p>
+    );
   }
 
   return (
-    <form
-      onSubmit={(evento) => void salvar(evento)}
-      className="mt-8 max-w-2xl space-y-6"
-    >
-      <label className="block">
-        <span className="font-medium">WhatsApp da loja</span>
-        <input
-          className="sc-campo mt-2 w-full"
-          type="tel"
-          value={numero}
-          onChange={(evento) => setNumero(evento.target.value)}
-          placeholder="(11) 99999-9999"
-          required
-        />
-        <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
-          Aceitamos máscara, espaços ou o formato internacional.
-        </span>
-      </label>
-      <label className="flex items-start gap-3">
-        <input
-          className="mt-1 h-5 w-5"
-          type="checkbox"
-          checked={publico}
-          onChange={(evento) => setPublico(evento.target.checked)}
-        />
-        <span>
-          <span className="font-medium">
-            Exibir este WhatsApp na página Sobre
+    <div className="mt-8 grid gap-10 lg:grid-cols-2">
+      <form
+        onSubmit={(evento) => {
+          evento.preventDefault();
+          void secao.salvar(contatoParaApi(dados));
+        }}
+        className="space-y-6"
+        noValidate
+      >
+        <div>
+          <label className="block">
+            <span className="font-medium">WhatsApp da loja</span>
+            <input
+              className="sc-campo mt-2 w-full"
+              type="tel"
+              name="numero"
+              value={dados.numero}
+              onChange={(evento) =>
+                mudar((anterior) => ({
+                  ...anterior,
+                  numero: evento.target.value,
+                }))
+              }
+              placeholder="(11) 91234-5678"
+              {...atributosDeErro("numero", erros)}
+            />
+          </label>
+          {numero === null ? (
+            <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+              Aceitamos máscara, espaços ou o número sem o código do país.
+            </p>
+          ) : numero.ok ? (
+            <p className="mt-2 text-sm" data-numero="normalizado">
+              Assim fica: <strong>{numero.exibicao}</strong>
+            </p>
+          ) : (
+            <p
+              className="mt-2 text-sm text-[var(--cor-atencao)]"
+              data-numero="recusado"
+            >
+              {numero.explicacao}
+            </p>
+          )}
+          <ErroDoCampo campo="numero" erros={erros} />
+        </div>
+
+        <label className="flex items-start gap-3">
+          <input
+            className="mt-1 h-5 w-5"
+            type="checkbox"
+            name="publico"
+            checked={dados.publico}
+            onChange={(evento) =>
+              mudar((anterior) => ({
+                ...anterior,
+                publico: evento.target.checked,
+              }))
+            }
+          />
+          <span>
+            <span className="font-medium">
+              Exibir este WhatsApp na página Sobre
+            </span>
+            <span className="mt-1 block text-sm text-[var(--cor-tinta-suave)]">
+              Só o número marcado aqui será público. O telefone cadastral
+              continua protegido.
+            </span>
           </span>
-          <span className="mt-1 block text-sm text-[var(--cor-tinta-suave)]">
-            Só o número marcado aqui será público. O telefone cadastral continua
-            protegido.
-          </span>
-        </span>
-      </label>
-      <label className="block">
-        <span className="font-medium">Saudação da mensagem</span>
-        <textarea
-          className="sc-campo mt-2 min-h-28 w-full"
-          value={saudacao}
-          onChange={(evento) => setSaudacao(evento.target.value)}
-          maxLength={280}
-          required
-        />
-      </label>
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          className="sc-botao sc-botao--primario"
-          type="submit"
-          disabled={salvando}
-        >
-          {salvando ? "Salvando…" : "Salvar contato"}
-        </button>
-        <p role="status" className="text-sm text-[var(--cor-tinta-suave)]">
-          {estado}
+        </label>
+
+        <div>
+          <label className="block">
+            <span className="font-medium">Saudação da mensagem</span>
+            <textarea
+              className="sc-campo mt-2 min-h-28 w-full"
+              name="saudacao"
+              value={dados.saudacao}
+              onChange={(evento) =>
+                mudar((anterior) => ({
+                  ...anterior,
+                  saudacao: evento.target.value,
+                }))
+              }
+              maxLength={280}
+              {...atributosDeErro("saudacao", erros)}
+            />
+            <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
+              Escreva do seu jeito, ou apague para o pedido começar direto pelo
+              código.
+            </span>
+          </label>
+          <ErroDoCampo campo="saudacao" erros={erros} />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            className="sc-botao sc-botao--primario"
+            type="submit"
+            disabled={secao.salvando}
+          >
+            {secao.salvando ? "Salvando…" : "Salvar contato"}
+          </button>
+          <p role="status" className="text-sm text-[var(--cor-tinta-suave)]">
+            {secao.mensagem}
+          </p>
+        </div>
+      </form>
+
+      <section aria-labelledby="titulo-previa-mensagem">
+        <h2 id="titulo-previa-mensagem" className="font-medium">
+          Como a mensagem chega para você
+        </h2>
+        <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+          Com um pedido de exemplo. Estas partes vão em todo pedido e não saem:{" "}
+          {PARTES_OBRIGATORIAS_DO_PEDIDO.join(", ")}.
         </p>
-      </div>
-    </form>
+        <div
+          className="mt-4 rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4 text-sm leading-6"
+          data-previa="mensagem"
+        >
+          {previa.map((linha, indice) => (
+            <p key={indice} className="min-h-6 whitespace-pre-wrap">
+              {linha.map((pedaco, parte) =>
+                pedaco.negrito ? (
+                  <strong key={parte}>{pedaco.texto}</strong>
+                ) : (
+                  <span key={parte}>{pedaco.texto}</span>
+                ),
+              )}
+            </p>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }

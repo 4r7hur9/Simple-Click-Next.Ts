@@ -23,6 +23,7 @@ import {
   criarRotasDasConfiguracoes,
   type UsuarioAutenticado,
 } from "./modules/stores/configuracao.routes.ts";
+import type { OpcoesDasConfiguracoes } from "./modules/stores/configuracao.routes.ts";
 import {
   tokenDoCabecalhoDeAutorizacao,
   verificarTokenDeAcesso,
@@ -76,6 +77,8 @@ export interface OpcoesDoApp {
   readonly carrinho?: Partial<OpcoesDoCarrinho>;
   /** O mesmo, para o fechamento do pedido. */
   readonly pedidos?: Partial<OpcoesDosPedidos>;
+  /** O mesmo, para as configurações da loja (T-900). */
+  readonly configuracoes?: Partial<OpcoesDasConfiguracoes>;
 }
 
 /**
@@ -143,6 +146,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
           return null;
         }
       },
+      ...opcoes.configuracoes,
     }),
   );
 
