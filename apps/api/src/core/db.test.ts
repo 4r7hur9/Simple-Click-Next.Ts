@@ -81,6 +81,15 @@ let lojaA = "";
 let lojaB = "";
 let produtoDeA = "";
 let produtoDeB = "";
+/** Dona das duas lojas: o vínculo, e não o papel, é o que a leva a cada uma. */
+let dona = "";
+/** Dono só da loja A: é quem prova que a loja B "não existe" para ele. */
+let donoSoDaA = "";
+
+/** O contexto de uma requisição da dona a uma das lojas dela. */
+function comoDonaDe(loja: string): DadosDoContexto {
+  return { lojaId: loja, usuarioId: dona, papel: "OWNER" };
+}
 
 async function comClienteAdministrativo<T>(
   acao: (cliente: pg.Client) => Promise<T>,
@@ -203,6 +212,25 @@ beforeAll(async () => {
     [lojaA, lojaB],
   );
 
+  // A equipe só entra na loja de que é membro (regra 7, migração 0041): a
+  // dona das duas lojas tem vínculo aceito nas duas; o dono só da A, só na A.
+  const criarIdentidade = async (email: string): Promise<string> => {
+    const resultado = await migrador.query(
+      `INSERT INTO app.identities (email_norm, display_name)
+       VALUES ($1, $2) RETURNING id`,
+      [email, email],
+    );
+    return String((resultado.rows[0] as { id: string }).id);
+  };
+  dona = await criarIdentidade("dona.das.duas@exemplo.test");
+  donoSoDaA = await criarIdentidade("dono.so.da.a@exemplo.test");
+  await migrador.query(
+    `INSERT INTO app.store_members (store_id, identity_id, role, invite_accepted_at)
+     VALUES ($1, $3, 'OWNER', now()), ($2, $3, 'OWNER', now()),
+            ($1, $4, 'OWNER', now())`,
+    [lojaA, lojaB, dona, donoSoDaA],
+  );
+
   acesso = criarAcessoAoBanco({
     urlDaAplicacao,
     maxDeConexoes: 4,
@@ -264,7 +292,7 @@ describe("as duas cadeias de conexão", () => {
       // carga, que é onde ninguém procura o defeito.
       for (let volta = 0; volta < 5; volta += 1) {
         const preparadas = await comoRequisicao(
-          { lojaId: lojaA, papel: "OWNER" },
+          comoDonaDe(lojaA),
           async (tx) => {
             await tx.product.findMany({ select: { name: true } });
             const linhas = await tx.$queryRaw<{ total: bigint }[]>`
@@ -301,7 +329,7 @@ describe("o cliente cru", () => {
   });
 
   it("entrega ao domínio a transação em curso, e não o cliente", async () => {
-    await comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) => {
+    await comoRequisicao(comoDonaDe(lojaA), async (tx) => {
       // O repositório, doze camadas abaixo, alcança a mesma transação sem
       // tê-la recebido como parâmetro.
       expect(transacaoAtual()).toBe(tx);
@@ -319,7 +347,7 @@ describe("o cliente cru", () => {
       // agrupador com uma segurando a outra, e partiriam o trabalho em dois
       // registros — o primeiro sobreviveria à falha do segundo.
       const { deFora, deDentro, identificadorDaTransacao } =
-        await comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) => {
+        await comoRequisicao(comoDonaDe(lojaA), async (tx) => {
           const identificador = await acesso.emTransacao(async (interna) => {
             expect(interna).toBe(tx);
             return interna.$queryRaw<
@@ -345,7 +373,7 @@ describe("o cliente cru", () => {
       const antes = await linhasVistasPeloMigrador("products");
 
       await expect(
-        comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) => {
+        comoRequisicao(comoDonaDe(lojaA), async (tx) => {
           await tx.product.create({
             data: {
               storeId: lojaA,
@@ -391,7 +419,7 @@ describe("credencial que atende requisição", () => {
       try {
         await expect(
           comoRequisicao(
-            { lojaId: lojaA, papel: "OWNER" },
+            comoDonaDe(lojaA),
             async (tx) => tx.product.count(),
             privilegiado,
           ),
@@ -407,7 +435,7 @@ describe("credencial que atende requisição", () => {
     "autentica como sc_app, que não é superusuário nem contorna o isolamento",
     async () => {
       const quem = await comoRequisicao(
-        { lojaId: lojaA, papel: "OWNER" },
+        comoDonaDe(lojaA),
         async (tx) =>
           tx.$queryRaw<{ papel: string; super: boolean; contorna: boolean }[]>`
             SELECT rolname AS papel, rolsuper AS "super", rolbypassrls AS contorna
@@ -460,12 +488,10 @@ describe("consulta pelo caminho único sem contexto de loja", () => {
   it(
     "@spec:AC-009 zero não é banco vazio: com a loja no contexto a mesma consulta responde",
     async () => {
-      const nomes = await comoRequisicao(
-        { lojaId: lojaA, papel: "OWNER" },
-        async (tx) =>
-          (await tx.product.findMany({ select: { name: true } })).map(
-            (produto) => produto.name,
-          ),
+      const nomes = await comoRequisicao(comoDonaDe(lojaA), async (tx) =>
+        (await tx.product.findMany({ select: { name: true } })).map(
+          (produto) => produto.name,
+        ),
       );
 
       expect(nomes).toEqual(["X-Salada"]);
@@ -501,31 +527,28 @@ describe("loja A tentando alcançar dado da loja B", () => {
   it(
     "@spec:AC-010 @principle:P-003 leitura: não enxerga a linha da outra loja nem por endereço direto",
     async () => {
-      const visto = await comoRequisicao(
-        { lojaId: lojaA, papel: "OWNER" },
-        async (tx) => ({
-          todos: (await tx.product.findMany({ select: { name: true } })).map(
-            (produto) => produto.name,
-          ),
-          porIdentificador: await tx.product.findUnique({
-            where: { id: produtoDeB },
-            select: { name: true },
-          }),
-          // O contraste na mesma consulta: o identificador da própria loja
-          // responde, então "não encontrado" é isolamento, não busca quebrada.
-          oDaPropriaLoja: await tx.product.findUnique({
-            where: { id: produtoDeA },
-            select: { name: true },
-          }),
-          filtrandoPelaOutraLoja: await tx.product.count({
-            where: { storeId: lojaB },
-          }),
-          aLojaEmSi: await tx.store.findUnique({
-            where: { id: lojaB },
-            select: { name: true },
-          }),
+      const visto = await comoRequisicao(comoDonaDe(lojaA), async (tx) => ({
+        todos: (await tx.product.findMany({ select: { name: true } })).map(
+          (produto) => produto.name,
+        ),
+        porIdentificador: await tx.product.findUnique({
+          where: { id: produtoDeB },
+          select: { name: true },
         }),
-      );
+        // O contraste na mesma consulta: o identificador da própria loja
+        // responde, então "não encontrado" é isolamento, não busca quebrada.
+        oDaPropriaLoja: await tx.product.findUnique({
+          where: { id: produtoDeA },
+          select: { name: true },
+        }),
+        filtrandoPelaOutraLoja: await tx.product.count({
+          where: { storeId: lojaB },
+        }),
+        aLojaEmSi: await tx.store.findUnique({
+          where: { id: lojaB },
+          select: { name: true },
+        }),
+      }));
 
       expect(visto.todos).toEqual(["X-Salada"]);
       expect(visto.porIdentificador).toBeNull();
@@ -540,7 +563,7 @@ describe("loja A tentando alcançar dado da loja B", () => {
     "@spec:AC-010 @principle:P-003 inserção: gravar linha da outra loja é recusado, não aceito em silêncio",
     async () => {
       await expect(
-        comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) =>
+        comoRequisicao(comoDonaDe(lojaA), async (tx) =>
           tx.product.create({
             data: {
               storeId: lojaB,
@@ -566,7 +589,7 @@ describe("loja A tentando alcançar dado da loja B", () => {
       // O defeito invisível que a norma do repositório existe para matar: sem
       // conferir linhas afetadas, o dono da outra loja receberia sucesso.
       await expect(
-        comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) =>
+        comoRequisicao(comoDonaDe(lojaA), async (tx) =>
           exigirUmaLinhaAfetada(
             { recurso: "produto", id: produtoDeB },
             async () => {
@@ -593,7 +616,7 @@ describe("loja A tentando alcançar dado da loja B", () => {
     "@spec:AC-010 @principle:P-003 remoção: apagar linha da outra loja não apaga nada e responde não encontrado",
     async () => {
       await expect(
-        comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, async (tx) =>
+        comoRequisicao(comoDonaDe(lojaA), async (tx) =>
           exigirUmaLinhaAfetada(
             { recurso: "produto", id: produtoDeB },
             async () => {
@@ -616,60 +639,166 @@ describe("loja A tentando alcançar dado da loja B", () => {
     async () => {
       // Sem este contraste, "não alcança a outra loja" poderia ser só uma
       // credencial que não alcança nada.
-      const resultado = await comoRequisicao(
-        { lojaId: lojaA, papel: "OWNER" },
-        async (tx) => {
-          const criado = await tx.product.create({
-            data: {
-              storeId: lojaA,
-              name: "Batata frita",
-              slug: "batata-frita",
-              verticalCode: "FOOD_SNACK",
-              status: "PUBLISHED",
-            },
-            select: { id: true },
-          });
+      const resultado = await comoRequisicao(comoDonaDe(lojaA), async (tx) => {
+        const criado = await tx.product.create({
+          data: {
+            storeId: lojaA,
+            name: "Batata frita",
+            slug: "batata-frita",
+            verticalCode: "FOOD_SNACK",
+            status: "PUBLISHED",
+          },
+          select: { id: true },
+        });
 
-          const lido = await tx.product.findUnique({
-            where: { id: criado.id },
-            select: { name: true },
-          });
+        const lido = await tx.product.findUnique({
+          where: { id: criado.id },
+          select: { name: true },
+        });
 
-          await exigirUmaLinhaAfetada(
-            { recurso: "produto", id: criado.id },
-            async () =>
-              (
-                await tx.product.updateMany({
-                  where: { id: criado.id },
-                  data: { name: "Batata frita grande" },
-                })
-              ).count,
-          );
+        await exigirUmaLinhaAfetada(
+          { recurso: "produto", id: criado.id },
+          async () =>
+            (
+              await tx.product.updateMany({
+                where: { id: criado.id },
+                data: { name: "Batata frita grande" },
+              })
+            ).count,
+        );
 
-          const depoisDaAlteracao = await tx.product.findUnique({
-            where: { id: criado.id },
-            select: { name: true },
-          });
+        const depoisDaAlteracao = await tx.product.findUnique({
+          where: { id: criado.id },
+          select: { name: true },
+        });
 
-          await exigirUmaLinhaAfetada(
-            { recurso: "produto", id: criado.id },
-            async () =>
-              (await tx.product.deleteMany({ where: { id: criado.id } })).count,
-          );
+        await exigirUmaLinhaAfetada(
+          { recurso: "produto", id: criado.id },
+          async () =>
+            (await tx.product.deleteMany({ where: { id: criado.id } })).count,
+        );
 
-          return {
-            lido: lido?.name,
-            depoisDaAlteracao: depoisDaAlteracao?.name,
-            sobrou: await tx.product.count({ where: { id: criado.id } }),
-          };
-        },
-      );
+        return {
+          lido: lido?.name,
+          depoisDaAlteracao: depoisDaAlteracao?.name,
+          sobrou: await tx.product.count({ where: { id: criado.id } }),
+        };
+      });
 
       expect(resultado).toEqual({
         lido: "Batata frita",
         depoisDaAlteracao: "Batata frita grande",
         sobrou: 0,
       });
+    },
+    ESPERA_LONGA,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Regra 7 — a equipe só entra na loja de que é membro (dívida 92)
+// ---------------------------------------------------------------------------
+
+describe("vínculo com a loja antes de qualquer consulta", () => {
+  /** Verdadeiro se a ação chegou a rodar dentro da transação. */
+  async function chegouAoCasoDeUso(dados: DadosDoContexto): Promise<boolean> {
+    let chegou = false;
+    await comoRequisicao(dados, async () => {
+      chegou = true;
+    }).catch(() => undefined);
+    return chegou;
+  }
+
+  it(
+    "@spec:AC-116 @spec:AC-010 @principle:P-003 dono da loja A abrindo a loja B: 'não encontrado' antes de o caso de uso rodar",
+    async () => {
+      const naOutraLoja: DadosDoContexto = {
+        lojaId: lojaB,
+        usuarioId: donoSoDaA,
+        papel: "OWNER",
+      };
+      await expect(
+        comoRequisicao(naOutraLoja, (tx) => tx.product.count()),
+      ).rejects.toMatchObject({ codigo: "nao_encontrado" });
+      expect(await chegouAoCasoDeUso(naOutraLoja)).toBe(false);
+
+      // O contraste: na própria loja, o mesmo dono passa e enxerga o que é dela.
+      const naPropria = await comoRequisicao(
+        { lojaId: lojaA, usuarioId: donoSoDaA, papel: "OWNER" },
+        (tx) => tx.product.findMany({ select: { name: true } }),
+      );
+      expect(naPropria.map((produto) => produto.name)).toEqual(["X-Salada"]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-116 @principle:P-003 papel sem vínculo do mesmo papel, sujeito que não é identidade e vínculo revogado saem pela mesma porta",
+    async () => {
+      // STAFF no token, OWNER no vínculo: o papel da sessão precisa ser o do
+      // vínculo — senão um funcionário com token de dono seria dono.
+      await expect(
+        comoRequisicao(
+          { lojaId: lojaA, usuarioId: donoSoDaA, papel: "STAFF" },
+          (tx) => tx.product.count(),
+        ),
+      ).rejects.toMatchObject({ codigo: "nao_encontrado" });
+
+      // Sujeito que não é identificador de identidade: nem chega ao banco.
+      await expect(
+        comoRequisicao(
+          {
+            lojaId: lojaA,
+            usuarioId: "usuario-de-teste-local",
+            papel: "OWNER",
+          },
+          (tx) => tx.product.count(),
+        ),
+      ).rejects.toMatchObject({ codigo: "nao_encontrado" });
+      await expect(
+        comoRequisicao({ lojaId: lojaA, papel: "OWNER" }, (tx) =>
+          tx.product.count(),
+        ),
+      ).rejects.toMatchObject({ codigo: "nao_encontrado" });
+
+      // Vínculo revogado: o token continua válido por quinze minutos, o
+      // acesso não.
+      await migrador.query(
+        `UPDATE app.store_members SET revoked_at = now()
+          WHERE store_id = $1 AND identity_id = $2`,
+        [lojaA, donoSoDaA],
+      );
+      try {
+        await expect(
+          comoRequisicao(
+            { lojaId: lojaA, usuarioId: donoSoDaA, papel: "OWNER" },
+            (tx) => tx.product.count(),
+          ),
+        ).rejects.toMatchObject({ codigo: "nao_encontrado" });
+      } finally {
+        await migrador.query(
+          `UPDATE app.store_members SET revoked_at = NULL
+            WHERE store_id = $1 AND identity_id = $2`,
+          [lojaA, donoSoDaA],
+        );
+      }
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-116 @principle:P-003 a vitrine e o cliente não passam pela pergunta: ela é da equipe",
+    async () => {
+      // Sem identidade nenhuma, a vitrine da loja A continua respondendo — a
+      // trava dela é a política pública, não o vínculo.
+      const publico = await comoRequisicao(
+        { lojaId: lojaA, papel: "PUBLIC" },
+        (tx) => tx.product.count(),
+      );
+      expect(publico).toBe(1);
+      expect(
+        await chegouAoCasoDeUso({ lojaId: lojaA, papel: "CUSTOMER" }),
+      ).toBe(true);
     },
     ESPERA_LONGA,
   );
@@ -706,7 +835,7 @@ describe("contexto entre requisições concorrentes sobre conexões reaproveitad
           const esperado = indice % 2 === 0 ? "X-Salada" : "Camiseta lisa";
 
           return comoRequisicao(
-            ehSonda ? {} : { lojaId: loja, papel: "OWNER" },
+            ehSonda ? {} : comoDonaDe(loja),
             async (tx) => {
               // Cede a vez no meio da transação: sem isso as transações
               // correriam uma depois da outra e o teste não provaria nada
@@ -772,7 +901,7 @@ describe("contexto entre requisições concorrentes sobre conexões reaproveitad
 
       try {
         const daLojaA = await comoRequisicao(
-          { lojaId: lojaA, papel: "OWNER" },
+          comoDonaDe(lojaA),
           async (tx) =>
             (await tx.product.findMany({ select: { name: true } })).map(
               (produto) => produto.name,
@@ -822,6 +951,12 @@ describe("contexto entre requisições concorrentes sobre conexões reaproveitad
         await agrupador.query("BEGIN");
         await agrupador.query("SELECT set_config('app.store_id', $1, false)", [
           lojaA,
+        ]);
+        // A dona de verdade: desde a migração 0041 o papel sozinho não abre
+        // a loja — e o vazamento que a sentinela mostra é o da sessão inteira,
+        // identidade inclusive.
+        await agrupador.query("SELECT set_config('app.user_id', $1, false)", [
+          dona,
         ]);
         await agrupador.query("SELECT set_config('app.role', 'OWNER', false)");
         const daLojaA = await agrupador.query(

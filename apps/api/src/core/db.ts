@@ -25,6 +25,13 @@
  * 6. **Conferência de linhas afetadas.** Alteração que atravessa loja devolve
  *    ZERO LINHAS SEM ERRO. Por isso toda alteração por identificador passa por
  *    `exigirUmaLinhaAfetada`, que transforma zero em "não encontrado".
+ * 7. **Vínculo com a loja antes de qualquer consulta da equipe.** A rota do
+ *    dono resolve a loja pelo apelido da URL e abre a transação com o papel
+ *    OWNER; o isolamento por linha separa as lojas DENTRO dessa transação, mas
+ *    não pergunta se quem a abriu é daquela loja. A pergunta é feita aqui,
+ *    uma vez, logo depois de o contexto entrar na transação — em um lugar só,
+ *    por onde toda rota do dono passa, e por isso rota nova não tem como
+ *    esquecê-la (dívida 92).
  *
  * Se um dia o arranjo pesar, o ponto de troca é este arquivo e só ele.
  */
@@ -37,7 +44,9 @@ import {
   type ContextoDaRequisicao,
   ErroSemContexto,
   exigirContexto,
+  type PapelDeAcesso,
 } from "./contexto.ts";
+import { erroDeDominio } from "./erros.ts";
 
 // ---------------------------------------------------------------------------
 // Tipos de fronteira
@@ -282,6 +291,65 @@ async function aplicarContextoNaTransacao(
 }
 
 // ---------------------------------------------------------------------------
+// Regra 7 — a equipe só entra na loja de que é membro
+// ---------------------------------------------------------------------------
+
+/** Papéis cujo acesso depende de vínculo ativo em `app.store_members`. */
+const PAPEIS_DA_EQUIPE: ReadonlySet<PapelDeAcesso> = new Set([
+  "OWNER",
+  "STAFF",
+]);
+
+/** Forma de um identificador de identidade. Fora dela não há vínculo possível. */
+const FORMATO_DE_IDENTIDADE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A pergunta que vem ANTES de qualquer consulta do dono: "esta pessoa é da
+ * loja que a transação declarou?" (dívida 92).
+ *
+ * Quem responde é o banco, pela mesma função que as políticas de equipe usam
+ * (`app.is_store_staff()`, migração 0041): vínculo em `app.store_members` da
+ * loja corrente, da identidade corrente, com o mesmo papel da sessão, convite
+ * aceito e sem revogação. Perguntar aqui, e não em cada rota, é o que fecha a
+ * porta para sempre: a rota nova passa por este mesmo ponto.
+ *
+ * A recusa é "não encontrado", e não "sem permissão", de propósito — a mesma
+ * porta da vitrine para loja inexistente e suspensa (AC-402). Responder
+ * diferente contaria a quem tenta que o apelido existe e é de outra pessoa.
+ *
+ * Só a equipe passa por aqui. A vitrine (`PUBLIC`), o cliente (`CUSTOMER`) e a
+ * administração (que fala por outra credencial e confere `platform_admins`
+ * nas próprias rotas) têm as próprias travas.
+ */
+async function exigirVinculoComALoja(
+  tx: TransacaoDoBanco,
+  contexto: ContextoDaRequisicao,
+): Promise<void> {
+  if (contexto.lojaId === undefined || contexto.lojaId === "") return;
+  if (!PAPEIS_DA_EQUIPE.has(contexto.papel)) return;
+
+  const recusar = (motivo: string) =>
+    erroDeDominio("nao_encontrado", {
+      motivo,
+      lojaId: contexto.lojaId,
+      papel: contexto.papel,
+    });
+
+  // Sujeito que não é uma identidade não tem como ter vínculo — e perguntar
+  // ao banco faria a conversão para identificador falhar com erro interno,
+  // que é a resposta errada para quem forjou o token.
+  const usuarioId = contexto.usuarioId;
+  if (usuarioId === undefined || !FORMATO_DE_IDENTIDADE.test(usuarioId)) {
+    throw recusar("sujeito_sem_identidade");
+  }
+
+  const [linha] = await tx.$queryRaw<{ membro: boolean }[]>`
+    SELECT app.is_store_staff() AS membro`;
+  if (linha?.membro !== true) throw recusar("sem_vinculo_com_a_loja");
+}
+
+// ---------------------------------------------------------------------------
 // Regra 4 — a credencial da aplicação não contorna o isolamento
 // ---------------------------------------------------------------------------
 
@@ -390,6 +458,9 @@ export function criarAcessoAoBanco(opcoes: OpcoesDoAcesso): AcessoAoBanco {
       return cliente.$transaction(
         async (tx) => {
           await aplicarContextoNaTransacao(tx, contexto);
+          // Com o contexto gravado, a primeira pergunta é se a equipe é
+          // DESTA loja — antes de o caso de uso consultar qualquer coisa.
+          await exigirVinculoComALoja(tx, contexto);
           // A transação também vai para o contexto, para que o repositório
           // lá embaixo a alcance sem que doze assinaturas a carreguem.
           contexto.transacao = tx;

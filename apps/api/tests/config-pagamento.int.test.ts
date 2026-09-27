@@ -16,7 +16,7 @@ import {
   criarLoja,
   criarProduto,
 } from "@simpleclick/testing";
-import type { LojaDeTeste } from "@simpleclick/testing";
+import type { IdentidadeDeTeste, LojaDeTeste } from "@simpleclick/testing";
 
 import {
   camposRecusados,
@@ -33,6 +33,7 @@ import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let app: ReturnType<typeof montarAppDaConfiguracao>;
+let dono: IdentidadeDeTeste;
 let token: string;
 
 /** CPF de exemplo com dígitos verificadores corretos. */
@@ -44,7 +45,7 @@ beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  const dono = await criarIdentidade({ nome: "Dona Zica" });
+  dono = await criarIdentidade({ nome: "Dona Zica" });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -78,7 +79,7 @@ describe("a chave cadastrada aparece no checkout (AC-900)", () => {
   it(
     "@spec:AC-900 loja sem chave cadastra CPF e recebedor, e o fechamento passa a oferecer PIX com a chave e o nome",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do PIX" });
+      const loja = await criarLoja({ nome: "Pastelaria do PIX", dono });
       expect((await fechamento(loja)).formasDePagamento).not.toContain("PIX");
 
       const salvo = await salvarPagamento(loja, {
@@ -101,7 +102,7 @@ describe("a chave cadastrada aparece no checkout (AC-900)", () => {
   it(
     "@spec:AC-900 o painel lê de volta a chave como ficou guardada",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria da Leitura" });
+      const loja = await criarLoja({ nome: "Pastelaria da Leitura", dono });
       await salvarPagamento(loja, {
         formas: ["PIX"],
         pix: {
@@ -129,7 +130,7 @@ describe("chave em formato inválido é recusada (AC-901)", () => {
   it(
     "@spec:AC-901 CPF inválido é recusado explicando o formato, e a chave anterior continua valendo",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Firme" });
+      const loja = await criarLoja({ nome: "Pastelaria Firme", dono });
       await salvarPagamento(loja, {
         formas: ["PIX"],
         pix: { tipo: "CPF", chave: CPF_DO_DONO, titular: "Zica da Silva" },
@@ -152,7 +153,7 @@ describe("chave em formato inválido é recusada (AC-901)", () => {
   it(
     "@spec:AC-901 PIX ligado sem chave é recusado apontando o campo da chave",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Sem Chave" });
+      const loja = await criarLoja({ nome: "Pastelaria Sem Chave", dono });
       const recusado = await salvarPagamento(loja, {
         formas: ["PIX"],
         pix: null,
@@ -169,7 +170,7 @@ describe("loja sem chave não oferece PIX (AC-902)", () => {
   it(
     "@spec:AC-902 sem chave o PIX some do fechamento, e as outras formas continuam",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do Dinheiro" });
+      const loja = await criarLoja({ nome: "Pastelaria do Dinheiro", dono });
       // Documento antigo, gravado antes da conferência existir: PIX ligado e
       // chave nenhuma. É o caso que a vitrine não pode oferecer.
       await migrador.query(
@@ -190,7 +191,7 @@ describe("loja sem chave não oferece PIX (AC-902)", () => {
   it(
     "@spec:AC-902 sem forma nenhuma, o painel do dono avisa que falta configurar pagamento",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Sem Forma" });
+      const loja = await criarLoja({ nome: "Pastelaria Sem Forma", dono });
       const resposta = await request(app)
         .get(`/v1/lojas/${loja.apelido}/configuracao/pendencias`)
         .set("Authorization", `Bearer ${token}`);
@@ -209,7 +210,7 @@ describe("trocar a chave não altera pedido já feito (AC-903)", () => {
   it(
     "@spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria dos Pedidos" });
+      const loja = await criarLoja({ nome: "Pastelaria dos Pedidos", dono });
       const pastel = await criarProduto({
         loja,
         nome: "Pastel de carne",
@@ -283,7 +284,7 @@ describe("a chave não aparece em lugar indevido (AC-904)", () => {
   it(
     "@spec:AC-904 @principle:P-009 a chave salva pelo painel não sai nos dados públicos da vitrine",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Discreta" });
+      const loja = await criarLoja({ nome: "Pastelaria Discreta", dono });
       await salvarPagamento(loja, {
         formas: ["PIX"],
         pix: { tipo: "CPF", chave: CPF_DO_DONO, titular: "Zica da Silva" },
@@ -301,7 +302,7 @@ describe("a chave não aparece em lugar indevido (AC-904)", () => {
   it(
     "@spec:AC-904 a configuração de pagamento não abre sem a sessão do dono",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Fechada" });
+      const loja = await criarLoja({ nome: "Pastelaria Fechada", dono });
       const resposta = await request(app).get(
         `/v1/lojas/${loja.apelido}/configuracao/pagamento`,
       );

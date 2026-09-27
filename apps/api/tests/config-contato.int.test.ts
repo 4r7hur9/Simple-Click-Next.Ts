@@ -16,7 +16,11 @@ import {
   criarLoja,
   criarProduto,
 } from "@simpleclick/testing";
-import type { LojaDeTeste, ProdutoDeTeste } from "@simpleclick/testing";
+import type {
+  IdentidadeDeTeste,
+  LojaDeTeste,
+  ProdutoDeTeste,
+} from "@simpleclick/testing";
 
 import {
   camposRecusados,
@@ -33,13 +37,14 @@ import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let app: ReturnType<typeof montarAppDaConfiguracao>;
+let dono: IdentidadeDeTeste;
 let token: string;
 
 beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  const dono = await criarIdentidade({ nome: "Dona Zica" });
+  dono = await criarIdentidade({ nome: "Dona Zica" });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -52,7 +57,7 @@ afterAll(async () => {
 async function lojaQueVende(
   nome: string,
 ): Promise<{ loja: LojaDeTeste; produto: ProdutoDeTeste }> {
-  const loja = await criarLoja({ nome });
+  const loja = await criarLoja({ nome, dono });
   const produto = await criarProduto({
     loja,
     nome: "Coxinha",
@@ -107,7 +112,7 @@ describe("o número é validado no cadastro (AC-913)", () => {
   it(
     "@spec:AC-913 número com máscara e sem código do país é guardado no formato internacional",
     async () => {
-      const loja = await criarLoja({ nome: "Salgaderia do Número" });
+      const loja = await criarLoja({ nome: "Salgaderia do Número", dono });
       const salvo = await salvarContato(loja, {
         numero: "(11) 9 1234-5678",
         saudacao: "Olá!",
@@ -124,7 +129,7 @@ describe("o número é validado no cadastro (AC-913)", () => {
   it(
     "@spec:AC-913 número impossível é recusado explicando o que falta, e o anterior continua",
     async () => {
-      const loja = await criarLoja({ nome: "Salgaderia Firme" });
+      const loja = await criarLoja({ nome: "Salgaderia Firme", dono });
       await salvarContato(loja, {
         numero: "(11) 91234-5678",
         saudacao: "Olá!",

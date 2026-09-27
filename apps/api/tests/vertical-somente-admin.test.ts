@@ -41,8 +41,8 @@ beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  loja = await criarLoja({ ramo: "lanchonete", nome: "Lanches do Tipo" });
   const dono = await criarIdentidade({ nome: "Dono do Tipo" });
+  loja = await criarLoja({ ramo: "lanchonete", nome: "Lanches do Tipo", dono });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 

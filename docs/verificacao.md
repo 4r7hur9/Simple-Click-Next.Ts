@@ -215,7 +215,8 @@ varredura do apoio de teste apaga o que ficou para trás.
 
 ### `guardas estruturais do banco`
 
-As nove guardas de isolamento, índice e imutabilidade, contra um banco criado do
+As dez guardas de isolamento, índice, imutabilidade e funções com direitos de
+quem as definiu, contra um banco criado do
 zero e migrado na hora.
 
 ```bash

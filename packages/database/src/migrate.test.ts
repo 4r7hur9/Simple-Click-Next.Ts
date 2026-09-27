@@ -689,10 +689,27 @@ describe("consulta da aplicação sem contexto de loja", () => {
   });
 
   it("@spec:AC-009 com contexto definido devolve só o da loja corrente", async () => {
+    // A equipe só entra na loja de que é membro (migração 0041): o contexto
+    // de dona leva a loja, a identidade e o papel — e a identidade tem vínculo
+    // aceito com a loja A.
+    const dona = await migrador.query(
+      `INSERT INTO app.identities (email_norm, display_name)
+       VALUES ('dona.da.lanchonete@exemplo.test', 'Ana') RETURNING id`,
+    );
+    const donaId = String((dona.rows[0] as { id: string }).id);
+    await migrador.query(
+      `INSERT INTO app.store_members (store_id, identity_id, role, invite_accepted_at)
+       VALUES ($1, $2, 'OWNER', now())`,
+      [lojaA, donaId],
+    );
+
     await aplicacao.query("BEGIN");
     try {
       await aplicacao.query("SELECT set_config('app.store_id', $1, true)", [
         lojaA,
+      ]);
+      await aplicacao.query("SELECT set_config('app.user_id', $1, true)", [
+        donaId,
       ]);
       await aplicacao.query("SELECT set_config('app.role', 'OWNER', true)");
 
@@ -708,6 +725,13 @@ describe("consulta da aplicação sem contexto de loja", () => {
       expect(daOutraLoja.rows).toEqual([]);
     } finally {
       await aplicacao.query("ROLLBACK");
+      await migrador.query(
+        `DELETE FROM app.store_members WHERE identity_id = $1`,
+        [donaId],
+      );
+      await migrador.query(`DELETE FROM app.identities WHERE id = $1`, [
+        donaId,
+      ]);
     }
   });
 });

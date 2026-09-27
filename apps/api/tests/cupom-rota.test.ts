@@ -25,6 +25,7 @@ import {
   ESPERA_LONGA,
 } from "./apoio-de-isolamento.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
+import { manipuladorDeErros } from "../src/core/erros.ts";
 import { criarPedido } from "../src/modules/orders/criar-pedido.usecase.ts";
 import { tokenPublico } from "../src/modules/orders/numero-pedido.ts";
 import { criarRotasDoCupom } from "../src/modules/printing/cupom.routes.ts";
@@ -44,10 +45,7 @@ function appDoCupom(): express.Express {
       acesso,
       autenticar: (requisicao) =>
         requisicao.headers.authorization === "Bearer dono"
-          ? {
-              identidadeId: "7c0e2f4a-1b3d-4e5f-8a9b-0c1d2e3f4a5b",
-              papel: "OWNER",
-            }
+          ? { identidadeId: lojaA.dono.id, papel: "OWNER" }
           : null,
       resolverLoja: async ({ apelido }) => {
         const loja = [lojaA, lojaB].find((l) => l.apelido === apelido);
@@ -58,7 +56,21 @@ function appDoCupom(): express.Express {
       lerConfiguracaoDoCupom: normalizarConfiguracaoDeImpressao,
     }),
   );
+  // Como em `app.ts`: é ele que traduz a recusa da guarda central de vínculo
+  // com a loja (core/db.ts, regra 7) na resposta do catálogo de erros.
+  app.use(manipuladorDeErros());
   return app;
+}
+
+/**
+ * O código de "não encontrado" nos dois formatos que a API usa: o da rota, à
+ * mão (`{ erro: "nao_encontrado" }`), e o do catálogo de erros (AC-024), que é
+ * como a recusa de vínculo com a loja sai — a mesma porta da vitrine.
+ */
+function codigoDoErro(corpo: unknown): string | undefined {
+  const erro = (corpo as { erro?: unknown })?.erro;
+  if (typeof erro === "string") return erro;
+  return (erro as { codigo?: string } | undefined)?.codigo;
 }
 
 beforeAll(async () => {
@@ -155,7 +167,8 @@ describe("a rota do cupom para a impressão por clique (AC-617)", () => {
           .post(caminho)
           .set("authorization", "Bearer dono");
         expect(resposta.status, caminho).toBe(404);
-        expect(resposta.body).toEqual({ erro: "nao_encontrado" });
+        expect(codigoDoErro(resposta.body), caminho).toBe("nao_encontrado");
+        expect(JSON.stringify(resposta.body)).not.toContain("Açaí");
       }
 
       const vias = await migrador.query<{ print_count: number }>(

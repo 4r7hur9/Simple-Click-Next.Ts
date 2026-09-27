@@ -265,21 +265,79 @@ function idDaLoja(alvo: AlvoDeLoja): string {
 }
 
 /**
- * Roda `acao` como a loja rodaria: credencial da aplicação, transação aberta e
- * `app.store_id` gravado nela.
+ * O dono que `criarLoja` vinculou a cada loja, pelo identificador dela.
+ *
+ * É a memória que deixa `comoLoja` agir como o dono mesmo quando recebe só o
+ * identificador da loja, sem ir ao banco perguntar quem é.
+ */
+const donosPorLoja = new Map<string, string>();
+
+/**
+ * Quem age pela loja quando o teste não disse: um membro ATIVO dela, com o
+ * papel pedido.
+ *
+ * Desde a migração 0041 a equipe só alcança a loja de que é membro — a
+ * política pergunta ao vínculo em `app.store_members`, e não mais ao papel da
+ * sessão. Um construtor que escrevesse "como a loja" sem ser ninguém seria
+ * recusado pelo banco, corretamente; por isso o dono que a loja recebeu ao
+ * nascer é o ator padrão. Papel público ou de cliente não precisa de vínculo.
+ */
+async function membroQueAge(
+  loja: AlvoDeLoja,
+  papel: PapelDeTeste,
+): Promise<string | undefined> {
+  if (papel !== "OWNER" && papel !== "STAFF") return undefined;
+  if (typeof loja !== "string" && papel === "OWNER") return loja.dono.id;
+
+  const lojaId = idDaLoja(loja);
+  const conhecido = papel === "OWNER" ? donosPorLoja.get(lojaId) : undefined;
+  if (conhecido !== undefined) return conhecido;
+
+  const achado = await comoAdministracao((tx) =>
+    tx.query<{ identity_id: string }>(
+      `SELECT identity_id
+         FROM app.store_members
+        WHERE store_id = $1 AND role = $2
+          AND invite_accepted_at IS NOT NULL AND revoked_at IS NULL
+        ORDER BY created_at
+        LIMIT 1`,
+      [lojaId, papel],
+    ),
+  );
+  const identidadeId = achado.rows[0]?.identity_id;
+  if (identidadeId === undefined) {
+    throw new ErroDeConstrutorDeTeste(
+      [
+        `A loja ${lojaId} não tem membro ${papel} ativo, e agir como a loja exige`,
+        "um vínculo em app.store_members (migração 0041, dívida 92).",
+        "",
+        "Crie a loja com `criarLoja` — ela nasce com dono — ou vincule alguém",
+        "com `criarMembro` antes, ou informe `usuarioId` no contexto.",
+      ].join("\n"),
+    );
+  }
+  return identidadeId;
+}
+
+/**
+ * Roda `acao` como a loja rodaria: credencial da aplicação, transação aberta,
+ * `app.store_id` gravado nela e um MEMBRO da loja como quem age — o dono que
+ * ela recebeu ao nascer, salvo quando o teste informa outro `usuarioId`.
  *
  * É por aqui que o teste LÊ o que montou. Ler pela credencial de administração
  * seria cômodo e mentiroso: ela enxerga todas as lojas, então o teste passaria
  * mesmo com o isolamento desligado.
  */
-export function comoLoja<T>(
+export async function comoLoja<T>(
   loja: AlvoDeLoja,
   acao: (tx: TransacaoDeTeste) => Promise<T>,
   opcoes: Omit<ContextoDeTeste, "lojaId"> = {},
 ): Promise<T> {
+  const papel = opcoes.papel ?? "OWNER";
+  const usuarioId = opcoes.usuarioId ?? (await membroQueAge(loja, papel));
   return emTransacao(
     aplicacao(),
-    { ...opcoes, lojaId: idDaLoja(loja), papel: opcoes.papel ?? "OWNER" },
+    { ...opcoes, lojaId: idDaLoja(loja), papel, usuarioId },
     acao,
   );
 }
@@ -357,6 +415,12 @@ export interface LojaDeTeste {
   readonly ramoCodigo: CodigoDeRamo;
   readonly status: string;
   readonly fusoHorario: string;
+  /**
+   * O dono com que a loja nasceu: membro OWNER ativo dela. É quem `comoLoja`
+   * e os construtores da loja usam como ator, e é a identidade que um teste
+   * assina no token quando quer "o dono desta loja".
+   */
+  readonly dono: IdentidadeDeTeste;
 }
 
 export interface SobrescritaDeLoja {
@@ -366,14 +430,19 @@ export interface SobrescritaDeLoja {
   readonly ramo?: RamoDeTeste;
   readonly status?: "PENDING" | "ACTIVE" | "SUSPENDED" | "DELETED";
   readonly fusoHorario?: string;
+  /** Uma identidade já existente como dona — a mesma pessoa com duas lojas. */
+  readonly dono?: IdentidadeDeTeste;
 }
 
 /**
- * Cria uma loja, já com a linha de configuração que toda loja tem.
+ * Cria uma loja, já com a linha de configuração que toda loja tem e com o
+ * DONO dela vinculado.
  *
  * Pela credencial de administração porque é assim em produção: `INSERT` e
  * `DELETE` em `app.stores` são retirados de `sc_app` — criar e excluir loja é
- * ato da plataforma, não do lojista.
+ * ato da plataforma, não do lojista. O vínculo do dono nasce no mesmo ato,
+ * como no cadastro da administração (T-200): loja sem dono é loja que ninguém
+ * alcança, porque a equipe só entra na loja de que é membro (migração 0041).
  *
  * Nasce `ACTIVE` porque é o estado em que a loja é interessante para um teste;
  * quem quiser provar vitrine de loja suspensa passa `status`.
@@ -392,6 +461,9 @@ export async function criarLoja(
     status: sobrescrita.status ?? "ACTIVE",
     fusoHorario: sobrescrita.fusoHorario ?? "America/Sao_Paulo",
   };
+  const dono =
+    sobrescrita.dono ??
+    (await criarIdentidade({ nome: `Dono da loja de teste ${sufixo}` }));
 
   const id = await comoAdministracao(async (tx) => {
     const inserida = await tx.query<{ id: string }>(
@@ -414,10 +486,19 @@ export async function criarLoja(
     await tx.query(`INSERT INTO app.store_settings (store_id) VALUES ($1)`, [
       idDaNova,
     ]);
+    // O dono entra pela administração, como no cadastro real: é o primeiro
+    // vínculo da loja, e antes dele não há ninguém que pudesse convidá-lo.
+    await tx.query(
+      `INSERT INTO app.store_members
+         (store_id, identity_id, role, invite_accepted_at)
+       VALUES ($1, $2, 'OWNER', now())`,
+      [idDaNova, dono.id],
+    );
     return idDaNova;
   });
 
-  return { id, ...loja };
+  donosPorLoja.set(id, dono.id);
+  return { id, ...loja, dono };
 }
 
 // ---------------------------------------------------------------------------
@@ -443,10 +524,11 @@ export interface DadosDeMembro {
 /**
  * Vincula uma identidade a uma loja.
  *
- * Escreve pela credencial da aplicação, dentro do contexto da loja: é o mesmo
- * caminho que o dono usa para convidar alguém, e por isso a política
- * `members_staff_insert` é de fato exercida — vincular na loja errada seria
- * recusado pelo banco, não aceito em silêncio.
+ * Escreve pela credencial da aplicação, dentro do contexto da loja e como o
+ * DONO dela: é o mesmo caminho que o dono usa para convidar alguém, e por isso
+ * a política `members_staff_insert` é de fato exercida — vincular na loja
+ * errada seria recusado pelo banco, não aceito em silêncio. O membro criado é
+ * mais um: a loja já nasceu com o dono dela (`loja.dono`).
  */
 export async function criarMembro(
   dados: DadosDeMembro,
