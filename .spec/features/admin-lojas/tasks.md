@@ -2,11 +2,11 @@
 
 > feature: admin-lojas
 
-## T-200 — Cadastro de loja com código sequencial e convite do dono [pendente]
+## T-200 — Cadastro de loja com código sequencial e convite do dono [concluida]
 
 - Refs: US-200, AC-200, AC-201, AC-202
-- Arquivos: apps/api/src/modules/admin/criar-loja.usecase.ts, apps/api/src/modules/admin/criar-loja.usecase.test.ts, apps/api/src/modules/admin/admin.schema.ts, apps/api/src/modules/admin/documento.ts, apps/api/src/modules/admin/documento.test.ts, apps/web/src/app/(admin)/admin/lojas/nova/page.tsx, packages/contracts/src/admin.ts
-- Notas: apelido único conferido antes de gravar, com sugestão de variação livre. CPF e CNPJ validados por dígito verificador. Código sequencial de quatro dígitos herdado do primeiro SimpleClick.
+- Arquivos: apps/api/src/modules/admin/criar-loja.usecase.ts, apps/api/src/modules/admin/criar-loja.usecase.test.ts, apps/api/src/modules/admin/admin.schema.ts, apps/api/src/modules/admin/admin.routes.ts, apps/api/src/modules/admin/lojas.repo.ts, apps/api/src/modules/admin/convite-do-dono.ts, apps/api/tests/admin-cadastro.test.ts, apps/api/tests/apoio-da-administracao.ts, packages/contracts/src/admin.ts, packages/contracts/src/documento.ts, packages/contracts/src/documento.test.ts, packages/database/migrations/0032_administracao_de_lojas.sql, apps/web/src/app/(admin)/admin/lojas/nova/page.tsx, apps/web/src/app/api/admin/[...caminho]/route.ts, apps/web/src/features/admin/FormularioNovaLoja.tsx, apps/web/src/features/admin/formulario-da-loja.ts, apps/web/src/server/admin-api.ts, apps/web/tests/admin-nova-loja.test.tsx
+- Notas: apelido único conferido antes de gravar, com sugestão de variação livre. CPF e CNPJ validados por dígito verificador (a regra mora no contrato, `documento.ts`, porque o formulário e a API aplicam a mesma). Código sequencial de quatro dígitos herdado do primeiro SimpleClick, emitido por função com trava (`app.proximo_codigo_de_loja`, migração 0032). O convite do dono grava a linha de `store_members` (loja, identidade, papel OWNER, quem convidou, resumo e prazo do token) — é dela que a correção da dívida 92 vai depender.
 - Esforço: alto
 
 ## T-201 — Lista e busca de lojas [pendente]

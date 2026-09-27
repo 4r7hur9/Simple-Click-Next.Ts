@@ -487,3 +487,70 @@ export async function exigirUmaLinhaAfetada(
     throw new ErroDeAlteracaoAmpla(alvo, linhasAfetadas);
   }
 }
+
+// ---------------------------------------------------------------------------
+// O acesso da administração da plataforma
+// ---------------------------------------------------------------------------
+
+/**
+ * A cadeia da administração: a mesma do banco da aplicação, autenticando como
+ * `sc_admin`.
+ *
+ * É OUTRA CREDENCIAL, e não uma marcação de sessão, de propósito (migração
+ * 0001): se enxergar todas as lojas fosse um valor gravado na transação, uma
+ * injeção numa rota de lojista escalaria para visão global trocando esse valor.
+ * Com credencial separada, a rota do lojista simplesmente não tem a senha.
+ *
+ * Aceita a cadeia explícita (`DATABASE_URL_ADMINISTRACAO`), e na falta dela
+ * deriva a da aplicação trocando só quem se autentica — o mesmo que os testes
+ * e a carga de exemplo fazem. Nunca é a cadeia de migração.
+ */
+export function conexaoDaAdministracao(fonte: FonteDeAmbiente): string {
+  const explicita = valorDe(fonte, "DATABASE_URL_ADMINISTRACAO");
+  const direta = valorDe(fonte, "DATABASE_URL_DIRETA");
+
+  if (explicita !== undefined) {
+    if (explicita === direta || explicita === valorDe(fonte, "DATABASE_URL")) {
+      throw new ErroDeConexaoDoBanco(
+        "DATABASE_URL_ADMINISTRACAO",
+        "é idêntica a outra cadeia, e a administração tem credencial própria",
+      );
+    }
+    return explicita;
+  }
+
+  const senha = valorDe(fonte, "SENHA_BANCO_ADMINISTRACAO");
+  if (senha === undefined) {
+    throw new ErroDeConexaoDoBanco(
+      "SENHA_BANCO_ADMINISTRACAO",
+      "não está definida, e sem ela a administração não tem como se autenticar",
+    );
+  }
+  const destino = new URL(conexaoDaAplicacao(fonte));
+  destino.username = "sc_admin";
+  destino.password = senha;
+  return destino.toString();
+}
+
+let acessoDaAdministracao: AcessoAoBanco | undefined;
+
+/**
+ * O acesso que as rotas da administração usam, montado uma vez e só quando a
+ * primeira rota de administração é chamada — importar este módulo não abre
+ * conexão nenhuma.
+ */
+export function bancoDaAdministracao(
+  fonte: FonteDeAmbiente = process.env,
+): AcessoAoBanco {
+  acessoDaAdministracao ??= criarAcessoAoBanco({
+    urlDaAplicacao: conexaoDaAdministracao(fonte),
+  });
+  return acessoDaAdministracao;
+}
+
+/** Encerra o acesso da administração, no desligamento ordenado da API. */
+export async function encerrarBancoDaAdministracao(): Promise<void> {
+  const acesso = acessoDaAdministracao;
+  acessoDaAdministracao = undefined;
+  await acesso?.encerrar();
+}

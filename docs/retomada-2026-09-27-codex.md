@@ -9,7 +9,8 @@ Git, das worktrees, dos registros de execução e da auditoria do ONP. Conferir
 - A integração está em `../onp-worktrees/sc-integracao-onda1`, branch
   `integracao/onda-1`, desde `345d3df`. F1 catálogo, F2 preços, F3 janela de
   venda, F4 operação, F5 cupom, F6 configuração, F7 vitrine/dívidas e F9 TV
-  foram integradas nessa branch. F8 administração ainda não foi integrada.
+  foram integradas nessa branch. A T-200 da F8 administração também foi
+  incorporada; a T-201 continua apenas na worktree F8.
 - A `main` continua em `55ea723` com alterações locais preexistentes: sinais da
   verificação, sete arquivos `fora-de-formato-*.ts` removidos e um relatório de
   retomada não rastreado. Preservar esse estado.
@@ -24,14 +25,14 @@ Git, das worktrees, dos registros de execução e da auditoria do ONP. Conferir
 | Worktree | Trabalho em curso               | Estado ao retomar                                                                                                                                                                                                                                                                      |
 | -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sc-F3`  | Catálogo T-311, janela de venda | Concluída em `92af2ba` e integrada em `c6fbb2c`. O Codex acrescentou regressão para JSON incompleto, corrigiu o CHECK SQL e alinhou o relógio do carrinho ao do teste. Prova escopada: 37/37 critérios, 283 testes; testes dirigidos na integração: 64/64 (junto com TV e isolamento). |
-| `sc-F8`  | Administração T-200..209        | T-200 commitada em `ef237e3`, prova 3 critérios/27 testes; T-201 tem código e testes ainda sem commit.                                                                                                                                                                                 |
+| `sc-F8`  | Administração T-200..209        | T-200 commitada em `ef237e3` e integrada após a T-953; 24 testes dirigidos passaram na integração, assim como os tipos dos oito pacotes. T-201 tem código e testes ainda sem commit na worktree F8.                                                                                    |
 | `sc-F9`  | Cardápio na TV T-950..954       | T-950/951/952/954 e correção de layout vertical commitadas em `27beb03`, integradas em `dd75476`. T-953 passou no navegador: 12/12 cenários em dois perfis, incluindo tela vertical, rodízio e queda/retorno da rede. Prova escopada anterior: 7/7 critérios, 80 testes.               |
 | `sc-F1`  | Clientes T-700..708             | Trabalho sem commit em contrato, esquema, fábrica e migrações 0035/0036; API/telas ainda por fazer.                                                                                                                                                                                    |
 | `sc-F2`  | Métricas T-800..809             | Módulo, testes, contrato e migração 0037 sem commit; a rota ainda não está montada nem o contrato exportado.                                                                                                                                                                           |
 | `sc-F6`  | Impressão T-607..611            | Worktree limpa; implementação ainda não começou. O agente de impressão deve seguir a pilha Node/TypeScript do projeto, conforme correção explícita do usuário.                                                                                                                         |
 
-F8 contém commits exclusivos ainda não integrados. F1/F2 têm trabalho novo
-apenas no disco. O inventário de telas após integrar TV e cupom tem 51 linhas e
+F8 tem a T-201 em andamento apenas no disco. F1/F2 também têm trabalho novo
+sem commit. O inventário de telas após integrar TV e cupom tem 51 linhas e
 54 rotas; o manifesto foi ajustado e o conjunto dirigido de integração passou.
 
 ## Provas e bloqueios
@@ -50,11 +51,10 @@ apenas no disco. O inventário de telas após integrar TV e cupom tem 51 linhas 
   portão geral, restaurar o comando de teste completo; com a configuração
   atual, todas as features executariam apenas testes do catálogo. Nas faixas,
   usar Git Bash explícito: `C:/Program Files/Git/bin/bash.exe`.
-- A migração 0032 da F8 já foi aplicada ao banco de desenvolvimento e não está
-  na integração. Por isso o migrador recusa aplicar 0028/0029/0030 ali. O banco
-  descartável de testes aplica o conjunto da worktree e foi capaz de testar a
-  janela. Resolver a ordem das migrações antes de apontar a API de
-  desenvolvimento para a integração.
+- A migração 0032 da F8 já estava aplicada ao banco de desenvolvimento e agora
+  está nesta integração. A única pendente era a 0028 (janela de venda), aplicada
+  em 27/09/2026. `migrate.ts verificar` confirmou o banco em dia; os testes da
+  janela e da T-200 também passaram em bancos descartáveis.
 - **Dívida 92, prioritária:** token de dono de uma loja pode acessar rotas de
   outra loja ao trocar o apelido na URL. `app.is_store_staff()` confere só o
   papel; precisa exigir vínculo ativo em `store_members`, junto de guarda
@@ -67,12 +67,11 @@ apenas no disco. O inventário de telas após integrar TV e cupom tem 51 linhas 
 
 ## Sequência para concluir
 
-1. Concluir T-908 (configuração E2E) e T-309/AC-320 com a administração F8;
-   revisar migrações antes de iniciar a API de desenvolvimento.
+1. Concluir T-908 (configuração E2E) e T-309/AC-320 com a administração F8.
 2. Fechar administração F8, incluindo T-201..209, e integrá-la; completar as
    provas após a integração.
 3. Fechar clientes, métricas e impressão em TypeScript. Executar os E2E
-   pendentes T-908, T-953, T-611, T-708 e T-809.
+   pendentes T-908, T-611, T-708 e T-809.
 4. Corrigir autorização entre lojas e invalidação da vitrine, depois renovar
    provas de todas as features, portão completo, E2E e auditoria global até
    código 0. Manter a integração isolada até haver um estado verificável para
