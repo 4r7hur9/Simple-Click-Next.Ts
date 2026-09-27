@@ -220,7 +220,7 @@ describe("a página mostra tudo que preciso decidir (AC-410)", () => {
     desmontar();
   });
 
-  it("@spec:AC-410 opção esgotada aparece desabilitada, e não some", () => {
+  it("@spec:AC-410 @spec:AC-317 opção esgotada aparece desabilitada, e não some", () => {
     // Sumir faria o produto parecer ter menos opções do que tem.
     const { caixa, desmontar } = montar(naTela());
 
@@ -231,7 +231,7 @@ describe("a página mostra tudo que preciso decidir (AC-410)", () => {
 });
 
 describe("o total acompanha as escolhas em tempo real (AC-411)", () => {
-  it("@spec:AC-411 marcar o adicional muda o total na hora, sem recarregar", () => {
+  it("@spec:AC-411 @spec:AC-315 marcar o adicional muda o total na hora, sem recarregar", () => {
     const { caixa, desmontar } = montar(naTela());
 
     expect(textoDoBotao(caixa)).toContain("R$ 20,00");
@@ -275,7 +275,7 @@ describe("o total acompanha as escolhas em tempo real (AC-411)", () => {
 });
 
 describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)", () => {
-  it("@spec:AC-412 sem escolher o obrigatório, adicionar não adiciona", async () => {
+  it("@spec:AC-412 @spec:AC-313 sem escolher o obrigatório, adicionar não adiciona", async () => {
     const levar = vi.fn().mockResolvedValue(undefined);
     const caixa = document.createElement("div");
     document.body.appendChild(caixa);
@@ -341,7 +341,7 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
     desmontar();
   });
 
-  it("@spec:AC-412 escolhido o obrigatório, o item é levado ao servidor", async () => {
+  it("@spec:AC-313 escolhido o obrigatório, o item é levado ao servidor", async () => {
     const levar = vi.fn().mockResolvedValue(undefined);
     const caixa = document.createElement("div");
     document.body.appendChild(caixa);
@@ -383,6 +383,49 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
   });
 });
 
+describe("limite de escolhas é respeitado na tela (AC-314)", () => {
+  it("@spec:AC-314 ao chegar a três opções, a quarta fica bloqueada e o limite é anunciado", () => {
+    const adicionais = DA_API.grupos[1];
+    if (adicionais === undefined) throw new Error("sem o grupo de adicionais");
+
+    const opcoes = [
+      adicionais.opcoes[0]!,
+      { ...adicionais.opcoes[1]!, disponivel: true },
+      {
+        id: "bbbbbbbb-3333-4333-8333-333333333333",
+        nome: "Cebola",
+        acrescimoCentavos: 0,
+        marcadaPorPadrao: false,
+        disponivel: true,
+      },
+      {
+        id: "bbbbbbbb-4444-4444-8444-444444444444",
+        nome: "Picles",
+        acrescimoCentavos: 0,
+        marcadaPorPadrao: false,
+        disponivel: true,
+      },
+    ];
+    const produto = naTela({
+      grupos: [
+        DA_API.grupos[0]!,
+        { ...adicionais, minimo: 0, maximo: 3, opcoes },
+      ],
+    });
+    const { caixa, desmontar } = montar(produto);
+
+    clicar(controleDe(caixa, "Bacon"));
+    clicar(controleDe(caixa, "Cheddar"));
+    clicar(controleDe(caixa, "Cebola"));
+
+    const quarta = controleDe(caixa, "Picles");
+    expect(quarta.disabled).toBe(true);
+    expect(quarta.checked).toBe(false);
+    expect(caixa.textContent).toContain("Limite de 3 opções atingido");
+    desmontar();
+  });
+});
+
 describe("produto indisponível é visto mas não comprado (AC-413)", () => {
   it("@spec:AC-413 produto esgotado tem o botão desabilitado e a explicação ao lado", () => {
     const { caixa, desmontar } = montar(
@@ -418,7 +461,7 @@ describe("produto indisponível é visto mas não comprado (AC-413)", () => {
     expect(produto.explicacaoDaIndisponibilidade).toContain("fechada");
   });
 
-  it("@spec:AC-413 o produto continua VISÍVEL: nome, preço e opções seguem na tela", () => {
+  it("@spec:AC-413 @spec:AC-317 produto continua visível com outros adicionais disponíveis", () => {
     const { caixa, desmontar } = montar(
       naTela({ disponivel: false, motivoIndisponivel: "ESGOTADO" }),
     );

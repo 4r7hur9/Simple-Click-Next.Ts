@@ -42,11 +42,11 @@
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-305 — Grupos de escolha que atendem ingrediente e variação [pendente]
+## T-305 — Grupos de escolha que atendem ingrediente e variação [concluida]
 
 - Refs: US-303, AC-313, AC-314, AC-315, AC-317
-- Arquivos: apps/api/src/modules/catalog/grupos-opcao.usecase.ts, apps/api/src/modules/catalog/grupos-opcao.usecase.test.ts, packages/core/src/validar-escolhas.ts, packages/core/src/validar-escolhas.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx
-- Notas: primeira fatia funcional local cria, lista e remove logicamente grupos de ingredientes/adicionais e suas opções, com mínimo/máximo derivados e disponibilidade sem esconder opção esgotada. O carrinho já valida escolhas e soma acréscimos em centavos; eixos de variação, ordenação avançada, testes anotados e auditoria formal continuam pendentes.
+- Arquivos: apps/api/src/modules/catalog/opcoes.routes.ts, apps/api/tests/carrinho-rota.int.test.ts, apps/api/tests/produto-vitrine.int.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/itens/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/itens/[itemId]/route.ts, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx, apps/web/src/features/produto/EscolhasDoProduto.tsx, apps/web/src/features/produto/SelecaoDeOpcoes.tsx, apps/web/tests/produto-pagina.test.tsx, packages/core/src/item-total.ts, packages/core/src/item-total.test.ts
+- Notas: a tela e o servidor respeitam mínimo/máximo; ao atingir o teto, as opções restantes ficam desabilitadas e a tela anuncia o limite. Opções esgotadas continuam visíveis e desabilitadas sem bloquear os demais adicionais; a seleção recalcula o valor antes de enviar, e o pedido guarda o acréscimo separado. Critérios AC-313, AC-314, AC-315 e AC-317 cobertos por testes de tela, core e API; eixos e matriz de variações seguem na T-306.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 

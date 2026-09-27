@@ -335,7 +335,7 @@ describe("o servidor recalcula o item que recebe (AC-411)", () => {
   );
 
   it(
-    "@spec:AC-411 os NOMES das opções vêm do catálogo, e não do que o cliente mandou",
+    "@spec:AC-411 @spec:AC-317 os nomes das opções vêm do catálogo, e o esgotado não bloqueia os outros",
     async () => {
       // O carrinho guarda o que a cozinha vai ler; nome vindo de fora poria
       // texto arbitrário no cupom impresso.
@@ -360,7 +360,7 @@ describe("o servidor recalcula o item que recebe (AC-411)", () => {
 
 describe("o servidor recusa o item que não fecha (AC-412)", () => {
   it(
-    "@spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
+    "@spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
     async () => {
       // A tela já bloqueia. Esta é a segunda linha de defesa, para quem monta a
       // requisição à mão ou está com a página aberta desde antes.
@@ -376,7 +376,7 @@ describe("o servidor recusa o item que não fecha (AC-412)", () => {
   );
 
   it(
-    "@spec:AC-412 opção esgotada é recusada",
+    "@spec:AC-412 @spec:AC-317 opção esgotada é recusada",
     async () => {
       const resposta = await acrescentar(
         itemValido({
@@ -565,7 +565,7 @@ describe("a conferência cobra o que a pessoa viu (AC-503, AC-504)", () => {
   }
 
   it(
-    "@spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça",
+    "@spec:AC-503 @spec:AC-315 o acréscimo da opção entra no subtotal, e não sai de graça",
     async () => {
       // Sem isto o bacon de R$ 3,00 seria conferido por zero: o carrinho guarda
       // a escolha, e o preço dela mora no catálogo.
@@ -806,7 +806,7 @@ describe("fechar o pedido (AC-504, AC-511, AC-516, AC-517)", () => {
   );
 
   it(
-    "@spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra",
+    "@spec:AC-515 @spec:AC-315 o pedido congela nome, preço e escolhas do momento da compra, com acréscimo separado",
     async () => {
       const criado = await acrescentar(
         itemValido({
