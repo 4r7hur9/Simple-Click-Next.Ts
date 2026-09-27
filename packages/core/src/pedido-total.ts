@@ -14,6 +14,7 @@
  *
  * Função PURA: quem leu o catálogo do banco passa o resultado pronto.
  */
+import { multiplicarCentavos, somarCentavos } from "./dinheiro.ts";
 
 /** Um item como o carrinho o guarda, com o preço que a tela mostrou. */
 export interface ItemParaConferir {
@@ -45,6 +46,27 @@ export interface ItemParaConferir {
    * o item é retirado com explicação em vez de seguir de graça.
    */
   readonly precoBaseEmCentavos?: number | null;
+  /**
+   * Qual preço da VARIANTE foi usado e por quê, quando o preço é o dela.
+   *
+   * Acompanha `precoBaseEmCentavos` pelo mesmo motivo: o preço mora na
+   * variante, e a explicação de um atacado da variante G mora nela também.
+   */
+  readonly precoAplicado?: ExplicacaoDoPreco | null;
+}
+
+/**
+ * Qual preço foi usado e por quê (AC-310).
+ *
+ * Existe porque o carrinho que cobra menos do que a vitrine anunciava precisa
+ * se explicar: "Atacado: preço a partir de 6 unidades" transforma o que
+ * pareceria erro em vantagem que a pessoa entende.
+ */
+export interface ExplicacaoDoPreco {
+  /** O nome do preço, como o dono o chamou. */
+  readonly rotulo: string;
+  /** A frase pronta para a tela. */
+  readonly motivo: string;
 }
 
 /** O produto como o catálogo o descreve AGORA. */
@@ -62,6 +84,8 @@ export interface ProdutoAgora {
    */
   readonly precoEmCentavos: number | null;
   readonly disponivel: boolean;
+  /** Qual preço do produto foi usado e por quê, quando não é o normal. */
+  readonly precoAplicado?: ExplicacaoDoPreco | null;
 }
 
 export type TipoDeMudanca =
@@ -100,6 +124,8 @@ export interface ItemPrecificado {
    */
   readonly acrescimosEmCentavos: number;
   readonly totalDaLinhaEmCentavos: number;
+  /** Qual preço foi usado e por quê; nulo quando é o preço normal (AC-310). */
+  readonly precoAplicado: ExplicacaoDoPreco | null;
 }
 
 /** O veredito da conferência. */
@@ -223,6 +249,13 @@ export function conferirCarrinho(
     const doPreco = mudancaDePreco(item, produto, unitario);
     if (doPreco !== null) mudancas.push(doPreco);
 
+    // A explicação acompanha o PREÇO: se ele veio da variante, a explicação é
+    // a da variante; se veio do produto, é a do produto.
+    const explicacao =
+      item.precoBaseEmCentavos === undefined
+        ? (produto.precoAplicado ?? null)
+        : (item.precoAplicado ?? null);
+
     itensQueSeguem.push({
       itemId: item.itemId,
       produtoId: produto.produtoId,
@@ -230,13 +263,15 @@ export function conferirCarrinho(
       quantidade: item.quantidade,
       precoUnitarioEmCentavos: unitario,
       acrescimosEmCentavos: item.acrescimosEmCentavos ?? 0,
-      totalDaLinhaEmCentavos: unitario * item.quantidade,
+      // Inteiro vezes inteiro, conferido (AC-311): valor quebrado chegando
+      // aqui é defeito de quem leu o catálogo, e estoura em vez de arredondar.
+      totalDaLinhaEmCentavos: multiplicarCentavos(unitario, item.quantidade),
+      precoAplicado: explicacao,
     });
   }
 
-  const subtotalEmCentavos = itensQueSeguem.reduce(
-    (soma, item) => soma + item.totalDaLinhaEmCentavos,
-    0,
+  const subtotalEmCentavos = somarCentavos(
+    itensQueSeguem.map((item) => item.totalDaLinhaEmCentavos),
   );
 
   const enviado = totalQueOClienteEnviouEmCentavos;

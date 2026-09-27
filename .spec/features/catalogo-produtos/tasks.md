@@ -34,11 +34,11 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-304 — Preço como entidade, com regra de aplicação [pendente]
+## T-304 — Preço como entidade, com regra de aplicação [concluida]
 
 - Refs: US-302, AC-309, AC-310, AC-311, AC-312
-- Arquivos: packages/core/src/dinheiro.ts, packages/core/src/dinheiro.test.ts, packages/core/src/preco-aplicavel.ts, packages/core/src/preco-aplicavel.test.ts, apps/api/src/modules/catalog/precos.usecase.ts, apps/api/src/modules/catalog/precos.usecase.test.ts, apps/web/src/features/painel-catalogo/LinhasDePreco.tsx
-- Notas: primeira fatia funcional local cria, lista, ativa/desativa e remove preços nomeados de produto em centavos inteiros, mantendo a projeção legada sincronizada para a vitrine. A regra compartilhada de preço vigente já atende base/promoção e quantidade mínima; integração completa de atacado no fluxo de compra, prova anotada e auditoria formal continuam pendentes. Marcado com @principle:P-005 e @principle:P-006.
+- Arquivos: packages/core/src/dinheiro.ts, packages/core/src/dinheiro.test.ts, packages/core/src/preco-aplicavel.ts, packages/core/src/preco-aplicavel.test.ts, apps/api/src/modules/catalog/precos.routes.ts, apps/api/src/modules/cart/conferir-preco.usecase.ts, apps/api/tests/precos-do-produto.int.test.ts, apps/api/tests/apoio-do-catalogo.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/precos/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/precos/[precoId]/route.ts, apps/web/src/features/painel-catalogo/LinhasDePreco.tsx, apps/web/src/lib/dinheiro.ts, apps/web/tests/precos-na-tela.test.tsx
+- Notas: preço é entidade (`product_prices`) administrada pelas rotas do painel em `precos.routes.ts` — não há `precos.usecase.ts`: as regras de negócio moram no core. `preco-vigente.ts` (já existente) decide o preço ANUNCIADO de uma unidade; `preco-aplicavel.ts` (novo) decide o preço COBRADO com a quantidade do carrinho, fazendo o atacado entrar sozinho e devolvendo nome e motivo para a tela (o fechamento mostra "Atacado: preço a partir de 6 unidades"). `dinheiro.ts` (novo) lê o que o dono digita sem ponto flutuante e multiplica/soma só inteiros; a conferência do carrinho passou a usá-lo. Preço enviado pelo cliente continua descartado e registrado (`carrinho.total_divergente`, `pedido.total_divergente`), e preço por item no corpo é recusado na borda. Marcado com @principle:P-005 e @principle:P-006.
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 

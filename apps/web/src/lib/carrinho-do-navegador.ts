@@ -135,6 +135,11 @@ export interface ConferenciaNaTela {
     readonly quantidade: number;
     readonly precoUnitarioCentavos: number;
     readonly totalDaLinhaCentavos: number;
+    /** Qual preço foi usado e por quê, quando não é o normal (AC-310). */
+    readonly precoAplicado?: {
+      readonly rotulo: string;
+      readonly motivo: string;
+    } | null;
   }[];
   readonly subtotalCentavos: number;
 }
