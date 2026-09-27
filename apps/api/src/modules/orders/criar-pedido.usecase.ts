@@ -347,14 +347,21 @@ export async function criarPedido(
   await gravarItens(tx, criado.id, entrada.lojaId, entrada.itens);
 
   // O primeiro passo do histórico nasce junto com o pedido. Sem ele, a fila do
-  // dono mostraria um pedido sem saber desde quando ele está esperando.
+  // dono mostraria um pedido sem saber desde quando ele está esperando. Quem
+  // lançou é quem está no contexto: o pedido manual (AC-707) nasce pelas mãos
+  // da equipe da loja, e o histórico diz isso; o do site, pelas do cliente.
+  const lancadoPelaLoja =
+    contexto.papel === "OWNER" || contexto.papel === "STAFF";
   await tx.orderStatusEntry.create({
     data: {
       storeId: entrada.lojaId,
       orderId: criado.id,
       fromStatus: null,
       toStatus: STATUS_INICIAL,
-      actorRole: "CUSTOMER",
+      actorRole: lancadoPelaLoja ? contexto.papel : "CUSTOMER",
+      ...(lancadoPelaLoja && contexto.usuarioId
+        ? { changedByIdentityId: contexto.usuarioId }
+        : {}),
     },
   });
 

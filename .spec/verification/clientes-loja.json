@@ -1,0 +1,87 @@
+{
+  "feature": "clientes-loja",
+  "timestamp": "2026-09-27T19:07:41.935Z",
+  "gitRev": "9f8160b",
+  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh clientes-loja",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 86,
+  "results": {
+    "AC-700": {
+      "status": "pass",
+      "testName": "a lista mostra o que importa para atender (AC-700) @spec:AC-700 cada cliente vem com nome, telefone, total de pedidos, valor gasto e último pedido @spec:AC-700 cada cliente vem com nome, telefone, total de pedidos, valor gasto e último pedido",
+      "method": "vitest-json"
+    },
+    "AC-701": {
+      "status": "pass",
+      "testName": "a busca acha por nome e por telefone (AC-701) @spec:AC-701 parte do nome, sem acento e sem maiúscula, acha só quem corresponde @spec:AC-701 parte do nome, sem acento e sem maiúscula, acha só quem corresponde",
+      "method": "vitest-json"
+    },
+    "AC-702": {
+      "status": "pass",
+      "testName": "o dono da loja A não alcança cliente da loja B (AC-702) @spec:AC-702 @principle:P-003 a lista e a busca da loja A não trazem o cliente que só comprou na B @spec:AC-702 @principle:P-003 a lista e a busca da loja A não trazem o cliente que só comprou na B",
+      "method": "vitest-json"
+    },
+    "AC-703": {
+      "status": "pass",
+      "testName": "o cadastro manual cria o cliente com o mínimo (AC-703) @spec:AC-703 nome e telefone bastam: o cliente nasce na loja, sem conta, e aparece na lista @spec:AC-703 nome e telefone bastam: o cliente nasce na loja, sem conta, e aparece na lista",
+      "method": "vitest-json"
+    },
+    "AC-704": {
+      "status": "pass",
+      "testName": "telefone repetido na mesma loja é apontado (AC-704) @spec:AC-704 o mesmo telefone com outra pontuação é recusado, apontando o cadastro existente para abrir @spec:AC-704 o mesmo telefone com outra pontuação é recusado, apontando o cadastro existente para abrir",
+      "method": "vitest-json"
+    },
+    "AC-705": {
+      "status": "pass",
+      "testName": "a correção do cadastro aparece e não mexe nos pedidos (AC-705) @spec:AC-705 corrigir nome, telefone e endereço muda a lista, e o pedido antigo guarda o contato da compra @spec:AC-705 corrigir nome, telefone e endereço muda a lista, e o pedido antigo guarda o contato da compra",
+      "method": "vitest-json"
+    },
+    "AC-706": {
+      "status": "pass",
+      "testName": "cliente com conta é reconhecido, não duplicado (AC-706) @spec:AC-706 o telefone de quem já comprou com conta aponta o vínculo existente @spec:AC-706 o telefone de quem já comprou com conta aponta o vínculo existente",
+      "method": "vitest-json"
+    },
+    "AC-707": {
+      "status": "pass",
+      "testName": "o pedido manual é criado como qualquer outro pedido (AC-707) @spec:AC-707 lançado da ficha do cliente, entra na fila com número próprio, canal manual e total do servidor @spec:AC-707 lançado da ficha do cliente, entra na fila com número próprio, canal manual e total do servidor",
+      "method": "vitest-json"
+    },
+    "AC-708": {
+      "status": "pass",
+      "testName": "o pedido manual respeita as regras do catálogo (AC-708) @spec:AC-708 grupo obrigatório sem escolha impede a confirmação, apontando o grupo pendente @spec:AC-708 grupo obrigatório sem escolha impede a confirmação, apontando o grupo pendente",
+      "method": "vitest-json"
+    },
+    "AC-709": {
+      "status": "pass",
+      "testName": "o pedido manual pode ser lançado sem cadastro (AC-709) @spec:AC-709 nome e telefone no próprio pedido bastam, e nenhum cadastro de cliente é criado @spec:AC-709 nome e telefone no próprio pedido bastam, e nenhum cadastro de cliente é criado",
+      "method": "vitest-json"
+    },
+    "AC-710": {
+      "status": "pass",
+      "testName": "o pedido manual também sai na impressora (AC-710) @spec:AC-710 o cupom do pedido manual sai pela mesma rota, no mesmo papel configurado, com o canal Balcão @spec:AC-710 o cupom do pedido manual sai pela mesma rota, no mesmo papel configurado, com o canal Balcão",
+      "method": "vitest-json"
+    },
+    "AC-711": {
+      "status": "pass",
+      "testName": "a ficha mostra o histórico completo (AC-711) @spec:AC-711 os pedidos vêm do mais recente para o mais antigo, com número, data, itens, valor e status @spec:AC-711 os pedidos vêm do mais recente para o mais antigo, com número, data, itens, valor e status",
+      "method": "vitest-json"
+    },
+    "AC-712": {
+      "status": "pass",
+      "testName": "repetir um pedido monta o novo pronto (AC-712) @spec:AC-712 mesmos itens e opções, preço de agora, e o que saiu do catálogo apontado @spec:AC-712 mesmos itens e opções, preço de agora, e o que saiu do catálogo apontado",
+      "method": "vitest-json"
+    },
+    "AC-713": {
+      "status": "pass",
+      "testName": "a ficha alerta o que não existe mais (AC-713) @spec:AC-713 o produto removido aparece com o nome e o preço da época, marcado como indisponível, sem quebrar a ficha @spec:AC-713 o produto removido aparece com o nome e o preço da época, marcado como indisponível, sem quebrar a ficha",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "o dono da loja A não alcança cliente da loja B (AC-702) @spec:AC-702 @principle:P-003 a lista e a busca da loja A não trazem o cliente que só comprou na B @spec:AC-702 @principle:P-003 a lista e a busca da loja A não trazem o cliente que só comprou na B"
+    }
+  }
+}
