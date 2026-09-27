@@ -23,6 +23,132 @@ import {
   ErroDeAtributoInvalido,
   validarAtributosDoRamo,
 } from "./atributos.usecase.ts";
+import { ESTADO_DA_DUPLICATA, nomeDaDuplicata } from "./produtos.usecase.ts";
+import { planejarTrocaDeCategoria } from "./mover-categoria.usecase.ts";
+
+/**
+ * Leva o produto para outra categoria principal (T-310, AC-329).
+ *
+ * Os valores de especificação NÃO são tocados: eles pertencem à definição da
+ * categoria de origem e ficam guardados, marcados como não usados na nova.
+ * Só a principal troca — as seções secundárias continuam —, e o vínculo novo
+ * entra no fim da seção de destino.
+ */
+async function trocarCategoriaPrincipal(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  produtoId: string,
+  novaCategoriaId: string,
+): Promise<void> {
+  const vinculos = await tx.productCategory.findMany({
+    where: { storeId: lojaId, productId: produtoId },
+    select: { id: true, categoryId: true, isPrimary: true },
+  });
+  const plano = planejarTrocaDeCategoria(
+    vinculos.map((vinculo) => ({
+      id: vinculo.id,
+      categoriaId: vinculo.categoryId,
+      principal: vinculo.isPrimary,
+    })),
+    novaCategoriaId,
+  );
+  if (plano.tipo === "nada") return;
+
+  // Primeiro sai a principal antiga: o índice de "uma principal por produto"
+  // nunca vê duas ao mesmo tempo.
+  if (plano.apagar.length > 0) {
+    await tx.productCategory.deleteMany({
+      where: { storeId: lojaId, id: { in: [...plano.apagar] } },
+    });
+  }
+  if (plano.tornarPrincipal !== null) {
+    await tx.productCategory.update({
+      where: { id: plano.tornarPrincipal },
+      data: { isPrimary: true, updatedAt: new Date() },
+    });
+  }
+  if (plano.criarNaCategoria !== null) {
+    const ultima = await tx.productCategory.findFirst({
+      where: { storeId: lojaId, categoryId: plano.criarNaCategoria },
+      orderBy: { sortOrder: "desc" },
+      select: { sortOrder: true },
+    });
+    await tx.productCategory.create({
+      data: {
+        storeId: lojaId,
+        productId: produtoId,
+        categoryId: plano.criarNaCategoria,
+        isPrimary: true,
+        sortOrder: (ultima?.sortOrder ?? -1) + 1,
+      },
+    });
+  }
+}
+
+/** O que a coluna JSON aceita de volta: cópia pura, sem nulo na raiz. */
+type ObjetoJson = { readonly [chave: string]: ValorJson | null };
+type ValorJson =
+  string | number | boolean | ObjetoJson | readonly (ValorJson | null)[];
+
+function copiaJson(valor: unknown): ObjetoJson {
+  return valor !== null && typeof valor === "object" && !Array.isArray(valor)
+    ? (JSON.parse(JSON.stringify(valor)) as ObjetoJson)
+    : {};
+}
+
+/**
+ * Leva para a duplicata as fotos (com a mesma principal) e os valores das
+ * especificações. As linhas são NOVAS: apagar a foto da duplicata não pode
+ * tirar a foto do original.
+ */
+async function copiarImagensEEspecificacoes(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  origemId: string,
+  destinoId: string,
+): Promise<void> {
+  const imagens = await tx.productImage.findMany({
+    where: { storeId: lojaId, productId: origemId },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: {
+      assetId: true,
+      url: true,
+      altText: true,
+      isPrimary: true,
+      sortOrder: true,
+      width: true,
+      height: true,
+    },
+  });
+  if (imagens.length > 0) {
+    await tx.productImage.createMany({
+      data: imagens.map((imagem) => ({
+        ...imagem,
+        storeId: lojaId,
+        productId: destinoId,
+      })),
+    });
+  }
+  const valores = await tx.productAttribute.findMany({
+    where: { storeId: lojaId, productId: origemId },
+    select: {
+      definitionId: true,
+      valueText: true,
+      valueNum: true,
+      valueBool: true,
+      valueDate: true,
+    },
+  });
+  if (valores.length > 0) {
+    await tx.productAttribute.createMany({
+      data: valores.map((valor) => ({
+        ...valor,
+        storeId: lojaId,
+        productId: destinoId,
+      })),
+    });
+  }
+}
 
 const statusDoProduto = z.enum(["DRAFT", "PUBLISHED"]);
 
@@ -371,17 +497,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     );
                     if (categoria === null)
                       throw new Error("categoria_invalida");
-                    await tx.productCategory.deleteMany({
-                      where: { storeId: lojaId, productId: atual.id },
-                    });
-                    await tx.productCategory.create({
-                      data: {
-                        storeId: lojaId,
-                        productId: atual.id,
-                        categoryId: categoria.id,
-                        isPrimary: true,
-                      },
-                    });
+                    await trocarCategoriaPrincipal(
+                      tx,
+                      lojaId,
+                      atual.id,
+                      categoria.id,
+                    );
                   }
                   const nome = entrada.data.nome ?? atual.name;
                   const preco =
@@ -505,8 +626,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       deletedAt: null,
                     },
                     select: {
+                      id: true,
                       name: true,
                       description: true,
+                      shortDescription: true,
+                      unitLabel: true,
+                      attributes: true,
                       displayPriceCents: true,
                       verticalCode: true,
                       categorias: {
@@ -516,7 +641,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     },
                   });
                   if (original === null) return null;
-                  const nome = `${original.name} (cópia)`.slice(0, 160);
+                  const nome = nomeDaDuplicata(original.name);
                   const ultima = await tx.product.findFirst({
                     where: { storeId: lojaId, deletedAt: null },
                     orderBy: { sortOrder: "desc" },
@@ -528,9 +653,12 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       name: nome,
                       slug: await slugUnico(tx, lojaId, nome),
                       description: original.description,
+                      shortDescription: original.shortDescription,
+                      unitLabel: original.unitLabel,
+                      attributes: copiaJson(original.attributes),
                       verticalCode: original.verticalCode,
-                      status: "DRAFT",
-                      isAvailable: false,
+                      status: ESTADO_DA_DUPLICATA.status,
+                      isAvailable: ESTADO_DA_DUPLICATA.disponivel,
                       displayPriceCents: original.displayPriceCents,
                       priceMinCents: original.displayPriceCents,
                       priceMaxCents: original.displayPriceCents,
@@ -561,6 +689,15 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       },
                     });
                   }
+                  // "Com os mesmos dados" (AC-307) inclui as fotos e as
+                  // especificações preenchidas: sem elas a duplicata seria um
+                  // produto novo com o nome parecido, e o dono refaria tudo.
+                  await copiarImagensEEspecificacoes(
+                    tx,
+                    lojaId,
+                    original.id,
+                    produto.id,
+                  );
                   return tx.product.findUniqueOrThrow({
                     where: { id: produto.id },
                     select: selecaoDoProduto,

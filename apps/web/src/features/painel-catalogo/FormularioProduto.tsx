@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  CamposDeEspecificacao,
+  conferirEspecificacoes,
+  type EspecificacaoHerdada,
+  type ValoresDasEspecificacoes,
+} from "./CamposDeEspecificacao.tsx";
+
 interface Categoria {
   readonly id: string;
   readonly nome: string;
@@ -41,6 +48,53 @@ export function FormularioProduto({ produto }: Props) {
   const [disponivel, setDisponivel] = useState(produto?.disponivel ?? true);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("Carregando categorias…");
+  // As especificações que o produto herda da categoria escolhida (T-301).
+  const [especificacoes, setEspecificacoes] = useState<
+    readonly EspecificacaoHerdada[]
+  >([]);
+  const [valoresEsp, setValoresEsp] = useState<ValoresDasEspecificacoes>({});
+  const [errosEsp, setErrosEsp] = useState<Readonly<Record<string, string>>>(
+    {},
+  );
+  // Depois do primeiro envio o produto existe: tentar de novo EDITA, não
+  // cadastra um segundo igual.
+  const [produtoSalvoId, setProdutoSalvoId] = useState(produto?.id);
+
+  /** Grava as especificações; devolve falso quando a API recusou alguma. */
+  async function salvarEspecificacoes(produtoId: string): Promise<boolean> {
+    if (especificacoes.length === 0) return true;
+    const resposta = await fetch(
+      `/api/catalogo/produtos/${produtoId}/especificacoes`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          valores: Object.fromEntries(
+            especificacoes.map((item) => [
+              item.id,
+              valoresEsp[item.id] ?? null,
+            ]),
+          ),
+        }),
+      },
+    );
+    if (resposta.ok) return true;
+    const corpo = (await resposta.json().catch(() => ({}))) as {
+      erros?: { especificacaoId: string; mensagem: string }[];
+    };
+    setErrosEsp(
+      Object.fromEntries(
+        (corpo.erros ?? []).map((item) => [
+          item.especificacaoId,
+          item.mensagem,
+        ]),
+      ),
+    );
+    setMensagem(
+      "O produto foi salvo, mas as especificações precisam de ajuste. Corrija e salve de novo.",
+    );
+    return false;
+  }
 
   useEffect(() => {
     void fetch("/api/catalogo/categorias", { cache: "no-store" })
@@ -73,6 +127,14 @@ export function FormularioProduto({ produto }: Props) {
       setMensagem("Escolha uma categoria para continuar.");
       return;
     }
+    const pendentes = conferirEspecificacoes(especificacoes, valoresEsp);
+    setErrosEsp(pendentes);
+    if (Object.keys(pendentes).length > 0) {
+      setMensagem(
+        "Confira as especificações destacadas; o restante do preenchimento foi mantido.",
+      );
+      return;
+    }
     setSalvando(true);
     setMensagem("Salvando produto…");
     const dados = {
@@ -85,16 +147,22 @@ export function FormularioProduto({ produto }: Props) {
     };
     try {
       const resposta = await fetch(
-        produto
-          ? `/api/catalogo/produtos/${produto.id}`
+        produtoSalvoId
+          ? `/api/catalogo/produtos/${produtoSalvoId}`
           : "/api/catalogo/produtos",
         {
-          method: produto ? "PATCH" : "POST",
+          method: produtoSalvoId ? "PATCH" : "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(dados),
         },
       );
       if (!resposta.ok) throw new Error();
+      const salvo = (await resposta.json()) as { id: string };
+      setProdutoSalvoId(salvo.id);
+      if (!(await salvarEspecificacoes(salvo.id))) {
+        setSalvando(false);
+        return;
+      }
       router.push("/painel/produtos");
       router.refresh();
     } catch {
@@ -180,6 +248,15 @@ export function FormularioProduto({ produto }: Props) {
           />
           Disponível para compra
         </label>
+        <CamposDeEspecificacao
+          categoriaId={categoriaId}
+          produtoId={produtoSalvoId}
+          categoriaGravadaId={produto?.categoriaId}
+          valores={valoresEsp}
+          erros={errosEsp}
+          aoMudar={setValoresEsp}
+          aoCarregar={setEspecificacoes}
+        />
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <button

@@ -38,6 +38,47 @@ export interface EntradaDaMudancaDeCategoria {
   readonly especificacoesDaNovaCategoria: readonly DefinicaoDeEspecificacao[];
 }
 
+/** Um vínculo do produto com uma categoria, como a tabela N:M o guarda. */
+export interface VinculoDoProduto {
+  readonly id: string;
+  readonly categoriaId: string;
+  readonly principal: boolean;
+}
+
+export type PlanoDaTroca =
+  | { readonly tipo: "nada" }
+  | {
+      readonly tipo: "trocar";
+      /** O vínculo com a categoria principal antiga: o produto sai dela. */
+      readonly apagar: readonly string[];
+      /** O produto já estava na nova como secundária: ela vira a principal. */
+      readonly tornarPrincipal: string | null;
+      /** Ou ele entra na nova agora, já como principal. */
+      readonly criarNaCategoria: string | null;
+    };
+
+/**
+ * Mover o produto troca SÓ a categoria principal (AC-329). As outras seções
+ * em que ele aparece — "Promoções", por exemplo — continuam como estavam, e
+ * salvar o formulário sem mudar a categoria não mexe em vínculo nenhum.
+ */
+export function planejarTrocaDeCategoria(
+  vinculos: readonly VinculoDoProduto[],
+  novaCategoriaId: string,
+): PlanoDaTroca {
+  const principal = vinculos.find((vinculo) => vinculo.principal);
+  if (principal?.categoriaId === novaCategoriaId) return { tipo: "nada" };
+  const jaNaNova = vinculos.find(
+    (vinculo) => vinculo.categoriaId === novaCategoriaId,
+  );
+  return {
+    tipo: "trocar",
+    apagar: principal === undefined ? [] : [principal.id],
+    tornarPrincipal: jaNaNova?.id ?? null,
+    criarNaCategoria: jaNaNova === undefined ? novaCategoriaId : null,
+  };
+}
+
 /**
  * Calcula o estado da edição sem mutar a lista recebida.
  *

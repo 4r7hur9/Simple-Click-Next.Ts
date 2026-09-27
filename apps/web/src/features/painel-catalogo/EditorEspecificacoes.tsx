@@ -2,6 +2,19 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
+/**
+ * O criador de especificações da categoria (T-301).
+ *
+ * O dono cria, dentro da categoria, os campos que os produtos dela preenchem:
+ * nome, tipo de valor, unidade, se é obrigatória e se vira filtro na vitrine
+ * (AC-325). A ordem daqui é a ordem do formulário do produto (AC-326).
+ *
+ * AVISAR ANTES DE MEXER NO QUE JÁ FOI PREENCHIDO (AC-330). Renomear ou remover
+ * uma especificação usada por produtos não acontece no primeiro clique: a API
+ * devolve quantos produtos serão afetados, a tela mostra o aviso e o dono
+ * confirma — ou desiste, e nada mudou.
+ */
+
 type TipoDeValor = "texto" | "numero" | "lista" | "booleano";
 
 interface Especificacao {
@@ -16,6 +29,7 @@ interface Especificacao {
   readonly ordem: number;
   readonly versao: number;
   readonly removidaEm: string | null;
+  readonly produtos?: number;
 }
 
 interface Props {
@@ -29,6 +43,14 @@ interface Formulario {
   readonly opcoes: string;
   readonly obrigatoria: boolean;
   readonly filtravel: boolean;
+}
+
+/** Uma alteração que a API pediu para confirmar, com o aviso dela. */
+interface Pendencia {
+  readonly especificacaoId: string;
+  readonly acao: "renomear" | "remover";
+  readonly aviso: string;
+  readonly novoNome?: string;
 }
 
 const FORMULARIO_VAZIO: Formulario = {
@@ -47,10 +69,11 @@ const ROTULOS_DOS_TIPOS: Record<TipoDeValor, string> = {
   booleano: "Verdadeiro ou falso",
 };
 
-function mensagemDeErro(resposta: Response, padrao: string): string {
-  return resposta.status === 409
-    ? "A alteração precisa de confirmação porque há produtos afetados."
-    : padrao;
+async function avisoDaResposta(resposta: Response): Promise<string> {
+  const corpo = (await resposta.json().catch(() => ({}))) as {
+    aviso?: string;
+  };
+  return corpo.aviso ?? "Há produtos afetados por esta alteração.";
 }
 
 export function EditorEspecificacoes({ categoriaId }: Props) {
@@ -63,6 +86,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [pendencia, setPendencia] = useState<Pendencia | null>(null);
 
   const endereco = `/api/catalogo/categorias/${encodeURIComponent(categoriaId)}/especificacoes`;
 
@@ -77,7 +101,6 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
         especificacoes?: Especificacao[];
       };
       setEspecificacoes(dados.especificacoes ?? []);
-      setMensagem("");
     } catch (causa) {
       setErro(
         causa instanceof Error
@@ -108,7 +131,6 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
     }
 
     setSalvando(true);
-    setErro(null);
     setMensagem("Salvando especificação…");
     try {
       const resposta = await fetch(endereco, {
@@ -121,61 +143,75 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
           opcoes,
           obrigatoria: formulario.obrigatoria,
           filtravel: formulario.filtravel,
-          ordem: especificacoes.length,
         }),
       });
-      if (!resposta.ok)
-        throw new Error(
-          mensagemDeErro(resposta, "Não foi possível salvar a especificação."),
-        );
+      if (!resposta.ok) throw new Error();
       setFormulario(FORMULARIO_VAZIO);
       await carregar();
       setMensagem("Especificação criada.");
-    } catch (causa) {
-      setErro(
-        causa instanceof Error
-          ? causa.message
-          : "Não foi possível salvar a especificação.",
-      );
+    } catch {
+      setMensagem("Não foi possível salvar a especificação.");
     } finally {
       setSalvando(false);
     }
   }
 
+  async function reordenar(indice: number, deslocamento: -1 | 1) {
+    const destino = indice + deslocamento;
+    const atual = especificacoes[indice];
+    const vizinha = especificacoes[destino];
+    if (atual === undefined || vizinha === undefined) return;
+    const proxima = [...especificacoes];
+    proxima[indice] = vizinha;
+    proxima[destino] = atual;
+    const anterior = especificacoes;
+    setEspecificacoes(proxima);
+    const resposta = await fetch(endereco, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ids: proxima.map((item) => item.id) }),
+    });
+    if (!resposta.ok) {
+      setEspecificacoes(anterior);
+      setMensagem("Não foi possível salvar a nova ordem.");
+      return;
+    }
+    setMensagem("Ordem salva: o formulário do produto segue esta sequência.");
+  }
+
   async function renomear(
-    evento: FormEvent<HTMLFormElement>,
     especificacao: Especificacao,
+    nome: string,
+    confirmado: boolean,
   ): Promise<void> {
-    evento.preventDefault();
-    const nome = nomeEditado.trim();
-    if (nome === "") return;
     setSalvando(true);
-    setErro(null);
     try {
       const resposta = await fetch(
         `${endereco}/${encodeURIComponent(especificacao.id)}`,
         {
           method: "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ nome }),
+          body: JSON.stringify(
+            confirmado ? { nome, confirmado: true } : { nome },
+          ),
         },
       );
-      if (!resposta.ok)
-        throw new Error(
-          mensagemDeErro(
-            resposta,
-            "Não foi possível renomear a especificação.",
-          ),
-        );
+      if (resposta.status === 409) {
+        setPendencia({
+          especificacaoId: especificacao.id,
+          acao: "renomear",
+          aviso: await avisoDaResposta(resposta),
+          novoNome: nome,
+        });
+        return;
+      }
+      if (!resposta.ok) throw new Error();
       setEditandoId(null);
+      setPendencia(null);
       await carregar();
-      setMensagem("Nome atualizado; o histórico anterior foi preservado.");
-    } catch (causa) {
-      setErro(
-        causa instanceof Error
-          ? causa.message
-          : "Não foi possível renomear a especificação.",
-      );
+      setMensagem("Nome atualizado; o nome anterior ficou no histórico.");
+    } catch {
+      setMensagem("Não foi possível renomear a especificação.");
     } finally {
       setSalvando(false);
     }
@@ -185,7 +221,6 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
     const valor = (novaOpcao[especificacao.id] ?? "").trim();
     if (valor === "") return;
     setSalvando(true);
-    setErro(null);
     try {
       const resposta = await fetch(
         `${endereco}/${encodeURIComponent(especificacao.id)}/opcoes`,
@@ -195,64 +230,47 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
           body: JSON.stringify({ valor }),
         },
       );
-      if (!resposta.ok)
-        throw new Error("Não foi possível acrescentar a opção.");
+      if (!resposta.ok) throw new Error();
       setNovaOpcao((anterior) => ({ ...anterior, [especificacao.id]: "" }));
       await carregar();
       setMensagem(`Opção ${valor} acrescentada à lista.`);
-    } catch (causa) {
-      setErro(
-        causa instanceof Error
-          ? causa.message
-          : "Não foi possível acrescentar a opção.",
-      );
+    } catch {
+      setMensagem("Não foi possível acrescentar a opção.");
     } finally {
       setSalvando(false);
     }
   }
 
-  async function remover(especificacao: Especificacao): Promise<void> {
+  async function remover(
+    especificacao: Especificacao,
+    confirmado: boolean,
+  ): Promise<void> {
     setSalvando(true);
-    setErro(null);
     try {
-      const primeira = await fetch(
+      const resposta = await fetch(
         `${endereco}/${encodeURIComponent(especificacao.id)}`,
         {
           method: "DELETE",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ confirmado: false }),
+          body: JSON.stringify(confirmado ? { confirmado: true } : {}),
         },
       );
-      if (primeira.status === 409) {
-        const impacto = (await primeira.json()) as { aviso?: string };
-        if (
-          !window.confirm(
-            impacto.aviso ?? "A remoção afetará produtos. Continuar?",
-          )
-        ) {
-          return;
-        }
-        const confirmada = await fetch(
-          `${endereco}/${encodeURIComponent(especificacao.id)}`,
-          {
-            method: "DELETE",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ confirmado: true }),
-          },
-        );
-        if (!confirmada.ok)
-          throw new Error("Não foi possível remover a especificação.");
-      } else if (!primeira.ok) {
-        throw new Error("Não foi possível remover a especificação.");
+      if (resposta.status === 409) {
+        setPendencia({
+          especificacaoId: especificacao.id,
+          acao: "remover",
+          aviso: await avisoDaResposta(resposta),
+        });
+        return;
       }
+      if (!resposta.ok) throw new Error();
+      setPendencia(null);
       await carregar();
-      setMensagem("Especificação removida sem apagar os valores históricos.");
-    } catch (causa) {
-      setErro(
-        causa instanceof Error
-          ? causa.message
-          : "Não foi possível remover a especificação.",
+      setMensagem(
+        "Especificação removida; os valores preenchidos ficam guardados.",
       );
+    } catch {
+      setMensagem("Não foi possível remover a especificação.");
     } finally {
       setSalvando(false);
     }
@@ -278,16 +296,26 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
       </div>
 
       {carregando ? (
-        <p className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4" role="status">
+        <p
+          className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4"
+          aria-busy="true"
+        >
           Carregando especificações…
         </p>
       ) : erro !== null ? (
-        <p
-          className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-900"
+        <div
+          className="mt-6 rounded-xl border border-[var(--cor-borda)] p-4"
           role="alert"
         >
-          {erro}
-        </p>
+          <p>{erro}</p>
+          <button
+            type="button"
+            className="sc-botao sc-botao--fantasma mt-3"
+            onClick={() => void carregar()}
+          >
+            Tentar de novo
+          </button>
+        </div>
       ) : (
         <>
           {especificacoes.length === 0 ? (
@@ -322,6 +350,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                           ? " · obrigatória"
                           : " · opcional"}
                         {especificacao.filtravel ? " · filtro da vitrine" : ""}
+                        {` · preenchida em ${especificacao.produtos ?? 0} produto(s)`}
                       </p>
                       {especificacao.tipo === "lista" ? (
                         <p className="mt-2 text-sm">
@@ -333,9 +362,30 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       <button
                         type="button"
                         className="sc-botao sc-botao--fantasma"
+                        onClick={() => void reordenar(indice, -1)}
+                        disabled={indice === 0 || salvando}
+                        aria-label={`Subir ${especificacao.nome}`}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        className="sc-botao sc-botao--fantasma"
+                        onClick={() => void reordenar(indice, 1)}
+                        disabled={
+                          indice === especificacoes.length - 1 || salvando
+                        }
+                        aria-label={`Descer ${especificacao.nome}`}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        className="sc-botao sc-botao--fantasma"
                         onClick={() => {
                           setEditandoId(especificacao.id);
                           setNomeEditado(especificacao.nome);
+                          setPendencia(null);
                         }}
                       >
                         Renomear
@@ -343,23 +393,66 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       <button
                         type="button"
                         className="sc-botao sc-botao--fantasma"
-                        onClick={() => void remover(especificacao)}
+                        onClick={() => void remover(especificacao, false)}
                         disabled={salvando}
+                        aria-label={`Remover ${especificacao.nome}`}
                       >
                         Remover
                       </button>
                     </div>
                   </div>
 
+                  {pendencia?.especificacaoId === especificacao.id ? (
+                    <div
+                      role="alertdialog"
+                      aria-label={`Confirmar alteração de ${especificacao.nome}`}
+                      className="mt-4 border-t border-[var(--cor-borda)] pt-4"
+                    >
+                      <p className="text-sm">{pendencia.aviso}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="sc-botao sc-botao--primario"
+                          disabled={salvando}
+                          onClick={() =>
+                            void (pendencia.acao === "remover"
+                              ? remover(especificacao, true)
+                              : renomear(
+                                  especificacao,
+                                  pendencia.novoNome ?? especificacao.nome,
+                                  true,
+                                ))
+                          }
+                        >
+                          {pendencia.acao === "remover"
+                            ? "Confirmar remoção"
+                            : "Confirmar novo nome"}
+                        </button>
+                        <button
+                          type="button"
+                          className="sc-botao sc-botao--fantasma"
+                          onClick={() => setPendencia(null)}
+                        >
+                          Desistir
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {editandoId === especificacao.id ? (
                     <form
                       className="mt-4 flex flex-wrap gap-2 border-t border-[var(--cor-borda)] pt-4"
-                      onSubmit={(evento) =>
-                        void renomear(evento, especificacao)
-                      }
+                      onSubmit={(evento) => {
+                        evento.preventDefault();
+                        const nome = nomeEditado.trim();
+                        if (nome !== "")
+                          void renomear(especificacao, nome, false);
+                      }}
                     >
                       <label className="min-w-56 flex-1">
-                        <span className="sr-only">Novo nome</span>
+                        <span className="sr-only">
+                          Novo nome de {especificacao.nome}
+                        </span>
                         <input
                           className="sc-campo w-full"
                           value={nomeEditado}
