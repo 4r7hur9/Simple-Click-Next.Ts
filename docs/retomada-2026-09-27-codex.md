@@ -14,11 +14,11 @@ Git, das worktrees, dos registros de execução e da auditoria do ONP. Conferir
 - A `main` continua em `55ea723` com alterações locais preexistentes: sinais da
   verificação, sete arquivos `fora-de-formato-*.ts` removidos e um relatório de
   retomada não rastreado. Preservar esse estado.
-- A auditoria na integração em `dd75476` saiu com código 1: 13 features, 284
-  critérios, 232 com teste e prova, 63 erros e 120 avisos. Por feature: métricas
-  18 erros, administração 15, clientes 14, operação 6, catálogo 2, e as sete
-  restantes com um erro de prova obsoleta cada. Isso é a situação global; as
-  provas escopadas de feature não substituem o portão completo.
+- A auditoria na integração após a T-201 saiu com código 1: 13 features, 284
+  critérios, 235 com teste e prova, 60 erros e 109 avisos. Por feature:
+  métricas 18 erros, clientes 14, administração 12, operação 6, catálogo 2;
+  as demais têm um erro de prova obsoleta cada. O portão completo ainda não
+  passou; as provas escopadas de feature não o substituem.
 
 ## Onde a execução parou
 
@@ -37,7 +37,8 @@ F1/F2 têm trabalho novo sem commit. O inventário de telas após integrar TV e 
 ## Provas e bloqueios
 
 - Na integração, as últimas provas escopadas registram catálogo 37/38, TV 7/7,
-  configuração 24/24, operação 22/27 e vitrine 24/24. Ainda são anteriores ao
+  administração 4/4 critérios implementados, configuração 24/24, operação
+  22/27 e vitrine 24/24. Ainda são anteriores ao
   HEAD e a auditoria acusa provas obsoletas. T-309/AC-320 continua aberta. O
   E2E do catálogo foi relatado 82/82 no commit `dd601c0`, anterior às
   integrações recentes. O registro do portão desta worktree está vazio.
