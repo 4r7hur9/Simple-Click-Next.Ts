@@ -69,7 +69,9 @@ export function CartaoDeProduto({
             {produto.nome.slice(0, 1).toUpperCase()}
           </span>
         )}
-        {produto.disponivel ? null : <CartaoEsgotado />}
+        {produto.disponivel ? null : (
+          <CartaoEsgotado motivo={produto.motivoIndisponivel} />
+        )}
       </span>
 
       <span className="sc-vitrine__texto">

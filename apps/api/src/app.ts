@@ -440,7 +440,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     PREFIXO_DO_CARRINHO,
     criarRotasDoCarrinho({
       identificarLoja,
-      lerProduto: (produtoId) => produtoDaVitrine(produtoId),
+      lerProduto: (produtoId) =>
+        produtoDaVitrine(produtoId, opcoes.carrinho?.agora?.() ?? new Date()),
       ...opcoes.carrinho,
     }),
   );

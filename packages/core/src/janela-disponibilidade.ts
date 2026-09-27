@@ -40,6 +40,36 @@ function janelaValida(janela: JanelaDeDisponibilidade): {
   return { abre, fecha };
 }
 
+/**
+ * Lê as janelas como o banco as guarda (coluna JSON, migração 0028).
+ *
+ * A LEITURA É DEFENSIVA porque a coluna aceita qualquer forma: uma chave
+ * renomeada por engano viraria `undefined` e faria toda janela ser ignorada
+ * em silêncio — e o produto de fim de semana passaria a vender na terça. Aqui
+ * só entra o que tem a forma inteira e fecha (dia de 0 a 6, hora do relógio,
+ * fecha depois de abrir); o resto é descartado.
+ */
+export function lerJanelasDeDisponibilidade(
+  bruto: unknown,
+): JanelaDeDisponibilidade[] {
+  if (!Array.isArray(bruto)) return [];
+  const janelas: JanelaDeDisponibilidade[] = [];
+  for (const item of bruto) {
+    if (item === null || typeof item !== "object") continue;
+    const { diaDaSemana, abre, fecha } = item as Record<string, unknown>;
+    if (
+      typeof diaDaSemana !== "number" ||
+      typeof abre !== "string" ||
+      typeof fecha !== "string"
+    ) {
+      continue;
+    }
+    if (janelaValida({ diaDaSemana, abre, fecha }) === null) continue;
+    janelas.push({ diaDaSemana, abre, fecha });
+  }
+  return janelas;
+}
+
 /** Retorna se o instante cai em ao menos uma janela válida do produto. */
 export function estaNaJanelaDeDisponibilidade(
   janelas: readonly JanelaDeDisponibilidade[],

@@ -241,6 +241,9 @@ model Product {
   status                String                   @default("DRAFT")
   isAvailable           Boolean                  @default(true) @map("is_available")
   unavailableUntil      DateTime?                @map("unavailable_until") @db.Timestamptz(6)
+  // Janelas semanais de venda no fuso da loja (0028, AC-322). Lista vazia é
+  // "vende o dia inteiro"; a forma é conferida pelo próprio banco.
+  saleWindows           Json                     @default("[]") @map("sale_windows") @db.JsonB
   unitLabel             String                   @default("un") @map("unit_label")
   trackStock            Boolean                  @default(false) @map("track_stock")
   sortOrder             Int                      @default(0) @map("sort_order")

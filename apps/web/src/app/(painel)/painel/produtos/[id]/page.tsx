@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { FormularioProduto } from "../../../../../features/painel-catalogo/FormularioProduto.tsx";
+import {
+  FormularioProduto,
+  type JanelaDeVenda,
+} from "../../../../../features/painel-catalogo/FormularioProduto.tsx";
 import { EnvioDeImagem } from "../../../../../features/painel-catalogo/EnvioDeImagem.tsx";
 import { LinhasDePreco } from "../../../../../features/painel-catalogo/LinhasDePreco.tsx";
 
@@ -19,6 +22,8 @@ interface Produto {
   readonly precoCentavos: number | null;
   readonly status: string;
   readonly disponivel: boolean;
+  /** A janela semanal de venda gravada (AC-322); ausente em produto antigo. */
+  readonly janelas?: readonly JanelaDeVenda[] | undefined;
 }
 
 export default function PaginaDeEdicaoDeProduto({ params }: Props) {
