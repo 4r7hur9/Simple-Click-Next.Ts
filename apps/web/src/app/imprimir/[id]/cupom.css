@@ -1,0 +1,157 @@
+/*
+ * Folha do cupom para a impressão por clique (T-606 — AC-617, AC-618).
+ *
+ * Sem o layout do aplicativo: nada de cabeçalho, navegação ou aviso do painel.
+ * No papel sai só o cupom; na tela, o cupom e uma barra de ações que a
+ * impressão esconde.
+ *
+ * A MEDIDA vem da camada de servidor, em variáveis:
+ *   --cupom-papel   largura da bobina (58 ou 80 mm) — é a largura da página;
+ *   --cupom-area    o que a cabeça de impressão alcança (48 ou 72 mm);
+ *   --cupom-letra   tamanho da letra que põe as colunas do papel (32 ou 48)
+ *                   na área, medido com avanço 0,62 — acima do da fonte mais
+ *                   larga da lista, para sobrar folga;
+ *   --cupom-colunas quantas colunas o cupom foi diagramado para ter.
+ * O texto já chega quebrado e alinhado em espaços; aqui nada quebra de novo
+ * (`white-space: pre`), porque uma segunda quebra, feita pelo navegador, tiraria
+ * os valores da coluna da direita (AC-618).
+ *
+ * Tudo aqui é preso a `.sc-cupom-pagina` ou `.sc-cupom`: a folha é global no
+ * framework, e regra solta vazaria para o resto do site.
+ */
+
+/*
+ * A casca do site impõe largura mínima de 344px (o celular dobrável). Para o
+ * papel de 58 mm (≈ 219px) essa largura empurraria o cupom para fora da página
+ * e o navegador encolheria ou cortaria tudo. Fora aqui, e só aqui.
+ */
+html:has(.sc-cupom-pagina) {
+  min-width: 0;
+  color-scheme: light;
+  background-color: var(--cor-superficie);
+}
+
+html:has(.sc-cupom-pagina) body {
+  min-height: 0;
+  background-color: var(--cor-superficie);
+}
+
+.sc-cupom-pagina {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1rem 3rem;
+  color: var(--cor-tinta);
+}
+
+.sc-cupom-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 32rem;
+  text-align: center;
+}
+
+.sc-cupom-acoes__ajuda {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: 0.875rem;
+}
+
+.sc-cupom-acoes__resumo {
+  margin: 0;
+}
+
+.sc-cupom-acoes__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.sc-cupom-aviso {
+  max-width: 32rem;
+  padding: 1.5rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande, 12px);
+  background-color: var(--cor-superficie-alta);
+  text-align: center;
+}
+
+.sc-cupom-aviso__titulo {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+/*
+ * O papel. Largura total = a bobina; o texto ocupa só a área impressa, com a
+ * sobra dividida entre as duas margens, como a impressora faz.
+ */
+.sc-cupom {
+  box-sizing: content-box;
+  width: var(--cupom-area);
+  margin: 0;
+  padding: 4mm calc((var(--cupom-papel) - var(--cupom-area)) / 2);
+  overflow: visible;
+  background-color: var(--cor-tinta-extrema-clara);
+  color: var(--cor-tinta-extrema-escura);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 18%);
+  /*
+   * Fonte monoespaçada COM NEGRITO DE VERDADE. As quatro existem no Windows e
+   * no Linux da loja, todas têm a versão negrita com o mesmo avanço da normal,
+   * e nenhuma avança mais que 0,602 da letra — que é medida com 0,62: 48
+   * colunas nunca passam de 72 mm, nem 32 de 48 mm.
+   *
+   * O negrito SINTETIZADO é proibido (`font-synthesis`), e por medida: numa
+   * fonte sem negrito próprio (a Lucida Console, por exemplo), o navegador
+   * engrossa cada letra e alarga o avanço dela. No Chrome, a linha de item em
+   * negrito ficou até 4,8 px mais larga que a normal — e o valor dela saiu da
+   * coluna dos outros valores (AC-618).
+   */
+  font-family:
+    Consolas, "Courier New", "Liberation Mono", "DejaVu Sans Mono", monospace;
+  font-synthesis: none;
+  font-size: var(--cupom-letra);
+  font-kerning: none;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  line-height: 1.25;
+  word-spacing: 0;
+}
+
+.sc-cupom__linha {
+  min-height: 1.25em;
+  white-space: pre;
+}
+
+.sc-cupom__linha--negrito {
+  font-weight: 700;
+}
+
+/* Letra dupla: o dobro da altura e o dobro da largura — metade das colunas. */
+.sc-cupom__linha--duplo {
+  font-size: 2em;
+}
+
+@media print {
+  html:has(.sc-cupom-pagina),
+  html:has(.sc-cupom-pagina) body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--cor-tinta-extrema-clara);
+  }
+
+  .sc-cupom-pagina {
+    display: block;
+    padding: 0;
+  }
+
+  .sc-cupom-acoes {
+    display: none;
+  }
+
+  .sc-cupom {
+    box-shadow: none;
+  }
+}

@@ -87,6 +87,7 @@
 | 38  | `/painel/config/contato`   | WhatsApp e texto da mensagem               | OWNER  | 4E      | e2e-config-contato   | AC-913..AC-915                 |
 | 39  | `/painel/config/aparencia` | Apresentação, logo, capa e cor             | OWNER  | 4E      | e2e-config-aparencia | AC-916..AC-918, AC-015         |
 | 40  | `/painel/config/impressao` | Papel, conteúdo do cupom e modo automático | OWNER  | 4E      | e2e-config-impressao | AC-622, AC-626, AC-919, AC-920 |
+| 40a | `/imprimir/{id}`           | Cupom do pedido para impressão por clique  | OWNER  | 4E      | e2e-imprimir         | AC-617, AC-618, AC-621         |
 
 ## Administração da plataforma
 
@@ -102,9 +103,10 @@
 
 ## Contagem e regra de cobertura
 
-- **49 telas** no inventário: as 47 da primeira versão, mais `1a` (Sobre da
-  loja, T-410) e `31a` (grade de variações, T-306), acrescentadas sem
-  renumerar. 45 exigem os quatro estados.
+- **50 telas** no inventário: as 47 da primeira versão, mais `1a` (Sobre da
+  loja, T-410), `31a` (grade de variações, T-306) e `40a` (cupom para
+  impressão por clique, T-606), acrescentadas sem renumerar. 46 exigem os
+  quatro estados.
 - Cada cenário de ponta a ponta roda em três perfis de sessão (visitante, dono e
   administração), reaproveitando sessão salva para não repetir login.
 - Cada tela do inventário tem verificação de acessibilidade automatizada e

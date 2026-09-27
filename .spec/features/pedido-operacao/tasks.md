@@ -37,18 +37,18 @@
 - Notas: o cliente logado vê os pedidos dele em todas as lojas onde comprou, por caminho dedicado (`GET /v1/conta/pedidos` e `GET /v1/conta/pedidos/:id`, em `conta.routes.ts`, montado em `app.ts`) — e nenhuma loja enxerga o histórico da outra (prova P-003 em `meus-pedidos.test.ts`). O vínculo nasce no fechamento: com sessão de CLIENTE no cabeçalho, `pedidos.routes.ts` liga o pedido ao cliente-da-loja daquela identidade (`vincularClienteDaLoja`, pela política `sc_self_insert` da 0005); convidado segue sem vínculo (ASM-103), e falha no vínculo não derruba a venda — vira aviso no registro. A leitura cruza lojas pela função `app.meus_pedidos()` (0029, com os direitos de quem a definiu, só papel CUSTOMER e identidade do contexto), porque as políticas de `app.orders` são por loja e a restritiva exige loja no contexto — e isso fica como está. O detalhe reaproveita o caminho do link (T-603): a função diz a loja e o endereço público, e a página da conta é a mesma página do acompanhamento. Dívida compartilhada com o painel: as páginas leem o token de acesso do cookie `sc_access`, que só existe fora de produção até a identidade ser ligada à API (identidade-acesso).
 - Esforço: alto
 
-## T-605 — Gerador de conteúdo do cupom, uma fonte para duas saídas [pendente]
+## T-605 — Gerador de conteúdo do cupom, uma fonte para duas saídas [concluida]
 
 - Refs: US-604, AC-619, AC-620, AC-621
-- Arquivos: packages/core/src/cupom-blocos.ts, packages/core/src/cupom-blocos.test.ts, packages/core/src/cupom-largura.ts, packages/core/src/cupom-largura.test.ts, packages/core/src/**snapshots**/cupom-blocos.test.ts.snap
-- Notas: um só gerador de blocos, parametrizado pela largura do papel, alimenta a impressão pelo navegador e a do agente — e um teste prova que as duas saídas têm o mesmo conteúdo, risco que o crítico apontou. Acento correto exige tratar a tabela de caracteres da impressora; alinhamento exige normalizar o texto antes de contar largura.
+- Arquivos: packages/core/src/cupom-blocos.ts, packages/core/src/cupom-blocos.test.ts, packages/core/src/cupom-blocos.test.ts.snap, packages/core/src/cupom-largura.ts, packages/core/src/cupom-largura.test.ts, packages/core/src/cupom-escpos.ts, packages/core/src/cupom-escpos.test.ts, packages/database/migrations/0030_vias_impressas_do_pedido.sql, apps/api/src/modules/printing/cupom.usecase.ts, apps/api/tests/cupom-vias.test.ts
+- Notas: um só gerador de blocos, parametrizado pela largura do papel, alimenta a impressão pelo navegador e a do agente — e um teste prova que as duas saídas têm o mesmo conteúdo, risco que o crítico apontou. Acento correto exige tratar a tabela de caracteres da impressora; alinhamento exige normalizar o texto antes de contar largura. O CONTRATO dos blocos (versão 1, dois níveis: cupom semântico e linhas diagramadas) está no topo de `cupom-blocos.ts`; `cupom-escpos.ts` é a saída da impressora e a referência do agente (T-609). A via (AC-621) é `orders.print_count` (migração 0030), somada na mesma transação que gera o cupom.
 - Esforço: max
 
-## T-606 — Impressão por clique no navegador [pendente]
+## T-606 — Impressão por clique no navegador [concluida]
 
 - Refs: US-604, AC-617, AC-618
-- Arquivos: apps/web/src/app/imprimir/[id]/page.tsx, apps/web/src/app/imprimir/[id]/cupom.css, e2e/specs/imprimir.spec.ts
-- Notas: página de cupom sem o layout do aplicativo, com largura de papel configurada, para impressão direta pelo navegador sem instalar nada.
+- Arquivos: apps/web/src/app/imprimir/[id]/page.tsx, apps/web/src/app/imprimir/[id]/loading.tsx, apps/web/src/app/imprimir/[id]/cupom.css, apps/web/src/features/impressao/FolhaDoCupom.tsx, apps/web/src/features/impressao/ImprimirAoAbrir.tsx, apps/web/src/features/impressao/AcoesDaImpressao.tsx, apps/web/src/features/impressao/AvisoDoCupom.tsx, apps/web/src/features/impressao/BotaoImprimirCupom.tsx, apps/web/src/server/cupom.ts, apps/web/tests/imprimir-cupom.test.tsx, apps/api/src/modules/printing/cupom.routes.ts, apps/api/src/modules/printing/cupom.schema.ts, apps/api/tests/cupom-rota.test.ts, e2e/specs/imprimir.spec.ts
+- Notas: página de cupom sem o layout do aplicativo, com largura de papel configurada, para impressão direta pelo navegador sem instalar nada. Abrir a página emite uma via (`POST /v1/lojas/:apelido/pedidos/:id/cupom`, AC-621) e abre o diálogo de impressão do navegador; os links para ela são `<a>` comuns, nunca `Link`, para pré-carregamento não contar via. O HTML desenha as MESMAS linhas de `diagramarCupom` que a impressora recebe; a fonte da folha tem negrito próprio e `font-synthesis: none`, porque negrito sintetizado alarga a letra e tira o valor da coluna (medido no Chrome). O botão "Imprimir cupom" entrou no detalhe do pedido (`painel/pedidos/[id]/page.tsx`, da T-601).
 - Esforço: medio
 
 ## T-607 — Fila de impressão em banco com reivindicação e prazo [pendente]
