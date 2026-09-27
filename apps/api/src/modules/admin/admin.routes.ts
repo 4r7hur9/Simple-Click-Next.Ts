@@ -24,13 +24,15 @@ import { registrar } from "../../core/log.ts";
 import { validar } from "../../core/validar.ts";
 import { MENSAGEM_DE_APELIDO_EM_USO } from "@simpleclick/contracts";
 
-import { esquemasDoCadastro } from "./admin.schema.ts";
+import { esquemasDaListagem, esquemasDoCadastro } from "./admin.schema.ts";
 import {
   cadastrarLoja,
   type DependenciasDoCadastro,
 } from "./criar-loja.usecase.ts";
+import { listarLojas } from "./listar-lojas.usecase.ts";
 import {
   administradorAtivo,
+  buscarLojas,
   listarTiposDeNegocio,
   repositorioDoCadastro,
 } from "./lojas.repo.ts";
@@ -126,6 +128,27 @@ export function criarRotasDaAdministracao(
       proximo(causa);
     }
   });
+
+  // ── Lista e busca (AC-206) ──────────────────────────────────────────────
+  const entradaDaListagem = validar(esquemasDaListagem);
+  rotas.get(
+    "/lojas",
+    entradaDaListagem,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { query } = entradaDaListagem.dados(requisicao);
+        await comoAdministrador(resposta, async () => {
+          const lista = await acesso().emTransacao(() =>
+            listarLojas(query, { buscarLojas }),
+          );
+          resposta.setHeader("cache-control", "no-store");
+          resposta.json(lista);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
 
   // ── Cadastro de loja (AC-200, AC-201, AC-202) ───────────────────────────
   const entradaDoCadastro = validar(esquemasDoCadastro);

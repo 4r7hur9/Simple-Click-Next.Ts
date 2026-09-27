@@ -121,7 +121,10 @@ export {
 export type { DocumentoConferido, TipoDeDocumento } from "./documento.ts";
 export {
   APELIDOS_RESERVADOS,
+  esquemaDaConsultaDeLojas,
+  esquemaDaListaDeLojas,
   esquemaDaLojaCriada,
+  esquemaDaLojaNaLista,
   esquemaDaNovaLoja,
   esquemaDaRecusaDeCadastro,
   esquemaDaSituacaoDaLoja,
@@ -136,14 +139,19 @@ export {
   esquemaDoTipoDeNegocioDisponivel,
   FORMATO_DO_APELIDO,
   MENSAGEM_DE_APELIDO_EM_USO,
+  ROTULOS_DAS_SITUACOES,
   SITUACOES_DA_LOJA,
   UNIDADES_DA_FEDERACAO,
 } from "./admin.ts";
 export type {
+  ConsultaDeLojasNoContrato,
+  ListaDeLojasNoContrato,
   LojaCriadaNoContrato,
+  LojaNaListaNoContrato,
   NovaLojaEnviada,
   NovaLojaNoContrato,
   RecusaDeCadastroNoContrato,
+  SituacaoDaLoja,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
 export {

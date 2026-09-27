@@ -6,7 +6,10 @@
  * a API tem: parâmetros de caminho e de consulta.
  */
 
-import { esquemaDaNovaLoja } from "@simpleclick/contracts";
+import {
+  esquemaDaConsultaDeLojas,
+  esquemaDaNovaLoja,
+} from "@simpleclick/contracts";
 import { z } from "zod";
 
 /** Identificador de loja no caminho: uuid, e nada mais. */
@@ -16,3 +19,6 @@ export const esquemaDoCaminhoDaLoja = z.object({
 
 /** POST /v1/admin/lojas */
 export const esquemasDoCadastro = { body: esquemaDaNovaLoja };
+
+/** GET /v1/admin/lojas?busca=&situacao=&pagina=&porPagina= */
+export const esquemasDaListagem = { query: esquemaDaConsultaDeLojas };

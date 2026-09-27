@@ -9,11 +9,11 @@
 - Notas: apelido único conferido antes de gravar, com sugestão de variação livre. CPF e CNPJ validados por dígito verificador (a regra mora no contrato, `documento.ts`, porque o formulário e a API aplicam a mesma). Código sequencial de quatro dígitos herdado do primeiro SimpleClick, emitido por função com trava (`app.proximo_codigo_de_loja`, migração 0032). O convite do dono grava a linha de `store_members` (loja, identidade, papel OWNER, quem convidou, resumo e prazo do token) — é dela que a correção da dívida 92 vai depender.
 - Esforço: alto
 
-## T-201 — Lista e busca de lojas [pendente]
+## T-201 — Lista e busca de lojas [concluida]
 
 - Refs: US-202, AC-206
-- Arquivos: apps/api/src/modules/admin/listar-lojas.usecase.ts, apps/api/src/modules/admin/listar-lojas.usecase.test.ts, apps/web/src/app/(admin)/admin/lojas/page.tsx, apps/web/src/features/admin/ListaLojas.tsx
-- Notas: busca por parte do nome, do documento e do código. Estados de carregando, vazio e erro tratados.
+- Arquivos: apps/api/src/modules/admin/listar-lojas.usecase.ts, apps/api/src/modules/admin/listar-lojas.usecase.test.ts, apps/api/src/modules/admin/lojas.repo.ts, apps/api/src/modules/admin/admin.routes.ts, apps/api/src/modules/admin/admin.schema.ts, apps/api/tests/admin-lista.test.ts, apps/web/src/app/(admin)/admin/lojas/page.tsx, apps/web/src/features/admin/ListaLojas.tsx, apps/web/tests/admin-lista-lojas.test.tsx, apps/web/src/lib/routes.ts, packages/contracts/src/admin.ts, packages/contracts/src/index.ts
+- Notas: busca por parte do nome sem acento nem distinção de maiúsculas, dígitos do CPF/CNPJ com ou sem máscara e código de atendimento. A lista é paginada e filtra por situação; por padrão não mostra excluídas, mas a administração pode consultá-las durante a retenção. A consulta devolve o total mesmo se a página pedida ficar além da última, regressão provada contra PostgreSQL real. O contrato não expõe documento nem contato do responsável. A tela cobre carregamento, vazio, erro, sucesso e navegação até a ficha.
 - Esforço: medio
 
 ## T-202 — Ficha da loja, edição e auditoria de alteração [pendente]

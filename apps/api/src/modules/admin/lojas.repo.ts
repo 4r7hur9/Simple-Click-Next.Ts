@@ -12,6 +12,8 @@
  * 17/08).
  */
 
+import type { LojaNaListaNoContrato } from "@simpleclick/contracts";
+
 import { transacaoAtual, type TransacaoDoBanco } from "../../core/db.ts";
 import {
   ErroDeApelidoEmUso,
@@ -19,6 +21,7 @@ import {
   type LojaParaGravar,
   type RepositorioDoCadastro,
 } from "./criar-loja.usecase.ts";
+import type { BuscaDeLojas } from "./listar-lojas.usecase.ts";
 
 // ---------------------------------------------------------------------------
 // Erros do banco
@@ -133,6 +136,91 @@ export async function listarTiposDeNegocio(): Promise<TipoDeNegocio[]> {
     nome: linha.label,
     controlaEstoque: linha.tracks_stock,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Lista e busca (AC-206)
+// ---------------------------------------------------------------------------
+
+interface LojaDaPagina {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly status: string;
+  readonly city: string | null;
+  readonly uf: string | null;
+  readonly created_at: Date;
+  readonly vertical_code: string;
+  readonly vertical_label: string;
+}
+
+type LinhaDaLista =
+  | (LojaDaPagina & { readonly total: number })
+  | { readonly id: null; readonly total: number };
+
+/**
+ * As lojas que casam com a busca, na página pedida, e quantas casam ao todo.
+ *
+ * Nome e código casam por trecho, sem acento e sem maiúscula; o documento
+ * casa pelos dígitos, quando a busca tem cara de documento. O total sai da
+ * mesma consulta, inclusive quando o deslocamento pede uma página vazia. Uma
+ * janela `count(*) OVER ()` não devolve linha alguma nesse caso e perderia o
+ * total; a contagem é a linha à esquerda do `LEFT JOIN` com a página.
+ */
+export async function buscarLojas(busca: BuscaDeLojas): Promise<{
+  readonly lojas: readonly LojaNaListaNoContrato[];
+  readonly total: number;
+}> {
+  const trecho = `%${busca.texto}%`;
+  const digitos = busca.digitos === "" ? null : `%${busca.digitos}%`;
+  const linhas = await transacaoAtual().$queryRaw<LinhaDaLista[]>`
+    WITH filtradas AS (
+      SELECT s.id::text AS id, s.code, s.name, s.slug, s.status, s.city, s.uf,
+             s.created_at, p.code AS vertical_code, p.label AS vertical_label
+        FROM app.stores s
+        JOIN app.vertical_presets p ON p.code = s.vertical_code
+       WHERE CASE WHEN ${busca.situacao}::text IS NULL
+                  THEN s.deleted_at IS NULL
+                  ELSE s.status = ${busca.situacao}::text END
+         AND (${busca.texto} = ''
+              OR app.sem_acento(lower(s.name)) LIKE app.sem_acento(${trecho})
+              OR lower(s.code) LIKE ${trecho}
+              OR (${digitos}::text IS NOT NULL
+                  AND s.doc_number LIKE ${digitos}::text))
+    ),
+    contagem AS (SELECT count(*)::int AS total FROM filtradas),
+    pagina AS (
+      SELECT * FROM filtradas
+       ORDER BY created_at DESC, code DESC
+       LIMIT ${busca.limite} OFFSET ${busca.deslocamento}
+    )
+    SELECT pagina.*, contagem.total
+      FROM contagem LEFT JOIN pagina ON true`;
+
+  return {
+    lojas: linhas.flatMap((linha) =>
+      linha.id === null
+        ? []
+        : [
+            {
+              id: linha.id,
+              codigo: linha.code,
+              nome: linha.name,
+              apelido: linha.slug,
+              tipoDeNegocio: {
+                codigo: linha.vertical_code,
+                nome: linha.vertical_label,
+              },
+              status: linha.status as LojaNaListaNoContrato["status"],
+              cidade: linha.city,
+              uf: linha.uf,
+              criadaEm: linha.created_at.toISOString(),
+            },
+          ],
+    ),
+    total: linhas[0]?.total ?? 0,
+  };
 }
 
 // ---------------------------------------------------------------------------
