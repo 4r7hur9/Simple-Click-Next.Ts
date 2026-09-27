@@ -16,7 +16,7 @@
 - Notas: o número de produtos por tela sai da proporção e do tamanho da televisão, e nunca reduz o corpo abaixo do mínimo legível. Em pé e deitada recebem divisões diferentes do espaço. A pergunta é invertida de propósito: o corpo é a variável fixa (4,2% do lado menor, nunca abaixo de 28 px — 45 px numa Full HD, que dá uns 22 mm de letra numa TV de 43 polegadas) e a quantidade é o que sobra, com teto de 12 por tela. Deitada: duas colunas e o código numa faixa à direita (32% da largura); em pé: uma coluna e o código numa faixa embaixo (30% da altura). A altura da linha do produto é 2,6 corpos nos dois lugares (folha e densidade), e a prova guarda que nada é cortado. O contraste é o do tema escuro do design system, e a cor da loja entra como letra só depois de ajustada por `calcularTemaDaLoja`.
 - Esforço: alto
 
-## T-952 — Catálogo que se atualiza sozinho e sobrevive à queda [pendente]
+## T-952 — Catálogo que se atualiza sozinho e sobrevive à queda [concluida]
 
 - Refs: US-908, AC-928, AC-929
 - Arquivos: apps/web/src/features/tv/useCatalogoDaTv.ts, apps/web/src/features/tv/useCatalogoDaTv.test.ts, apps/web/src/lib/catalogo-do-navegador.ts
