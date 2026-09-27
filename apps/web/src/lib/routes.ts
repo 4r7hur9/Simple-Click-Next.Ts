@@ -47,7 +47,7 @@ export interface TelaDoManifesto {
  * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
  * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
  * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 50 linhas no mapa, 53 rotas no produto.
+ * separadas — 51 linhas no mapa, 54 rotas no produto.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
@@ -73,6 +73,14 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     quatroEstados: true,
     criterios: "AC-404..AC-409, AC-415..AC-417, AC-420",
     arquivo: "apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx",
+  },
+  {
+    rota: "/l/{slug}/tv",
+    tela: "Cardápio na TV da loja",
+    acesso: "PUBLICO",
+    quatroEstados: true,
+    criterios: "AC-925..AC-931",
+    arquivo: "apps/web/src/app/(loja)/l/[slug]/tv/page.tsx",
   },
   {
     rota: "/l/{slug}/produto/{id}",
@@ -464,7 +472,7 @@ export const TELAS_CONSTRUIDAS: readonly TelaDoManifesto[] =
  * os grupos entre parênteses somem (eles organizam pastas, não endereços), os
  * colchetes viram chaves, e `page.tsx` sai do fim.
  *
- * A tradução mora AQUI, e não em 50 linhas escritas à mão, porque assim ela é
+ * A tradução mora AQUI, e não em 51 linhas escritas à mão, porque assim ela é
  * uma regra só — e o dia em que o framework mudar de convenção, muda um lugar.
  */
 export function rotaDoArquivo(caminho: string): string | null {

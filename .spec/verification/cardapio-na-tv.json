@@ -1,0 +1,56 @@
+{
+  "feature": "cardapio-na-tv",
+  "timestamp": "2026-09-27T16:52:19.810Z",
+  "gitRev": "8fe32c1",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh cardapio-na-tv",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 80,
+  "results": {
+    "AC-925": {
+      "status": "pass",
+      "testName": "a TV mostra o cardápio sem ninguém operar (AC-925) @spec:AC-925 o servidor entrega a primeira tela com produtos e preços, antes de qualquer script @spec:AC-925 o servidor entrega a primeira tela com produtos e preços, antes de qualquer script",
+      "method": "vitest-json"
+    },
+    "AC-926": {
+      "status": "pass",
+      "testName": "texto legível a três metros (AC-926) @spec:AC-926 nome e preço usam o corpo medido, e o corpo vem da densidade @spec:AC-926 nome e preço usam o corpo medido, e o corpo vem da densidade",
+      "method": "vitest-json"
+    },
+    "AC-927": {
+      "status": "pass",
+      "testName": "a tela se adapta à televisão (AC-927) @spec:AC-927 1080 × 1920 pagina antes de cortar produto, contando respiro e rodapé da folha @spec:AC-927 1080 × 1920 pagina antes de cortar produto, contando respiro e rodapé da folha",
+      "method": "vitest-json"
+    },
+    "AC-928": {
+      "status": "pass",
+      "testName": "preço mudado no painel aparece na TV (AC-928) @spec:AC-928 o preço novo aparece no intervalo seguinte, sem recarregar nem apertar nada @spec:AC-928 o preço novo aparece no intervalo seguinte, sem recarregar nem apertar nada",
+      "method": "vitest-json"
+    },
+    "AC-929": {
+      "status": "pass",
+      "testName": "internet caindo não apaga o cardápio (AC-929) @spec:AC-929 com a rede fora, a televisão continua mostrando o último cardápio, sem tela de erro @spec:AC-929 com a rede fora, a televisão continua mostrando o último cardápio, sem tela de erro",
+      "method": "vitest-json"
+    },
+    "AC-930": {
+      "status": "pass",
+      "testName": "produto esgotado sai da TV (AC-930) @spec:AC-930 o produto indisponível não aparece em nenhuma tela do rodízio @spec:AC-930 o produto indisponível não aparece em nenhuma tela do rodízio",
+      "method": "vitest-json"
+    },
+    "AC-931": {
+      "status": "pass",
+      "testName": "a tela leva o cardápio para o celular (AC-931) @spec:AC-931 o código está na tela, é grande e leva à vitrine da loja vinda da TV @spec:AC-931 o código está na tela, é grande e leva à vitrine da loja vinda da TV",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-011": {
+      "status": "pass",
+      "testName": "os quatro estados da parede (P-011) @principle:P-011 enquanto não há catálogo nenhum, a tela diz que está carregando @principle:P-011 enquanto não há catálogo nenhum, a tela diz que está carregando"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "acessibilidade da exibição (P-012) @spec:AC-926 @principle:P-012 sem violação crítica nem séria, no rodízio e nos estados @spec:AC-926 @principle:P-012 sem violação crítica nem séria, no rodízio e nos estados"
+    }
+  }
+}
