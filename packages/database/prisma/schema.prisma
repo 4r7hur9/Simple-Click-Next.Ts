@@ -217,6 +217,10 @@ model StoreMember {
   permissions      Json      @default("{}") @db.JsonB
   invitedBy        String?   @map("invited_by") @db.Uuid
   inviteAcceptedAt DateTime? @map("invite_accepted_at") @db.Timestamptz(6)
+  // Só o RESUMO do token do convite (migração 0032): o token em claro vai
+  // apenas no e-mail do responsável, e o convite aceito zera as duas colunas.
+  inviteTokenHash  String?   @map("invite_token_hash")
+  inviteExpiresAt  DateTime? @map("invite_expires_at") @db.Timestamptz(6)
   revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -242,6 +246,9 @@ model Product {
   status                String                   @default("DRAFT")
   isAvailable           Boolean                  @default(true) @map("is_available")
   unavailableUntil      DateTime?                @map("unavailable_until") @db.Timestamptz(6)
+  // Janelas semanais de venda no fuso da loja (0028, AC-322). Lista vazia é
+  // "vende o dia inteiro"; a forma é conferida pelo próprio banco.
+  saleWindows           Json                     @default("[]") @map("sale_windows") @db.JsonB
   unitLabel             String                   @default("un") @map("unit_label")
   trackStock            Boolean                  @default(false) @map("track_stock")
   sortOrder             Int                      @default(0) @map("sort_order")

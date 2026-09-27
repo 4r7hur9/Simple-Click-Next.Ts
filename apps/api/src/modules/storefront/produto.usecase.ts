@@ -26,9 +26,15 @@
  * `is_active` decidem se um preço SE APLICA, e isso é regra de negócio, não
  * visibilidade — preço fora da janela não é segredo, é um preço que não vale.
  */
-import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
+import {
+  estaNaJanelaDeDisponibilidade,
+  lerJanelasDeDisponibilidade,
+  precoQueVale,
+  type PrecoCadastrado,
+} from "@simpleclick/core";
 
 import { transacaoAtual } from "../../core/db.ts";
+import { fusoDaLoja } from "./fuso-da-loja.ts";
 
 /** Uma imagem do produto. */
 export interface ImagemDoProduto {
@@ -168,6 +174,7 @@ export async function produtoDaVitrine(
       compareAtCents: true,
       isAvailable: true,
       unavailableUntil: true,
+      saleWindows: true,
       hasVariants: true,
       imagens: {
         orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
@@ -275,8 +282,19 @@ export async function produtoDaVitrine(
   const daVariante = variacoes.find((v) => v.padrao) ?? variacoes[0];
   const semVariantes = variacoes.length === 0;
 
+  // FORA DO HORÁRIO é a pausa datada OU a janela semanal do produto (AC-322),
+  // avaliada no fuso da loja: a feijoada de sábado não aparece comprável na
+  // terça e volta no sábado sem o dono mexer em nada. ESGOTADO VENCE A JANELA
+  // (AC-321): o dono que marcou "acabou" no sábado não quer ver "fora do
+  // horário" — e reativar libera na hora, porque a janela é reavaliada a cada
+  // leitura.
   const foraDoHorario =
-    produto.unavailableUntil !== null && produto.unavailableUntil > agora;
+    (produto.unavailableUntil !== null && produto.unavailableUntil > agora) ||
+    !estaNaJanelaDeDisponibilidade(
+      lerJanelasDeDisponibilidade(produto.saleWindows),
+      agora,
+      await fusoDaLoja(),
+    );
   const esgotado =
     !produto.isAvailable ||
     (!semVariantes && variacoes.every((v) => !v.disponivel));

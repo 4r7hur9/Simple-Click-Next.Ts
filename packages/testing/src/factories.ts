@@ -1033,3 +1033,29 @@ export async function criarEnderecoDoCliente(
 
   return { id, identidadeId: dados.identidade.id, logradouro, padrao };
 }
+
+// ---------------------------------------------------------------------------
+// Administração da plataforma (admin-lojas)
+// ---------------------------------------------------------------------------
+
+/**
+ * Cria uma identidade e a torna administradora da plataforma.
+ *
+ * Pela credencial de administração porque `platform_admins` não tem política
+ * nenhuma para a credencial das lojas: promover alguém a administrador nunca
+ * pode ser alcançável por uma rota de lojista.
+ */
+export async function criarAdministradorDaPlataforma(
+  sobrescrita: SobrescritaDeIdentidade = {},
+): Promise<IdentidadeDeTeste> {
+  const identidade = await criarIdentidade({
+    nome: sobrescrita.nome ?? `Administração ${sufixoDeTeste()}`,
+    ...sobrescrita,
+  });
+  await comoAdministracao((tx) =>
+    tx.query(`INSERT INTO app.platform_admins (identity_id) VALUES ($1)`, [
+      identidade.id,
+    ]),
+  );
+  return identidade;
+}

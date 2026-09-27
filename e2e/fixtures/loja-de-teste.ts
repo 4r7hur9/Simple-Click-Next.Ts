@@ -221,9 +221,9 @@ export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
       parametrosDaProcura: [lojaId, PRODUTO.apelido],
       insercao: `INSERT INTO app.products
          (store_id, name, slug, description, short_description, vertical_code,
-          status, is_available, display_price_cents)
+          status, is_available, is_featured, display_price_cents)
        VALUES ($1, $2, $3, 'Massa fina, recheio generoso.', 'O clássico da casa.',
-               'FOOD_SNACK', 'PUBLISHED', true, $4)
+               'FOOD_SNACK', 'PUBLISHED', true, true, $4)
        RETURNING id`,
       parametrosDaInsercao: [
         lojaId,
@@ -236,7 +236,7 @@ export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
 
     await cliente.query(
       `UPDATE app.products
-          SET status = 'PUBLISHED', is_available = true,
+          SET status = 'PUBLISHED', is_available = true, is_featured = true,
               display_price_cents = $2, deleted_at = NULL
         WHERE id = $1`,
       [produtoId, PRODUTO.precoCentavos],

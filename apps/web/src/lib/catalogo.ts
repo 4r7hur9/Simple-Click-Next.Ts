@@ -34,9 +34,17 @@ export interface ProdutoNaTela {
   readonly precoAnterior: string | null;
   readonly imagem: string | null;
   readonly disponivel: boolean;
+  /**
+   * Por que não está comprável agora (AC-321, AC-322); ausente ou nulo quando
+   * está. É o que faz o selo dizer "esgotado" ou "fora do horário".
+   */
+  readonly motivoIndisponivel?: MotivoDoCartao | null | undefined;
   /** Para onde o cartão leva. */
   readonly link: string;
 }
+
+/** Os motivos que o cartão sabe escrever. */
+export type MotivoDoCartao = "ESGOTADO" | "FORA_DO_HORARIO";
 
 /** Uma seção da vitrine, na ordem que o dono definiu. */
 export interface SecaoNaTela {

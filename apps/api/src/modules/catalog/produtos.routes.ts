@@ -5,7 +5,7 @@
  * nas próximas tarefas. Aqui o dono consegue montar um produto simples,
  * deixá-lo em rascunho e publicá-lo quando estiver pronto.
  */
-import { estaAcabando } from "@simpleclick/core";
+import { estaAcabando, lerJanelasDeDisponibilidade } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
@@ -153,6 +153,25 @@ async function copiarImagensEEspecificacoes(
 
 const statusDoProduto = z.enum(["DRAFT", "PUBLISHED"]);
 
+/**
+ * A janela semanal de venda (T-311, AC-322): dia da semana com 0 no domingo,
+ * como no JavaScript que a avalia, e horas do relógio da loja. A mesma forma
+ * que o banco confere ao gravar (migração 0028) — a borda recusa antes, com
+ * um motivo que a tela consegue mostrar.
+ */
+const horaDoRelogio = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const esquemaDaJanela = z
+  .strictObject({
+    diaDaSemana: z.number().int().min(0).max(6),
+    abre: horaDoRelogio,
+    fecha: horaDoRelogio,
+  })
+  .refine((janela) => janela.abre < janela.fecha, {
+    message: "A janela precisa fechar depois de abrir.",
+  });
+/** Três faixas por dia bastam para café, almoço e jantar de qualquer loja. */
+const esquemaDasJanelas = z.array(esquemaDaJanela).max(21);
+
 const esquemaDaCriacao = z.strictObject({
   nome: z.string().trim().min(1).max(160),
   descricao: z.string().trim().max(2_000).nullable(),
@@ -161,6 +180,7 @@ const esquemaDaCriacao = z.strictObject({
   atributos: z.record(z.string(), z.unknown()).optional(),
   status: statusDoProduto,
   disponivel: z.boolean(),
+  janelas: esquemaDasJanelas.optional(),
 });
 
 const esquemaDaAtualizacao = z
@@ -172,10 +192,29 @@ const esquemaDaAtualizacao = z
     atributos: z.record(z.string(), z.unknown()).optional(),
     status: statusDoProduto.optional(),
     disponivel: z.boolean().optional(),
+    janelas: esquemaDasJanelas.optional(),
   })
   .refine((valor) => Object.keys(valor).length > 0, {
     message: "Informe ao menos um campo para alterar.",
   });
+
+/** A recusa da janela tem nome próprio: a tela diz qual campo corrigir. */
+function motivoDaRecusa(erro: z.ZodError): string {
+  return erro.issues.some((problema) => problema.path[0] === "janelas")
+    ? "janela_invalida"
+    : "entrada_invalida";
+}
+
+/** Cópia mutável e pura da janela, como a coluna JSON aceita. */
+function janelasParaGravar(
+  janelas: readonly z.infer<typeof esquemaDaJanela>[] | undefined,
+): { diaDaSemana: number; abre: string; fecha: string }[] {
+  return (janelas ?? []).map((janela) => ({
+    diaDaSemana: janela.diaDaSemana,
+    abre: janela.abre,
+    fecha: janela.fecha,
+  }));
+}
 
 type LinhaDoProduto = {
   readonly id: string;
@@ -185,6 +224,7 @@ type LinhaDoProduto = {
   readonly displayPriceCents: bigint | null;
   readonly status: string;
   readonly isAvailable: boolean;
+  readonly saleWindows: unknown;
   readonly attributes: unknown;
   readonly sortOrder: number;
   readonly categorias: ReadonlyArray<{
@@ -243,6 +283,9 @@ function respostaDoProduto(produto: LinhaDoProduto) {
         : Number(produto.displayPriceCents),
     status: produto.status,
     disponivel: produto.isAvailable,
+    // A janela volta como foi gravada, já na forma que a regra entende: o
+    // painel a mostra no cadastro, e a vitrine a avalia no fuso da loja.
+    janelas: lerJanelasDeDisponibilidade(produto.saleWindows),
     atributos: produto.attributes,
     ordem: produto.sortOrder,
     estoqueBaixo: acabando.length > 0,
@@ -258,6 +301,7 @@ const selecaoDoProduto = {
   displayPriceCents: true,
   status: true,
   isAvailable: true,
+  saleWindows: true,
   attributes: true,
   sortOrder: true,
   categorias: {
@@ -384,7 +428,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
       try {
         const entrada = esquemaDaCriacao.safeParse(requisicao.body);
         if (!entrada.success) {
-          erro(resposta, 400, "entrada_invalida");
+          erro(resposta, 400, motivoDaRecusa(entrada.error));
           return;
         }
         await comLoja(
@@ -421,6 +465,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       verticalCode: loja.verticalCode,
                       status: entrada.data.status,
                       isAvailable: entrada.data.disponivel,
+                      saleWindows: janelasParaGravar(entrada.data.janelas),
                       displayPriceCents: entrada.data.precoCentavos,
                       attributes: validarAtributosDoRamo(
                         loja.verticalCode,
@@ -483,7 +528,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
       try {
         const entrada = esquemaDaAtualizacao.safeParse(requisicao.body);
         if (!entrada.success) {
-          erro(resposta, 400, "entrada_invalida");
+          erro(resposta, 400, motivoDaRecusa(entrada.error));
           return;
         }
         await comLoja(
@@ -559,6 +604,13 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       ...(entrada.data.disponivel === undefined
                         ? {}
                         : { isAvailable: entrada.data.disponivel }),
+                      ...(entrada.data.janelas === undefined
+                        ? {}
+                        : {
+                            saleWindows: janelasParaGravar(
+                              entrada.data.janelas,
+                            ),
+                          }),
                       ...(entrada.data.atributos === undefined
                         ? {}
                         : {
@@ -656,6 +708,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       shortDescription: true,
                       unitLabel: true,
                       attributes: true,
+                      saleWindows: true,
                       displayPriceCents: true,
                       verticalCode: true,
                       categorias: {
@@ -680,6 +733,11 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       shortDescription: original.shortDescription,
                       unitLabel: original.unitLabel,
                       attributes: copiaJson(original.attributes),
+                      // A janela é dado editável como os outros (AC-307): a
+                      // duplicata do prato de sábado também é de sábado.
+                      saleWindows: janelasParaGravar(
+                        lerJanelasDeDisponibilidade(original.saleWindows),
+                      ),
                       verticalCode: original.verticalCode,
                       status: ESTADO_DA_DUPLICATA.status,
                       isAvailable: ESTADO_DA_DUPLICATA.disponivel,

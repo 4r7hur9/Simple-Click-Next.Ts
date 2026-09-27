@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T11:47:56.072Z",
-  "gitRev": "04a1853",
+  "timestamp": "2026-09-27T16:50:09.217Z",
+  "gitRev": "6c2c50a",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 268,
+  "testsParsed": 283,
   "results": {
     "AC-300": {
       "status": "pass",
@@ -119,12 +119,12 @@
     },
     "AC-321": {
       "status": "pass",
-      "testName": "disponibilidade do produto @spec:AC-321 esgotado fica indisponível mesmo dentro da janela @spec:AC-321 esgotado fica indisponível mesmo dentro da janela",
+      "testName": "produto esgotado aparece sem poder ser comprado (AC-321) @spec:AC-321 marcado como esgotado pelo painel, o produto continua na vitrine com o motivo, e o carrinho o recusa @spec:AC-321 marcado como esgotado pelo painel, o produto continua na vitrine com o motivo, e o carrinho o recusa",
       "method": "vitest-json"
     },
     "AC-322": {
       "status": "pass",
-      "testName": "janela de disponibilidade do produto @spec:AC-322 libera no sábado dentro do fuso da loja @spec:AC-322 libera no sábado dentro do fuso da loja",
+      "testName": "produto pode ficar disponível só em certos dias e horários (AC-322) @spec:AC-322 a janela cadastrada pelo painel fica gravada no produto e volta na lista do dono @spec:AC-322 a janela cadastrada pelo painel fica gravada no produto e volta na lista do dono",
       "method": "vitest-json"
     },
     "AC-325": {

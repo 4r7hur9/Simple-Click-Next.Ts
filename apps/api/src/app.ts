@@ -58,6 +58,16 @@ import {
   PREFIXO_DA_VITRINE,
   type OpcoesDaVitrine,
 } from "./modules/storefront/vitrine.routes.ts";
+import {
+  criarRotasDaAdministracao,
+  type OpcoesDaAdministracao,
+} from "./modules/admin/admin.routes.ts";
+import { montarEmailDoConvite } from "./modules/admin/convite-do-dono.ts";
+import {
+  gerarTokenDeConvite,
+  resumirTokenDeConvite,
+} from "./modules/auth/convite.usecase.ts";
+import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -92,6 +102,11 @@ export interface OpcoesDoApp {
   readonly fila?: Partial<OpcoesDaFila>;
   /** O mesmo, para a área da conta do cliente. */
   readonly conta?: Partial<OpcoesDaConta>;
+  /**
+   * O mesmo, para a administração da plataforma: acesso pela credencial
+   * `sc_admin`, envio do convite e relógio.
+   */
+  readonly administracao?: Partial<OpcoesDaAdministracao>;
 }
 
 /**
@@ -420,6 +435,42 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     }),
   );
 
+  // A ADMINISTRAÇÃO DA PLATAFORMA (admin-lojas). A autenticação e o convite do
+  // dono são do módulo de identidade, e a entrega do e-mail é da fila — a borda
+  // passa as funções, e o módulo da administração não importa nenhum dos dois.
+  // O envio do convite usa o adaptador de partida enquanto o provedor de e-mail
+  // não é decidido: ele falha alto, a loja fica criada e a resposta diz que o
+  // convite não saiu, para ser reenviado.
+  app.use(
+    "/v1/admin",
+    criarRotasDaAdministracao({
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: alegacoes.papel,
+          };
+        } catch {
+          return null;
+        }
+      },
+      enviarConvite: (convite) =>
+        enviadorNaoConfigurado().enviar(
+          montarEmailDoConvite(convite, process.env["URL_DO_SITE"] ?? ""),
+        ),
+      gerarTokenDeConvite,
+      resumirTokenDeConvite,
+      ...opcoes.administracao,
+    }),
+  );
+
   // A vitrine é pública por natureza: é o endereço que o cliente abre antes de
   // existir sessão, conta ou loja no contexto. Ela mesma descobre qual loja
   // atende aquele apelido.
@@ -440,7 +491,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     PREFIXO_DO_CARRINHO,
     criarRotasDoCarrinho({
       identificarLoja,
-      lerProduto: (produtoId) => produtoDaVitrine(produtoId),
+      lerProduto: (produtoId) =>
+        produtoDaVitrine(produtoId, opcoes.carrinho?.agora?.() ?? new Date()),
       ...opcoes.carrinho,
     }),
   );

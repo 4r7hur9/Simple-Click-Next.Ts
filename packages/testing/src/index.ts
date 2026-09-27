@@ -38,6 +38,7 @@ export {
 export {
   comoAdministracao,
   comoLoja,
+  criarAdministradorDaPlataforma,
   criarCategoria,
   criarCliente,
   criarEnderecoDoCliente,

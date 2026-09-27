@@ -22,9 +22,16 @@
  * em `product_categories`, e não no produto: o mesmo item é o primeiro em
  * "Promoções" e o quinto em "Lanches".
  */
-import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
+import {
+  estaNaJanelaDeDisponibilidade,
+  lerJanelasDeDisponibilidade,
+  precoQueVale,
+  type PrecoCadastrado,
+} from "@simpleclick/core";
 
 import { transacaoAtual } from "../../core/db.ts";
+import { fusoDaLoja } from "./fuso-da-loja.ts";
+import type { MotivoIndisponivel } from "./produto.usecase.ts";
 
 /** Um produto, como a vitrine o mostra. */
 export interface ProdutoNaVitrine {
@@ -40,6 +47,13 @@ export interface ProdutoNaVitrine {
   readonly imagem: string | null;
   readonly destaque: boolean;
   readonly disponivel: boolean;
+  /**
+   * Por que não está comprável agora; nulo quando está (AC-321, AC-322).
+   *
+   * O MESMO VOCABULÁRIO da página do produto: o cartão que diz "esgotado" e a
+   * página que diz "fora do horário" para o mesmo item seriam duas regras.
+   */
+  readonly motivoIndisponivel: MotivoIndisponivel | null;
 }
 
 /** Uma seção da vitrine. */
@@ -94,6 +108,8 @@ const CAMPOS_DO_PRODUTO = {
   compareAtCents: true,
   isFeatured: true,
   isAvailable: true,
+  unavailableUntil: true,
+  saleWindows: true,
 } as const;
 
 /** A imagem principal, e só ela: a vitrine mostra uma por cartão. */
@@ -120,11 +136,47 @@ interface LinhaDeProduto {
   readonly compareAtCents: bigint | null;
   readonly isFeatured: boolean;
   readonly isAvailable: boolean;
+  readonly unavailableUntil: Date | null;
+  readonly saleWindows: unknown;
   readonly imagens: { readonly url: string | null }[];
+}
+
+/** O instante e o fuso em que a janela de venda é avaliada. */
+interface MomentoDaLoja {
+  readonly agora: Date;
+  readonly fusoHorario: string;
+}
+
+/**
+ * Se o cartão está comprável agora, e por que não (AC-321, AC-322).
+ *
+ * A MESMA ORDEM da página do produto: esgotado vence a janela. O cartão não
+ * olha as variações — isso é peso da página, e o cartão de um produto com
+ * toda a grade zerada continua dizendo "ver opções" até a pessoa abrir.
+ */
+function disponibilidadeDoCartao(
+  linha: LinhaDeProduto,
+  momento: MomentoDaLoja,
+): Pick<ProdutoNaVitrine, "disponivel" | "motivoIndisponivel"> {
+  if (!linha.isAvailable) {
+    return { disponivel: false, motivoIndisponivel: "ESGOTADO" };
+  }
+  const foraDoHorario =
+    (linha.unavailableUntil !== null &&
+      linha.unavailableUntil > momento.agora) ||
+    !estaNaJanelaDeDisponibilidade(
+      lerJanelasDeDisponibilidade(linha.saleWindows),
+      momento.agora,
+      momento.fusoHorario,
+    );
+  return foraDoHorario
+    ? { disponivel: false, motivoIndisponivel: "FORA_DO_HORARIO" }
+    : { disponivel: true, motivoIndisponivel: null };
 }
 
 function comoVitrine(
   linha: LinhaDeProduto,
+  momento: MomentoDaLoja,
   preco?: {
     readonly atualEmCentavos: number | null;
     readonly anteriorEmCentavos: number | null;
@@ -145,7 +197,7 @@ function comoVitrine(
         : preco.anteriorEmCentavos,
     imagem: linha.imagens[0]?.url ?? null,
     destaque: linha.isFeatured,
-    disponivel: linha.isAvailable,
+    ...disponibilidadeDoCartao(linha, momento),
   };
 }
 
@@ -192,10 +244,14 @@ export interface FiltroDoCatalogo {
 export async function catalogoDaVitrine(
   versaoDoCatalogo: string,
   filtro: FiltroDoCatalogo = {},
+  agora: Date = new Date(),
 ): Promise<CatalogoDaVitrine> {
   const tx = transacaoAtual();
   const filtrando = filtro.apenasProdutos !== undefined;
   const permitidos = new Set(filtro.apenasProdutos ?? []);
+  // O instante chega por parâmetro e o fuso é o da loja: é o que faz a janela
+  // de venda (AC-322) ser provável numa terça e num sábado sem esperar por eles.
+  const momento: MomentoDaLoja = { agora, fusoHorario: await fusoDaLoja() };
 
   // UMA consulta para as seções com seus produtos. A alternativa — uma consulta
   // por seção — faria uma loja com doze seções pagar doze idas ao banco para
@@ -273,6 +329,7 @@ export async function catalogoDaVitrine(
         ? [
             comoVitrine(
               vinculo.produto,
+              momento,
               vigentePorProduto.get(vinculo.produto.id),
             ),
           ]
@@ -307,7 +364,7 @@ export async function catalogoDaVitrine(
   return {
     secoes,
     destaques: destaques.map((produto) =>
-      comoVitrine(produto, vigentePorProduto.get(produto.id)),
+      comoVitrine(produto, momento, vigentePorProduto.get(produto.id)),
     ),
     versao: versaoDoCatalogo,
   };
