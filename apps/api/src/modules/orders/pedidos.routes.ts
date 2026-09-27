@@ -68,6 +68,18 @@ import {
 } from "./confirmacao-whatsapp.usecase.ts";
 
 /**
+ * O formato do endereço público do pedido (AC-614): o que `tokenPublico()` e
+ * `novoTokenDoPedido()` sorteiam, em base64 de endereço. Endereço fora deste
+ * formato não é pedido de ninguém — e responde "não encontrado" na borda,
+ * igual a um token bem formado que não existe, sem ir ao banco (P-007).
+ */
+export const FORMATO_DO_TOKEN_DO_PEDIDO = /^[A-Za-z0-9_-]{22,128}$/;
+
+function tokenBemFormado(token: string): boolean {
+  return FORMATO_DO_TOKEN_DO_PEDIDO.test(token);
+}
+
+/**
  * O endereço público do pedido, sorteado AQUI e declarado na transação.
  *
  * NÃO PODE SER ADIVINHÁVEL (AC-614): quem tem o token vê o pedido, e um número
@@ -356,6 +368,13 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
 
   rotas.get("/:apelido/pedido/:token", async (req, res, proximo) => {
     try {
+      // O status muda a cada passo da loja: nada no caminho guarda cópia, ou a
+      // página do cliente mostraria o passado (AC-613).
+      res.set("cache-control", "no-store");
+      if (!tokenBemFormado(req.params.token)) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
       const acesso = opcoes.acesso ?? banco();
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },
@@ -400,6 +419,10 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
     confirmado: boolean,
   ): Promise<void> {
     try {
+      if (!tokenBemFormado(req.params.token)) {
+        res.status(404).json({ erro: "nao_encontrado" });
+        return;
+      }
       const acesso = opcoes.acesso ?? banco();
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },

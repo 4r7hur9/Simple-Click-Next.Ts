@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-26T17:15:38.947Z",
-  "gitRev": "3f6cd16",
+  "timestamp": "2026-09-27T03:52:28.900Z",
+  "gitRev": "474a796",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1339,
+  "testsParsed": 1360,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -67,9 +67,24 @@
       "testName": "pedido fantasma fora do faturamento (AC-611) @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento @spec:AC-611 o que só abriu o WhatsApp aparece à parte e não soma no faturamento",
       "method": "vitest-json"
     },
+    "AC-612": {
+      "status": "pass",
+      "testName": "a página mostra o estado atual e o que já passou (AC-612) @spec:AC-612 o link devolve número, status, linha do tempo, itens, total, pagamento e contato da loja @spec:AC-612 o link devolve número, status, linha do tempo, itens, total, pagamento e contato da loja",
+      "method": "vitest-json"
+    },
+    "AC-613": {
+      "status": "pass",
+      "testName": "a página acompanha a mudança (AC-613) @spec:AC-613 a leitura seguinte à mudança já traz o status novo, e nada no caminho a guarda em cache @spec:AC-613 a leitura seguinte à mudança já traz o status novo, e nada no caminho a guarda em cache",
+      "method": "vitest-json"
+    },
+    "AC-614": {
+      "status": "pass",
+      "testName": "o endereço usa um código longo e aleatório (AC-614) @spec:AC-614 o token que o cliente recebe tem ao menos 128 bits e não carrega número, código nem identificador @spec:AC-614 o token que o cliente recebe tem ao menos 128 bits e não carrega número, código nem identificador",
+      "method": "vitest-json"
+    },
     "AC-615": {
       "status": "pass",
-      "testName": "acompanhamento público @spec:AC-615 mascara o telefone do cliente @spec:AC-615 mascara o telefone do cliente",
+      "testName": "a página não expõe dado além do necessário (AC-615) @spec:AC-615 o telefone do cliente vem mascarado, e endereço, e-mail e identificadores internos não vêm @spec:AC-615 o telefone do cliente vem mascarado, e endereço, e-mail e identificadores internos não vêm",
       "method": "vitest-json"
     }
   },

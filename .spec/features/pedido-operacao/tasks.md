@@ -23,11 +23,11 @@
 - Notas: resolve o pedido fantasma que o crítico apontou. O estado de entrega da mensagem é separado do status do pedido. Não confirmado fica fora do faturamento e aparece contado à parte. A régua do que é venda mora em `packages/core/src/situacao-na-venda.ts` (`resumirVendas`): o painel de métricas (T-801) DEVE usá-la em vez de reescrever a regra. A função da 0025 nunca funcionou (nome de coluna ambíguo, erro 42702 em toda chamada) e é corrigida na 0029.
 - Esforço: alto
 
-## T-603 — Página pública de acompanhamento [pendente]
+## T-603 — Página pública de acompanhamento [concluida]
 
 - Refs: US-603, AC-612, AC-613, AC-614, AC-615
-- Arquivos: apps/api/src/modules/orders/acompanhar.usecase.ts, apps/api/src/modules/orders/acompanhar.usecase.test.ts, apps/web/src/app/(loja)/l/[slug]/pedido/[token]/page.tsx, apps/web/src/features/pedido/LinhaDoTempo.tsx, apps/api/tests/acompanhamento-nao-enumeravel.test.ts
-- Notas: endereço por código longo e aleatório; tentativa de adivinhar responde não encontrado. Telefone parcialmente oculto e nenhum dado interno da loja. Marcado com @principle:P-003 na parte de isolamento.
+- Arquivos: apps/api/src/modules/orders/acompanhar.usecase.ts, apps/api/src/modules/orders/acompanhar.usecase.test.ts, apps/api/tests/acompanhamento.test.ts, apps/api/tests/acompanhamento-nao-enumeravel.test.ts, packages/contracts/src/acompanhamento.ts, apps/web/src/lib/acompanhamento.ts, apps/web/src/app/(loja)/l/[slug]/pedido/[token]/page.tsx, apps/web/src/features/pedido/AcompanhamentoDoPedido.tsx, apps/web/src/features/pedido/LinhaDoTempo.tsx, apps/web/tests/acompanhamento-pedido.test.tsx
+- Notas: endereço por código longo e aleatório; tentativa de adivinhar responde não encontrado. Telefone parcialmente oculto e nenhum dado interno da loja. Marcado com @principle:P-003 na parte de isolamento. A rota pública (`GET /v1/vitrine/:apelido/pedido/:token`, em `pedidos.routes.ts`, mapeado pela T-511) passou a validar o formato do token na borda e a responder sem cache; a página pergunta de novo a cada 5 s e só reagenda quando a resposta anterior volta.
 - Esforço: alto
 
 ## T-604 — Histórico do pedido na conta do cliente [pendente]
