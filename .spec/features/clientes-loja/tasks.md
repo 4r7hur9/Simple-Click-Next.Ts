@@ -16,7 +16,7 @@
 - Notas: cobre listagem, busca e acesso por identificador direto. Marcado com @principle:P-003.
 - Esforço: baixo
 
-## T-702 — Cadastro manual de cliente [pendente]
+## T-702 — Cadastro manual de cliente [concluida]
 
 - Refs: US-701, AC-703, AC-704, AC-706
 - Arquivos: apps/api/src/modules/customers/cadastrar.usecase.ts, packages/contracts/src/clientes.ts, apps/api/tests/clientes-cadastro.int.test.ts, apps/web/src/features/painel-clientes/FormularioCliente.tsx, apps/web/tests/painel-cliente-cadastro.test.tsx
