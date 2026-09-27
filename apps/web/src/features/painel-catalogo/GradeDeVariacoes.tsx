@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { centavosDoTexto, escreverDinheiro } from "../../lib/dinheiro.ts";
+
 interface Opcao {
   readonly id: string;
   readonly nome: string;
@@ -44,10 +46,7 @@ const VARIACAO_VAZIA = {
 
 function dinheiro(centavos: number | null) {
   if (centavos === null) return "Sem preço";
-  return (centavos / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return escreverDinheiro(centavos);
 }
 
 export function GradeDeVariacoes({ produtoId }: Props) {
@@ -112,9 +111,21 @@ export function GradeDeVariacoes({ produtoId }: Props) {
 
   async function criarVariacao(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    setSalvando(true);
     const preco = formulario.preco.trim();
     const estoque = formulario.estoque.trim();
+    // Centavos lidos como texto, sem ponto flutuante no caminho (AC-311):
+    // "19,99" vira 1999, e não 1998,9999… arredondado na sorte.
+    const precoCentavos = preco === "" ? null : centavosDoTexto(preco);
+    if (preco !== "" && (precoCentavos === null || precoCentavos < 0)) {
+      setMensagem("Preço inválido. Escreva em reais, como 89,90.");
+      return;
+    }
+    const unidades = estoque === "" ? null : Number(estoque);
+    if (unidades !== null && (!Number.isInteger(unidades) || unidades < 0)) {
+      setMensagem("Estoque inválido. Use um número inteiro, ou deixe vazio.");
+      return;
+    }
+    setSalvando(true);
     const combinacoes = eixos.flatMap((grupo) => {
       const opcaoId = formulario.escolhas[grupo.id];
       return opcaoId === undefined || opcaoId === ""
@@ -131,13 +142,8 @@ export function GradeDeVariacoes({ produtoId }: Props) {
             nome: formulario.nome,
             sku: formulario.sku.trim() || null,
             codigoDeBarras: null,
-            precoCentavos:
-              preco === ""
-                ? null
-                : Math.round(
-                    Number(preco.replace(".", "").replace(",", ".")) * 100,
-                  ),
-            estoque: estoque === "" ? null : Number(estoque),
+            precoCentavos,
+            estoque: unidades,
             estoqueMinimo: null,
             pesoGramas: null,
             padrao: formulario.padrao,
@@ -146,6 +152,11 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           }),
         },
       );
+      if (resposta.status === 409) {
+        // O código de estoque é da variação, e não se repete na loja (AC-316).
+        setMensagem("Esse SKU já está em outra variação da loja. Use outro.");
+        return;
+      }
       if (!resposta.ok) throw new Error();
       setFormulario(VARIACAO_VAZIA);
       await carregar();

@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T06:21:27.518Z",
-  "gitRev": "ae99fd3",
-  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh catalogo-produtos",
+  "timestamp": "2026-09-27T07:31:25.613Z",
+  "gitRev": "bb8658b",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 119,
+  "testsParsed": 241,
   "results": {
     "AC-300": {
       "status": "pass",
@@ -50,6 +50,51 @@
     "AC-308": {
       "status": "pass",
       "testName": "produto pode ficar rascunho antes de ir ao ar (AC-308) @spec:AC-308 rascunho aparece na gestão e não aparece na vitrine, nem na busca, nem pelo endereço direto @spec:AC-308 rascunho aparece na gestão e não aparece na vitrine, nem na busca, nem pelo endereço direto",
+      "method": "vitest-json"
+    },
+    "AC-309": {
+      "status": "pass",
+      "testName": "preço base e promocional (AC-309) @spec:AC-309 promoção ativa aparece como preço com o base riscado, e o carrinho cobra a promoção @spec:AC-309 promoção ativa aparece como preço com o base riscado, e o carrinho cobra a promoção",
+      "method": "vitest-json"
+    },
+    "AC-310": {
+      "status": "pass",
+      "testName": "preço nomeado pelo dono é oferecido na compra (AC-310) @spec:AC-310 seis unidades recebem o preço de atacado sozinhas, e a conferência diz qual e por quê @spec:AC-310 seis unidades recebem o preço de atacado sozinhas, e a conferência diz qual e por quê",
+      "method": "vitest-json"
+    },
+    "AC-311": {
+      "status": "pass",
+      "testName": "valor monetário nunca perde centavo (AC-311) @spec:AC-311 @principle:P-005 três unidades de R$ 19,99 fecham em R$ 59,97 exatos no servidor e no banco @spec:AC-311 @principle:P-005 três unidades de R$ 19,99 fecham em R$ 59,97 exatos no servidor e no banco",
+      "method": "vitest-json"
+    },
+    "AC-312": {
+      "status": "pass",
+      "testName": "preço enviado pelo cliente é ignorado (AC-312) @spec:AC-312 @principle:P-006 total forjado ao adicionar é descartado e fica no registro de segurança @spec:AC-312 @principle:P-006 total forjado ao adicionar é descartado e fica no registro de segurança",
+      "method": "vitest-json"
+    },
+    "AC-313": {
+      "status": "pass",
+      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar @spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
+      "method": "vitest-json"
+    },
+    "AC-314": {
+      "status": "pass",
+      "testName": "escolha obrigatória pendente bloqueia (AC-412) @spec:AC-412 @spec:AC-314 passar do teto do grupo é pendência, e não corte silencioso @spec:AC-412 @spec:AC-314 passar do teto do grupo é pendência, e não corte silencioso",
+      "method": "vitest-json"
+    },
+    "AC-315": {
+      "status": "pass",
+      "testName": "a conferência cobra o que a pessoa viu (AC-503, AC-504) @spec:AC-503 @spec:AC-315 o acréscimo da opção entra no subtotal, e não sai de graça @spec:AC-503 @spec:AC-315 o acréscimo da opção entra no subtotal, e não sai de graça",
+      "method": "vitest-json"
+    },
+    "AC-316": {
+      "status": "pass",
+      "testName": "variação com estoque zerado fica indisponível na vitrine (AC-316) @spec:AC-316 com o M zerado, a página mostra o M indisponível e o P e o G à venda @spec:AC-316 com o M zerado, a página mostra o M indisponível e o P e o G à venda",
+      "method": "vitest-json"
+    },
+    "AC-317": {
+      "status": "pass",
+      "testName": "o servidor recalcula o item que recebe (AC-411) @spec:AC-411 @spec:AC-317 os nomes das opções vêm do catálogo, e o esgotado não bloqueia os outros @spec:AC-411 @spec:AC-317 os nomes das opções vêm do catálogo, e o esgotado não bloqueia os outros",
       "method": "vitest-json"
     },
     "AC-318": {
@@ -114,6 +159,14 @@
     }
   },
   "principles": {
+    "P-005": {
+      "status": "pass",
+      "testName": "valor monetário nunca perde centavo (AC-311) @spec:AC-311 @principle:P-005 três unidades de R$ 19,99 fecham em R$ 59,97 exatos no servidor e no banco @spec:AC-311 @principle:P-005 três unidades de R$ 19,99 fecham em R$ 59,97 exatos no servidor e no banco"
+    },
+    "P-006": {
+      "status": "pass",
+      "testName": "preço enviado pelo cliente é ignorado (AC-312) @spec:AC-312 @principle:P-006 total forjado ao adicionar é descartado e fica no registro de segurança @spec:AC-312 @principle:P-006 total forjado ao adicionar é descartado e fica no registro de segurança"
+    },
     "P-011": {
       "status": "pass",
       "testName": "os quatro estados da lista (AC-300, P-011) @spec:AC-300 @principle:P-011 enquanto carrega, a tela diz que está carregando @spec:AC-300 @principle:P-011 enquanto carrega, a tela diz que está carregando"

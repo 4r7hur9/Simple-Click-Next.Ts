@@ -426,6 +426,107 @@ describe("limite de escolhas é respeitado na tela (AC-314)", () => {
   });
 });
 
+describe("variação zerada aparece, mas não pode ser escolhida (AC-316)", () => {
+  const TAMANHO = "55555555-5555-4555-8555-555555555555";
+  const P = "cccccccc-1111-4111-8111-111111111111";
+  const M = "cccccccc-2222-4222-8222-222222222222";
+  const G = "cccccccc-3333-4333-8333-333333333333";
+
+  /** A camiseta do critério: P, M e G, com o M sem estoque. */
+  function camiseta() {
+    const opcao = (id: string, nome: string) => ({
+      id,
+      nome,
+      acrescimoCentavos: 0,
+      marcadaPorPadrao: false,
+      // A OPÇÃO do eixo continua disponível: quem acabou foi a PEÇA. É a
+      // variação que diz se há estoque, e a tela precisa ler a variação.
+      disponivel: true,
+    });
+    const variacao = (
+      id: string,
+      nome: string,
+      opcaoId: string,
+      disponivel: boolean,
+    ) => ({
+      id,
+      nome,
+      precoCentavos: 4990,
+      precoAnteriorCentavos: null,
+      disponivel,
+      padrao: false,
+      valoresDosEixos: [{ grupoId: TAMANHO, opcaoId }],
+    });
+    return naTela({
+      nome: "Camiseta Básica",
+      precoCentavos: null,
+      grupos: [
+        {
+          id: TAMANHO,
+          nome: "Tamanho",
+          descricao: null,
+          tipo: "VARIATION",
+          minimo: 1,
+          maximo: 1,
+          permiteRepetir: false,
+          eixoDeVariacao: true,
+          opcoes: [opcao(P, "P"), opcao(M, "M"), opcao(G, "G")],
+        },
+      ],
+      variacoes: [
+        variacao("dddddddd-1111-4111-8111-111111111111", "P", P, true),
+        variacao("dddddddd-2222-4222-8222-222222222222", "M", M, false),
+        variacao("dddddddd-3333-4333-8333-333333333333", "G", G, true),
+      ],
+    });
+  }
+
+  /**
+   * O botão de rádio de um tamanho, pelo eixo e pela opção — e não pelo texto:
+   * "M" solto casaria com qualquer rótulo que tivesse a letra.
+   */
+  function tamanho(caixa: HTMLElement, opcaoId: string): HTMLInputElement {
+    const achado = caixa.querySelector<HTMLInputElement>(
+      `input[name="eixo-${TAMANHO}"][value="${opcaoId}"]`,
+    );
+    if (achado === null) throw new Error(`não achei o tamanho ${opcaoId}`);
+    return achado;
+  }
+
+  it("@spec:AC-316 o M aparece marcado como indisponível e desabilitado; o P e o G continuam escolhíveis", () => {
+    const { caixa, desmontar } = montar(camiseta());
+
+    const m = tamanho(caixa, M);
+    expect(m.disabled).toBe(true);
+    expect(m.closest("label")?.textContent).toContain("Indisponível");
+    expect(tamanho(caixa, P).disabled).toBe(false);
+    expect(tamanho(caixa, G).disabled).toBe(false);
+    expect(tamanho(caixa, P).closest("label")?.textContent).not.toContain(
+      "Indisponível",
+    );
+    desmontar();
+  });
+
+  it("@spec:AC-316 clicar no M não o escolhe, e escolher o G segue normalmente", () => {
+    const { caixa, desmontar } = montar(camiseta());
+    // `.click()` do próprio elemento, e não um evento sintético: é o clique que
+    // o navegador entrega, e ele respeita o `disabled` como a pessoa encontra.
+    const apertar = (elemento: HTMLInputElement) =>
+      act(() => {
+        elemento.click();
+      });
+
+    apertar(tamanho(caixa, M));
+    expect(tamanho(caixa, M).checked).toBe(false);
+    expect(textoDoBotao(caixa)).not.toContain("49,90");
+
+    apertar(tamanho(caixa, G));
+    expect(tamanho(caixa, G).checked).toBe(true);
+    expect(textoDoBotao(caixa)).toContain("49,90");
+    desmontar();
+  });
+});
+
 describe("produto indisponível é visto mas não comprado (AC-413)", () => {
   it("@spec:AC-413 produto esgotado tem o botão desabilitado e a explicação ao lado", () => {
     const { caixa, desmontar } = montar(

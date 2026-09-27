@@ -50,11 +50,11 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-306 — Variações com código próprio e grade [pendente]
+## T-306 — Variações com código próprio e grade [concluida]
 
 - Refs: US-303, AC-316
-- Arquivos: apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/catalog/opcoes.routes.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx
-- Notas: primeira fatia funcional local permite marcar grupos como eixos, cadastrar variações com combinação validada, preço, SKU, estoque opcional e disponibilidade. A combinação dos eixos resolve qual variação é vendida; geração automática da matriz cartesiana, edição avançada, estoque movimentado, testes anotados e auditoria formal continuam pendentes.
+- Arquivos: apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/catalog/opcoes.routes.ts, apps/api/tests/variacoes-do-produto.int.test.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx, apps/web/src/features/produto/MatrizDeVariacao.tsx, apps/web/tests/painel-variacoes.test.tsx, apps/web/tests/produto-pagina.test.tsx
+- Notas: o dono marca grupos como eixo e cadastra cada variação com a combinação validada (só opção de eixo ligado ao produto), preço em centavos inteiros, código de estoque (SKU) próprio e opcional, estoque e disponibilidade. O SKU não se repete na LOJA (409 `sku_duplicado`, criando ou trocando), e variações sem SKU convivem. Estoque zero é "controla e acabou": a vitrine mostra a variação indisponível e a tela desabilita a opção do eixo sem escondê-la; o carrinho recusa a variação zerada (409) e aceita as demais; repor pelo painel devolve à venda. A grade do painel lê o preço pelo `centavosDoTexto` (antes "19.99" virava R$ 1.999,00) e explica o SKU repetido. Prova: rotas do painel, página pública e carrinho contra banco real, e as telas da grade e do produto. Geração automática da matriz cartesiana e edição em lote ficam fora deste critério; o estoque movimentado é da T-307.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
