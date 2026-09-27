@@ -323,6 +323,23 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     }),
   },
 
+  // O histórico de estoque da variante (T-307). Só entra e só se lê: a tabela
+  // não concede alteração nem remoção a ninguém, e a varredura confirma que a
+  // linha da outra loja também não aparece.
+  stock_movements: {
+    chave: "id",
+    alteracao: { coluna: "reason", valor: "Movimento sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      variant_id: exigirApoio(loja, "variante"),
+      quantity_before: 5,
+      quantity_delta: -1,
+      quantity_after: 4,
+      reason: `Contagem ${marca}`,
+      origin: "MANUAL",
+    }),
+  },
+
   product_prices: {
     chave: "id",
     // Alterar preço da outra loja é o ataque mais direto que existe aqui: o
@@ -884,6 +901,7 @@ beforeAll(async () => {
       "order_items",
       "order_status_history",
       "variant_option_values",
+      "stock_movements",
       "product_attributes",
     ],
     ["order_item_options"],
