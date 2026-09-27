@@ -27,7 +27,7 @@
 
 - Refs: US-202, AC-214, AC-323
 - Arquivos: apps/api/src/modules/admin/alterar-vertical.usecase.ts, apps/api/src/modules/admin/alterar-vertical.usecase.test.ts, apps/api/tests/vertical-somente-admin.test.ts, apps/web/src/features/admin/SeletorVertical.tsx
-- Notas: escrita nessa coluna é exclusiva da credencial de administração. Nenhum produto ou categoria perde dado; o controle de estoque do ramo novo é ativado; a alteração é auditada. Teste prova que o dono é recusado mesmo chamando a API direto.
+- Notas: escrita nessa coluna é exclusiva da credencial de administração. Nenhum produto ou categoria perde dado; o controle de estoque do ramo novo é ativado; a alteração é auditada. Teste prova que o dono é recusado mesmo chamando a API direto. O lado do DONO já está provado (AC-323, `vertical-somente-admin.test.ts`): o tipo de negócio mandado dentro de uma seção é recusado com 400 `campo_da_plataforma`, e o endereço `configuracao/tipo-de-negocio` continua sem rota (404, AC-921) — os dois dizendo que esse ajuste é feito pela administração da plataforma; o painel não o oferece como campo e explica de quem é. Falta o lado do administrador (AC-214): `alterar-vertical.usecase.ts` e `SeletorVertical.tsx`.
 - Esforço: alto
 
 ## T-204 — Apelido alterado preserva o endereço antigo [pendente]

@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CONFIGURACOES_DA_PLATAFORMA } from "@simpleclick/contracts";
 
 import LayoutDaConfiguracao from "../src/app/(painel)/painel/config/layout.tsx";
+import PaginaInicialDoPainel from "../src/app/(painel)/painel/page.tsx";
 import { FormularioHorario } from "../src/features/config/FormularioHorario.tsx";
 import { MENSAGEM_DE_RECUSA } from "../src/features/config/useSecao.ts";
 import {
@@ -66,6 +67,55 @@ describe("a navegação das configurações (AC-921)", () => {
     for (const trecho of ["ramo", "slug", "cnpj", "cpf", "/admin"]) {
       expect(textos).not.toContain(trecho);
     }
+  });
+});
+
+describe("o tipo de negócio não é campo do painel (AC-323)", () => {
+  /** O que o dono pode tocar numa tela: links, campos e seus rótulos. */
+  function editaveis(html: string): string {
+    const documento = new DOMParser().parseFromString(html, "text/html");
+    return [...documento.querySelectorAll("a, input, select, textarea, label")]
+      .map((elemento) =>
+        [
+          elemento.textContent ?? "",
+          elemento.getAttribute("href") ?? "",
+          elemento.getAttribute("name") ?? "",
+          elemento.getAttribute("aria-label") ?? "",
+        ].join(" "),
+      )
+      .join(" | ")
+      .toLowerCase();
+  }
+
+  it("@spec:AC-323 nem a casa do painel nem as configurações oferecem o tipo de negócio para editar", () => {
+    const telas = [
+      renderToStaticMarkup(<PaginaInicialDoPainel />),
+      renderToStaticMarkup(
+        <LayoutDaConfiguracao>
+          <p>conteúdo</p>
+        </LayoutDaConfiguracao>,
+      ),
+    ];
+
+    for (const html of telas) {
+      const tocavel = editaveis(html);
+      for (const trecho of ["tipo de negócio", "tipo-de-negocio", "ramo"]) {
+        expect(tocavel).not.toContain(trecho);
+      }
+    }
+  });
+
+  it("@spec:AC-323 o painel diz que o tipo de negócio é cuidado pela administração da plataforma", () => {
+    const texto = new DOMParser()
+      .parseFromString(
+        renderToStaticMarkup(<PaginaInicialDoPainel />),
+        "text/html",
+      )
+      .body.textContent?.replace(/\s+/g, " ");
+
+    expect(texto).toMatch(
+      /Tipo de negócio[^.]*cuidados pela administração da plataforma/,
+    );
   });
 });
 

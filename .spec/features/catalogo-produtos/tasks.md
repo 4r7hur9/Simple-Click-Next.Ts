@@ -78,7 +78,7 @@
 
 - Refs: US-304, AC-318, AC-319, AC-320, AC-322, AC-324
 - Arquivos: packages/core/src/vertical.ts, packages/core/src/vertical.test.ts, packages/core/src/index.ts, packages/contracts/src/vertical.ts, packages/contracts/src/index.ts, packages/contracts/src/vitrine.ts, apps/web/src/lib/vertical.ts, apps/web/src/features/painel-catalogo/BlocosPorRamo.tsx, apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx, apps/api/src/modules/catalog/atributos.usecase.ts, apps/api/src/modules/catalog/atributos.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts
-- Notas: primeira fatia funcional normaliza a composição do preset por tela, expõe os blocos no DTO público e usa a composição para renderizar categorias e destaques da vitrine. O cadastro de produto valida atributos conhecidos por ramo (eletrônicos e autopeças) e preserva campos personalizados. A prova formal ONP e a cobertura completa de vocabulário, impressão e WhatsApp permanecem pendentes.
+- Notas: primeira fatia funcional normaliza a composição do preset por tela, expõe os blocos no DTO público e usa a composição para renderizar categorias e destaques da vitrine. O cadastro de produto valida atributos conhecidos por ramo (eletrônicos e autopeças) e preserva campos personalizados. A prova formal ONP e a cobertura completa de vocabulário, impressão e WhatsApp permanecem pendentes. O AC-320 (o administrador troca o tipo de negócio e nada se perde) depende da T-203 (admin-lojas), que é quem troca o tipo; o dono já é recusado com explicação (AC-323, provado na T-203).
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 

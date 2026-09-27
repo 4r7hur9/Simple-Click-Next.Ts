@@ -32,9 +32,12 @@ import {
 } from "../../core/midia.ts";
 import { validar } from "../../core/validar.ts";
 import {
+  campoDaPlataformaNoCorpo,
   ESQUEMAS_DAS_SECOES,
   esquemaDosParametrosDaImagem,
   esquemaDosParametrosDaSecao,
+  explicacaoDaPlataforma,
+  rotuloDoEnderecoDaPlataforma,
   type ValorDaSecao,
 } from "./configuracoes.schema.ts";
 import {
@@ -281,6 +284,20 @@ export function criarRotasDasConfiguracoes(
 
     rotas.put(
       caminho,
+      // Antes da borda: campo da plataforma dentro da seção é recusado do
+      // mesmo jeito (400, nada gravado), mas DIZENDO de quem é o ajuste.
+      (requisicao, resposta, proximo) => {
+        const intruso = campoDaPlataformaNoCorpo(requisicao.body);
+        if (intruso === null) {
+          proximo();
+          return;
+        }
+        resposta.status(400).json({
+          erro: "campo_da_plataforma",
+          campo: intruso.campo,
+          mensagem: explicacaoDaPlataforma(intruso.rotulo),
+        });
+      },
       bordaDeGravacao,
       async (requisicao, resposta, proximo) => {
         try {
@@ -306,6 +323,28 @@ export function criarRotasDasConfiguracoes(
   }
 
   for (const secao of SECOES_DO_DONO) montarSecao(secao);
+
+  /*
+   * Quem pede o ajuste da plataforma pelo endereço continua sem rota (404,
+   * AC-921) — mas recebe a razão (AC-323). Sem ela, "não encontrado" soaria
+   * como erro de digitação, e não como "não é com você".
+   */
+  rotas.all(
+    "/:apelido/configuracao/:trecho",
+    (requisicao, resposta, proximo) => {
+      const rotulo = rotuloDoEnderecoDaPlataforma(
+        String(requisicao.params.trecho),
+      );
+      if (rotulo === null) {
+        proximo();
+        return;
+      }
+      resposta.status(404).json({
+        erro: "nao_encontrado",
+        mensagem: explicacaoDaPlataforma(rotulo),
+      });
+    },
+  );
 
   /**
    * Imagem acima do limite de leitura: a mesma recusa que ensina, e não o

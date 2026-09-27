@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T07:51:30.555Z",
-  "gitRev": "809b59e",
+  "timestamp": "2026-09-27T10:11:52.579Z",
+  "gitRev": "45ec0f5",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 258,
+  "testsParsed": 268,
   "results": {
     "AC-300": {
       "status": "pass",
@@ -105,6 +105,11 @@
     "AC-319": {
       "status": "pass",
       "testName": "atributos do ramo @spec:AC-319 aceita voltagem prevista para eletrônicos @spec:AC-319 aceita voltagem prevista para eletrônicos",
+      "method": "vitest-json"
+    },
+    "AC-323": {
+      "status": "pass",
+      "testName": "o dono não muda o tipo de negócio (AC-323) @spec:AC-323 mandar o tipo de negócio dentro de uma seção é negado com a explicação, e a loja continua lanchonete @spec:AC-323 mandar o tipo de negócio dentro de uma seção é negado com a explicação, e a loja continua lanchonete",
       "method": "vitest-json"
     },
     "AC-324": {

@@ -108,3 +108,54 @@ export const ESQUEMAS_DAS_SECOES = {
 export type ValorDaSecao<S extends SecaoDoDono> = z.output<
   (typeof ESQUEMAS_DAS_SECOES)[S]
 >;
+
+/**
+ * O que é da PLATAFORMA, e não do dono (AC-323, AC-921, ASM-306).
+ *
+ * Os nomes com que alguém tentaria mandar cada coisa — pelo corpo de uma seção
+ * ou pelo endereço — apontam para o rótulo que a explicação usa. A recusa já
+ * acontecia (esquema estrito, rota inexistente); o que esta tabela acrescenta é
+ * DIZER por quê: "campo desconhecido" deixaria o dono achando que errou o nome,
+ * e ele tentaria de novo com outro.
+ */
+const DA_PLATAFORMA: Readonly<Record<string, string>> = {
+  verticalCode: "tipo de negócio",
+  vertical_code: "tipo de negócio",
+  vertical: "tipo de negócio",
+  ramo: "tipo de negócio",
+  tipoDeNegocio: "tipo de negócio",
+  "tipo-de-negocio": "tipo de negócio",
+  slug: "apelido da loja",
+  apelido: "apelido da loja",
+  docNumber: "documento da loja",
+  documento: "documento da loja",
+  contrato: "contrato",
+  funcionalidades: "funcionalidades liberadas",
+};
+
+/** A frase da recusa, para o que a administração da plataforma decide. */
+export function explicacaoDaPlataforma(rotulo: string): string {
+  return `Esse ajuste (${rotulo}) é feito pela administração da plataforma, e não pelo painel da loja. Para mudar, fale com o suporte do SimpleClick.`;
+}
+
+/**
+ * O primeiro campo da plataforma que veio no corpo, já com o rótulo — ou
+ * `null` quando o corpo só tem campos da seção.
+ */
+export function campoDaPlataformaNoCorpo(
+  corpo: unknown,
+): { readonly campo: string; readonly rotulo: string } | null {
+  if (typeof corpo !== "object" || corpo === null || Array.isArray(corpo)) {
+    return null;
+  }
+  for (const campo of Object.keys(corpo)) {
+    const rotulo = DA_PLATAFORMA[campo];
+    if (rotulo !== undefined) return { campo, rotulo };
+  }
+  return null;
+}
+
+/** O rótulo de um endereço que alguém tentaria para um ajuste da plataforma. */
+export function rotuloDoEnderecoDaPlataforma(trecho: string): string | null {
+  return DA_PLATAFORMA[trecho] ?? null;
+}
