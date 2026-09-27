@@ -1,7 +1,7 @@
 {
   "feature": "cardapio-na-tv",
-  "timestamp": "2026-09-27T12:02:03.731Z",
-  "gitRev": "04a1853",
+  "timestamp": "2026-09-27T12:07:37.562Z",
+  "gitRev": "d853f36",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh cardapio-na-tv",
   "reporter": "vitest-json",
   "exitCode": 0,
