@@ -1,40 +1,126 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-08-27T15:31:49.716Z",
-  "gitRev": "3df4d7b",
-  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "timestamp": "2026-09-27T06:17:05.006Z",
+  "gitRev": "28b5c98",
+  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1149,
-  "results": {},
+  "testsParsed": 119,
+  "results": {
+    "AC-300": {
+      "status": "pass",
+      "testName": "categoria criada aparece na vitrine na posição escolhida (AC-300) @spec:AC-300 a categoria criada entra na lista do dono e na vitrine, na ordem que ele definiu @spec:AC-300 a categoria criada entra na lista do dono e na vitrine, na ordem que ele definiu",
+      "method": "vitest-json"
+    },
+    "AC-301": {
+      "status": "pass",
+      "testName": "categoria oculta desaparece da vitrine sem perder produtos (AC-301) @spec:AC-301 ocultar tira a seção e os produtos da vitrine, mantém na gestão e não apaga nada @spec:AC-301 ocultar tira a seção e os produtos da vitrine, mantém na gestão e não apaga nada",
+      "method": "vitest-json"
+    },
+    "AC-302": {
+      "status": "pass",
+      "testName": "reordenar categorias muda a vitrine na hora (AC-302) @spec:AC-302 Sobremesas vai para o topo na próxima visita, sem mexer em produto nenhum @spec:AC-302 Sobremesas vai para o topo na próxima visita, sem mexer em produto nenhum",
+      "method": "vitest-json"
+    },
+    "AC-303": {
+      "status": "pass",
+      "testName": "apagar categoria com produtos exige destino (AC-303) @spec:AC-303 sem destino, o pedido é recusado com a contagem e nada muda @spec:AC-303 sem destino, o pedido é recusado com a contagem e nada muda",
+      "method": "vitest-json"
+    },
+    "AC-304": {
+      "status": "pass",
+      "testName": "produto novo nasce completo e visível na vitrine (AC-304) @spec:AC-304 cadastrado com nome, descrição, categoria, preço e imagem, aparece na lista do dono e na vitrine dentro da categoria @spec:AC-304 cadastrado com nome, descrição, categoria, preço e imagem, aparece na lista do dono e na vitrine dentro da categoria",
+      "method": "vitest-json"
+    },
+    "AC-305": {
+      "status": "pass",
+      "testName": "produto aceita várias imagens com uma principal (AC-305) @spec:AC-305 com três fotos, o cartão mostra a principal e a página mostra as três @spec:AC-305 com três fotos, o cartão mostra a principal e a página mostra as três",
+      "method": "vitest-json"
+    },
+    "AC-306": {
+      "status": "pass",
+      "testName": "imagem grande é aceita, imagem falsa é recusada (AC-306) @spec:AC-306 JPEG de 6 MB é aceito, hospedado e aparece na vitrine com a dimensão original @spec:AC-306 JPEG de 6 MB é aceito, hospedado e aparece na vitrine com a dimensão original",
+      "method": "vitest-json"
+    },
+    "AC-307": {
+      "status": "pass",
+      "testName": "produto pode ser editado, duplicado e removido (AC-307) @spec:AC-307 a alteração feita pelo dono aparece na vitrine @spec:AC-307 a alteração feita pelo dono aparece na vitrine",
+      "method": "vitest-json"
+    },
+    "AC-308": {
+      "status": "pass",
+      "testName": "produto pode ficar rascunho antes de ir ao ar (AC-308) @spec:AC-308 rascunho aparece na gestão e não aparece na vitrine, nem na busca, nem pelo endereço direto @spec:AC-308 rascunho aparece na gestão e não aparece na vitrine, nem na busca, nem pelo endereço direto",
+      "method": "vitest-json"
+    },
+    "AC-318": {
+      "status": "pass",
+      "testName": "atributos do ramo @spec:AC-318 preserva campo criado pelo dono para o ramo @spec:AC-318 preserva campo criado pelo dono para o ramo",
+      "method": "vitest-json"
+    },
+    "AC-319": {
+      "status": "pass",
+      "testName": "atributos do ramo @spec:AC-319 aceita voltagem prevista para eletrônicos @spec:AC-319 aceita voltagem prevista para eletrônicos",
+      "method": "vitest-json"
+    },
+    "AC-324": {
+      "status": "pass",
+      "testName": "composição das telas por ramo @spec:AC-324 converte o preset do banco e consulta blocos por tela @spec:AC-324 converte o preset do banco e consulta blocos por tela",
+      "method": "vitest-json"
+    },
+    "AC-321": {
+      "status": "pass",
+      "testName": "disponibilidade do produto @spec:AC-321 esgotado fica indisponível mesmo dentro da janela @spec:AC-321 esgotado fica indisponível mesmo dentro da janela",
+      "method": "vitest-json"
+    },
+    "AC-322": {
+      "status": "pass",
+      "testName": "janela de disponibilidade do produto @spec:AC-322 libera no sábado dentro do fuso da loja @spec:AC-322 libera no sábado dentro do fuso da loja",
+      "method": "vitest-json"
+    },
+    "AC-325": {
+      "status": "pass",
+      "testName": "a categoria tem seu próprio criador de especificações (AC-325) @spec:AC-325 o dono cria especificações dos quatro tipos, com unidade, obrigatoriedade e filtro @spec:AC-325 o dono cria especificações dos quatro tipos, com unidade, obrigatoriedade e filtro",
+      "method": "vitest-json"
+    },
+    "AC-326": {
+      "status": "pass",
+      "testName": "o produto herda as especificações da categoria (AC-326) @spec:AC-326 o formulário do produto traz as especificações na ordem definida, e a obrigatória impede salvar em branco @spec:AC-326 o formulário do produto traz as especificações na ordem definida, e a obrigatória impede salvar em branco",
+      "method": "vitest-json"
+    },
+    "AC-327": {
+      "status": "pass",
+      "testName": "a lista só aceita os valores cadastrados (AC-327) @spec:AC-327 o 17 é recusado explicando os aceitos, e passa a valer depois que o dono o acrescenta @spec:AC-327 o 17 é recusado explicando os aceitos, e passa a valer depois que o dono o acrescenta",
+      "method": "vitest-json"
+    },
+    "AC-328": {
+      "status": "pass",
+      "testName": "especificação filtrável vira filtro na vitrine (AC-328) @spec:AC-328 na categoria Pneus o cliente pode filtrar por Aro, e só por ela @spec:AC-328 na categoria Pneus o cliente pode filtrar por Aro, e só por ela",
+      "method": "vitest-json"
+    },
+    "AC-329": {
+      "status": "pass",
+      "testName": "produto que muda de categoria não perde o que foi preenchido (AC-329) @spec:AC-329 os valores anteriores ficam guardados e marcados como não usados, e as especificações da nova aparecem para preencher @spec:AC-329 os valores anteriores ficam guardados e marcados como não usados, e as especificações da nova aparecem para preencher",
+      "method": "vitest-json"
+    },
+    "AC-330": {
+      "status": "pass",
+      "testName": "alterar ou remover especificação não corrompe produto nem pedido (AC-330) @spec:AC-330 renomear avisa quantos produtos serão afetados, e só aplica confirmado; o pedido antigo guarda o nome da época @spec:AC-330 renomear avisa quantos produtos serão afetados, e só aplica confirmado; o pedido antigo guarda o nome da época",
+      "method": "vitest-json"
+    },
+    "AC-333": {
+      "status": "pass",
+      "testName": "baixa concorrente no checkout @spec:AC-333 aceita uma compra, recusa a outra e não deixa saldo negativo @spec:AC-333 aceita uma compra, recusa a outra e não deixa saldo negativo",
+      "method": "vitest-json"
+    }
+  },
   "principles": {
-    "P-006": {
+    "P-011": {
       "status": "pass",
-      "testName": "o preço vem do catálogo, no momento de fechar (AC-504, P-006) @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar @spec:AC-504 @principle:P-006 mudar o preço no catálogo muda o total antes de fechar"
-    },
-    "P-003": {
-      "status": "pass",
-      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
-    },
-    "P-010": {
-      "status": "pass",
-      "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto"
-    },
-    "P-009": {
-      "status": "pass",
-      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
+      "testName": "os quatro estados da lista (AC-300, P-011) @spec:AC-300 @principle:P-011 enquanto carrega, a tela diz que está carregando @spec:AC-300 @principle:P-011 enquanto carrega, a tela diz que está carregando"
     },
     "P-012": {
       "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
-    },
-    "P-007": {
-      "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
-    },
-    "P-011": {
-      "status": "pass",
-      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+      "testName": "os quatro estados da lista (AC-300, P-011) @spec:AC-300 @principle:P-012 a lista não tem violação crítica nem séria de acessibilidade @spec:AC-300 @principle:P-012 a lista não tem violação crítica nem séria de acessibilidade"
     }
   }
 }
