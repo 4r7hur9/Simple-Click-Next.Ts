@@ -1321,6 +1321,34 @@ bash infra/scripts/verificar.sh  # o portão completo
     arquivo `.ttf` do disco na partida da rota. Fica para quando houver um
     arquivo de fonte versionado; hoje elas vêm do pacote do Next.
 
+92. **PRIORIDADE — um dono consegue mexer no painel de OUTRA loja (27/09,
+    achado na T-313).** `app.is_store_staff()` (migração 0001) confere só o
+    PAPEL da sessão (`OWNER`/`STAFF`), e não se a identidade é membro daquela
+    loja. As rotas do dono (catálogo, estoque, variações, configurações, fila)
+    resolvem a loja pelo APELIDO que vem na URL e abrem a transação com
+    `papel: OWNER` — então qualquer token de dono válido administra qualquer
+    loja ativa, bastando trocar o apelido. O isolamento por linha continua
+    separando uma loja da outra DENTRO da transação; o que falta é a pergunta
+    anterior: "este dono é desta loja?". O caminho: conferir `store_members`
+    (identidade + loja + papel ativo) antes de abrir a transação, num ponto só
+    pelo qual toda rota do dono passe — e trazer a condição para a política,
+    para que uma rota nova não possa esquecê-la. Precisa de prova de
+    isolamento própria (dono da loja A tentando ler e gravar na loja B, em
+    cada módulo). O usuário de teste local (`usuario-de-teste-local`) e o do
+    ponta a ponta do painel dependem da brecha hoje: ao fechá-la, eles
+    precisam virar membros de verdade da loja que usam.
+
+93. **A vitrine demora até um minuto para mostrar o que o dono mudou (27/09,
+    T-313).** O site guarda a vitrine, o catálogo e a página de produto por 60 s
+    (`SEGUNDOS_DE_CACHE`, `apps/web/src/server/vitrine.ts` e `produto.ts`),
+    sem etiqueta, e nenhuma rota do painel chama a invalidação (é a dívida 43,
+    ainda aberta). O efeito: "reordenar categorias muda a vitrine na hora"
+    (AC-302) e "a alteração aparece na vitrine" (AC-307) são verdade na API e
+    nas provas dela, mas o cliente pode ver a versão antiga por até um minuto.
+    O ponta a ponta do painel contorna medindo pela página do produto novo,
+    que ainda não está guardada. Fechar a dívida 43 — o caso de uso do painel
+    invalida e avisa o site, e o site guarda por etiqueta da loja — fecha esta.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que

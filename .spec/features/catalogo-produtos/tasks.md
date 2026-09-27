@@ -106,10 +106,10 @@
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-313 — Telas de ponta a ponta do catálogo [pendente]
+## T-313 — Telas de ponta a ponta do catálogo [concluida]
 
 - Refs: US-301, US-303, US-306, US-307, AC-304, AC-313, AC-325, AC-331
-- Arquivos: e2e/specs/painel-catalogo.spec.ts, e2e/specs/specs-categoria.spec.ts, e2e/specs/estoque.spec.ts, e2e/specs/produto-opcoes.spec.ts
-- Notas: cobre cadastro completo, grupos obrigatórios, criador de especificações e ajuste de estoque.
+- Arquivos: e2e/specs/painel-catalogo.spec.ts, e2e/specs/specs-categoria.spec.ts, e2e/specs/estoque.spec.ts, e2e/specs/produto-opcoes.spec.ts, e2e/fixtures/painel.ts, e2e/playwright.config.ts, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx
+- Notas: o primeiro ponta a ponta do PAINEL, nos dois tamanhos de tela. Cadastro completo: o dono cria a seção e o produto pelas telas e ele aparece publicado na vitrine (AC-304). Grupos obrigatórios: o grupo criado no painel impede o cliente de adicionar sem escolher, e o acréscimo entra no total antes do carrinho (AC-313). Criador de especificações: a lista obrigatória e o número com unidade criados na seção viram os campos do cadastro do produto dela, e o obrigatório barra o envio (AC-325). Estoque: a venda de três M baixa de 10 para 7 com o movimento do pedido, e o ajuste manual entra no histórico (AC-331). O painel do ponta a ponta usa uma loja de roupas só dele (`e2e-painel`, via `NEXT_PUBLIC_DEV_STORE_SLUG` no site do teste) e a sessão do dono é emitida na montagem, porque o site de teste roda em modo produção e o cookie da tela de entrada sai preso ao domínio de produção. A montagem revelou e corrigiu a leitura de dinheiro do produto e do acréscimo, que apagava o ponto ("19.90" virava R$ 1.990). Ver dívidas 92 (dono alcança outra loja) e 93 (vitrine atrasa até um minuto).
 - Esforço: alto
 - Modelo: gpt-5.6-luna
