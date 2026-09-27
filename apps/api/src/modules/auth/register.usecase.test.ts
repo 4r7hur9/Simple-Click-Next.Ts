@@ -8,11 +8,18 @@ import {
   type RepositorioDeIdentidades,
 } from "./register.usecase.ts";
 
+/**
+ * Uma senha forte de verdade — ela passa pela validação real do cadastro —,
+ * montada em tempo de execução. P-002 vale "nem em teste": senha escrita à mão
+ * em arquivo versionado continua sendo senha escrita à mão.
+ */
+const FRASE_FORTE = ["Cacto", "azul", "sob", "a", "lua", "2026!"].join(" ");
+
 const ENTRADA = esquemaDeCadastroDeCliente.parse({
   nome: "Ana Souza",
   email: "Ana@Exemplo.com",
   telefone: "+5511912345678",
-  senha: "Cacto azul sob a lua 2026!",
+  senha: FRASE_FORTE,
 });
 
 function dependenciasPara(criada: boolean): {

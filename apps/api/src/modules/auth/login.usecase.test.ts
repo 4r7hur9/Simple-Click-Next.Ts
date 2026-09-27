@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -5,6 +7,14 @@ import {
   type DependenciasDoLogin,
   type IdentidadeParaLogin,
 } from "./login.usecase.ts";
+
+/**
+ * A senha digitada, montada em tempo de execução (P-002: nem em teste).
+ *
+ * O valor não importa — a conferência é um dublê que sempre aprova —, e
+ * montá-lo na hora garante que nenhum teste depende de senha escrita à mão.
+ */
+const SENHA_CORRETA = `correta-${randomUUID()}`;
 
 const DONO: IdentidadeParaLogin = {
   id: "identidade-dono",
@@ -33,7 +43,7 @@ describe("login com senha", () => {
     const dependencias = dependenciasPara(DONO);
 
     const resultado = await entrarComSenha(
-      { email: " DONO@EXEMPLO.COM ", senha: "senha-correta" },
+      { email: " DONO@EXEMPLO.COM ", senha: SENHA_CORRETA },
       dependencias,
     );
 
@@ -57,7 +67,7 @@ describe("login com senha", () => {
     const dependencias = dependenciasPara(cliente);
 
     const resultado = await entrarComSenha(
-      { email: cliente.email, senha: "senha-correta" },
+      { email: cliente.email, senha: SENHA_CORRETA },
       dependencias,
     );
 

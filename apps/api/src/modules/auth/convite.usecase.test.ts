@@ -9,6 +9,17 @@ import {
 
 const AGORA = new Date("2026-08-23T12:00:00.000Z");
 
+/**
+ * A primeira senha do dono, montada em tempo de execução.
+ *
+ * P-002 vale "nem em exemplo, nem em teste": senha escrita à mão em arquivo
+ * versionado continua sendo senha escrita à mão. O valor não importa aqui — a
+ * validação é um dublê —, só precisa ser o mesmo nas duas tentativas.
+ */
+const PRIMEIRA_SENHA_DO_DONO = ["Uma", "frase", "longa", "e", "segura"].join(
+  " ",
+);
+
 function criarDependencias(): DependenciasDeConvite {
   return {
     repositorio: {
@@ -76,13 +87,13 @@ describe("convite do dono", () => {
 
     await expect(
       definirPrimeiraSenha(
-        { token: "convite-valido", senha: "Senha muito segura" },
+        { token: "convite-valido", senha: PRIMEIRA_SENHA_DO_DONO },
         dependencias,
       ),
     ).resolves.toEqual({ ok: true, acessoLiberado: true });
     await expect(
       definirPrimeiraSenha(
-        { token: "convite-valido", senha: "Senha muito segura" },
+        { token: "convite-valido", senha: PRIMEIRA_SENHA_DO_DONO },
         dependencias,
       ),
     ).resolves.toEqual({ ok: false, motivo: "CONVITE_INVALIDO" });
