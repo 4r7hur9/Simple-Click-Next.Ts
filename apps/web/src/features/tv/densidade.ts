@@ -13,6 +13,14 @@
  * pé, o código ocupa uma faixa embaixo e os produtos ficam numa coluna só,
  * como o cardápio de parede que a lanchonete já conhece.
  *
+ * A CONTA INCLUI TUDO O QUE A FOLHA GASTA NA VERTICAL. Respiro da tela,
+ * cabeçalho, linhas, faixa do código e rodapé: cada número aqui tem o mesmo
+ * número escrito em `exibicao.css`, e a prova da tela confere os dois lados.
+ * Se um gasto da folha ficar de fora desta conta, a área de produtos (que é
+ * `overflow: hidden`) esconde a última linha em vez de recusá-la — foi assim
+ * que a televisão em pé cortou produto uma vez, com respiro e rodapé fora da
+ * soma.
+ *
  * FUNÇÃO PURA. Recebe medidas, devolve números; a tela mede a janela e chama.
  */
 
@@ -55,6 +63,12 @@ export const ALTURA_DA_LINHA_EM_CORPOS = 2.6;
 /** A altura do cabeçalho (nome da loja e da seção), em corpos. */
 export const ALTURA_DO_CABECALHO_EM_CORPOS = 2.4;
 
+/** A altura do rodapé (passo do rodízio e hora da atualização), em corpos. */
+export const ALTURA_DO_RODAPE_EM_CORPOS = 0.7;
+
+/** O respiro da tela nas bordas de cima e de baixo, SOMADO, em corpos. */
+export const RESPIRO_VERTICAL_DA_TELA_EM_CORPOS = 1.2;
+
 /** Em pé: a fração da ALTURA reservada ao código de leitura, embaixo. */
 export const FAIXA_DO_CODIGO_EM_PE = 0.3;
 
@@ -73,6 +87,24 @@ export const MAXIMO_DE_COLUNAS = 2;
  */
 export const MAXIMO_POR_TELA = 12;
 
+/**
+ * O que a folha gasta na vertical FORA das linhas de produto, em pixels:
+ * respiro, cabeçalho, rodapé e, em pé, a faixa do código embaixo.
+ */
+function alturaForaDasLinhas(
+  corpoEmPx: number,
+  orientacao: Orientacao,
+  altura: number,
+): number {
+  const fixos =
+    corpoEmPx *
+    (RESPIRO_VERTICAL_DA_TELA_EM_CORPOS +
+      ALTURA_DO_CABECALHO_EM_CORPOS +
+      ALTURA_DO_RODAPE_EM_CORPOS);
+  const codigo = orientacao === "em-pe" ? altura * FAIXA_DO_CODIGO_EM_PE : 0;
+  return fixos + codigo;
+}
+
 /** Decide a densidade da exibição para as medidas dadas. */
 export function calcularDensidade({
   largura,
@@ -85,10 +117,8 @@ export function calcularDensidade({
     Math.round(menor * FRACAO_DO_CORPO),
   );
 
-  const alturaDoCabecalho = corpoEmPx * ALTURA_DO_CABECALHO_EM_CORPOS;
-  const alturaDoCodigo =
-    orientacao === "em-pe" ? altura * FAIXA_DO_CODIGO_EM_PE : 0;
-  const alturaUtil = altura - alturaDoCabecalho - alturaDoCodigo;
+  const alturaUtil =
+    altura - alturaForaDasLinhas(corpoEmPx, orientacao, altura);
   const alturaDaLinha = corpoEmPx * ALTURA_DA_LINHA_EM_CORPOS;
   const linhas = Math.max(1, Math.floor(alturaUtil / alturaDaLinha));
 
@@ -113,21 +143,20 @@ export function calcularDensidade({
 /**
  * A altura que uma tela montada com esta densidade ocupa, em pixels.
  *
- * Existe para a prova conferir que nada é cortado: cabeçalho, linhas e faixa
- * do código somados nunca passam da altura da televisão.
+ * Existe para a prova conferir que nada é cortado: respiro, cabeçalho, linhas,
+ * rodapé e faixa do código somados nunca passam da altura da televisão. É a
+ * soma COMPLETA do que a folha gasta — uma parcela esquecida aqui é um produto
+ * cortado lá.
  */
 export function alturaOcupada(
   densidade: Densidade,
   medidas: MedidasDaTela,
 ): number {
   const { corpoEmPx, linhas, orientacao } = densidade;
-  const cabecalho = corpoEmPx * ALTURA_DO_CABECALHO_EM_CORPOS;
   const produtos = Math.ceil(densidade.produtosPorTela / densidade.colunas);
   const lista =
     Math.min(linhas, produtos) * corpoEmPx * ALTURA_DA_LINHA_EM_CORPOS;
-  const codigo =
-    orientacao === "em-pe" ? medidas.altura * FAIXA_DO_CODIGO_EM_PE : 0;
-  return cabecalho + lista + codigo;
+  return lista + alturaForaDasLinhas(corpoEmPx, orientacao, medidas.altura);
 }
 
 /**

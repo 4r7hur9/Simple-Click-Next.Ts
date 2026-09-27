@@ -258,6 +258,9 @@
 .sc-exibicao__rodape {
   grid-area: rodape;
   display: flex;
+  /* A densidade reserva esta altura mesmo quando o rodapé está vazio. */
+  block-size: calc(var(--corpo) * 0.7);
+  line-height: calc(var(--corpo) * 0.7);
   gap: calc(var(--corpo) * 0.6);
   color: var(--cor-tinta-suave);
   font-size: calc(var(--corpo) * 0.45);

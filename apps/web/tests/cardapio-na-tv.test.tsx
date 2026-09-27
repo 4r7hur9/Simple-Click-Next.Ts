@@ -395,6 +395,80 @@ describe("texto legível a três metros (AC-926)", () => {
 });
 
 describe("a tela se adapta à televisão (AC-927)", () => {
+  it.each([
+    { largura: 1080, altura: 1920, capacidade: 9 },
+    { largura: 720, altura: 1280, capacidade: 9 },
+    { largura: 2160, altura: 3840, capacidade: 9 },
+    { largura: 1440, altura: 900, capacidade: 7 },
+  ])(
+    "@spec:AC-927 $largura × $altura pagina antes de cortar produto, contando respiro e rodapé da folha",
+    async ({ largura, altura, capacidade }) => {
+      const produtos = Array.from({ length: 10 }, (_, indice) =>
+        produto({ id: `produto-${indice}`, nome: `Produto ${indice + 1}` }),
+      );
+      const catalogo: CatalogoDaVitrineNoContrato = {
+        secoes: [{ ...CATALOGO.secoes[0]!, produtos }],
+        destaques: [],
+        versao: "1",
+      };
+      comJanela(largura, altura);
+      const tela = ligar({
+        catalogoInicial: catalogo,
+        buscar: async () => encontrado(catalogo),
+      });
+      const principal = tela.querySelector<HTMLElement>(".sc-exibicao__tela")!;
+      const corpo = Number.parseFloat(
+        principal.style.getPropertyValue("--corpo"),
+      );
+      const colunas = Number(principal.style.getPropertyValue("--colunas"));
+
+      // jsdom não calcula layout. Lemos as medidas da folha de produção,
+      // independentes da função de densidade, para conferir o espaço real.
+      const proporcao = (padrao: RegExp): number => {
+        const resultado = FOLHA.match(padrao);
+        expect(resultado).not.toBeNull();
+        return Number(resultado![1]);
+      };
+      const respiro = proporcao(
+        /\.sc-exibicao__tela\s*\{[^}]*padding:\s*calc\(var\(--corpo\)\s*\*\s*([\d.]+)\)/,
+      );
+      const cabecalho = proporcao(
+        /\.sc-exibicao__cabecalho\s*\{[^}]*min-block-size:\s*calc\(var\(--corpo\)\s*\*\s*([\d.]+)\)/,
+      );
+      const rodape = proporcao(
+        /\.sc-exibicao__rodape\s*\{[^}]*block-size:\s*calc\(var\(--corpo\)\s*\*\s*([\d.]+)\)/,
+      );
+      const linhaDoRodape = proporcao(
+        /\.sc-exibicao__rodape\s*\{[^}]*line-height:\s*calc\(var\(--corpo\)\s*\*\s*([\d.]+)\)/,
+      );
+      const linha = proporcao(
+        /grid-auto-rows:\s*calc\(var\(--corpo\)\s*\*\s*([\d.]+)\)/,
+      );
+      const codigo =
+        largura < altura
+          ? (altura *
+              proporcao(
+                /grid-template-rows:\s*auto minmax\(0, 1fr\)\s*([\d.]+)svh auto/,
+              )) /
+            100
+          : 0;
+      const alturaDosProdutos =
+        Math.ceil(nomesNaTela(tela).length / colunas) * corpo * linha;
+      const alturaCompleta =
+        corpo * (2 * respiro + cabecalho + rodape) + codigo + alturaDosProdutos;
+
+      expect(linhaDoRodape).toBeLessThanOrEqual(rodape);
+      expect(alturaCompleta).toBeLessThanOrEqual(altura);
+      expect(nomesNaTela(tela)).toEqual(
+        produtos.slice(0, capacidade).map((item) => item.nome),
+      );
+      await esperar(SEGUNDOS_POR_TELA);
+      expect(nomesNaTela(tela)).toEqual(
+        produtos.slice(capacidade).map((item) => item.nome),
+      );
+    },
+  );
+
   it("@spec:AC-927 deitada, a tela tem duas colunas e o código ao lado", () => {
     comJanela(1920, 1080);
     const tela = ligar();

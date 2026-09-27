@@ -91,7 +91,7 @@ describe("em pé e deitada dividem o espaço de jeitos diferentes (AC-927)", () 
     expect(emPe.linhas).toBeGreaterThan(deitada.linhas);
   });
 
-  it("@spec:AC-927 nada é cortado: cabeçalho, linhas e faixa do código cabem na altura", () => {
+  it("@spec:AC-927 nada é cortado: respiro, cabeçalho, linhas, código e rodapé cabem na altura", () => {
     for (const [nome, medidas] of Object.entries(TELAS)) {
       const densidade = calcularDensidade(medidas);
       expect(alturaOcupada(densidade, medidas), nome).toBeLessThanOrEqual(
@@ -99,6 +99,27 @@ describe("em pé e deitada dividem o espaço de jeitos diferentes (AC-927)", () 
       );
     }
   });
+
+  it.each([
+    { largura: 1080, altura: 1920, corpo: 45, produtos: 9, ocupada: 1822.5 },
+    { largura: 720, altura: 1280, corpo: 30, produtos: 9, ocupada: 1215 },
+    { largura: 2160, altura: 3840, corpo: 91, produtos: 9, ocupada: 3672.7 },
+    { largura: 1440, altura: 900, corpo: 38, produtos: 7, ocupada: 855 },
+  ])(
+    "@spec:AC-927 $largura × $altura reserva o espaço inteiro e leva o produto excedente para outra tela",
+    ({ largura, altura, corpo, produtos, ocupada }) => {
+      const medidas = { largura, altura };
+      const densidade = calcularDensidade(medidas);
+
+      expect(densidade.corpoEmPx).toBe(corpo);
+      expect(densidade.colunas).toBe(1);
+      expect(densidade.produtosPorTela).toBe(produtos);
+      expect(alturaOcupada(densidade, medidas)).toBeCloseTo(ocupada);
+      expect(ocupada).toBeLessThanOrEqual(altura);
+      // Uma linha a mais ultrapassaria a tela: não basta esconder o excesso.
+      expect(ocupada + corpo * 2.6).toBeGreaterThan(altura);
+    },
+  );
 
   it("@spec:AC-927 a proporção manda: a mesma televisão girada muda a divisão, não a letra", () => {
     const deitada = calcularDensidade(TELAS.quatroKDeitada);
