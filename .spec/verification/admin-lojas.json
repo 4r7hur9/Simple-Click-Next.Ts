@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-09-27T17:35:29.016Z",
-  "gitRev": "ef237e3",
+  "timestamp": "2026-09-27T18:31:17.950Z",
+  "gitRev": "f14c65e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 41,
+  "testsParsed": 63,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -26,12 +26,21 @@
       "status": "pass",
       "testName": "a lista de lojas (AC-206) @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal",
       "method": "vitest-json"
+    },
+    "AC-207": {
+      "status": "pass",
+      "testName": "a ficha da loja (AC-207, AC-118) @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico",
+      "method": "vitest-json"
     }
   },
   "principles": {
     "P-011": {
       "status": "pass",
-      "testName": "a lista de lojas na tela @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo"
+      "testName": "a ficha da loja na tela (AC-207) @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo"
+    },
+    "P-012": {
+      "status": "pass",
+      "testName": "a ficha da loja na tela (AC-207) @spec:AC-207 @principle:P-012 a ficha pronta não tem violação crítica nem séria de acessibilidade @spec:AC-207 @principle:P-012 a ficha pronta não tem violação crítica nem séria de acessibilidade"
     }
   }
 }

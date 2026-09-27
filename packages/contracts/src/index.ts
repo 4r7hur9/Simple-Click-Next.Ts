@@ -154,6 +154,22 @@ export type {
   SituacaoDaLoja,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
+// Ficha, edição e trilha da administração (T-202).
+export {
+  esquemaDaEdicaoDaLoja,
+  esquemaDaFichaDaLoja,
+  esquemaDoCampoDaTrilha,
+  esquemaDoRegistroDaTrilha,
+  ROTULOS_DOS_ATOS,
+  ROTULOS_DOS_CAMPOS_DA_LOJA,
+} from "./admin.ts";
+export type {
+  CampoDaTrilhaNoContrato,
+  EdicaoDaLojaEnviada,
+  EdicaoDaLojaNoContrato,
+  FichaDaLojaNoContrato,
+  RegistroDaTrilhaNoContrato,
+} from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,

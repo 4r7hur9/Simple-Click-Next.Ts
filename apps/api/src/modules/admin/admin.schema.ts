@@ -8,6 +8,7 @@
 
 import {
   esquemaDaConsultaDeLojas,
+  esquemaDaEdicaoDaLoja,
   esquemaDaNovaLoja,
 } from "@simpleclick/contracts";
 import { z } from "zod";
@@ -22,3 +23,12 @@ export const esquemasDoCadastro = { body: esquemaDaNovaLoja };
 
 /** GET /v1/admin/lojas?busca=&situacao=&pagina=&porPagina= */
 export const esquemasDaListagem = { query: esquemaDaConsultaDeLojas };
+
+/** GET /v1/admin/lojas/:id */
+export const esquemasDaFicha = { params: esquemaDoCaminhoDaLoja };
+
+/** PATCH /v1/admin/lojas/:id */
+export const esquemasDaEdicao = {
+  params: esquemaDoCaminhoDaLoja,
+  body: esquemaDaEdicaoDaLoja,
+};

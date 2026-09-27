@@ -12,16 +12,28 @@
  * 17/08).
  */
 
-import type { LojaNaListaNoContrato } from "@simpleclick/contracts";
+import type {
+  FichaDaLojaNoContrato,
+  LojaNaListaNoContrato,
+} from "@simpleclick/contracts";
 
-import { transacaoAtual, type TransacaoDoBanco } from "../../core/db.ts";
+import {
+  exigirUmaLinhaAfetada,
+  transacaoAtual,
+  type TransacaoDoBanco,
+} from "../../core/db.ts";
 import {
   ErroDeApelidoEmUso,
   type LojaGravada,
   type LojaParaGravar,
   type RepositorioDoCadastro,
 } from "./criar-loja.usecase.ts";
+import type {
+  CadastroEditavel,
+  RepositorioDaEdicao,
+} from "./editar-loja.usecase.ts";
 import type { BuscaDeLojas } from "./listar-lojas.usecase.ts";
+import { registroDaTrilha, type LinhaDaTrilha } from "./trilha.ts";
 
 // ---------------------------------------------------------------------------
 // Erros do banco
@@ -363,4 +375,247 @@ async function gravarLoja(loja: LojaParaGravar): Promise<LojaGravada> {
 /** O repositório do cadastro, sobre a transação em curso. */
 export function repositorioDoCadastro(): RepositorioDoCadastro {
   return { tipoDeNegocioExiste, apelidosOcupados, gravarLoja };
+}
+
+// ---------------------------------------------------------------------------
+// Ficha da loja e edição do cadastro (AC-207, AC-118)
+// ---------------------------------------------------------------------------
+
+interface LinhaDaFicha {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly legal_name: string | null;
+  readonly doc_number: string | null;
+  readonly doc_type: string | null;
+  readonly slug: string;
+  readonly status: string;
+  readonly email: string | null;
+  readonly phone1: string | null;
+  readonly zip: string | null;
+  readonly street: string | null;
+  readonly number: string | null;
+  readonly complement: string | null;
+  readonly neighborhood: string | null;
+  readonly city: string | null;
+  readonly uf: string | null;
+  readonly created_at: Date;
+  readonly updated_at: Date;
+  readonly vertical_code: string;
+  readonly vertical_label: string;
+  readonly tracks_stock: boolean;
+}
+
+interface LinhaDaTrilhaNoBanco {
+  readonly id: string;
+  readonly created_at: Date;
+  readonly action: string;
+  readonly actor_id: string | null;
+  readonly display_name: string | null;
+  readonly actor_role: string;
+  readonly before_data: unknown;
+  readonly after_data: unknown;
+}
+
+/** Quantos atos a ficha mostra. O histórico inteiro é da tela de auditoria. */
+export const ATOS_NA_FICHA = 20;
+
+function linhaParaRegistro(linha: LinhaDaTrilhaNoBanco): LinhaDaTrilha {
+  return {
+    id: linha.id,
+    quando: linha.created_at,
+    acao: linha.action,
+    atorId: linha.actor_id,
+    atorNome: linha.display_name,
+    papel: linha.actor_role,
+    antes: linha.before_data,
+    depois: linha.after_data,
+  };
+}
+
+/**
+ * As últimas alterações da loja, da mais nova para a mais antiga.
+ *
+ * A consulta da administração (`ADMIN_ACCESS`) fica de fora DAQUI: ela é
+ * registrada a cada abertura da ficha, e listá-la na própria ficha empurraria
+ * as alterações para fora da tela. Ela aparece no histórico completo.
+ */
+async function alteracoesDaLoja(
+  lojaId: string,
+): Promise<LinhaDaTrilhaNoBanco[]> {
+  return transacaoAtual().$queryRaw<LinhaDaTrilhaNoBanco[]>`
+    SELECT a.id::text AS id, a.created_at, a.action, a.actor_id::text AS actor_id,
+           i.display_name, a.actor_role, a.before_data, a.after_data
+      FROM app.audit_log a
+      LEFT JOIN app.identities i ON i.id = a.actor_id
+     WHERE a.store_id = ${lojaId}::uuid
+       AND a.action <> 'ADMIN_ACCESS'
+     ORDER BY a.created_at DESC, a.id DESC
+     LIMIT ${ATOS_NA_FICHA}`;
+}
+
+/** A ficha completa da loja, ou `null` quando ela não existe. */
+export async function lerFichaDaLoja(
+  lojaId: string,
+): Promise<FichaDaLojaNoContrato | null> {
+  const linhas = await transacaoAtual().$queryRaw<LinhaDaFicha[]>`
+    SELECT s.id::text AS id, s.code, s.name, s.legal_name, s.doc_number,
+           s.doc_type, s.slug, s.status, s.email, s.phone1, s.zip, s.street,
+           s.number, s.complement, s.neighborhood, s.city, s.uf,
+           s.created_at, s.updated_at,
+           p.code AS vertical_code, p.label AS vertical_label, p.tracks_stock
+      FROM app.stores s
+      JOIN app.vertical_presets p ON p.code = s.vertical_code
+     WHERE s.id = ${lojaId}::uuid`;
+  const loja = linhas[0];
+  if (loja === undefined) return null;
+
+  const historico = await alteracoesDaLoja(lojaId);
+  return {
+    id: loja.id,
+    codigo: loja.code,
+    nome: loja.name,
+    razaoSocial: loja.legal_name,
+    documento: {
+      numero: loja.doc_number,
+      tipo:
+        loja.doc_type === "CPF" || loja.doc_type === "CNPJ"
+          ? loja.doc_type
+          : null,
+    },
+    apelido: loja.slug,
+    status: loja.status as FichaDaLojaNoContrato["status"],
+    tipoDeNegocio: {
+      codigo: loja.vertical_code,
+      nome: loja.vertical_label,
+      controlaEstoque: loja.tracks_stock,
+    },
+    contato: { email: loja.email, telefone: loja.phone1 },
+    endereco: {
+      cep: loja.zip,
+      logradouro: loja.street,
+      numero: loja.number,
+      complemento: loja.complement,
+      bairro: loja.neighborhood,
+      cidade: loja.city,
+      uf: loja.uf,
+    },
+    criadaEm: loja.created_at.toISOString(),
+    atualizadaEm: loja.updated_at.toISOString(),
+    historico: historico.map((linha) =>
+      registroDaTrilha(linhaParaRegistro(linha)),
+    ),
+  };
+}
+
+/**
+ * Registra que a administração consultou dado de uma loja (AC-118): quem,
+ * o quê e quando — sem o dado consultado.
+ */
+export async function registrarConsultaDaAdministracao(consulta: {
+  readonly lojaId: string;
+  readonly atorId: string;
+  readonly entidade: string;
+  readonly entidadeId?: string | null;
+}): Promise<void> {
+  await registrarNaTrilha({
+    lojaId: consulta.lojaId,
+    atorId: consulta.atorId,
+    acao: "ADMIN_ACCESS",
+    entidade: consulta.entidade,
+    entidadeId: consulta.entidadeId ?? consulta.lojaId,
+  });
+}
+
+interface LinhaDoCadastro {
+  readonly name: string;
+  readonly legal_name: string | null;
+  readonly doc_number: string | null;
+  readonly doc_type: string | null;
+  readonly email: string | null;
+  readonly phone1: string | null;
+  readonly zip: string | null;
+  readonly street: string | null;
+  readonly number: string | null;
+  readonly complement: string | null;
+  readonly neighborhood: string | null;
+  readonly city: string | null;
+  readonly uf: string | null;
+}
+
+/**
+ * O cadastro atual, TRAVADO até o fim da transação: duas edições ao mesmo
+ * tempo não podem calcular a diferença sobre o mesmo "antes".
+ */
+async function lerParaEditar(lojaId: string): Promise<CadastroEditavel | null> {
+  const linhas = await transacaoAtual().$queryRaw<LinhaDoCadastro[]>`
+    SELECT name, legal_name, doc_number, doc_type, email, phone1, zip, street,
+           number, complement, neighborhood, city, uf
+      FROM app.stores
+     WHERE id = ${lojaId}::uuid
+     FOR UPDATE`;
+  const linha = linhas[0];
+  if (linha === undefined) return null;
+  return {
+    nome: linha.name,
+    razaoSocial: linha.legal_name,
+    documento: linha.doc_number,
+    tipoDoDocumento:
+      linha.doc_type === "CPF" || linha.doc_type === "CNPJ"
+        ? linha.doc_type
+        : null,
+    email: linha.email,
+    telefone: linha.phone1,
+    cep: linha.zip,
+    logradouro: linha.street,
+    numero: linha.number,
+    complemento: linha.complement,
+    bairro: linha.neighborhood,
+    cidade: linha.city,
+    uf: linha.uf,
+  };
+}
+
+async function gravarCadastro(
+  lojaId: string,
+  cadastro: CadastroEditavel,
+): Promise<void> {
+  await exigirUmaLinhaAfetada(
+    { recurso: "loja", id: lojaId },
+    () =>
+      transacaoAtual().$executeRaw`
+      UPDATE app.stores
+         SET name = ${cadastro.nome},
+             legal_name = ${cadastro.razaoSocial},
+             doc_number = ${cadastro.documento},
+             doc_type = ${cadastro.tipoDoDocumento},
+             email = ${cadastro.email},
+             phone1 = ${cadastro.telefone},
+             zip = ${cadastro.cep},
+             street = ${cadastro.logradouro},
+             number = ${cadastro.numero},
+             complement = ${cadastro.complemento},
+             neighborhood = ${cadastro.bairro},
+             city = ${cadastro.cidade},
+             uf = ${cadastro.uf}
+       WHERE id = ${lojaId}::uuid`,
+  );
+}
+
+/** O repositório da edição, sobre a transação em curso. */
+export function repositorioDaEdicao(): RepositorioDaEdicao {
+  return {
+    lerParaEditar,
+    gravarCadastro,
+    registrar: (ato) =>
+      registrarNaTrilha({
+        lojaId: ato.lojaId,
+        atorId: ato.atorId,
+        acao: ato.acao,
+        entidade: "stores",
+        entidadeId: ato.lojaId,
+        antes: ato.antes as Readonly<Record<string, unknown>>,
+        depois: ato.depois as Readonly<Record<string, unknown>>,
+      }),
+  };
 }

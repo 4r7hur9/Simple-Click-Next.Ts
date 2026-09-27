@@ -299,3 +299,136 @@ export const esquemaDaListaDeLojas = z.strictObject({
 
 export type LojaNaListaNoContrato = z.infer<typeof esquemaDaLojaNaLista>;
 export type ListaDeLojasNoContrato = z.infer<typeof esquemaDaListaDeLojas>;
+
+// ---------------------------------------------------------------------------
+// Trilha de auditoria, do jeito que a administração a lê (AC-207, AC-118)
+// ---------------------------------------------------------------------------
+
+/**
+ * Um campo que mudou num ato registrado. `antes` e `depois` chegam como a
+ * trilha os guardou — o dado pessoal já MASCARADO na gravação (P-009): a
+ * trilha diz que o documento mudou, e de qual final para qual final, sem
+ * virar um segundo lugar de onde se copia o documento de alguém.
+ */
+export const esquemaDoCampoDaTrilha = z.strictObject({
+  campo: z.string(),
+  antes: z.unknown(),
+  depois: z.unknown(),
+});
+
+/** Um ato da trilha: quem, quando, o quê e quais campos. */
+export const esquemaDoRegistroDaTrilha = z.strictObject({
+  id: z.string(),
+  /** Instante do ato, em ISO 8601. */
+  quando: z.string(),
+  /** Código do ato (`LOJA_ALTERADA`, `CONFIG_SENSIVEL_ALTERADA`…). */
+  acao: z.string(),
+  /** Quem praticou. Nulo quando o ato não tem pessoa (tarefa do sistema). */
+  quem: z.strictObject({ id: z.string(), nome: z.string() }).nullable(),
+  /** Com que poder: ADMIN, OWNER… — o papel NO MOMENTO do ato. */
+  papel: z.string(),
+  campos: z.array(esquemaDoCampoDaTrilha),
+  /** Alteração sensível (chave PIX, número do WhatsApp…): a tela destaca. */
+  sensivel: z.boolean(),
+});
+
+export type CampoDaTrilhaNoContrato = z.infer<typeof esquemaDoCampoDaTrilha>;
+export type RegistroDaTrilhaNoContrato = z.infer<
+  typeof esquemaDoRegistroDaTrilha
+>;
+
+/** Como cada ato se chama na tela. Ato desconhecido aparece pelo código. */
+export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
+  LOJA_CRIADA: "Loja cadastrada",
+  LOJA_ALTERADA: "Cadastro alterado",
+  ADMIN_ACCESS: "Consulta da administração",
+  CONFIG_ALTERADA: "Configuração alterada",
+  CONFIG_SENSIVEL_ALTERADA: "Dado sensível alterado",
+};
+
+/** Como cada campo do cadastro se chama na tela. */
+export const ROTULOS_DOS_CAMPOS_DA_LOJA: Readonly<Record<string, string>> = {
+  nome: "Nome",
+  razaoSocial: "Razão social",
+  documento: "CPF/CNPJ",
+  email: "E-mail",
+  telefone: "Telefone",
+  cep: "CEP",
+  logradouro: "Logradouro",
+  numero: "Número",
+  complemento: "Complemento",
+  bairro: "Bairro",
+  cidade: "Cidade",
+  uf: "UF",
+  codigo: "Código",
+  apelido: "Endereço na web",
+  tipoDeNegocio: "Tipo de negócio",
+  status: "Situação",
+};
+
+// ---------------------------------------------------------------------------
+// Ficha e edição da loja (AC-207)
+// ---------------------------------------------------------------------------
+
+/**
+ * A ficha que a administração abre. Aqui o documento e o contato APARECEM:
+ * é o único lugar da plataforma que os mostra, e só pela credencial da
+ * administração — e cada abertura fica na trilha (AC-118).
+ */
+export const esquemaDaFichaDaLoja = z.strictObject({
+  id: z.string(),
+  codigo: z.string(),
+  nome: z.string(),
+  razaoSocial: z.string().nullable(),
+  documento: z.strictObject({
+    /** Só os dígitos, como o banco guarda. */
+    numero: z.string().nullable(),
+    tipo: z.enum(["CPF", "CNPJ"]).nullable(),
+  }),
+  apelido: z.string(),
+  status: esquemaDaSituacaoDaLoja,
+  tipoDeNegocio: esquemaDoTipoDeNegocioDisponivel,
+  contato: z.strictObject({
+    email: z.string().nullable(),
+    telefone: z.string().nullable(),
+  }),
+  endereco: z.strictObject({
+    cep: z.string().nullable(),
+    logradouro: z.string().nullable(),
+    numero: z.string().nullable(),
+    complemento: z.string().nullable(),
+    bairro: z.string().nullable(),
+    cidade: z.string().nullable(),
+    uf: z.string().nullable(),
+  }),
+  criadaEm: z.string(),
+  atualizadaEm: z.string(),
+  /** As últimas alterações desta loja, da mais nova para a mais antiga. */
+  historico: z.array(esquemaDoRegistroDaTrilha),
+});
+
+export type FichaDaLojaNoContrato = z.infer<typeof esquemaDaFichaDaLoja>;
+
+/**
+ * `PATCH /v1/admin/lojas/:id` — só o que mudou.
+ *
+ * Apelido, tipo de negócio e situação NÃO entram aqui: cada um tem endereço
+ * próprio, porque cada um mexe em mais do que uma coluna (o endereço antigo
+ * que precisa continuar funcionando, o vocabulário das telas, a vitrine que
+ * sai do ar).
+ */
+export const esquemaDaEdicaoDaLoja = z
+  .strictObject({
+    nome: textoObrigatorio("o nome ou a razão social", 120).optional(),
+    razaoSocial: z.string().trim().max(160).nullable().optional(),
+    documento: esquemaDoDocumento.optional(),
+    email: esquemaDoEmail.optional(),
+    telefone: esquemaDoTelefone.optional(),
+    endereco: esquemaDoEnderecoDaLoja.optional(),
+  })
+  .refine((edicao) => Object.keys(edicao).length > 0, {
+    message: "Nada para alterar: envie ao menos um campo.",
+  });
+
+export type EdicaoDaLojaNoContrato = z.output<typeof esquemaDaEdicaoDaLoja>;
+export type EdicaoDaLojaEnviada = z.input<typeof esquemaDaEdicaoDaLoja>;

@@ -24,16 +24,25 @@ import { registrar } from "../../core/log.ts";
 import { validar } from "../../core/validar.ts";
 import { MENSAGEM_DE_APELIDO_EM_USO } from "@simpleclick/contracts";
 
-import { esquemasDaListagem, esquemasDoCadastro } from "./admin.schema.ts";
+import {
+  esquemasDaEdicao,
+  esquemasDaFicha,
+  esquemasDaListagem,
+  esquemasDoCadastro,
+} from "./admin.schema.ts";
 import {
   cadastrarLoja,
   type DependenciasDoCadastro,
 } from "./criar-loja.usecase.ts";
+import { editarLoja } from "./editar-loja.usecase.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
 import {
   administradorAtivo,
   buscarLojas,
+  lerFichaDaLoja,
   listarTiposDeNegocio,
+  registrarConsultaDaAdministracao,
+  repositorioDaEdicao,
   repositorioDoCadastro,
 } from "./lojas.repo.ts";
 
@@ -207,6 +216,73 @@ export function criarRotasDaAdministracao(
               },
             ],
           });
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Ficha da loja (AC-207, AC-118) ──────────────────────────────────────
+  // Abrir a ficha é CONSULTAR dado da loja — documento e contato do
+  // responsável aparecem aqui —, e por isso cada abertura entra na trilha na
+  // mesma transação da leitura: quem, o quê e quando (AC-118).
+  const entradaDaFicha = validar(esquemasDaFicha);
+  rotas.get(
+    "/lojas/:id",
+    entradaDaFicha,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params } = entradaDaFicha.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const ficha = await acesso().emTransacao(async () => {
+            const lida = await lerFichaDaLoja(params.id);
+            if (lida === null) return null;
+            await registrarConsultaDaAdministracao({
+              lojaId: params.id,
+              atorId: administradorId,
+              entidade: "stores",
+            });
+            return lida;
+          });
+          resposta.setHeader("cache-control", "no-store");
+          if (ficha === null) {
+            resposta.status(404).json({ erro: "nao_encontrado" });
+            return;
+          }
+          resposta.json(ficha);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Edição do cadastro (AC-207) ─────────────────────────────────────────
+  const entradaDaEdicao = validar(esquemasDaEdicao);
+  rotas.patch(
+    "/lojas/:id",
+    entradaDaEdicao,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params, body } = entradaDaEdicao.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const ficha = await acesso().emTransacao(async () => {
+            const resultado = await editarLoja(
+              params.id,
+              body,
+              administradorId,
+              repositorioDaEdicao(),
+            );
+            if (!resultado.ok) return null;
+            return lerFichaDaLoja(params.id);
+          });
+          resposta.setHeader("cache-control", "no-store");
+          if (ficha === null) {
+            resposta.status(404).json({ erro: "nao_encontrado" });
+            return;
+          }
+          resposta.json(ficha);
         });
       } catch (causa) {
         proximo(causa);
