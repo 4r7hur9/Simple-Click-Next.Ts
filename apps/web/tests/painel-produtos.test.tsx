@@ -197,6 +197,59 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
   });
 });
 
+describe("o que está acabando aparece para o dono repor (AC-336)", () => {
+  const ACABANDO = {
+    ...PUBLICADO,
+    id: "p-4",
+    nome: "Camiseta Básica",
+    estoqueBaixo: true,
+    variacoesAcabando: [
+      { id: "v-m", nome: "M", quantidade: 3, minimoAlerta: 5 },
+    ],
+  };
+  const EM_DIA = { ...PUBLICADO, estoqueBaixo: false, variacoesAcabando: [] };
+
+  it("@spec:AC-336 o produto com variação no aviso vem sinalizado, dizendo qual e quanto resta", async () => {
+    roteiro(async () => json({ produtos: [EM_DIA, ACABANDO] }));
+    const tela = await montar();
+
+    const itens = [...tela.querySelectorAll("ul > li")];
+    expect(itens[0]?.textContent).not.toContain("Estoque baixo");
+    expect(itens[1]?.textContent).toContain("Estoque baixo");
+    expect(itens[1]?.textContent).toContain("M com 3 un. (aviso em 5)");
+    expect(
+      itens[1]?.querySelector('a[href="/painel/produtos/p-4/estoque"]')
+        ?.textContent,
+    ).toContain("Repor estoque");
+  });
+
+  it("@spec:AC-336 a visão do que está acabando mostra só o que precisa de reposição", async () => {
+    roteiro(async () => json({ produtos: [EM_DIA, ACABANDO] }));
+    const tela = await montar();
+
+    await clicar(botao(tela, "Ver o que está acabando (1)"));
+    let nomes = [...tela.querySelectorAll("ul > li h3")].map(
+      (h) => h.textContent,
+    );
+    expect(nomes).toEqual(["Camiseta Básica"]);
+
+    await clicar(botao(tela, "Mostrar todos os produtos"));
+    nomes = [...tela.querySelectorAll("ul > li h3")].map((h) => h.textContent);
+    expect(nomes).toEqual(["Pastel de queijo", "Camiseta Básica"]);
+  });
+
+  it("@spec:AC-336 sem nada acabando, a lista não oferece o recorte", async () => {
+    roteiro(async () => json({ produtos: [EM_DIA] }));
+    const tela = await montar();
+
+    expect(
+      [...tela.querySelectorAll("button")].some((b) =>
+        (b.textContent ?? "").includes("está acabando"),
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("o cartão da vitrine mostra a foto sem distorcer (AC-304)", () => {
   // Caminho montado a partir do texto do endereço: no ambiente de navegador
   // simulado, `URL` é a do jsdom, e o Node recusa convertê-la em caminho.

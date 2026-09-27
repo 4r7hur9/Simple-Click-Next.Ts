@@ -57,6 +57,20 @@ describe("reserva atômica do estoque (T-308)", () => {
     expect((erro as ErroDeDominio).codigo).toBe("conflito");
   });
 
+  it("@spec:AC-337 variação sem controle de estoque passa sem baixa, e não vira falta de saldo", async () => {
+    // A linha de nulos é o "siga" da função (migração 0027). Lê-la como falta
+    // de saldo foi o que impedia a lanchonete de fechar pedido de pizza P e G.
+    const banco = bancoFalso([
+      { quantity_before: null, quantity_after: null } as unknown as Record<
+        string,
+        number
+      >,
+    ]);
+
+    await expect(reservarEstoque(entrada, banco.tx)).resolves.toEqual([]);
+    expect(banco.chamadas).toHaveLength(1);
+  });
+
   it("@spec:AC-333 não consulta o banco quando o pedido não tem variação", async () => {
     const banco = bancoFalso([]);
 

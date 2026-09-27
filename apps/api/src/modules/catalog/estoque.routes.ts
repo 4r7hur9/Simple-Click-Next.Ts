@@ -5,6 +5,7 @@
  * contagem física; cada mudança preserva saldo anterior, delta, motivo, origem
  * e autor no histórico imutável.
  */
+import { estaAcabando } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
@@ -32,6 +33,7 @@ const selecaoDoMovimento = {
   quantityAfter: true,
   reason: true,
   origin: true,
+  orderId: true,
   actorId: true,
   createdAt: true,
 } as const;
@@ -69,6 +71,7 @@ function respostaDoMovimento(movimento: {
   readonly quantityAfter: number;
   readonly reason: string;
   readonly origin: string;
+  readonly orderId: string | null;
   readonly actorId: string | null;
   readonly createdAt: Date;
 }) {
@@ -79,6 +82,8 @@ function respostaDoMovimento(movimento: {
     quantidadeDepois: movimento.quantityAfter,
     motivo: movimento.reason,
     origem: movimento.origin,
+    // O pedido que baixou ou devolveu (AC-331, AC-334); nulo no ajuste manual.
+    pedidoId: movimento.orderId,
     autorId: movimento.actorId,
     criadoEm: movimento.createdAt.toISOString(),
   };
@@ -100,14 +105,15 @@ function respostaDaVariacao(variacao: {
     readonly quantityAfter: number;
     readonly reason: string;
     readonly origin: string;
+    readonly orderId: string | null;
     readonly actorId: string | null;
     readonly createdAt: Date;
   }>;
 }) {
-  const estoqueBaixo =
-    variacao.stockQuantity !== null &&
-    variacao.stockMinAlert !== null &&
-    variacao.stockQuantity <= variacao.stockMinAlert;
+  const estoqueBaixo = estaAcabando(
+    variacao.stockQuantity,
+    variacao.stockMinAlert,
+  );
   return {
     id: variacao.id,
     nome: variacao.name,

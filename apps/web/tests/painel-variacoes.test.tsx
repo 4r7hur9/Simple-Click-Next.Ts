@@ -46,12 +46,19 @@ const GRUPOS = {
 
 afterEach(() => desmontar());
 
-/** A API do painel: grupos, a lista de variações e o que responder à criação. */
-function api(criar: RespostaSimulada, variacoes: unknown[] = []) {
+/**
+ * A API do painel: grupos, a lista de variações e o que responder à criação.
+ * `controlaEstoque` é o que o RAMO da loja diz (AC-337); roupa conta unidades.
+ */
+function api(
+  criar: RespostaSimulada,
+  variacoes: unknown[] = [],
+  controlaEstoque = true,
+) {
   return simularApi((chamada: ChamadaDaApi) => {
     if (chamada.url.endsWith("/opcoes")) return { status: 200, corpo: GRUPOS };
     if (chamada.metodo === "POST") return criar;
-    return { status: 200, corpo: { variacoes } };
+    return { status: 200, corpo: { variacoes, controlaEstoque } };
   });
 }
 
@@ -67,10 +74,10 @@ async function preencherVariacaoM(
   digitar(sku!, campos.sku);
   digitar(exigir<HTMLSelectElement>(tela, "form select"), "o-m");
   digitar(preco!, campos.preco);
-  digitar(
-    exigir<HTMLInputElement>(tela, 'form input[type="number"]'),
-    campos.estoque,
+  const estoque = tela.querySelector<HTMLInputElement>(
+    'form input[name="estoque"]',
   );
+  if (estoque !== null) digitar(estoque, campos.estoque);
   await enviar(exigir<HTMLFormElement>(tela, "form"));
 }
 
@@ -153,5 +160,47 @@ describe("a grade manda o código e o estoque de cada variação (AC-316)", () =
     expect(linhas[1]).toContain("SKU CAM-BAS-M");
     expect(linhas[1]).toContain("0 un.");
     expect(linhas[1]).toContain("R$ 49,90");
+  });
+});
+
+describe("o ramo decide se a grade pede quantidade (AC-337, AC-336)", () => {
+  it("@spec:AC-337 na lanchonete a grade não tem campo de quantidade, e a variação nasce sem contagem", async () => {
+    const chamadas = api({ status: 201, corpo: {} }, [], false);
+    const tela = montar(<GradeDeVariacoes produtoId={PRODUTO} />);
+    await esperar();
+
+    expect(tela.querySelector('input[name="estoque"]')).toBeNull();
+    expect(tela.querySelector('input[name="minimo"]')).toBeNull();
+
+    await preencherVariacaoM(tela, {
+      sku: "",
+      preco: "8,50",
+      estoque: "",
+    });
+
+    const criacao = chamadas.find((c) => c.metodo === "POST");
+    expect(criacao?.corpo).toMatchObject({
+      precoCentavos: 850,
+      // Nulo é "não controla": o dono trabalha com disponível ou esgotado.
+      estoque: null,
+      estoqueMinimo: null,
+      disponivel: true,
+    });
+  });
+
+  it("@spec:AC-336 na loja de roupas o dono informa o estoque e o aviso de mínimo", async () => {
+    const chamadas = api({ status: 201, corpo: {} });
+    const tela = montar(<GradeDeVariacoes produtoId={PRODUTO} />);
+    await esperar();
+
+    digitar(exigir<HTMLInputElement>(tela, 'input[name="minimo"]'), "5");
+    await preencherVariacaoM(tela, {
+      sku: "CAM-M",
+      preco: "49,90",
+      estoque: "12",
+    });
+
+    const criacao = chamadas.find((c) => c.metodo === "POST");
+    expect(criacao?.corpo).toMatchObject({ estoque: 12, estoqueMinimo: 5 });
   });
 });

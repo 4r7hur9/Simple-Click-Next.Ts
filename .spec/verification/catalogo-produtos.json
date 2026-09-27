@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T07:31:25.613Z",
-  "gitRev": "bb8658b",
+  "timestamp": "2026-09-27T07:51:30.555Z",
+  "gitRev": "809b59e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 241,
+  "testsParsed": 258,
   "results": {
     "AC-300": {
       "status": "pass",
@@ -152,9 +152,39 @@
       "testName": "alterar ou remover especificação não corrompe produto nem pedido (AC-330) @spec:AC-330 renomear avisa quantos produtos serão afetados, e só aplica confirmado; o pedido antigo guarda o nome da época @spec:AC-330 renomear avisa quantos produtos serão afetados, e só aplica confirmado; o pedido antigo guarda o nome da época",
       "method": "vitest-json"
     },
+    "AC-331": {
+      "status": "pass",
+      "testName": "a venda baixa o estoque da variação vendida (AC-331) @spec:AC-331 três M vendidos levam o M de 10 a 7, com o movimento do pedido, e P e G não mudam @spec:AC-331 três M vendidos levam o M de 10 a 7, com o movimento do pedido, e P e G não mudam",
+      "method": "vitest-json"
+    },
+    "AC-332": {
+      "status": "pass",
+      "testName": "estoque zerado impede a venda da variação (AC-332) @spec:AC-332 o P zerado não entra no carrinho, e o total do carrinho fica como estava @spec:AC-332 o P zerado não entra no carrinho, e o total do carrinho fica como estava",
+      "method": "vitest-json"
+    },
     "AC-333": {
       "status": "pass",
       "testName": "baixa concorrente no checkout @spec:AC-333 aceita uma compra, recusa a outra e não deixa saldo negativo @spec:AC-333 aceita uma compra, recusa a outra e não deixa saldo negativo",
+      "method": "vitest-json"
+    },
+    "AC-334": {
+      "status": "pass",
+      "testName": "pedido cancelado devolve o estoque (AC-334) @spec:AC-334 cancelar o pedido de três M devolve as três, e o histórico mostra a baixa e a devolução @spec:AC-334 cancelar o pedido de três M devolve as três, e o histórico mostra a baixa e a devolução",
+      "method": "vitest-json"
+    },
+    "AC-335": {
+      "status": "pass",
+      "testName": "ajuste manual com motivo registrado (AC-335) @spec:AC-335 a contagem física vira o saldo, e o ajuste guarda quem, quando, por quê e o saldo anterior @spec:AC-335 a contagem física vira o saldo, e o ajuste guarda quem, quando, por quê e o saldo anterior",
+      "method": "vitest-json"
+    },
+    "AC-336": {
+      "status": "pass",
+      "testName": "estoque baixo é sinalizado ao dono (AC-336) @spec:AC-336 com aviso em cinco, chegar a cinco acende o sinal na lista de produtos e na tela de estoque @spec:AC-336 com aviso em cinco, chegar a cinco acende o sinal na lista de produtos e na tela de estoque",
+      "method": "vitest-json"
+    },
+    "AC-337": {
+      "status": "pass",
+      "testName": "loja de comida não é obrigada a controlar estoque (AC-337) @spec:AC-337 a grade da lanchonete vem sem controle de estoque, e a da loja de roupas com @spec:AC-337 a grade da lanchonete vem sem controle de estoque, e a da loja de roupas com",
       "method": "vitest-json"
     }
   },

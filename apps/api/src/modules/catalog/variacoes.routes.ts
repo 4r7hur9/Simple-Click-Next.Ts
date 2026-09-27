@@ -325,7 +325,7 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
           requisicao.params.apelido,
           resposta,
           async (lojaId, usuario) => {
-            const variacoes = await executarComoRequisicao(
+            const lido = await executarComoRequisicao(
               { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
               () =>
                 acesso.emTransacao(async (tx) => {
@@ -335,14 +335,27 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
                     requisicao.params.produtoId,
                   );
                   if (produto === null) return null;
-                  return lerVariacoes(tx, lojaId, produto.id);
+                  const loja = await tx.store.findFirst({
+                    where: { id: lojaId },
+                    select: { ramo: { select: { tracksStock: true } } },
+                  });
+                  return {
+                    variacoes: await lerVariacoes(tx, lojaId, produto.id),
+                    controlaEstoque: loja?.ramo.tracksStock ?? false,
+                  };
                 }),
             );
-            if (variacoes === null) {
+            if (lido === null) {
               erro(resposta, 404, "nao_encontrado");
               return;
             }
-            resposta.json({ variacoes: variacoes.map(respostaDaVariacao) });
+            // O RAMO decide se a grade pede quantidade (AC-337, ASM-310): roupa
+            // e autopeça contam unidades; a lanchonete trabalha com disponível
+            // ou esgotado, e o campo de quantidade só atrapalharia o cadastro.
+            resposta.json({
+              variacoes: lido.variacoes.map(respostaDaVariacao),
+              controlaEstoque: lido.controlaEstoque,
+            });
           },
         );
       } catch (causa) {

@@ -13,6 +13,14 @@ interface Produto {
   readonly precoCentavos: number | null;
   readonly status: "DRAFT" | "PUBLISHED" | string;
   readonly disponivel: boolean;
+  /** Alguma variação chegou ao aviso de estoque mínimo (AC-336). */
+  readonly estoqueBaixo?: boolean;
+  readonly variacoesAcabando?: readonly {
+    readonly id: string;
+    readonly nome: string;
+    readonly quantidade: number;
+    readonly minimoAlerta: number;
+  }[];
 }
 
 function dinheiro(centavos: number | null): string {
@@ -32,6 +40,11 @@ export function ListaProdutos() {
   const [falhou, setFalhou] = useState(false);
   // Remover pede confirmação na própria linha, e não em caixa do navegador.
   const [removendoId, setRemovendoId] = useState<string | null>(null);
+  // A visão do que está acabando é um recorte desta mesma lista (AC-336): o
+  // dono repõe a partir dela, sem uma segunda tela para manter em dia.
+  const [soAcabando, setSoAcabando] = useState(false);
+  const acabando = produtos.filter((produto) => produto.estoqueBaixo === true);
+  const visiveis = soAcabando ? acabando : produtos;
 
   async function carregar() {
     setCarregando(true);
@@ -132,6 +145,19 @@ export function ListaProdutos() {
         </p>
       </div>
 
+      {acabando.length > 0 || soAcabando ? (
+        <button
+          className="sc-botao sc-botao--fantasma mt-4"
+          type="button"
+          aria-pressed={soAcabando}
+          onClick={() => setSoAcabando((anterior) => !anterior)}
+        >
+          {soAcabando
+            ? "Mostrar todos os produtos"
+            : `Ver o que está acabando (${acabando.length})`}
+        </button>
+      ) : null}
+
       {carregando ? (
         <p
           className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
@@ -165,7 +191,7 @@ export function ListaProdutos() {
         </div>
       ) : (
         <ul className="mt-6 grid gap-4 lg:grid-cols-2">
-          {produtos.map((produto) => {
+          {visiveis.map((produto) => {
             const publicado = produto.status === "PUBLISHED";
             return (
               <li
@@ -182,10 +208,34 @@ export function ListaProdutos() {
                       {dinheiro(produto.precoCentavos)}
                     </p>
                   </div>
-                  <span className="rounded-full border border-[var(--cor-borda)] px-3 py-1 text-xs font-semibold">
-                    {publicado ? "Publicado" : "Rascunho"}
+                  <span className="flex flex-col items-end gap-2">
+                    <span className="rounded-full border border-[var(--cor-borda)] px-3 py-1 text-xs font-semibold">
+                      {publicado ? "Publicado" : "Rascunho"}
+                    </span>
+                    {produto.estoqueBaixo ? (
+                      <span className="rounded-full bg-[var(--cor-atencao-suave)] px-3 py-1 text-xs font-semibold text-[var(--cor-atencao)]">
+                        Estoque baixo
+                      </span>
+                    ) : null}
                   </span>
                 </div>
+                {produto.estoqueBaixo && produto.variacoesAcabando ? (
+                  <p className="mt-3 text-sm">
+                    Acabando:{" "}
+                    {produto.variacoesAcabando
+                      .map(
+                        (v) =>
+                          `${v.nome} com ${v.quantidade} un. (aviso em ${v.minimoAlerta})`,
+                      )
+                      .join(" · ")}{" "}
+                    <Link
+                      className="font-semibold text-[var(--cor-primaria)]"
+                      href={`/painel/produtos/${produto.id}/estoque`}
+                    >
+                      Repor estoque
+                    </Link>
+                  </p>
+                ) : null}
                 <p className="mt-4 min-h-10 text-sm leading-6 text-[var(--cor-tinta-suave)]">
                   {produto.descricao ?? "Sem descrição"}
                 </p>

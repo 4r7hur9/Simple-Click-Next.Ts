@@ -2,6 +2,7 @@ import { decidirTransicao, type StatusDoPedido } from "@simpleclick/core";
 
 import { exigirContexto } from "../../core/contexto.ts";
 import { transacaoAtual } from "../../core/db.ts";
+import { devolverEstoqueDoPedido } from "./devolver-estoque.ts";
 
 export class ErroDeTransicaoDoPedido extends Error {
   readonly explicacao: string;
@@ -61,6 +62,10 @@ export async function mudarStatusDoPedido(
         : {}),
     },
   });
+
+  // O que a baixa tirou volta ao estoque na MESMA transação (AC-334).
+  if (decisao.para === "CANCELLED")
+    await devolverEstoqueDoPedido(pedido.id, agora);
 
   await tx.orderStatusEntry.create({
     data: {

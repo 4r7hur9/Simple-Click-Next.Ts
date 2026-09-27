@@ -120,3 +120,4 @@ export type {
   ResultadoDaChavePix,
   TipoDaChavePix,
 } from "./chave-pix.ts";
+export { estaAcabando } from "./estoque.ts";
