@@ -34,6 +34,11 @@ import {
 } from "./modules/orders/pedidos.routes.ts";
 import { criarRotasDaFila } from "./modules/orders/fila.routes.ts";
 import type { OpcoesDaFila } from "./modules/orders/fila.routes.ts";
+import {
+  criarRotasDaConta,
+  PREFIXO_DA_CONTA,
+  type OpcoesDaConta,
+} from "./modules/orders/conta.routes.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
   fechamentoDaLoja,
@@ -79,6 +84,8 @@ export interface OpcoesDoApp {
   readonly pedidos?: Partial<OpcoesDosPedidos>;
   /** O mesmo, para a fila de pedidos do dono. */
   readonly fila?: Partial<OpcoesDaFila>;
+  /** O mesmo, para a área da conta do cliente. */
+  readonly conta?: Partial<OpcoesDaConta>;
 }
 
 /**
@@ -406,7 +413,53 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
           proximaAbertura: vitrine?.abertura.proximaAbertura ?? null,
         };
       },
+      // O cliente logado, quando a sessão é de CLIENTE: o pedido nasce ligado
+      // à conta dele e aparece no histórico (AC-616). Dono e administração não
+      // compram "como conta", e convidado segue sem vínculo (ASM-103).
+      autenticarCliente: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "CUSTOMER") return null;
+          return { identidadeId: alegacoes.identidadeId };
+        } catch {
+          return null;
+        }
+      },
       ...opcoes.pedidos,
+    }),
+  );
+
+  // A ÁREA DA CONTA não é de loja nenhuma: é da pessoa. O histórico dela
+  // cruza lojas por um caminho dedicado (AC-616), e a sessão precisa ser de
+  // CLIENTE — dono e administração não têm "meus pedidos".
+  app.use(
+    PREFIXO_DA_CONTA,
+    criarRotasDaConta({
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "CUSTOMER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "CUSTOMER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.conta,
     }),
   );
 

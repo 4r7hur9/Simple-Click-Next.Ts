@@ -112,3 +112,14 @@ export type {
   Vitrine,
 } from "./vitrine.ts";
 export type { ComposicaoDoRamoNoContrato } from "./vertical.ts";
+export {
+  esquemaDaLojaDoMeuPedido,
+  esquemaDoMeuPedido,
+  esquemaDoPedidoDaConta,
+  esquemaDosMeusPedidos,
+} from "./conta.ts";
+export type {
+  MeuPedidoNoContrato,
+  MeusPedidosNoContrato,
+  PedidoDaContaNoContrato,
+} from "./conta.ts";

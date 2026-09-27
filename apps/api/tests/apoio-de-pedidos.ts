@@ -49,6 +49,7 @@ export function aplicacaoDaOperacao(acesso: AcessoAoBanco) {
     carrinho: { acesso },
     pedidos: { acesso },
     fila: { acesso },
+    conta: { acesso },
   });
 }
 

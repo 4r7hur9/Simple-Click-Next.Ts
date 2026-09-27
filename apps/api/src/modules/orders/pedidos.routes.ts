@@ -61,6 +61,7 @@ import { criarPedido } from "./criar-pedido.usecase.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
 import { reservarEstoque } from "./reservar-estoque.ts";
 import { acompanharPedido } from "./acompanhar.usecase.ts";
+import { vincularClienteDaLoja } from "./meus-pedidos.usecase.ts";
 import {
   confirmarEnvioNoWhatsApp,
   PedidoDaConfirmacaoNaoEncontrado,
@@ -97,6 +98,14 @@ function novoTokenDoPedido(): string {
 
 /** Evento do registro quando o total da tela não bate com o do servidor. */
 export const EVENTO_DE_DIVERGENCIA_NO_PEDIDO = "pedido.total_divergente";
+
+/**
+ * Evento do registro quando o pedido de um cliente logado não pôde ser ligado
+ * à conta dele (AC-616). A venda segue como convidado: perder o vínculo é
+ * ruim, perder a venda é pior — e o aviso é o que impede a falha de ficar
+ * invisível.
+ */
+export const EVENTO_DE_VINCULO_SEM_CONTA = "pedido.vinculo_com_a_conta_falhou";
 
 /** O carrinho como esta rota precisa vê-lo. */
 export interface CarrinhoParaFechar {
@@ -177,6 +186,14 @@ export interface OpcoesDosPedidos {
   readonly lerWhatsApp: () => Promise<WhatsAppParaFechar | null>;
   /** O endereço do site, para o link de acompanhamento dentro da mensagem. */
   readonly enderecoDoSite?: string | undefined;
+  /**
+   * Quem está comprando, quando a requisição traz sessão de CLIENTE. O pedido
+   * nasce ligado à conta dessa pessoa e entra no histórico dela (AC-616).
+   * Nulo é compra de convidado — a maioria (ASM-103).
+   */
+  readonly autenticarCliente?:
+    | ((requisicao: Request) => { readonly identidadeId: string } | null)
+    | undefined;
 }
 
 export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
@@ -204,6 +221,18 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
         throw erroDeDominio("nao_encontrado", { recurso: "loja" });
       }
       const lojaId = identificacao.id;
+
+      // O cliente logado, quando há sessão de CLIENTE: o pedido nasce ligado
+      // à conta dele e entra no histórico (AC-616). É um passo próprio, antes
+      // do fechamento, porque o vínculo é escrito no papel CUSTOMER e o
+      // fechamento corre como PUBLIC — dois contextos, duas transações.
+      const clienteDaLojaId = await clienteDaLojaDaSessao({
+        opcoes,
+        acesso,
+        req,
+        lojaId,
+        contato: body.contato,
+      });
 
       // PASSO 2 — transação nova, com a loja, a sessão E a chave de fechamento
       // declaradas. A chave precisa estar no CONTEXTO, e não só no corpo: é ela
@@ -257,6 +286,7 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
             const criado = await criarPedido(
               {
                 lojaId,
+                clienteDaLojaId,
                 contato: {
                   nome: body.contato.nome,
                   // O telefone chega como a pessoa digitou; quem normaliza é o
@@ -575,6 +605,52 @@ function registrarDivergencia(
       totalEnviadoEmCentavos: daTela,
     },
   });
+}
+
+/**
+ * O cliente-da-loja da sessão de CLIENTE, ou nulo.
+ *
+ * Nulo quando a compra é de convidado — e também quando o vínculo falha: a
+ * venda segue sem ele, e o registro avisa. O motivo vai só pelo nome do erro:
+ * a mensagem de um erro de banco pode carregar o que foi enviado, e o que foi
+ * enviado é nome e telefone (P-009).
+ */
+async function clienteDaLojaDaSessao({
+  opcoes,
+  acesso,
+  req,
+  lojaId,
+  contato,
+}: {
+  readonly opcoes: OpcoesDosPedidos;
+  readonly acesso: AcessoAoBanco;
+  readonly req: Request;
+  readonly lojaId: string;
+  readonly contato: { readonly nome: string; readonly telefone: string };
+}): Promise<string | null> {
+  const cliente = opcoes.autenticarCliente?.(req) ?? null;
+  if (cliente === null) return null;
+
+  try {
+    return await executarComoRequisicao(
+      { papel: "CUSTOMER", lojaId, usuarioId: cliente.identidadeId },
+      () =>
+        acesso.emTransacao(() =>
+          vincularClienteDaLoja({
+            nome: contato.nome,
+            telefoneE164: contato.telefone,
+          }),
+        ),
+    );
+  } catch (causa) {
+    registrador().aviso(EVENTO_DE_VINCULO_SEM_CONTA, {
+      lojaId,
+      recurso: "cliente_da_loja",
+      recursoId: cliente.identidadeId,
+      detalhe: { causa: causa instanceof Error ? causa.name : "desconhecida" },
+    });
+    return null;
+  }
 }
 
 /** Onde as rotas de pedido ficam montadas. */

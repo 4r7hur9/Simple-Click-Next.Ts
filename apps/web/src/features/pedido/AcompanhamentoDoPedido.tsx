@@ -42,6 +42,12 @@ export interface AcompanhamentoDoPedidoProps {
     | ((apelido: string, token: string) => Promise<ResultadoDoAcompanhamento>)
     | undefined;
   readonly intervaloMs?: number | undefined;
+  /**
+   * O caminho de volta. Sem ele, volta para a loja — que é o caso do link.
+   * Aberta pela conta (T-604), a mesma página volta para "meus pedidos".
+   */
+  readonly voltar?:
+    { readonly href: string; readonly rotulo: string } | undefined;
 }
 
 function formaDePagamento(forma: string | null): string {
@@ -71,6 +77,7 @@ export function AcompanhamentoDoPedido({
   corPrincipal,
   atualizar = buscarAcompanhamento,
   intervaloMs = INTERVALO_DO_ACOMPANHAMENTO_MS,
+  voltar,
 }: AcompanhamentoDoPedidoProps) {
   const [pedido, setPedido] = useState(inicial);
   const [erro, setErro] = useState<string | null>(null);
@@ -109,9 +116,9 @@ export function AcompanhamentoDoPedido({
           <div>
             <a
               className="font-medium text-[var(--cor-primaria-texto)] underline"
-              href={`/l/${apelidoDaLoja}`}
+              href={voltar?.href ?? `/l/${apelidoDaLoja}`}
             >
-              ← Voltar para a loja
+              {voltar?.rotulo ?? "← Voltar para a loja"}
             </a>
             <p className="mt-8 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
               Acompanhamento · {pedido.loja.nome}
