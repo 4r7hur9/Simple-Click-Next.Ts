@@ -173,6 +173,9 @@ export type {
 // Tipo de negócio trocado pela administração (T-203).
 export { esquemaDaTrocaDeTipoDeNegocio } from "./admin.ts";
 export type { TrocaDeTipoDeNegocioEnviada } from "./admin.ts";
+// Apelido trocado pela administração (T-204).
+export { esquemaDaTrocaDeApelido } from "./admin.ts";
+export type { TrocaDeApelidoEnviada } from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,

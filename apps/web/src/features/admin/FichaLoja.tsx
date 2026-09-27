@@ -46,6 +46,7 @@ import {
   type ErrosDaEdicao,
   type ValoresDaEdicao,
 } from "./edicao-da-loja.ts";
+import { EnderecoDaLoja } from "./EnderecoDaLoja.tsx";
 import { ListaDaTrilha } from "./ListaDaTrilha.tsx";
 import { SeletorVertical } from "./SeletorVertical.tsx";
 
@@ -356,6 +357,10 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
 
       <Secao id="ficha-cadastro" titulo="Cadastro">
         <CadastroDaLoja ficha={ficha} aoSalvar={props.aoAtualizar} />
+      </Secao>
+
+      <Secao id="ficha-endereco" titulo="Endereço na web">
+        <EnderecoDaLoja ficha={ficha} aoTrocar={props.aoAtualizar} />
       </Secao>
 
       <Secao id="ficha-tipo" titulo="Tipo de negócio">

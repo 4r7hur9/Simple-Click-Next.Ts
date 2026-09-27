@@ -28,6 +28,10 @@ import {
   type LojaParaGravar,
   type RepositorioDoCadastro,
 } from "./criar-loja.usecase.ts";
+import {
+  ErroDeApelidoTomado,
+  type RepositorioDoApelido,
+} from "./alterar-apelido.usecase.ts";
 import type {
   RepositorioDoTipoDeNegocio,
   TipoDeNegocioDaPlataforma,
@@ -696,6 +700,93 @@ export function repositorioDoTipoDeNegocio(): RepositorioDoTipoDeNegocio {
     lerTipoAtual,
     lerTipo,
     gravarTipo,
+    registrar: (ato) =>
+      registrarNaTrilha({
+        lojaId: ato.lojaId,
+        atorId: ato.atorId,
+        acao: ato.acao,
+        entidade: "stores",
+        entidadeId: ato.lojaId,
+        antes: ato.antes as Readonly<Record<string, unknown>>,
+        depois: ato.depois as Readonly<Record<string, unknown>>,
+      }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Apelido — o endereço da loja na web (AC-208)
+// ---------------------------------------------------------------------------
+
+/** O apelido atual, com a linha da loja TRAVADA até o fim da transação. */
+async function lerApelidoAtual(lojaId: string): Promise<string | null> {
+  const linhas = await transacaoAtual().$queryRaw<{ slug: string }[]>`
+    SELECT slug FROM app.stores WHERE id = ${lojaId}::uuid FOR UPDATE`;
+  return linhas[0]?.slug ?? null;
+}
+
+/**
+ * Quais candidatos pertencem a OUTRA loja: como apelido atual (inclusive de
+ * loja excluída ainda em retenção, que pode voltar) ou como apelido antigo.
+ * Os antigos da própria loja não contam — voltar a eles é permitido.
+ */
+async function apelidosDeOutraLoja(
+  lojaId: string,
+  candidatos: readonly string[],
+): Promise<ReadonlySet<string>> {
+  if (candidatos.length === 0) return new Set();
+  const minusculos = candidatos.map((candidato) => candidato.toLowerCase());
+  const linhas = await transacaoAtual().$queryRaw<{ apelido: string }[]>`
+    SELECT lower(slug) AS apelido FROM app.stores
+     WHERE lower(slug) = ANY(${minusculos}::text[])
+       AND id <> ${lojaId}::uuid
+    UNION
+    SELECT lower(host) AS apelido FROM app.store_domains
+     WHERE kind = 'LEGACY_SLUG'
+       AND lower(host) = ANY(${minusculos}::text[])
+       AND store_id <> ${lojaId}::uuid`;
+  return new Set(linhas.map((linha) => linha.apelido));
+}
+
+/**
+ * Guarda o antigo como endereço que redireciona e grava o novo.
+ *
+ * Se o novo é um antigo da PRÓPRIA loja, a linha dele sai de `store_domains`
+ * — ele volta a ser o atual. A chave única do banco é a última palavra sobre
+ * a corrida com outra troca ou outro cadastro.
+ */
+async function gravarApelido(
+  lojaId: string,
+  troca: { readonly antigo: string; readonly novo: string },
+): Promise<void> {
+  const tx = transacaoAtual();
+  try {
+    await tx.$executeRaw`
+      DELETE FROM app.store_domains
+       WHERE store_id = ${lojaId}::uuid
+         AND kind = 'LEGACY_SLUG'
+         AND lower(host) = lower(${troca.novo})`;
+    await tx.$executeRaw`
+      INSERT INTO app.store_domains
+        (store_id, host, kind, is_canonical, redirect_to_canonical)
+      VALUES (${lojaId}::uuid, ${troca.antigo}, 'LEGACY_SLUG', false, true)`;
+    await exigirUmaLinhaAfetada(
+      { recurso: "loja", id: lojaId },
+      () =>
+        tx.$executeRaw`
+        UPDATE app.stores SET slug = ${troca.novo} WHERE id = ${lojaId}::uuid`,
+    );
+  } catch (erro) {
+    if (ehChaveRepetida(erro)) throw new ErroDeApelidoTomado();
+    throw erro;
+  }
+}
+
+/** O repositório da troca de apelido, sobre a transação em curso. */
+export function repositorioDoApelido(): RepositorioDoApelido {
+  return {
+    lerApelidoAtual,
+    apelidosDeOutraLoja,
+    gravarApelido,
     registrar: (ato) =>
       registrarNaTrilha({
         lojaId: ato.lojaId,

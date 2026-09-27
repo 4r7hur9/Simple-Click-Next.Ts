@@ -33,6 +33,8 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
     padrao: new RegExp(`^lojas/${UUID}/tipo-de-negocio$`),
     metodos: ["PUT"],
   },
+  // A troca do endereço na web, que preserva o antigo (T-204, AC-208).
+  { padrao: new RegExp(`^lojas/${UUID}/apelido$`), metodos: ["PUT"] },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */

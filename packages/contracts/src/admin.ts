@@ -345,6 +345,7 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   CONFIG_ALTERADA: "Configuração alterada",
   CONFIG_SENSIVEL_ALTERADA: "Dado sensível alterado",
   TIPO_DE_NEGOCIO_ALTERADO: "Tipo de negócio alterado",
+  APELIDO_ALTERADO: "Endereço na web alterado",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
@@ -451,3 +452,17 @@ export const esquemaDaTrocaDeTipoDeNegocio = z.strictObject({
 export type TrocaDeTipoDeNegocioEnviada = z.input<
   typeof esquemaDaTrocaDeTipoDeNegocio
 >;
+
+// ---------------------------------------------------------------------------
+// Apelido trocado pela administração (AC-208)
+// ---------------------------------------------------------------------------
+
+/**
+ * `PUT /v1/admin/lojas/:id/apelido`. O apelido antigo continua levando à
+ * loja: fica guardado como endereço que redireciona para o novo.
+ */
+export const esquemaDaTrocaDeApelido = z.strictObject({
+  apelido: esquemaDoApelidoDaLoja,
+});
+
+export type TrocaDeApelidoEnviada = z.input<typeof esquemaDaTrocaDeApelido>;

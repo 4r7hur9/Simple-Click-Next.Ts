@@ -10,6 +10,7 @@ import {
   esquemaDaConsultaDeLojas,
   esquemaDaEdicaoDaLoja,
   esquemaDaNovaLoja,
+  esquemaDaTrocaDeApelido,
   esquemaDaTrocaDeTipoDeNegocio,
 } from "@simpleclick/contracts";
 import { z } from "zod";
@@ -38,4 +39,10 @@ export const esquemasDaEdicao = {
 export const esquemasDaTrocaDeTipo = {
   params: esquemaDoCaminhoDaLoja,
   body: esquemaDaTrocaDeTipoDeNegocio,
+};
+
+/** PUT /v1/admin/lojas/:id/apelido */
+export const esquemasDaTrocaDeApelido = {
+  params: esquemaDoCaminhoDaLoja,
+  body: esquemaDaTrocaDeApelido,
 };

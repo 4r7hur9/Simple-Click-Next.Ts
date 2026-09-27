@@ -68,6 +68,7 @@ import {
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
 import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
+import { criarRotaDoApelidoAntigo } from "./modules/storefront/apelido-antigo.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -481,6 +482,17 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     PREFIXO_DA_VITRINE,
     criarRotasDaVitrine({ lerHorario: horarioDaLoja, ...opcoes.vitrine }),
+  );
+
+  // O apelido antigo de uma loja leva ao atual (AC-208): o site pergunta aqui
+  // para onde mandar quem chegou pelo link que o dono já tinha divulgado.
+  app.use(
+    PREFIXO_DA_VITRINE,
+    criarRotaDoApelidoAntigo(
+      opcoes.vitrine?.acesso === undefined
+        ? {}
+        : { acesso: opcoes.vitrine.acesso },
+    ),
   );
 
   // O CARRINHO É COSTURADO AQUI PELO MESMO MOTIVO. Ele precisa resolver a loja

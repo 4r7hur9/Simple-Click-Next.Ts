@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apelidoDaLoja } from "./lib/host-loja";
+import { redirecionarApelidoAntigo } from "./server/apelido-antigo";
 
 /**
  * Proxy do Next: resolve o endereço para o apelido da loja e reescreve a rota
@@ -20,7 +21,15 @@ import { apelidoDaLoja } from "./lib/host-loja";
  * endereço sem nenhum aviso, e o teste `tests/sem-middleware.test.ts` existe
  * para pegar exatamente isso.
  */
-export default function proxy(requisicao: NextRequest): NextResponse {
+export default async function proxy(
+  requisicao: NextRequest,
+): Promise<NextResponse> {
+  // O link antigo de uma loja cujo apelido a administração trocou leva ao
+  // mesmo lugar no endereço novo (AC-208). Vem antes da reescrita: o que se
+  // reescreve é o endereço atual, e não o antigo.
+  const redirecionamento = await redirecionarApelidoAntigo(requisicao);
+  if (redirecionamento !== null) return redirecionamento;
+
   const apelido = apelidoDaLoja(requisicao.headers.get("host"));
   if (apelido === null) return NextResponse.next();
 

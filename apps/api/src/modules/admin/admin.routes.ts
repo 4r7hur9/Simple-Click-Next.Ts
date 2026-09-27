@@ -28,12 +28,18 @@ import {
   esquemasDaEdicao,
   esquemasDaFicha,
   esquemasDaListagem,
+  esquemasDaTrocaDeApelido,
   esquemasDaTrocaDeTipo,
   esquemasDoCadastro,
 } from "./admin.schema.ts";
+import {
+  alterarApelido,
+  ErroDeApelidoTomado,
+} from "./alterar-apelido.usecase.ts";
 import { alterarTipoDeNegocio } from "./alterar-vertical.usecase.ts";
 import {
   cadastrarLoja,
+  sugerirApelido,
   type DependenciasDoCadastro,
 } from "./criar-loja.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
@@ -45,6 +51,7 @@ import {
   listarTiposDeNegocio,
   registrarConsultaDaAdministracao,
   repositorioDaEdicao,
+  repositorioDoApelido,
   repositorioDoCadastro,
   repositorioDoTipoDeNegocio,
 } from "./lojas.repo.ts";
@@ -332,6 +339,70 @@ export function criarRotasDaAdministracao(
                   mensagem: "Escolha um tipo de negócio da lista.",
                 },
               ],
+            });
+            return;
+          }
+          resposta.status(404).json({ erro: "nao_encontrado" });
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Apelido: o endereço da loja na web (AC-208) ─────────────────────────
+  // O antigo fica guardado e continua levando à loja; a vitrine responde, por
+  // `endereco-atual`, para onde o link antigo deve ir.
+  const entradaDaTrocaDeApelido = validar(esquemasDaTrocaDeApelido);
+  rotas.put(
+    "/lojas/:id/apelido",
+    entradaDaTrocaDeApelido,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params, body } = entradaDaTrocaDeApelido.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const sugerir = (base: string) =>
+            sugerirApelido(base, repositorioDoCadastro());
+          let resultado: Awaited<ReturnType<typeof alterarApelido>>;
+          let ficha: Awaited<ReturnType<typeof lerFichaDaLoja>> = null;
+          try {
+            ({ resultado, ficha } = await acesso().emTransacao(async () => {
+              const troca = await alterarApelido(
+                params.id,
+                body.apelido,
+                administradorId,
+                { repositorio: repositorioDoApelido(), sugerir },
+              );
+              return {
+                resultado: troca,
+                ficha: troca.ok ? await lerFichaDaLoja(params.id) : null,
+              };
+            }));
+          } catch (causa) {
+            if (!(causa instanceof ErroDeApelidoTomado)) throw causa;
+            // A transação da troca foi desfeita; a sugestão sai de outra.
+            const sugestao = await acesso().emTransacao(() =>
+              sugerir(body.apelido),
+            );
+            resultado = { ok: false, motivo: "APELIDO_EM_USO", sugestao };
+          }
+
+          resposta.setHeader("cache-control", "no-store");
+          if (resultado.ok && ficha !== null) {
+            resposta.json(ficha);
+            return;
+          }
+          if (!resultado.ok && resultado.motivo === "APELIDO_EM_USO") {
+            resposta.status(409).json({
+              erro: "apelido_em_uso",
+              campos: [
+                {
+                  onde: "body",
+                  caminho: "apelido",
+                  mensagem: MENSAGEM_DE_APELIDO_EM_USO,
+                },
+              ],
+              sugestao: resultado.sugestao,
             });
             return;
           }
