@@ -23,7 +23,7 @@
 - Notas: nome e telefone bastam; e-mail é opcional. Telefone repetido oferece abrir o cadastro existente em vez de duplicar. Cliente que já tem conta na plataforma é reconhecido e não duplicado.
 - Esforço: alto
 
-## T-703 — Edição e remoção com preservação dos pedidos [pendente]
+## T-703 — Edição e remoção com preservação dos pedidos [concluida]
 
 - Refs: US-701, AC-705
 - Arquivos: apps/api/src/modules/customers/editar.usecase.ts, apps/api/src/modules/customers/remover.usecase.ts, apps/api/tests/clientes-edicao.int.test.ts, apps/web/src/app/(painel)/painel/clientes/[id]/page.tsx, apps/web/src/features/painel-clientes/FichaCliente.tsx, apps/web/src/app/api/painel/clientes/[id]/route.ts
