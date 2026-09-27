@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-09-27T13:00:50.202Z",
-  "gitRev": "3c82bf4",
-  "command": "bash ../vitest-feature.sh admin-lojas",
+  "timestamp": "2026-09-27T17:35:29.016Z",
+  "gitRev": "ef237e3",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 27,
+  "testsParsed": 41,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -21,12 +21,17 @@
       "status": "pass",
       "testName": "documento inválido (AC-202) @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação",
       "method": "vitest-json"
+    },
+    "AC-206": {
+      "status": "pass",
+      "testName": "a lista de lojas (AC-206) @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal",
+      "method": "vitest-json"
     }
   },
   "principles": {
     "P-011": {
       "status": "pass",
-      "testName": "cadastro de loja na tela @principle:P-011 os tipos de negócio mostram espera e falha com saída @principle:P-011 os tipos de negócio mostram espera e falha com saída"
+      "testName": "a lista de lojas na tela @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo"
     }
   }
 }
