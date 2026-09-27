@@ -15,7 +15,7 @@ import {
   criarIdentidade,
   criarLoja,
 } from "@simpleclick/testing";
-import type { LojaDeTeste } from "@simpleclick/testing";
+import type { IdentidadeDeTeste, LojaDeTeste } from "@simpleclick/testing";
 
 import {
   camposRecusados,
@@ -30,6 +30,7 @@ import type { AcessoAoBanco } from "../src/core/db.ts";
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let app: ReturnType<typeof montarAppDaConfiguracao>;
+let dono: IdentidadeDeTeste;
 let token: string;
 
 const CONTEUDO_PADRAO = {
@@ -45,7 +46,7 @@ beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  const dono = await criarIdentidade({ nome: "Dona Zica" });
+  dono = await criarIdentidade({ nome: "Dona Zica" });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -76,7 +77,7 @@ describe("a largura do papel é a do cupom (AC-919)", () => {
   it(
     "@spec:AC-919 papel de 58 mm configurado é o que o cupom recebe, e trocar para 80 mm vale para o mesmo pedido",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria da Térmica" });
+      const loja = await criarLoja({ nome: "Pastelaria da Térmica", dono });
 
       expect(
         (
@@ -100,7 +101,7 @@ describe("a largura do papel é a do cupom (AC-919)", () => {
   it(
     "@spec:AC-919 largura que a impressora térmica não tem é recusada, e a anterior continua",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do Rolo" });
+      const loja = await criarLoja({ nome: "Pastelaria do Rolo", dono });
       await salvarImpressao(loja, { larguraMm: 58, conteudo: CONTEUDO_PADRAO });
 
       const recusado = await salvarImpressao(loja, {
@@ -119,7 +120,7 @@ describe("o dono escolhe o que aparece no cupom (AC-920)", () => {
   it(
     "@spec:AC-920 desligar o endereço e ligar o total em destaque vale para o cupom seguinte",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do Cupom" });
+      const loja = await criarLoja({ nome: "Pastelaria do Cupom", dono });
       await salvarImpressao(loja, {
         larguraMm: 80,
         conteudo: {
@@ -141,7 +142,7 @@ describe("o dono escolhe o que aparece no cupom (AC-920)", () => {
   it(
     "@spec:AC-920 o essencial do pedido não desliga, nem se a requisição pedir",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Essencial" });
+      const loja = await criarLoja({ nome: "Pastelaria Essencial", dono });
       const resposta = await salvarImpressao(loja, {
         larguraMm: 58,
         conteudo: {

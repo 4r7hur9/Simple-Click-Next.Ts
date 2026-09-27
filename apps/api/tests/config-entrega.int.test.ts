@@ -17,7 +17,11 @@ import {
   criarLoja,
   criarProduto,
 } from "@simpleclick/testing";
-import type { LojaDeTeste, ProdutoDeTeste } from "@simpleclick/testing";
+import type {
+  IdentidadeDeTeste,
+  LojaDeTeste,
+  ProdutoDeTeste,
+} from "@simpleclick/testing";
 
 import {
   gravarSecao,
@@ -32,6 +36,7 @@ import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let app: ReturnType<typeof montarAppDaConfiguracao>;
+let dono: IdentidadeDeTeste;
 let token: string;
 
 const ENTREGA = {
@@ -56,7 +61,7 @@ beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  const dono = await criarIdentidade({ nome: "Dona Zica" });
+  dono = await criarIdentidade({ nome: "Dona Zica" });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -69,7 +74,7 @@ afterAll(async () => {
 async function lojaQueVende(
   nome: string,
 ): Promise<{ loja: LojaDeTeste; produto: ProdutoDeTeste }> {
-  const loja = await criarLoja({ nome });
+  const loja = await criarLoja({ nome, dono });
   const produto = await criarProduto({
     loja,
     nome: "Marmita",

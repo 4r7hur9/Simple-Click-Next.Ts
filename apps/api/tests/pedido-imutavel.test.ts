@@ -217,7 +217,7 @@ describe("o banco recusa alterar o item vendido (P-010)", () => {
 
       const alteradas = await comoRequisicao(
         acesso,
-        { lojaId: loja.id, papel: "OWNER" },
+        { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
         (tx) =>
           tx.orderItem.updateMany({
             where: { id: item.id },
@@ -246,7 +246,7 @@ describe("o banco recusa alterar o item vendido (P-010)", () => {
 
       const apagadas = await comoRequisicao(
         acesso,
-        { lojaId: loja.id, papel: "OWNER" },
+        { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
         (tx) => tx.orderItem.deleteMany({ where: { id: item.id } }),
       );
 
@@ -299,7 +299,7 @@ describe("o banco recusa alterar o item vendido (P-010)", () => {
 
       const alteradas = await comoRequisicao(
         acesso,
-        { lojaId: loja.id, papel: "OWNER" },
+        { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
         (tx) =>
           tx.order.updateMany({
             where: { id: pedido.id },

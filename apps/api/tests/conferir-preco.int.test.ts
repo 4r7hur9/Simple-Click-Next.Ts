@@ -225,7 +225,12 @@ describe("o que mudou é conferido contra o catálogo vivo (AC-503)", () => {
 
       const conferido = await comoRequisicao(
         acesso,
-        { lojaId: loja.id, papel: "OWNER", sessaoDoCarrinho: "sessao-balcao" },
+        {
+          lojaId: loja.id,
+          usuarioId: loja.dono.id,
+          papel: "OWNER",
+          sessaoDoCarrinho: "sessao-balcao",
+        },
         () => conferirAntesDeFechar(carrinhoId),
       );
 

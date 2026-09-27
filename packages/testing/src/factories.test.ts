@@ -195,9 +195,14 @@ it("@spec:AC-038 monta um cenário completo em poucas linhas e o encontra no ban
   expect(achado.lojas.rows).toEqual([{ nome: loja.nome, ramo: "FOOD_SNACK" }]);
   // Dinheiro é inteiro em centavos, e volta inteiro (P-005).
   expect(achado.produtos.rows).toEqual([{ id: produto.id, centavos: "1999" }]);
-  expect(achado.membros.rows).toEqual([
-    { identidade: dona.id, papel: "OWNER" },
-  ]);
+  // Dois donos: o com que a loja nasceu e a Ana, vinculada pelo construtor.
+  expect(achado.membros.rows).toHaveLength(2);
+  expect(achado.membros.rows).toEqual(
+    expect.arrayContaining([
+      { identidade: loja.dono.id, papel: "OWNER" },
+      { identidade: dona.id, papel: "OWNER" },
+    ]),
+  );
   expect(achado.clientes.rows).toEqual([
     { id: cliente.id, nome: "Cliente fiel" },
   ]);
@@ -323,7 +328,7 @@ it("@spec:AC-038 a mesma suíte em ordem invertida chega ao mesmo resultado", as
       lojasVisiveis: 1,
       nomeDaLoja: "Lanchonete da esquina",
       produtos: [{ nome: "X-Salada", precoCentavos: 1999 }],
-      membros: 1,
+      membros: 2,
       clientes: 1,
     },
     {
@@ -331,7 +336,7 @@ it("@spec:AC-038 a mesma suíte em ordem invertida chega ao mesmo resultado", as
       lojasVisiveis: 1,
       nomeDaLoja: "Lanchonete da esquina",
       produtos: [{ nome: "X-Salada", precoCentavos: 2999 }],
-      membros: 1,
+      membros: 2,
       clientes: 1,
     },
   ]);

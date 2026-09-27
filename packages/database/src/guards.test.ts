@@ -18,7 +18,7 @@ import {
 import { aplicarMigracoes } from "./migrate.ts";
 
 /**
- * Prova das nove guardas estruturais, contra PostgreSQL de verdade.
+ * Prova das dez guardas estruturais, contra PostgreSQL de verdade.
  *
  * A regra que este arquivo existe para cumprir: **guarda que nunca acusou nada
  * não está provada.** Uma consulta ao catálogo que devolve zero linhas parece
@@ -163,7 +163,7 @@ afterAll(async () => {
 // ---------------------------------------------------------------------------
 
 describe("conjunto das guardas estruturais", () => {
-  it("lê as nove guardas do repositório, cada uma com título próprio", () => {
+  it("lê as dez guardas do repositório, em ordem numérica, cada uma com título próprio", () => {
     expect(guardas.map((item) => item.codigo)).toEqual([
       "g1",
       "g2",
@@ -174,6 +174,7 @@ describe("conjunto das guardas estruturais", () => {
       "g7",
       "g8",
       "g9",
+      "g10",
     ]);
     for (const item of guardas) {
       expect(item.titulo.length).toBeGreaterThan(20);
@@ -200,7 +201,7 @@ describe("conjunto das guardas estruturais", () => {
     async () => {
       const relatorio = await executarGuardas(migrador, guardas);
       expect(relatorio.achados).toEqual([]);
-      expect(relatorio.guardasExecutadas).toHaveLength(9);
+      expect(relatorio.guardasExecutadas).toHaveLength(10);
     },
     ESPERA_LONGA,
   );
@@ -658,6 +659,82 @@ describe("guardas estruturais do banco", () => {
 
       expect(
         await objetosApontadosPor("g9_auditoria_sem_alteracao.sql"),
+      ).toEqual([]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-035 @principle:P-003 g10 acusa a função com direitos de quem a definiu sem caminho de busca fixo ou sem dono migrador",
+    async () => {
+      // O esquema real passa: toda função definer das migrações — resolve_store,
+      // is_store_staff, meus_pedidos... — tem dono migrador e caminho fixo.
+      expect(
+        await objetosApontadosPor("g10_definer_com_caminho_fixo.sql"),
+      ).toEqual([]);
+
+      // Defeito 1 — dono certo, caminho de busca solto: um objeto temporário
+      // à frente do esquema seria lido no lugar do verdadeiro.
+      await comDefeito(
+        [
+          "SET ROLE sc_migrator",
+          `CREATE FUNCTION app.espia() RETURNS integer
+             LANGUAGE sql STABLE SECURITY DEFINER AS 'SELECT 1'`,
+          "RESET ROLE",
+        ],
+        ["DROP FUNCTION app.espia()"],
+        async () => {
+          expect(
+            await objetosApontadosPor("g10_definer_com_caminho_fixo.sql"),
+          ).toEqual(["app.espia()"]);
+          expect(
+            await problemasApontadosPor("g10_definer_com_caminho_fixo.sql"),
+          ).toContain("sem caminho de busca fixo");
+        },
+      );
+
+      // Defeito 2 — caminho fixo, mas criada por quem aplicou sem
+      // `SET LOCAL ROLE`: roda com os direitos do superusuário, que ninguém
+      // decidiu.
+      await comDefeito(
+        [
+          `CREATE FUNCTION app.espia() RETURNS integer
+             LANGUAGE sql STABLE SECURITY DEFINER
+             SET search_path = app, pg_temp AS 'SELECT 1'`,
+        ],
+        ["DROP FUNCTION app.espia()"],
+        async () => {
+          expect(
+            await objetosApontadosPor("g10_definer_com_caminho_fixo.sql"),
+          ).toEqual(["app.espia()"]);
+          expect(
+            await problemasApontadosPor("g10_definer_com_caminho_fixo.sql"),
+          ).toContain("não ao migrador");
+        },
+      );
+
+      // As duas coisas certas: passa. E função comum (sem direitos de quem a
+      // definiu) nunca é assunto desta guarda.
+      await comDefeito(
+        [
+          "SET ROLE sc_migrator",
+          `CREATE FUNCTION app.espia() RETURNS integer
+             LANGUAGE sql STABLE SECURITY DEFINER
+             SET search_path = app, pg_temp AS 'SELECT 1'`,
+          `CREATE FUNCTION app.comum() RETURNS integer
+             LANGUAGE sql STABLE AS 'SELECT 1'`,
+          "RESET ROLE",
+        ],
+        ["DROP FUNCTION app.espia()", "DROP FUNCTION app.comum()"],
+        async () => {
+          expect(
+            await objetosApontadosPor("g10_definer_com_caminho_fixo.sql"),
+          ).toEqual([]);
+        },
+      );
+
+      expect(
+        await objetosApontadosPor("g10_definer_com_caminho_fixo.sql"),
       ).toEqual([]);
     },
     ESPERA_LONGA,

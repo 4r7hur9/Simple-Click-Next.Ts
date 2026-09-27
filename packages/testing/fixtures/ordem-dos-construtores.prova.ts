@@ -102,7 +102,8 @@ for (const { caso, precoCentavos } of ordemDaVez) {
       lojasVisiveis: 1,
       nomeDaLoja: NOME_DA_LOJA,
       produtos: [{ nome: NOME_DO_PRODUTO, precoCentavos }],
-      membros: 1,
+      // O dono com que a loja nasceu e o membro vinculado pelo construtor.
+      membros: 2,
       clientes: 1,
     });
   });
