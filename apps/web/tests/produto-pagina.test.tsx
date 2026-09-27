@@ -220,7 +220,7 @@ describe("a página mostra tudo que preciso decidir (AC-410)", () => {
     desmontar();
   });
 
-  it("@spec:AC-410 opção esgotada aparece desabilitada, e não some", () => {
+  it("@spec:AC-410 @spec:AC-317 opção esgotada aparece desabilitada, e não some", () => {
     // Sumir faria o produto parecer ter menos opções do que tem.
     const { caixa, desmontar } = montar(naTela());
 
@@ -231,7 +231,7 @@ describe("a página mostra tudo que preciso decidir (AC-410)", () => {
 });
 
 describe("o total acompanha as escolhas em tempo real (AC-411)", () => {
-  it("@spec:AC-411 marcar o adicional muda o total na hora, sem recarregar", () => {
+  it("@spec:AC-411 @spec:AC-315 marcar o adicional muda o total na hora, sem recarregar", () => {
     const { caixa, desmontar } = montar(naTela());
 
     expect(textoDoBotao(caixa)).toContain("R$ 20,00");
@@ -275,7 +275,7 @@ describe("o total acompanha as escolhas em tempo real (AC-411)", () => {
 });
 
 describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)", () => {
-  it("@spec:AC-412 sem escolher o obrigatório, adicionar não adiciona", async () => {
+  it("@spec:AC-412 @spec:AC-313 sem escolher o obrigatório, adicionar não adiciona", async () => {
     const levar = vi.fn().mockResolvedValue(undefined);
     const caixa = document.createElement("div");
     document.body.appendChild(caixa);
@@ -341,7 +341,7 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
     desmontar();
   });
 
-  it("@spec:AC-412 escolhido o obrigatório, o item é levado ao servidor", async () => {
+  it("@spec:AC-313 escolhido o obrigatório, o item é levado ao servidor", async () => {
     const levar = vi.fn().mockResolvedValue(undefined);
     const caixa = document.createElement("div");
     document.body.appendChild(caixa);
@@ -383,6 +383,150 @@ describe("escolha obrigatória pendente bloqueia com indicação clara (AC-412)"
   });
 });
 
+describe("limite de escolhas é respeitado na tela (AC-314)", () => {
+  it("@spec:AC-314 ao chegar a três opções, a quarta fica bloqueada e o limite é anunciado", () => {
+    const adicionais = DA_API.grupos[1];
+    if (adicionais === undefined) throw new Error("sem o grupo de adicionais");
+
+    const opcoes = [
+      adicionais.opcoes[0]!,
+      { ...adicionais.opcoes[1]!, disponivel: true },
+      {
+        id: "bbbbbbbb-3333-4333-8333-333333333333",
+        nome: "Cebola",
+        acrescimoCentavos: 0,
+        marcadaPorPadrao: false,
+        disponivel: true,
+      },
+      {
+        id: "bbbbbbbb-4444-4444-8444-444444444444",
+        nome: "Picles",
+        acrescimoCentavos: 0,
+        marcadaPorPadrao: false,
+        disponivel: true,
+      },
+    ];
+    const produto = naTela({
+      grupos: [
+        DA_API.grupos[0]!,
+        { ...adicionais, minimo: 0, maximo: 3, opcoes },
+      ],
+    });
+    const { caixa, desmontar } = montar(produto);
+
+    clicar(controleDe(caixa, "Bacon"));
+    clicar(controleDe(caixa, "Cheddar"));
+    clicar(controleDe(caixa, "Cebola"));
+
+    const quarta = controleDe(caixa, "Picles");
+    expect(quarta.disabled).toBe(true);
+    expect(quarta.checked).toBe(false);
+    expect(caixa.textContent).toContain("Limite de 3 opções atingido");
+    desmontar();
+  });
+});
+
+describe("variação zerada aparece, mas não pode ser escolhida (AC-316)", () => {
+  const TAMANHO = "55555555-5555-4555-8555-555555555555";
+  const P = "cccccccc-1111-4111-8111-111111111111";
+  const M = "cccccccc-2222-4222-8222-222222222222";
+  const G = "cccccccc-3333-4333-8333-333333333333";
+
+  /** A camiseta do critério: P, M e G, com o M sem estoque. */
+  function camiseta() {
+    const opcao = (id: string, nome: string) => ({
+      id,
+      nome,
+      acrescimoCentavos: 0,
+      marcadaPorPadrao: false,
+      // A OPÇÃO do eixo continua disponível: quem acabou foi a PEÇA. É a
+      // variação que diz se há estoque, e a tela precisa ler a variação.
+      disponivel: true,
+    });
+    const variacao = (
+      id: string,
+      nome: string,
+      opcaoId: string,
+      disponivel: boolean,
+    ) => ({
+      id,
+      nome,
+      precoCentavos: 4990,
+      precoAnteriorCentavos: null,
+      disponivel,
+      padrao: false,
+      valoresDosEixos: [{ grupoId: TAMANHO, opcaoId }],
+    });
+    return naTela({
+      nome: "Camiseta Básica",
+      precoCentavos: null,
+      grupos: [
+        {
+          id: TAMANHO,
+          nome: "Tamanho",
+          descricao: null,
+          tipo: "VARIATION",
+          minimo: 1,
+          maximo: 1,
+          permiteRepetir: false,
+          eixoDeVariacao: true,
+          opcoes: [opcao(P, "P"), opcao(M, "M"), opcao(G, "G")],
+        },
+      ],
+      variacoes: [
+        variacao("dddddddd-1111-4111-8111-111111111111", "P", P, true),
+        variacao("dddddddd-2222-4222-8222-222222222222", "M", M, false),
+        variacao("dddddddd-3333-4333-8333-333333333333", "G", G, true),
+      ],
+    });
+  }
+
+  /**
+   * O botão de rádio de um tamanho, pelo eixo e pela opção — e não pelo texto:
+   * "M" solto casaria com qualquer rótulo que tivesse a letra.
+   */
+  function tamanho(caixa: HTMLElement, opcaoId: string): HTMLInputElement {
+    const achado = caixa.querySelector<HTMLInputElement>(
+      `input[name="eixo-${TAMANHO}"][value="${opcaoId}"]`,
+    );
+    if (achado === null) throw new Error(`não achei o tamanho ${opcaoId}`);
+    return achado;
+  }
+
+  it("@spec:AC-316 o M aparece marcado como indisponível e desabilitado; o P e o G continuam escolhíveis", () => {
+    const { caixa, desmontar } = montar(camiseta());
+
+    const m = tamanho(caixa, M);
+    expect(m.disabled).toBe(true);
+    expect(m.closest("label")?.textContent).toContain("Indisponível");
+    expect(tamanho(caixa, P).disabled).toBe(false);
+    expect(tamanho(caixa, G).disabled).toBe(false);
+    expect(tamanho(caixa, P).closest("label")?.textContent).not.toContain(
+      "Indisponível",
+    );
+    desmontar();
+  });
+
+  it("@spec:AC-316 clicar no M não o escolhe, e escolher o G segue normalmente", () => {
+    const { caixa, desmontar } = montar(camiseta());
+    // `.click()` do próprio elemento, e não um evento sintético: é o clique que
+    // o navegador entrega, e ele respeita o `disabled` como a pessoa encontra.
+    const apertar = (elemento: HTMLInputElement) =>
+      act(() => {
+        elemento.click();
+      });
+
+    apertar(tamanho(caixa, M));
+    expect(tamanho(caixa, M).checked).toBe(false);
+    expect(textoDoBotao(caixa)).not.toContain("49,90");
+
+    apertar(tamanho(caixa, G));
+    expect(tamanho(caixa, G).checked).toBe(true);
+    expect(textoDoBotao(caixa)).toContain("49,90");
+    desmontar();
+  });
+});
+
 describe("produto indisponível é visto mas não comprado (AC-413)", () => {
   it("@spec:AC-413 produto esgotado tem o botão desabilitado e a explicação ao lado", () => {
     const { caixa, desmontar } = montar(
@@ -418,7 +562,7 @@ describe("produto indisponível é visto mas não comprado (AC-413)", () => {
     expect(produto.explicacaoDaIndisponibilidade).toContain("fechada");
   });
 
-  it("@spec:AC-413 o produto continua VISÍVEL: nome, preço e opções seguem na tela", () => {
+  it("@spec:AC-413 @spec:AC-317 produto continua visível com outros adicionais disponíveis", () => {
     const { caixa, desmontar } = montar(
       naTela({ disponivel: false, motivoIndisponivel: "ESGOTADO" }),
     );

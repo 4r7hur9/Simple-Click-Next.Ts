@@ -206,6 +206,19 @@ export function EscolhasDoProduto({
       }
 
       const quantas = proximo[opcaoId] ?? 0;
+      const escolhidasNoGrupo = grupo.opcoes.reduce(
+        (soma, opcao) => soma + (proximo[opcao.id] ?? 0),
+        0,
+      );
+      // O controle desabilita a quarta opção, mas a regra também vive aqui:
+      // uma mudança disparada fora do navegador não pode furar o máximo.
+      if (
+        quantas === 0 &&
+        grupo.maximo !== null &&
+        escolhidasNoGrupo >= grupo.maximo
+      ) {
+        return atual;
+      }
       if (quantas > 0) delete proximo[opcaoId];
       else proximo[opcaoId] = 1;
       return proximo;

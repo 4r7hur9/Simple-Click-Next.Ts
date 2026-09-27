@@ -174,3 +174,14 @@ export type {
 } from "./store-settings.ts";
 export { REGRAS_DAS_IMAGENS_DA_LOJA } from "./store-settings.ts";
 export type { TipoDeImagemDaLoja } from "./store-settings.ts";
+export {
+  esquemaDaLojaDoMeuPedido,
+  esquemaDoMeuPedido,
+  esquemaDoPedidoDaConta,
+  esquemaDosMeusPedidos,
+} from "./conta.ts";
+export type {
+  MeuPedidoNoContrato,
+  MeusPedidosNoContrato,
+  PedidoDaContaNoContrato,
+} from "./conta.ts";

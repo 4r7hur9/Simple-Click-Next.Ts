@@ -27,9 +27,14 @@ export interface MovimentoDeEstoqueReservado {
   readonly quantidadeDepois: number;
 }
 
+/**
+ * A linha que a função devolve. NULOS querem dizer "variação sem controle de
+ * estoque: nada a baixar, siga" (migração 0027) — e não "acabou", que é a
+ * ausência de linha.
+ */
 interface RetornoDaFuncaoDeEstoque {
-  readonly quantity_before: number;
-  readonly quantity_after: number;
+  readonly quantity_before: number | null;
+  readonly quantity_after: number | null;
 }
 
 interface ExecutorDaFuncaoDeEstoque {
@@ -80,6 +85,10 @@ export async function reservarEstoque(
         recurso: "estoque",
         motivo: "variacao_indisponivel",
       });
+    }
+    // Sem controle de estoque (a lanchonete, AC-337): vende, e não há baixa.
+    if (linha.quantity_before === null || linha.quantity_after === null) {
+      continue;
     }
     movimentos.push({
       variacaoId,

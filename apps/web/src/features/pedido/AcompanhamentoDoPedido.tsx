@@ -1,21 +1,53 @@
 "use client";
 
+/**
+ * A página que o cliente abre pelo link do pedido (AC-612..AC-615).
+ *
+ * Ela chega do servidor já com o pedido, e daí em diante pergunta de novo em
+ * intervalo curto: quando o dono muda o status, a página mostra o passo novo em
+ * poucos segundos, sem o cliente recarregar nada (AC-613). Se a pergunta falhar,
+ * a página AVISA e mantém o último status — nunca some com o pedido da tela.
+ *
+ * Só aparece o que o contrato público traz (AC-615): o telefone do cliente vem
+ * mascarado do servidor, e da loja só o nome e o contato que ela tornou público.
+ */
 import { useEffect, useState } from "react";
 import { Aviso, Cartao, TemaDaLoja } from "@simpleclick/ui";
 import type { AcompanhamentoNoContrato } from "@simpleclick/contracts";
 
-import { buscarAcompanhamento } from "../../lib/acompanhamento.ts";
+import {
+  buscarAcompanhamento,
+  type ResultadoDoAcompanhamento,
+} from "../../lib/acompanhamento.ts";
 import { escreverDinheiro } from "../../lib/produto.ts";
 import { BotaoJaEnviei } from "./BotaoJaEnviei.tsx";
-import { LinhaDoTempo, rotuloDoStatus } from "./LinhaDoTempo.tsx";
+import {
+  LinhaDoTempo,
+  explicacaoDoStatus,
+  rotuloDoStatus,
+} from "./LinhaDoTempo.tsx";
 
 type Pedido = AcompanhamentoNoContrato["pedido"];
+
+/** "Em poucos segundos", como o AC-613 pede. */
+export const INTERVALO_DO_ACOMPANHAMENTO_MS = 5_000;
 
 export interface AcompanhamentoDoPedidoProps {
   readonly apelidoDaLoja: string;
   readonly tokenDoPedido: string;
   readonly inicial: Pedido;
   readonly corPrincipal: string;
+  /** Como perguntar de novo. A prova troca por um que responde sem rede. */
+  readonly atualizar?:
+    | ((apelido: string, token: string) => Promise<ResultadoDoAcompanhamento>)
+    | undefined;
+  readonly intervaloMs?: number | undefined;
+  /**
+   * O caminho de volta. Sem ele, volta para a loja — que é o caso do link.
+   * Aberta pela conta (T-604), a mesma página volta para "meus pedidos".
+   */
+  readonly voltar?:
+    { readonly href: string; readonly rotulo: string } | undefined;
 }
 
 function formaDePagamento(forma: string | null): string {
@@ -29,38 +61,53 @@ function entrega(forma: string): string {
   return forma === "PICKUP" ? "Retirada no local" : "Entrega";
 }
 
+/** O motivo do cancelamento é o do passo que cancelou. */
+function motivoDoCancelamento(pedido: Pedido): string | null {
+  if (pedido.status !== "CANCELLED") return null;
+  const passo = [...pedido.historico]
+    .reverse()
+    .find((entrada) => entrada.para === "CANCELLED");
+  return passo?.motivo ?? null;
+}
+
 export function AcompanhamentoDoPedido({
   apelidoDaLoja,
   tokenDoPedido,
   inicial,
   corPrincipal,
+  atualizar = buscarAcompanhamento,
+  intervaloMs = INTERVALO_DO_ACOMPANHAMENTO_MS,
+  voltar,
 }: AcompanhamentoDoPedidoProps) {
   const [pedido, setPedido] = useState(inicial);
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     let ativo = true;
+    let espera: ReturnType<typeof setTimeout> | undefined;
 
-    async function atualizar() {
-      const resultado = await buscarAcompanhamento(
-        apelidoDaLoja,
-        tokenDoPedido,
-      );
+    // A próxima pergunta só é agendada quando a anterior volta: em rede lenta,
+    // uma resposta velha chegando depois da nova desfaria o status na tela.
+    async function perguntar(): Promise<void> {
+      const resultado = await atualizar(apelidoDaLoja, tokenDoPedido);
       if (!ativo) return;
       if (resultado.estado === "encontrado") {
         setPedido(resultado.acompanhamento.pedido);
         setErro(null);
-      } else if (resultado.estado === "indisponivel") {
-        setErro("Atualização temporariamente indisponível.");
+      } else {
+        setErro("Não foi possível atualizar agora.");
       }
+      espera = setTimeout(() => void perguntar(), intervaloMs);
     }
 
-    const intervalo = window.setInterval(() => void atualizar(), 5_000);
+    espera = setTimeout(() => void perguntar(), intervaloMs);
     return () => {
       ativo = false;
-      window.clearInterval(intervalo);
+      if (espera !== undefined) clearTimeout(espera);
     };
-  }, [apelidoDaLoja, tokenDoPedido]);
+  }, [apelidoDaLoja, tokenDoPedido, atualizar, intervaloMs]);
+
+  const motivo = motivoDoCancelamento(pedido);
 
   return (
     <TemaDaLoja corPrincipal={corPrincipal} className="min-h-screen">
@@ -69,25 +116,46 @@ export function AcompanhamentoDoPedido({
           <div>
             <a
               className="font-medium text-[var(--cor-primaria-texto)] underline"
-              href={`/l/${apelidoDaLoja}`}
+              href={voltar?.href ?? `/l/${apelidoDaLoja}`}
             >
-              ← Voltar para a loja
+              {voltar?.rotulo ?? "← Voltar para a loja"}
             </a>
             <p className="mt-8 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-              Acompanhamento
+              Acompanhamento · {pedido.loja.nome}
             </p>
             <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
-              Pedido {pedido.codigo}
+              Pedido nº {pedido.numero}
             </h1>
+            <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+              Código {pedido.codigo}
+            </p>
           </div>
-          <div className="rounded-full bg-[var(--cor-primaria-suave)] px-4 py-2 font-semibold text-[var(--cor-primaria-texto)]">
+          <div
+            className="rounded-full bg-[var(--cor-primaria-suave)] px-4 py-2 font-semibold text-[var(--cor-primaria-texto)]"
+            data-status-atual={pedido.status}
+            role="status"
+            aria-live="polite"
+          >
             {rotuloDoStatus(pedido.status)}
           </div>
         </header>
 
+        <p className="mt-4 text-lg text-[var(--cor-tinta-suave)]">
+          {explicacaoDoStatus(pedido.status, pedido.entrega)}
+        </p>
+
+        {pedido.status === "CANCELLED" ? (
+          <Aviso className="mt-6" tom="erro" titulo="Pedido cancelado">
+            {motivo !== null
+              ? `A loja informou o motivo: ${motivo}`
+              : "A loja cancelou este pedido."}
+          </Aviso>
+        ) : null}
+
         {erro ? (
           <Aviso className="mt-6" tom="atencao">
-            {erro} O último status continua visível.
+            {erro} O último status continua visível e a página tenta de novo
+            sozinha.
           </Aviso>
         ) : null}
 
@@ -139,7 +207,7 @@ export function AcompanhamentoDoPedido({
                 </div>
                 <div className="flex justify-between gap-4 border-t border-[var(--cor-borda)] pt-3 text-base">
                   <dt>Total</dt>
-                  <dd className="font-semibold">
+                  <dd className="font-semibold" data-total>
                     {escreverDinheiro(pedido.totalCentavos)}
                   </dd>
                 </div>
@@ -153,7 +221,8 @@ export function AcompanhamentoDoPedido({
               </p>
             </Cartao>
 
-            {pedido.whatsappConfirmadoEm === null ? (
+            {pedido.whatsappConfirmadoEm === null &&
+            pedido.status !== "CANCELLED" ? (
               <Cartao titulo="Mensagem para a loja">
                 <p className="mb-4 text-sm text-[var(--cor-tinta-suave)]">
                   Se você já enviou o pedido pelo WhatsApp, avise a loja para
@@ -166,16 +235,22 @@ export function AcompanhamentoDoPedido({
               </Cartao>
             ) : null}
 
-            {pedido.loja.whatsappPublico ? (
-              <Cartao titulo={`Contato da ${pedido.loja.nome}`}>
+            <Cartao titulo={`Contato da ${pedido.loja.nome}`}>
+              {pedido.loja.whatsappPublico ? (
                 <a
                   className="font-medium text-[var(--cor-primaria-texto)] underline"
                   href={`https://wa.me/${pedido.loja.whatsappPublico.replace(/\D/g, "")}`}
+                  data-contato-da-loja
                 >
                   Falar com a loja pelo WhatsApp
                 </a>
-              </Cartao>
-            ) : null}
+              ) : (
+                <p className="text-sm text-[var(--cor-tinta-suave)]">
+                  A loja não divulgou um contato público. Use a conversa em que
+                  você enviou o pedido.
+                </p>
+              )}
+            </Cartao>
           </aside>
         </div>
       </main>

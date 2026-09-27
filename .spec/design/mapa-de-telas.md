@@ -72,6 +72,7 @@
 | 29  | `/painel/produtos`                       | Produtos (lista, busca, estoque baixo) | OWNER  | 4E      | e2e-produtos-lista  | AC-307, AC-308, AC-321, AC-336                                                 |
 | 30  | `/painel/produtos/novo` e `/{id}`        | Cadastro e edição de produto           | OWNER  | 4E      | e2e-produto-form    | AC-304..AC-306, AC-309..AC-312, AC-318, AC-319, AC-322, AC-324, AC-326, AC-327 |
 | 31  | `/painel/produtos/{id}/opcoes`           | Grupos de escolha do produto           | OWNER  | 4E      | e2e-opcoes          | AC-313..AC-317                                                                 |
+| 31a | `/painel/produtos/{id}/variacoes`        | Grade de variações do produto          | OWNER  | 4E      | e2e-variacoes       | AC-316                                                                         |
 | 32  | `/painel/produtos/{id}/estoque`          | Estoque e movimentos da variação       | OWNER  | 4E      | e2e-estoque         | AC-331..AC-337                                                                 |
 
 ## Dono da loja — clientes e configuração
@@ -101,7 +102,9 @@
 
 ## Contagem e regra de cobertura
 
-- **47 telas** no inventário. 43 exigem os quatro estados.
+- **49 telas** no inventário: as 47 da primeira versão, mais `1a` (Sobre da
+  loja, T-410) e `31a` (grade de variações, T-306), acrescentadas sem
+  renumerar. 45 exigem os quatro estados.
 - Cada cenário de ponta a ponta roda em três perfis de sessão (visitante, dono e
   administração), reaproveitando sessão salva para não repetir login.
 - Cada tela do inventário tem verificação de acessibilidade automatizada e

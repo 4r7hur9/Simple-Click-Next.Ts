@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { centavosDoTexto, escreverDinheiro } from "../../lib/dinheiro.ts";
+
 interface Opcao {
   readonly id: string;
   readonly nome: string;
@@ -37,6 +39,7 @@ const VARIACAO_VAZIA = {
   sku: "",
   preco: "",
   estoque: "",
+  minimo: "",
   padrao: false,
   disponivel: true,
   escolhas: {} as Record<string, string>,
@@ -44,10 +47,7 @@ const VARIACAO_VAZIA = {
 
 function dinheiro(centavos: number | null) {
   if (centavos === null) return "Sem preço";
-  return (centavos / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return escreverDinheiro(centavos);
 }
 
 export function GradeDeVariacoes({ produtoId }: Props) {
@@ -56,6 +56,9 @@ export function GradeDeVariacoes({ produtoId }: Props) {
   const [formulario, setFormulario] = useState(VARIACAO_VAZIA);
   const [mensagem, setMensagem] = useState("Carregando grade…");
   const [salvando, setSalvando] = useState(false);
+  // O ramo decide (AC-337). Até a resposta chegar o campo de quantidade fica
+  // fora: surgir depois incomoda menos do que aparecer e sumir diante do dono.
+  const [controlaEstoque, setControlaEstoque] = useState(false);
 
   const eixos = useMemo(
     () => grupos.filter((grupo) => grupo.eixoDeVariacao),
@@ -78,9 +81,11 @@ export function GradeDeVariacoes({ produtoId }: Props) {
       };
       const dadosDasVariacoes = (await respostaDeVariacoes.json()) as {
         variacoes: Variacao[];
+        controlaEstoque?: boolean;
       };
       setGrupos(dadosDosGrupos.grupos);
       setVariacoes(dadosDasVariacoes.variacoes);
+      setControlaEstoque(dadosDasVariacoes.controlaEstoque === true);
       setMensagem(
         `${dadosDasVariacoes.variacoes.length} variação(ões) cadastrada(s).`,
       );
@@ -112,9 +117,32 @@ export function GradeDeVariacoes({ produtoId }: Props) {
 
   async function criarVariacao(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    setSalvando(true);
     const preco = formulario.preco.trim();
     const estoque = formulario.estoque.trim();
+    // Centavos lidos como texto, sem ponto flutuante no caminho (AC-311):
+    // "19,99" vira 1999, e não 1998,9999… arredondado na sorte.
+    const precoCentavos = preco === "" ? null : centavosDoTexto(preco);
+    if (preco !== "" && (precoCentavos === null || precoCentavos < 0)) {
+      setMensagem("Preço inválido. Escreva em reais, como 89,90.");
+      return;
+    }
+    // Sem controle de estoque no ramo, nenhuma contagem vai: a variação nasce
+    // com estoque nulo, que é "não controla", e o dono usa disponível/esgotado.
+    const unidades =
+      !controlaEstoque || estoque === "" ? null : Number(estoque);
+    const minimo =
+      !controlaEstoque || formulario.minimo.trim() === ""
+        ? null
+        : Number(formulario.minimo);
+    if (
+      [unidades, minimo].some(
+        (valor) => valor !== null && (!Number.isInteger(valor) || valor < 0),
+      )
+    ) {
+      setMensagem("Estoque inválido. Use um número inteiro, ou deixe vazio.");
+      return;
+    }
+    setSalvando(true);
     const combinacoes = eixos.flatMap((grupo) => {
       const opcaoId = formulario.escolhas[grupo.id];
       return opcaoId === undefined || opcaoId === ""
@@ -131,14 +159,9 @@ export function GradeDeVariacoes({ produtoId }: Props) {
             nome: formulario.nome,
             sku: formulario.sku.trim() || null,
             codigoDeBarras: null,
-            precoCentavos:
-              preco === ""
-                ? null
-                : Math.round(
-                    Number(preco.replace(".", "").replace(",", ".")) * 100,
-                  ),
-            estoque: estoque === "" ? null : Number(estoque),
-            estoqueMinimo: null,
+            precoCentavos,
+            estoque: unidades,
+            estoqueMinimo: minimo,
             pesoGramas: null,
             padrao: formulario.padrao,
             disponivel: formulario.disponivel,
@@ -146,6 +169,11 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           }),
         },
       );
+      if (resposta.status === 409) {
+        // O código de estoque é da variação, e não se repete na loja (AC-316).
+        setMensagem("Esse SKU já está em outra variação da loja. Use outro.");
+        return;
+      }
       if (!resposta.ok) throw new Error();
       setFormulario(VARIACAO_VAZIA);
       await carregar();
@@ -223,7 +251,9 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                 {dinheiro(variacao.precoCentavos)}
                 {variacao.sku ? ` · SKU ${variacao.sku}` : ""}
                 {variacao.estoque === null
-                  ? " · estoque não controlado"
+                  ? controlaEstoque
+                    ? " · estoque não controlado"
+                    : ""
                   : ` · ${variacao.estoque} un.`}
                 {variacao.padrao ? " · padrão" : ""}
               </span>
@@ -330,22 +360,46 @@ export function GradeDeVariacoes({ produtoId }: Props) {
               required
             />
           </label>
-          <label>
-            <span className="text-sm font-medium">Estoque</span>
-            <input
-              className="sc-campo mt-2 w-full"
-              type="number"
-              min={0}
-              value={formulario.estoque}
-              onChange={(evento) =>
-                setFormulario((anterior) => ({
-                  ...anterior,
-                  estoque: evento.target.value,
-                }))
-              }
-              placeholder="Vazio = não controla"
-            />
-          </label>
+          {controlaEstoque ? (
+            <>
+              <label>
+                <span className="text-sm font-medium">Estoque</span>
+                <input
+                  className="sc-campo mt-2 w-full"
+                  type="number"
+                  name="estoque"
+                  min={0}
+                  value={formulario.estoque}
+                  onChange={(evento) =>
+                    setFormulario((anterior) => ({
+                      ...anterior,
+                      estoque: evento.target.value,
+                    }))
+                  }
+                  placeholder="Vazio = não controla"
+                />
+              </label>
+              <label>
+                <span className="text-sm font-medium">
+                  Avisar quando chegar a
+                </span>
+                <input
+                  className="sc-campo mt-2 w-full"
+                  type="number"
+                  name="minimo"
+                  min={0}
+                  value={formulario.minimo}
+                  onChange={(evento) =>
+                    setFormulario((anterior) => ({
+                      ...anterior,
+                      minimo: evento.target.value,
+                    }))
+                  }
+                  placeholder="Ex.: 5"
+                />
+              </label>
+            </>
+          ) : null}
           <label className="flex items-center gap-3 text-sm">
             <input
               className="h-5 w-5"

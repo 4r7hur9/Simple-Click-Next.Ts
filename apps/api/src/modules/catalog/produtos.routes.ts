@@ -5,6 +5,7 @@
  * nas próximas tarefas. Aqui o dono consegue montar um produto simples,
  * deixá-lo em rascunho e publicá-lo quando estiver pronto.
  */
+import { estaAcabando } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
@@ -190,6 +191,12 @@ type LinhaDoProduto = {
     readonly categoryId: string;
     readonly categoria: { readonly name: string };
   }>;
+  readonly variacoes: ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+    readonly stockQuantity: number | null;
+    readonly stockMinAlert: number | null;
+  }>;
 };
 
 function erro(resposta: Response, status: number, mensagem: string): void {
@@ -213,6 +220,16 @@ function criadorDaSessao(identidadeId: string): string | undefined {
 
 function respostaDoProduto(produto: LinhaDoProduto) {
   const categoria = produto.categorias[0];
+  // O que está acabando vem com o produto, para a lista do dono sinalizar sem
+  // abrir produto por produto (AC-336).
+  const acabando = produto.variacoes
+    .filter((v) => estaAcabando(v.stockQuantity, v.stockMinAlert))
+    .map((v) => ({
+      id: v.id,
+      nome: v.name,
+      quantidade: v.stockQuantity as number,
+      minimoAlerta: v.stockMinAlert as number,
+    }));
   return {
     id: produto.id,
     nome: produto.name,
@@ -228,6 +245,8 @@ function respostaDoProduto(produto: LinhaDoProduto) {
     disponivel: produto.isAvailable,
     atributos: produto.attributes,
     ordem: produto.sortOrder,
+    estoqueBaixo: acabando.length > 0,
+    variacoesAcabando: acabando,
   };
 }
 
@@ -244,6 +263,11 @@ const selecaoDoProduto = {
   categorias: {
     where: { isPrimary: true },
     select: { categoryId: true, categoria: { select: { name: true } } },
+  },
+  variacoes: {
+    where: { deletedAt: null },
+    orderBy: { sortOrder: "asc" as const },
+    select: { id: true, name: true, stockQuantity: true, stockMinAlert: true },
   },
 } as const;
 

@@ -69,7 +69,7 @@ function pedido(sobrescrita: Partial<PedidoDeItem> = {}): PedidoDeItem {
 }
 
 describe("o total acompanha as escolhas (AC-411)", () => {
-  it("@spec:AC-411 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00", () => {
+  it("@spec:AC-411 @spec:AC-315 produto de R$ 20,00 com adicional de R$ 3,00 e quantidade dois dá R$ 46,00", () => {
     // É o cenário escrito no critério, ao pé da letra.
     const resultado = calcularItem(
       pedido({
@@ -170,7 +170,7 @@ describe("o total acompanha as escolhas (AC-411)", () => {
 });
 
 describe("escolha obrigatória pendente bloqueia (AC-412)", () => {
-  it("@spec:AC-412 grupo obrigatório sem escolha impede adicionar e diz o que falta", () => {
+  it("@spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha impede adicionar e diz o que falta", () => {
     const resultado = calcularItem(
       pedido({ grupos: [PONTO_DA_CARNE], escolhas: [] }),
     );
@@ -206,7 +206,7 @@ describe("escolha obrigatória pendente bloqueia (AC-412)", () => {
     expect(resultado.pendencias).toEqual([]);
   });
 
-  it("@spec:AC-412 passar do teto do grupo é pendência, e não corte silencioso", () => {
+  it("@spec:AC-412 @spec:AC-314 passar do teto do grupo é pendência, e não corte silencioso", () => {
     // Cortar sozinho faria a tela mostrar um total que não corresponde ao que a
     // pessoa marcou, e ela descobriria a diferença no cupom.
     const resultado = calcularItem(
@@ -225,7 +225,7 @@ describe("escolha obrigatória pendente bloqueia (AC-412)", () => {
     );
   });
 
-  it("@spec:AC-412 opção esgotada marcada vira pendência com o nome dela", () => {
+  it("@spec:AC-412 @spec:AC-317 opção esgotada marcada vira pendência com o nome dela", () => {
     const resultado = calcularItem(
       pedido({
         escolhas: [

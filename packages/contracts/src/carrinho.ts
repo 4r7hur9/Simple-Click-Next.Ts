@@ -189,6 +189,22 @@ export const esquemaDeItemConferido = z.strictObject({
   quantidade: z.int().positive(),
   precoUnitarioCentavos: z.int().nonnegative(),
   totalDaLinhaCentavos: z.int().nonnegative(),
+  /**
+   * Qual preço foi usado e por quê, quando não é o normal (AC-310).
+   *
+   * O atacado entra SOZINHO quando a quantidade alcança a faixa, e o carrinho
+   * que cobra menos do que a vitrine anunciava precisa dizer o motivo — senão
+   * parece erro. Nulo no preço normal; ausente em cliente de antes do campo.
+   */
+  precoAplicado: z
+    .strictObject({
+      /** O nome do preço, como o dono o chamou: "Atacado". */
+      rotulo: z.string(),
+      /** A frase pronta para a tela. */
+      motivo: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 /**

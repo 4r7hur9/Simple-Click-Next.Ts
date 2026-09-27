@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { centavosDoTexto } from "../../lib/dinheiro.ts";
+
 import {
   CamposDeEspecificacao,
   conferirEspecificacoes,
@@ -118,8 +120,10 @@ export function FormularioProduto({ produto }: Props) {
 
   async function salvar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    const valorNumerico = Number(preco.replace(".", "").replace(",", "."));
-    if (!Number.isFinite(valorNumerico) || valorNumerico < 0) {
+    // Centavos lidos como texto (AC-311): a conta antiga apagava o ponto, e
+    // "19.90" — o que o teclado numérico do celular oferece — virava R$ 1.990.
+    const precoCentavos = centavosDoTexto(preco);
+    if (precoCentavos === null || precoCentavos < 0) {
       setMensagem("Informe um preço válido.");
       return;
     }
@@ -141,7 +145,7 @@ export function FormularioProduto({ produto }: Props) {
       nome,
       descricao: descricao.trim() || null,
       categoriaId,
-      precoCentavos: Math.round(valorNumerico * 100),
+      precoCentavos,
       status,
       disponivel,
     };

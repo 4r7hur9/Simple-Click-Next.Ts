@@ -2,39 +2,39 @@
 
 > feature: pedido-operacao
 
-## T-600 — Fila de pedidos que atualiza sozinha [pendente]
+## T-600 — Fila de pedidos que atualiza sozinha [concluida]
 
 - Refs: US-600, AC-600, AC-601, AC-602, AC-603
-- Arquivos: apps/api/src/modules/orders/fila.usecase.ts, apps/api/src/modules/orders/fila.usecase.test.ts, apps/web/src/app/(painel)/painel/pedidos/page.tsx, apps/web/src/features/painel-pedidos/QuadroDePedidos.tsx, apps/web/src/features/painel-pedidos/useAtualizarPedidos.ts, apps/web/src/features/painel-pedidos/AvisoSonoro.tsx
-- Notas: o que aguarda ação fica em destaque no topo, com tempo de espera visível. Reconexão recupera o que entrou durante a queda. Silenciar o som mantém o alerta visual e a escolha persiste. Depende da decisão pendente D3.
+- Arquivos: packages/core/src/fila-de-pedidos.ts, packages/core/src/fila-de-pedidos.test.ts, apps/api/src/modules/orders/fila.usecase.ts, apps/api/src/modules/orders/fila.usecase.test.ts, apps/api/src/modules/orders/fila.routes.ts, apps/api/tests/fila-de-pedidos.test.ts, apps/api/tests/apoio-de-pedidos.ts, apps/web/src/lib/fila-de-pedidos.ts, apps/web/src/app/(painel)/painel/pedidos/page.tsx, apps/web/src/app/api/painel/pedidos/route.ts, apps/web/src/features/painel-pedidos/QuadroDePedidos.tsx, apps/web/src/features/painel-pedidos/useAtualizarPedidos.ts, apps/web/src/features/painel-pedidos/AvisoSonoro.tsx, apps/web/tests/painel-fila.test.tsx
+- Notas: o que aguarda ação fica em destaque no topo, com tempo de espera visível. Reconexão recupera o que entrou durante a queda. Silenciar o som mantém o alerta visual e a escolha persiste. Depende da decisão pendente D3. A regra da fila (onde cada pedido cai, o que é novo, quando o som toca) mora em `packages/core/src/fila-de-pedidos.ts` e é a MESMA na API e na tela; a consulta periódica de 5 s é o caminho de retorno da ASM-602 — a conexão contínua, se vier, troca só o gatilho da leitura.
 - Esforço: alto
 
-## T-601 — Máquina de status do pedido [pendente]
+## T-601 — Máquina de status do pedido [concluida]
 
 - Refs: US-601, AC-604, AC-605, AC-606, AC-607, AC-608
-- Arquivos: packages/core/src/maquina-status.ts, packages/core/src/maquina-status.test.ts, apps/api/src/modules/orders/mudar-status.usecase.ts, apps/api/src/modules/orders/mudar-status.usecase.test.ts, apps/web/src/app/(painel)/painel/pedidos/[id]/page.tsx, apps/web/src/features/painel-pedidos/AcoesDeStatus.tsx
-- Notas: transição inválida é recusada com explicação. Pedido de retirada não passa por status de entrega. Recusa e cancelamento exigem motivo, avisam o cliente e saem do faturamento. Histórico não pode ser alterado.
+- Arquivos: packages/core/src/maquina-status.ts, packages/core/src/maquina-status.test.ts, apps/api/src/modules/orders/mudar-status.usecase.ts, apps/api/src/modules/orders/mudar-status.usecase.test.ts, apps/api/tests/mudar-status.test.ts, apps/web/src/app/(painel)/painel/pedidos/[id]/page.tsx, apps/web/src/app/api/painel/pedidos/[id]/route.ts, apps/web/src/features/painel-pedidos/AcoesDeStatus.tsx, apps/web/src/features/painel-pedidos/DetalheDoPedido.tsx, apps/web/tests/painel-detalhe-pedido.test.tsx
+- Notas: transição inválida é recusada com explicação. Pedido de retirada não passa por status de entrega. Recusa e cancelamento exigem motivo, avisam o cliente e saem do faturamento. Histórico não pode ser alterado. A mudança só vale sobre o status que foi lido (dois aparelhos aceitando juntos geram um passo só); o histórico é imutável por ausência de política de alteração e remoção (0008, guarda G8) — o privilégio de UPDATE/DELETE que o padrão do esquema concede a `sc_app`/`sc_admin` continua lá e é dívida registrada. As rotas do dono ainda não conferem se a identidade é membro da loja (dívida de toda a área do painel).
 - Esforço: alto
 
-## T-602 — Pedido aguardando confirmação no WhatsApp [pendente]
+## T-602 — Pedido aguardando confirmação no WhatsApp [concluida]
 
 - Refs: US-602, AC-609, AC-610, AC-611
-- Arquivos: apps/api/src/modules/orders/confirmacao-whatsapp.usecase.ts, apps/api/src/modules/orders/confirmacao-whatsapp.usecase.test.ts, apps/web/src/features/painel-pedidos/SeloAguardando.tsx, apps/web/src/features/pedido/BotaoJaEnviei.tsx
-- Notas: resolve o pedido fantasma que o crítico apontou. O estado de entrega da mensagem é separado do status do pedido. Não confirmado fica fora do faturamento e aparece contado à parte.
+- Arquivos: apps/api/src/modules/orders/confirmacao-whatsapp.usecase.ts, apps/api/src/modules/orders/confirmacao-whatsapp.usecase.test.ts, apps/api/tests/confirmacao-whatsapp.test.ts, packages/core/src/situacao-na-venda.ts, packages/core/src/situacao-na-venda.test.ts, packages/database/migrations/0025_confirmacao_whatsapp.sql, packages/database/migrations/0029_operacao_do_pedido.sql, apps/web/src/features/painel-pedidos/SeloAguardando.tsx, apps/web/src/features/pedido/BotaoJaEnviei.tsx, apps/web/tests/botao-ja-enviei.test.tsx
+- Notas: resolve o pedido fantasma que o crítico apontou. O estado de entrega da mensagem é separado do status do pedido. Não confirmado fica fora do faturamento e aparece contado à parte. A régua do que é venda mora em `packages/core/src/situacao-na-venda.ts` (`resumirVendas`): o painel de métricas (T-801) DEVE usá-la em vez de reescrever a regra. A função da 0025 nunca funcionou (nome de coluna ambíguo, erro 42702 em toda chamada) e é corrigida na 0029.
 - Esforço: alto
 
-## T-603 — Página pública de acompanhamento [pendente]
+## T-603 — Página pública de acompanhamento [concluida]
 
 - Refs: US-603, AC-612, AC-613, AC-614, AC-615
-- Arquivos: apps/api/src/modules/orders/acompanhar.usecase.ts, apps/api/src/modules/orders/acompanhar.usecase.test.ts, apps/web/src/app/(loja)/l/[slug]/pedido/[token]/page.tsx, apps/web/src/features/pedido/LinhaDoTempo.tsx, apps/api/tests/acompanhamento-nao-enumeravel.test.ts
-- Notas: endereço por código longo e aleatório; tentativa de adivinhar responde não encontrado. Telefone parcialmente oculto e nenhum dado interno da loja. Marcado com @principle:P-003 na parte de isolamento.
+- Arquivos: apps/api/src/modules/orders/acompanhar.usecase.ts, apps/api/src/modules/orders/acompanhar.usecase.test.ts, apps/api/tests/acompanhamento.test.ts, apps/api/tests/acompanhamento-nao-enumeravel.test.ts, packages/contracts/src/acompanhamento.ts, apps/web/src/lib/acompanhamento.ts, apps/web/src/app/(loja)/l/[slug]/pedido/[token]/page.tsx, apps/web/src/features/pedido/AcompanhamentoDoPedido.tsx, apps/web/src/features/pedido/LinhaDoTempo.tsx, apps/web/tests/acompanhamento-pedido.test.tsx
+- Notas: endereço por código longo e aleatório; tentativa de adivinhar responde não encontrado. Telefone parcialmente oculto e nenhum dado interno da loja. Marcado com @principle:P-003 na parte de isolamento. A rota pública (`GET /v1/vitrine/:apelido/pedido/:token`, em `pedidos.routes.ts`, mapeado pela T-511) passou a validar o formato do token na borda e a responder sem cache; a página pergunta de novo a cada 5 s e só reagenda quando a resposta anterior volta.
 - Esforço: alto
 
-## T-604 — Histórico do pedido na conta do cliente [pendente]
+## T-604 — Histórico do pedido na conta do cliente [concluida]
 
 - Refs: US-603, AC-616
-- Arquivos: apps/api/src/modules/orders/meus-pedidos.usecase.ts, apps/api/src/modules/orders/meus-pedidos.usecase.test.ts, apps/web/src/app/(conta)/minha-conta/pedidos/page.tsx, apps/web/src/app/(conta)/minha-conta/pedidos/[id]/page.tsx
-- Notas: o cliente logado vê os pedidos dele em todas as lojas onde comprou, por caminho dedicado — e nenhuma loja enxerga o histórico da outra.
+- Arquivos: apps/api/src/modules/orders/meus-pedidos.usecase.ts, apps/api/src/modules/orders/meus-pedidos.usecase.test.ts, apps/api/src/modules/orders/conta.routes.ts, apps/api/tests/meus-pedidos.test.ts, apps/api/tests/apoio-de-compra.ts, packages/contracts/src/conta.ts, packages/database/migrations/0029_operacao_do_pedido.sql, apps/web/src/lib/meus-pedidos.ts, apps/web/src/features/conta/MeusPedidos.tsx, apps/web/src/app/(conta)/minha-conta/pedidos/page.tsx, apps/web/src/app/(conta)/minha-conta/pedidos/loading.tsx, apps/web/src/app/(conta)/minha-conta/pedidos/[id]/page.tsx, apps/web/tests/meus-pedidos.test.tsx
+- Notas: o cliente logado vê os pedidos dele em todas as lojas onde comprou, por caminho dedicado (`GET /v1/conta/pedidos` e `GET /v1/conta/pedidos/:id`, em `conta.routes.ts`, montado em `app.ts`) — e nenhuma loja enxerga o histórico da outra (prova P-003 em `meus-pedidos.test.ts`). O vínculo nasce no fechamento: com sessão de CLIENTE no cabeçalho, `pedidos.routes.ts` liga o pedido ao cliente-da-loja daquela identidade (`vincularClienteDaLoja`, pela política `sc_self_insert` da 0005); convidado segue sem vínculo (ASM-103), e falha no vínculo não derruba a venda — vira aviso no registro. A leitura cruza lojas pela função `app.meus_pedidos()` (0029, com os direitos de quem a definiu, só papel CUSTOMER e identidade do contexto), porque as políticas de `app.orders` são por loja e a restritiva exige loja no contexto — e isso fica como está. O detalhe reaproveita o caminho do link (T-603): a função diz a loja e o endereço público, e a página da conta é a mesma página do acompanhamento. Dívida compartilhada com o painel: as páginas leem o token de acesso do cookie `sc_access`, que só existe fora de produção até a identidade ser ligada à API (identidade-acesso).
 - Esforço: alto
 
 ## T-605 — Gerador de conteúdo do cupom, uma fonte para duas saídas [pendente]

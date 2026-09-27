@@ -47,7 +47,7 @@ export interface TelaDoManifesto {
  * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
  * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
  * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 47 linhas no mapa, 50 rotas no produto.
+ * separadas — 49 linhas no mapa, 52 rotas no produto.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
@@ -204,6 +204,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-616",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/pedidos/page.tsx",
   },
   {
     rota: "/minha-conta/pedidos/{id}",
@@ -211,6 +212,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-616, AC-713",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/pedidos/[id]/page.tsx",
   },
   {
     rota: "/minha-conta/enderecos",

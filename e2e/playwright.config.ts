@@ -124,6 +124,12 @@ export default defineConfig({
         // (`simpleclick.localhost`), e o cenário do canônico compararia o
         // endereço de um servidor com o de outro.
         URL_DO_SITE: ENDERECO_DO_SITE,
+        // AS TELAS DO PAINEL FALAM COM UMA LOJA SÓ DELAS (T-313). As rotas do
+        // painel no site usam a loja desta variável; apontá-la para a loja de
+        // teste do painel mantém o que o dono cria longe da vitrine da carga
+        // de exemplo, que outros cenários medem. Entra no build, por ser
+        // pública.
+        NEXT_PUBLIC_DEV_STORE_SLUG: "e2e-painel",
       },
     },
   ],

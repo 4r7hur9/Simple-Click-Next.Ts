@@ -43,6 +43,14 @@ export function SelecaoDeOpcoes({
         // Uma escolha no máximo é comportamento de rádio: marcar uma desmarca a
         // outra. Mais de uma, ou sem teto, é caixa de seleção.
         const escolhaUnica = grupo.maximo === 1;
+        const escolhidasNoGrupo = grupo.opcoes.reduce(
+          (soma, opcao) => soma + (marcadas[opcao.id] ?? 0),
+          0,
+        );
+        const limiteAtingido =
+          !escolhaUnica &&
+          grupo.maximo !== null &&
+          escolhidasNoGrupo >= grupo.maximo;
         const idDoAviso = `pendencia-${grupo.id}`;
 
         return (
@@ -101,7 +109,9 @@ export function SelecaoDeOpcoes({
                       name={escolhaUnica ? `grupo-${grupo.id}` : undefined}
                       value={opcao.id}
                       checked={quantas > 0}
-                      disabled={!opcao.disponivel}
+                      disabled={
+                        !opcao.disponivel || (limiteAtingido && quantas === 0)
+                      }
                       onChange={() => aoAlternar(grupo, opcao.id)}
                       {...(pendencia ? { "aria-describedby": idDoAviso } : {})}
                     />
@@ -125,6 +135,12 @@ export function SelecaoDeOpcoes({
                 );
               })}
             </div>
+            {limiteAtingido ? (
+              <p className="sc-produto__grupo-regra" role="status">
+                Limite de {grupo.maximo} opções atingido. Remova uma opção para
+                escolher outra.
+              </p>
+            ) : null}
           </fieldset>
         );
       })}

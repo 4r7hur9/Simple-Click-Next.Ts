@@ -12,10 +12,12 @@
  * produto de verdade, então dá para perguntar ao catálogo quanto ele custa
  * agora e se ainda existe.
  */
-import { conferirCarrinho, precoQueVale } from "@simpleclick/core";
+import { conferirCarrinho, precoAplicavel } from "@simpleclick/core";
 import type {
   Conferencia,
+  ExplicacaoDoPreco,
   ItemParaConferir,
+  PrecoAplicado,
   PrecoCadastrado,
   ProdutoAgora,
 } from "@simpleclick/core";
@@ -60,6 +62,7 @@ async function catalogoAgora(
     select: {
       productId: true,
       kind: true,
+      label: true,
       amountCents: true,
       minQuantity: true,
       isActive: true,
@@ -74,29 +77,57 @@ async function catalogoAgora(
     porProduto.set(preco.productId, doProduto);
   }
 
-  return produtos.map((produto) => ({
-    produtoId: produto.id,
-    nome: produto.name,
-    // Produto sem preço publicado vale NULO, e não zero: nulo faz o item ser
-    // retirado com explicação; zero o faria seguir de graça, o pedido sair e a
-    // cozinha preparar. Quem esqueceu de precificar não vende por engano.
-    precoEmCentavos: (() => {
-      const precosDoProduto = porProduto.get(produto.id);
-      if (precosDoProduto === undefined) {
-        return produto.displayPriceCents === null
-          ? null
-          : Number(produto.displayPriceCents);
-      }
-      return precoQueVale(
-        precosDoProduto.map(comoRegra),
-        agora,
-        quantidades.get(produto.id) ?? 1,
-      ).atualEmCentavos;
-    })(),
-    // Rascunho e arquivado não são compráveis, mesmo marcados como disponíveis:
-    // o dono pode ter tirado o produto do ar sem mexer no interruptor.
-    disponivel: produto.isAvailable && produto.status === "PUBLISHED",
-  }));
+  return produtos.map((produto) => {
+    const precosDoProduto = porProduto.get(produto.id);
+
+    if (precosDoProduto === undefined) {
+      // Produto de antes da tabela de preços: vale a projeção gravada nele.
+      // Produto sem preço publicado vale NULO, e não zero: nulo faz o item ser
+      // retirado com explicação; zero o faria seguir de graça, o pedido sair e
+      // a cozinha preparar. Quem esqueceu de precificar não vende por engano.
+      return {
+        produtoId: produto.id,
+        nome: produto.name,
+        precoEmCentavos:
+          produto.displayPriceCents === null
+            ? null
+            : Number(produto.displayPriceCents),
+        disponivel: produto.isAvailable && produto.status === "PUBLISHED",
+      };
+    }
+
+    // A QUANTIDADE ENTRA NA ESCOLHA (AC-310): seis unidades do mesmo produto,
+    // somadas por todas as linhas dele, alcançam o preço de atacado que uma
+    // unidade não alcança.
+    const aplicado = precoAplicavel(
+      precosDoProduto.map(comoRegra),
+      agora,
+      quantidades.get(produto.id) ?? 1,
+    );
+    return {
+      produtoId: produto.id,
+      nome: produto.name,
+      precoEmCentavos: aplicado?.unitarioEmCentavos ?? null,
+      precoAplicado: explicacaoDe(aplicado),
+      // Rascunho e arquivado não são compráveis, mesmo marcados como
+      // disponíveis: o dono pode ter tirado o produto do ar sem mexer no
+      // interruptor.
+      disponivel: produto.isAvailable && produto.status === "PUBLISHED",
+    };
+  });
+}
+
+/**
+ * O que a tela precisa saber do preço escolhido: nome e motivo (AC-310).
+ *
+ * Preço normal não tem explicação — "custa o que custa" não precisa de frase,
+ * e explicar toda linha ensinaria a pessoa a não ler nenhuma.
+ */
+function explicacaoDe(
+  aplicado: PrecoAplicado | null,
+): ExplicacaoDoPreco | null {
+  if (aplicado === null || aplicado.motivo === null) return null;
+  return { rotulo: aplicado.rotulo, motivo: aplicado.motivo };
 }
 
 /**
@@ -111,6 +142,7 @@ async function catalogoAgora(
 /** Traduz um preço do banco para o vocabulário da regra do core. */
 function comoRegra(linha: {
   readonly kind: string;
+  readonly label?: string | null;
   readonly amountCents: bigint;
   readonly minQuantity: number;
   readonly isActive: boolean;
@@ -124,7 +156,14 @@ function comoRegra(linha: {
     ativo: linha.isActive,
     comecaEm: linha.startsAt,
     terminaEm: linha.endsAt,
+    rotulo: linha.label ?? null,
   };
+}
+
+/** O preço de uma variante, com a explicação de qual foi usado. */
+interface PrecoDaVariante {
+  readonly centavos: number | null;
+  readonly explicacao: ExplicacaoDoPreco | null;
 }
 
 /**
@@ -140,14 +179,15 @@ function comoRegra(linha: {
  */
 async function precoDasVariantes(
   tx: TransacaoDoBanco,
-  variantIds: readonly string[],
+  quantidadePorVariante: ReadonlyMap<string, number>,
   agora: Date,
-): Promise<Map<string, number | null>> {
-  const precos = new Map<string, number | null>();
+): Promise<Map<string, PrecoDaVariante>> {
+  const precos = new Map<string, PrecoDaVariante>();
+  const variantIds = [...quantidadePorVariante.keys()];
   if (variantIds.length === 0) return precos;
 
   const variantes = await tx.productVariant.findMany({
-    where: { id: { in: [...variantIds] }, deletedAt: null },
+    where: { id: { in: variantIds }, deletedAt: null },
     select: {
       id: true,
       isAvailable: true,
@@ -155,6 +195,7 @@ async function precoDasVariantes(
       precos: {
         select: {
           kind: true,
+          label: true,
           amountCents: true,
           minQuantity: true,
           isActive: true,
@@ -166,15 +207,24 @@ async function precoDasVariantes(
   });
 
   for (const variante of variantes) {
-    const vigente = precoQueVale(variante.precos.map(comoRegra), agora);
-    precos.set(variante.id, vigente.atualEmCentavos);
+    // O atacado da variante conta as unidades DELA: seis camisetas G alcançam
+    // o preço da G, e não o da P.
+    const aplicado = precoAplicavel(
+      variante.precos.map(comoRegra),
+      agora,
+      quantidadePorVariante.get(variante.id) ?? 1,
+    );
+    precos.set(variante.id, {
+      centavos: aplicado?.unitarioEmCentavos ?? null,
+      explicacao: explicacaoDe(aplicado),
+    });
   }
 
   // A variante que a consulta não devolveu (apagada, ou de outra loja) fica
   // registrada como SEM preço — e não simplesmente ausente do mapa, que a
   // faria cair no preço do produto e seguir por um valor que não é dela.
   for (const id of variantIds) {
-    if (!precos.has(id)) precos.set(id, null);
+    if (!precos.has(id)) precos.set(id, { centavos: null, explicacao: null });
   }
 
   return precos;
@@ -260,39 +310,56 @@ export async function conferirAntesDeFechar(
     },
   });
 
+  // As quantidades SOMAM as linhas: seis coxinhas em duas linhas (uma com
+  // molho, outra sem) são seis coxinhas para o preço de atacado (AC-310).
+  const quantidades = new Map<string, number>();
+  const quantidadePorVariante = new Map<string, number>();
+  for (const linha of linhas) {
+    quantidades.set(
+      linha.productId,
+      (quantidades.get(linha.productId) ?? 0) + linha.quantity,
+    );
+    if (linha.variantId !== null) {
+      quantidadePorVariante.set(
+        linha.variantId,
+        (quantidadePorVariante.get(linha.variantId) ?? 0) + linha.quantity,
+      );
+    }
+  }
+
   const [precoPorVariante, precoPorOpcao] = await Promise.all([
-    precoDasVariantes(
-      tx,
-      linhas.flatMap((l) => (l.variantId === null ? [] : [l.variantId])),
-      agora,
-    ),
+    precoDasVariantes(tx, quantidadePorVariante, agora),
     precoDasOpcoes(
       tx,
       linhas.flatMap((l) => opcaoIdsDe(l.options)),
     ),
   ]);
 
-  const quantidades = new Map<string, number>();
-  for (const linha of linhas) {
-    quantidades.set(
-      linha.productId,
-      (quantidades.get(linha.productId) ?? 0) + linha.quantity,
-    );
-  }
-
-  const itens: ItemParaConferir[] = linhas.map((linha) => ({
-    itemId: linha.id,
-    produtoId: linha.productId,
-    quantidade: linha.quantity,
-    precoVistoEmCentavos: declarado.precosVistos?.[linha.id] ?? null,
-    acrescimosEmCentavos: acrescimoDoItem(linha.options, precoPorOpcao),
-    // `undefined` (e não `null`) quando a linha não tem variante: aí vale o
-    // preço do produto. A diferença entre os dois é o que separa "não se
-    // aplica" de "procurei e não achei".
-    ...(linha.variantId === null
-      ? {}
-      : { precoBaseEmCentavos: precoPorVariante.get(linha.variantId) ?? null }),
-  }));
+  const itens: ItemParaConferir[] = linhas.map((linha) => {
+    const daVariante =
+      linha.variantId === null
+        ? undefined
+        : (precoPorVariante.get(linha.variantId) ?? {
+            centavos: null,
+            explicacao: null,
+          });
+    return {
+      itemId: linha.id,
+      produtoId: linha.productId,
+      quantidade: linha.quantity,
+      precoVistoEmCentavos: declarado.precosVistos?.[linha.id] ?? null,
+      acrescimosEmCentavos: acrescimoDoItem(linha.options, precoPorOpcao),
+      // `undefined` (e não `null`) quando a linha não tem variante: aí vale o
+      // preço do produto. A diferença entre os dois é o que separa "não se
+      // aplica" de "procurei e não achei".
+      ...(daVariante === undefined
+        ? {}
+        : {
+            precoBaseEmCentavos: daVariante.centavos,
+            precoAplicado: daVariante.explicacao,
+          }),
+    };
+  });
 
   const catalogo = await catalogoAgora(
     tx,

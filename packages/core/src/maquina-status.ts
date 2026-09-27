@@ -21,7 +21,10 @@ export type FormaDeEntregaDoPedido = "DELIVERY" | "PICKUP";
 
 export interface OpcaoDeStatus {
   readonly status: StatusDoPedido;
+  /** O nome do status: "Em preparo". */
   readonly rotulo: string;
+  /** O texto do botão que leva a ele: "Iniciar preparo". */
+  readonly acao: string;
 }
 
 export interface EntradaDeHistorico {
@@ -50,6 +53,26 @@ const ROTULOS: Readonly<Record<StatusDoPedido, string>> = {
   CANCELLED: "Cancelado",
 };
 
+/**
+ * O verbo de cada passo. O botão diz o que ele FAZ, e não o nome do status de
+ * chegada: "Aceitar pedido" é uma decisão; "Aceito" é só um estado.
+ */
+const ACOES: Readonly<Record<StatusDoPedido, string>> = {
+  PENDING: "Voltar para aguardando",
+  ACCEPTED: "Aceitar pedido",
+  PREPARING: "Iniciar preparo",
+  READY_FOR_PICKUP: "Pronto para retirada",
+  OUT_FOR_DELIVERY: "Saiu para entrega",
+  COMPLETED: "Concluir pedido",
+  CANCELLED: "Cancelar pedido",
+};
+
+/** Antes de aceitar, cancelar é RECUSAR — e o botão diz isso. */
+function acaoDoPasso(atual: StatusDoPedido, proximo: StatusDoPedido): string {
+  if (proximo === "CANCELLED" && atual === "PENDING") return "Recusar pedido";
+  return ACOES[proximo];
+}
+
 function statusConhecido(status: string): status is StatusDoPedido {
   return (STATUS_DO_PEDIDO as readonly string[]).includes(status);
 }
@@ -74,6 +97,7 @@ export function proximosStatus(
   return (caminhos[atual] ?? []).map((status) => ({
     status,
     rotulo: ROTULOS[status],
+    acao: acaoDoPasso(atual, status),
   }));
 }
 

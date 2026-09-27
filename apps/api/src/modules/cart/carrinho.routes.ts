@@ -303,6 +303,9 @@ export function criarRotasDoCarrinho(opcoes: OpcoesDoCarrinho): Router {
             quantidade: item.quantidade,
             precoUnitarioCentavos: item.precoUnitarioEmCentavos,
             totalDaLinhaCentavos: item.totalDaLinhaEmCentavos,
+            // Qual preço foi usado e por quê — o atacado que entrou sozinho
+            // precisa se explicar na tela (AC-310). Nulo no preço normal.
+            precoAplicado: item.precoAplicado,
           })),
           subtotalCentavos: conferencia.subtotalEmCentavos,
         });

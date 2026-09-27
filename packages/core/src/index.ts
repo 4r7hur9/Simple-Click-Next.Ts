@@ -99,6 +99,16 @@ export {
 } from "./vertical.ts";
 export type { ComposicaoDoRamo, TelaDoRamo } from "./vertical.ts";
 export {
+  centavosDoTexto,
+  ErroDeDinheiro,
+  exigirCentavos,
+  multiplicarCentavos,
+  somarCentavos,
+} from "./dinheiro.ts";
+export { precoAplicavel } from "./preco-aplicavel.ts";
+export type { PrecoAplicado } from "./preco-aplicavel.ts";
+export type { ExplicacaoDoPreco } from "./pedido-total.ts";
+export {
   cnpjValido,
   cpfValido,
   FORMATO_DA_CHAVE_PIX,
@@ -110,3 +120,20 @@ export type {
   ResultadoDaChavePix,
   TipoDaChavePix,
 } from "./chave-pix.ts";
+export { estaAcabando } from "./estoque.ts";
+export {
+  agruparPedidosDaFila,
+  atualizarFila,
+  descreverEspera,
+  deveTocarAlerta,
+  minutosDeEspera,
+  STATUS_FORA_DA_FILA,
+} from "./fila-de-pedidos.ts";
+export type { GruposDaFila, PedidoDaFila } from "./fila-de-pedidos.ts";
+export { resumirVendas, situacaoNaVenda } from "./situacao-na-venda.ts";
+export type {
+  ParcelaDoResumo,
+  PedidoParaVenda,
+  ResumoDeVendas,
+  SituacaoNaVenda,
+} from "./situacao-na-venda.ts";

@@ -2,7 +2,7 @@
 
 > feature: catalogo-produtos
 
-## T-300 — Categorias com ordenação e visibilidade [pendente]
+## T-300 — Categorias com ordenação e visibilidade [concluida]
 
 - Refs: US-300, AC-300, AC-301, AC-302, AC-303
 - Arquivos: apps/api/src/modules/catalog/categorias.routes.ts, apps/api/src/modules/catalog/categorias.usecase.ts, apps/api/src/modules/catalog/categorias.usecase.test.ts, apps/api/tests/categorias-do-painel.int.test.ts, apps/api/tests/apoio-do-painel.ts, apps/api/src/app.ts, apps/web/src/app/api/catalogo/categorias/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/route.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, apps/web/tests/painel-categorias.test.tsx, packages/database/migrations/0007_catalogo_completo.sql
@@ -10,7 +10,7 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-301 — Criador de especificações dentro da categoria [pendente]
+## T-301 — Criador de especificações dentro da categoria [concluida]
 
 - Refs: US-306, AC-325, AC-326, AC-327, AC-330
 - Arquivos: apps/api/src/modules/catalog/especificacoes.usecase.ts, apps/api/src/modules/catalog/especificacoes.usecase.test.ts, apps/api/src/modules/catalog/especificacao-esquema.ts, apps/api/src/modules/catalog/especificacao-esquema.test.ts, apps/api/src/modules/catalog/especificacoes.routes.ts, apps/api/src/modules/catalog/especificacoes.routes.test.ts, apps/api/src/app.ts, apps/api/tests/especificacoes-do-painel.int.test.ts, apps/api/tests/apoio-do-painel.ts, packages/database/prisma/schema.prisma, packages/database/tests/esquema-cobre-o-banco.test.ts, packages/database/migrations/0026_especificacoes_da_categoria.sql, apps/web/src/app/(painel)/painel/categorias/[id]/especificacoes/page.tsx, apps/web/src/features/painel-catalogo/EditorEspecificacoes.tsx, apps/web/src/features/painel-catalogo/CamposDeEspecificacao.tsx, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, apps/web/src/server/encaminhar-ao-painel.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/[especificacaoId]/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/[especificacaoId]/opcoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/especificacoes/route.ts, apps/web/tests/painel-especificacoes.test.tsx
@@ -18,7 +18,7 @@
 - Esforço: xalto
 - Modelo: gpt-5.6-luna
 
-## T-302 — Produto: cadastro, edição, rascunho, duplicata e remoção [pendente]
+## T-302 — Produto: cadastro, edição, rascunho, duplicata e remoção [concluida]
 
 - Refs: US-301, AC-304, AC-307, AC-308
 - Arquivos: apps/api/src/modules/catalog/produtos.usecase.ts, apps/api/src/modules/catalog/produtos.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/tests/produtos-do-painel.int.test.ts, apps/web/src/app/(painel)/painel/produtos/page.tsx, apps/web/src/app/(painel)/painel/produtos/novo/page.tsx, apps/web/src/app/(painel)/painel/produtos/[id]/page.tsx, apps/web/src/app/api/catalogo/produtos/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/duplicar/route.ts, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/ListaProdutos.tsx, apps/web/tests/painel-produtos.test.tsx
@@ -26,7 +26,7 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-303 — Imagens do produto com principal e conferência de conteúdo [pendente]
+## T-303 — Imagens do produto com principal e conferência de conteúdo [concluida]
 
 - Refs: US-301, AC-305, AC-306
 - Arquivos: apps/api/src/modules/catalog/imagens.usecase.ts, apps/api/src/modules/catalog/imagens.usecase.test.ts, apps/api/src/modules/catalog/imagens.routes.ts, apps/api/src/modules/catalog/imagens.routes.test.ts, apps/api/src/modules/catalog/hospedagem-de-imagem.ts, apps/api/src/modules/catalog/hospedagem-de-imagem.test.ts, apps/api/tests/imagens-do-painel.int.test.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/[imagemId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/arquivo/route.ts, apps/web/src/features/painel-catalogo/EnvioDeImagem.tsx, apps/web/src/lib/imagem.ts, apps/web/tests/painel-imagens.test.tsx
@@ -34,43 +34,43 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-304 — Preço como entidade, com regra de aplicação [pendente]
+## T-304 — Preço como entidade, com regra de aplicação [concluida]
 
 - Refs: US-302, AC-309, AC-310, AC-311, AC-312
-- Arquivos: packages/core/src/dinheiro.ts, packages/core/src/dinheiro.test.ts, packages/core/src/preco-aplicavel.ts, packages/core/src/preco-aplicavel.test.ts, apps/api/src/modules/catalog/precos.usecase.ts, apps/api/src/modules/catalog/precos.usecase.test.ts, apps/web/src/features/painel-catalogo/LinhasDePreco.tsx
-- Notas: primeira fatia funcional local cria, lista, ativa/desativa e remove preços nomeados de produto em centavos inteiros, mantendo a projeção legada sincronizada para a vitrine. A regra compartilhada de preço vigente já atende base/promoção e quantidade mínima; integração completa de atacado no fluxo de compra, prova anotada e auditoria formal continuam pendentes. Marcado com @principle:P-005 e @principle:P-006.
+- Arquivos: packages/core/src/dinheiro.ts, packages/core/src/dinheiro.test.ts, packages/core/src/preco-aplicavel.ts, packages/core/src/preco-aplicavel.test.ts, apps/api/src/modules/catalog/precos.routes.ts, apps/api/src/modules/cart/conferir-preco.usecase.ts, apps/api/tests/precos-do-produto.int.test.ts, apps/api/tests/apoio-do-catalogo.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/precos/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/precos/[precoId]/route.ts, apps/web/src/features/painel-catalogo/LinhasDePreco.tsx, apps/web/src/lib/dinheiro.ts, apps/web/tests/precos-na-tela.test.tsx
+- Notas: preço é entidade (`product_prices`) administrada pelas rotas do painel em `precos.routes.ts` — não há `precos.usecase.ts`: as regras de negócio moram no core. `preco-vigente.ts` (já existente) decide o preço ANUNCIADO de uma unidade; `preco-aplicavel.ts` (novo) decide o preço COBRADO com a quantidade do carrinho, fazendo o atacado entrar sozinho e devolvendo nome e motivo para a tela (o fechamento mostra "Atacado: preço a partir de 6 unidades"). `dinheiro.ts` (novo) lê o que o dono digita sem ponto flutuante e multiplica/soma só inteiros; a conferência do carrinho passou a usá-lo. Preço enviado pelo cliente continua descartado e registrado (`carrinho.total_divergente`, `pedido.total_divergente`), e preço por item no corpo é recusado na borda. Marcado com @principle:P-005 e @principle:P-006.
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-305 — Grupos de escolha que atendem ingrediente e variação [pendente]
+## T-305 — Grupos de escolha que atendem ingrediente e variação [concluida]
 
 - Refs: US-303, AC-313, AC-314, AC-315, AC-317
-- Arquivos: apps/api/src/modules/catalog/grupos-opcao.usecase.ts, apps/api/src/modules/catalog/grupos-opcao.usecase.test.ts, packages/core/src/validar-escolhas.ts, packages/core/src/validar-escolhas.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx
-- Notas: primeira fatia funcional local cria, lista e remove logicamente grupos de ingredientes/adicionais e suas opções, com mínimo/máximo derivados e disponibilidade sem esconder opção esgotada. O carrinho já valida escolhas e soma acréscimos em centavos; eixos de variação, ordenação avançada, testes anotados e auditoria formal continuam pendentes.
+- Arquivos: apps/api/src/modules/catalog/opcoes.routes.ts, apps/api/tests/carrinho-rota.int.test.ts, apps/api/tests/produto-vitrine.int.test.ts, apps/web/src/app/(painel)/painel/produtos/[id]/opcoes/page.tsx, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/itens/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/opcoes/[grupoId]/itens/[itemId]/route.ts, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx, apps/web/src/features/produto/EscolhasDoProduto.tsx, apps/web/src/features/produto/SelecaoDeOpcoes.tsx, apps/web/tests/produto-pagina.test.tsx, packages/core/src/item-total.ts, packages/core/src/item-total.test.ts
+- Notas: a tela e o servidor respeitam mínimo/máximo; ao atingir o teto, as opções restantes ficam desabilitadas e a tela anuncia o limite. Opções esgotadas continuam visíveis e desabilitadas sem bloquear os demais adicionais; a seleção recalcula o valor antes de enviar, e o pedido guarda o acréscimo separado. Critérios AC-313, AC-314, AC-315 e AC-317 cobertos por testes de tela, core e API; eixos e matriz de variações seguem na T-306.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-306 — Variações com código próprio e grade [pendente]
+## T-306 — Variações com código próprio e grade [concluida]
 
 - Refs: US-303, AC-316
-- Arquivos: apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/catalog/opcoes.routes.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx
-- Notas: primeira fatia funcional local permite marcar grupos como eixos, cadastrar variações com combinação validada, preço, SKU, estoque opcional e disponibilidade. A combinação dos eixos resolve qual variação é vendida; geração automática da matriz cartesiana, edição avançada, estoque movimentado, testes anotados e auditoria formal continuam pendentes.
+- Arquivos: apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/catalog/opcoes.routes.ts, apps/api/tests/variacoes-do-produto.int.test.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/variacoes/page.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx, apps/web/src/features/produto/MatrizDeVariacao.tsx, apps/web/tests/painel-variacoes.test.tsx, apps/web/tests/produto-pagina.test.tsx
+- Notas: o dono marca grupos como eixo e cadastra cada variação com a combinação validada (só opção de eixo ligado ao produto), preço em centavos inteiros, código de estoque (SKU) próprio e opcional, estoque e disponibilidade. O SKU não se repete na LOJA (409 `sku_duplicado`, criando ou trocando), e variações sem SKU convivem. Estoque zero é "controla e acabou": a vitrine mostra a variação indisponível e a tela desabilita a opção do eixo sem escondê-la; o carrinho recusa a variação zerada (409) e aceita as demais; repor pelo painel devolve à venda. A grade do painel lê o preço pelo `centavosDoTexto` (antes "19.99" virava R$ 1.999,00) e explica o SKU repetido. Prova: rotas do painel, página pública e carrinho contra banco real, e as telas da grade e do produto. Geração automática da matriz cartesiana e edição em lote ficam fora deste critério; o estoque movimentado é da T-307.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-307 — Estoque por variação com movimentos [pendente]
+## T-307 — Estoque por variação com movimentos [concluida]
 
 - Refs: US-307, AC-331, AC-332, AC-334, AC-335, AC-336, AC-337
-- Arquivos: packages/database/migrations/0023_estoque_por_variacao.sql, packages/database/prisma/schema.prisma, apps/api/src/modules/catalog/estoque.routes.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/estoque/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/estoque/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/estoque/page.tsx, apps/web/src/features/painel-catalogo/AjusteDeEstoque.tsx
-- Notas: primeira fatia funcional local lista saldo por variação e registra ajuste manual com motivo, origem, autor, saldo anterior e posterior em histórico imutável. Estoque nulo continua significando não controlar unidades; baixa concorrente de pedido, cancelamento e ativação por ramo continuam pendentes para T-308/onda seguinte.
+- Arquivos: packages/database/migrations/0023_estoque_por_variacao.sql, packages/database/migrations/0027_baixa_ignora_estoque_nao_controlado.sql, packages/database/prisma/schema.prisma, packages/core/src/estoque.ts, packages/core/src/estoque.test.ts, apps/api/src/modules/catalog/estoque.routes.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/catalog/variacoes.routes.ts, apps/api/src/modules/orders/devolver-estoque.ts, apps/api/src/modules/orders/mudar-status.usecase.ts, apps/api/tests/estoque-do-produto.int.test.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/estoque/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/variacoes/[variacaoId]/estoque/route.ts, apps/web/src/app/(painel)/painel/produtos/[id]/estoque/page.tsx, apps/web/src/features/painel-catalogo/AjusteDeEstoque.tsx, apps/web/src/features/painel-catalogo/GradeDeVariacoes.tsx, apps/web/src/features/painel-catalogo/ListaProdutos.tsx, apps/web/tests/painel-variacoes.test.tsx, apps/web/tests/painel-produtos.test.tsx
+- Notas: estoque contado por variação, com histórico imutável (saldo anterior, delta, posterior, motivo, origem, pedido e autor). A venda baixa só a variação vendida, com movimento `PEDIDO` ligado ao pedido (AC-331); variação zerada não entra no carrinho e o total não muda (AC-332). Cancelar o pedido devolve exatamente o que a baixa tirou, na mesma transação, com movimento `CANCELAMENTO` e sem devolver duas vezes (`devolver-estoque.ts`, chamado pelo caso de uso da máquina de status; AC-334). O ajuste manual exige motivo e guarda quem, quando e o saldo anterior (AC-335). O aviso de estoque mínimo é inclusivo (`estaAcabando`, no core): acende o sinal na lista de produtos do dono, que ganha o recorte "o que está acabando" com o caminho para repor, e na tela de estoque (AC-336). O ramo decide o controle (`tracks_stock`): a grade da lanchonete não pede quantidade e a variação nasce com estoque nulo, vendida por disponível/esgotado (AC-337). A migração 0027 corrige a baixa, que recusava pedido de variação sem contagem — nenhuma lanchonete com variação conseguia fechar pedido. Prova: carrinho, fechamento, cancelamento e rotas do painel contra banco real, regra pura no core e telas da grade e da lista.
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [pendente]
+## T-308 — Baixa de estoque sem vender a mesma última peça duas vezes [concluida]
 
 - Refs: US-307, AC-333
 - Arquivos: packages/database/migrations/0024_reserva_de_estoque_no_checkout.sql, apps/api/src/modules/orders/reservar-estoque.ts, apps/api/src/modules/orders/reservar-estoque.test.ts, apps/api/src/modules/orders/pedidos.routes.ts, apps/api/tests/estoque-concorrente.test.ts
-- Notas: primeira fatia funcional local adota baixa na confirmação: função SQL com `SECURITY DEFINER` confere loja, token, pedido e item, faz atualização condicional sob trava de linha e grava movimento `PEDIDO` na mesma transação. Retry idempotente não baixa novamente; prova formal ONP e suíte global ainda pendentes.
+- Notas: baixa na confirmação do pedido (ASM-311): função SQL com `SECURITY DEFINER` confere loja, token, pedido e item, faz atualização condicional sob trava de linha e grava movimento `PEDIDO` na mesma transação; se uma variação falha, o pedido inteiro é desfeito. Retry idempotente não baixa novamente. Prova de concorrência real: duas transações da credencial da aplicação disputam a última peça, uma vence, a outra recebe conflito e o saldo não fica negativo (AC-333). A variação sem controle de estoque passa sem baixa (migração 0027, registrada na T-307).
 - Esforço: max
 - Modelo: gpt-5.6-luna
 
@@ -78,11 +78,11 @@
 
 - Refs: US-304, AC-318, AC-319, AC-320, AC-322, AC-324
 - Arquivos: packages/core/src/vertical.ts, packages/core/src/vertical.test.ts, packages/core/src/index.ts, packages/contracts/src/vertical.ts, packages/contracts/src/index.ts, packages/contracts/src/vitrine.ts, apps/web/src/lib/vertical.ts, apps/web/src/features/painel-catalogo/BlocosPorRamo.tsx, apps/web/src/app/(loja)/l/[slug]/catalogo/page.tsx, apps/api/src/modules/catalog/atributos.usecase.ts, apps/api/src/modules/catalog/atributos.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/storefront/dto-publico.ts, apps/api/src/modules/storefront/resolver-loja.usecase.ts
-- Notas: primeira fatia funcional normaliza a composição do preset por tela, expõe os blocos no DTO público e usa a composição para renderizar categorias e destaques da vitrine. O cadastro de produto valida atributos conhecidos por ramo (eletrônicos e autopeças) e preserva campos personalizados. A prova formal ONP e a cobertura completa de vocabulário, impressão e WhatsApp permanecem pendentes.
+- Notas: primeira fatia funcional normaliza a composição do preset por tela, expõe os blocos no DTO público e usa a composição para renderizar categorias e destaques da vitrine. O cadastro de produto valida atributos conhecidos por ramo (eletrônicos e autopeças) e preserva campos personalizados. A prova formal ONP e a cobertura completa de vocabulário, impressão e WhatsApp permanecem pendentes. O AC-320 (o administrador troca o tipo de negócio e nada se perde) depende da T-203 (admin-lojas), que é quem troca o tipo; o dono já é recusado com explicação (AC-323, provado na T-203).
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-310 — Produto que muda de categoria preserva o preenchido [pendente]
+## T-310 — Produto que muda de categoria preserva o preenchido [concluida]
 
 - Refs: US-306, AC-329
 - Arquivos: apps/api/src/modules/catalog/mover-categoria.usecase.ts, apps/api/src/modules/catalog/mover-categoria.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/catalog/especificacoes.routes.ts, apps/api/tests/mover-categoria.int.test.ts, apps/web/src/features/painel-catalogo/CamposDeEspecificacao.tsx, apps/web/src/app/api/catalogo/produtos/[produtoId]/especificacoes/[especificacaoId]/route.ts, apps/web/tests/painel-mover-categoria.test.tsx
@@ -98,7 +98,7 @@
 - Esforço: baixo
 - Modelo: gpt-5.6-luna
 
-## T-312 — Filtro por especificação na vitrine [pendente]
+## T-312 — Filtro por especificação na vitrine [concluida]
 
 - Refs: US-306, AC-328
 - Arquivos: apps/api/src/modules/storefront/filtros.usecase.ts, apps/api/src/modules/storefront/filtros.usecase.test.ts, apps/api/tests/filtro-especificacao.int.test.ts, packages/database/migrations/0026_especificacoes_da_categoria.sql, apps/web/src/features/vitrine/FiltroEspecificacao.tsx, apps/web/tests/vitrine-filtro-especificacao.test.tsx
@@ -106,10 +106,10 @@
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-313 — Telas de ponta a ponta do catálogo [pendente]
+## T-313 — Telas de ponta a ponta do catálogo [concluida]
 
 - Refs: US-301, US-303, US-306, US-307, AC-304, AC-313, AC-325, AC-331
-- Arquivos: e2e/specs/painel-catalogo.spec.ts, e2e/specs/specs-categoria.spec.ts, e2e/specs/estoque.spec.ts, e2e/specs/produto-opcoes.spec.ts
-- Notas: cobre cadastro completo, grupos obrigatórios, criador de especificações e ajuste de estoque.
+- Arquivos: e2e/specs/painel-catalogo.spec.ts, e2e/specs/specs-categoria.spec.ts, e2e/specs/estoque.spec.ts, e2e/specs/produto-opcoes.spec.ts, e2e/fixtures/painel.ts, e2e/playwright.config.ts, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/EditorGrupoOpcao.tsx
+- Notas: o primeiro ponta a ponta do PAINEL, nos dois tamanhos de tela. Cadastro completo: o dono cria a seção e o produto pelas telas e ele aparece publicado na vitrine (AC-304). Grupos obrigatórios: o grupo criado no painel impede o cliente de adicionar sem escolher, e o acréscimo entra no total antes do carrinho (AC-313). Criador de especificações: a lista obrigatória e o número com unidade criados na seção viram os campos do cadastro do produto dela, e o obrigatório barra o envio (AC-325). Estoque: a venda de três M baixa de 10 para 7 com o movimento do pedido, e o ajuste manual entra no histórico (AC-331). O painel do ponta a ponta usa uma loja de roupas só dele (`e2e-painel`, via `NEXT_PUBLIC_DEV_STORE_SLUG` no site do teste) e a sessão do dono é emitida na montagem, porque o site de teste roda em modo produção e o cookie da tela de entrada sai preso ao domínio de produção. A montagem revelou e corrigiu a leitura de dinheiro do produto e do acréscimo, que apagava o ponto ("19.90" virava R$ 1.990). Ver dívidas 92 (dono alcança outra loja) e 93 (vitrine atrasa até um minuto).
 - Esforço: alto
 - Modelo: gpt-5.6-luna
