@@ -95,6 +95,7 @@ test("@spec:AC-016 o inventário conta quantas telas faltam construir", async ()
     (tela) => tela.arquivo !== undefined,
   );
 
-  expect(MANIFESTO_DE_ROTAS.length).toBe(50);
+  // 49 linhas no mapa de telas; três delas declaram duas rotas cada.
+  expect(MANIFESTO_DE_ROTAS.length).toBe(52);
   expect(construidas.length).toBeGreaterThan(0);
 });

@@ -47,7 +47,7 @@ export interface TelaDoManifesto {
  * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
  * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
  * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 47 linhas no mapa, 50 rotas no produto.
+ * separadas — 49 linhas no mapa, 52 rotas no produto.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
