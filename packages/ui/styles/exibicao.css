@@ -1,0 +1,321 @@
+/*
+ * A exibição do cardápio na televisão da loja (T-951).
+ *
+ * OUTRO PRODUTO, E NÃO UM PONTO DE QUEBRA DA VITRINE. Ninguém rola, ninguém
+ * toca, e quem lê está a três metros. Por isso esta folha desobedece, de
+ * propósito, a três hábitos das outras: esconde o cursor, esconde a barra de
+ * rolagem e cresce a letra com a tela — que é exatamente o que a narrativa de
+ * rolagem proíbe, porque lá a distância de leitura é a de um braço.
+ *
+ * O CORPO VEM DE FORA. `--corpo` e `--colunas` são escritos em linha pelo
+ * componente, que mede a janela e decide a densidade (`densidade.ts`). A
+ * folha só sabe proporções: tudo aqui é múltiplo do corpo ou fração da tela.
+ *
+ * ESCURA POR DECISÃO. Uma televisão branca de 43 polegadas numa parede é um
+ * refletor, e tela escura com letra clara é o que toda placa de cardápio
+ * digital usa. As cores vêm da paleta oficial, pelos nomes brutos — a mesma
+ * lista que o tema escuro do sistema usa.
+ *
+ * Depende de `theme.css`, que declara cor, espaço, raio e tipografia.
+ */
+
+.sc-exibicao {
+  --cor-fundo: var(--marca-preto-tecnologico);
+  --cor-superficie: var(--marca-grafite);
+  --cor-superficie-alta: var(--marca-grafite);
+  --cor-tinta: var(--marca-branco);
+  --cor-tinta-suave: var(--marca-cinza-ui);
+  --cor-borda: var(--marca-cinza-ui);
+
+  /* Substituídos em linha pela densidade medida; estes valem até lá. */
+  --corpo: 45px;
+  --colunas: 2;
+
+  /*
+   * O código de leitura: 44% do lado menor da tela. Numa televisão de 43
+   * polegadas isso dá uns 23 cm de lado, que a câmera de um celular comum
+   * reconhece a três metros. É por isso que ele é elemento grande, e não selo
+   * de canto (AC-931).
+   */
+  --tamanho-do-codigo: 44vmin;
+
+  /* Deitada: a faixa do código à direita. Em pé: embaixo. */
+  --faixa-do-codigo: 32vw;
+
+  position: fixed;
+  inset: 0;
+  inline-size: 100vw;
+  block-size: 100vh;
+  block-size: 100svh;
+  /* Sem barra de rolagem e sem cursor: nada aqui espera toque (AC-925). */
+  overflow: hidden;
+  cursor: none;
+  user-select: none;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+}
+
+.sc-exibicao__tela {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--faixa-do-codigo);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "cabecalho cabecalho"
+    "produtos ponte"
+    "rodape ponte";
+  inline-size: 100%;
+  block-size: 100%;
+  padding: calc(var(--corpo) * 0.6) calc(var(--corpo) * 0.8);
+  column-gap: calc(var(--corpo) * 0.8);
+}
+
+/* --- o cabeçalho: nome da loja pequeno, nome da seção grande ------------- */
+
+.sc-exibicao__cabecalho {
+  grid-area: cabecalho;
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--corpo) * 0.6);
+  min-block-size: calc(var(--corpo) * 2.4);
+}
+
+.sc-exibicao__loja {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-titulo);
+  font-size: calc(var(--corpo) * 0.7);
+  font-weight: var(--peso-medio);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.sc-exibicao__secao {
+  margin: 0;
+  padding-block: calc(var(--corpo) * 0.1);
+  padding-inline: calc(var(--corpo) * 0.4);
+  border-radius: var(--raio-2);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-family: var(--fonte-titulo);
+  font-size: calc(var(--corpo) * 1.2);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: sc-exibicao-entrada 400ms ease-out;
+}
+
+/* --- a lista de produtos ---------------------------------------------------
+ *
+ * Grade de colunas iguais; cada produto é uma linha de altura fixa em
+ * corpos, que é o mesmo número que `densidade.ts` usa para contar quantas
+ * cabem. Se um lado mudar sem o outro, o último produto sai cortado — e é
+ * isso que a prova de densidade guarda.
+ */
+
+.sc-exibicao__produtos {
+  grid-area: produtos;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.sc-exibicao__lista {
+  display: grid;
+  grid-template-columns: repeat(var(--colunas), minmax(0, 1fr));
+  grid-auto-rows: calc(var(--corpo) * 2.6);
+  grid-auto-flow: row;
+  margin: 0;
+  padding: 0;
+  column-gap: calc(var(--corpo) * 1.2);
+  list-style: none;
+  animation: sc-exibicao-entrada 400ms ease-out;
+}
+
+.sc-exibicao__produto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "nome preco"
+    "chamada preco";
+  align-items: center;
+  column-gap: calc(var(--corpo) * 0.6);
+  border-block-end: 1px solid var(--cor-superficie);
+}
+
+.sc-exibicao__nome {
+  grid-area: nome;
+  align-self: end;
+  font-size: var(--corpo);
+  font-weight: var(--peso-forte);
+  line-height: 1.15;
+  /* Uma linha só: nome que quebra em duas empurra o de baixo para fora. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sc-exibicao__chamada {
+  grid-area: chamada;
+  align-self: start;
+  color: var(--cor-tinta-suave);
+  font-size: calc(var(--corpo) * 0.6);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sc-exibicao__precos {
+  grid-area: preco;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sc-exibicao__preco {
+  color: var(--cor-primaria-texto);
+  font-size: calc(var(--corpo) * 1.1);
+  font-weight: var(--peso-forte);
+}
+
+.sc-exibicao__preco--variavel {
+  color: var(--cor-tinta-suave);
+  font-size: calc(var(--corpo) * 0.6);
+  font-weight: var(--peso-medio);
+}
+
+.sc-exibicao__preco-anterior {
+  color: var(--cor-tinta-suave);
+  font-size: calc(var(--corpo) * 0.6);
+}
+
+/* --- os estados ---------------------------------------------------------- */
+
+.sc-exibicao__estado {
+  font-size: calc(var(--corpo) * 0.8);
+}
+
+/* --- a ponte para o celular ---------------------------------------------- */
+
+.sc-exibicao__ponte {
+  grid-area: ponte;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 0;
+}
+
+.sc-codigo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--corpo) * 0.4);
+  margin: 0;
+  text-align: center;
+}
+
+.sc-codigo__desenho {
+  inline-size: var(--tamanho-do-codigo);
+  block-size: var(--tamanho-do-codigo);
+  border-radius: var(--raio-2);
+}
+
+/* Câmera lê contraste: preto sobre branco, seja qual for a cor da loja. */
+.sc-codigo__fundo {
+  fill: var(--cor-tinta-extrema-clara);
+}
+
+.sc-codigo__modulos {
+  fill: var(--cor-tinta-extrema-escura);
+}
+
+.sc-codigo__legenda {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--corpo) * 0.1);
+}
+
+.sc-codigo__chamada {
+  font-size: calc(var(--corpo) * 0.7);
+  font-weight: var(--peso-forte);
+  line-height: 1.2;
+}
+
+.sc-codigo__endereco {
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-mono);
+  font-size: calc(var(--corpo) * 0.5);
+  word-break: break-all;
+}
+
+/* --- o rodapé ------------------------------------------------------------ */
+
+.sc-exibicao__rodape {
+  grid-area: rodape;
+  display: flex;
+  gap: calc(var(--corpo) * 0.6);
+  color: var(--cor-tinta-suave);
+  font-size: calc(var(--corpo) * 0.45);
+  white-space: nowrap;
+}
+
+/* --- em pé: o código vai para baixo, os produtos ficam numa coluna --------
+ *
+ * Não é uma tela "estreita": é uma televisão instalada de lado. A divisão do
+ * espaço muda de eixo, e é a densidade que reduz as colunas para uma.
+ */
+
+@media (orientation: portrait) {
+  .sc-exibicao__tela {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) 30svh auto;
+    grid-template-areas:
+      "cabecalho"
+      "produtos"
+      "ponte"
+      "rodape";
+  }
+
+  .sc-codigo {
+    flex-direction: row;
+    gap: calc(var(--corpo) * 0.8);
+    text-align: start;
+  }
+
+  .sc-codigo__desenho {
+    /* Cabe na faixa de 30% da altura, com respiro. */
+    inline-size: min(var(--tamanho-do-codigo), 26svh);
+    block-size: min(var(--tamanho-do-codigo), 26svh);
+  }
+
+  .sc-codigo__legenda {
+    align-items: flex-start;
+  }
+}
+
+/* --- movimento ----------------------------------------------------------- */
+
+@keyframes sc-exibicao-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--corpo) * 0.2));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Quem pediu menos movimento recebe a tela nova de uma vez, inteira. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-exibicao__lista,
+  .sc-exibicao__secao {
+    animation: none;
+  }
+}

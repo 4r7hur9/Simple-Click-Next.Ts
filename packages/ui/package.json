@@ -15,7 +15,8 @@
     "./styles/vitrine.css": "./styles/vitrine.css",
     "./styles/produto.css": "./styles/produto.css",
     "./styles/fechamento.css": "./styles/fechamento.css",
-    "./styles/conta.css": "./styles/conta.css"
+    "./styles/conta.css": "./styles/conta.css",
+    "./styles/exibicao.css": "./styles/exibicao.css"
   },
   "files": [
     "src",
