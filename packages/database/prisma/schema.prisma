@@ -63,6 +63,7 @@ model Identity {
   convitesFeitos      StoreMember[]      @relation("QuemConvidou")
   produtosCriados     Product[]          @relation("QuemCriouOProduto")
   clientesDeLoja      StoreCustomer[]
+  enderecos           CustomerAddress[]
   atosAuditados       AuditLog[]
   movimentosDeEstoque StockMovement[]
   mudancasDeStatus    OrderStatusEntry[] @relation("QuemMudouOStatus")
@@ -388,6 +389,12 @@ model StoreCustomer {
   anonymizedAt    DateTime? @map("anonymized_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  /// Gerada pelo banco a partir de `phone_e164` (0035): só se lê, nunca se escreve.
+  phoneKey        String?   @map("phone_key")
+  /// Remoção com retenção: a ficha some das listagens e a linha fica (0035, AC-705).
+  removedAt       DateTime? @map("removed_at") @db.Timestamptz(6)
+  /// Endereço anotado na ficha do cliente sem conta (0035, AC-703).
+  address         Json?
 
   loja       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade Identity? @relation(fields: [identityId], references: [id])
@@ -396,6 +403,32 @@ model StoreCustomer {
   carrinhos Cart[]
 
   @@map("store_customers")
+  @@schema("app")
+}
+
+/// Endereços salvos do comprador, presos à identidade e não à loja: cadastra
+/// uma vez e usa em qualquer loja (0036, AC-509). Fora do perímetro do dono.
+model CustomerAddress {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identityId     String    @map("identity_id") @db.Uuid
+  label          String?
+  recipientName  String?   @map("recipient_name")
+  street         String
+  number         String?
+  complement     String?
+  neighborhood   String?
+  city           String?
+  uf             String?   @db.Char(2)
+  zip            String?
+  referencePoint String?   @map("reference_point")
+  isDefault      Boolean   @default(false) @map("is_default")
+  anonymizedAt   DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  identidade Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@map("customer_addresses")
   @@schema("app")
 }
 

@@ -498,7 +498,75 @@ function linhasDosClientes(
     anonymized_at: null,
     created_at: instanteDeExemplo(referencia, -20_000 + indice * 100),
     updated_at: instanteDeExemplo(referencia, -20_000 + indice * 100),
+    // A remoção com retenção e o endereço da ficha (0035) nascem vazios: o
+    // cenário não tem cliente removido, e o endereço de quem tem conta mora
+    // em `customer_addresses`, preso à identidade.
+    removed_at: null,
+    address: null,
   }));
+}
+
+/**
+ * Os endereços salvos dos compradores com conta (0036, AC-509).
+ *
+ * Presos à IDENTIDADE, e não à loja: Ana compra nas duas lojas e tem um
+ * endereço só, que o fechamento de qualquer uma delas pré-preenche. Um por
+ * pessoa é o padrão; Bruno tem dois para a lista ter ordem a provar.
+ */
+function linhasDeEnderecos(referencia: Date): readonly LinhaDeExemplo[] {
+  const criacao = instanteDeExemplo(referencia, -39_000);
+  const endereco = (
+    quem: PessoaDeExemplo,
+    chave: string,
+    dados: Readonly<Record<string, string | boolean | null>>,
+  ): LinhaDeExemplo => ({
+    id: idDeExemplo(`endereco:${quem.chave}:${chave}`),
+    identity_id: quem.id,
+    recipient_name: quem.nome,
+    anonymized_at: null,
+    created_at: criacao,
+    updated_at: criacao,
+    ...dados,
+  });
+
+  return [
+    endereco(PESSOAS.compradoraAna, "casa", {
+      label: "Casa",
+      street: "Rua das Flores",
+      number: "123",
+      complement: "Apto 21",
+      neighborhood: "Vila Mariana",
+      city: "São Paulo",
+      uf: "SP",
+      zip: "04110000",
+      reference_point: "Ao lado da padaria",
+      is_default: true,
+    }),
+    endereco(PESSOAS.compradorBruno, "casa", {
+      label: "Casa",
+      street: "Avenida Paulista",
+      number: "1000",
+      complement: null,
+      neighborhood: "Bela Vista",
+      city: "São Paulo",
+      uf: "SP",
+      zip: "01310100",
+      reference_point: null,
+      is_default: true,
+    }),
+    endereco(PESSOAS.compradorBruno, "trabalho", {
+      label: "Trabalho",
+      street: "Rua Augusta",
+      number: "500",
+      complement: "Sala 3",
+      neighborhood: "Consolação",
+      city: "São Paulo",
+      uf: "SP",
+      zip: "01305000",
+      reference_point: null,
+      is_default: false,
+    }),
+  ];
 }
 
 /**
@@ -537,6 +605,7 @@ export function montarLojas(referencia: Date): readonly ConjuntoDeExemplo[] {
       tabela: "store_customers",
       linhas: LOJAS.flatMap((loja) => linhasDosClientes(loja, referencia)),
     },
+    { tabela: "customer_addresses", linhas: linhasDeEnderecos(referencia) },
   ];
 }
 
