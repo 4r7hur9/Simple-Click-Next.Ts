@@ -44,11 +44,11 @@
 - Notas: a primeira fatia funcional do ambiente local já persiste boas-vindas, logo, capa e cor em store_settings. A implementação definitiva ainda precisa do caso de uso, contraste automático, auditoria, validação pelos bytes e cobertura própria desta tarefa. Herda a página de boas-vindas do primeiro SimpleClick, agora editável.
 - Esforço: alto
 
-## T-906 — Formato de impressão do cupom [pendente]
+## T-906 — Formato de impressão do cupom [concluida]
 
 - Refs: US-905, AC-919, AC-920
-- Arquivos: apps/api/src/modules/stores/impressao-config.usecase.ts, apps/api/src/modules/stores/impressao-config.usecase.test.ts, apps/web/src/app/(painel)/painel/config/impressao/page.tsx
-- Notas: largura de papel muda a formatação do mesmo pedido. O dono escolhe o que aparece, mas o essencial do pedido não pode ser desligado.
+- Arquivos: apps/api/src/modules/stores/impressao-config.usecase.ts, apps/api/src/modules/stores/impressao-config.usecase.test.ts, apps/api/tests/config-impressao.int.test.ts, apps/web/src/app/(painel)/painel/config/impressao/page.tsx, apps/web/src/features/config/FormularioImpressao.tsx, apps/web/tests/config-impressao.test.tsx
+- Notas: a largura (58 ou 80 mm, 32 ou 48 colunas) é a que o gerador do cupom recebe, e trocá-la vale para o próximo cupom do mesmo pedido; o essencial (pedido, itens, total) não tem interruptor na tela e é religado pela normalização mesmo que a requisição peça o contrário. A montagem do cupom na largura recebida é da T-605 (faixa F5), que lê esta configuração por `normalizarConfiguracaoDeImpressao`.
 - Esforço: medio
 
 ## T-907 — Avisos de configuração pendente no painel [concluida]
