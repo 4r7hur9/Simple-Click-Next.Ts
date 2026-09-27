@@ -37,7 +37,7 @@
 - Notas: reaproveita o mesmo caminho do pedido do cliente, com canal marcado como manual — então respeita grupo obrigatório e cálculo de total do servidor. Pode ser lançado sem cadastrar o cliente, informando nome e telefone no próprio pedido. Desenhado para uso com uma mão no celular durante o atendimento.
 - Esforço: alto
 
-## T-705 — Pedido manual imprime e conta na métrica [pendente]
+## T-705 — Pedido manual imprime e conta na métrica [concluida]
 
 - Refs: US-702, AC-710
 - Arquivos: apps/api/tests/pedido-manual-imprime.test.ts, apps/api/tests/pedido-manual-metrica.test.ts
