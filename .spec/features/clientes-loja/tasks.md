@@ -30,7 +30,7 @@
 - Notas: remover é ocultar com retenção, não apagar — é o que preserva a integridade das métricas e atende ao direito de exclusão dentro do prazo. Pedidos antigos mantêm os dados que tinham na compra.
 - Esforço: alto
 
-## T-704 — Pedido manual lançado pelo dono [pendente]
+## T-704 — Pedido manual lançado pelo dono [concluida]
 
 - Refs: US-702, AC-707, AC-708, AC-709
 - Arquivos: apps/api/src/modules/orders/pedido-manual.usecase.ts, apps/api/src/modules/orders/pedido-manual.usecase.test.ts, apps/api/src/modules/orders/pedido-manual.routes.ts, apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/tests/pedido-manual.int.test.ts, apps/web/src/app/(painel)/painel/pedidos/novo/page.tsx, apps/web/src/features/painel-pedidos/MontarPedido.tsx, apps/web/src/server/produtos-do-balcao.ts, apps/web/src/app/api/painel/pedidos/manual/route.ts, apps/web/tests/painel-pedido-manual.test.tsx
