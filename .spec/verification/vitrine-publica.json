@@ -1,11 +1,11 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-09-27T06:27:23.164Z",
-  "gitRev": "ae99fd3",
-  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh vitrine-publica",
+  "timestamp": "2026-09-27T07:33:59.673Z",
+  "gitRev": "4a4d813",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh vitrine-publica",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 299,
+  "testsParsed": 302,
   "results": {
     "AC-400": {
       "status": "pass",
@@ -69,7 +69,7 @@
     },
     "AC-412": {
       "status": "pass",
-      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar @spec:AC-412 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
+      "testName": "o servidor recusa o item que não fecha (AC-412) @spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar @spec:AC-412 @spec:AC-313 grupo obrigatório sem escolha é recusado, mesmo a tela deixando passar",
       "method": "vitest-json"
     },
     "AC-413": {

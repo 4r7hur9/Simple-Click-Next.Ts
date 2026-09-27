@@ -1,8 +1,8 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-09-27T06:25:54.314Z",
-  "gitRev": "ae99fd3",
-  "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" ../vitest-feature.sh config-loja",
+  "timestamp": "2026-09-27T07:35:33.397Z",
+  "gitRev": "4a4d813",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh config-loja",
   "reporter": "vitest-json",
   "exitCode": 0,
   "testsParsed": 222,
