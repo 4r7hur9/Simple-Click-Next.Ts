@@ -12,13 +12,25 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { act } from "react";
+import { act, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ListaProdutos } from "../src/features/painel-catalogo/ListaProdutos";
 import { CartaoDeProduto } from "../src/features/vitrine/GradeDeProdutos";
+
+// O teste renderiza o HTML do cartão sem o runtime do Next. A configuração
+// real da aplicação autoriza o Cloudinary; aqui basta preservar os atributos
+// que o navegador recebe, sem executar o loader padrão do framework.
+vi.mock("next/image", () => ({
+  default: ({
+    priority: _priority,
+    ...props
+  }: ComponentProps<"img"> & {
+    readonly priority?: boolean;
+  }) => <img {...props} />,
+}));
 
 interface Chamada {
   readonly url: string;

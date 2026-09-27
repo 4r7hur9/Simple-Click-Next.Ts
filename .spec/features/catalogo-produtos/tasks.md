@@ -2,7 +2,7 @@
 
 > feature: catalogo-produtos
 
-## T-300 — Categorias com ordenação e visibilidade [pendente]
+## T-300 — Categorias com ordenação e visibilidade [concluida]
 
 - Refs: US-300, AC-300, AC-301, AC-302, AC-303
 - Arquivos: apps/api/src/modules/catalog/categorias.routes.ts, apps/api/src/modules/catalog/categorias.usecase.ts, apps/api/src/modules/catalog/categorias.usecase.test.ts, apps/api/tests/categorias-do-painel.int.test.ts, apps/api/tests/apoio-do-painel.ts, apps/api/src/app.ts, apps/web/src/app/api/catalogo/categorias/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/route.ts, apps/web/src/app/(painel)/painel/categorias/page.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, apps/web/tests/painel-categorias.test.tsx, packages/database/migrations/0007_catalogo_completo.sql
@@ -10,7 +10,7 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-301 — Criador de especificações dentro da categoria [pendente]
+## T-301 — Criador de especificações dentro da categoria [concluida]
 
 - Refs: US-306, AC-325, AC-326, AC-327, AC-330
 - Arquivos: apps/api/src/modules/catalog/especificacoes.usecase.ts, apps/api/src/modules/catalog/especificacoes.usecase.test.ts, apps/api/src/modules/catalog/especificacao-esquema.ts, apps/api/src/modules/catalog/especificacao-esquema.test.ts, apps/api/src/modules/catalog/especificacoes.routes.ts, apps/api/src/modules/catalog/especificacoes.routes.test.ts, apps/api/src/app.ts, apps/api/tests/especificacoes-do-painel.int.test.ts, apps/api/tests/apoio-do-painel.ts, packages/database/prisma/schema.prisma, packages/database/tests/esquema-cobre-o-banco.test.ts, packages/database/migrations/0026_especificacoes_da_categoria.sql, apps/web/src/app/(painel)/painel/categorias/[id]/especificacoes/page.tsx, apps/web/src/features/painel-catalogo/EditorEspecificacoes.tsx, apps/web/src/features/painel-catalogo/CamposDeEspecificacao.tsx, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/ListaCategorias.tsx, apps/web/src/server/encaminhar-ao-painel.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/[especificacaoId]/route.ts, apps/web/src/app/api/catalogo/categorias/[id]/especificacoes/[especificacaoId]/opcoes/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/especificacoes/route.ts, apps/web/tests/painel-especificacoes.test.tsx
@@ -18,7 +18,7 @@
 - Esforço: xalto
 - Modelo: gpt-5.6-luna
 
-## T-302 — Produto: cadastro, edição, rascunho, duplicata e remoção [pendente]
+## T-302 — Produto: cadastro, edição, rascunho, duplicata e remoção [concluida]
 
 - Refs: US-301, AC-304, AC-307, AC-308
 - Arquivos: apps/api/src/modules/catalog/produtos.usecase.ts, apps/api/src/modules/catalog/produtos.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/tests/produtos-do-painel.int.test.ts, apps/web/src/app/(painel)/painel/produtos/page.tsx, apps/web/src/app/(painel)/painel/produtos/novo/page.tsx, apps/web/src/app/(painel)/painel/produtos/[id]/page.tsx, apps/web/src/app/api/catalogo/produtos/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/duplicar/route.ts, apps/web/src/features/painel-catalogo/FormularioProduto.tsx, apps/web/src/features/painel-catalogo/ListaProdutos.tsx, apps/web/tests/painel-produtos.test.tsx
@@ -26,7 +26,7 @@
 - Esforço: alto
 - Modelo: gpt-5.6-luna
 
-## T-303 — Imagens do produto com principal e conferência de conteúdo [pendente]
+## T-303 — Imagens do produto com principal e conferência de conteúdo [concluida]
 
 - Refs: US-301, AC-305, AC-306
 - Arquivos: apps/api/src/modules/catalog/imagens.usecase.ts, apps/api/src/modules/catalog/imagens.usecase.test.ts, apps/api/src/modules/catalog/imagens.routes.ts, apps/api/src/modules/catalog/imagens.routes.test.ts, apps/api/src/modules/catalog/hospedagem-de-imagem.ts, apps/api/src/modules/catalog/hospedagem-de-imagem.test.ts, apps/api/tests/imagens-do-painel.int.test.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/[imagemId]/route.ts, apps/web/src/app/api/catalogo/produtos/[produtoId]/imagens/arquivo/route.ts, apps/web/src/features/painel-catalogo/EnvioDeImagem.tsx, apps/web/src/lib/imagem.ts, apps/web/tests/painel-imagens.test.tsx
@@ -82,7 +82,7 @@
 - Esforço: medio
 - Modelo: gpt-5.6-luna
 
-## T-310 — Produto que muda de categoria preserva o preenchido [pendente]
+## T-310 — Produto que muda de categoria preserva o preenchido [concluida]
 
 - Refs: US-306, AC-329
 - Arquivos: apps/api/src/modules/catalog/mover-categoria.usecase.ts, apps/api/src/modules/catalog/mover-categoria.usecase.test.ts, apps/api/src/modules/catalog/produtos.routes.ts, apps/api/src/modules/catalog/especificacoes.routes.ts, apps/api/tests/mover-categoria.int.test.ts, apps/web/src/features/painel-catalogo/CamposDeEspecificacao.tsx, apps/web/src/app/api/catalogo/produtos/[produtoId]/especificacoes/[especificacaoId]/route.ts, apps/web/tests/painel-mover-categoria.test.tsx
@@ -98,7 +98,7 @@
 - Esforço: baixo
 - Modelo: gpt-5.6-luna
 
-## T-312 — Filtro por especificação na vitrine [pendente]
+## T-312 — Filtro por especificação na vitrine [concluida]
 
 - Refs: US-306, AC-328
 - Arquivos: apps/api/src/modules/storefront/filtros.usecase.ts, apps/api/src/modules/storefront/filtros.usecase.test.ts, apps/api/tests/filtro-especificacao.int.test.ts, packages/database/migrations/0026_especificacoes_da_categoria.sql, apps/web/src/features/vitrine/FiltroEspecificacao.tsx, apps/web/tests/vitrine-filtro-especificacao.test.tsx
