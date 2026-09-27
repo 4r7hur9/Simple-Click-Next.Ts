@@ -16,11 +16,11 @@
 - Notas: a chave é conferida pelo tipo na borda (regra pura em `packages/core/src/chave-pix.ts`: CPF e CNPJ com dígito verificador, celular com DDD, e-mail, chave aleatória) e sai normalizada; a recusa aponta `pix.chave` com o formato esperado e a chave anterior continua valendo. PIX sem chave não entra nas formas do fechamento (documento antigo incluído). O pedido guarda a chave do momento (snapshot da AC-511), provado trocando a chave entre dois pedidos. A chave nunca vai inteira para a trilha (P-009) e não sai na vitrine. O aviso por e-mail ao dono quando a chave muda (Q-901) não é critério desta tarefa e fica pendente.
 - Esforço: alto
 
-## T-902 — Entrega, retirada, taxa e valor mínimo [pendente]
+## T-902 — Entrega, retirada, taxa e valor mínimo [concluida]
 
 - Refs: US-901, AC-905, AC-906, AC-907, AC-908
-- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/entrega/page.tsx, apps/web/src/features/config/FormularioEntrega.tsx
-- Notas: a primeira fatia funcional local persiste entrega, retirada, taxa, gratuidade, mínimos e prazo. Desativar os dois modos é aceito na configuração, mas a regra de bloqueio do fechamento e o aviso no painel ainda exigem a implementação formal desta tarefa.
+- Arquivos: apps/api/tests/config-entrega.int.test.ts, apps/web/src/app/(painel)/painel/config/entrega/page.tsx, apps/web/src/features/config/FormularioEntrega.tsx, apps/web/src/features/checkout/FechamentoDaCompra.tsx, apps/web/tests/config-entrega.test.tsx
+- Notas: o dono digita em reais e a tela converte para centavos inteiros, exata e sem ponto flutuante; valor que não é dinheiro é apontado no campo antes de ir à rede. O checkout oferece exatamente os modos ativos (coluna `fulfillment_modes`); com os dois desligados o fechamento mostra que a loja não está recebendo pedidos e o servidor recusa, e o painel avisa (T-907). Taxa, gratuidade e mínimo configurados chegam ao fechamento e ao total do pedido — o cálculo continua o de `packages/core/src/taxa-entrega.ts`.
 - Esforço: medio
 
 ## T-903 — Horário de funcionamento, fechar agora e exceções [concluida]
