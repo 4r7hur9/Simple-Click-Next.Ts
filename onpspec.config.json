@@ -26,6 +26,11 @@
     "build/**",
     "coverage/**",
     ".spec/**",
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/playwright-report/**",
+    "**/test-results/**",
+    "**/*.tsbuildinfo",
     "infra/compose/.env.compose",
     "infra/traefik/certs/**"
   ],
