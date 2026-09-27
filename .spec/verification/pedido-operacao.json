@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-27T11:42:57.641Z",
-  "gitRev": "04a1853",
+  "timestamp": "2026-09-27T11:59:34.021Z",
+  "gitRev": "6956a42",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-operacao",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 141,
+  "testsParsed": 205,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -91,6 +91,31 @@
       "status": "pass",
       "testName": "o cliente logado vê o histórico sem depender do link (AC-616) @spec:AC-616 a conta lista os pedidos feitos em todas as lojas, com o status de agora, e só os dela @spec:AC-616 a conta lista os pedidos feitos em todas as lojas, com o status de agora, e só os dela",
       "method": "vitest-json"
+    },
+    "AC-617": {
+      "status": "pass",
+      "testName": "a rota do cupom para a impressão por clique (AC-617) @spec:AC-617 o dono pede o cupom do pedido e recebe um cupom do contrato, sem cache @spec:AC-617 o dono pede o cupom do pedido e recebe um cupom do contrato, sem cache",
+      "method": "vitest-json"
+    },
+    "AC-618": {
+      "status": "pass",
+      "testName": "a largura configurada em cada loja vale para o cupom (AC-618) @spec:AC-618 a loja de 58 mm recebe cupom de 32 colunas e a de 80 mm, de 48, para o mesmo pedido @spec:AC-618 a loja de 58 mm recebe cupom de 32 colunas e a de 80 mm, de 48, para o mesmo pedido",
+      "method": "vitest-json"
+    },
+    "AC-619": {
+      "status": "pass",
+      "testName": "o cupom sai com o que o pedido guardou (AC-619) @spec:AC-619 loja, pedido, cliente, itens com escolhas, observação, endereço, pagamento e total vêm do banco @spec:AC-619 loja, pedido, cliente, itens com escolhas, observação, endereço, pagamento e total vêm do banco",
+      "method": "vitest-json"
+    },
+    "AC-620": {
+      "status": "pass",
+      "testName": "acento correto no cupom (AC-620) @spec:AC-620 'Açaí com granola' e 'Guaraná' atravessam a diagramação intactos @spec:AC-620 'Açaí com granola' e 'Guaraná' atravessam a diagramação intactos",
+      "method": "vitest-json"
+    },
+    "AC-621": {
+      "status": "pass",
+      "testName": "a rota do cupom para a impressão por clique (AC-617) @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão",
+      "method": "vitest-json"
     }
   },
   "principles": {
@@ -104,7 +129,7 @@
     },
     "P-011": {
       "status": "pass",
-      "testName": "a lista cobre vazio, erro e sucesso (P-011) @principle:P-011 sem pedido nenhum, a tela diz isso e explica como o histórico aparece @principle:P-011 sem pedido nenhum, a tela diz isso e explica como o histórico aparece"
+      "testName": "estados e acessibilidade da página do cupom @principle:P-011 espera, erro e sucesso têm cada um a sua tela, com saída @principle:P-011 espera, erro e sucesso têm cada um a sua tela, com saída"
     }
   }
 }

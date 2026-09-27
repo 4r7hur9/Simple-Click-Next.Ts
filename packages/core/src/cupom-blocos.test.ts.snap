@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`o cupom traz o que a produção precisa, na ordem certa (AC-619) > @spec:AC-619 o cupom inteiro, em 58 e em 80 mm, é o de referência > papel de 58 mm 1`] = `
+"N2| Açaí & Guaraná
+N2|    da Vila
+  |================================
+N2| PEDIDO A-1042
+  |Data            26/09/2026 14:32
+  |Canal                       Site
+N |Tipo                     Entrega
+  |--------------------------------
+N |CLIENTE
+  |Maria Conceição
+  |(11) 98888-7777
+  |--------------------------------
+N |ITENS
+N |2x Açaí com granola     R$ 47,00
+N |  (500 ml)
+  |   + Cobertura: Leite condensado
+  |   + Adicionais: Paçoca x2
+  |   (+R$ 4,00)
+  |   - Frutas: sem Banana
+N |   >> Obs.: Sem granola na
+N |   metade, é alergia
+N |3x Guaraná Antarctica   R$ 19,50
+N |  lata 350ml gelado
+  |================================
+N |     OBSERVAÇÕES DO PEDIDO
+N |Tocar a campainha do portão azul
+  |================================
+N |ENTREGA
+  |Rua das Flores, 123 - Apto 12
+  |Centro - São Paulo/SP
+  |CEP 01000-000
+  |Ref.: Ao lado da praça
+  |--------------------------------
+N |PAGAMENTO
+  |Forma                   Dinheiro
+  |Troco para             R$ 100,00
+  |--------------------------------
+  |Subtotal                R$ 66,50
+  |Desconto                -R$ 5,00
+  |Taxa de entrega          R$ 8,00
+N |TOTAL                   R$ 69,50
+  |
+  |
+  |
+✂---- corte ----"
+`;
+
+exports[`o cupom traz o que a produção precisa, na ordem certa (AC-619) > @spec:AC-619 o cupom inteiro, em 58 e em 80 mm, é o de referência > papel de 80 mm 1`] = `
+"N2| Açaí & Guaraná da Vila
+  |================================================
+N2|     PEDIDO A-1042
+  |Data                            26/09/2026 14:32
+  |Canal                                       Site
+N |Tipo                                     Entrega
+  |------------------------------------------------
+N |CLIENTE
+  |Maria Conceição
+  |(11) 98888-7777
+  |------------------------------------------------
+N |ITENS
+N |2x Açaí com granola (500 ml)            R$ 47,00
+  |   + Cobertura: Leite condensado
+  |   + Adicionais: Paçoca x2 (+R$ 4,00)
+  |   - Frutas: sem Banana
+N |   >> Obs.: Sem granola na metade, é alergia
+N |3x Guaraná Antarctica lata 350ml gelado R$ 19,50
+  |================================================
+N |             OBSERVAÇÕES DO PEDIDO
+N |Tocar a campainha do portão azul
+  |================================================
+N |ENTREGA
+  |Rua das Flores, 123 - Apto 12
+  |Centro - São Paulo/SP
+  |CEP 01000-000
+  |Ref.: Ao lado da praça
+  |------------------------------------------------
+N |PAGAMENTO
+  |Forma                                   Dinheiro
+  |Troco para                             R$ 100,00
+  |------------------------------------------------
+  |Subtotal                                R$ 66,50
+  |Desconto                                -R$ 5,00
+  |Taxa de entrega                          R$ 8,00
+N |TOTAL                                   R$ 69,50
+  |
+  |
+  |
+✂---- corte ----"
+`;

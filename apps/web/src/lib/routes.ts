@@ -47,7 +47,7 @@ export interface TelaDoManifesto {
  * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
  * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
  * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 49 linhas no mapa, 52 rotas no produto.
+ * separadas — 50 linhas no mapa, 53 rotas no produto.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
@@ -442,6 +442,14 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-118, AC-922",
+  },
+  {
+    rota: "/imprimir/{id}",
+    tela: "Cupom do pedido para impressão por clique",
+    acesso: "DONO",
+    quatroEstados: true,
+    criterios: "AC-617, AC-618, AC-621",
+    arquivo: "apps/web/src/app/imprimir/[id]/page.tsx",
   },
 ];
 

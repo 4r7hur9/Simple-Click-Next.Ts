@@ -137,3 +137,50 @@ export type {
   ResumoDeVendas,
   SituacaoNaVenda,
 } from "./situacao-na-venda.ts";
+export {
+  CONTEUDO_PADRAO_DO_CUPOM,
+  diagramarCupom,
+  ErroDoCupom,
+  gerarCupom,
+  lerCupomImpresso,
+  RECUO_DA_CONTINUACAO,
+  VERSAO_DO_CUPOM,
+} from "./cupom-blocos.ts";
+export type {
+  BlocoDeCorte,
+  BlocoDeEspaco,
+  BlocoDePar,
+  BlocoDeTexto,
+  BlocoDoCupom,
+  BlocoSeparador,
+  CanalDoPedido,
+  ConteudoDoCupom,
+  CupomImpresso,
+  LinhaDoCupom,
+  OpcoesDoCupom,
+  PapelDoCupom,
+  PedidoParaCupom,
+  PerfilDeDiagramacao,
+  TamanhoDoTexto,
+} from "./cupom-blocos.ts";
+export {
+  AREA_IMPRESSA_EM_MM,
+  COLUNAS_DO_PAPEL,
+  colunasDoPapel,
+  ehLarguraDoPapel,
+  ehTabelaDeCaracteres,
+  larguraNoPapel,
+  normalizarParaImpressao,
+  TABELA_PADRAO,
+} from "./cupom-largura.ts";
+export type {
+  Alinhamento,
+  LarguraDoPapel,
+  TabelaDeCaracteres,
+} from "./cupom-largura.ts";
+export {
+  compilarEscPos,
+  ErroDaSaidaEscPos,
+  NUMERO_DA_TABELA_NO_ESCPOS,
+} from "./cupom-escpos.ts";
+export type { CorteDoPapel, PerfilDaImpressora } from "./cupom-escpos.ts";

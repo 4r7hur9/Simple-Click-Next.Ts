@@ -491,6 +491,9 @@ model Order {
   cancelledAt            DateTime? @map("cancelled_at") @db.Timestamptz(6)
   cancelReason           String?   @map("cancel_reason")
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Vias do cupom emitidas; a via impressa é o valor depois de somar 1 (0030, AC-621).
+  printCount             Int       @default(0) @map("print_count")
+  lastPrintedAt          DateTime? @map("last_printed_at") @db.Timestamptz(6)
 
   loja    Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cliente StoreCustomer? @relation(fields: [storeCustomerId], references: [id])
