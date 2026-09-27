@@ -389,10 +389,17 @@ const contato: DefinicaoDaSecao<"contato"> = {
 
 const aparencia: DefinicaoDaSecao<"aparencia"> = {
   async ler(tx, lojaId) {
+    const loja = await tx.store.findUnique({
+      where: { id: lojaId },
+      select: { name: true },
+    });
     const linha = await lerDaConfiguracao(tx, lojaId);
     const landing = objeto(linha?.["landing"]);
     const tema = objeto(linha?.["theme"]);
     return {
+      // O nome de exibição é o da loja (`stores.name`): é o que a vitrine, o
+      // pedido e o cupom já mostram. O apelido da URL continua da administração.
+      nome: loja?.name ?? "",
       boasVindas: texto(landing["boasVindas"]),
       sobre: texto(landing["sobre"]),
       logo: texto(landing["logo"]),
@@ -401,6 +408,11 @@ const aparencia: DefinicaoDaSecao<"aparencia"> = {
     };
   },
   async gravar(tx, lojaId, valor) {
+    exigirLinha(
+      await tx.$executeRaw`
+        UPDATE app.stores SET name = ${valor.nome} WHERE id = ${lojaId}::uuid`,
+      "apresentação",
+    );
     exigirLinha(
       await tx.$executeRaw`
         UPDATE app.store_settings

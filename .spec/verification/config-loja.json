@@ -1,30 +1,55 @@
 {
   "feature": "config-loja",
-  "timestamp": "2026-09-26T15:56:16.524Z",
-  "gitRev": "55ea723",
+  "timestamp": "2026-09-27T04:06:39.769Z",
+  "gitRev": "331be20",
   "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
   "reporter": "vitest-json",
   "exitCode": 1,
-  "testsParsed": 1285,
+  "testsParsed": 1368,
   "results": {
+    "AC-900": {
+      "status": "pass",
+      "testName": "a chave cadastrada aparece no checkout (AC-900) @spec:AC-900 loja sem chave cadastra CPF e recebedor, e o fechamento passa a oferecer PIX com a chave e o nome @spec:AC-900 loja sem chave cadastra CPF e recebedor, e o fechamento passa a oferecer PIX com a chave e o nome",
+      "method": "vitest-json"
+    },
+    "AC-901": {
+      "status": "pass",
+      "testName": "chave em formato inválido é recusada (AC-901) @spec:AC-901 CPF inválido é recusado explicando o formato, e a chave anterior continua valendo @spec:AC-901 CPF inválido é recusado explicando o formato, e a chave anterior continua valendo",
+      "method": "vitest-json"
+    },
+    "AC-902": {
+      "status": "pass",
+      "testName": "loja sem chave não oferece PIX (AC-902) @spec:AC-902 sem chave o PIX some do fechamento, e as outras formas continuam @spec:AC-902 sem chave o PIX some do fechamento, e as outras formas continuam",
+      "method": "vitest-json"
+    },
+    "AC-903": {
+      "status": "pass",
+      "testName": "trocar a chave não altera pedido já feito (AC-903) @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova",
+      "method": "vitest-json"
+    },
     "AC-904": {
-      "status": "fail",
-      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 a resposta inteira cabe nos campos que a lista permite @spec:AC-904 a resposta inteira cabe nos campos que a lista permite",
+      "status": "pass",
+      "testName": "a chave não aparece em lugar indevido (AC-904) @spec:AC-904 @principle:P-009 a chave salva pelo painel não sai nos dados públicos da vitrine @spec:AC-904 @principle:P-009 a chave salva pelo painel não sai nos dados públicos da vitrine",
+      "method": "vitest-json"
+    },
+    "AC-905": {
+      "status": "pass",
+      "testName": "o checkout oferece exatamente o que o dono ativou (AC-905) @spec:AC-905 só entrega ativada: o checkout oferece entrega e não retirada @spec:AC-905 só entrega ativada: o checkout oferece entrega e não retirada",
       "method": "vitest-json"
     },
     "AC-906": {
       "status": "pass",
-      "testName": "taxa de entrega no resumo (AC-507, AC-906) @spec:AC-906 a taxa entra em linha separada, com o nome que o dono deu @spec:AC-906 a taxa entra em linha separada, com o nome que o dono deu",
+      "testName": "o que o dono salva é o que o checkout cobra (AC-906, AC-907, AC-908) @spec:AC-906 a taxa única, com o nome que o dono deu, chega ao fechamento e entra no total @spec:AC-906 a taxa única, com o nome que o dono deu, chega ao fechamento e entra no total",
       "method": "vitest-json"
     },
     "AC-907": {
       "status": "pass",
-      "testName": "entrega grátis acima de um valor (AC-907) @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça @spec:AC-907 pedido acima do limite zera a taxa e diz que a entrega saiu de graça",
+      "testName": "o que o dono salva é o que o checkout cobra (AC-906, AC-907, AC-908) @spec:AC-907 acima do valor configurado a entrega sai de graça, e abaixo continua pagando @spec:AC-907 acima do valor configurado a entrega sai de graça, e abaixo continua pagando",
       "method": "vitest-json"
     },
     "AC-908": {
       "status": "pass",
-      "testName": "valor mínimo do pedido (AC-908) @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta @spec:AC-908 abaixo do mínimo o fechamento é impedido e informa quanto falta",
+      "testName": "o que o dono salva é o que o checkout cobra (AC-906, AC-907, AC-908) @spec:AC-908 abaixo do mínimo de entrega o pedido é impedido, e a retirada sem mínimo continua @spec:AC-908 abaixo do mínimo de entrega o pedido é impedido, e a retirada sem mínimo continua",
       "method": "vitest-json"
     },
     "AC-909": {
@@ -49,17 +74,42 @@
     },
     "AC-913": {
       "status": "pass",
-      "testName": "normalização do número de WhatsApp (AC-913) @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número @spec:AC-913 máscara, espaço e zero de interurbano chegam ao mesmo número",
+      "testName": "o número é validado no cadastro (AC-913) @spec:AC-913 número com máscara e sem código do país é guardado no formato internacional @spec:AC-913 número com máscara e sem código do país é guardado no formato internacional",
+      "method": "vitest-json"
+    },
+    "AC-914": {
+      "status": "pass",
+      "testName": "sem WhatsApp, aviso no painel e pedido registrado (AC-914) @spec:AC-914 loja sem número: o painel avisa, e o pedido do cliente é registrado assim mesmo @spec:AC-914 loja sem número: o painel avisa, e o pedido do cliente é registrado assim mesmo",
+      "method": "vitest-json"
+    },
+    "AC-915": {
+      "status": "pass",
+      "testName": "o dono ajusta o texto da mensagem (AC-915) @spec:AC-915 a saudação do dono abre a mensagem do pedido de verdade, e o corpo obrigatório continua lá @spec:AC-915 a saudação do dono abre a mensagem do pedido de verdade, e o corpo obrigatório continua lá",
+      "method": "vitest-json"
+    },
+    "AC-916": {
+      "status": "pass",
+      "testName": "a apresentação editada aparece na página da loja (AC-916) @spec:AC-916 nome, boas-vindas, sobre, logo, capa e cor publicados aparecem exatamente na vitrine @spec:AC-916 nome, boas-vindas, sobre, logo, capa e cor publicados aparecem exatamente na vitrine",
+      "method": "vitest-json"
+    },
+    "AC-917": {
+      "status": "pass",
+      "testName": "cor clara não deixa texto ilegível (AC-917) @spec:AC-917 cor principal muito clara ganha letra escura por cima, com contraste acessível, e o dono é avisado @spec:AC-917 cor principal muito clara ganha letra escura por cima, com contraste acessível, e o dono é avisado",
+      "method": "vitest-json"
+    },
+    "AC-918": {
+      "status": "pass",
+      "testName": "imagem fora do padrão é recusada com orientação (AC-918) @spec:AC-918 arquivo que não é imagem é recusado explicando formato, tamanho e proporção, e a logo anterior continua @spec:AC-918 arquivo que não é imagem é recusado explicando formato, tamanho e proporção, e a logo anterior continua",
       "method": "vitest-json"
     },
     "AC-919": {
       "status": "pass",
-      "testName": "configuração de impressão @spec:AC-919 conserva a largura escolhida para o formato do cupom @spec:AC-919 conserva a largura escolhida para o formato do cupom",
+      "testName": "a largura do papel é a do cupom (AC-919) @spec:AC-919 papel de 58 mm configurado é o que o cupom recebe, e trocar para 80 mm vale para o mesmo pedido @spec:AC-919 papel de 58 mm configurado é o que o cupom recebe, e trocar para 80 mm vale para o mesmo pedido",
       "method": "vitest-json"
     },
     "AC-920": {
       "status": "pass",
-      "testName": "configuração de impressão @spec:AC-920 aplica as escolhas de conteúdo e mantém o essencial ativo @spec:AC-920 aplica as escolhas de conteúdo e mantém o essencial ativo",
+      "testName": "o dono escolhe o que aparece no cupom (AC-920) @spec:AC-920 desligar o endereço e ligar o total em destaque vale para o cupom seguinte @spec:AC-920 desligar o endereço e ligar o total em destaque vale para o cupom seguinte",
       "method": "vitest-json"
     },
     "AC-921": {
@@ -93,7 +143,7 @@
     },
     "P-010": {
       "status": "pass",
-      "testName": "mudar o catálogo não muda o pedido (AC-515) @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto @spec:AC-515 @principle:P-010 renomear e reprecificar o produto deixa o pedido intacto"
+      "testName": "trocar a chave não altera pedido já feito (AC-903) @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova @spec:AC-903 @principle:P-010 o pedido antigo mostra a chave de antes, e o novo a chave nova"
     },
     "P-012": {
       "status": "pass",

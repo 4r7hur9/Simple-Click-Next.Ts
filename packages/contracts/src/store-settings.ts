@@ -321,6 +321,12 @@ const enderecoDeImagem = (rotulo: string) =>
     .nullable();
 
 export const esquemaDaConfiguracaoDeAparencia = z.strictObject({
+  /** O nome que a vitrine mostra. O apelido da URL é da administração. */
+  nome: z
+    .string("Informe o nome de exibição.")
+    .trim()
+    .min(2, "Nome de exibição: use ao menos 2 caracteres.")
+    .max(80, "Nome de exibição: use no máximo 80 caracteres."),
   boasVindas: textoOpcional(280, "Boas-vindas"),
   sobre: textoOpcional(2_000, "Sobre a loja"),
   logo: enderecoDeImagem("Logo"),
@@ -332,6 +338,44 @@ export const esquemaDaConfiguracaoDeAparencia = z.strictObject({
 });
 
 export type SecaoDeAparencia = z.infer<typeof esquemaDaConfiguracaoDeAparencia>;
+
+const MEGA = 1024 * 1024;
+
+/**
+ * O que a logo e a capa aceitam (AC-918): formatos, tamanho e proporção.
+ *
+ * Mora no contrato porque as DUAS pontas a usam: a tela confere antes de
+ * enviar, para a orientação aparecer na hora, e a API confere pelos bytes,
+ * que é quem decide. Uma regra só, e a recusa diz o mesmo nos dois lugares.
+ */
+export const REGRAS_DAS_IMAGENS_DA_LOJA = {
+  logo: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 1 * MEGA,
+    tamanhoMaximo: "1 MB",
+    proporcaoRecomendada: "quadrada (1:1), por exemplo 512 × 512 pixels",
+  },
+  capa: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 3 * MEGA,
+    tamanhoMaximo: "3 MB",
+    proporcaoRecomendada:
+      "larga (3:1), por exemplo 1500 × 500 pixels — as bordas podem ser cortadas no celular",
+  },
+} as const satisfies Record<
+  "logo" | "capa",
+  {
+    readonly formatosAceitos: readonly string[];
+    readonly tiposDeConteudo: readonly string[];
+    readonly tamanhoMaximoBytes: number;
+    readonly tamanhoMaximo: string;
+    readonly proporcaoRecomendada: string;
+  }
+>;
+
+export type TipoDeImagemDaLoja = keyof typeof REGRAS_DAS_IMAGENS_DA_LOJA;
 
 // ---------------------------------------------------------------------------
 // A recusa (AC-923)

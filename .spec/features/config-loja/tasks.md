@@ -37,11 +37,11 @@
 - Notas: o número é normalizado pela regra de `packages/core/src/telefone.ts` na borda e na tela ("Assim fica: +55 (11) …"), e número impossível é recusado explicando o que falta. O dono edita a saudação — pode apagá-la; nula é escolha, ausente é a de fábrica —, e o corpo do pedido (código, itens, entrega, pagamento, total, link) é do sistema e não sai (ASM-905). A prévia usa o mesmo gerador do pedido de verdade, com um pedido de exemplo, e a mensagem não leva marca da plataforma. Sem número o painel avisa e o pedido continua registrado. Encerramento editável (Q-902) ficou fora: exigiria mexer na montagem da mensagem do checkout.
 - Esforço: medio
 
-## T-905 — Apresentação da loja, logo, capa e cor [pendente]
+## T-905 — Apresentação da loja, logo, capa e cor [concluida]
 
 - Refs: US-904, AC-916, AC-917, AC-918
-- Arquivos: apps/api/src/modules/stores/configuracao.routes.ts, apps/web/src/app/api/loja/[secao]/route.ts, apps/web/src/app/(painel)/painel/config/aparencia/page.tsx, apps/web/src/features/config/FormularioAparencia.tsx
-- Notas: a primeira fatia funcional do ambiente local já persiste boas-vindas, logo, capa e cor em store_settings. A implementação definitiva ainda precisa do caso de uso, contraste automático, auditoria, validação pelos bytes e cobertura própria desta tarefa. Herda a página de boas-vindas do primeiro SimpleClick, agora editável.
+- Arquivos: apps/api/src/modules/stores/imagem-da-loja.ts, apps/api/src/modules/stores/imagem-da-loja.test.ts, apps/api/src/core/midia.ts, apps/api/src/core/midia.test.ts, apps/api/src/modules/stores/configuracao.routes.ts, apps/api/tests/config-aparencia.int.test.ts, apps/web/src/app/api/loja/imagem/[tipo]/route.ts, apps/web/src/app/(painel)/painel/config/aparencia/page.tsx, apps/web/src/features/config/FormularioAparencia.tsx, apps/web/tests/config-aparencia.test.tsx
+- Notas: nome de exibição (`stores.name`), boas-vindas, sobre, logo, capa e cor numa seção só, com prévia desenhada pelo mesmo `TemaDaLoja` da vitrine antes de publicar. Cor clara demais é consertada na letra pelo design system (AC-015) e avisada ao dono quando a própria cor não serve de texto. Logo e capa são conferidas pelos bytes (JPEG, PNG, WebP; 1 MB e 3 MB; 1:1 e 3:1 — regras no contrato, usadas pela tela e pela API) e guardadas pela porta de mídia (`core/midia.ts`, Cloudinary pela decisão D2, `CLOUDINARY_URL`); sem credencial o envio responde indisponível e o painel aceita o endereço https://. A conferência de assinatura repete a do catálogo (`catalog/imagens`): subir as duas para `packages/core` fica para depois do merge.
 - Esforço: alto
 
 ## T-906 — Formato de impressão do cupom [concluida]

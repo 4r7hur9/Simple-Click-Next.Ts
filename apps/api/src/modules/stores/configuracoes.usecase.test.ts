@@ -73,6 +73,7 @@ describe("as seções do dono (AC-921)", () => {
         publico: false,
       },
       aparencia: {
+        nome: "Pastelaria da Zica",
         boasVindas: null,
         sobre: null,
         logo: null,

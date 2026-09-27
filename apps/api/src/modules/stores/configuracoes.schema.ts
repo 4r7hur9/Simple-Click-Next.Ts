@@ -21,6 +21,7 @@ import {
   esquemaDaConfiguracaoDeHorario,
   esquemaDaConfiguracaoDePagamento,
   esquemaDoApelido,
+  REGRAS_DAS_IMAGENS_DA_LOJA,
   SECOES_DO_DONO,
   type SecaoDoDono,
 } from "@simpleclick/contracts";
@@ -32,6 +33,14 @@ export const esquemaDaSecao = z.enum(SECOES_DO_DONO);
 
 /** Os parâmetros de uma rota de configuração. */
 export const esquemaDosParametrosDaSecao = esquemaDoApelido;
+
+/** Os parâmetros do envio de imagem: a loja e qual das duas imagens. */
+export const esquemaDosParametrosDaImagem = esquemaDoApelido.extend({
+  tipo: z.enum(
+    Object.keys(REGRAS_DAS_IMAGENS_DA_LOJA) as ["logo", "capa"],
+    "Imagem desconhecida: use logo ou capa.",
+  ),
+});
 
 /**
  * O pagamento, com a chave PIX conferida pelo tipo escolhido (AC-901).

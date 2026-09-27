@@ -138,3 +138,5 @@ export type {
   SecaoDoDono,
   TipoDeChavePix,
 } from "./store-settings.ts";
+export { REGRAS_DAS_IMAGENS_DA_LOJA } from "./store-settings.ts";
+export type { TipoDeImagemDaLoja } from "./store-settings.ts";
