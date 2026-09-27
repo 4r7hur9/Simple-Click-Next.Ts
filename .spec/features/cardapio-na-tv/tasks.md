@@ -23,7 +23,7 @@
 - Notas: a televisão fica ligada o dia inteiro, então a atualização não pode depender de recarregar a página. Queda de internet mantém o último cardápio recebido, e não tela de erro. O navegador pede o catálogo direto à API (`catalogo-do-navegador.ts`, o mesmo caminho do carrinho; leitura pública passa pelo CORS, AC-127) a cada minuto — o "prazo definido" do AC-928 —, sem passar pelo cache de um minuto do site (dívida 93 não piora nem melhora: a primeira tela ainda vem do servidor com aquele cache). Falha mantém o último catálogo e marca `semRede`, que vira uma linha discreta no rodapé; o evento `online` do navegador dispara uma busca na hora. Só quando NUNCA houve catálogo a falha vira o estado de erro — e a busca continua, para a tela se recuperar sozinha.
 - Esforço: alto
 
-## T-954 — Ponte da parede para o celular [pendente]
+## T-954 — Ponte da parede para o celular [concluida]
 
 - Refs: US-908, AC-931
 - Arquivos: apps/web/src/features/tv/CodigoParaOCelular.tsx, apps/web/src/features/tv/codigo.ts, apps/web/src/features/tv/codigo.test.ts
