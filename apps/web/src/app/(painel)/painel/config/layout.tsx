@@ -1,6 +1,16 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { NAVEGACAO_DA_CONFIGURACAO } from "../../../../features/config/secoes.ts";
+
+/**
+ * A moldura das configurações do dono (AC-921).
+ *
+ * A navegação lista a OPERAÇÃO da loja — pagamento, entrega, horário,
+ * contato, apresentação e impressão —, e nada do cadastro da plataforma. Tipo
+ * de negócio, apelido, documento, contrato e funcionalidades liberadas são da
+ * administração, e não têm entrada aqui.
+ */
 export default function LayoutDaConfiguracao({
   children,
 }: {
@@ -18,36 +28,15 @@ export default function LayoutDaConfiguracao({
         className="mt-6 flex flex-wrap gap-2"
         aria-label="Configurações da loja"
       >
-        <Link
-          className="sc-botao sc-botao--fantasma"
-          href="/painel/config/aparencia"
-        >
-          Aparência
-        </Link>
-        <Link
-          className="sc-botao sc-botao--fantasma"
-          href="/painel/config/contato"
-        >
-          Contato
-        </Link>
-        <Link
-          className="sc-botao sc-botao--fantasma"
-          href="/painel/config/pagamento"
-        >
-          Pagamento
-        </Link>
-        <Link
-          className="sc-botao sc-botao--fantasma"
-          href="/painel/config/entrega"
-        >
-          Entrega
-        </Link>
-        <Link
-          className="sc-botao sc-botao--fantasma"
-          href="/painel/config/impressao"
-        >
-          Impressão
-        </Link>
+        {NAVEGACAO_DA_CONFIGURACAO.map((item) => (
+          <Link
+            key={item.secao}
+            className="sc-botao sc-botao--fantasma"
+            href={item.href}
+          >
+            {item.rotulo}
+          </Link>
+        ))}
       </nav>
       {children}
     </div>

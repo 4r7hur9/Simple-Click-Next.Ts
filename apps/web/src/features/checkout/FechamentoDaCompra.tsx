@@ -268,6 +268,26 @@ export function FechamentoDaCompra({
     );
   }
 
+  // A LOJA NÃO ENTREGA NEM DEIXA RETIRAR (AC-905): o dono desligou os dois
+  // modos. Mostrar o formulário seria convidar a pessoa a preencher nome e
+  // telefone para, no fim, ouvir que não dá — e a tela diria "retirar no
+  // local", que a loja justamente desligou. O servidor recusa do mesmo jeito.
+  if (!formas.aceitaEntrega && !formas.aceitaRetirada) {
+    return (
+      <section className="sc-fechamento__estado">
+        <p role="alert">
+          Esta loja não está recebendo pedidos agora: no momento ela não oferece
+          entrega nem retirada.
+        </p>
+        <p>
+          <a href={linkDoCatalogo}>
+            Voltar ao {rotuloDoCatalogo.toLowerCase()}
+          </a>
+        </p>
+      </section>
+    );
+  }
+
   // MUDOU O MUNDO DESDE QUE A PESSOA MONTOU O CARRINHO: ela confirma antes de
   // seguir. Preço que caiu também pede confirmação — o total deixou de ser o
   // que ela viu, e tela que muda número sem avisar ensina a desconfiar dele.

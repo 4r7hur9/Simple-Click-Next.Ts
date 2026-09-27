@@ -146,3 +146,31 @@ export type {
   RecusaDeCadastroNoContrato,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
+export {
+  CONFIGURACOES_DA_PLATAFORMA,
+  ehSecaoDoDono,
+  esquemaDaChavePixDaLoja,
+  esquemaDaConfiguracaoDeAparencia,
+  esquemaDaConfiguracaoDeContato,
+  esquemaDaConfiguracaoDeEntrega,
+  esquemaDaConfiguracaoDeHorario,
+  esquemaDaConfiguracaoDePagamento,
+  esquemaDaRecusaDeConfiguracao,
+  FORMAS_DE_PAGAMENTO_DA_LOJA,
+  problemasPorCampo,
+  ROTULOS_DAS_SECOES,
+  SECOES_DO_DONO,
+  TIPOS_DE_CHAVE_PIX,
+} from "./store-settings.ts";
+export type {
+  SecaoDeAparencia,
+  SecaoDeContato,
+  SecaoDeEntrega,
+  SecaoDeHorario,
+  SecaoDePagamento,
+  RecusaDeConfiguracao,
+  SecaoDoDono,
+  TipoDeChavePix,
+} from "./store-settings.ts";
+export { REGRAS_DAS_IMAGENS_DA_LOJA } from "./store-settings.ts";
+export type { TipoDeImagemDaLoja } from "./store-settings.ts";

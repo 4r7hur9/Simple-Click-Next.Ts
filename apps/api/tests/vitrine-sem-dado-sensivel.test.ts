@@ -429,6 +429,10 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         // não nasça classificado errado em toda superfície ao mesmo tempo.
         "alimentacao",
         "apelido",
+        // `blocos` entrou na T-309 e é DECISÃO, pela mesma razão que `rotulos`:
+        // é a composição das telas do RAMO (`vertical_presets`), igual para
+        // toda loja dele, sem nada do dono desta.
+        "blocos",
         "boasVindas",
         "capa",
         "cores",

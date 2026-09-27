@@ -1,16 +1,14 @@
 import { revalidatePath } from "next/cache";
+import { SECOES_DO_DONO } from "@simpleclick/contracts";
 
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
 
-const SECOES = new Set([
-  "aparencia",
-  "contato",
-  "pagamento",
-  "entrega",
-  "pendencias",
-  "impressao",
-]);
+/**
+ * O que o site encaminha: as seções do dono (AC-921) e os avisos do painel.
+ * Lista fechada — o que não está aqui responde 404 sem ir à API.
+ */
+const SECOES = new Set<string>([...SECOES_DO_DONO, "pendencias"]);
 const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
   process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
 
