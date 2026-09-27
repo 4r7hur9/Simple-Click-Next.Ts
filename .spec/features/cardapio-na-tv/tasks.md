@@ -30,9 +30,9 @@
 - Notas: o código aparece em TODA tela do rodízio, e não só numa — quem decidiu pedir não espera a televisão dar a volta. Tamanho pensado para leitura a três metros, o que faz dele elemento grande e não selo de canto. O endereço leva à vitrine daquela loja, e carrega de onde a pessoa veio para o dono saber que a TV converteu. O gerador de QR é escrito no projeto (P-014: as bibliotecas trazem PNG, linha de comando e dependências para desenhar quadrados em SVG): modo de bytes, nível M, versões 1 a 10, máscara escolhida por penalidade. A prova lê o código de volta com um leitor independente (tabelas próprias, aritmética por logaritmo), nas dez versões. O endereço é `{vitrine}/catalogo?origem=tv`; o endereço curto (sem esquema, sem www) aparece escrito ao lado para quem prefere digitar. Preto sobre branco sempre, com margem silenciosa de quatro módulos, num `path` só; 44% do lado menor da tela.
 - Esforço: medio
 
-## T-953 — Teste de ponta a ponta da exibição [pendente]
+## T-953 — Teste de ponta a ponta da exibição [concluida]
 
-- Refs: US-908, AC-925, AC-929
-- Arquivos: e2e/specs/cardapio-na-tv.spec.ts
-- Notas: cobre a tela avançando sozinha e a exibição continuando de pé com a rede cortada. O arquivo está ESCRITO (rota respondendo sem barra de rolagem, sem cursor e sem nada interativo; rodízio avançando no relógio de verdade; código grande na tela; rede cortada por `context.setOffline` mantendo o cardápio e voltando a atualizar), usando `?segundos=5&atualizar=2` para não esperar minutos por cenário. Fica pendente porque o ponta a ponta roda no lote final, contra o ambiente inteiro no ar.
+- Refs: US-908, AC-925, AC-927, AC-929
+- Arquivos: e2e/specs/cardapio-na-tv.spec.ts, e2e/fixtures/loja-de-teste.ts, e2e/run-isolado.mjs, e2e/package.json
+- Notas: a loja da prova marca o pastel como destaque para formar duas telas reais; sem isso, o rodízio não tem para onde avançar. O cenário mede a TV deitada e em pé, confere o produto dentro da área visível, o código e o rodapé, acompanha a rotação no relógio real e corta/restabelece a rede com `context.setOffline`. A asserção de erro fica dentro da exibição, pois o Next mantém um anunciador global de rotas vazio com `role=alert`. Execução em 27/09/2026: 12/12 cenários passaram nos projetos `publico` e `celular`, em banco descartável com as 30 migrações desta integração e a carga de exemplo; o banco foi removido no fim. Para repetir sem tocar o banco de desenvolvimento: `node e2e/run-isolado.mjs specs/cardapio-na-tv.spec.ts`.
 - Esforço: medio

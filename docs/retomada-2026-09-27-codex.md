@@ -7,7 +7,7 @@ Git, das worktrees, dos registros de execução e da auditoria do ONP. Conferir
 ## Base da integração
 
 - A integração está em `../onp-worktrees/sc-integracao-onda1`, branch
-  `integracao/onda-1`, commit `dd75476`. F1 catálogo, F2 preços, F3 janela de
+  `integracao/onda-1`, desde `345d3df`. F1 catálogo, F2 preços, F3 janela de
   venda, F4 operação, F5 cupom, F6 configuração, F7 vitrine/dívidas e F9 TV
   foram integradas nessa branch. F8 administração ainda não foi integrada.
 - A `main` continua em `55ea723` com alterações locais preexistentes: sinais da
@@ -25,7 +25,7 @@ Git, das worktrees, dos registros de execução e da auditoria do ONP. Conferir
 | -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sc-F3`  | Catálogo T-311, janela de venda | Concluída em `92af2ba` e integrada em `c6fbb2c`. O Codex acrescentou regressão para JSON incompleto, corrigiu o CHECK SQL e alinhou o relógio do carrinho ao do teste. Prova escopada: 37/37 critérios, 283 testes; testes dirigidos na integração: 64/64 (junto com TV e isolamento). |
 | `sc-F8`  | Administração T-200..209        | T-200 commitada em `ef237e3`, prova 3 critérios/27 testes; T-201 tem código e testes ainda sem commit.                                                                                                                                                                                 |
-| `sc-F9`  | Cardápio na TV T-950..954       | T-950/951/952/954 e correção de layout vertical commitadas em `27beb03`, integradas em `dd75476`. Prova escopada: 7/7 critérios, 80 testes. T-953 foi escrito, mas o E2E ainda não foi executado.                                                                                      |
+| `sc-F9`  | Cardápio na TV T-950..954       | T-950/951/952/954 e correção de layout vertical commitadas em `27beb03`, integradas em `dd75476`. T-953 passou no navegador: 12/12 cenários em dois perfis, incluindo tela vertical, rodízio e queda/retorno da rede. Prova escopada anterior: 7/7 critérios, 80 testes.               |
 | `sc-F1`  | Clientes T-700..708             | Trabalho sem commit em contrato, esquema, fábrica e migrações 0035/0036; API/telas ainda por fazer.                                                                                                                                                                                    |
 | `sc-F2`  | Métricas T-800..809             | Módulo, testes, contrato e migração 0037 sem commit; a rota ainda não está montada nem o contrato exportado.                                                                                                                                                                           |
 | `sc-F6`  | Impressão T-607..611            | Worktree limpa; implementação ainda não começou. O agente de impressão deve seguir a pilha Node/TypeScript do projeto, conforme correção explícita do usuário.                                                                                                                         |
@@ -41,6 +41,10 @@ apenas no disco. O inventário de telas após integrar TV e cupom tem 51 linhas 
   HEAD e a auditoria acusa provas obsoletas. T-309/AC-320 continua aberta. O
   E2E do catálogo foi relatado 82/82 no commit `dd601c0`, anterior às
   integrações recentes. O registro do portão desta worktree está vazio.
+- A TV foi provada em banco descartável com as 30 migrações desta integração,
+  sem tocar o banco local divergente; o banco da execução já foi removido. O
+  comando `node e2e/run-isolado.mjs specs/cardapio-na-tv.spec.ts` reproduz a
+  montagem, a carga de exemplo, a execução e a limpeza.
 - O `onpspec.config.json` local da integração está marcado `skip-worktree` e
   aponta para `../vitest-feature.sh catalogo-produtos`. Antes de `provar.sh` ou
   portão geral, restaurar o comando de teste completo; com a configuração
@@ -63,9 +67,8 @@ apenas no disco. O inventário de telas após integrar TV e cupom tem 51 linhas 
 
 ## Sequência para concluir
 
-1. Concluir T-908 (configuração E2E), T-953 (TV E2E, incluindo viewport
-   vertical) e T-309/AC-320 com a administração F8; revisar migrações antes de
-   iniciar a API de desenvolvimento.
+1. Concluir T-908 (configuração E2E) e T-309/AC-320 com a administração F8;
+   revisar migrações antes de iniciar a API de desenvolvimento.
 2. Fechar administração F8, incluindo T-201..209, e integrá-la; completar as
    provas após a integração.
 3. Fechar clientes, métricas e impressão em TypeScript. Executar os E2E

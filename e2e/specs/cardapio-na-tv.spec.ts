@@ -25,6 +25,9 @@ import {
 /** Tela de televisão Full HD, deitada. */
 const TELEVISAO = { width: 1920, height: 1080 };
 
+/** A mesma televisão instalada em pé. */
+const TELEVISAO_EM_PE = { width: 1080, height: 1920 };
+
 /** O endereço da exibição, com o ritmo mais curto que a página aceita. */
 const EXIBICAO = `/l/${APELIDO_DA_LOJA}/tv?segundos=5&atualizar=2`;
 
@@ -72,6 +75,46 @@ test("@spec:AC-925 a televisão mostra o cardápio sem barra de rolagem, sem cur
   expect(medidas.rolaNaHorizontal).toBe(false);
   expect(medidas.cursor).toBe("none");
   expect(medidas.interativos).toBe(0);
+});
+
+test("@spec:AC-927 a televisão em pé mostra produto, código e rodapé sem corte", async ({
+  page,
+}) => {
+  await page.setViewportSize(TELEVISAO_EM_PE);
+  await page.goto(EXIBICAO);
+  await expect(page.getByText(PRODUTO.nome).first()).toBeVisible();
+
+  const medidas = await page.evaluate(() => {
+    const produtos = document.querySelector(".sc-exibicao__produtos");
+    const ultimoProduto = document.querySelector(
+      ".sc-exibicao__produto:last-child",
+    );
+    const codigo = document.querySelector(".sc-codigo__desenho");
+    const rodape = document.querySelector(".sc-exibicao__rodape");
+    const tela = document.querySelector(".sc-exibicao__tela");
+    if (!produtos || !ultimoProduto || !codigo || !rodape || !tela) return null;
+
+    const caixaDosProdutos = produtos.getBoundingClientRect();
+    const caixaDoUltimo = ultimoProduto.getBoundingClientRect();
+    const caixaDoCodigo = codigo.getBoundingClientRect();
+    const caixaDoRodape = rodape.getBoundingClientRect();
+    return {
+      orientacao: getComputedStyle(tela).gridTemplateAreas,
+      produtoDentroDaArea: caixaDoUltimo.bottom <= caixaDosProdutos.bottom + 1,
+      codigoAbaixoDosProdutos: caixaDoCodigo.top >= caixaDosProdutos.bottom - 1,
+      rodapeNaTela: caixaDoRodape.bottom <= window.innerHeight + 1,
+      semRolagem:
+        document.documentElement.scrollHeight <= window.innerHeight &&
+        document.documentElement.scrollWidth <= window.innerWidth,
+    };
+  });
+
+  expect(medidas).not.toBeNull();
+  expect(medidas?.orientacao).toContain('"produtos"');
+  expect(medidas?.produtoDentroDaArea).toBe(true);
+  expect(medidas?.codigoAbaixoDosProdutos).toBe(true);
+  expect(medidas?.rodapeNaTela).toBe(true);
+  expect(medidas?.semRolagem).toBe(true);
 });
 
 test("@spec:AC-925 a tela avança sozinha, no relógio de verdade", async ({
@@ -126,7 +169,9 @@ test("@spec:AC-929 com a rede cortada, a exibição continua de pé e volta a at
     },
   );
   await expect(page.getByText(PRODUTO.nome).first()).toBeVisible();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  // O Next mantém um anunciador global de rotas com role=alert, mesmo quando
+  // está vazio. A tela da TV não pode trocar o cardápio por um alerta de erro.
+  await expect(page.locator('.sc-exibicao [role="alert"]')).toHaveCount(0);
 
   // A internet volta.
   await context.setOffline(false);
