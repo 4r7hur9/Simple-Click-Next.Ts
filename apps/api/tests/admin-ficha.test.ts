@@ -18,7 +18,6 @@ import {
 import {
   conectarNoBancoDoArquivo,
   criarAdministradorDaPlataforma,
-  criarMembro,
   type IdentidadeDeTeste,
 } from "@simpleclick/testing";
 
@@ -67,6 +66,24 @@ function editar(corpo: unknown) {
     .patch(`/v1/admin/lojas/${lojaId}`)
     .set(comoPapel(administradora.id, "ADMIN"))
     .send(corpo as object);
+}
+
+/**
+ * O dono que o cadastro convidou, com o convite aceito. Desde a 0041 (dívida
+ * 92) só membro ATIVO age pela loja, e a loja cadastrada pela administração
+ * nasce com o dono só convidado — aceitar é o que o dono faria ao entrar.
+ */
+async function donoQueAceitouOConvite(): Promise<string> {
+  const { rows } = await migrador.query<{ identity_id: string }>(
+    `UPDATE app.store_members SET invite_accepted_at = now()
+      WHERE store_id = $1 AND role = 'OWNER' AND revoked_at IS NULL
+      RETURNING identity_id::text AS identity_id`,
+    [lojaId],
+  );
+  const donoId = rows[0]?.identity_id;
+  if (donoId === undefined)
+    throw new Error(`loja ${lojaId} sem dono convidado`);
+  return donoId;
 }
 
 async function linhasDaTrilha(acao: string) {
@@ -271,8 +288,7 @@ describe("editar o cadastro (AC-207)", () => {
   it(
     "@spec:AC-207 o dono da loja não abre a ficha nem edita o cadastro, e loja inexistente responde não encontrada",
     async () => {
-      const dono = await criarMembro({ loja: lojaId });
-      const comoDono = comoPapel(dono.identidade.id, "OWNER");
+      const comoDono = comoPapel(await donoQueAceitouOConvite(), "OWNER");
 
       const leitura = await request(api.app)
         .get(`/v1/admin/lojas/${lojaId}`)

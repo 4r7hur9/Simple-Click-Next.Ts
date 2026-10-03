@@ -20,7 +20,6 @@ import {
 import {
   conectarNoBancoDoArquivo,
   criarAdministradorDaPlataforma,
-  criarMembro,
   type IdentidadeDeTeste,
 } from "@simpleclick/testing";
 
@@ -74,6 +73,24 @@ function trocarApelido(lojaId: string, apelido: string) {
 
 function enderecoAtual(apelido: string) {
   return request(api.app).get(`/v1/vitrine/${apelido}/endereco-atual`);
+}
+
+/**
+ * O dono que o cadastro convidou, com o convite aceito. Desde a 0041 (dívida
+ * 92) só membro ATIVO age pela loja, e a loja cadastrada pela administração
+ * nasce com o dono só convidado — aceitar é o que o dono faria ao entrar.
+ */
+async function donoQueAceitouOConvite(lojaId: string): Promise<string> {
+  const { rows } = await migrador.query<{ identity_id: string }>(
+    `UPDATE app.store_members SET invite_accepted_at = now()
+      WHERE store_id = $1 AND role = 'OWNER' AND revoked_at IS NULL
+      RETURNING identity_id::text AS identity_id`,
+    [lojaId],
+  );
+  const donoId = rows[0]?.identity_id;
+  if (donoId === undefined)
+    throw new Error(`loja ${lojaId} sem dono convidado`);
+  return donoId;
 }
 
 beforeAll(async () => {
@@ -217,10 +234,10 @@ describe("alterar o apelido preserva o endereço antigo (AC-208)", () => {
       }
       expect((await enderecoAtual("nunca-existiu")).status).toBe(404);
 
-      const dono = await criarMembro({ loja: joi });
+      const donoId = await donoQueAceitouOConvite(joi);
       const peloDono = await request(api.app)
         .put(`/v1/admin/lojas/${joi}/apelido`)
-        .set(comoPapel(dono.identidade.id, "OWNER"))
+        .set(comoPapel(donoId, "OWNER"))
         .send({ apelido: "roubada" });
       expect(peloDono.status).toBe(403);
 
