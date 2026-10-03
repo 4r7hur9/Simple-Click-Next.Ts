@@ -279,6 +279,32 @@ quando deixa de valer.
   conexão segura cubra o essencial. O registro do domínio passa a ser tarefa da
   fase de publicação, e deixa de bloquear o começo.
 
+### 2026-10-03 — Painel de métricas: gráfico próprio, comparação justa e planilha genérica
+
+- **Contexto:** o painel do dono (dashboard-metricas) precisa de gráficos de
+  evolução por dia e de movimento por hora, compara o período com o anterior
+  equivalente (AC-802) e exporta o período em planilha (AC-815). O site não tem
+  biblioteca de gráfico (só GSAP e Three.js), a pilha não recebe tecnologia nova
+  sem pedido, e "hoje" é um dia que ainda não acabou.
+- **Decisão:** três escolhas, tomadas pelo orquestrador da onda 1:
+  1. **Gráficos em SVG e CSS próprios**, sem biblioteca. Barras e linhas simples,
+     legíveis no celular antes de bonitas na tela grande (ASM-805).
+  2. **Período em curso compara com o mesmo pedaço do anterior.** Quando o
+     período ainda não terminou (o "hoje", ou os atalhos de 3 e 7 dias que
+     terminam hoje), o período anterior equivalente é cortado no mesmo ponto do
+     relógio da loja: hoje até as 14h32 compara com ontem até as 14h32, e não
+     com o dia de ontem inteiro. Período já encerrado compara com o anterior
+     inteiro. A resposta diz até que instante o anterior foi contado e se foi
+     cortado, para a tela poder escrever "ontem até 14h32".
+  3. **Exportação em CSV genérico** (ponto e vírgula, marca de codificação,
+     quebra de linha do Windows), que o Excel em português abre sem assistente.
+     A compatibilidade com um sistema de contabilidade específico segue aberta
+     (Q-803).
+- **Consequência:** nenhuma dependência nova no site; a comparação do meio do
+  dia deixa de acusar queda que não existe (ontem inteiro contra hoje pela
+  metade sempre "cai"); e a planilha atende o contador hoje, ficando o formato
+  dedicado para quando a Q-803 for respondida.
+
 ## Pendentes — bloqueiam implementação
 
 | #   | Decisão que falta                                   | Por que bloqueia                                                                 | Opções                                                                                                 |
