@@ -33,7 +33,9 @@ import {
   itemDoLanche,
   lancheComMolho,
   lojaComDono,
+  ORIGEM_DO_PAINEL,
   Painel,
+  type LancheComMolho,
   type LojaComDono,
 } from "./apoio-de-clientes.ts";
 import { fecharPeloSite } from "./apoio-de-compra.ts";
@@ -53,6 +55,7 @@ let painelA: Painel;
 let painelB: Painel;
 let clienteDeB: string;
 let pedidoDeB: string;
+let lancheDeB: LancheComMolho;
 let compradora: IdentidadeDeTeste;
 let outroComprador: IdentidadeDeTeste;
 
@@ -87,7 +90,7 @@ beforeAll(async () => {
   });
   expect(cadastro.status).toBe(201);
   clienteDeB = cadastro.body.id as string;
-  const lancheDeB = await lancheComMolho(lojaB.loja);
+  lancheDeB = await lancheComMolho(lojaB.loja);
   const lancado = await painelB.lancar({
     cliente: { tipo: "cadastrado", clienteId: clienteDeB },
     itens: [itemDoLanche(lancheDeB)],
@@ -202,6 +205,60 @@ describe("o dono da loja A não alcança cliente da loja B (AC-702)", () => {
       // vizinha — e entregaria nome e identificador dela.
       expect(resposta.status).toBe(201);
       expect(resposta.body.id).not.toBe(clienteDeB);
+    },
+    ESPERA_DOS_CLIENTES,
+  );
+
+  it(
+    "@spec:AC-702 @principle:P-003 trocar o apelido da URL para o da loja B não abre nada da B (dívida 92)",
+    async () => {
+      // O token é do dono MEMBRO da loja A; só o apelido do caminho muda. A
+      // resposta é a mesma de loja que não existe — e nada da B é tocado.
+      const naB = (resto: string) => `/v1/lojas/${lojaB.loja.apelido}${resto}`;
+      const comoDonoDeA = (pedido: request.Test) =>
+        pedido
+          .set("Origin", ORIGEM_DO_PAINEL)
+          .set("Authorization", lojaA.autorizacao);
+      const filaDeBAntes = (await painelB.fila()).body.pedidos.length as number;
+
+      const tentativas = [
+        await comoDonoDeA(request(app).get(naB("/clientes"))),
+        await comoDonoDeA(request(app).get(naB(`/clientes/${clienteDeB}`))),
+        await comoDonoDeA(
+          request(app)
+            .patch(naB(`/clientes/${clienteDeB}`))
+            .send({ nome: "Trocado pela A" }),
+        ),
+        await comoDonoDeA(request(app).delete(naB(`/clientes/${clienteDeB}`))),
+        await comoDonoDeA(
+          request(app)
+            .post(naB("/clientes"))
+            .send({ nome: "Plantado pela A", telefone: "11 94000-4000" }),
+        ),
+        await comoDonoDeA(
+          request(app)
+            .post(naB("/pedidos/manual"))
+            .send({
+              cliente: { tipo: "cadastrado", clienteId: clienteDeB },
+              itens: [itemDoLanche(lancheDeB)],
+              entrega: "PICKUP",
+              formaDePagamento: "PIX",
+            }),
+        ),
+        await comoDonoDeA(
+          request(app).post(naB(`/pedidos/${pedidoDeB}/repetir`)),
+        ),
+      ];
+      expect(tentativas.map((r) => r.status)).toEqual([
+        404, 404, 404, 404, 404, 404, 404,
+      ]);
+
+      // Do lado de lá, tudo como estava.
+      const ficha = await painelB.ficha(clienteDeB);
+      expect(ficha.status).toBe(200);
+      expect(ficha.body.cliente.nome).toBe("Beatriz Vizinha");
+      expect(await nomesNaLista(painelB)).not.toContain("Plantado pela A");
+      expect((await painelB.fila()).body.pedidos).toHaveLength(filaDeBAntes);
     },
     ESPERA_DOS_CLIENTES,
   );

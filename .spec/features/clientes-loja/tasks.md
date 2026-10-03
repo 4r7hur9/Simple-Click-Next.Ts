@@ -13,7 +13,7 @@
 
 - Refs: US-700, AC-702
 - Arquivos: apps/api/tests/clientes-isolamento.test.ts
-- Notas: cobre listagem, busca e acesso por identificador direto. Marcado com @principle:P-003.
+- Notas: cobre listagem, busca e acesso por identificador direto. Marcado com @principle:P-003. Depois da dívida 92, cobre também o dono da loja A trocando só o apelido da URL para o da loja B: lista, ficha, edição, remoção, cadastro, pedido manual e repetir respondem 404, e nada da B muda.
 - Esforço: baixo
 
 ## T-702 — Cadastro manual de cliente [concluida]
