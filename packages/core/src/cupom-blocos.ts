@@ -81,8 +81,9 @@
  * O teste de `cupom-escpos.test.ts` lê de volta os bytes da impressora e prova
  * que dizem exatamente o que as linhas dizem; o de T-606 prova o mesmo para o
  * HTML. O arquivo `cupom-blocos.test.ts.snap` guarda as linhas de um pedido
- * completo em 32 e 48 colunas — é a referência que o agente em outra
- * linguagem reproduz, caractere por caractere.
+ * completo em 32 e 48 colunas — é a referência das linhas que o agente de
+ * impressão (T-609, Node/TypeScript no monorepo) imprime: ele chama este mesmo
+ * `diagramarCupom`, sem segunda implementação.
  *
  * ── A via (AC-621) ── o número da via é o contador `orders.print_count`
  * depois de somado 1, na MESMA transação em que o cupom é gerado. Quem imprime
