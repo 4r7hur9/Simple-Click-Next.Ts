@@ -55,11 +55,15 @@ F1/F2 têm trabalho novo sem commit. O inventário de telas após integrar TV e 
   está nesta integração. A única pendente era a 0028 (janela de venda), aplicada
   em 27/09/2026. `migrate.ts verificar` confirmou o banco em dia; os testes da
   janela e da T-200 também passaram em bancos descartáveis.
-- **Dívida 92, prioritária:** token de dono de uma loja pode acessar rotas de
-  outra loja ao trocar o apelido na URL. `app.is_store_staff()` confere só o
-  papel; precisa exigir vínculo ativo em `store_members`, junto de guarda
-  central na transação e provas de isolamento reais. As fixtures locais de
-  login e E2E usam identidades fictícias, e precisarão de membros persistidos.
+- **Dívida 92 — resolvida (27/09, `ebd4afa` prova vermelha e `4e602e1`
+  correção):** `app.is_store_staff()` passou a exigir vínculo ativo em
+  `store_members` (migração 0041, `SECURITY DEFINER` com caminho fixo; guarda
+  G10 nova), e `core/db.ts` confere o vínculo logo depois de gravar o contexto
+  na transação — falso vira `nao_encontrado` antes de qualquer consulta. A
+  prova `apps/api/tests/isolamento-entre-lojas-dono.test.ts` cobre cada módulo
+  do dono nas duas lojas. Login local, construtores de teste e montagem do E2E
+  do painel passaram a criar identidade e vínculo de verdade. A 0041 já está
+  aplicada ao banco de desenvolvimento.
 - **Dívida 93:** o site mantém respostas da vitrine e do produto em cache por
   até 60 segundos sem invalidação quando o dono altera o catálogo. Isso atrasa
   alterações manuais e pode atrasar a representação de uma janela de venda;
