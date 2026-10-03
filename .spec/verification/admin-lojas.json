@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-09-27T19:04:48.570Z",
-  "gitRev": "f521e8b",
+  "timestamp": "2026-10-03T23:30:25.949Z",
+  "gitRev": "a0dea06",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 93,
+  "testsParsed": 120,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -20,6 +20,21 @@
     "AC-202": {
       "status": "pass",
       "testName": "documento inválido (AC-202) @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação",
+      "method": "vitest-json"
+    },
+    "AC-203": {
+      "status": "pass",
+      "testName": "contrato em PDF (AC-203) @spec:AC-203 o contrato em PDF é aceito e aparece com nome, tamanho, data de envio e quem enviou @spec:AC-203 o contrato em PDF é aceito e aparece com nome, tamanho, data de envio e quem enviou",
+      "method": "vitest-json"
+    },
+    "AC-204": {
+      "status": "pass",
+      "testName": "arquivo com tipo disfarçado (AC-204) @spec:AC-204 contrato.pdf que é uma imagem por dentro é recusado, e nada é guardado nem gravado @spec:AC-204 contrato.pdf que é uma imagem por dentro é recusado, e nada é guardado nem gravado",
+      "method": "vitest-json"
+    },
+    "AC-205": {
+      "status": "pass",
+      "testName": "documento anexado nunca fica público (AC-205) @spec:AC-205 sem sessão de administrador o arquivo não abre, nem com o link na mão @spec:AC-205 sem sessão de administrador o arquivo não abre, nem com o link na mão",
       "method": "vitest-json"
     },
     "AC-206": {
@@ -46,7 +61,7 @@
   "principles": {
     "P-012": {
       "status": "pass",
-      "testName": "a troca do endereço na ficha (AC-208) @spec:AC-208 @principle:P-012 a troca de endereço não tem violação crítica nem séria de acessibilidade @spec:AC-208 @principle:P-012 a troca de endereço não tem violação crítica nem séria de acessibilidade"
+      "testName": "os quatro estados da tela dos documentos (P-011) @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade"
     },
     "P-011": {
       "status": "pass",
