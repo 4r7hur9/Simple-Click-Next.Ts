@@ -607,6 +607,20 @@
                                 },
                                 "disponivel": {
                                   "type": "boolean"
+                                },
+                                "motivoIndisponivel": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "ESGOTADO",
+                                        "FORA_DO_HORARIO"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 }
                               },
                               "required": [
@@ -698,6 +712,20 @@
                           },
                           "disponivel": {
                             "type": "boolean"
+                          },
+                          "motivoIndisponivel": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "ESGOTADO",
+                                  "FORA_DO_HORARIO"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
