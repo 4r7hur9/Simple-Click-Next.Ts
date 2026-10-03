@@ -182,7 +182,10 @@ async function gravarItens(
   lojaId: string,
   itens: readonly ItemParaCriar[],
 ): Promise<void> {
-  for (const item of itens) {
+  // A posição de cada item (e de cada escolha) vira o sortOrder: quem lê o
+  // pedido de volta (fila, acompanhamento, histórico, repetir, cupom) ordena
+  // por ele, e sem isso todos empatariam em 0 e a ordem ficaria ao acaso.
+  for (const [posicao, item] of itens.entries()) {
     const gravado = await tx.orderItem.create({
       data: {
         storeId: lojaId,
@@ -197,11 +200,12 @@ async function gravarItens(
         optionsTotalCents: BigInt(item.opcoesEmCentavos ?? 0),
         lineTotalCents: BigInt(item.totalDaLinhaEmCentavos),
         note: item.observacao ?? null,
+        sortOrder: posicao,
       },
       select: { id: true },
     });
 
-    for (const opcao of item.opcoes ?? []) {
+    for (const [posicaoDaOpcao, opcao] of (item.opcoes ?? []).entries()) {
       await tx.orderItemOption.create({
         data: {
           storeId: lojaId,
@@ -212,6 +216,7 @@ async function gravarItens(
           optionNameSnapshot: opcao.nomeDaOpcao,
           quantity: opcao.quantidade ?? 1,
           priceDeltaCents: BigInt(opcao.acrescimoEmCentavos ?? 0),
+          sortOrder: posicaoDaOpcao,
         },
       });
     }
