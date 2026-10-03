@@ -21,6 +21,7 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { Client } from "pg";
 
 import { assinarTokenDeAcesso } from "../../apps/api/src/modules/auth/token.ts";
+import { garantirDonoDaLoja } from "../fixtures/painel.ts";
 
 /** A loja que o painel mostra nesta fase (mesma escolha das rotas do painel). */
 const APELIDO_DO_PAINEL =
@@ -35,6 +36,8 @@ test.describe.configure({ mode: "serial" });
 
 let banco: Client;
 let lojaId: string;
+/** O dono da loja do painel: identidade e vínculo de verdade (dívida 92). */
+let donoId: string;
 let pedidoId: string;
 let impressaoOriginal: unknown;
 
@@ -142,7 +145,7 @@ async function usarPapel(larguraMm: 58 | 80): Promise<void> {
   );
 }
 
-/** Sessão de dono, como o login local a emite, e a impressão interceptada. */
+/** Sessão do dono da loja, como o login local a emite, e a impressão interceptada. */
 async function prepararNavegador(
   contexto: BrowserContext,
   site: string | undefined,
@@ -155,7 +158,7 @@ async function prepararNavegador(
   }
   const acesso = assinarTokenDeAcesso(
     {
-      identidadeId: "usuario-de-teste-local",
+      identidadeId: donoId,
       papel: "OWNER",
       sessaoId: randomUUID(),
       familiaId: randomUUID(),
@@ -203,6 +206,7 @@ test.beforeAll(async () => {
     throw new Error(`a loja ${APELIDO_DO_PAINEL} não existe no banco do E2E`);
   }
   lojaId = linha.id;
+  donoId = await garantirDonoDaLoja(banco, lojaId, "dono@imprimir.test");
   impressaoOriginal = linha.printing;
   pedidoId = await criarPedido();
 });

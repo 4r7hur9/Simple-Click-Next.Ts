@@ -19,7 +19,7 @@ import {
   criarIdentidade,
   criarLoja,
 } from "@simpleclick/testing";
-import type { LojaDeTeste } from "@simpleclick/testing";
+import type { IdentidadeDeTeste, LojaDeTeste } from "@simpleclick/testing";
 
 import {
   gravarSecao,
@@ -35,6 +35,7 @@ import type { ImagemParaGuardar } from "../src/core/midia.ts";
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
 let app: ReturnType<typeof montarAppDaConfiguracao>;
+let dono: IdentidadeDeTeste;
 let token: string;
 const guardadas: ImagemParaGuardar[] = [];
 
@@ -67,7 +68,7 @@ beforeAll(async () => {
       },
     },
   });
-  const dono = await criarIdentidade({ nome: "Dona Zica" });
+  dono = await criarIdentidade({ nome: "Dona Zica" });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -109,7 +110,7 @@ describe("a apresentação editada aparece na página da loja (AC-916)", () => {
   it(
     "@spec:AC-916 nome, boas-vindas, sobre, logo, capa e cor publicados aparecem exatamente na vitrine",
     async () => {
-      const loja = await criarLoja({ nome: "Nome de Cadastro" });
+      const loja = await criarLoja({ nome: "Nome de Cadastro", dono });
       const publicado = await publicar(loja, APRESENTACAO);
       expect(publicado.status).toBe(204);
 
@@ -130,7 +131,7 @@ describe("a apresentação editada aparece na página da loja (AC-916)", () => {
   it(
     "@spec:AC-916 a logo enviada como arquivo vai para o serviço de mídia e passa a aparecer na vitrine",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do Arquivo" });
+      const loja = await criarLoja({ nome: "Pastelaria do Arquivo", dono });
       await publicar(loja, APRESENTACAO);
 
       const enviado = await enviarImagem(loja, "logo", PNG);
@@ -147,7 +148,7 @@ describe("a apresentação editada aparece na página da loja (AC-916)", () => {
   it(
     "@spec:AC-916 nome de exibição vazio é recusado: a loja não fica sem nome na vitrine",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Nomeada" });
+      const loja = await criarLoja({ nome: "Pastelaria Nomeada", dono });
       const recusado = await publicar(loja, { ...APRESENTACAO, nome: "  " });
       expect(recusado.status).toBe(400);
       expect((await vitrine(loja))["nome"]).toBe("Pastelaria Nomeada");
@@ -160,7 +161,7 @@ describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
   it(
     "@spec:AC-918 arquivo que não é imagem é recusado explicando formato, tamanho e proporção, e a logo anterior continua",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria do PDF" });
+      const loja = await criarLoja({ nome: "Pastelaria do PDF", dono });
       await publicar(loja, APRESENTACAO);
       const antes = guardadas.length;
 
@@ -184,7 +185,7 @@ describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
   it(
     "@spec:AC-918 capa acima do tamanho permitido é recusada, com a proporção larga recomendada, e a anterior continua",
     async () => {
-      const loja = await criarLoja({ nome: "Pastelaria Pesada" });
+      const loja = await criarLoja({ nome: "Pastelaria Pesada", dono });
       await publicar(loja, APRESENTACAO);
       const antes = guardadas.length;
 
@@ -215,7 +216,7 @@ describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
           },
         },
       });
-      const loja = await criarLoja({ nome: "Pastelaria Offline" });
+      const loja = await criarLoja({ nome: "Pastelaria Offline", dono });
       await publicar(loja, APRESENTACAO);
 
       const resposta = await request(semServico)

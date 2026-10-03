@@ -531,7 +531,7 @@ describe("o pedido pertence à loja do contexto", () => {
       // responde aqui, e não um filtro escrito no caso de uso.
       const visto = await comoRequisicao(
         acesso,
-        { lojaId: outraLoja.id, papel: "OWNER" },
+        { lojaId: outraLoja.id, usuarioId: outraLoja.dono.id, papel: "OWNER" },
         (tx) => tx.order.findFirst({ where: { id: resultado.pedido.id } }),
       );
 

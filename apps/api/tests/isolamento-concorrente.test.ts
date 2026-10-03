@@ -89,6 +89,8 @@ let acesso: AcessoAoBanco;
 const idDaLoja = new Map<string, string>();
 /** Um produto semeado por loja — alvo das tentativas cruzadas. */
 const produtoDaLoja = new Map<string, string>();
+/** A mesma pessoa é dona das quatro lojas: é o vínculo, e não o papel, que a leva a cada uma. */
+let donoDasLojas = "";
 
 let resultados: ResultadoDaRequisicao[] = [];
 let maximoSimultaneo = 0;
@@ -264,7 +266,9 @@ async function requisicao(indice: number): Promise<ResultadoDaRequisicao> {
 
   const { valor, simultaneas } = await comoRequisicao(
     acesso,
-    ehSonda ? {} : { lojaId: lojaPedida ?? "", papel: "OWNER" },
+    ehSonda
+      ? {}
+      : { lojaId: lojaPedida ?? "", usuarioId: donoDasLojas, papel: "OWNER" },
     (tx) =>
       contandoSobreposicao(async (): Promise<RespostaDaTransacao> => {
         const assinatura = await assinaturaDaConexao(tx);
@@ -310,6 +314,12 @@ async function requisicao(indice: number): Promise<ResultadoDaRequisicao> {
 beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
 
+  const dono = await migrador.query(
+    `INSERT INTO app.identities (email_norm, display_name)
+     VALUES ('dono.corrida@exemplo.test', 'Dono da corrida') RETURNING id`,
+  );
+  donoDasLojas = String((dono.rows[0] as { id: string }).id);
+
   for (const [ordem, prefixo] of LOJAS.entries()) {
     const loja = await migrador.query(
       `INSERT INTO app.stores (code, name, slug, status, vertical_code)
@@ -318,6 +328,11 @@ beforeAll(async () => {
     );
     const id = String((loja.rows[0] as { id: string }).id);
     idDaLoja.set(prefixo, id);
+    await migrador.query(
+      `INSERT INTO app.store_members (store_id, identity_id, role, invite_accepted_at)
+       VALUES ($1, $2, 'OWNER', now())`,
+      [id, donoDasLojas],
+    );
 
     const produto = await migrador.query(
       `INSERT INTO app.products (store_id, name, slug, vertical_code, status, display_price_cents)

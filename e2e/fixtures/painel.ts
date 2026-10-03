@@ -13,6 +13,12 @@
  * o que este pacote prova é o que o dono faz DEPOIS de entrar. O token segue o
  * formato que a API confere (`apps/api/src/modules/auth/token.ts`), assinado
  * com o mesmo segredo do ambiente.
+ *
+ * O DONO É UMA IDENTIDADE DE VERDADE, membro de verdade da loja. Desde a
+ * migração 0041 a equipe só alcança a loja de que é membro: um sujeito
+ * inventado no token receberia "não encontrado" em toda porta do painel. A
+ * montagem cria a identidade pelo e-mail e o vínculo OWNER aceito, e é o
+ * identificador dela que vai no token.
  */
 import { createHmac, randomUUID } from "node:crypto";
 
@@ -22,13 +28,11 @@ import { Client } from "pg";
 /** O apelido da loja do painel — o mesmo que o site do ponta a ponta usa. */
 export const APELIDO_DO_PAINEL = "e2e-painel";
 
-/**
- * Quem o token diz ser. NÃO É UM UUID de propósito: as colunas de autor
- * (`actor_id`) apontam para `app.identities`, e as rotas gravam nulo quando o
- * identificador não é de uma identidade — o mesmo que acontece com o usuário
- * de teste local. Um UUID inventado quebraria a chave estrangeira.
- */
-const DONO_DO_TESTE = "usuario-de-teste-e2e";
+/** O e-mail do dono da loja do painel. Domínio reservado a teste (RFC 2606). */
+const EMAIL_DO_DONO_DO_PAINEL = "dono@e2e-painel.test";
+
+/** O dono da loja do painel, guardado depois da montagem deste processo. */
+let donoDoPainel: string | undefined;
 
 /** Mesma chave para todo processo que monta esta loja (`pg_advisory_lock`). */
 const TRAVA_DA_MONTAGEM = 8_142_310;
@@ -48,14 +52,14 @@ function base64Url(valor: unknown): string {
 }
 
 /** O token de acesso de um dono, no formato que a API confere. */
-function tokenDoDono(): string {
+export function tokenDoDono(identidadeId: string): string {
   const segredo = process.env["JWT_SECRET"]?.trim();
   if (segredo === undefined || segredo === "") {
     throw new Error("o ponta a ponta do painel precisa de JWT_SECRET");
   }
   const agora = Math.floor(Date.now() / 1_000);
   const conteudo = `${base64Url({ alg: "HS256", typ: "JWT" })}.${base64Url({
-    sub: DONO_DO_TESTE,
+    sub: identidadeId,
     role: "OWNER",
     sid: randomUUID(),
     fid: randomUUID(),
@@ -68,15 +72,53 @@ function tokenDoDono(): string {
   return `${conteudo}.${assinatura}`;
 }
 
-/** Põe a sessão do dono no navegador do cenário. */
+/**
+ * Garante que a loja tem um dono de verdade: a identidade do e-mail informado
+ * e o vínculo OWNER aceito com a loja. Devolve o identificador da identidade.
+ *
+ * Repetível de propósito — o e-mail é único em `identities` e o par (loja,
+ * identidade) é único em `store_members` —, porque os dois projetos do
+ * Playwright montam a mesma loja ao mesmo tempo, e cada execução volta a
+ * montar. Vínculo revogado que sobrou de outra execução volta a valer.
+ */
+export async function garantirDonoDaLoja(
+  cliente: Client,
+  lojaId: string,
+  email: string,
+): Promise<string> {
+  const identidade = await cliente.query<{ id: string }>(
+    `INSERT INTO app.identities (email_norm, display_name, email_verified_at)
+     VALUES (lower(btrim($1)), 'Dono do ponta a ponta', now())
+     ON CONFLICT (email_norm) DO UPDATE SET updated_at = now()
+     RETURNING id`,
+    [email],
+  );
+  const identidadeId = identidade.rows[0]?.id;
+  if (identidadeId === undefined) {
+    throw new Error(`não consegui criar a identidade do dono ${email}`);
+  }
+  await cliente.query(
+    `INSERT INTO app.store_members (store_id, identity_id, role, invite_accepted_at)
+     VALUES ($1, $2, 'OWNER', now())
+     ON CONFLICT (store_id, identity_id) DO UPDATE
+       SET role = 'OWNER',
+           revoked_at = NULL,
+           invite_accepted_at = coalesce(store_members.invite_accepted_at, now())`,
+    [lojaId, identidadeId],
+  );
+  return identidadeId;
+}
+
+/** Põe a sessão do dono da loja do painel no navegador do cenário. */
 export async function entrarComoDono(
   contexto: BrowserContext,
   enderecoDoSite: string,
 ): Promise<void> {
+  const dono = donoDoPainel ?? (await garantirLojaDoPainel()).donoId;
   await contexto.addCookies([
     {
       name: "sc_access",
-      value: tokenDoDono(),
+      value: tokenDoDono(dono),
       url: enderecoDoSite,
       httpOnly: true,
       secure: false,
@@ -93,8 +135,17 @@ export function nomeUnico(prefixo: string, projeto: string): string {
   return `${prefixo} ${projeto} ${randomUUID().slice(0, 8)}`;
 }
 
-/** Garante a loja de roupas do painel, ativa, que vende e sempre aberta. */
-export async function garantirLojaDoPainel(): Promise<{ readonly id: string }> {
+/** A loja do painel montada: o identificador dela e o do dono dela. */
+export interface LojaDoPainel {
+  readonly id: string;
+  readonly donoId: string;
+}
+
+/**
+ * Garante a loja de roupas do painel, ativa, que vende, sempre aberta — e com
+ * o dono dela vinculado.
+ */
+export async function garantirLojaDoPainel(): Promise<LojaDoPainel> {
   const cliente = conectar();
   await cliente.connect();
   try {
@@ -148,7 +199,13 @@ export async function garantirLojaDoPainel(): Promise<{ readonly id: string }> {
         [lojaId, dia],
       );
     }
-    return { id: lojaId };
+    const donoId = await garantirDonoDaLoja(
+      cliente,
+      lojaId,
+      EMAIL_DO_DONO_DO_PAINEL,
+    );
+    donoDoPainel = donoId;
+    return { id: lojaId, donoId };
   } finally {
     await cliente
       .query("SELECT pg_advisory_unlock($1)", [TRAVA_DA_MONTAGEM])

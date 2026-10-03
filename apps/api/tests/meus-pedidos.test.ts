@@ -321,8 +321,9 @@ describe("nenhuma loja enxerga o histórico da outra (P-003)", () => {
       expect(direto).toEqual([]);
 
       // Pelo caminho da conta: a função só serve ao papel CUSTOMER. O dono da
-      // loja A — e até a própria identidade da cliente, se chegasse como
-      // dono — recebe lista vazia.
+      // loja A recebe lista vazia; a própria identidade da cliente, se
+      // chegasse como dona, nem abre a transação — ela não é membro de loja
+      // nenhuma, e a equipe só entra na loja de que é membro (dívida 92).
       const contaComoDono = await comoRequisicao(
         acesso,
         { lojaId: lojaA.id, usuarioId: donoA.identidade.id, papel: "OWNER" },
@@ -331,16 +332,17 @@ describe("nenhuma loja enxerga o histórico da outra (P-003)", () => {
             { order_id: string }[]
           >`SELECT * FROM app.meus_pedidos()`,
       );
-      const clienteComoDono = await comoRequisicao(
-        acesso,
-        { lojaId: lojaA.id, usuarioId: maria.id, papel: "OWNER" },
-        (tx) =>
-          tx.$queryRaw<
-            { order_id: string }[]
-          >`SELECT * FROM app.meus_pedidos()`,
-      );
       expect(contaComoDono).toEqual([]);
-      expect(clienteComoDono).toEqual([]);
+      await expect(
+        comoRequisicao(
+          acesso,
+          { lojaId: lojaA.id, usuarioId: maria.id, papel: "OWNER" },
+          (tx) =>
+            tx.$queryRaw<
+              { order_id: string }[]
+            >`SELECT * FROM app.meus_pedidos()`,
+        ),
+      ).rejects.toMatchObject({ codigo: "nao_encontrado" });
 
       // E a ficha da cliente na loja B não aparece entre os clientes da loja A.
       const clientesDaLojaA = await comoRequisicao(

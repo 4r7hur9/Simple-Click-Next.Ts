@@ -116,8 +116,10 @@ function emitirComoDono(
   loja: LojaDeTeste,
   pedidoId: string,
 ): Promise<CupomImpresso> {
-  return comoRequisicao(acesso, { lojaId: loja.id, papel: "OWNER" }, () =>
-    emitirCupomDoPedido(pedidoId, normalizarConfiguracaoDeImpressao),
+  return comoRequisicao(
+    acesso,
+    { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
+    () => emitirCupomDoPedido(pedidoId, normalizarConfiguracaoDeImpressao),
   );
 }
 
@@ -221,7 +223,7 @@ describe("o pedido registra quantas vezes o cupom foi impresso (AC-621)", () => 
       await expect(
         comoRequisicao(
           acesso,
-          { lojaId: lojaA.id, papel: "OWNER" },
+          { lojaId: lojaA.id, usuarioId: lojaA.dono.id, papel: "OWNER" },
           (tx) =>
             tx.$executeRaw`UPDATE app.orders SET print_count = 0 WHERE id = ${pedidoId}::uuid`,
         ),

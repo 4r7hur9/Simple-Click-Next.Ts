@@ -96,6 +96,23 @@ Roda em segundos, sobre o que mudou:
 Ele não pode ser caro. Gancho caro vira `LEFTHOOK=0` todo dia, e aí não existe
 mais gancho.
 
+### A mensagem (`commit-msg`)
+
+`bash infra/scripts/check-mensagem.sh` confere só a primeira linha: 1 tarefa =
+1 commit rastreável. Mensagem gerada pelo git (`Merge`, `Revert`, `fixup!`,
+`squash!`) passa direto; qualquer outra precisa ter um destes formatos, com um
+escopo opcional entre parênteses e um resumo de pelo menos cinco caracteres:
+
+| Formato                                  | Quando                                                                                                                                                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `T-000 <feature>: resumo`                | trabalho de uma tarefa do `tasks.md` da feature — é o caso normal                                                                                                                                        |
+| `chore`, `docs`, `infra`, `spec`: resumo | trabalho fora de tarefa: manutenção, documentação, infraestrutura, mudança de spec                                                                                                                       |
+| `fix`, `feat`: resumo                    | correção ou funcionalidade fora de tarefa (dívida de `docs/pendencias.md`, por exemplo)                                                                                                                  |
+| `test`: resumo                           | uma prova commitada **sozinha, antes da correção**: a falha reproduzida fica no histórico separada do conserto dela (a dívida 92 nasceu assim: `test(isolamento): ...` e depois `fix(autorizacao): ...`) |
+
+O gancho não roda os testes, e é por isso que o commit `test` de uma prova
+vermelha passa — o próximo commit é o que a deixa verde.
+
 ### Antes de enviar (`pre-push`) — AC-041
 
 Uma linha só: `bash infra/scripts/verificar.sh`. O portão **inteiro**, e ele
@@ -215,7 +232,8 @@ varredura do apoio de teste apaga o que ficou para trás.
 
 ### `guardas estruturais do banco`
 
-As nove guardas de isolamento, índice e imutabilidade, contra um banco criado do
+As dez guardas de isolamento, índice, imutabilidade e funções com direitos de
+quem as definiu, contra um banco criado do
 zero e migrado na hora.
 
 ```bash

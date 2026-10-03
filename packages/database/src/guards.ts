@@ -180,7 +180,9 @@ export function tituloDaGuarda(sql: string): string {
 export function lerGuardas(diretorio: string = DIRETORIO_DE_GUARDAS): Guarda[] {
   const arquivos = readdirSync(diretorio)
     .filter((nome) => nome.endsWith(".sql"))
-    .sort((a, b) => a.localeCompare(b, "en"));
+    // Numérica: sem isso a décima guarda cairia entre a primeira e a segunda,
+    // e a lista que a prova confere deixaria de ser a ordem em que se lê.
+    .sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
 
   return arquivos.map((arquivo) => {
     const casou = NOME_DE_GUARDA.exec(arquivo);

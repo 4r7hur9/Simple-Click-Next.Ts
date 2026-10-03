@@ -1321,7 +1321,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     arquivo `.ttf` do disco na partida da rota. Fica para quando houver um
     arquivo de fonte versionado; hoje elas vêm do pacote do Next.
 
-92. **PRIORIDADE — um dono consegue mexer no painel de OUTRA loja (27/09,
+92. ~~**PRIORIDADE — um dono consegue mexer no painel de OUTRA loja (27/09,
     achado na T-313).** `app.is_store_staff()` (migração 0001) confere só o
     PAPEL da sessão (`OWNER`/`STAFF`), e não se a identidade é membro daquela
     loja. As rotas do dono (catálogo, estoque, variações, configurações, fila)
@@ -1336,7 +1336,27 @@ bash infra/scripts/verificar.sh  # o portão completo
     isolamento própria (dono da loja A tentando ler e gravar na loja B, em
     cada módulo). O usuário de teste local (`usuario-de-teste-local`) e o do
     ponta a ponta do painel dependem da brecha hoje: ao fechá-la, eles
-    precisam virar membros de verdade da loja que usam.
+    precisam virar membros de verdade da loja que usam.~~ **Resolvido em
+    27/09:** em duas camadas que se cobrem. No banco, a migração 0041 faz
+    `app.is_store_staff()` exigir vínculo ATIVO em `store_members` (loja e
+    identidade correntes, mesmo papel da sessão, convite aceito, sem
+    revogação) — `SECURITY DEFINER` com caminho fixo, dona `sc_migrator`,
+    para não recursar na política de `store_members`; as 117 políticas que a
+    chamam ganharam a regra de uma vez, e a guarda G10 passou a cobrar de toda
+    função definer o dono migrador e o `search_path` fixo. Na API, a regra 7
+    de `core/db.ts`: logo depois de gravar o contexto na transação, para
+    OWNER/STAFF com loja, `SELECT app.is_store_staff()` — falso vira
+    `nao_encontrado` antes de qualquer consulta do caso de uso, a mesma porta
+    da vitrine (AC-402), num ponto só por onde toda rota do dono passa. A prova
+    `apps/api/tests/isolamento-entre-lojas-dono.test.ts` (commitada vermelha
+    em `ebd4afa`) cobre cada módulo do dono nas duas lojas, token sem
+    vínculo, membro revogado, convite pendente, sujeito que não é identidade
+    e STAFF pelo caminho único. Quem dependia da brecha virou membro de
+    verdade: `criarLoja` nasce com dono (`loja.dono`) e `comoLoja` age como
+    ele; o login local cria a identidade pelo e-mail configurado e o vínculo
+    OWNER com a loja de `NEXT_PUBLIC_DEV_STORE_SLUG` (prova em
+    `login-de-desenvolvimento.test.ts`); a montagem do E2E do painel e do
+    cupom cria identidade e vínculo via `pg` e assina o token com esse UUID.
 
 93. **A vitrine demora até um minuto para mostrar o que o dono mudou (27/09,
     T-313).** O site guarda a vitrine, o catálogo e a página de produto por 60 s

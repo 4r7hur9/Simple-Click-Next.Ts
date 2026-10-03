@@ -220,6 +220,9 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     }),
   },
 
+  // O vínculo nasce ACEITO: desde a migração 0041 é ele que faz a identidade
+  // de apoio ser dona da loja A — e é como dona da loja A que a varredura
+  // tenta alcançar a loja B em todas as outras tabelas.
   store_members: {
     chave: "id",
     alteracao: { coluna: "role", valor: "STAFF" },
@@ -227,6 +230,7 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       store_id: loja,
       identity_id: identidadeDeApoio,
       role: "OWNER",
+      invite_accepted_at: "2026-01-01T00:00:00Z",
     }),
   },
 
@@ -644,7 +648,7 @@ async function violacoesDeLeitura(alvo: AlvoDaVarredura): Promise<Violacao[]> {
 
   const [visto] = await comoRequisicao(
     acesso,
-    { lojaId: lojaA, papel: "OWNER" },
+    { lojaId: lojaA, usuarioId: identidadeDeApoio, papel: "OWNER" },
     (tx) =>
       tx.$queryRawUnsafe<
         { direto: number; alheias: number; proprias: number }[]
@@ -705,7 +709,7 @@ async function violacoesDeInsercao(alvo: AlvoDaVarredura): Promise<Violacao[]> {
   try {
     const gravadas = await comoRequisicao(
       acesso,
-      { lojaId: lojaA, papel: "OWNER" },
+      { lojaId: lojaA, usuarioId: identidadeDeApoio, papel: "OWNER" },
       (tx) => tx.$executeRawUnsafe(sql, ...valores),
     );
     acusar(
@@ -754,7 +758,7 @@ async function violacoesDeAlteracao(
   try {
     const alteradas = await comoRequisicao(
       acesso,
-      { lojaId: lojaA, papel: "OWNER" },
+      { lojaId: lojaA, usuarioId: identidadeDeApoio, papel: "OWNER" },
       (tx) =>
         tx.$executeRawUnsafe(
           `UPDATE app.${tabela} SET ${coluna} = $1 WHERE ${chave}::text = $2`,
@@ -802,7 +806,7 @@ async function violacoesDeRemocao(alvo: AlvoDaVarredura): Promise<Violacao[]> {
   try {
     const removidas = await comoRequisicao(
       acesso,
-      { lojaId: lojaA, papel: "OWNER" },
+      { lojaId: lojaA, usuarioId: identidadeDeApoio, papel: "OWNER" },
       (tx) =>
         tx.$executeRawUnsafe(
           `DELETE FROM app.${tabela} WHERE ${chave}::text = $1`,

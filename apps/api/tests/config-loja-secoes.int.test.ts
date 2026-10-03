@@ -49,8 +49,8 @@ beforeAll(async () => {
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarAppDaConfiguracao(acesso);
-  loja = await criarLoja({ nome: "Pastelaria das Seções" });
   dono = await criarIdentidade({ nome: "Dona Zica" });
+  loja = await criarLoja({ nome: "Pastelaria das Seções", dono });
   token = tokenDoDono(dono.id);
 }, ESPERA_LONGA);
 
@@ -249,7 +249,7 @@ describe("toda alteração fica registrada (AC-922)", () => {
   it(
     "@spec:AC-922 a trilha diz quem alterou, quando, o que mudou e o valor anterior",
     async () => {
-      const lojaDaTrilha = await criarLoja({ nome: "Loja da Trilha" });
+      const lojaDaTrilha = await criarLoja({ nome: "Loja da Trilha", dono });
       const antes = Date.now();
 
       const primeira = await gravarSecao(app, {
@@ -295,7 +295,7 @@ describe("toda alteração fica registrada (AC-922)", () => {
   it(
     "@spec:AC-922 @principle:P-009 trocar a chave PIX fica destacado, e a trilha guarda só o final da chave",
     async () => {
-      const lojaDoPix = await criarLoja({ nome: "Loja do PIX" });
+      const lojaDoPix = await criarLoja({ nome: "Loja do PIX", dono });
       const chaveAntiga = "loja-antiga@pix.exemplo.test";
       const chaveNova = "loja-nova@pix.exemplo.test";
 
@@ -329,7 +329,7 @@ describe("toda alteração fica registrada (AC-922)", () => {
   it(
     "@spec:AC-922 salvar sem mudar nada não enche a trilha",
     async () => {
-      const lojaQuieta = await criarLoja({ nome: "Loja Quieta" });
+      const lojaQuieta = await criarLoja({ nome: "Loja Quieta", dono });
       for (let vez = 0; vez < 2; vez += 1) {
         const resposta = await gravarSecao(app, {
           apelido: lojaQuieta.apelido,
@@ -349,7 +349,7 @@ describe("configuração inválida não quebra a loja (AC-923)", () => {
   it(
     "@spec:AC-923 a recusa aponta CADA campo com problema, e a configuração anterior continua valendo",
     async () => {
-      const lojaFirme = await criarLoja({ nome: "Loja Firme" });
+      const lojaFirme = await criarLoja({ nome: "Loja Firme", dono });
       expect(
         (
           await gravarSecao(app, {
@@ -394,7 +394,7 @@ describe("configuração inválida não quebra a loja (AC-923)", () => {
   it(
     "@spec:AC-923 falha no meio da gravação desfaz tudo: a coluna da loja, a configuração e a trilha",
     async () => {
-      const lojaAtomica = await criarLoja({ nome: "Loja Atômica" });
+      const lojaAtomica = await criarLoja({ nome: "Loja Atômica", dono });
       expect(
         (
           await gravarSecao(app, {
