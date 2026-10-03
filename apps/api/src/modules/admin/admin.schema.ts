@@ -12,8 +12,11 @@ import {
   esquemaDaNovaLoja,
   esquemaDaTrocaDeApelido,
   esquemaDaTrocaDeTipoDeNegocio,
+  esquemaDoEnvioDeDocumento,
 } from "@simpleclick/contracts";
 import { z } from "zod";
+
+import { FORMATO_DO_LINK } from "./link-do-documento.ts";
 
 /** Identificador de loja no caminho: uuid, e nada mais. */
 export const esquemaDoCaminhoDaLoja = z.object({
@@ -45,4 +48,30 @@ export const esquemasDaTrocaDeTipo = {
 export const esquemasDaTrocaDeApelido = {
   params: esquemaDoCaminhoDaLoja,
   body: esquemaDaTrocaDeApelido,
+};
+
+/** GET /v1/admin/lojas/:id/documentos */
+export const esquemasDosDocumentos = { params: esquemaDoCaminhoDaLoja };
+
+/**
+ * POST /v1/admin/lojas/:id/documentos?tipo= — o corpo são os BYTES do
+ * arquivo, lidos crus pela rota e conferidos pelo conteúdo (AC-204).
+ */
+export const esquemasDoEnvioDeDocumento = {
+  params: esquemaDoCaminhoDaLoja,
+  query: esquemaDoEnvioDeDocumento,
+};
+
+/** POST /v1/admin/lojas/:id/documentos/:documentoId/link */
+export const esquemasDoLinkDoDocumento = {
+  params: esquemaDoCaminhoDaLoja.extend({
+    documentoId: z.uuid("Documento inválido."),
+  }),
+};
+
+/** GET /v1/admin/arquivos/:link — o link assinado, e nada além. */
+export const esquemasDoArquivo = {
+  params: z.object({
+    link: z.string().regex(FORMATO_DO_LINK, "Link inválido."),
+  }),
 };

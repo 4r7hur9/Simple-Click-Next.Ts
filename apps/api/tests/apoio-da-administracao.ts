@@ -18,6 +18,7 @@ import {
   exigirVariavel,
 } from "./apoio-de-isolamento.ts";
 import { criarApp, type OpcoesDoApp } from "../src/app.ts";
+import { armazenamentoPrivadoEmMemoria } from "../src/core/arquivo-privado.ts";
 import { criarAcessoAoBanco, type AcessoAoBanco } from "../src/core/db.ts";
 import {
   assinarTokenDeAcesso,
@@ -84,6 +85,13 @@ export interface ApiDaAdministracao {
   readonly convitesEnviados: ConviteParaEnviar[];
   /** Faz o próximo envio de convite falhar, como um provedor fora do ar. */
   falharProximoConvite(): void;
+  /**
+   * Onde a API guardou contrato e documentos (T-205): em memória, para a
+   * prova conferir que o arquivo recusado nem chegou a ser guardado.
+   */
+  readonly armazenamentoPrivado: ReturnType<
+    typeof armazenamentoPrivadoEmMemoria
+  >;
   encerrar(): Promise<void>;
 }
 
@@ -96,6 +104,7 @@ export function montarApiDaAdministracao(
     maxDeConexoes: 4,
   });
   const convitesEnviados: ConviteParaEnviar[] = [];
+  const armazenamentoPrivado = armazenamentoPrivadoEmMemoria();
   let falhar = false;
 
   const app = criarApp({
@@ -105,6 +114,7 @@ export function montarApiDaAdministracao(
     administracao: {
       acesso: acessoDaAdministracao,
       agora,
+      armazenamentoPrivado,
       enviarConvite: async (convite) => {
         if (falhar) {
           falhar = false;
@@ -124,6 +134,7 @@ export function montarApiDaAdministracao(
     falharProximoConvite: () => {
       falhar = true;
     },
+    armazenamentoPrivado,
     encerrar: async () => {
       await acessoDaAdministracao.encerrar();
       await acessoDaAplicacao.encerrar();

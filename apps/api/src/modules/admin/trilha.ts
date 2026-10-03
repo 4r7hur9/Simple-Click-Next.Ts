@@ -39,10 +39,13 @@ export interface LinhaDaTrilha {
  *
  * A troca de dado sensível do dono já chega marcada (`sensivel: true`, pela
  * configuração); o código do ato garante o destaque mesmo em registro antigo,
- * gravado antes de a marca existir.
+ * gravado antes de a marca existir. Abrir um documento sigiloso da loja
+ * (contrato, documento do responsável) é destacado por ser um dos eventos que
+ * merecem alerta (modelo de dados, `store_contracts`).
  */
 export const ATOS_SENSIVEIS: ReadonlySet<string> = new Set([
   "CONFIG_SENSIVEL_ALTERADA",
+  "DOCUMENTO_BAIXADO",
 ]);
 
 /** Chaves de controle do registro, que não são campo do cadastro. */

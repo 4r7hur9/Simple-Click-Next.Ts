@@ -439,6 +439,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-203..AC-205",
+    arquivo: "apps/web/src/app/(admin)/admin/lojas/[id]/documentos/page.tsx",
   },
   {
     rota: "/admin/lojas/{id}/funcionalidades",

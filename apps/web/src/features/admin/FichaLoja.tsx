@@ -37,6 +37,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { telaDosDocumentos } from "./documentos-da-loja.ts";
 import {
   edicaoDoFormulario,
   errosDaEdicao,
@@ -365,6 +366,21 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
 
       <Secao id="ficha-tipo" titulo="Tipo de negócio">
         <SeletorVertical ficha={ficha} aoTrocar={props.aoAtualizar} />
+      </Secao>
+
+      <Secao id="ficha-documentos" titulo="Contrato e documentos">
+        <p className="max-w-prose">
+          O contrato assinado e os documentos do responsável ficam guardados
+          fora do site público e só abrem por link temporário, gerado no clique.
+        </p>
+        <p className="mt-3">
+          <Link
+            className="sc-botao sc-botao--secundaria"
+            href={telaDosDocumentos(ficha.id)}
+          >
+            Ver contrato e documentos
+          </Link>
+        </p>
       </Secao>
 
       <Secao id="ficha-historico" titulo="Histórico de alterações">

@@ -162,7 +162,9 @@ describe("a ficha da loja na tela (AC-207)", () => {
         violacao.impact === "critical" || violacao.impact === "serious",
     );
     expect(graves.map((violacao) => violacao.id)).toEqual([]);
-  });
+    // O axe percorre a árvore inteira no jsdom e leva segundos com a máquina
+    // ocupada: o prazo padrão de 5 s reprovava por tempo, não por violação.
+  }, 60_000);
 
   it("@spec:AC-207 o formulário abre preenchido com o cadastro e o histórico diz quem fez o quê e quando", async () => {
     simularApi(respostasDaFicha());
