@@ -184,8 +184,10 @@ describe("o usuário de teste local é dono de verdade da loja local", () => {
     ESPERA_LONGA,
   );
 
+  // A rota é um atalho ao segundo fator (AC-105) que só nasce da variável de
+  // ambiente (P-002): sem credencial configurada, não existe atalho nenhum.
   it(
-    "sem credencial de teste no ambiente a rota não existe",
+    "@spec:AC-105 @principle:P-002 sem credencial de teste no ambiente a rota não existe",
     async () => {
       const semCredencial = montarLogin({ NODE_ENV: "test" });
       expect((await entrar(semCredencial)).status).toBe(404);
