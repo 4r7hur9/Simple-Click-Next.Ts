@@ -47,7 +47,7 @@
 ## T-106 — Papéis, escopo de acesso e auditoria do administrador [concluida]
 
 - Refs: US-106, AC-116, AC-117, AC-118
-- Arquivos: apps/api/src/modules/auth/autorizar.ts, apps/api/src/modules/auth/autorizar.test.ts, apps/api/src/modules/admin/auditoria.repo.ts, apps/api/tests/autorizacao-papel.test.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(admin)/admin/layout.tsx
+- Arquivos: apps/api/src/modules/auth/autorizar.ts, apps/api/src/modules/auth/autorizar.test.ts, apps/api/src/modules/admin/auditoria.repo.ts, apps/api/src/core/acesso-administrativo.ts, apps/api/tests/autorizacao-papel.test.ts, apps/web/src/app/(painel)/painel/layout.tsx, apps/web/src/app/(admin)/admin/layout.tsx, packages/database/migrations/0041_equipe_e_quem_tem_vinculo_ativo.sql, apps/api/tests/isolamento-entre-lojas-dono.test.ts
 - Notas: negativa de acesso não revela se o recurso existe do outro lado. Cada acesso da administração a dado de loja fica registrado. A segunda camada é a aplicação; a primeira é o banco.
 - Esforço: alto
 
