@@ -1046,6 +1046,77 @@ export async function ligarVariacaoAoEixo(opcoes: {
 }
 
 // ---------------------------------------------------------------------------
+// Endereço salvo do comprador (T-707)
+// ---------------------------------------------------------------------------
+
+/** Um endereço salvo, preso à identidade e não à loja (0036, AC-509). */
+export interface EnderecoDeTeste {
+  readonly id: string;
+  readonly identidadeId: string;
+  readonly logradouro: string;
+  readonly padrao: boolean;
+}
+
+export interface DadosDeEndereco {
+  /** Obrigatória: endereço é dado DE UMA PESSOA, e o construtor cobra isso. */
+  readonly identidade: IdentidadeDeTeste;
+  readonly rotulo?: string | null;
+  readonly logradouro?: string;
+  readonly numero?: string | null;
+  readonly bairro?: string | null;
+  readonly cidade?: string | null;
+  readonly estado?: string | null;
+  readonly cep?: string | null;
+  readonly padrao?: boolean;
+}
+
+/**
+ * Cria um endereço salvo da pessoa.
+ *
+ * Escreve NO PAPEL DE CLIENTE, com a identidade no contexto e sem loja: é o
+ * único caminho que a política `customer_addresses_self_insert` concede, e é
+ * assim que a conta da pessoa grava em produção. Construtor que gravasse pela
+ * credencial de administração produziria dado que a aplicação não conseguiria
+ * criar — e a prova de isolamento por identidade passaria por acidente.
+ */
+export async function criarEnderecoDoCliente(
+  dados: DadosDeEndereco,
+): Promise<EnderecoDeTeste> {
+  const sufixo = sufixoDeTeste();
+  const logradouro = dados.logradouro ?? `Rua de teste ${sufixo}`;
+  const padrao = dados.padrao ?? false;
+
+  const id = await emTransacao(
+    aplicacao(),
+    { usuarioId: dados.identidade.id, papel: "CUSTOMER" },
+    async (tx) => {
+      const inserido = await tx.query<{ id: string }>(
+        `INSERT INTO app.customer_addresses
+           (identity_id, label, recipient_name, street, number, neighborhood,
+            city, uf, zip, is_default)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING id`,
+        [
+          dados.identidade.id,
+          dados.rotulo ?? null,
+          dados.identidade.nome,
+          logradouro,
+          dados.numero ?? String(100 + Number(sufixo)),
+          dados.bairro ?? "Centro",
+          dados.cidade ?? "São Paulo",
+          dados.estado ?? "SP",
+          dados.cep ?? "01001000",
+          padrao,
+        ],
+      );
+      return exigirLinha(inserido, "endereço").id;
+    },
+  );
+
+  return { id, identidadeId: dados.identidade.id, logradouro, padrao };
+}
+
+// ---------------------------------------------------------------------------
 // Administração da plataforma (admin-lojas)
 // ---------------------------------------------------------------------------
 
