@@ -2,7 +2,7 @@
 
 > feature: dashboard-metricas
 
-## T-800 — Consulta de métricas por período no fuso da loja [pendente]
+## T-800 — Consulta de métricas por período no fuso da loja [concluida]
 
 - Refs: US-800, US-801, AC-800, AC-803, AC-804, AC-805
 - Arquivos: apps/api/src/modules/metrics/periodo.ts, apps/api/src/modules/metrics/periodo.test.ts, apps/api/src/modules/metrics/consultas.ts, apps/api/src/modules/metrics/metricas.usecase.ts, apps/api/src/modules/metrics/metrics.schema.ts, apps/api/src/modules/metrics/metricas.routes.ts, packages/contracts/src/metricas.ts, packages/contracts/src/index.ts, apps/api/src/app.ts, apps/api/tests/apoio-de-metricas.ts, apps/api/tests/metricas-periodo.test.ts

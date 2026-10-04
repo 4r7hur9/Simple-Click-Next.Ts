@@ -193,3 +193,28 @@ export type {
   MeusPedidosNoContrato,
   PedidoDaContaNoContrato,
 } from "./conta.ts";
+export {
+  esquemaDaComparacaoDeMetricas,
+  esquemaDaRecusaDePeriodo,
+  esquemaDasMetricas,
+  esquemaDeDataCivilDasMetricas,
+  esquemaDeParcelaDeMetrica,
+  esquemaDeVariacaoDeMetrica,
+  esquemaDoPeriodoDeMetricas,
+  esquemaDoPontoDiario,
+  esquemaDoPontoHorario,
+  esquemaDoProdutoMaisVendido,
+  esquemaDoResumoDeMetricas,
+} from "./metricas.ts";
+export type {
+  ComparacaoDeMetricasNoContrato,
+  MetricasNoContrato,
+  ParcelaDeMetricaNoContrato,
+  PeriodoDeMetricasNoContrato,
+  PontoDiarioNoContrato,
+  PontoHorarioNoContrato,
+  ProdutoMaisVendidoNoContrato,
+  RecusaDePeriodoNoContrato,
+  ResumoDeMetricasNoContrato,
+  VariacaoDeMetricaNoContrato,
+} from "./metricas.ts";
