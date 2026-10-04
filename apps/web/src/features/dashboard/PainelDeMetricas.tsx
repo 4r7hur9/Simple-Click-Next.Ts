@@ -14,7 +14,8 @@
  *     quando a sessão acabou), sem detalhe interno;
  *   * vazio — os números zerados COM a explicação e o link da vitrine
  *     (AC-801), e não uma tela em branco;
- *   * sucesso — os números, a comparação e o período em vigor.
+ *   * sucesso — os números, a comparação e o período em vigor, com o
+ *     horário a que os números se referem (AC-814).
  */
 import { Botao, Erro, Esqueleto } from "@simpleclick/ui";
 
@@ -29,6 +30,7 @@ import {
 } from "../../lib/metricas.ts";
 import { CartoesDeMetrica } from "./CartoesDeMetrica.tsx";
 import { ComparativoPeriodo } from "./ComparativoPeriodo.tsx";
+import { HorarioDeReferencia } from "./HorarioDeReferencia.tsx";
 import { PainelVazio } from "./PainelVazio.tsx";
 import { useMetricas, type UsoDasMetricas } from "./useMetricas.ts";
 
@@ -110,7 +112,17 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
 
   return (
     <div data-estado={vazio ? "vazio" : "sucesso"} className="space-y-6">
-      <PeriodoEmVigor periodo={metricas.periodo} />
+      <div className="space-y-3">
+        <PeriodoEmVigor periodo={metricas.periodo} />
+        <HorarioDeReferencia
+          calculadoEm={metricas.calculadoEm}
+          fuso={metricas.periodo.fuso}
+          deCache={metricas.deCache}
+          atualizando={uso.atualizando}
+          atualizacaoFalhou={uso.atualizacaoFalhou}
+          aoAtualizar={uso.atualizarAgora}
+        />
+      </div>
       {vazio ? (
         <PainelVazio apelido={metricas.loja.apelido} hoje={hoje} />
       ) : null}
@@ -130,10 +142,16 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
 export interface PainelDoDiaProps {
   /** Leitor das métricas. A prova troca por um que responde sem rede. */
   readonly buscar?: BuscarMetricas | undefined;
+  /** De quanto em quanto o painel aberto se relê (padrão: um minuto). */
+  readonly intervaloMs?: number | undefined;
 }
 
 /** O resumo de hoje, que abre o painel (AC-800). */
-export function PainelDoDia({ buscar }: PainelDoDiaProps) {
-  const uso = useMetricas({ consultaInicial: PERIODO_DE_HOJE, buscar });
+export function PainelDoDia({ buscar, intervaloMs }: PainelDoDiaProps) {
+  const uso = useMetricas({
+    consultaInicial: PERIODO_DE_HOJE,
+    buscar,
+    intervaloMs,
+  });
   return <CorpoDasMetricas uso={uso} />;
 }

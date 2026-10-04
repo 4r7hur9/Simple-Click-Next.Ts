@@ -18,6 +18,13 @@
  *     chega depois de outra ter sido pedida é descartada. Sem isso, tocar
  *     "3 dias" e logo "7 dias" numa rede lenta podia terminar mostrando 3
  *     dias com o botão de 7 marcado.
+ *
+ * O PAINEL ABERTO SE RELÊ SOZINHO a cada minuto (AC-814, ASM-802): o pedido
+ * que entra com a tela aberta aparece dentro desse prazo sem ninguém tocar em
+ * nada. A releitura é silenciosa — os números ficam na tela, com o horário a
+ * que se referem, até os novos chegarem — e não pede recálculo: o guardado
+ * na API já muda quando entra pedido (a marca-d'água do cache). Aba
+ * escondida não relê; tenta de novo no minuto seguinte.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -62,15 +69,24 @@ export interface UsoDasMetricas extends EstadoDasMetricas {
   readonly atualizarAgora: () => void;
 }
 
+/** O prazo de atualização do painel aberto: um minuto (ASM-802). */
+export const INTERVALO_DE_RELEITURA_MS = 60_000;
+
 export interface OpcoesDasMetricas {
   readonly consultaInicial: ConsultaDoPeriodo;
+  /** De quanto em quanto o período em vigor é relido; zero desliga. */
+  readonly intervaloMs?: number | undefined;
   /** Leitor das métricas. A prova troca por um que responde sem rede. */
   readonly buscar?: BuscarMetricas | undefined;
   /** Chamado quando um período passa a valer — é quem o grava no endereço. */
   readonly aoAplicar?: ((consulta: ConsultaDoPeriodo) => void) | undefined;
 }
 
-type Modo = "trocar" | "atualizar";
+/**
+ * `trocar` põe a tela em espera; `atualizar` é o "atualizar agora" do dono,
+ * que pede recálculo; `reler` é a releitura silenciosa do minuto.
+ */
+type Modo = "trocar" | "atualizar" | "reler";
 
 interface PeriodoQueValeu {
   readonly consulta: ConsultaDoPeriodo;
@@ -96,8 +112,11 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
   const aoAplicar = useRef(opcoes.aoAplicar);
   aoAplicar.current = opcoes.aoAplicar;
   const inicial = useRef(opcoes.consultaInicial);
+  const intervalo = useRef(opcoes.intervaloMs ?? INTERVALO_DE_RELEITURA_MS);
+  intervalo.current = opcoes.intervaloMs ?? INTERVALO_DE_RELEITURA_MS;
 
   const vez = useRef(0);
+  const espera = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ultimoQueValeu = useRef<PeriodoQueValeu | null>(null);
 
   const carregar = useCallback(
@@ -108,18 +127,33 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
     ): Promise<void> => {
       vez.current += 1;
       const minhaVez = vez.current;
+      clearTimeout(espera.current);
+
+      /** Marca a próxima releitura do período que está na tela. */
+      const agendar = (alvo: ConsultaDoPeriodo): void => {
+        if (intervalo.current <= 0) return;
+        espera.current = setTimeout(() => {
+          if (typeof document !== "undefined" && document.hidden) {
+            agendar(alvo);
+            return;
+          }
+          void carregar(alvo, "reler");
+        }, intervalo.current);
+      };
 
       setEstado((atual) =>
-        modo === "atualizar"
-          ? { ...atual, atualizando: true, atualizacaoFalhou: false }
-          : {
-              ...atual,
-              fase: "carregando",
-              pedida: consulta,
-              falha: null,
-              atualizando: false,
-              atualizacaoFalhou: false,
-            },
+        modo === "reler"
+          ? atual
+          : modo === "atualizar"
+            ? { ...atual, atualizando: true, atualizacaoFalhou: false }
+            : {
+                ...atual,
+                fase: "carregando",
+                pedida: consulta,
+                falha: null,
+                atualizando: false,
+                atualizacaoFalhou: false,
+              },
       );
 
       const leitura = await buscar.current(consulta, {
@@ -129,17 +163,19 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
 
       if (leitura.estado === "ok") {
         ultimoQueValeu.current = { consulta, metricas: leitura.metricas };
-        setEstado({
+        setEstado((atual) => ({
           fase: "pronta",
           metricas: leitura.metricas,
           vigente: consulta,
           pedida: consulta,
-          recusa: recusaAnterior,
+          // Só a troca de período decide a recusa; a releitura não a apaga.
+          recusa: modo === "trocar" ? recusaAnterior : atual.recusa,
           falha: null,
           atualizando: false,
           atualizacaoFalhou: false,
-        });
+        }));
         aoAplicar.current?.(consulta);
+        agendar(consulta);
         return;
       }
 
@@ -169,16 +205,23 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
           ? { motivo: leitura.motivo, semSessao: leitura.semSessao }
           : { motivo: "o período de hoje foi recusado", semSessao: false };
 
-      setEstado((atual) =>
-        modo === "atualizar" && atual.metricas !== null
-          ? { ...atual, atualizando: false, atualizacaoFalhou: true }
-          : {
-              ...atual,
-              fase: "falhou",
-              falha,
-              atualizando: false,
-            },
-      );
+      if (modo !== "trocar" && ultimoQueValeu.current !== null) {
+        // Falhou ao atualizar: os números ficam, com o horário deles, e a
+        // tela diz que não conseguiu. A próxima releitura tenta de novo.
+        setEstado((atual) => ({
+          ...atual,
+          atualizando: false,
+          atualizacaoFalhou: true,
+        }));
+        agendar(consulta);
+        return;
+      }
+      setEstado((atual) => ({
+        ...atual,
+        fase: "falhou",
+        falha,
+        atualizando: false,
+      }));
     },
     [],
   );
@@ -187,8 +230,10 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
     void carregar(inicial.current, "trocar");
     return () => {
       // Desmontou (ou o modo estrito do React montou de novo): a leitura que
-      // ainda estiver no ar chega fora da vez e é descartada.
+      // ainda estiver no ar chega fora da vez e é descartada, e a releitura
+      // marcada não acontece.
       vez.current += 1;
+      clearTimeout(espera.current);
     };
   }, [carregar]);
 

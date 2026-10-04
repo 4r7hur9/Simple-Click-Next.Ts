@@ -54,8 +54,8 @@
 ## T-807 — Cache das métricas com horário de referência [em-andamento]
 
 - Refs: US-803, AC-814
-- Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/api/tests/metricas-cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx
-- Notas: a tela informa a que momento os números se referem e oferece atualizar agora. Pedido novo aparece dentro do prazo definido.
+- Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/api/tests/metricas-cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx, apps/web/src/features/dashboard/useMetricas.ts, apps/web/src/features/dashboard/PainelDeMetricas.tsx, apps/web/tests/horario-de-referencia.test.tsx
+- Notas: a tela informa a que momento os números se referem e oferece atualizar agora. Pedido novo aparece dentro do prazo definido. O horário é o `calculadoEm` da API, escrito no fuso da loja; "atualizar agora" pede `atualizar=1` e mantém os números na tela até os novos chegarem. Com o painel aberto, o período em vigor é relido sozinho a cada minuto (ASM-802), sem pedir recálculo, porque a marca-d'água já invalida o guardado quando entra pedido.
 - Esforço: medio
 
 ## T-808 — Exportação do período [em-andamento]
