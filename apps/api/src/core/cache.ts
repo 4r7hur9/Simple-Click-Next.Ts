@@ -840,11 +840,23 @@ export function lerConfiguracaoDoAviso(
 export type ResultadoDoAviso =
   "enviado" | "nao_configurado" | "recusado" | "indisponivel";
 
-/** O que mudou: a loja e, opcionalmente, quais dados dela. */
-export interface AvisoDeMudanca {
-  readonly lojaId: string;
-  readonly nomes?: readonly string[];
-}
+/**
+ * O que mudou: a loja e, opcionalmente, quais dados dela.
+ *
+ * A loja pode vir de dois jeitos, e cada um apaga uma família de entradas do
+ * site. Pelo IDENTIFICADOR, o que o site guardou com `lembrarNoSite`. Pelo
+ * APELIDO, a vitrine pública: o site a lê pelo endereço que o cliente abriu, e
+ * a etiqueta precisa existir antes de se saber qual loja responde (dívida 93).
+ * Os nomes são dados de uma loja identificada, e por isso só andam com o
+ * identificador.
+ */
+export type AvisoDeMudanca =
+  | {
+      readonly lojaId: string;
+      readonly nomes?: readonly string[];
+      readonly apelido?: string;
+    }
+  | { readonly apelido: string };
 
 /** Ajustes do aviso ao site. */
 export interface OpcoesDoAviso {
@@ -856,11 +868,21 @@ export interface OpcoesDoAviso {
 
 /** Corpo do aviso, exatamente como a rota do site o espera. */
 function corpoDoAviso(aviso: AvisoDeMudanca): string {
+  const apelido =
+    aviso.apelido === undefined
+      ? undefined
+      : exigirParte("o apelido da loja", aviso.apelido);
+  if (!("lojaId" in aviso)) return JSON.stringify({ apelido });
+
   const lojaId = exigirParte("o identificador da loja", aviso.lojaId);
   const nomes = (aviso.nomes ?? []).map((nome) =>
     exigirParte("o nome do dado", nome),
   );
-  return JSON.stringify(nomes.length === 0 ? { lojaId } : { lojaId, nomes });
+  return JSON.stringify({
+    lojaId,
+    ...(nomes.length === 0 ? {} : { nomes }),
+    ...(apelido === undefined ? {} : { apelido }),
+  });
 }
 
 /**
