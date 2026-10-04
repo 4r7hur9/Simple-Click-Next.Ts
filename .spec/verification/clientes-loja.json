@@ -1,11 +1,11 @@
 {
   "feature": "clientes-loja",
-  "timestamp": "2026-10-03T23:16:04.845Z",
-  "gitRev": "555557a",
+  "timestamp": "2026-10-04T00:48:14.474Z",
+  "gitRev": "a09615f",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh clientes-loja",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 87,
+  "testsParsed": 88,
   "results": {
     "AC-700": {
       "status": "pass",
