@@ -37,7 +37,7 @@
 - Notas: o período em vigor fica no endereço da página, então sobrevive ao recarregar e pode ser aberto em outra aba.
 - Esforço: medio
 
-## T-805 — Produtos mais vendidos, evolução e distribuição por hora [pendente]
+## T-805 — Produtos mais vendidos, evolução e distribuição por hora [em-andamento]
 
 - Refs: US-802, AC-807, AC-808, AC-809, AC-810
 - Arquivos: apps/api/src/modules/metrics/metricas.usecase.test.ts, apps/api/tests/metricas-ranking.test.ts, apps/web/src/features/dashboard/RankingProdutos.tsx, apps/web/src/features/dashboard/EvolucaoDiaria.tsx, apps/web/src/features/dashboard/DistribuicaoPorHora.tsx
