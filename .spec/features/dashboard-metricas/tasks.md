@@ -58,7 +58,7 @@
 - Notas: a tela informa a que momento os números se referem e oferece atualizar agora. Pedido novo aparece dentro do prazo definido.
 - Esforço: medio
 
-## T-808 — Exportação do período [pendente]
+## T-808 — Exportação do período [em-andamento]
 
 - Refs: US-804, AC-815, AC-816
 - Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/api/tests/metricas-exportacao.test.ts, apps/web/src/app/api/painel/metricas/exportar/route.ts, apps/web/src/features/dashboard/BotaoExportar.tsx
