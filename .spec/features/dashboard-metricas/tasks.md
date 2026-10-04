@@ -44,7 +44,7 @@
 - Notas: dia e hora sem venda aparecem como zero, não desaparecem do gráfico. Ordenação alternável entre quantidade e valor. Divisão entre pedido do site e manual, com o total somando os dois. Gráfico legível em tela pequena antes de bonito em tela grande, em SVG e CSS próprios, sem biblioteca (decisão de 03/10/2026). O cálculo do ranking e das séries mora em `apps/api/src/modules/metrics/consultas.ts` e `apps/api/src/modules/metrics/metricas.usecase.ts` (`unirRankings`, `completarDias`, `completarHoras`), entregues com a T-800.
 - Esforço: alto
 
-## T-806 — Métricas nunca cruzam loja [pendente]
+## T-806 — Métricas nunca cruzam loja [concluida]
 
 - Refs: US-803, AC-811
 - Arquivos: apps/api/tests/metricas-isolamento.test.ts
