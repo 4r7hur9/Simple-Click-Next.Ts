@@ -93,6 +93,14 @@ async function lancheComMolho(lojaId: string, nome: string): Promise<void> {
 
 let lojaId: string;
 
+// O CAMINHO INTEIRO É LONGO, e de propósito: cadastro, busca, ficha, pedido,
+// histórico, repetição e segunda confirmação — dez telas em sequência. No
+// primeiro cenário depois de o site subir, cada tela ainda é a primeira, e numa
+// máquina carregada isso passou dos 30 s padrão já na última confirmação, com
+// tudo certo na tela. O prazo cobre o cenário inteiro; as esperas de cada passo
+// continuam as do Playwright.
+test.describe.configure({ timeout: 60_000 });
+
 test.beforeAll(async () => {
   lojaId = (await garantirLojaDoPainel()).id;
 });

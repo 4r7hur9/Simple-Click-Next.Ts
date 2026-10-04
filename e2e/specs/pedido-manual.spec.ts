@@ -82,6 +82,13 @@ async function lancheComMolho(lojaId: string, nome: string): Promise<void> {
 
 let lojaId: string;
 
+// Quando este é o primeiro cenário depois de o site subir, a montagem do
+// pedido ainda é a primeira de tudo — o balcão lê o catálogo e o detalhe de
+// cada produto — e numa máquina carregada o cenário chegou a 28 s dos 30 s
+// padrão, com tudo certo na tela. O prazo cobre o cenário inteiro; as esperas
+// de cada passo continuam as do Playwright.
+test.describe.configure({ timeout: 60_000 });
+
 test.beforeAll(async () => {
   lojaId = (await garantirLojaDoPainel()).id;
 });

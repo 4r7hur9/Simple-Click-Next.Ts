@@ -58,9 +58,9 @@
 - Notas: fecha lacuna apontada pelo crítico. O endereço pertence à identidade do cliente, não à loja, para ele cadastrar uma vez e usar em qualquer loja.
 - Esforço: medio
 
-## T-708 — Teste de ponta a ponta de clientes [pendente]
+## T-708 — Teste de ponta a ponta de clientes [concluida]
 
 - Refs: US-701, US-702, US-703, AC-703, AC-707, AC-711
 - Arquivos: e2e/specs/clientes.spec.ts, e2e/specs/pedido-manual.spec.ts
-- Notas: cobre cadastrar cliente, lançar pedido manual com grupo obrigatório e repetir um pedido anterior.
+- Notas: cobre cadastrar cliente, lançar pedido manual com grupo obrigatório e repetir um pedido anterior. Execução em 03/10/2026: 4/4 cenários passaram nos projetos `publico` e `celular`, em banco descartável com as 34 migrações desta faixa e a carga de exemplo; o banco foi removido no fim. Para repetir sem tocar o banco de desenvolvimento: `PLAYWRIGHT_CHANNEL=chrome pnpm --filter @simpleclick/e2e test:e2e:isolado specs/clientes.spec.ts specs/pedido-manual.spec.ts`. A primeira rodada pegou duas coisas: o balcão desistia do catálogo em 2 s quando era a primeira tela depois de o site subir (corrigido no próprio balcão, que agora espera até 8 s — ver T-704), e o caminho completo, como primeiro cenário, passava dos 30 s padrão com tudo certo na tela; os dois arquivos têm prazo de 60 s por cenário.
 - Esforço: medio
