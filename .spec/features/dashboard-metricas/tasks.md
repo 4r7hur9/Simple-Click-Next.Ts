@@ -23,11 +23,11 @@
 - Notas: o índice inclui também as colunas citadas pelas políticas de isolamento — sem isso não há leitura direta pelo índice, achado medido durante a modelagem; a guarda G5 (`packages/database/guards/g5_indice_cobre_politica.sql`, inalterada) cobra isso e passa sobre a 0037. O estado de carregamento da tela (enquanto carrega, carregamento em vez de número errado) é entregue com as telas da T-803 e da T-804.
 - Esforço: alto
 
-## T-803 — Painel do dia com comparação e estado inicial útil [pendente]
+## T-803 — Painel do dia com comparação e estado inicial útil [em-andamento]
 
 - Refs: US-800, AC-801, AC-802
-- Arquivos: apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/api/painel/metricas/route.ts, apps/web/src/features/dashboard/ComparativoPeriodo.tsx, apps/web/src/features/dashboard/PainelVazio.tsx
-- Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho; no período em curso a API devolve até que instante o anterior foi contado (`comparacao.periodoAnterior.fim` e `parcial`), para a tela escrever "ontem até 14h32". O encaminhamento `/api/painel/metricas` segue o padrão de `server/encaminhar-ao-painel.ts`. Os atalhos atuais do painel (configuração, categorias, produtos) continuam alcançáveis.
+- Arquivos: apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/api/painel/metricas/route.ts, apps/web/src/server/encaminhar-ao-painel.ts, apps/web/src/features/dashboard/ComparativoPeriodo.tsx, apps/web/src/features/dashboard/PainelVazio.tsx, apps/web/src/features/dashboard/PainelDeMetricas.tsx, apps/web/src/features/dashboard/useMetricas.ts, apps/web/tests/painel-metricas.test.tsx, apps/web/tests/painel-metricas-encaminhamento.test.ts, apps/web/tests/painel-inicial.test.tsx
+- Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho; no período em curso a API devolve até que instante o anterior foi contado (`comparacao.periodoAnterior.fim` e `parcial`), para a tela escrever "ontem até 14h32". O encaminhamento `/api/painel/metricas` segue o padrão de `server/encaminhar-ao-painel.ts` (`encaminharLeituraDaLoja`, que leva a consulta sem filtrar: quem recusa chave desconhecida é a API, AC-811). Os atalhos atuais do painel (configuração, categorias, produtos) continuam alcançáveis. Os quatro estados ficam em `CorpoDasMetricas`, o mesmo desenho do painel do dia e da página de períodos; enquanto carrega não há número na tela (o estado de carregamento do AC-813).
 - Esforço: medio
 
 ## T-804 — Seletor de período com endereço compartilhável [pendente]

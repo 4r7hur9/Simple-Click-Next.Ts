@@ -12,5 +12,17 @@ describe("painel inicial do ambiente de demonstração", () => {
     expect(html).toContain('href="/l/pastelaria-da-vila/checkout"');
     expect(html).toContain('href="/minha-conta/seguranca"');
     expect(html).toContain('href="/painel/config/aparencia"');
+    // O painel do dia (T-803) entrou em cima, e os atalhos de cuidar da loja
+    // continuam alcançáveis daqui.
+    expect(html).toContain('href="/painel/categorias"');
+    expect(html).toContain('href="/painel/produtos"');
+    expect(html).toContain('href="/painel/metricas"');
+  });
+
+  it("chega ao servidor sem número: o resumo do dia nasce no estado de carregamento", () => {
+    const html = renderToStaticMarkup(<PaginaInicialDoPainel />);
+
+    expect(html).toContain('data-estado="carregando"');
+    expect(html).not.toContain("R$");
   });
 });
