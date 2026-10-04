@@ -1415,6 +1415,43 @@ bash infra/scripts/verificar.sh  # o portão completo
       fazia o AC-010 responder 500; `pnpm --filter @simpleclick/database gerar`
       resolveu. A prova que vale continua sendo a da integração.
 
+95. **O que a persistência da identidade (T-111, 03/10) deixa para as rotas
+    (T-112).** Os repositórios de banco de cadastro, login, verificação,
+    recuperação, desafio do segundo fator, sessão, aplicativo autenticador,
+    códigos de recuperação e convite existem e estão provados contra
+    PostgreSQL (`apps/api/tests/*-persistid*.test.ts`), mas nenhuma rota os
+    monta ainda: `/v1/auth` continua só com o login de desenvolvimento.
+    - **Reenvio do link de verificação numa transação só.** A trava da conta
+      que conta os reenvios vale até o fim da transação; a rota precisa abrir
+      `autorizarReenvioDeLinkExpirado` e `criarVerificacao` dentro do mesmo
+      `emTransacao`, senão dois reenvios simultâneos passam do limite.
+    - **Passos de quem já está logado precisam da identidade no contexto.**
+      Ativar o aplicativo, gerar códigos de recuperação, sair e encerrar todas
+      dependem da política "só a própria identidade": a rota abre o contexto
+      com `usuarioId` do token. Sem isso, o banco devolve zero linhas (e o
+      repositório responde "não encontrado"), nunca a linha de outra pessoa.
+    - **O canal do segundo fator é decidido pela rota e conferido pelo banco.**
+      Quem tem aplicativo ativo recebe desafio pelo aplicativo; a
+      administração sem aplicativo vai para a configuração obrigatória
+      (`decidirSegundoFatorObrigatorio`). O banco recusa código por e-mail
+      nesses dois casos (AC-121, AC-122), então errar a escolha vira erro, não
+      brecha.
+    - **O papel da sessão é o papel real.** `auth_criar_sessao` recusa sessão
+      com papel diferente do calculado no banco, e a renovação derruba a
+      família quando o papel muda (vínculo revogado, administração retirada):
+      a rota usa `PAPEL_DA_SESSAO[papel do login]`.
+    - **`CHAVE_CIFRA_TOTP` passou a ser obrigatória em produção** (a partida
+      recusa sem ela). Precisa entrar no cofre do provedor antes da próxima
+      publicação (`infra/railway/README.md`). Trocar a chave invalida os
+      aplicativos ativados: cada pessoa ativa de novo (a troca sem migração,
+      com chave anterior aceita só para decifrar, fica para quando for
+      necessária — o formato já carrega o identificador da chave).
+    - **O e-mail continua sem provedor** (dívida 35) e sem adaptador de
+      registro fora de produção (dívida 94): os dois nascem com a T-112, que é
+      a primeira a enfileirar e-mail de identidade.
+    - **Limpeza de sessões e códigos vencidos** (índices por `expires_at` já
+      existem) não tem trabalho agendado ainda.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que

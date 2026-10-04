@@ -30,18 +30,19 @@ processo só, com a versão anterior ainda atendendo normalmente.
 Nenhuma delas mora em arquivo versionado (P-002). Em produção vêm do cofre do
 provedor; para ensaiar na sua máquina, exporte-as na sessão.
 
-| Variável                    | Para quê                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------- |
-| `DATABASE_URL`              | Conexão da aplicação, pelo agrupador.                                           |
-| `DATABASE_URL_DIRETA`       | Conexão **direta**, com a credencial de migração. É a que o pré-publicação usa. |
-| `REDIS_URL`                 | Cache e filas.                                                                  |
-| `SENHA_BANCO_MIGRADOR`      | Senha do papel dono do esquema, usada pela migração `0001`.                     |
-| `SENHA_BANCO_APLICACAO`     | Senha do papel de execução do lojista e do cliente.                             |
-| `SENHA_BANCO_ADMINISTRACAO` | Senha do papel de execução da administração.                                    |
-| `JWT_SECRET`                | Assinatura dos tokens de sessão.                                                |
-| `ORIGENS_PERMITIDAS`        | Lista fechada de origens autorizadas a chamar a API.                            |
-| `PORT`                      | Porta em que a API escuta. A imagem já traz `3001`.                             |
-| `SEGUNDO_PLANO`             | Opcional. Sem valor, as filas sobem junto com a API em produção.                |
+| Variável                    | Para quê                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`              | Conexão da aplicação, pelo agrupador.                                                                                                            |
+| `DATABASE_URL_DIRETA`       | Conexão **direta**, com a credencial de migração. É a que o pré-publicação usa.                                                                  |
+| `REDIS_URL`                 | Cache e filas.                                                                                                                                   |
+| `SENHA_BANCO_MIGRADOR`      | Senha do papel dono do esquema, usada pela migração `0001`.                                                                                      |
+| `SENHA_BANCO_APLICACAO`     | Senha do papel de execução do lojista e do cliente.                                                                                              |
+| `SENHA_BANCO_ADMINISTRACAO` | Senha do papel de execução da administração.                                                                                                     |
+| `JWT_SECRET`                | Assinatura dos tokens de sessão.                                                                                                                 |
+| `ORIGENS_PERMITIDAS`        | Lista fechada de origens autorizadas a chamar a API.                                                                                             |
+| `PORT`                      | Porta em que a API escuta. A imagem já traz `3001`.                                                                                              |
+| `SEGUNDO_PLANO`             | Opcional. Sem valor, as filas sobem junto com a API em produção.                                                                                 |
+| `CHAVE_CIFRA_TOTP`          | Chave AES-256 (32 bytes em base64) do segredo do aplicativo autenticador. Sem ela a API não parte. Trocá-la invalida os aplicativos já ativados. |
 
 E uma lista do que **não pode existir** neste ambiente: `DATABASE_URL_TEST` e
 `REDIS_URL_TEST`. A suíte de testes apaga e recria dados; com essas variáveis
