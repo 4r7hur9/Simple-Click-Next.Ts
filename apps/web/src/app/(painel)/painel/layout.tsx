@@ -33,6 +33,14 @@ export default function LayoutDoPainel({
               <li>
                 <Link
                   className="sc-botao sc-botao--fantasma"
+                  href="/painel/metricas"
+                >
+                  Métricas
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="sc-botao sc-botao--fantasma"
                   href="/l/pastelaria-da-vila"
                 >
                   Ver minha loja

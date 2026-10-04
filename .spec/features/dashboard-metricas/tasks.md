@@ -30,11 +30,11 @@
 - Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho; no período em curso a API devolve até que instante o anterior foi contado (`comparacao.periodoAnterior.fim` e `parcial`), para a tela escrever "ontem até 14h32". O encaminhamento `/api/painel/metricas` segue o padrão de `server/encaminhar-ao-painel.ts` (`encaminharLeituraDaLoja`, que leva a consulta sem filtrar: quem recusa chave desconhecida é a API, AC-811). Os atalhos atuais do painel (configuração, categorias, produtos) continuam alcançáveis. Os quatro estados ficam em `CorpoDasMetricas`, o mesmo desenho do painel do dia e da página de períodos; enquanto carrega não há número na tela (o estado de carregamento do AC-813).
 - Esforço: medio
 
-## T-804 — Seletor de período com endereço compartilhável [pendente]
+## T-804 — Seletor de período com endereço compartilhável [em-andamento]
 
 - Refs: US-801, AC-803, AC-806
-- Arquivos: apps/web/src/app/(painel)/painel/metricas/page.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.test.ts
-- Notas: o período em vigor fica no endereço da página, então sobrevive ao recarregar e pode ser aberto em outra aba.
+- Arquivos: apps/web/src/app/(painel)/painel/metricas/page.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.tsx, apps/web/src/features/dashboard/MetricasPorPeriodo.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.test.tsx, apps/web/src/lib/routes.ts, apps/web/src/app/(painel)/painel/layout.tsx
+- Notas: o período em vigor fica no endereço da página, então sobrevive ao recarregar e pode ser aberto em outra aba. O endereço usa os mesmos nomes da consulta da API (`periodo`, `de`, `ate`) e só muda depois que a API aceita o período, trocado no lugar (`replaceState`). Intervalo recusado (400 `periodo_invalido`) é explicado na tela e o período anterior continua valendo, com os números dele e o endereço dele (parte de tela do AC-805); o seletor não confere o intervalo, quem decide é a API.
 - Esforço: medio
 
 ## T-805 — Produtos mais vendidos, evolução e distribuição por hora [em-andamento]
