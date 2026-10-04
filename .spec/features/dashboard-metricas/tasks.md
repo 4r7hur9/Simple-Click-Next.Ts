@@ -16,7 +16,7 @@
 - Notas: venda conta a partir de aceito pelo dono. Concluído somado ao em andamento corresponde ao vendido. Cancelado nunca conta e aparece à parte, com a regra visível na tela.
 - Esforço: medio
 
-## T-802 — Índices e desempenho das consultas de métrica [pendente]
+## T-802 — Índices e desempenho das consultas de métrica [concluida]
 
 - Refs: US-803, AC-813
 - Arquivos: packages/database/migrations/0037_indices_metricas.sql, apps/api/tests/metricas-desempenho.test.ts
