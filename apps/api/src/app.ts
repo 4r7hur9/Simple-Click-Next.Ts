@@ -87,6 +87,11 @@ import {
   naoAvisarOSite,
   type AvisarOSite,
 } from "./core/aviso-ao-site.ts";
+import {
+  criarRotasDasMetricas,
+  type OpcoesDasMetricas,
+} from "./modules/metrics/metricas.routes.ts";
+import { fusoDaLoja } from "./modules/storefront/fuso-da-loja.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -141,6 +146,10 @@ export interface OpcoesDoApp {
    * sai pela rede atrás de um site que não está de pé.
    */
   readonly avisarSite?: AvisarOSite;
+  /**
+   * O mesmo, para as métricas do painel do dono: acesso, cache e relógio.
+   */
+  readonly metricas?: Partial<OpcoesDasMetricas>;
 }
 
 /**
@@ -542,6 +551,37 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.pedidoManual,
+    }),
+  );
+
+  // AS MÉTRICAS DO PAINEL (dashboard-metricas) são costuradas aqui pelo mesmo
+  // motivo do cupom: o fuso da loja é lido pelo módulo da vitrine, e o módulo
+  // das métricas não pode importá-lo. A borda passa a função pronta. O vínculo
+  // do dono com a loja é conferido por `core/db.ts`, como em toda rota do dono.
+  app.use(
+    "/v1/lojas",
+    criarRotasDasMetricas({
+      resolverLoja: identificarLoja,
+      lerFusoDaLoja: fusoDaLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.metricas,
     }),
   );
 
