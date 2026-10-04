@@ -544,14 +544,20 @@ bash infra/scripts/verificar.sh  # o portão completo
     dívidas 2 e 10: mover para `forma`, acrescentar as duas ao ambiente de
     exemplo do teste e à lista de `VARIAVEIS`.
 
-43. **Ninguém chama o aviso de invalidação ainda.**
+43. ~~**Ninguém chama o aviso de invalidação ainda.**
     `criarAvisoDoSite` e `cache().invalidarLoja` existem e estão provados, mas
     não há caso de uso de catálogo para acioná-los — o módulo `catalog` nasce
     na F1/F3. O ponto de ligação é o caso de uso que altera produto, categoria
     ou configuração da loja: ele deve, na mesma ordem, invalidar o cache da
     API (`invalidarLoja`) e avisar o site (`avisar({ lojaId, nomes })`). O
     aviso é best-effort de propósito: `"indisponivel"` não pode derrubar a
-    alteração do catálogo, porque o prazo de validade assume.
+    alteração do catálogo, porque o prazo de validade assume.~~ **Resolvido em
+    03/10, junto com a dívida 93:** o aviso ao site é chamado num ponto só,
+    `core/aviso-ao-site.ts`, montado em `/v1/lojas` antes de toda rota do dono
+    — e não caso de uso por caso de uso. Detalhes na 93. `invalidarLoja` segue
+    sem chamada porque a API ainda não guarda dado de loja no Redis (nenhum
+    `cache().lembrar` em caso de uso); quando guardar, a chamada entra no
+    mesmo ponto, antes do aviso.
 
 44. **A regra da chave está escrita duas vezes.** `apps/api/src/core/cache.ts` e
     `apps/web/src/server/cache.ts` repetem a mesma expressão regular de parte de
@@ -1358,7 +1364,7 @@ bash infra/scripts/verificar.sh  # o portão completo
     `login-de-desenvolvimento.test.ts`); a montagem do E2E do painel e do
     cupom cria identidade e vínculo via `pg` e assina o token com esse UUID.
 
-93. **A vitrine demora até um minuto para mostrar o que o dono mudou (27/09,
+93. ~~**A vitrine demora até um minuto para mostrar o que o dono mudou (27/09,
     T-313).** O site guarda a vitrine, o catálogo e a página de produto por 60 s
     (`SEGUNDOS_DE_CACHE`, `apps/web/src/server/vitrine.ts` e `produto.ts`),
     sem etiqueta, e nenhuma rota do painel chama a invalidação (é a dívida 43,
@@ -1367,7 +1373,43 @@ bash infra/scripts/verificar.sh  # o portão completo
     nas provas dela, mas o cliente pode ver a versão antiga por até um minuto.
     O ponta a ponta do painel contorna medindo pela página do produto novo,
     que ainda não está guardada. Fechar a dívida 43 — o caso de uso do painel
-    invalida e avisa o site, e o site guarda por etiqueta da loja — fecha esta.
+    invalida e avisa o site, e o site guarda por etiqueta da loja — fecha esta.~~
+    **Resolvido em 03/10**, pela via da T-015, em três peças:
+    - **O site guarda por etiqueta.** As quatro leituras públicas — apresentação
+      e catálogo (`server/vitrine.ts`), página do produto (`server/produto.ts`)
+      e fechamento (`server/fechamento.ts`) — vão ao `fetch` do Next com a
+      etiqueta `vitrine:<apelido>` (`etiquetasDaVitrine`, `server/cache.ts`).
+      Pelo apelido, e não pelo identificador: é o que vem no endereço, e a
+      etiqueta precisa existir antes de se saber qual loja responde. O prazo
+      de 60 s (15 s no fechamento) continua, como rede de proteção.
+    - **A API avisa num ponto só.** `core/aviso-ao-site.ts` fica montado em
+      `/v1/lojas` antes de toda rota do dono: alteração aceita (2xx, verbo que
+      altera) em `/:apelido/catalogo/...` ou `/:apelido/configuracao/...`
+      chama `avisar({ apelido })` — rota nova nesses trechos já nasce avisando.
+      Fila de pedidos e cupom ficam de fora (a vitrine não mostra pedido). O
+      FIM da resposta espera o aviso, para a visita seguinte do dono já
+      encontrar o site avisado; site fora do ar não derruba a alteração. Quem
+      liga o aviso é `main.ts`, lendo `URL_DO_SITE` e `SEGREDO_DE_REVALIDACAO`;
+      `criarApp` sozinho não avisa ninguém, e os testes não saem pela rede.
+    - **O site vence a etiqueta NA HORA.** A rota `/api/revalidate` aceita
+      `apelido` além de `lojaId` e vence `vitrine:<apelido>` com
+      `revalidateTag(etiqueta, { expire: 0 })` (`motor.vencer`). O perfil
+      `"max"` do Next 16 não serviria: ele só marca a etiqueta como velha, e a
+      visita seguinte ainda recebe a cópia antiga uma vez (`areTagsStale` no
+      `incremental-cache`, conferido no 16.3.1).
+
+    Provas: `apps/web/tests/cache-da-vitrine.test.ts` (vermelha antes: 6 de 7
+    falhando sem etiqueta), `apps/web/tests/revalidar-vitrine.test.ts`,
+    `apps/api/src/core/aviso-ao-site.test.ts` e, contra banco,
+    `apps/api/tests/vitrine-avisada-pelo-painel.int.test.ts`. O que fica de
+    fora: (a) a família por identificador (`lembrarNoSite`/`invalidarNoSite`,
+    sem uso em produção hoje) continua com `"max"` — a prova da T-015
+    (`revalidate-rota.test.ts`) fixa esse perfil, e trocar exige mexer nela;
+    (b) o ponta a ponta precisa de `SEGREDO_DE_REVALIDACAO` igual na API e no
+    site para o aviso sair — sem ele o aviso fica desligado e vale o prazo; a
+    T-908 confere no navegador; (c) o manifesto de etiquetas do Next é da
+    memória do processo: com mais de uma réplica do site, a invalidação
+    precisaria de um gerenciador de cache compartilhado.
 
 ## Portão contornado
 
