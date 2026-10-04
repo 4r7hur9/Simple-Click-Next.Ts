@@ -29,6 +29,19 @@ export type LeituraDoBalcao =
   | { readonly estado: "indisponivel"; readonly motivo: string };
 
 /**
+ * Quanto o balcão espera cada resposta da API.
+ *
+ * MAIS QUE A VITRINE, e de propósito. A vitrine desiste em dois segundos
+ * (`api-client.ts`) porque tem cópia guardada e o cliente pode voltar depois.
+ * O balcão não guarda nada, pede o catálogo e o detalhe de TODOS os produtos de
+ * uma vez, e o dono está com o cliente no telefone: esperar uns segundos a mais
+ * é melhor que a tela de erro. Com dois segundos, um servidor recém-iniciado ou
+ * ocupado com outra tela derrubava o catálogo inteiro — e um detalhe que
+ * passasse do prazo sumia da lista calado.
+ */
+export const ESPERA_DO_BALCAO_EM_MS = 8_000;
+
+/**
  * Lê o catálogo da loja e o detalhe de cada produto dele.
  *
  * SEM CACHE: a vitrine pode servir a cópia de alguns segundos atrás, o balcão
@@ -43,6 +56,9 @@ export async function produtosDoBalcao(
     buscarNaRede(endereco, {
       ...opcoes,
       next: { revalidate: 0 },
+      // Substitui a espera da vitrine que `buscarCatalogo` e `buscarProduto`
+      // põem em cada pedido.
+      signal: AbortSignal.timeout(ESPERA_DO_BALCAO_EM_MS),
     } as RequestInit)) as typeof fetch;
   const catalogo = await buscarCatalogo(apelidoDaLoja, {}, buscar);
   if (catalogo.estado === "nao-encontrada") {

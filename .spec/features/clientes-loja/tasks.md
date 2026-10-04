@@ -33,8 +33,8 @@
 ## T-704 — Pedido manual lançado pelo dono [concluida]
 
 - Refs: US-702, AC-707, AC-708, AC-709
-- Arquivos: apps/api/src/modules/orders/pedido-manual.usecase.ts, apps/api/src/modules/orders/pedido-manual.usecase.test.ts, apps/api/src/modules/orders/pedido-manual.routes.ts, apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/tests/pedido-manual.int.test.ts, apps/web/src/app/(painel)/painel/pedidos/novo/page.tsx, apps/web/src/features/painel-pedidos/MontarPedido.tsx, apps/web/src/server/produtos-do-balcao.ts, apps/web/src/app/api/painel/pedidos/manual/route.ts, apps/web/tests/painel-pedido-manual.test.tsx
-- Notas: reaproveita o mesmo caminho do pedido do cliente, com canal marcado como manual — então respeita grupo obrigatório e cálculo de total do servidor. Pode ser lançado sem cadastrar o cliente, informando nome e telefone no próprio pedido. Desenhado para uso com uma mão no celular durante o atendimento.
+- Arquivos: apps/api/src/modules/orders/pedido-manual.usecase.ts, apps/api/src/modules/orders/pedido-manual.usecase.test.ts, apps/api/src/modules/orders/pedido-manual.routes.ts, apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/tests/pedido-manual.int.test.ts, apps/web/src/app/(painel)/painel/pedidos/novo/page.tsx, apps/web/src/features/painel-pedidos/MontarPedido.tsx, apps/web/src/server/produtos-do-balcao.ts, apps/web/src/app/api/painel/pedidos/manual/route.ts, apps/web/tests/painel-pedido-manual.test.tsx, apps/web/tests/produtos-do-balcao.test.ts
+- Notas: reaproveita o mesmo caminho do pedido do cliente, com canal marcado como manual — então respeita grupo obrigatório e cálculo de total do servidor. Pode ser lançado sem cadastrar o cliente, informando nome e telefone no próprio pedido. Desenhado para uso com uma mão no celular durante o atendimento. O balcão lê o catálogo sem cópia guardada e espera a API até 8 s por resposta (a vitrine desiste em 2 s): o ponta a ponta do T-708 mostrou que, com 2 s, o primeiro pedido manual depois de o site subir caía em "Não foi possível carregar o catálogo".
 - Esforço: alto
 
 ## T-705 — Pedido manual imprime e conta na métrica [concluida]
