@@ -370,6 +370,13 @@ export async function criarPedido(
     },
   });
 
+  // O cupom entra na fila de impressão NA MESMA transação (decisão de 17/08):
+  // não existe pedido salvo sem cupom enfileirado, nem cupom de pedido que não
+  // chegou a existir. Quem decide se a loja imprime pelo agente é a função do
+  // banco (migração 0034), que lê a configuração de impressão — este módulo
+  // não conhece a fila nem importa o módulo de impressão.
+  await tx.$executeRaw`SELECT app.enfileirar_impressao(${criado.id}::uuid)`;
+
   return {
     ok: true,
     pedido: {

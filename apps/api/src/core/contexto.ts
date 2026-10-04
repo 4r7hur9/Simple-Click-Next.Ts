@@ -32,12 +32,17 @@ import { randomUUID } from "node:crypto";
  *
  * A ausência de papel vale `PUBLIC`, o menor privilégio possível, nunca o
  * maior: papel desconhecido não pode virar permissão por descuido.
+ *
+ * `PRINT_AGENT` é o agente de impressão da loja (migração 0034): lê e muda só
+ * a fila de impressão da loja dele, e nunca nasce de uma sessão de pessoa —
+ * quem o põe no contexto é a autenticação do agente, pela credencial dele.
  */
 export const PAPEIS_DE_ACESSO = [
   "PUBLIC",
   "CUSTOMER",
   "OWNER",
   "STAFF",
+  "PRINT_AGENT",
 ] as const;
 
 /** Papel de quem faz a requisição, do ponto de vista das políticas do banco. */

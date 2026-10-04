@@ -28,7 +28,7 @@
  * por fora dele provaria o PostgreSQL, não o SimpleClick.
  */
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -522,6 +522,33 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       quantity: 1,
     }),
   },
+
+  // ── Impressão (migração 0034) ────────────────────────────────────────────
+
+  print_agents: {
+    chave: "id",
+    // Renomear o agente da loja vizinha é o ataque visível; o sério seria
+    // revogá-lo, e a mesma política barra os dois.
+    alteracao: { coluna: "name", valor: "Agente sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      name: `Caixa ${marca}`,
+      // Só o resumo da credencial é guardado; um por agente, em todo o banco.
+      token_sha256: `\\x${createHash("sha256").update(`agente-${marca}`).digest("hex")}`,
+    }),
+  },
+
+  print_jobs: {
+    chave: "id",
+    // Cancelar o cupom da loja vizinha é o ataque útil: a cozinha dela não
+    // recebe o pedido.
+    alteracao: { coluna: "status", valor: "CANCELED" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      order_id: exigirApoio(loja, "pedido"),
+      order_code: `PED-${marca}`,
+    }),
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -887,6 +914,7 @@ beforeAll(async () => {
       "store_sequences",
       "store_hours",
       "store_hour_exceptions",
+      "print_agents",
     ],
     [
       "orders",
@@ -907,6 +935,7 @@ beforeAll(async () => {
       "variant_option_values",
       "stock_movements",
       "product_attributes",
+      "print_jobs",
     ],
     ["order_item_options"],
   ];
