@@ -68,6 +68,11 @@ import {
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
 import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
+import {
+  avisarOSiteQuandoODonoAltera,
+  naoAvisarOSite,
+  type AvisarOSite,
+} from "./core/aviso-ao-site.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -107,6 +112,13 @@ export interface OpcoesDoApp {
    * `sc_admin`, envio do convite e relógio.
    */
   readonly administracao?: Partial<OpcoesDaAdministracao>;
+  /**
+   * Quem avisa o site quando o dono altera catálogo ou configuração, para a
+   * vitrine refletir na visita seguinte (dívida 93). `main.ts` passa o aviso
+   * lido do ambiente; sem ele a aplicação não avisa ninguém — e teste nenhum
+   * sai pela rede atrás de um site que não está de pé.
+   */
+  readonly avisarSite?: AvisarOSite;
 }
 
 /**
@@ -145,6 +157,14 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
   app.use(PREFIXO_DE_SAUDE, criarRotasDeSaude());
+
+  // ANTES DE TODA ROTA DO DONO: o ponto único que avisa o site quando o
+  // catálogo ou a configuração de uma loja muda (dívida 93). Fica na frente
+  // para que rota nova do painel já nasça avisando, sem ninguém lembrar.
+  app.use(
+    "/v1/lojas",
+    avisarOSiteQuandoODonoAltera(opcoes.avisarSite ?? naoAvisarOSite),
+  );
 
   // Usuário de teste local: só existe quando uma credencial explícita foi
   // colocada no ambiente e a rota recusa produção. A autenticação de produção

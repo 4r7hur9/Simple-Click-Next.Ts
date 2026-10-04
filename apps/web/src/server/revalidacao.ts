@@ -36,6 +36,7 @@ import {
   ehParteDeChaveValida,
   invalidarNoSite,
   type MotorDeCacheDoSite,
+  vencerVitrineNoSite,
 } from "./cache";
 
 /** Cabeçalho que carrega o segredo compartilhado — o mesmo nome que a API usa. */
@@ -52,9 +53,16 @@ export interface DependenciasDaRevalidacao {
   readonly motor?: MotorDeCacheDoSite | undefined;
 }
 
-/** O que o corpo do pedido carrega. */
+/**
+ * O que o corpo do pedido carrega.
+ *
+ * A loja vem pelo identificador (o que `lembrarNoSite` guardou), pelo apelido
+ * (a vitrine pública, que o site lê pelo endereço — dívida 93), ou pelos dois.
+ * Os nomes são dados de uma loja identificada, e só andam com o identificador.
+ */
 interface PedidoDeRevalidacao {
-  readonly lojaId: string;
+  readonly lojaId: string | null;
+  readonly apelido: string | null;
   readonly nomes: readonly string[];
 }
 
@@ -92,8 +100,21 @@ function lerPedido(corpo: unknown): PedidoDeRevalidacao | string {
   const dados = corpo as Record<string, unknown>;
 
   const lojaId = dados.lojaId;
-  if (typeof lojaId !== "string" || !ehParteDeChaveValida(lojaId)) {
-    return "lojaId ausente ou fora do formato aceito";
+  const apelido = dados.apelido;
+  if (lojaId === undefined && apelido === undefined) {
+    return "lojaId ou apelido precisa vir no corpo";
+  }
+  if (
+    lojaId !== undefined &&
+    (typeof lojaId !== "string" || !ehParteDeChaveValida(lojaId))
+  ) {
+    return "lojaId fora do formato aceito";
+  }
+  if (
+    apelido !== undefined &&
+    (typeof apelido !== "string" || !ehParteDeChaveValida(apelido))
+  ) {
+    return "apelido fora do formato aceito";
   }
 
   const nomesRecebidos = dados.nomes ?? [];
@@ -107,8 +128,15 @@ function lerPedido(corpo: unknown): PedidoDeRevalidacao | string {
   if (!nomes.every(ehParteDeChaveValida)) {
     return "há nome fora do formato aceito";
   }
+  if (nomes.length > 0 && typeof lojaId !== "string") {
+    return "nomes são dados de uma loja identificada: exigem lojaId";
+  }
 
-  return { lojaId: lojaId.trim(), nomes: nomes.map((nome) => nome.trim()) };
+  return {
+    lojaId: typeof lojaId === "string" ? lojaId.trim() : null,
+    apelido: typeof apelido === "string" ? apelido.trim() : null,
+    nomes: nomes.map((nome) => nome.trim()),
+  };
 }
 
 /** O segredo apresentado no pedido, ou `undefined` quando não veio nenhum. */
@@ -160,13 +188,20 @@ export async function responderRevalidacao(
     return responder(400, { erro: "corpo_invalido", detalhe: pedido });
   }
 
-  const invalidado = invalidarNoSite(
-    pedido.lojaId,
-    pedido.nomes,
-    dependencias.motor,
-  );
+  const invalidado = [
+    ...(pedido.lojaId === null
+      ? []
+      : invalidarNoSite(pedido.lojaId, pedido.nomes, dependencias.motor)),
+    ...(pedido.apelido === null
+      ? []
+      : vencerVitrineNoSite(pedido.apelido, dependencias.motor)),
+  ];
 
-  return responder(200, { lojaId: pedido.lojaId, invalidado });
+  return responder(200, {
+    ...(pedido.lojaId === null ? {} : { lojaId: pedido.lojaId }),
+    ...(pedido.apelido === null ? {} : { apelido: pedido.apelido }),
+    invalidado,
+  });
 }
 
 /**
