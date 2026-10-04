@@ -12,8 +12,8 @@
 ## T-801 — Três números: vendido, concluído e em andamento [em-andamento]
 
 - Refs: US-800, US-803, AC-817, AC-812
-- Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/api/tests/metricas-faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx
-- Notas: venda conta a partir de aceito pelo dono. Concluído somado ao em andamento corresponde ao vendido. Cancelado nunca conta e aparece à parte, com a regra visível na tela.
+- Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/api/tests/metricas-faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx, apps/web/src/lib/metricas.ts, apps/web/tests/apoio-metricas.ts, apps/web/tests/cartoes-de-metrica.test.tsx
+- Notas: venda conta a partir de aceito pelo dono. Concluído somado ao em andamento corresponde ao vendido. Cancelado nunca conta e aparece à parte, com a regra visível na tela. A regra escrita na tela é a `regraDeVenda` que a API devolve, e não um texto da tela; `apps/web/src/lib/metricas.ts` só escreve dinheiro, data e hora e confere a resposta pelo contrato. A divisão por canal (AC-810) aparece no cartão do vendido.
 - Esforço: medio
 
 ## T-802 — Índices e desempenho das consultas de métrica [concluida]
