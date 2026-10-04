@@ -51,7 +51,7 @@
 - Notas: inclui a tentativa de informar o identificador de outra loja na requisição. Vale também para qualquer visão agregada — visão de banco precisa executar com os direitos de quem consulta, senão mostra todas as lojas. Marcado com @principle:P-003.
 - Esforço: medio
 
-## T-807 — Cache das métricas com horário de referência [pendente]
+## T-807 — Cache das métricas com horário de referência [em-andamento]
 
 - Refs: US-803, AC-814
 - Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/api/tests/metricas-cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx
