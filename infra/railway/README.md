@@ -40,13 +40,31 @@ provedor; para ensaiar na sua máquina, exporte-as na sessão.
 | `SENHA_BANCO_ADMINISTRACAO` | Senha do papel de execução da administração.                                    |
 | `JWT_SECRET`                | Assinatura dos tokens de sessão.                                                |
 | `ORIGENS_PERMITIDAS`        | Lista fechada de origens autorizadas a chamar a API.                            |
-| `API_PORT`                  | Porta em que a API escuta. A imagem já traz `3001`.                             |
+| `PORT`                      | Porta em que a API escuta. A imagem já traz `3001`.                             |
+| `SEGUNDO_PLANO`             | Opcional. Sem valor, as filas sobem junto com a API em produção.                |
 
 E uma lista do que **não pode existir** neste ambiente: `DATABASE_URL_TEST` e
 `REDIS_URL_TEST`. A suíte de testes apaga e recria dados; com essas variáveis
 carregadas no serviço que atende loja, uma execução comum alcança o banco
 errado. O primeiro passo do pré-publicação recusa a publicação se encontrar
 qualquer uma delas (AC-031).
+
+`PORT` é o nome que o provedor injeta, e a dele vale por cima da que a imagem
+traz. `API_PORT` é o nome antigo da porta e não deve ser cadastrado: se ele
+aparecer apontando para outra porta que não a de `PORT`, a API recusa iniciar
+nomeando as duas (AC-048).
+
+## Troca de versão: o sinal de término e o prazo
+
+Ao trocar de versão, o provedor manda o sinal de término (SIGTERM) à instância
+antiga. A API para de aceitar conexão, entrega a resposta das requisições em
+curso, fecha as filas e depois banco e cache, e sai com zero; se isso passar de
+8 s, ela sai sozinha com código 1 e registra o que não fechou (AC-047,
+`apps/api/src/main.ts`). Para o desligamento ordenado acontecer, o tempo que o
+provedor espera entre o sinal de término e a morte forçada precisa ser de pelo
+menos 10 s — no Railway, é a configuração de drenagem do serviço
+(`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`). O valor padrão dela no plano escolhido
+não foi conferido: confira na primeira publicação.
 
 ## Ensaiar na sua máquina, sem publicar nada
 
