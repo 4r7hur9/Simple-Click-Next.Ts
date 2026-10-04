@@ -1,11 +1,11 @@
 {
   "feature": "catalogo-produtos",
-  "timestamp": "2026-09-27T16:50:09.217Z",
-  "gitRev": "6c2c50a",
+  "timestamp": "2026-10-03T23:39:06.152Z",
+  "gitRev": "a0dea06",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh catalogo-produtos",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 283,
+  "testsParsed": 286,
   "results": {
     "AC-300": {
       "status": "pass",
@@ -105,6 +105,11 @@
     "AC-319": {
       "status": "pass",
       "testName": "atributos do ramo @spec:AC-319 aceita voltagem prevista para eletrônicos @spec:AC-319 aceita voltagem prevista para eletrônicos",
+      "method": "vitest-json"
+    },
+    "AC-320": {
+      "status": "pass",
+      "testName": "a lanchonete vira restaurante e nada se perde (AC-320) @spec:AC-320 nenhum produto perde dado: o catálogo no banco e a página pública do produto são os mesmos depois da troca @spec:AC-320 nenhum produto perde dado: o catálogo no banco e a página pública do produto são os mesmos depois da troca",
       "method": "vitest-json"
     },
     "AC-323": {

@@ -28,10 +28,43 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
   { padrao: /^tipos-de-negocio$/, metodos: ["GET"] },
   { padrao: /^lojas$/, metodos: ["GET", "POST"] },
   { padrao: new RegExp(`^lojas/${UUID}$`), metodos: ["GET", "PATCH"] },
+  // A troca do tipo de negócio (T-203, AC-214).
+  {
+    padrao: new RegExp(`^lojas/${UUID}/tipo-de-negocio$`),
+    metodos: ["PUT"],
+  },
+  // A troca do endereço na web, que preserva o antigo (T-204, AC-208).
+  { padrao: new RegExp(`^lojas/${UUID}/apelido$`), metodos: ["PUT"] },
+  // Contrato e documentos (T-205, AC-203 a AC-205): a lista e o envio, o
+  // link temporário gerado no clique e a entrega do arquivo por ele — que só
+  // abre com o cookie da administração, porque é a API quem confere.
+  {
+    padrao: new RegExp(`^lojas/${UUID}/documentos$`),
+    metodos: ["GET", "POST"],
+  },
+  {
+    padrao: new RegExp(`^lojas/${UUID}/documentos/${UUID}/link$`),
+    metodos: ["POST"],
+  },
+  {
+    padrao: /^arquivos\/[A-Za-z0-9_-]{16,600}\.[A-Za-z0-9_-]{43}$/,
+    metodos: ["GET"],
+  },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */
 const CABECALHOS_REPASSADOS = ["content-type", "x-nome-do-arquivo"];
+
+/**
+ * Cabeçalhos da resposta que voltam da API além do tipo. São os que fazem o
+ * documento sair como ANEXO e sem rodar nada na página (AC-203, AC-205):
+ * sem eles, o arquivo chegaria ao navegador como se fosse do próprio site.
+ */
+const CABECALHOS_DA_RESPOSTA_REPASSADOS = [
+  "content-disposition",
+  "x-content-type-options",
+  "content-security-policy",
+];
 
 function respostaJson(status: number, corpo: unknown): Response {
   return new Response(JSON.stringify(corpo), {
@@ -85,6 +118,25 @@ export async function encaminharParaAdministracao(
 
   const consulta = new URL(requisicao.url).search;
   const temCorpo = metodo !== "GET" && metodo !== "HEAD";
+  const corpoDaRequisicao = temCorpo ? await requisicao.arrayBuffer() : null;
+
+  // O proxy do site corta o corpo que passa do teto dele e entrega só o
+  // começo. Um PDF cortado ainda começa com `%PDF-` e passaria pela
+  // conferência da API como se fosse inteiro — então corpo menor do que o
+  // tamanho declarado não segue: chegou incompleto.
+  const declarado = Number(requisicao.headers.get("content-length") ?? "");
+  if (
+    corpoDaRequisicao !== null &&
+    Number.isFinite(declarado) &&
+    declarado > corpoDaRequisicao.byteLength
+  ) {
+    return respostaJson(413, {
+      erro: "arquivo_recusado",
+      motivo: "GRANDE_DEMAIS",
+      mensagem:
+        "O envio passou do limite de tamanho e chegou incompleto. Nada foi gravado.",
+    });
+  }
 
   let resposta: Response;
   try {
@@ -94,7 +146,7 @@ export async function encaminharParaAdministracao(
         method: metodo,
         cache: "no-store",
         headers: cabecalhos,
-        ...(temCorpo ? { body: await requisicao.arrayBuffer() } : {}),
+        ...(corpoDaRequisicao !== null ? { body: corpoDaRequisicao } : {}),
       },
     );
   } catch {
@@ -102,12 +154,16 @@ export async function encaminharParaAdministracao(
   }
 
   const corpo = await resposta.arrayBuffer();
+  const cabecalhosDaResposta = new Headers({
+    "cache-control": "no-store",
+    "content-type": resposta.headers.get("content-type") ?? "application/json",
+  });
+  for (const nome of CABECALHOS_DA_RESPOSTA_REPASSADOS) {
+    const valor = resposta.headers.get(nome);
+    if (valor !== null) cabecalhosDaResposta.set(nome, valor);
+  }
   return new Response(corpo.byteLength === 0 ? null : corpo, {
     status: resposta.status,
-    headers: {
-      "cache-control": "no-store",
-      "content-type":
-        resposta.headers.get("content-type") ?? "application/json",
-    },
+    headers: cabecalhosDaResposta,
   });
 }
