@@ -78,3 +78,31 @@
 - Arquivos: e2e/specs/login-2fa.spec.ts, e2e/specs/cadastro.spec.ts, e2e/specs/recuperar-senha.spec.ts
 - Notas: roda também no navegador da Apple, porque o comportamento do cookie de sessão nele é critério de aceite, não detalhe.
 - Esforço: medio
+
+## T-111 — Persistência da identidade no banco [em-andamento]
+
+- Refs: US-110, AC-129, AC-130, AC-131, AC-100, AC-101, AC-103, AC-104, AC-105, AC-106, AC-107, AC-110, AC-112, AC-113, AC-114, AC-115, AC-121, AC-122, AC-123, AC-124
+- Arquivos: packages/database/migrations/0044_identidade_persistida.sql, packages/database/prisma/schema.prisma, apps/api/src/core/cifra.ts, apps/api/src/core/cifra.test.ts, apps/api/src/core/env.ts, apps/api/src/core/env.test.ts, apps/api/src/modules/auth/identidade.repo.ts, apps/api/src/modules/auth/sessoes.repo.ts, apps/api/src/modules/auth/segundo-fator.repo.ts, apps/api/src/modules/auth/convite.usecase.ts, apps/api/tests/apoio-da-identidade.ts, apps/api/tests/identidade-persistida.test.ts, apps/api/tests/sessao-persistida.test.ts, apps/api/tests/segundo-fator-persistido.test.ts, .env.example
+- Notas: implementa no banco as portas que os casos de uso já declaram, sem mudar a regra deles. Tabelas novas (sessões e famílias de renovação, códigos de uso único, segredo do aplicativo autenticador, códigos de recuperação) com isolamento ligado e forçado. Tudo pela credencial que atende requisição: os passos anteriores à sessão (cadastro, login, verificação, recuperação, desafio do segundo fator, renovação, aceite de convite) passam por funções dedicadas com caminho de busca fixo e lista fechada de campos; os passos de quem já está logado (aplicativo autenticador, códigos de recuperação, sair, encerrar todas) passam pela política de "só a própria identidade". Só o resumo de token e de código vai ao banco, nunca o valor; o segredo do aplicativo vai cifrado com AES-256-GCM e chave do ambiente, exigida na partida em produção. O banco confere o que a aplicação também confere: papel da sessão igual ao papel real da identidade, código por e-mail recusado para quem tem aplicativo ativo e para a administração, revogação que não volta atrás. O reenvio do link de verificação conta por identidade e trava a conta; a rota da T-112 precisa abrir a autorização e a criação do link novo na mesma transação.
+- Esforço: xalto
+
+## T-112 — Rotas reais de identidade na API de produção [pendente]
+
+- Refs: US-110, AC-132, AC-133, AC-100, AC-101, AC-102, AC-103, AC-104, AC-105, AC-106, AC-107, AC-108, AC-109, AC-110, AC-111, AC-112, AC-113, AC-114, AC-115, AC-119, AC-120, AC-121, AC-122, AC-123, AC-124
+- Arquivos: apps/api/src/modules/auth/auth.routes.ts, apps/api/src/modules/auth/auth.schema.ts, apps/api/src/app.ts, apps/api/src/jobs/email.job.ts, packages/contracts/src/auth.ts, apps/api/tests/rotas-de-identidade.test.ts
+- Notas: monta em `/v1/auth` as rotas de cadastro, verificação e reenvio, login, segundo fator (e-mail, aplicativo e código de recuperação), renovação, saída e encerrar todas, recuperação de senha, ativação do aplicativo e aceite de convite, compostas com os repositórios da T-111 e uma transação por requisição. Em produção a rota de desenvolvimento não é montada (troca mínima da linha de `/v1/auth` em `app.ts`). Cookie de renovação httpOnly, Secure e SameSite; cliente nativo recebe o par no corpo. Limite por conta e por origem (`core/limite.ts`) montado nas rotas de login e segundo fator, com endereço real vindo da borda confiável. Resposta neutra que não revela se o e-mail existe. E-mail pela porta `EnviadorDeEmail`: sem provedor em produção a resposta diz que o envio está indisponível; fora de produção, adaptador que só registra, sem endereço nem link (P-009). O provedor é decisão pendente do dono (dívida 35).
+- Esforço: xalto
+
+## T-113 — Telas de acesso ligadas à API real [pendente]
+
+- Refs: US-100, US-101, US-102, US-104, US-105, US-108, AC-100, AC-102, AC-103, AC-104, AC-105, AC-106, AC-107, AC-108, AC-112, AC-113, AC-114, AC-115, AC-121, AC-123
+- Arquivos: apps/web/src/server/sessao.ts, apps/web/src/app/api/auth/[...action]/route.ts, apps/web/src/server/actions/auth.ts, apps/web/src/app/(conta)/cadastrar/page.tsx, apps/web/src/app/(conta)/definir-senha/page.tsx, apps/web/tests/telas-de-acesso.test.tsx
+- Notas: a ponte de sessão do site passa a falar com as rotas reais da T-112 (cadastrar, verificar, entrar, segundo fator, renovar, sair, recuperar, definir senha e aceitar convite), e a tela de cadastro passa a existir. Formulário de acesso sem animação decorativa, com os quatro estados, celular primeiro e acessível por teclado (skill design-de-front e tokens da identidade visual).
+- Esforço: alto
+
+## T-114 — Ponta a ponta de acesso no navegador de verdade [pendente]
+
+- Refs: US-100, US-102, US-103, US-104, US-105, AC-100, AC-105, AC-106, AC-109, AC-110, AC-112, AC-114, AC-115
+- Arquivos: e2e/specs/cadastro.spec.ts, e2e/specs/login-2fa.spec.ts, e2e/specs/recuperar-senha.spec.ts
+- Notas: substitui a prova da T-110, que exercitava os casos de uso com duplos dentro da pasta de ponta a ponta, por navegação real (Playwright) contra a API montada com banco descartável: cadastro, verificação, login com segundo fator, cookie de sessão protegido, renovação, saída e recuperação de senha, inclusive no navegador da Apple.
+- Esforço: alto

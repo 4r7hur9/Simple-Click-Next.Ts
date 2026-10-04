@@ -246,6 +246,44 @@ pedido, alterar produto nem ler dados usando a sessão aberta da vítima.
 - **Quando** ele é enviado com o navegador da vítima, carregando o cookie de sessão automaticamente
 - **Então** a operação não acontece, porque o cookie tem restrição de envio entre sites e a origem é conferida em toda requisição que muda estado
 
+### US-110 — A identidade funciona na API publicada
+
+Como responsável pela plataforma, quero que cadastro, verificação de e-mail,
+login, segundo fator e sessão gravem e leiam do banco de verdade na API
+publicada, para que a primeira loja real consiga entrar sem depender do atalho
+de desenvolvimento e sem perder a sessão quando a API reinicia ou ganha outra
+instância.
+
+#### AC-129 — Conta, códigos e sessão vivem no banco, não na memória do processo
+
+- **Dado** duas instâncias da API ligadas ao mesmo banco, cada uma com o próprio agrupador de conexões
+- **Quando** a conta é criada, o e-mail é verificado, o segundo fator é aceito e a sessão é aberta pela primeira instância
+- **Então** a segunda instância reconhece a mesma conta e a mesma senha, aceita a renovação da sessão, detecta o reuso do token anterior e enxerga a saída feita pela primeira — tudo pela credencial que atende requisição, sem a credencial da administração e sem nada guardado na memória do processo
+
+#### AC-130 — Segredo do aplicativo autenticador só existe cifrado
+
+- **Dado** que ativo o aplicativo autenticador na minha conta
+- **Quando** o segredo do aplicativo é guardado
+- **Então** o banco recebe só o segredo cifrado com AES-256-GCM e chave vinda do ambiente (nunca o segredo em claro), a API de produção recusa partir sem essa chave ou com chave de tamanho errado, e segredo adulterado ou cifrado com outra chave faz o código ser recusado em vez de aceito
+
+#### AC-131 — Dado de acesso não é alcançável pela credencial das lojas
+
+- **Dado** que sou dono de uma loja com sessão aberta e existe um cliente com conta, sessão, aplicativo autenticador e códigos de recuperação
+- **Quando** a credencial que atende requisição consulta direto as tabelas de sessão, de códigos de uso único, de segredo do autenticador e de códigos de recuperação
+- **Então** não recebe nenhuma linha de outra pessoa, não lê código de uso único nem os próprios, e os passos de acesso anteriores à sessão só alcançam esses dados por funções dedicadas que devolvem a lista fechada de campos de que cada passo precisa
+
+#### AC-132 — A API publicada autentica pelo banco, sem o atalho de desenvolvimento
+
+- **Dado** a API rodando com `NODE_ENV=production`
+- **Quando** chamo as rotas de cadastro, verificação de e-mail, login, segundo fator, renovação, saída, recuperação de senha, aplicativo autenticador e aceite de convite
+- **Então** elas respondem pelos casos de uso ligados ao banco, com o token de renovação em cookie protegido e o limite de tentativas montado, e o login de desenvolvimento responde que a rota não existe
+
+#### AC-133 — Sem provedor de e-mail a API não finge que enviou
+
+- **Dado** a API de produção sem provedor de e-mail configurado (escolha ainda pendente do dono do produto)
+- **Quando** um passo precisa mandar e-mail (verificação, código do segundo fator, recuperação de senha, convite ou aviso)
+- **Então** a resposta diz com clareza que o envio está indisponível, com o mesmo texto para conta existente e inexistente, e fora de produção o envio é anotado no registro sem endereço, código nem link
+
 ## Fora de escopo
 
 - Login social (Google, Apple, Facebook) — avaliado depois da versão 1.
