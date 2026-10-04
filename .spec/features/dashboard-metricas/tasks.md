@@ -9,7 +9,7 @@
 - Notas: o corte de hoje e de qualquer intervalo usa o fuso da loja. Intervalo escolhido cobre os dois dias das pontas por completo. Data final anterior à inicial, ou intervalo acima do limite, é recusado mantendo o período anterior. A rota é `GET /v1/lojas/:apelido/metricas` (`periodo`, `de`, `ate`, `atualizar`), montada em `app.ts`; o fuso vem de `storefront/fuso-da-loja.ts` pela composição, e o vínculo do dono com a loja é o de `core/db.ts` (404, dívida 92). O período em curso compara com o mesmo pedaço do anterior (decisão de 03/10/2026). A parte de tela do AC-803 e do AC-805 (período visível, recusa explicada mantendo o anterior) é da T-804.
 - Esforço: alto
 
-## T-801 — Três números: vendido, concluído e em andamento [pendente]
+## T-801 — Três números: vendido, concluído e em andamento [em-andamento]
 
 - Refs: US-800, US-803, AC-817, AC-812
 - Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/api/tests/metricas-faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx
