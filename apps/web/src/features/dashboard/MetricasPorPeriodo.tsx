@@ -14,6 +14,7 @@
  * cada toque: o "voltar" do navegador sai do painel, como a pessoa espera, em
  * vez de desfazer um a um os atalhos tocados.
  */
+import { useId } from "react";
 import { Aviso } from "@simpleclick/ui";
 
 import {
@@ -22,6 +23,7 @@ import {
   type BuscarMetricas,
   type ConsultaDoPeriodo,
 } from "../../lib/metricas.ts";
+import { BotaoExportar } from "./BotaoExportar.tsx";
 import { CorpoDasMetricas } from "./PainelDeMetricas.tsx";
 import { SeletorDePeriodo } from "./SeletorDePeriodo.tsx";
 import { useMetricas } from "./useMetricas.ts";
@@ -57,6 +59,7 @@ export function MetricasPorPeriodo({
     aoAplicar: gravarNoEndereco,
   });
   const periodo = uso.metricas?.periodo ?? null;
+  const idDaExportacao = useId();
 
   return (
     <div className="space-y-6">
@@ -79,6 +82,20 @@ export function MetricasPorPeriodo({
       ) : null}
 
       <CorpoDasMetricas uso={uso} />
+
+      {uso.fase === "pronta" ? (
+        <section
+          aria-labelledby={idDaExportacao}
+          className="rounded-lg border border-borda bg-superficie p-4"
+        >
+          <h2 id={idDaExportacao} className="text-base font-semibold">
+            Levar os números para fora
+          </h2>
+          <div className="mt-3">
+            <BotaoExportar consulta={uso.vigente} periodo={periodo} />
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

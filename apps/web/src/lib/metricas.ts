@@ -383,3 +383,84 @@ export function periodoSemPedido(metricas: MetricasNoContrato): boolean {
     resumo.naoConfirmados.quantidade === 0
   );
 }
+
+// ---------------------------------------------------------------------------
+// A planilha do período (T-808)
+// ---------------------------------------------------------------------------
+
+/** O resultado de pedir a planilha, pronto para a tela decidir o que dizer. */
+export type PlanilhaDoPeriodo =
+  | {
+      readonly estado: "ok";
+      readonly arquivo: Blob;
+      /** O nome que a API deu ao arquivo, com loja e período. */
+      readonly nome: string;
+      /** Quantos pedidos a planilha traz, quando a API informa. */
+      readonly quantidade: number | null;
+    }
+  | { readonly estado: "recusada"; readonly explicacao: string }
+  | {
+      readonly estado: "erro";
+      readonly motivo: string;
+      readonly semSessao: boolean;
+    };
+
+/** Leitor da planilha. Entra por parâmetro para a prova não depender de rede. */
+export type BaixarPlanilha = (
+  consulta: ConsultaDoPeriodo,
+) => Promise<PlanilhaDoPeriodo>;
+
+const NOME_NO_CABECALHO = /filename="([^"]+)"/;
+
+/**
+ * Pede a planilha do período em vigor (AC-815).
+ *
+ * O recorte é o MESMO da tela, escrito pela mesma função: a planilha nunca
+ * cobre um período diferente do que o dono está olhando. Nunca lança.
+ */
+export async function baixarPlanilhaDoPeriodo(
+  consulta: ConsultaDoPeriodo,
+  buscar: typeof fetch = fetch,
+): Promise<PlanilhaDoPeriodo> {
+  let resposta: Response;
+  try {
+    resposta = await buscar(
+      `${ENDERECO_DA_EXPORTACAO}?${enderecoDoPeriodo(consulta)}`,
+      { cache: "no-store", headers: { accept: "text/csv" } },
+    );
+  } catch (causa) {
+    return {
+      estado: "erro",
+      motivo: causa instanceof Error ? causa.message : "falha de rede",
+      semSessao: false,
+    };
+  }
+
+  if (!resposta.ok) {
+    const corpo: unknown = await resposta.json().catch(() => null);
+    const recusa = esquemaDaRecusaDePeriodo.safeParse(corpo);
+    if (resposta.status === 400 && recusa.success) {
+      return { estado: "recusada", explicacao: recusa.data.explicacao };
+    }
+    return {
+      estado: "erro",
+      motivo: `a planilha respondeu ${resposta.status}`,
+      semSessao: resposta.status === 401,
+    };
+  }
+
+  const nome =
+    NOME_NO_CABECALHO.exec(
+      resposta.headers.get("content-disposition") ?? "",
+    )?.[1] ?? "pedidos.csv";
+  const quantidade = Number.parseInt(
+    resposta.headers.get("x-quantidade-de-pedidos") ?? "",
+    10,
+  );
+  return {
+    estado: "ok",
+    arquivo: await resposta.blob(),
+    nome,
+    quantidade: Number.isNaN(quantidade) ? null : quantidade,
+  };
+}

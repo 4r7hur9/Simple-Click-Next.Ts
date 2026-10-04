@@ -61,8 +61,8 @@
 ## T-808 — Exportação do período [em-andamento]
 
 - Refs: US-804, AC-815, AC-816
-- Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/api/tests/metricas-exportacao.test.ts, apps/web/src/app/api/painel/metricas/exportar/route.ts, apps/web/src/features/dashboard/BotaoExportar.tsx
-- Notas: um pedido por linha, respeitando o período escolhido, sem dado que o dono não veria na tela e sem pedido de outra loja. A exportação é registrada na auditoria. A rota é `GET /v1/lojas/:apelido/metricas/exportar`, em CSV genérico (decisão de 03/10/2026; Q-803 segue aberta).
+- Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/api/tests/metricas-exportacao.test.ts, apps/web/src/app/api/painel/metricas/exportar/route.ts, apps/web/src/features/dashboard/BotaoExportar.tsx, apps/web/src/features/dashboard/MetricasPorPeriodo.tsx, apps/web/src/lib/metricas.ts, apps/web/tests/botao-exportar.test.tsx, apps/web/tests/painel-metricas-encaminhamento.test.ts
+- Notas: um pedido por linha, respeitando o período escolhido, sem dado que o dono não veria na tela e sem pedido de outra loja. A exportação é registrada na auditoria. A rota é `GET /v1/lojas/:apelido/metricas/exportar`, em CSV genérico (decisão de 03/10/2026; Q-803 segue aberta). Na tela, o botão fica na página de períodos e pede a planilha do período EM VIGOR (o mesmo dos números, nunca o recusado); o arquivo é baixado pela tela, para sessão vencida ou recusa aparecerem como aviso em vez de um arquivo com erro dentro.
 - Esforço: medio
 
 ## T-809 — Teste de ponta a ponta do painel [pendente]

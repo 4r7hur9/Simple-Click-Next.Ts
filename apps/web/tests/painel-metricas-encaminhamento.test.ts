@@ -1,5 +1,5 @@
 /**
- * Prova do encaminhamento das métricas (T-803).
+ * Prova dos encaminhamentos das métricas (T-803, T-808).
  *
  * A tela fala com `/api/painel/metricas` do próprio site; a rota lê o token
  * do cookie httpOnly (P-008) e leva a MESMA consulta à API. O que se prova
@@ -9,6 +9,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { GET as metricas } from "../src/app/api/painel/metricas/route.ts";
+import { GET as exportar } from "../src/app/api/painel/metricas/exportar/route.ts";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -94,5 +95,41 @@ describe("encaminhamento das métricas", () => {
 
     expect(chamadas[0]?.url).toContain("lojaId=outra");
     expect(resposta.status).toBe(400);
+  });
+
+  it("a planilha chega com o nome do arquivo e a marca de codificação intactos", async () => {
+    const csv = "﻿data;numero\r\n27/09/2026;1\r\n";
+    const chamadas = simularApi(
+      () =>
+        new Response(csv, {
+          status: 200,
+          headers: {
+            "content-type": "text/csv; charset=utf-8",
+            "content-disposition":
+              'attachment; filename="pedidos-loja-2026-09-21-a-2026-09-27.csv"',
+            "x-quantidade-de-pedidos": "1",
+          },
+        }),
+    );
+    const resposta = await exportar(
+      pedidoDaTela(
+        "/api/painel/metricas/exportar?periodo=7d",
+        "sc_access=token-do-dono",
+      ),
+    );
+
+    expect(chamadas[0]?.url).toMatch(
+      /\/v1\/lojas\/[^/]+\/metricas\/exportar\?periodo=7d$/,
+    );
+    expect(resposta.status).toBe(200);
+    expect(resposta.headers.get("content-type")).toBe(
+      "text/csv; charset=utf-8",
+    );
+    expect(resposta.headers.get("content-disposition")).toContain(
+      "pedidos-loja-2026-09-21-a-2026-09-27.csv",
+    );
+    expect(resposta.headers.get("x-quantidade-de-pedidos")).toBe("1");
+    const bytes = new Uint8Array(await resposta.arrayBuffer());
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
   });
 });
