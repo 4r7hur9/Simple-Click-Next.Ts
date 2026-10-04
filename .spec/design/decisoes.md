@@ -279,6 +279,67 @@ quando deixa de valer.
   conexão segura cubra o essencial. O registro do domínio passa a ser tarefa da
   fase de publicação, e deixa de bloquear o começo.
 
+### 2026-10-03 — Pedido em andamento de loja suspensa continua acompanhável (Q-203)
+
+- **Contexto:** suspender tira a loja do ar (AC-209), mas o cliente que já
+  pediu tem na mão o link de acompanhamento, recebido pelo WhatsApp. A pergunta
+  Q-203 da administração de lojas estava aberta.
+- **Decisão:** o cliente CONTINUA acompanhando pela página pública o pedido que
+  já fez numa loja suspensa. A vitrine e o fechamento ficam indisponíveis, com a
+  mesma resposta de loja inexistente (AC-402). Loja EXCLUÍDA sai do ar por
+  inteiro, acompanhamento inclusive.
+- **Consequência:** só a rota de acompanhamento resolve a loja por um caminho
+  que aceita a suspensa; a vitrine, o carrinho e o fechamento continuam com a
+  resolução de antes. O nome e o WhatsApp público da loja chegam à página por
+  função dedicada, que devolve só esses dois campos e só para quem tem o link do
+  pedido (migração 0039) — a política pública de `stores` continua escondendo a
+  loja suspensa de todo o resto. Como loja suspensa não recebe pedido novo, todo
+  pedido acompanhado ali é anterior à suspensão. Decidido na orquestração da
+  onda 1, em 03/10/2026.
+
+### 2026-10-03 — Funcionalidades por loja: só exceções sobre o padrão ligado
+
+- **Contexto:** o modelo de dados prevê planos, assinaturas e chaves de
+  funcionalidade, e a versão 1 é integralmente gratuita (AC-213). A T-207 da
+  administração de lojas precisava saber o que nasce agora.
+- **Decisão:** nesta versão só existem as EXCEÇÕES por loja
+  (`store_feature_overrides`) sobre funcionalidades que nascem ligadas para
+  todas (AC-213). Planos e assinaturas ficam para depois. O catálogo inicial de
+  chaves é o do modelo de dados — `auto_print`, `custom_domain`, `multi_store` e
+  `orders_per_month` —, e só as que têm efeito hoje são aplicadas de fato.
+- **Consequência:** sem exceção gravada, a funcionalidade está ligada. A trava
+  mora num ponto único (o middleware `exigirFuncionalidade`), aplicado às rotas
+  de impressão que existem na base da faixa e documentado para ser ligado às
+  rotas novas da fila de impressão na integração. Decidido na orquestração da
+  onda 1, em 03/10/2026.
+
+### 2026-10-03 — Loja excluída fica 30 dias retida; a remoção definitiva respeita a guarda legal
+
+- **Contexto:** o AC-211 pede exclusão reversível por prazo e remoção definitiva
+  depois dele, e a ASM-204 propõe 30 dias. Mas a loja carrega dado que NÃO pode
+  ser apagado: os pedidos (guarda fiscal de 5 anos, CDC art. 27 — decisão 9 do
+  modelo de dados) e a trilha de auditoria (imutável pela G9, e presa à loja por
+  chave estrangeira). Um `DELETE` da linha da loja é impossível de propósito.
+- **Decisão:** excluir marca a loja (`status = 'DELETED'`, `deleted_at` e
+  `purge_after = deleted_at + 30 dias`). Ela sai das listagens e do ar na hora,
+  e a administração pode restaurá-la até o prazo. Vencido o prazo, a remoção
+  definitiva — tarefa de segundo plano — apaga o que só servia para operar e o
+  que identifica pessoas: a equipe e os convites, os endereços e apelidos
+  antigos, os documentos do responsável (arquivo e linha) e a configuração
+  (chave PIX, WhatsApp, aparência); e anonimiza o cadastro da loja (nome,
+  documento, contato e endereço), liberando o apelido. Ficam os pedidos e a
+  trilha, presos a uma linha de loja sem dado pessoal; o catálogo, que não tem
+  dado pessoal e é para onde o histórico dos pedidos aponta; e o CONTRATO
+  assinado, como prova da relação com a plataforma.
+- **Consequência:** a remoção é guiada pela data (`purge_after`) e idempotente:
+  uma rodada perdida é recuperada pela seguinte, e duas instâncias não removem a
+  mesma loja ao mesmo tempo (trava de linha que pula a já reivindicada). Roda
+  pela credencial da administração e registra `LOJA_REMOVIDA` na trilha, sem
+  pessoa. A anonimização do dado do COMPRADOR nos pedidos segue a regra própria
+  (decisão 9 do modelo), e não esta. A partida da tarefa no processo da API é da
+  LAC-03, que ainda vai subir `montarSegundoPlano` em `main.ts`. A guarda do
+  contrato depois da remoção é proposta da faixa, a confirmar com o dono.
+
 ## Pendentes — bloqueiam implementação
 
 | #   | Decisão que falta                                   | Por que bloqueia                                                                                                                                                                                                                                                                                                     | Opções                                                                                                 |
