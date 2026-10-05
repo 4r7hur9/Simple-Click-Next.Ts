@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-09-27T17:35:29.016Z",
-  "gitRev": "ef237e3",
+  "timestamp": "2026-10-03T23:30:25.949Z",
+  "gitRev": "a0dea06",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 41,
+  "testsParsed": 120,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -22,16 +22,50 @@
       "testName": "documento inválido (AC-202) @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação @spec:AC-202 CPF com dígito verificador errado é recusado explicando o motivo, antes de qualquer gravação",
       "method": "vitest-json"
     },
+    "AC-203": {
+      "status": "pass",
+      "testName": "contrato em PDF (AC-203) @spec:AC-203 o contrato em PDF é aceito e aparece com nome, tamanho, data de envio e quem enviou @spec:AC-203 o contrato em PDF é aceito e aparece com nome, tamanho, data de envio e quem enviou",
+      "method": "vitest-json"
+    },
+    "AC-204": {
+      "status": "pass",
+      "testName": "arquivo com tipo disfarçado (AC-204) @spec:AC-204 contrato.pdf que é uma imagem por dentro é recusado, e nada é guardado nem gravado @spec:AC-204 contrato.pdf que é uma imagem por dentro é recusado, e nada é guardado nem gravado",
+      "method": "vitest-json"
+    },
+    "AC-205": {
+      "status": "pass",
+      "testName": "documento anexado nunca fica público (AC-205) @spec:AC-205 sem sessão de administrador o arquivo não abre, nem com o link na mão @spec:AC-205 sem sessão de administrador o arquivo não abre, nem com o link na mão",
+      "method": "vitest-json"
+    },
     "AC-206": {
       "status": "pass",
       "testName": "a lista de lojas (AC-206) @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal @spec:AC-206 mostra código, nome, tipo de negócio, situação e data de cadastro, da mais nova para a mais antiga, sem a excluída e sem dado pessoal",
       "method": "vitest-json"
+    },
+    "AC-207": {
+      "status": "pass",
+      "testName": "a ficha da loja (AC-207, AC-118) @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico @spec:AC-207 a ficha mostra o cadastro inteiro que só a administração vê, e o cadastro já aparece no histórico",
+      "method": "vitest-json"
+    },
+    "AC-214": {
+      "status": "pass",
+      "testName": "a administração troca a lanchonete para loja de roupas (AC-214) @spec:AC-214 a vitrine passa a usar o vocabulário e o layout do ramo novo: o catálogo deixa de ser cardápio, a grade ganha destaque e os ingredientes saem de cena @spec:AC-214 a vitrine passa a usar o vocabulário e o layout do ramo novo: o catálogo deixa de ser cardápio, a grade ganha destaque e os ingredientes saem de cena",
+      "method": "vitest-json"
+    },
+    "AC-208": {
+      "status": "pass",
+      "testName": "alterar o apelido preserva o endereço antigo (AC-208) @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico",
+      "method": "vitest-json"
     }
   },
   "principles": {
+    "P-012": {
+      "status": "pass",
+      "testName": "os quatro estados da tela dos documentos (P-011) @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade"
+    },
     "P-011": {
       "status": "pass",
-      "testName": "a lista de lojas na tela @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-206 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo"
+      "testName": "a ficha da loja na tela (AC-207) @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo"
     }
   }
 }

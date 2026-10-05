@@ -333,6 +333,34 @@ chegue ao mesmo estado sem ninguém rodar comando à mão em produção.
 - **Quando** o comando de carga de dados de exemplo é executado por engano
 - **Então** ele se recusa a rodar informando que o ambiente não permite, para que dado fictício jamais alcance loja real
 
+### US-010 — A API de produção parte completa e para sem derrubar quem está sendo atendido
+
+Como responsável pela operação, quero que a API suba já com tudo o que precisa
+e pare de forma ordenada quando o provedor trocar de versão, para que publicar
+não perca requisição, e-mail na fila nem configuração esquecida.
+
+A recusa de partir sem variável obrigatória já é o AC-002; esta história liga
+aquele critério ao processo real da API e acrescenta o que falta à partida e ao
+desligamento.
+
+#### AC-046 — A partida sobe o segundo plano quando ele está ligado
+
+- **Dado** o ambiente com o segundo plano ligado — o padrão em produção — e o cache no ar
+- **Quando** a API inicia
+- **Então** a fila de e-mail e o seu trabalhador sobem no mesmo processo e consomem o trabalho enfileirado, e o registro diz que o segundo plano subiu; com o segundo plano desligado de propósito, a API sobe sem abrir conexão de fila e o registro diz que ele está desligado
+
+#### AC-047 — Sinal de término desliga a API de forma ordenada
+
+- **Dado** a API atendendo uma requisição em curso, com banco, cache e filas abertos
+- **Quando** ela recebe o sinal de término que o provedor envia ao trocar de versão
+- **Então** ela para de aceitar conexão nova, entrega por inteiro a resposta da requisição em curso, só depois fecha filas, banco e cache, e sai com código zero; se o fechamento passar do prazo de desligamento, ela sai sozinha com código diferente de zero e registra o que não fechou, em vez de ficar pendurada até ser derrubada
+
+#### AC-048 — A porta da API tem um nome só
+
+- **Dado** o ambiente de partida da API
+- **Quando** ela inicia
+- **Então** ela escuta na porta dada por `PORT`, o nome que o provedor de hospedagem injeta e que a validação de partida conhece; se o nome antigo `API_PORT` ainda estiver no ambiente apontando para outra porta, ela recusa iniciar nomeando as duas variáveis, em vez de escutar num número que ninguém escolheu
+
 ## Fora de escopo
 
 - Regras de negócio de qualquer feature: esta entrega apenas o esqueleto, o

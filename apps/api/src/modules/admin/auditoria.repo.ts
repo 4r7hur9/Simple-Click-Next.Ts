@@ -5,7 +5,7 @@
  * Assim este módulo não cria cliente de banco e continua obedecendo P-004.
  */
 
-import type { RegistroDeAcessoAdministrativo } from "../auth/autorizar.ts";
+import type { RegistroDeAcessoAdministrativo } from "../../core/acesso-administrativo.ts";
 
 export interface ExecutorSqlDeAuditoria {
   executar(

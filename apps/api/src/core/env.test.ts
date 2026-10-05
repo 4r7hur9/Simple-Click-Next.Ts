@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   carregarAmbiente,
   ErroDeAmbiente,
+  segundoPlanoLigado,
   VARIAVEIS,
+  variaveisAposentadasPresentes,
   type FonteDeAmbiente,
 } from "./env.js";
 
@@ -177,6 +179,7 @@ describe("carregarAmbiente", () => {
       "ORIGENS_PERMITIDAS",
       "PORT",
       "REDIS_URL",
+      "SEGUNDO_PLANO",
     ]);
 
     for (const nome of VARIAVEIS) {
@@ -201,5 +204,76 @@ describe("carregarAmbiente", () => {
     const erro = recusaAoCarregar(ambienteSem("DATABASE_URL_TEST"));
 
     expect(erro.variaveis).toEqual(["DATABASE_URL_TEST"]);
+  });
+});
+
+describe("o nome da porta", () => {
+  it("@spec:AC-048 recusa o nome antigo API_PORT quando ele aponta para outra porta, nomeando as duas variáveis", () => {
+    const fonte = ambienteCompleto();
+    fonte.PORT = "4100";
+    fonte.API_PORT = "4200";
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["API_PORT"]);
+    expect(erro.message).toContain("API_PORT");
+    expect(erro.message).toContain("PORT (4100)");
+    expect(erro.message).toContain("um nome só");
+  });
+
+  it("@spec:AC-048 compara o nome antigo com a porta padrão quando PORT não veio", () => {
+    // O caso perigoso: o modelo antigo de `.env` trazia só API_PORT. Com outro
+    // número ali, a API escutaria em 3001 e ninguém acharia a API.
+    const fonte = { ...ambienteSem("PORT"), API_PORT: "4200" };
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["API_PORT"]);
+    expect(erro.message).toContain("o padrão");
+  });
+
+  it("@spec:AC-048 tolera o nome antigo quando ele aponta para a mesma porta, e o aponta como aposentado", () => {
+    const fonte = { ...ambienteSem("PORT"), API_PORT: "3001" };
+
+    const ambiente = carregarAmbiente(fonte);
+
+    expect(ambiente.PORT).toBe(3001);
+    expect(variaveisAposentadasPresentes(fonte)).toEqual(["API_PORT"]);
+    expect(variaveisAposentadasPresentes(ambienteCompleto())).toEqual([]);
+  });
+
+  it("@spec:AC-048 com PORT inválida, quem reclama é PORT, e não o nome antigo", () => {
+    const fonte = ambienteCompleto();
+    fonte.PORT = "oito mil";
+    fonte.API_PORT = "3001";
+
+    expect(recusaAoCarregar(fonte).variaveis).toEqual(["PORT"]);
+  });
+});
+
+describe("o segundo plano", () => {
+  it("@spec:AC-046 liga sozinho em produção e fica desligado fora dela, salvo pedido explícito", () => {
+    expect(segundoPlanoLigado({ NODE_ENV: "production" })).toBe(true);
+    expect(segundoPlanoLigado({ NODE_ENV: "development" })).toBe(false);
+    expect(segundoPlanoLigado({ NODE_ENV: "test" })).toBe(false);
+    expect(
+      segundoPlanoLigado({ NODE_ENV: "development", SEGUNDO_PLANO: "ligado" }),
+    ).toBe(true);
+    expect(
+      segundoPlanoLigado({
+        NODE_ENV: "production",
+        SEGUNDO_PLANO: "desligado",
+      }),
+    ).toBe(false);
+  });
+
+  it("@spec:AC-046 recusa valor de segundo plano que não é ligado nem desligado", () => {
+    const fonte = ambienteCompleto();
+    fonte.SEGUNDO_PLANO = "talvez";
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["SEGUNDO_PLANO"]);
+    expect(erro.message).toContain("ligado | desligado");
   });
 });

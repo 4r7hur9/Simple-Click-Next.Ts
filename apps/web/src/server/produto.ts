@@ -25,6 +25,7 @@ import type {
 } from "../lib/produto.ts";
 
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
+import { etiquetasDaVitrine } from "./cache.ts";
 import { SEGUNDOS_DE_CACHE } from "./vitrine.ts";
 
 /** O que a página recebe: o produto, ou o motivo de não haver produto. */
@@ -93,7 +94,12 @@ export async function buscarProduto(
   let resposta: Response;
   try {
     resposta = await buscar(endereco, {
-      next: { revalidate: SEGUNDOS_DE_CACHE },
+      // A etiqueta é a da loja inteira: preço, foto e horário mudam pelo
+      // painel, e o aviso do dono vence a página de cada produto junto.
+      next: {
+        revalidate: SEGUNDOS_DE_CACHE,
+        tags: etiquetasDaVitrine(apelidoDaLoja),
+      },
       signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
       headers: { accept: "application/json" },
     } as RequestInit);

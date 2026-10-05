@@ -34,6 +34,7 @@ describe("papéis de acesso", () => {
       "CUSTOMER",
       "OWNER",
       "STAFF",
+      "PRINT_AGENT",
     ]);
   });
 

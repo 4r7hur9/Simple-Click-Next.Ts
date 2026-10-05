@@ -518,7 +518,7 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
  * Loja sem configuração nenhuma vira "não aceita nada", e não "aceita tudo de
  * graça": o padrão do que falta é o que não vende por engano.
  */
-function comoConfiguracao(
+export function comoConfiguracao(
   fechamento: FechamentoParaFechar | null,
 ): ConfiguracaoDeEntrega {
   if (fechamento === null) {

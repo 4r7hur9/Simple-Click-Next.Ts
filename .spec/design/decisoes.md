@@ -279,6 +279,49 @@ quando deixa de valer.
   conexão segura cubra o essencial. O registro do domínio passa a ser tarefa da
   fase de publicação, e deixa de bloquear o começo.
 
+### 2026-10-03 — Agente de impressão em Node/TypeScript, dentro do monorepo
+
+- **Origem:** decidido na orquestração da onda 1, ao abrir a faixa de impressão
+  (T-607 a T-610).
+- **Contexto:** as tarefas do agente e do emulador pediam arquivos em Go, mas o
+  projeto não introduz linguagem nem ferramenta nova sem o dono pedir, e tudo o
+  que o agente precisa já existe em TypeScript puro, sem dependência externa: o
+  contrato do cupom (versão 1), `diagramarCupom`, `lerCupomImpresso` e
+  `compilarEscPos`, em `packages/core`.
+- **Decisão:** o agente é um programa Node/TypeScript dentro do monorepo, em
+  `apps/agente-impressao`, que roda com o Node 24 instalado na máquina da loja,
+  sem empacotador nem executável único. A versão 1 fala só com impressora de rede
+  (TCP na porta 9100, por `node:net`); impressora USB fica para decisão futura,
+  porque exigiria módulo nativo ou chamar o spooler do sistema. O emulador de
+  impressora (T-610) também é Node/TypeScript e roda dentro do processo do teste.
+- **Consequência:** o cupom tem UMA implementação, a mesma da impressão pelo
+  navegador, e o agente não pode divergir dela; nenhuma dependência npm nova. O
+  custo é exigir o Node 24 instalado na máquina da loja e não ter, por enquanto,
+  instalação como serviço do sistema nem impressora USB. Q-603 (quais sistemas
+  na versão 1) continua aberta: o Node roda nos três, mas instalar e manter o
+  agente em cada um é outra decisão.
+
+### 2026-10-03 — Fila de impressão: quando enfileira, quando soma a via, e o clique
+
+- **Origem:** decidido na orquestração da onda 1, ao abrir a faixa de impressão.
+- **Contexto:** a decisão de 17/08 pôs a fila no PostgreSQL e o enfileiramento na
+  transação do pedido, mas deixou abertos três pontos que mudam o que sai no
+  papel: em que momento o trabalho entra na fila, quando a via (AC-621) é somada,
+  e o que acontece quando o dono imprime por clique um cupom que ainda está na
+  fila.
+- **Decisão:** o trabalho entra na fila na CRIAÇÃO do pedido, por uma função SQL
+  chamada na mesma transação — assim o módulo de pedidos não importa o de
+  impressão, e a função só enfileira para a loja com o automático ligado. A via é
+  somada na PRIMEIRA reivindicação do trabalho e guardada junto com os blocos; o
+  reenvio do mesmo trabalho reaproveita os blocos e não soma via. Imprimir por
+  clique um cupom pendente CANCELA o trabalho da fila, e o cupom nunca sai
+  duplicado. Uma impressora por loja na versão 1 (Q-601 segue aberta).
+- **Consequência:** o pedido que ainda aguarda confirmação no WhatsApp também
+  imprime, porque já é pedido criado. Um trabalho que nunca saiu não conta via,
+  e por isso a primeira impressão manual dele sai como via 1. Se o agente
+  confirmar depois de o dono ter imprimido por clique, o trabalho continua
+  cancelado e a contagem de vias do pedido segue sendo a verdade.
+
 ### 2026-10-03 — Painel de métricas: gráfico próprio, comparação justa e planilha genérica
 
 - **Contexto:** o painel do dono (dashboard-metricas) precisa de gráficos de
@@ -307,13 +350,13 @@ quando deixa de valer.
 
 ## Pendentes — bloqueiam implementação
 
-| #   | Decisão que falta                                   | Por que bloqueia                                                                 | Opções                                                                                                 |
-| --- | --------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| D2b | Qual armazenamento privado guarda o contrato        | Bloqueia a tarefa T-205; o Cloudinary cobre a mídia mas não o documento sensível | Armazenamento de objeto sem custo de saída · armazenamento da AWS · armazenamento do provedor de banco |
-| D3  | Como a fila de pedidos atualiza ao vivo             | Muda três critérios de aceite e o custo no plano gratuito                        | Conexão contínua servidor para cliente · conexão bidirecional · consulta periódica curta               |
-| D5  | Estoque reserva no carrinho ou baixa na confirmação | Define se existe janela de venda a mais                                          | Baixa na confirmação, com janela aceita · reserva com prazo no carrinho                                |
-| D6  | Repositório público ou privado                      | Define o orçamento de minutos de verificação automatizada                        | Privado com orçamento limitado · público com verificação sem custo                                     |
-| D7  | Nome do domínio definitivo                          | Não bloqueia mais nada: virou tarefa da fase de publicação, no fim do projeto    | —                                                                                                      |
+| #   | Decisão que falta                                   | Por que bloqueia                                                                                                                                                                                                                                                                                                     | Opções                                                                                                 |
+| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| D2b | Qual armazenamento privado guarda o contrato        | Bloqueia o envio de documentos da T-205 em PRODUÇÃO: o código está pronto atrás de uma porta (`core/arquivo-privado.ts`) e, sem esta decisão, responde 503 "indisponível" ali; a prova usa memória e o ambiente local, disco (`ARMAZENAMENTO_PRIVADO_DIR`). O Cloudinary cobre a mídia, mas não o documento sensível | Armazenamento de objeto sem custo de saída · armazenamento da AWS · armazenamento do provedor de banco |
+| D3  | Como a fila de pedidos atualiza ao vivo             | Muda três critérios de aceite e o custo no plano gratuito                                                                                                                                                                                                                                                            | Conexão contínua servidor para cliente · conexão bidirecional · consulta periódica curta               |
+| D5  | Estoque reserva no carrinho ou baixa na confirmação | Define se existe janela de venda a mais                                                                                                                                                                                                                                                                              | Baixa na confirmação, com janela aceita · reserva com prazo no carrinho                                |
+| D6  | Repositório público ou privado                      | Define o orçamento de minutos de verificação automatizada                                                                                                                                                                                                                                                            | Privado com orçamento limitado · público com verificação sem custo                                     |
+| D7  | Nome do domínio definitivo                          | Não bloqueia mais nada: virou tarefa da fase de publicação, no fim do projeto                                                                                                                                                                                                                                        | —                                                                                                      |
 
 Resolvidas: D1 (contrato de esquema único), D2 (mídia no Cloudinary), D4 (Prisma
 sob arranjo obrigatório), D6 (privado com verificação local), o escopo da versão 1

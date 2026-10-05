@@ -14,8 +14,9 @@
  * - cada caractere sai como o byte daquela tabela, e nunca como UTF-8. "í" em
  *   UTF-8 são dois bytes, e a impressora desenharia dois símbolos estranhos.
  *
- * É também a implementação de referência do agente de impressão (T-609): o
- * agente em outra linguagem gera exatamente estes bytes para as mesmas linhas.
+ * É também a saída do agente de impressão (T-609), que é Node/TypeScript dentro
+ * do monorepo (decisão de 03/10): o agente chama ESTA função, e não existe uma
+ * segunda implementação dos bytes para divergir desta.
  */
 
 import type { LinhaDoCupom, TamanhoDoTexto } from "./cupom-blocos.ts";
