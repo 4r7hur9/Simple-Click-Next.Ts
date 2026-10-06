@@ -1,11 +1,11 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-09-27T19:01:57.704Z",
-  "gitRev": "4e602e1",
+  "timestamp": "2026-10-06T02:36:47.258Z",
+  "gitRev": "5943fc8",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh identidade-acesso",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 118,
+  "testsParsed": 124,
   "results": {
     "AC-100": {
       "status": "pass",
@@ -34,7 +34,7 @@
     },
     "AC-105": {
       "status": "pass",
-      "testName": "login com senha @spec:AC-105 senha correta pede o segundo fator antes de liberar a sessão @spec:AC-105 senha correta pede o segundo fator antes de liberar a sessão",
+      "testName": "o usuário de teste local é dono de verdade da loja local @spec:AC-105 @principle:P-002 sem credencial de teste no ambiente a rota não existe @spec:AC-105 @principle:P-002 sem credencial de teste no ambiente a rota não existe",
       "method": "vitest-json"
     },
     "AC-106": {
@@ -119,7 +119,7 @@
     },
     "AC-118": {
       "status": "pass",
-      "testName": "papéis e escopo de acesso @spec:AC-118 administrador lê dados de qualquer loja e o acesso fica no histórico de auditoria @spec:AC-118 administrador lê dados de qualquer loja e o acesso fica no histórico de auditoria",
+      "testName": "a ficha da loja (AC-207, AC-118) @spec:AC-118 cada abertura da ficha fica na trilha com quem abriu, o que abriu e quando @spec:AC-118 cada abertura da ficha fica na trilha com quem abriu, o que abriu e quando",
       "method": "vitest-json"
     },
     "AC-119": {
@@ -157,6 +157,10 @@
     "P-003": {
       "status": "pass",
       "testName": "papéis e escopo de acesso @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto @spec:AC-116 @principle:P-003 dono da loja A não lê produto da loja B, mesmo com o id direto"
+    },
+    "P-002": {
+      "status": "pass",
+      "testName": "o usuário de teste local é dono de verdade da loja local @spec:AC-105 @principle:P-002 sem credencial de teste no ambiente a rota não existe @spec:AC-105 @principle:P-002 sem credencial de teste no ambiente a rota não existe"
     }
   }
 }
