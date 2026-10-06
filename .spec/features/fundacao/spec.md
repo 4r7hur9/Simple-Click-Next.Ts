@@ -361,6 +361,42 @@ desligamento.
 - **Quando** ela inicia
 - **Então** ela escuta na porta dada por `PORT`, o nome que o provedor de hospedagem injeta e que a validação de partida conhece; se o nome antigo `API_PORT` ainda estiver no ambiente apontando para outra porta, ela recusa iniciar nomeando as duas variáveis, em vez de escutar num número que ninguém escolheu
 
+### US-011 — O banco de produção nasce vazio, ganha a primeira administração e tem cópia que volta
+
+Como responsável pela operação, quero levar um banco de produção recém-criado
+ao estado do código, criar a primeira administração da plataforma e ter uma
+cópia de segurança que eu já vi voltar, para que a primeira publicação não
+dependa de comando digitado à mão no banco nem de segredo guardado no código.
+
+A primeira aplicação das migrações não pode ser feita pela credencial de
+migração, porque é a primeira migração que cria essa credencial. E a
+administração não pode nascer sem o aplicativo autenticador: sem ele ela não
+abre sessão (AC-122) e ficaria trancada do lado de fora.
+
+#### AC-049 — Banco de produção vazio arranca com a credencial de arranque e passa a ser da credencial de migração
+
+- **Dado** um banco de produção recém-criado e vazio, a credencial de dono que o provedor entrega e as senhas dos três papéis no ambiente
+- **Quando** o operador roda o arranque com essa credencial
+- **Então** as migrações chegam ao estado atual, os papéis de migração, de aplicação e de administração passam a entrar com as senhas do ambiente, e a credencial de migração confere sozinha que o banco está em dia, de modo que a publicação seguinte já não precisa da credencial de arranque; rodar de novo não altera nada; e, com a conexão ou o cache de teste presentes no ambiente, o arranque recusa nomeando a variável antes de tocar o banco
+
+#### AC-050 — A primeira administração nasce do ambiente, uma vez só e sem segredo no código
+
+- **Dado** o banco arrancado e sem administração da plataforma
+- **Quando** o operador informa o e-mail e a senha da primeira administração por variável de ambiente
+- **Então** nasce uma identidade com e-mail confirmado e com a administração da plataforma, gravada pela credencial de administração e nunca pela de migração; a senha cumpre a política de senha e não aparece na saída; rodar de novo com o mesmo e-mail termina com sucesso sem alterar nada; e, se já existir outra administração ativa, se o e-mail já pertencer a uma conta que não é administração, se a senha for fraca ou se faltar a chave de cifra do aplicativo, o arranque recusa dizendo o motivo e não grava nada
+
+#### AC-051 — A primeira administração só entra com o aplicativo autenticador
+
+- **Dado** o arranque da primeira administração
+- **Quando** o operador cadastra no aplicativo autenticador a chave mostrada e digita o código que o aplicativo mostra
+- **Então** a administração só é gravada se o código conferir, o segredo do aplicativo vai cifrado para o banco, os códigos de recuperação aparecem uma única vez na saída, e no primeiro acesso a senha sozinha não abre sessão: o login pede o código do aplicativo, o código usado no arranque não vale de novo, e só um código novo do aplicativo libera a sessão de administração
+
+#### AC-052 — Cópia de segurança com retenção de sete dias e restauração ensaiada
+
+- **Dado** o banco com dados de lojas
+- **Quando** o operador faz a cópia de segurança e depois o ensaio de restauração
+- **Então** a cópia sai num arquivo com a data no nome e com um manifesto tirado do mesmo instante da cópia (migrações aplicadas e linhas por tabela); cópias da mesma pasta com mais de sete dias são apagadas e as mais novas ficam; o ensaio restaura a cópia num banco descartável novo, confere o livro de migrações, o isolamento forçado e a contagem de linhas de cada tabela contra o manifesto, e apaga o banco descartável no fim; e uma cópia corrompida reprova o ensaio sem deixar banco descartável para trás
+
 ## Fora de escopo
 
 - Regras de negócio de qualquer feature: esta entrega apenas o esqueleto, o
@@ -368,8 +404,8 @@ desligamento.
 - Aplicativos nativos em Kotlin e Swift: a fundação garante o contrato publicado
   que eles vão consumir, mas não os constrói.
 - Escala horizontal, réplicas de leitura e particionamento de tabela.
-- Recuperação de desastre com restauração testada de cópia de segurança —
-  ver Q-004.
+- Recuperação de desastre completa (outra região, outro provedor). A cópia
+  diária com restauração ensaiada entrou pela US-011 (Q-004).
 - Rastreamento distribuído completo e painel de métricas de infraestrutura.
 - Ambiente de homologação separado de produção — ver Q-002.
 
