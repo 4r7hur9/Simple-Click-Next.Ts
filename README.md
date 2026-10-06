@@ -750,7 +750,7 @@ curl -s http://127.0.0.1:3001/v1/health/live
 docker stop sc-api
 ```
 
-Em 06/10 a imagem da API foi construída e respondeu `/v1/health/live` depois de dois consertos: o `.dockerignore` só ignorava o `node_modules` da raiz (agora `**/node_modules/`), e o `packages/core` faltava na instalação e na imagem final.
+Em 06/10 as duas imagens foram construídas e responderam (a API em `/v1/health/live`, o site com 200 na raiz) depois de dois consertos: o `.dockerignore` só ignorava o `node_modules` da raiz (agora `**/node_modules/`), e o `packages/core` faltava na instalação e na imagem final.
 
 Para ensaiar o `pre-deploy.sh` sem publicar, rode-o com `env -i` e as variáveis apontando para um **banco descartável** (o script não lê `.env` de propósito); o roteiro está no cabeçalho do próprio script. Nunca aponte o ensaio para o banco de desenvolvimento.
 
