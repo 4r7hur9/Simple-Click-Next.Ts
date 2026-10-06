@@ -117,6 +117,30 @@ function urlDaAplicacaoNoBanco(url: string): string {
   return destino.toString();
 }
 
+/**
+ * Abre o acesso da ADMINISTRAÇÃO (`sc_admin`) sobre o banco descartável do
+ * arquivo, pelo mesmo `core/db.ts` que a API usa.
+ *
+ * A senha é lida aqui, e não no carregamento do módulo: a maioria das provas
+ * de isolamento nunca fala como administração, e não pode reprovar por falta
+ * de uma variável de que não precisa.
+ */
+export function abrirAcessoDaAdministracaoNoBanco(
+  urlDoBancoDeTeste: string,
+  opcoes: OpcoesDoAgrupador,
+): AcessoAoBanco {
+  const destino = new URL(urlDoBancoDeTeste);
+  destino.username = "sc_admin";
+  destino.password = exigirVariavel("SENHA_BANCO_ADMINISTRACAO");
+  const espera = opcoes.esperaMs ?? 60_000;
+  return criarAcessoAoBanco({
+    urlDaAplicacao: destino.toString(),
+    maxDeConexoes: opcoes.maxDeConexoes,
+    esperaPorConexaoMs: espera,
+    duracaoMaximaMs: espera,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // SQL montado a partir do catálogo
 // ---------------------------------------------------------------------------
