@@ -313,10 +313,18 @@ quando deixa de valer.
   rotas novas da fila de impressão na integração. Decidido na orquestração da
   onda 1, em 03/10/2026.
 - **Como ficou na T-207 (06/10/2026):** `auto_print` responde pela ÁREA DE
-  IMPRESSÃO TÉRMICA inteira — cupom por clique, configuração do papel e agente
-  —, que é o que o AC-212 pede para sumir do menu. A lista das rotas da área é
-  `ROTAS_DA_IMPRESSAO_TERMICA`, em `apps/api/src/app.ts`; as rotas do agente e
-  do pareamento entram nela, e só nela. Só a chave com efeito pode ser
+  IMPRESSÃO TÉRMICA do painel do dono — cupom por clique, configuração do papel
+  e o lado do dono da impressão automática (estado do agente, pendentes e
+  geração do código de pareamento) —, que é o que o AC-212 pede para sumir do
+  menu. A lista dessas rotas é `ROTAS_DA_IMPRESSAO_TERMICA`, em
+  `apps/api/src/app.ts` (`/:apelido/configuracao/impressao`,
+  `/:apelido/pedidos/:id/cupom` e `/:apelido/impressao`), e rota nova com
+  apelido no endereço entra nela, e só nela. As rotas do PRÓPRIO AGENTE
+  (`/v1/impressao/agente/*`: pareamento, trabalhos, confirmação e falha) não têm
+  apelido no endereço e ficam FORA do portão: com a área desligada, nada novo
+  entra na fila (`criar-pedido.usecase.ts`), mas o cupom que já estava nela e um
+  código gerado pouco antes ainda funcionam. Fechar também essas rotas é
+  pergunta ao dono (HarnessPlan.md, 8.2). Só a chave com efeito pode ser
   desligada (as outras respondem 422), e religar apaga a exceção. Proposta da
   faixa, a confirmar com o dono: o nome da chave segue o modelo de dados, mas
   cobre mais que a impressão automática.

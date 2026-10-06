@@ -247,8 +247,10 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // O PORTÃO DE FUNCIONALIDADE POR LOJA (T-207, AC-212): o PONTO ÚNICO que
   // tira do ar, para a loja em que a administração desligou, cada rota da
   // área de impressão térmica — e antes de qualquer rota dela, acessada
-  // direto ou não. Rota nova da área (o agente e o pareamento da fila de
-  // impressão) entra NESTA lista, e só nela.
+  // direto ou não. Rota nova da área com apelido no endereço entra NESTA
+  // lista, e só nela. As rotas do próprio agente (`/v1/impressao/agente/*`)
+  // não têm apelido e ficam fora: fechá-las é pergunta ao dono (HarnessPlan
+  // 8.2); com a área desligada, nada novo entra na fila delas.
   app.use(
     ROTAS_DA_IMPRESSAO_TERMICA.map((caminho) => `/v1/lojas${caminho}`),
     exigirFuncionalidade("auto_print", {
@@ -611,7 +613,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
 
   // A IMPRESSÃO AUTOMÁTICA (T-608) tem roteador próprio, numa linha: o agente
   // de impressão (pareamento, trabalhos, confirmação) e o estado dele no
-  // painel do dono. O portão de funcionalidade por loja (T-207) entra aqui. O
+  // painel do dono. O lado do dono (`/v1/lojas/:apelido/impressao/*`) já
+  // passou pelo portão de `auto_print` acima; o lado do agente não. O
   // limite do pareamento conta no Redis, conectado só na primeira tentativa;
   // Redis fora do ar FECHA o pareamento, e o resto da impressão segue.
   app.use(
