@@ -46,13 +46,14 @@
 
 ## Cliente final
 
-| #   | Rota                        | Tela                           | Acesso   | Estados | E2E                      | Critérios              |
-| --- | --------------------------- | ------------------------------ | -------- | ------- | ------------------------ | ---------------------- |
-| 17  | `/minha-conta`              | Meus dados                     | CUSTOMER | 4E      | e2e-conta-dados          | AC-509                 |
-| 18  | `/minha-conta/pedidos`      | Meus pedidos (todas as lojas)  | CUSTOMER | 4E      | e2e-conta-pedidos        | AC-616                 |
-| 19  | `/minha-conta/pedidos/{id}` | Detalhe do meu pedido          | CUSTOMER | 4E      | e2e-conta-pedido-detalhe | AC-616, AC-713         |
-| 20  | `/minha-conta/enderecos`    | Meus endereços                 | CUSTOMER | 4E      | e2e-conta-enderecos      | AC-509                 |
-| 21  | `/minha-conta/seguranca`    | Senha, segundo fator e sessões | CUSTOMER | 4E      | e2e-conta-seguranca      | AC-108, AC-112, AC-113 |
+| #   | Rota                                | Tela                             | Acesso   | Estados | E2E                      | Critérios              |
+| --- | ----------------------------------- | -------------------------------- | -------- | ------- | ------------------------ | ---------------------- |
+| 17  | `/minha-conta`                      | Meus dados                       | CUSTOMER | 4E      | e2e-conta-dados          | AC-509                 |
+| 18  | `/minha-conta/pedidos`              | Meus pedidos (todas as lojas)    | CUSTOMER | 4E      | e2e-conta-pedidos        | AC-616                 |
+| 19  | `/minha-conta/pedidos/{id}`         | Detalhe do meu pedido            | CUSTOMER | 4E      | e2e-conta-pedido-detalhe | AC-616, AC-713         |
+| 20  | `/minha-conta/enderecos`            | Meus endereços                   | CUSTOMER | 4E      | e2e-conta-enderecos      | AC-509                 |
+| 21  | `/minha-conta/seguranca`            | Senha, segundo fator e sessões   | CUSTOMER | 4E      | e2e-conta-seguranca      | AC-108, AC-112, AC-113 |
+| 21a | `/minha-conta/seguranca/aplicativo` | Ativar o aplicativo autenticador | CUSTOMER | 4E      | e2e-conta-aplicativo     | AC-121, AC-123         |
 
 ## Dono da loja — operação
 

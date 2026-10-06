@@ -81,13 +81,17 @@ export function adicionarCookieDeRenovacao(
   );
 }
 
-/** Cookie temporário somente para a ponte de configuração local. */
+/**
+ * Cookie do token de acesso curto (15 minutos), que as rotas do servidor do
+ * site usam para falar com a API em nome da pessoa. HttpOnly como o de
+ * renovação: script nenhum o lê. Vale também em produção (T-113) — é por ele
+ * que o painel e a conta alcançam a API depois do login real.
+ */
 export function adicionarCookieDeAcesso(
   cabecalhos: Headers,
   token: string,
-  fonte: Readonly<Record<string, string | undefined>> = process.env,
+  _fonte: Readonly<Record<string, string | undefined>> = process.env,
 ): void {
-  if (fonte.NODE_ENV === "production") return;
   cabecalhos.append(
     "set-cookie",
     `${NOME_DO_COOKIE_DE_ACESSO}=${encodeURIComponent(token)}; Max-Age=${DURACAO_DO_COOKIE_DE_ACESSO_EM_SEGUNDOS}; Path=/; HttpOnly; Secure; SameSite=Lax`,
@@ -109,4 +113,28 @@ export function lerTokenDeAcessoDoCookie(
     }
   }
   return undefined;
+}
+
+/** Apaga os dois cookies da sessão (renovação recusada, saída). */
+export function adicionarCookiesQueApagam(
+  cabecalhos: Headers,
+  fonte: Readonly<Record<string, string | undefined>> = process.env,
+): void {
+  const dominio = dominioDoCookieDeSessao(fonte);
+  cabecalhos.append(
+    "set-cookie",
+    [
+      `${NOME_DO_COOKIE_DE_RENOVACAO}=`,
+      "Max-Age=0",
+      "Path=/",
+      ...(dominio === undefined ? [] : [`Domain=${dominio}`]),
+      "HttpOnly",
+      "Secure",
+      "SameSite=Lax",
+    ].join("; "),
+  );
+  cabecalhos.append(
+    "set-cookie",
+    `${NOME_DO_COOKIE_DE_ACESSO}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`,
+  );
 }

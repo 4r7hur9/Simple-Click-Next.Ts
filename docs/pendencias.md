@@ -1494,6 +1494,29 @@ bash infra/scripts/verificar.sh  # o portão completo
     - **Limpeza de sessões e códigos vencidos** (índices por `expires_at` já
       existem) não tem trabalho agendado ainda.
 
+96. **O que as rotas reais de identidade e as telas (T-112, T-113, 05/10)
+    deixam para depois.** `/v1/auth` autentica pelo banco em produção, com
+    limite de tentativas, cookie protegido e respostas neutras, e as telas de
+    acesso falam com essas rotas pela ponte do site. Ficou de fora:
+    - **Código de barras quadrado do aplicativo autenticador.** Sem
+      biblioteca nova, a tela mostra a chave em texto e o link `otpauth://`.
+      Desenhar o QR pede decisão: biblioteca pequena ou gerador próprio.
+    - **Renovação automática no site.** A ponte renova em
+      `/api/auth/renovar`, mas nenhuma tela a chama quando o token de acesso
+      (15 minutos) vence; até lá, quem fica parado precisa entrar de novo.
+    - **Primeiro administrador geral.** Administração sem aplicativo recebe
+      "configuração obrigatória" e nenhuma sessão (AC-122); o arranque do
+      banco de produção (T-115) precisa nascer com o aplicativo dele ativado.
+    - **E-mail síncrono.** A confirmação (verificação, código do login) sai
+      dentro da requisição; os avisos saem depois do commit. Com provedor
+      real (dívida 35), vale passar pela fila.
+    - **Convite do dono fora de produção** continua no adaptador que falha
+      alto (`app.ts`, rota da administração); a identidade já usa o que só
+      registra.
+    - **Ponta a ponta (T-114)** precisa de uma caixa de e-mail de prova na
+      API do ponta a ponta: o adaptador de registro, de propósito, não anota
+      link nem código.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que

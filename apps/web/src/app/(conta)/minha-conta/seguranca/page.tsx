@@ -1,3 +1,5 @@
+import { Aviso } from "@simpleclick/ui";
+
 import {
   encerrarTodasAsSessoes,
   sairDaConta,
@@ -12,7 +14,12 @@ export const metadata = {
  * Formulários funcionam sem JavaScript e enviam a ação ao servidor, que nunca
  * expõe o cookie de renovação ao código do navegador (P-008).
  */
-export default function PaginaDeSeguranca() {
+export default async function PaginaDeSeguranca({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>;
+}) {
+  const { estado } = await searchParams;
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <header>
@@ -21,6 +28,28 @@ export default function PaginaDeSeguranca() {
           Controle onde sua conta permanece conectada.
         </p>
       </header>
+
+      {estado === "erro" ? (
+        <Aviso tom="erro" className="mt-6">
+          Não foi possível encerrar a sessão. Tente novamente.
+        </Aviso>
+      ) : null}
+
+      <section aria-labelledby="titulo-segundo-fator" className="mt-10">
+        <h2 id="titulo-segundo-fator" className="text-xl font-semibold">
+          Segundo fator
+        </h2>
+        <p className="mt-2 text-[var(--cor-tinta-suave)]">
+          Com o aplicativo autenticador, entrar pede também o código do seu
+          celular. Para lojistas e administração, é a proteção mais forte.
+        </p>
+        <a
+          className="sc-botao sc-botao--secundario mt-4 inline-flex"
+          href="/minha-conta/seguranca/aplicativo"
+        >
+          Configurar aplicativo autenticador
+        </a>
+      </section>
 
       <section aria-labelledby="titulo-sair" className="mt-10">
         <h2 id="titulo-sair" className="text-xl font-semibold">

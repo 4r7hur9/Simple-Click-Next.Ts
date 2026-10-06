@@ -1,19 +1,55 @@
 "use client";
 
+/**
+ * Formulário de login (AC-105, AC-108, AC-119, AC-122, T-113).
+ *
+ * Quatro estados: preenchendo, enviando, erro (mensagem que não revela se
+ * foi o e-mail ou a senha) e sucesso (a tela segue para o segundo fator ou
+ * para a área da pessoa). Recebe a chamada por propriedade: não fala com a
+ * API sozinho.
+ */
 import { useState, type FormEvent } from "react";
 import { Aviso, Botao, Campo } from "@simpleclick/ui";
 
 export type RespostaDoLoginNaTela =
-  | { readonly status: "DESAFIO_DE_SEGUNDO_FATOR"; readonly desafioId: string }
+  | {
+      readonly status: "DESAFIO_DE_SEGUNDO_FATOR";
+      readonly desafioId: string;
+      readonly canal?: "EMAIL" | "TOTP";
+    }
   | { readonly status: "SESSAO_CRIADA"; readonly redirecionarPara: string }
-  | { readonly status: "CREDENCIAIS_INVALIDAS" | "EMAIL_NAO_VERIFICADO" };
+  | { readonly status: "CREDENCIAIS_INVALIDAS" | "EMAIL_NAO_VERIFICADO" }
+  /** Administração sem aplicativo autenticador (AC-122). */
+  | { readonly status: "CONFIGURACAO_OBRIGATORIA" }
+  /** Limite de tentativas (AC-119, AC-120). */
+  | { readonly status: "MUITAS_TENTATIVAS"; readonly esperaSegundos: number }
+  | { readonly status: "INDISPONIVEL"; readonly mensagem: string };
+
+/** O texto de cada recusa. Nunca diz se o e-mail tem conta. */
+function mensagemDaRecusa(resposta: RespostaDoLoginNaTela): string {
+  switch (resposta.status) {
+    case "EMAIL_NAO_VERIFICADO":
+      return "Confirme seu e-mail antes de entrar. O link está na sua caixa de entrada.";
+    case "CONFIGURACAO_OBRIGATORIA":
+      return "Esta conta só entra com aplicativo autenticador, e ele ainda não foi configurado. Fale com o suporte da plataforma.";
+    case "MUITAS_TENTATIVAS":
+      return `Muitas tentativas. Aguarde ${Math.ceil(resposta.esperaSegundos / 60)} minuto(s) e tente de novo.`;
+    case "INDISPONIVEL":
+      return resposta.mensagem;
+    default:
+      return "E-mail ou senha incorretos.";
+  }
+}
 
 export interface LoginFormProps {
   readonly aoEntrar: (entrada: {
     readonly email: string;
     readonly senha: string;
   }) => Promise<RespostaDoLoginNaTela>;
-  readonly aoPedirSegundoFator: (desafioId: string) => void;
+  readonly aoPedirSegundoFator: (
+    desafioId: string,
+    canal: "EMAIL" | "TOTP",
+  ) => void;
   readonly aoCriarSessao: (redirecionarPara: string) => void;
 }
 
@@ -34,18 +70,14 @@ export function LoginForm({
     try {
       const resposta = await aoEntrar({ email: email.trim(), senha });
       if (resposta.status === "DESAFIO_DE_SEGUNDO_FATOR") {
-        aoPedirSegundoFator(resposta.desafioId);
+        aoPedirSegundoFator(resposta.desafioId, resposta.canal ?? "EMAIL");
         return;
       }
       if (resposta.status === "SESSAO_CRIADA") {
         aoCriarSessao(resposta.redirecionarPara);
         return;
       }
-      setErro(
-        resposta.status === "EMAIL_NAO_VERIFICADO"
-          ? "Confirme seu e-mail antes de entrar."
-          : "E-mail ou senha incorretos.",
-      );
+      setErro(mensagemDaRecusa(resposta));
     } catch {
       setErro("Não foi possível entrar agora. Tente novamente.");
     } finally {
