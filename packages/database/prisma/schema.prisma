@@ -971,3 +971,78 @@ model ProductAttribute {
   @@map("product_attributes")
   @@schema("app")
 }
+
+// ---------------------------------------------------------------------------
+// Identidade de produção (migrações 0044 a 0046, T-111)
+// ---------------------------------------------------------------------------
+// Sem relação declarada com `Identity` de propósito: declarar a relação
+// obrigaria a mexer no modelo da identidade, e quem lê e escreve estas tabelas
+// é o repositório da identidade, por funções dedicadas e pela política "só a
+// própria identidade" — nunca por navegação de modelo.
+
+/// Um token de renovação emitido. A família é um login num aparelho; o token
+/// em si nunca é guardado, só o resumo SHA-256 dele.
+model Session {
+  id            String    @id @db.Uuid
+  identityId    String    @map("identity_id") @db.Uuid
+  familyId      String    @map("family_id") @db.Uuid
+  parentId      String?   @map("parent_id") @db.Uuid
+  tokenSha256   String    @map("token_sha256")
+  roleAtIssue   String    @map("role_at_issue")
+  clientKind    String    @map("client_kind")
+  issuedAt      DateTime  @default(now()) @map("issued_at") @db.Timestamptz(6)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt        DateTime? @map("used_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedReason String?   @map("revoked_reason")
+
+  @@map("sessions")
+  @@schema("app")
+}
+
+/// Link ou código de uso único: verificação de e-mail, recuperação de senha e
+/// desafio do segundo fator. Só o resumo ou a derivação do código.
+model VerificationCode {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identityId   String    @map("identity_id") @db.Uuid
+  purpose      String
+  channel      String    @default("EMAIL")
+  codeHash     String?   @map("code_hash")
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+  attemptCount Int       @default(0) @map("attempt_count")
+  consumedAt   DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("verification_codes")
+  @@schema("app")
+}
+
+/// Segredo do aplicativo autenticador, cifrado com AES-256-GCM e chave do
+/// ambiente — nunca em claro.
+model TotpCredential {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identityId    String    @map("identity_id") @db.Uuid
+  secretEnc     String    @map("secret_enc")
+  digits        Int       @default(6) @db.SmallInt
+  periodSeconds Int       @default(30) @map("period_seconds") @db.SmallInt
+  algorithm     String    @default("SHA1")
+  lastUsedStep  BigInt?   @map("last_used_step")
+  confirmedAt   DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  disabledAt    DateTime? @map("disabled_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("totp_credentials")
+  @@schema("app")
+}
+
+/// Código de recuperação do segundo fator, de uso único. Só o resumo.
+model RecoveryCode {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identityId String    @map("identity_id") @db.Uuid
+  codeSha256 String    @map("code_sha256")
+  usedAt     DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("recovery_codes")
+  @@schema("app")
+}

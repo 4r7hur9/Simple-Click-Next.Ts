@@ -51,6 +51,26 @@ export type DependenciasDeConvite = {
   resumirToken(token: string): string;
 };
 
+/**
+ * O que definir a primeira senha usa: só o consumo do convite. A criação da
+ * loja com o convite é do cadastro da administração, e quem aceita o convite
+ * não precisa dela (T-111).
+ */
+export type DependenciasDaPrimeiraSenha = Pick<
+  DependenciasDeConvite,
+  "validarNovaSenha" | "gerarHashDaSenha" | "agora" | "resumirToken"
+> & {
+  repositorio: Pick<RepositorioDeConvites, "consumirConviteEDefinirSenha">;
+};
+
+/** O que reenviar o convite usa: só a troca do link. */
+export type DependenciasDoReenvioDeConvite = Pick<
+  DependenciasDeConvite,
+  "enviarConvite" | "agora" | "gerarToken" | "resumirToken"
+> & {
+  repositorio: Pick<RepositorioDeConvites, "reenviarConvite">;
+};
+
 export type ResultadoDaPrimeiraSenha =
   | { ok: true; acessoLiberado: true }
   | { ok: false; motivo: "SENHA_INVALIDA" | "CONVITE_INVALIDO" };
@@ -87,7 +107,7 @@ export async function criarLojaEConvidarDono(
 /** Um convite válido define a primeira senha, verifica o e-mail e libera o dono. */
 export async function definirPrimeiraSenha(
   dados: { token: string; senha: string },
-  dependencias: DependenciasDeConvite,
+  dependencias: DependenciasDaPrimeiraSenha,
 ): Promise<ResultadoDaPrimeiraSenha> {
   try {
     await dependencias.validarNovaSenha(dados.senha);
@@ -108,7 +128,7 @@ export async function definirPrimeiraSenha(
 /** Reenvio substitui o link anterior; ele não volta a tornar um convite usado válido. */
 export async function reenviarConviteDoDono(
   lojaId: string,
-  dependencias: DependenciasDeConvite,
+  dependencias: DependenciasDoReenvioDeConvite,
 ): Promise<boolean> {
   const agora = dependencias.agora();
   const token = dependencias.gerarToken();
