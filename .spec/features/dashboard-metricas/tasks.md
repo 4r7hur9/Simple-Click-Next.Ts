@@ -9,7 +9,7 @@
 - Notas: o corte de hoje e de qualquer intervalo usa o fuso da loja. Intervalo escolhido cobre os dois dias das pontas por completo. Data final anterior à inicial, ou intervalo acima do limite, é recusado mantendo o período anterior. A rota é `GET /v1/lojas/:apelido/metricas` (`periodo`, `de`, `ate`, `atualizar`), montada em `app.ts`; o fuso vem de `storefront/fuso-da-loja.ts` pela composição, e o vínculo do dono com a loja é o de `core/db.ts` (404, dívida 92). O período em curso compara com o mesmo pedaço do anterior (decisão de 03/10/2026). A parte de tela do AC-803 e do AC-805 (período visível, recusa explicada mantendo o anterior) é da T-804.
 - Esforço: alto
 
-## T-801 — Três números: vendido, concluído e em andamento [em-andamento]
+## T-801 — Três números: vendido, concluído e em andamento [concluida]
 
 - Refs: US-800, US-803, AC-817, AC-812
 - Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/api/tests/metricas-faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx, apps/web/src/lib/metricas.ts, apps/web/tests/apoio-metricas.ts, apps/web/tests/cartoes-de-metrica.test.tsx
@@ -23,14 +23,14 @@
 - Notas: o índice inclui também as colunas citadas pelas políticas de isolamento — sem isso não há leitura direta pelo índice, achado medido durante a modelagem; a guarda G5 (`packages/database/guards/g5_indice_cobre_politica.sql`, inalterada) cobra isso e passa sobre a 0037. O estado de carregamento da tela (enquanto carrega, carregamento em vez de número errado) é entregue com as telas da T-803 e da T-804.
 - Esforço: alto
 
-## T-803 — Painel do dia com comparação e estado inicial útil [em-andamento]
+## T-803 — Painel do dia com comparação e estado inicial útil [concluida]
 
 - Refs: US-800, AC-801, AC-802
 - Arquivos: apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/api/painel/metricas/route.ts, apps/web/src/server/encaminhar-ao-painel.ts, apps/web/src/features/dashboard/ComparativoPeriodo.tsx, apps/web/src/features/dashboard/PainelVazio.tsx, apps/web/src/features/dashboard/PainelDeMetricas.tsx, apps/web/src/features/dashboard/useMetricas.ts, apps/web/tests/painel-metricas.test.tsx, apps/web/tests/painel-metricas-encaminhamento.test.ts, apps/web/tests/painel-inicial.test.tsx
 - Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho; no período em curso a API devolve até que instante o anterior foi contado (`comparacao.periodoAnterior.fim` e `parcial`), para a tela escrever "ontem até 14h32". O encaminhamento `/api/painel/metricas` segue o padrão de `server/encaminhar-ao-painel.ts` (`encaminharLeituraDaLoja`, que leva a consulta sem filtrar: quem recusa chave desconhecida é a API, AC-811). Os atalhos atuais do painel (configuração, categorias, produtos) continuam alcançáveis. Os quatro estados ficam em `CorpoDasMetricas`, o mesmo desenho do painel do dia e da página de períodos; enquanto carrega não há número na tela (o estado de carregamento do AC-813).
 - Esforço: medio
 
-## T-804 — Seletor de período com endereço compartilhável [em-andamento]
+## T-804 — Seletor de período com endereço compartilhável [concluida]
 
 - Refs: US-801, AC-803, AC-806
 - Arquivos: apps/web/src/app/(painel)/painel/metricas/page.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.tsx, apps/web/src/features/dashboard/MetricasPorPeriodo.tsx, apps/web/src/features/dashboard/SeletorDePeriodo.test.tsx, apps/web/src/lib/routes.ts, apps/web/src/app/(painel)/painel/layout.tsx
@@ -51,14 +51,14 @@
 - Notas: inclui a tentativa de informar o identificador de outra loja na requisição. Vale também para qualquer visão agregada — visão de banco precisa executar com os direitos de quem consulta, senão mostra todas as lojas. Marcado com @principle:P-003.
 - Esforço: medio
 
-## T-807 — Cache das métricas com horário de referência [em-andamento]
+## T-807 — Cache das métricas com horário de referência [concluida]
 
 - Refs: US-803, AC-814
 - Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/api/tests/metricas-cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx, apps/web/src/features/dashboard/useMetricas.ts, apps/web/src/features/dashboard/PainelDeMetricas.tsx, apps/web/tests/horario-de-referencia.test.tsx
 - Notas: a tela informa a que momento os números se referem e oferece atualizar agora. Pedido novo aparece dentro do prazo definido. O horário é o `calculadoEm` da API, escrito no fuso da loja; "atualizar agora" pede `atualizar=1` e mantém os números na tela até os novos chegarem. Com o painel aberto, o período em vigor é relido sozinho a cada minuto (ASM-802), sem pedir recálculo, porque a marca-d'água já invalida o guardado quando entra pedido.
 - Esforço: medio
 
-## T-808 — Exportação do período [em-andamento]
+## T-808 — Exportação do período [concluida]
 
 - Refs: US-804, AC-815, AC-816
 - Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/api/tests/metricas-exportacao.test.ts, apps/web/src/app/api/painel/metricas/exportar/route.ts, apps/web/src/features/dashboard/BotaoExportar.tsx, apps/web/src/features/dashboard/MetricasPorPeriodo.tsx, apps/web/src/lib/metricas.ts, apps/web/tests/botao-exportar.test.tsx, apps/web/tests/painel-metricas-encaminhamento.test.ts
