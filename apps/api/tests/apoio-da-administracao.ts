@@ -105,6 +105,13 @@ export function montarApiDaAdministracao(
     origens: [ORIGEM_DA_ADMINISTRACAO],
     ...sobrescrita,
     vitrine: { acesso: acessoDaAplicacao, agora, ...sobrescrita.vitrine },
+    // A página de acompanhamento e o aviso de suspensão do painel (T-206)
+    // falam pela credencial das lojas, como a vitrine.
+    pedidos: { acesso: acessoDaAplicacao, agora, ...sobrescrita.pedidos },
+    situacaoDaLoja: {
+      acesso: acessoDaAplicacao,
+      ...sobrescrita.situacaoDaLoja,
+    },
     administracao: {
       acesso: acessoDaAdministracao,
       agora,

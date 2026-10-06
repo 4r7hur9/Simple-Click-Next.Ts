@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
-import { resolve } from "node:path";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const raiz = resolve(import.meta.dirname, "..");
 const ambiente = {
@@ -8,6 +10,12 @@ const ambiente = {
   API_PORT: "3101",
   ORIGENS_PERMITIDAS: "http://localhost:3100",
   URL_DO_SITE: "http://localhost:3100",
+  // O contrato e os documentos da loja (T-205, T-209) precisam de onde
+  // guardar. Uma pasta temporária por execução: o ponta a ponta não deixa
+  // arquivo para a próxima, e o armazenamento de produção (D2b) não entra aqui.
+  ARMAZENAMENTO_PRIVADO_DIR:
+    process.env.ARMAZENAMENTO_PRIVADO_DIR ??
+    mkdtempSync(join(tmpdir(), "sc-e2e-privado-")),
 };
 
 const processo = spawn(

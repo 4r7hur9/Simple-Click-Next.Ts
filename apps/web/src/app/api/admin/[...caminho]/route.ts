@@ -22,3 +22,4 @@ export const GET = repassar;
 export const POST = repassar;
 export const PATCH = repassar;
 export const PUT = repassar;
+export const DELETE = repassar;

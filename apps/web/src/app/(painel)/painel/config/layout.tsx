@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { NAVEGACAO_DA_CONFIGURACAO } from "../../../../features/config/secoes.ts";
+import { NavegacaoDaConfiguracao } from "../../../../features/config/NavegacaoDaConfiguracao.tsx";
 
 /**
  * A moldura das configurações do dono (AC-921).
@@ -9,7 +9,8 @@ import { NAVEGACAO_DA_CONFIGURACAO } from "../../../../features/config/secoes.ts
  * A navegação lista a OPERAÇÃO da loja — pagamento, entrega, horário,
  * contato, apresentação e impressão —, e nada do cadastro da plataforma. Tipo
  * de negócio, apelido, documento, contrato e funcionalidades liberadas são da
- * administração, e não têm entrada aqui.
+ * administração, e não têm entrada aqui. A seção cuja funcionalidade a
+ * administração desligou para a loja some da navegação (AC-212).
  */
 export default function LayoutDaConfiguracao({
   children,
@@ -24,20 +25,7 @@ export default function LayoutDaConfiguracao({
       >
         ← Voltar ao painel
       </Link>
-      <nav
-        className="mt-6 flex flex-wrap gap-2"
-        aria-label="Configurações da loja"
-      >
-        {NAVEGACAO_DA_CONFIGURACAO.map((item) => (
-          <Link
-            key={item.secao}
-            className="sc-botao sc-botao--fantasma"
-            href={item.href}
-          >
-            {item.rotulo}
-          </Link>
-        ))}
-      </nav>
+      <NavegacaoDaConfiguracao />
       {children}
     </div>
   );

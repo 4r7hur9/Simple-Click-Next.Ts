@@ -348,6 +348,13 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   APELIDO_ALTERADO: "Endereço na web alterado",
   DOCUMENTO_ENVIADO: "Documento enviado",
   DOCUMENTO_BAIXADO: "Documento aberto",
+  LOJA_SUSPENSA: "Loja suspensa",
+  LOJA_REATIVADA: "Loja reativada",
+  LOJA_EXCLUIDA: "Loja excluída",
+  LOJA_RESTAURADA: "Loja restaurada",
+  LOJA_REMOVIDA: "Dados da loja removidos em definitivo",
+  FUNCIONALIDADE_DESLIGADA: "Funcionalidade desligada",
+  FUNCIONALIDADE_RELIGADA: "Funcionalidade religada",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
@@ -372,7 +379,39 @@ export const ROTULOS_DOS_CAMPOS_DA_LOJA: Readonly<Record<string, string>> = {
   tamanhoEmBytes: "Tamanho (bytes)",
   tipoDeConteudo: "Formato",
   status: "Situação",
+  motivo: "Motivo",
+  funcionalidade: "Funcionalidade",
+  ligada: "Ligada",
+  suspensaDesde: "Suspensa desde",
+  suspensaAte: "Suspensa até",
+  excluidaEm: "Excluída em",
+  removerApos: "Remoção definitiva a partir de",
+  equipe: "Acessos da equipe retirados",
+  enderecos: "Endereços liberados",
+  documentos: "Documentos do responsável apagados",
 };
+
+// ---------------------------------------------------------------------------
+// Situação da loja: suspensão em curso e retenção (AC-209, AC-211)
+// ---------------------------------------------------------------------------
+
+/** A suspensão em curso: desde quando e o motivo que a administração deu. */
+export const esquemaDaSuspensaoEmCurso = z.strictObject({
+  /** Instante da suspensão, em ISO 8601. */
+  desde: z.string(),
+  motivo: z.string(),
+});
+
+/** A loja excluída: quando saiu do ar e até quando ainda pode voltar. */
+export const esquemaDaRetencaoDaLoja = z.strictObject({
+  /** Instante da exclusão, em ISO 8601. */
+  excluidaEm: z.string(),
+  /**
+   * Até quando a loja pode ser restaurada; depois disso vem a remoção
+   * definitiva. Nulo quando ela já aconteceu.
+   */
+  removerApos: z.string().nullable(),
+});
 
 // ---------------------------------------------------------------------------
 // Ficha e edição da loja (AC-207)
@@ -411,6 +450,10 @@ export const esquemaDaFichaDaLoja = z.strictObject({
   }),
   criadaEm: z.string(),
   atualizadaEm: z.string(),
+  /** A suspensão em curso, quando a loja está suspensa (AC-209). */
+  suspensao: esquemaDaSuspensaoEmCurso.nullable(),
+  /** A retenção, quando a loja foi excluída (AC-211). */
+  retencao: esquemaDaRetencaoDaLoja.nullable(),
   /** As últimas alterações desta loja, da mais nova para a mais antiga. */
   historico: z.array(esquemaDoRegistroDaTrilha),
 });
@@ -547,4 +590,80 @@ export type DocumentosDaLojaNoContrato = z.infer<
 >;
 export type LinkDoDocumentoNoContrato = z.infer<
   typeof esquemaDoLinkDoDocumento
+>;
+
+// ---------------------------------------------------------------------------
+// Suspender, reativar, excluir e restaurar (AC-209, AC-210, AC-211)
+// ---------------------------------------------------------------------------
+
+/**
+ * Por quantos dias a loja excluída fica retida, e restaurável, antes da
+ * remoção definitiva (ASM-204).
+ */
+export const DIAS_DE_RETENCAO_DA_LOJA_EXCLUIDA = 30;
+
+/**
+ * `PUT /v1/admin/lojas/:id/suspensao`. O motivo é obrigatório: ele fica na
+ * trilha e é o que o dono lê ao entrar no painel.
+ */
+export const esquemaDaSuspensaoDaLoja = z.strictObject({
+  motivo: z
+    .string("Informe o motivo da suspensão.")
+    .trim()
+    .min(3, "Informe o motivo da suspensão, com ao menos 3 letras.")
+    .max(500, "O motivo cabe em até 500 caracteres."),
+});
+
+export type SuspensaoDaLojaEnviada = z.input<typeof esquemaDaSuspensaoDaLoja>;
+
+/**
+ * `PUT /v1/admin/lojas/:id/reativacao` e `PUT /v1/admin/lojas/:id/restauracao`.
+ * Sem campo nenhum: o ato é o próprio endereço.
+ */
+export const esquemaDaReativacaoDaLoja = z.strictObject({});
+
+/** `DELETE /v1/admin/lojas/:id` — a confirmação é o nome da loja, digitado. */
+export const esquemaDaExclusaoDaLoja = z.strictObject({
+  confirmacao: z
+    .string("Digite o nome da loja para confirmar.")
+    .trim()
+    .min(1, "Digite o nome da loja para confirmar.")
+    .max(200, "Digite o nome da loja para confirmar."),
+});
+
+export type ExclusaoDaLojaEnviada = z.input<typeof esquemaDaExclusaoDaLoja>;
+
+/** A recusa da confirmação que não confere. Nada foi excluído. */
+export const MENSAGEM_DE_CONFIRMACAO_DIFERENTE =
+  "O nome digitado não é o nome da loja. Nada foi excluído.";
+
+/**
+ * O nome digitado confere com o nome da loja? Espaço nas pontas e espaço
+ * repetido não contam; letra, acento e maiúscula contam — é uma confirmação,
+ * e não uma busca. A tela e a API aplicam a MESMA regra.
+ */
+export function confirmacaoConfere(confirmacao: string, nome: string): boolean {
+  const normalizar = (texto: string) =>
+    texto.normalize("NFC").trim().replace(/\s+/g, " ");
+  const digitado = normalizar(confirmacao);
+  return digitado !== "" && digitado === normalizar(nome);
+}
+
+export type SuspensaoEmCursoNoContrato = z.infer<
+  typeof esquemaDaSuspensaoEmCurso
+>;
+export type RetencaoDaLojaNoContrato = z.infer<typeof esquemaDaRetencaoDaLoja>;
+
+/**
+ * `GET /v1/lojas/:apelido/situacao` — o que o painel do dono pergunta ao abrir
+ * (AC-209). Responde também para a loja suspensa, que a vitrine esconde: é
+ * por aqui que o dono fica sabendo por que a loja saiu do ar.
+ */
+export const esquemaDaSituacaoParaODono = z.strictObject({
+  status: esquemaDaSituacaoDaLoja,
+  suspensao: esquemaDaSuspensaoEmCurso.nullable(),
+});
+
+export type SituacaoParaODonoNoContrato = z.infer<
+  typeof esquemaDaSituacaoParaODono
 >;

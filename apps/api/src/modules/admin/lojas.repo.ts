@@ -409,6 +409,8 @@ interface LinhaDaFicha {
   readonly uf: string | null;
   readonly created_at: Date;
   readonly updated_at: Date;
+  readonly deleted_at: Date | null;
+  readonly purge_after: Date | null;
   readonly vertical_code: string;
   readonly vertical_label: string;
   readonly tracks_stock: boolean;
@@ -462,6 +464,28 @@ async function alteracoesDaLoja(
      LIMIT ${ATOS_NA_FICHA}`;
 }
 
+/**
+ * A suspensão em curso: quando e por quê, como o último `LOJA_SUSPENSA` da
+ * trilha registrou (AC-209). Só tem sentido com a loja suspensa — quem chama
+ * confere a situação antes.
+ */
+export async function suspensaoEmCurso(
+  lojaId: string,
+): Promise<{ readonly desde: Date; readonly motivo: string } | null> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { created_at: Date; motivo: string | null }[]
+  >`
+    SELECT created_at, after_data->>'motivo' AS motivo
+      FROM app.audit_log
+     WHERE store_id = ${lojaId}::uuid
+       AND action = 'LOJA_SUSPENSA'
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1`;
+  const linha = linhas[0];
+  if (linha === undefined) return null;
+  return { desde: linha.created_at, motivo: linha.motivo ?? "" };
+}
+
 /** A ficha completa da loja, ou `null` quando ela não existe. */
 export async function lerFichaDaLoja(
   lojaId: string,
@@ -470,7 +494,7 @@ export async function lerFichaDaLoja(
     SELECT s.id::text AS id, s.code, s.name, s.legal_name, s.doc_number,
            s.doc_type, s.slug, s.status, s.email, s.phone1, s.zip, s.street,
            s.number, s.complement, s.neighborhood, s.city, s.uf,
-           s.created_at, s.updated_at,
+           s.created_at, s.updated_at, s.deleted_at, s.purge_after,
            p.code AS vertical_code, p.label AS vertical_label, p.tracks_stock
       FROM app.stores s
       JOIN app.vertical_presets p ON p.code = s.vertical_code
@@ -479,6 +503,8 @@ export async function lerFichaDaLoja(
   if (loja === undefined) return null;
 
   const historico = await alteracoesDaLoja(lojaId);
+  const suspensao =
+    loja.status === "SUSPENDED" ? await suspensaoEmCurso(lojaId) : null;
   return {
     id: loja.id,
     codigo: loja.code,
@@ -510,6 +536,17 @@ export async function lerFichaDaLoja(
     },
     criadaEm: loja.created_at.toISOString(),
     atualizadaEm: loja.updated_at.toISOString(),
+    suspensao:
+      suspensao === null
+        ? null
+        : { desde: suspensao.desde.toISOString(), motivo: suspensao.motivo },
+    retencao:
+      loja.status === "DELETED" && loja.deleted_at !== null
+        ? {
+            excluidaEm: loja.deleted_at.toISOString(),
+            removerApos: loja.purge_after?.toISOString() ?? null,
+          }
+        : null,
     historico: historico.map((linha) =>
       registroDaTrilha(linhaParaRegistro(linha)),
     ),

@@ -452,13 +452,16 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-212, AC-213",
+    arquivo:
+      "apps/web/src/app/(admin)/admin/lojas/[id]/funcionalidades/page.tsx",
   },
   {
     rota: "/admin/auditoria",
     tela: "Histórico de auditoria",
     acesso: "PUBLICO",
     quatroEstados: true,
-    criterios: "AC-118, AC-922",
+    criterios: "AC-118, AC-922, AC-215",
+    arquivo: "apps/web/src/app/(admin)/admin/auditoria/page.tsx",
   },
   {
     rota: "/imprimir/{id}",

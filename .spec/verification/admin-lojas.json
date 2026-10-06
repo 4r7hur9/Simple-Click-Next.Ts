@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-06T02:23:47.614Z",
-  "gitRev": "5943fc8",
+  "timestamp": "2026-10-06T06:20:40.127Z",
+  "gitRev": "12e5dfd",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 120,
+  "testsParsed": 207,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -56,16 +56,46 @@
       "status": "pass",
       "testName": "alterar o apelido preserva o endereço antigo (AC-208) @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico",
       "method": "vitest-json"
+    },
+    "AC-215": {
+      "status": "pass",
+      "testName": "o histórico de auditoria da administração (AC-215) @spec:AC-215 lista os atos de todas as lojas, do mais recente ao mais antigo, com quem, quando, loja e antes e depois @spec:AC-215 lista os atos de todas as lojas, do mais recente ao mais antigo, com quem, quando, loja e antes e depois",
+      "method": "vitest-json"
+    },
+    "AC-209": {
+      "status": "pass",
+      "testName": "loja suspensa sai do ar sem perder dados (AC-209) @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico",
+      "method": "vitest-json"
+    },
+    "AC-210": {
+      "status": "pass",
+      "testName": "reativação devolve a loja ao ar como estava (AC-210) @spec:AC-210 reativada, a vitrine volta com o mesmo catálogo e o período da suspensão fica no histórico @spec:AC-210 reativada, a vitrine volta com o mesmo catálogo e o período da suspensão fica no histórico",
+      "method": "vitest-json"
+    },
+    "AC-211": {
+      "status": "pass",
+      "testName": "exclusão exige confirmação e é reversível por prazo (AC-211) @spec:AC-211 sem o nome da loja digitado, nada é excluído @spec:AC-211 sem o nome da loja digitado, nada é excluído",
+      "method": "vitest-json"
+    },
+    "AC-212": {
+      "status": "pass",
+      "testName": "funcionalidades por loja @spec:AC-212 com a impressão térmica desligada, o pedido novo não entra na fila de impressão automática; religada, volta a entrar @spec:AC-212 com a impressão térmica desligada, o pedido novo não entra na fila de impressão automática; religada, volta a entrar",
+      "method": "vitest-json"
+    },
+    "AC-213": {
+      "status": "pass",
+      "testName": "funcionalidades por loja @spec:AC-213 loja recém-cadastrada nasce com todas as funcionalidades ligadas, sem limite e sem exceção @spec:AC-213 loja recém-cadastrada nasce com todas as funcionalidades ligadas, sem limite e sem exceção",
+      "method": "vitest-json"
     }
   },
   "principles": {
     "P-012": {
       "status": "pass",
-      "testName": "os quatro estados da tela dos documentos (P-011) @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade"
+      "testName": "acessibilidade das confirmações (P-012) @spec:AC-211 @principle:P-012 a confirmação da exclusão não tem violação crítica nem séria @spec:AC-211 @principle:P-012 a confirmação da exclusão não tem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",
-      "testName": "a ficha da loja na tela (AC-207) @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo"
+      "testName": "o histórico de auditoria na tela @spec:AC-215 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-215 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo"
     }
   }
 }

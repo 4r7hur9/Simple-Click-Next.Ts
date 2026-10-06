@@ -194,6 +194,25 @@ export type {
   LinkDoDocumentoNoContrato,
   TipoDeDocumentoDaLoja,
 } from "./admin.ts";
+// Suspender, reativar, excluir e restaurar a loja (T-206).
+export {
+  confirmacaoConfere,
+  DIAS_DE_RETENCAO_DA_LOJA_EXCLUIDA,
+  esquemaDaExclusaoDaLoja,
+  esquemaDaReativacaoDaLoja,
+  esquemaDaRetencaoDaLoja,
+  esquemaDaSituacaoParaODono,
+  esquemaDaSuspensaoDaLoja,
+  esquemaDaSuspensaoEmCurso,
+  MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
+} from "./admin.ts";
+export type {
+  ExclusaoDaLojaEnviada,
+  RetencaoDaLojaNoContrato,
+  SituacaoParaODonoNoContrato,
+  SuspensaoDaLojaEnviada,
+  SuspensaoEmCursoNoContrato,
+} from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,
@@ -335,3 +354,32 @@ export type {
   ResumoDeMetricasNoContrato,
   VariacaoDeMetricaNoContrato,
 } from "./metricas.ts";
+// Histórico de auditoria consultável pela administração (T-208).
+export {
+  esquemaDaConsultaDaAuditoria,
+  esquemaDaLojaDoRegistro,
+  esquemaDaPaginaDaAuditoria,
+  esquemaDoRegistroDaAuditoria,
+  FORMATO_DO_ATO,
+  FORMATO_DO_DIA,
+} from "./admin-auditoria.ts";
+export type {
+  ConsultaDaAuditoriaNoContrato,
+  PaginaDaAuditoriaNoContrato,
+  RegistroDaAuditoriaNoContrato,
+} from "./admin-auditoria.ts";
+// Funcionalidades liberadas por loja (T-207).
+export {
+  esquemaDaAlteracaoDeFuncionalidade,
+  esquemaDaExcecaoDeFuncionalidade,
+  esquemaDaFuncionalidadeNaAdministracao,
+  esquemaDasFuncionalidadesDaLoja,
+  esquemaDasFuncionalidadesParaODono,
+  FORMATO_DA_CHAVE_DE_FUNCIONALIDADE,
+} from "./admin-funcionalidades.ts";
+export type {
+  AlteracaoDeFuncionalidadeEnviada,
+  FuncionalidadeNaAdministracaoNoContrato,
+  FuncionalidadesDaLojaNoContrato,
+  FuncionalidadesParaODonoNoContrato,
+} from "./admin-funcionalidades.ts";

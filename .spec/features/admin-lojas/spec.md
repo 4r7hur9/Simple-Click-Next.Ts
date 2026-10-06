@@ -89,6 +89,12 @@ eu ache e ajuste qualquer cadastro rapidamente.
 - **Quando** altero o apelido para `pastelaria-joi`
 - **Então** o endereço novo funciona e o antigo redireciona para ele, para que link já compartilhado com clientes não quebre
 
+#### AC-215 — Histórico de auditoria consultável, com filtros e sem dado pessoal
+
+- **Dado** que existem atos registrados na trilha de várias lojas, entre eles a troca de uma chave PIX
+- **Quando** eu, como administrador geral, abro o histórico de auditoria e filtro por loja, por ato ou por período
+- **Então** vejo, página a página e do mais recente para o mais antigo, quem fez, quando, em qual loja, o que mudou e o valor anterior, com as alterações sensíveis destacadas e o dado pessoal mascarado; a tela trata os estados de carregando, vazio e erro; a própria consulta fica registrada como acesso da administração àquelas lojas; e nenhum registro do histórico pode ser alterado nem apagado
+
 ### US-203 — Administrador suspende ou reativa uma loja
 
 Como administrador geral, quero suspender o acesso de uma loja sem apagar nada,
@@ -154,9 +160,9 @@ específica, para que eu libere recurso novo aos poucos sem publicar para todos.
 
 ## Perguntas em aberto
 
-| ID    | Pergunta                                                                                                                                                                                                               | Status | Resposta |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| Q-200 | A loja fica no ar em endereço por caminho (`simpleclick.app/pastel-da-joi`) ou em subdomínio próprio (`pastel-da-joi.simpleclick.app`)? A escolha muda o custo no plano gratuito da Vercel e o esforço de configuração | aberta | —        |
-| Q-201 | A loja pode usar domínio próprio já na versão 1 (por exemplo `pasteldajoi.com.br`)?                                                                                                                                    | aberta | —        |
-| Q-202 | Quais documentos são obrigatórios para publicar uma loja e quais são opcionais? O primeiro SimpleClick pedia comprovante de endereço, foto do documento e contrato                                                     | aberta | —        |
-| Q-203 | Quando o dono da loja é suspenso, o cliente final que já tinha pedido em andamento deve continuar conseguindo acompanhar aquele pedido?                                                                                | aberta | —        |
+| ID    | Pergunta                                                                                                                                                                                                               | Status     | Resposta                                                                                                                                                                           |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q-200 | A loja fica no ar em endereço por caminho (`simpleclick.app/pastel-da-joi`) ou em subdomínio próprio (`pastel-da-joi.simpleclick.app`)? A escolha muda o custo no plano gratuito da Vercel e o esforço de configuração | aberta     | —                                                                                                                                                                                  |
+| Q-201 | A loja pode usar domínio próprio já na versão 1 (por exemplo `pasteldajoi.com.br`)?                                                                                                                                    | aberta     | —                                                                                                                                                                                  |
+| Q-202 | Quais documentos são obrigatórios para publicar uma loja e quais são opcionais? O primeiro SimpleClick pedia comprovante de endereço, foto do documento e contrato                                                     | aberta     | —                                                                                                                                                                                  |
+| Q-203 | Quando o dono da loja é suspenso, o cliente final que já tinha pedido em andamento deve continuar conseguindo acompanhar aquele pedido?                                                                                | respondida | Sim: o acompanhamento pela página pública continua para loja suspensa; a vitrine e o fechamento ficam indisponíveis, e loja excluída sai do ar por inteiro (decisão de 03/10/2026) |

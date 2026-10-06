@@ -54,7 +54,6 @@ export async function acompanharPedido(): Promise<PedidoAcompanhado | null> {
       totalCents: true,
       placedAt: true,
       whatsappConfirmedAt: true,
-      loja: { select: { name: true } },
       contato: { select: { name: true, phoneE164: true } },
       itens: {
         orderBy: { sortOrder: "asc" },
@@ -86,9 +85,15 @@ export async function acompanharPedido(): Promise<PedidoAcompanhado | null> {
   });
   if (pedido === null) return null;
 
-  const configuracao = await tx.$queryRaw<{ whatsapp: unknown }[]>`
-    SELECT whatsapp FROM app.storefront_settings()
+  // O nome e o WhatsApp público da loja vêm por função dedicada, e não pela
+  // relação com `stores`: a política pública esconde a loja SUSPENSA, e o
+  // cliente continua acompanhando o pedido dela (Q-203, migração 0039). A
+  // função devolve só estes dois campos, e só para quem tem o link do pedido.
+  const lojas = await tx.$queryRaw<{ name: string; whatsapp: unknown }[]>`
+    SELECT name, whatsapp FROM app.tracked_order_store()
   `;
+  const loja = lojas[0];
+  if (loja === undefined) return null;
 
   return {
     numero: Number(pedido.number),
@@ -104,8 +109,8 @@ export async function acompanharPedido(): Promise<PedidoAcompanhado | null> {
       telefoneMascarado: mascararTelefone(pedido.contato?.phoneE164 ?? ""),
     },
     loja: {
-      nome: pedido.loja.name,
-      whatsappPublico: lerWhatsAppPublico(configuracao[0]?.whatsapp),
+      nome: loja.name,
+      whatsappPublico: lerWhatsAppPublico(loja.whatsapp),
     },
     itens: pedido.itens.map((item) => ({
       nome: item.productName,

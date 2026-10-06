@@ -53,6 +53,8 @@ const FICHA: FichaDaLojaNoContrato = {
   },
   criadaEm: "2026-09-01T12:00:00.000Z",
   atualizadaEm: "2026-09-01T12:00:00.000Z",
+  suspensao: null,
+  retencao: null,
   historico: [],
 };
 

@@ -374,8 +374,13 @@ export async function criarPedido(
   // não existe pedido salvo sem cupom enfileirado, nem cupom de pedido que não
   // chegou a existir. Quem decide se a loja imprime pelo agente é a função do
   // banco (migração 0034), que lê a configuração de impressão — este módulo
-  // não conhece a fila nem importa o módulo de impressão.
-  await tx.$executeRaw`SELECT app.enfileirar_impressao(${criado.id}::uuid)`;
+  // não conhece a fila nem importa o módulo de impressão. Com a impressão
+  // térmica desligada pela administração (`auto_print`, T-207 — AC-212), nada
+  // entra na fila: senão o agente, ao voltar, imprimiria de uma vez os pedidos
+  // do período desligado.
+  await tx.$executeRaw`
+    SELECT app.enfileirar_impressao(${criado.id}::uuid)
+     WHERE app.store_feature_enabled('auto_print')`;
 
   return {
     ok: true,

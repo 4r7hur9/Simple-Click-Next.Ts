@@ -8,8 +8,10 @@
  */
 
 import {
+  ROTULOS_DAS_SITUACOES,
   ROTULOS_DOS_ATOS,
   ROTULOS_DOS_CAMPOS_DA_LOJA,
+  type SituacaoDaLoja,
 } from "@simpleclick/contracts";
 
 /** O nome do ato na língua de quem administra; o código, se for novo. */
@@ -22,9 +24,27 @@ export function rotuloDoCampo(campo: string): string {
   return ROTULOS_DOS_CAMPOS_DA_LOJA[campo] ?? campo;
 }
 
-/** O valor como texto. Ausente vira travessão, e não "null". */
-export function valorNaTela(valor: unknown): string {
+/** Instante gravado pela API (ISO 8601 com hora), como a trilha o guarda. */
+const FORMATO_DE_INSTANTE =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+
+/**
+ * O valor como texto. Ausente vira travessão, e não "null". Instante vira
+ * dia e hora de Brasília — é assim que o período de uma suspensão (AC-210)
+ * se lê — e a situação da loja, o nome que a administração usa.
+ */
+export function valorNaTela(valor: unknown, campo?: string): string {
   if (valor === null || valor === undefined || valor === "") return "—";
+  if (
+    campo === "status" &&
+    typeof valor === "string" &&
+    valor in ROTULOS_DAS_SITUACOES
+  ) {
+    return ROTULOS_DAS_SITUACOES[valor as SituacaoDaLoja];
+  }
+  if (typeof valor === "string" && FORMATO_DE_INSTANTE.test(valor)) {
+    return momentoNaTela(valor);
+  }
   if (typeof valor === "string") return valor;
   if (typeof valor === "number" || typeof valor === "boolean") {
     return typeof valor === "boolean" ? (valor ? "sim" : "não") : String(valor);

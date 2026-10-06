@@ -35,17 +35,15 @@ export default async function PaginaDeAcompanhamento({
     buscarAcompanhamento(slug, token),
   ]);
 
-  if (
-    vitrine.estado === "nao-encontrada" ||
-    resultado.estado === "nao-encontrado"
-  ) {
-    notFound();
+  // Quem decide se o pedido aparece é o ACOMPANHAMENTO, e não a vitrine: a
+  // loja suspensa some da vitrine, mas o cliente que já pediu continua
+  // acompanhando o pedido (Q-203). A vitrine só empresta a cor da loja.
+  if (resultado.estado === "nao-encontrado") notFound();
+  if (resultado.estado === "indisponivel") {
+    throw new Error(`acompanhamento indisponível: ${resultado.motivo}`);
   }
   if (vitrine.estado === "indisponivel") {
     throw new Error(`vitrine indisponível: ${vitrine.motivo}`);
-  }
-  if (resultado.estado === "indisponivel") {
-    throw new Error(`acompanhamento indisponível: ${resultado.motivo}`);
   }
 
   return (
@@ -54,7 +52,9 @@ export default async function PaginaDeAcompanhamento({
       tokenDoPedido={token}
       inicial={resultado.acompanhamento.pedido}
       corPrincipal={
-        vitrine.vitrine.loja.cores?.primaria ?? PALETA_CLARA.primaria
+        vitrine.estado === "encontrada"
+          ? (vitrine.vitrine.loja.cores?.primaria ?? PALETA_CLARA.primaria)
+          : PALETA_CLARA.primaria
       }
     />
   );

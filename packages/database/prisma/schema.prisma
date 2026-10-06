@@ -1034,6 +1034,27 @@ model StoreContract {
   @@schema("app")
 }
 
+/// Exceções de funcionalidade por loja (admin-lojas, T-207, migração 0040).
+/// Sem linha, a funcionalidade está ligada (AC-213). Só a administração
+/// escreve; a equipe da loja lê a linha da própria loja.
+///
+/// Sem relação declarada com `Store` e `Identity`, pelo mesmo motivo de
+/// `StoreContract`: a chave estrangeira existe no banco.
+model StoreFeatureOverride {
+  storeId    String   @map("store_id") @db.Uuid
+  /// Chave do catálogo de `packages/core/src/funcionalidades.ts`.
+  featureKey String   @map("feature_key")
+  isEnabled  Boolean  @map("is_enabled")
+  limitValue BigInt?  @map("limit_value")
+  reason     String
+  setBy      String   @map("set_by") @db.Uuid
+  setAt      DateTime @default(now()) @map("set_at") @db.Timestamptz(6)
+
+  @@id([storeId, featureKey])
+  @@map("store_feature_overrides")
+  @@schema("app")
+}
+
 /// Agente de impressão pareado com a loja (0034, T-607/T-608). Guarda só o
 /// sha256 da credencial que ele recebe no pareamento — nunca a credencial.
 /// Revogar é preencher `revokedAt`; agente não se apaga.

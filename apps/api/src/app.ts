@@ -87,6 +87,11 @@ import {
 } from "./modules/orders/pedido-manual.routes.ts";
 import type { OpcoesDaRotaDoCupom } from "./modules/printing/cupom.routes.ts";
 import { criarRotaDoApelidoAntigo } from "./modules/storefront/apelido-antigo.ts";
+import { identificarLojaNaoExcluida } from "./modules/storefront/resolver-loja.usecase.ts";
+import {
+  criarRotaDaSituacaoDaLoja,
+  type OpcoesDaSituacaoDaLoja,
+} from "./modules/stores/situacao.routes.ts";
 import {
   avisarOSiteQuandoODonoAltera,
   naoAvisarOSite,
@@ -97,6 +102,23 @@ import {
   type OpcoesDasMetricas,
 } from "./modules/metrics/metricas.routes.ts";
 import { fusoDaLoja } from "./modules/storefront/fuso-da-loja.ts";
+import {
+  exigirFuncionalidade,
+  type OpcoesDoPortaoDeFuncionalidade,
+} from "./core/funcionalidades.ts";
+import {
+  criarRotaDasFuncionalidadesDaLoja,
+  type OpcoesDasFuncionalidadesDaLoja,
+} from "./modules/stores/funcionalidades.routes.ts";
+
+/**
+ * As rotas da área de impressão térmica, sob `/v1/lojas` (T-207, AC-212).
+ * Todas passam pelo portão da funcionalidade `auto_print`.
+ */
+export const ROTAS_DA_IMPRESSAO_TERMICA = [
+  "/:apelido/configuracao/impressao",
+  "/:apelido/pedidos/:id/cupom",
+] as const;
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -141,6 +163,8 @@ export interface OpcoesDoApp {
    * estado dele no painel — o limite do pareamento, a fila e o relógio.
    */
   readonly impressaoAutomatica?: Partial<OpcoesDaImpressaoAutomatica>;
+  /** O mesmo, para o aviso de suspensão do painel do dono (T-206). */
+  readonly situacaoDaLoja?: Partial<OpcoesDaSituacaoDaLoja>;
   /** O mesmo, para os clientes da loja (T-700 a T-703, T-706). */
   readonly clientes?: Partial<OpcoesDosClientes>;
   /** O mesmo, para o pedido lançado pelo dono e a repetição (T-704, T-706). */
@@ -160,6 +184,10 @@ export interface OpcoesDoApp {
    * O mesmo, para as métricas do painel do dono: acesso, cache e relógio.
    */
   readonly metricas?: Partial<OpcoesDasMetricas>;
+  /** O mesmo, para o portão de funcionalidade por loja (T-207). */
+  readonly funcionalidades?: Partial<OpcoesDoPortaoDeFuncionalidade>;
+  /** O mesmo, para o que o painel do dono lê das funcionalidades (T-207). */
+  readonly funcionalidadesDaLoja?: Partial<OpcoesDasFuncionalidadesDaLoja>;
 }
 
 /**
@@ -211,6 +239,19 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // colocada no ambiente e a rota recusa produção. A autenticação de produção
   // entra aqui quando a persistência da identidade for conectada à API.
   app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+
+  // O PORTÃO DE FUNCIONALIDADE POR LOJA (T-207, AC-212): o PONTO ÚNICO que
+  // tira do ar, para a loja em que a administração desligou, cada rota da
+  // área de impressão térmica — e antes de qualquer rota dela, acessada
+  // direto ou não. Rota nova da área (o agente e o pareamento da fila de
+  // impressão) entra NESTA lista, e só nela.
+  app.use(
+    ROTAS_DA_IMPRESSAO_TERMICA.map((caminho) => `/v1/lojas${caminho}`),
+    exigirFuncionalidade("auto_print", {
+      resolverLoja: identificarLoja,
+      ...opcoes.funcionalidades,
+    }),
+  );
 
   app.use(
     "/v1/lojas",
@@ -710,6 +751,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     PREFIXO_DOS_PEDIDOS,
     criarRotasDePedidos({
       identificarLoja,
+      // Só o acompanhamento enxerga a loja suspensa (Q-203, T-206).
+      identificarLojaDoAcompanhamento: identificarLojaNaoExcluida,
       lerCarrinho: () => verCarrinho(),
       conferirCarrinho: (carrinhoId, agora) =>
         conferirAntesDeFechar(carrinhoId, {}, agora),
@@ -779,6 +822,63 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.conta,
+    }),
+  );
+
+  // O AVISO DE SUSPENSÃO do painel do dono (AC-209, T-206): a única rota do
+  // dono que alcança a loja suspensa, para dizer desde quando e por quê. A
+  // resolução que a enxerga é do módulo da vitrine, e a borda a passa.
+  app.use(
+    "/v1/lojas",
+    criarRotaDaSituacaoDaLoja({
+      resolverLoja: identificarLojaNaoExcluida,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.situacaoDaLoja,
+    }),
+  );
+
+  // O QUE VALE PARA A LOJA DO DONO (T-207): o painel esconde do menu a área
+  // que a administração desligou. Quem barra é o portão lá em cima.
+  app.use(
+    "/v1/lojas",
+    criarRotaDasFuncionalidadesDaLoja({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.funcionalidadesDaLoja,
     }),
   );
 

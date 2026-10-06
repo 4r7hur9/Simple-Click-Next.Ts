@@ -36,3 +36,27 @@ export const NAVEGACAO_DA_CONFIGURACAO: readonly ItemDaNavegacao[] =
     rotulo: ROTULOS_DAS_SECOES[secao],
     href: CAMINHO_DA_SECAO[secao],
   }));
+
+/**
+ * A funcionalidade de que cada seção depende (T-207, AC-212), pela chave do
+ * catálogo (`@simpleclick/core`, funcionalidades). Seção fora
+ * desta lista não depende de nenhuma e aparece sempre.
+ */
+export const FUNCIONALIDADE_DA_SECAO: Readonly<
+  Partial<Record<SecaoDoDono, string>>
+> = {
+  impressao: "auto_print",
+};
+
+/**
+ * A navegação sem as seções cuja funcionalidade está DESLIGADA para a loja.
+ * Esconder é conforto: quem barra a rota é a API (`exigirFuncionalidade`).
+ */
+export function navegacaoVisivel(
+  desligadas: ReadonlySet<string>,
+): readonly ItemDaNavegacao[] {
+  return NAVEGACAO_DA_CONFIGURACAO.filter((item) => {
+    const chave = FUNCIONALIDADE_DA_SECAO[item.secao];
+    return chave === undefined || !desligadas.has(chave);
+  });
+}

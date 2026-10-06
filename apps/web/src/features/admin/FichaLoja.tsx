@@ -37,6 +37,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { AcoesLoja } from "./AcoesLoja.tsx";
 import { telaDosDocumentos } from "./documentos-da-loja.ts";
 import {
   edicaoDoFormulario,
@@ -383,12 +384,37 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
         </p>
       </Secao>
 
+      <Secao id="ficha-funcionalidades" titulo="Funcionalidades liberadas">
+        <p className="max-w-prose">
+          Toda loja nasce com tudo ligado, sem custo e sem limite. Aqui a
+          administração desliga, como exceção desta loja, o que ela não usa.
+        </p>
+        <p className="mt-3">
+          <Link
+            className="sc-botao sc-botao--secundaria"
+            href={`/admin/lojas/${encodeURIComponent(ficha.id)}/funcionalidades`}
+          >
+            Ver funcionalidades
+          </Link>
+        </p>
+      </Secao>
+
+      <Secao id="ficha-situacao" titulo="Situação da loja">
+        <AcoesLoja ficha={ficha} aoMudar={props.aoAtualizar} />
+      </Secao>
+
       <Secao id="ficha-historico" titulo="Histórico de alterações">
         {ficha.historico.length === 0 ? (
           <p className="text-sm">Nenhuma alteração registrada ainda.</p>
         ) : (
           <ListaDaTrilha registros={ficha.historico} />
         )}
+        <Link
+          className="mt-3 inline-block text-sm font-medium text-[var(--cor-primaria)] underline-offset-2 hover:underline"
+          href={`/admin/auditoria?loja=${ficha.id}`}
+        >
+          Ver o histórico completo desta loja
+        </Link>
       </Secao>
     </article>
   );
