@@ -22,6 +22,10 @@
 import { type Processor } from "bullmq";
 
 import { registrar } from "../core/log.ts";
+import {
+  enviadorParaCaixaDeProva,
+  VARIAVEL_DA_CAIXA_DE_PROVA,
+} from "./caixa-de-email-de-prova.ts";
 import { type FilaAberta } from "./fila.ts";
 
 /** Nomes dos trabalhos que a fila de e-mail reconhece. */
@@ -97,15 +101,21 @@ export function enviadorQueSoRegistra(): EnviadorDeEmail {
  *
  * Em produção, sem provedor escolhido, ela se declara indisponível: a rota
  * responde "envio indisponível" em vez de fingir que mandou. Fora de
- * produção, o adaptador que só registra.
+ * produção, o adaptador que só registra — ou, quando o ponta a ponta liga
+ * `CAIXA_DE_EMAIL_DE_PROVA`, a caixa de prova que grava a mensagem em
+ * arquivo para o teste ler o link e o código (T-114). Em produção essa
+ * variável é ignorada.
  */
 export function saidaDeEmailDoAmbiente(
   fonte: Readonly<Record<string, string | undefined>> = process.env,
 ): { readonly disponivel: boolean; enviar: EnviadorDeEmail["enviar"] } {
+  const caixaDeProva = fonte[VARIAVEL_DA_CAIXA_DE_PROVA]?.trim() ?? "";
   const enviador =
     fonte["NODE_ENV"] === "production"
       ? enviadorNaoConfigurado()
-      : enviadorQueSoRegistra();
+      : caixaDeProva !== ""
+        ? enviadorParaCaixaDeProva(caixaDeProva)
+        : enviadorQueSoRegistra();
   return {
     disponivel: fonte["NODE_ENV"] !== "production",
     enviar: (mensagem) => enviador.enviar(mensagem),

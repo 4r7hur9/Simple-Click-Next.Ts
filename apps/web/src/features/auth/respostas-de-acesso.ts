@@ -24,7 +24,8 @@ export function respostaDoLogin(
   if (status === 200 && corpo["status"] === "SESSAO_CRIADA") {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara: texto(corpo["redirecionarPara"]) || "/minha-conta",
+      redirecionarPara:
+        texto(corpo["redirecionarPara"]) || "/minha-conta/pedidos",
     };
   }
   if (status === 200 && corpo["status"] === "DESAFIO_DE_SEGUNDO_FATOR") {
@@ -64,7 +65,8 @@ export function respostaDoCodigo(
   if (status === 200 && corpo["status"] === "SESSAO_CRIADA") {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara: texto(corpo["redirecionarPara"]) || "/minha-conta",
+      redirecionarPara:
+        texto(corpo["redirecionarPara"]) || "/minha-conta/pedidos",
     };
   }
   if (corpo["status"] === "CODIGO_INCORRETO") {
@@ -89,7 +91,8 @@ export function respostaDaRecuperacao(
     const orientarPara = texto(corpo["orientarPara"]);
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara: texto(corpo["redirecionarPara"]) || "/minha-conta",
+      redirecionarPara:
+        texto(corpo["redirecionarPara"]) || "/minha-conta/pedidos",
       ...(orientarPara === "" ? {} : { orientarPara }),
     };
   }

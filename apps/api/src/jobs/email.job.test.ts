@@ -8,6 +8,10 @@
  * derruba quem está respondendo à requisição.
  */
 
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { type Job } from "bullmq";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -191,5 +195,40 @@ describe("saída de e-mail conforme o ambiente (T-112)", () => {
     expect(registro).toContain(ASSUNTO_DE_VERIFICACAO);
     expect(registro).not.toContain(CADASTRO.destinatario);
     expect(registro).not.toContain(CADASTRO.urlDeVerificacao);
+  });
+
+  it("@spec:AC-133 a caixa de prova do ponta a ponta grava a mensagem fora de produção e é ignorada em produção", async () => {
+    const pasta = await mkdtemp(join(tmpdir(), "sc-caixa-"));
+    try {
+      const fora = saidaDeEmailDoAmbiente({
+        NODE_ENV: "development",
+        CAIXA_DE_EMAIL_DE_PROVA: pasta,
+      });
+      await fora.enviar(montarEmailDeVerificacao(CADASTRO));
+      const arquivos = await readdir(pasta);
+      expect(arquivos).toHaveLength(1);
+      const gravada = JSON.parse(
+        await readFile(join(pasta, arquivos[0] ?? ""), "utf8"),
+      ) as Record<string, unknown>;
+      expect(gravada).toMatchObject({
+        destinatario: CADASTRO.destinatario,
+        assunto: ASSUNTO_DE_VERIFICACAO,
+      });
+      expect(String(gravada["corpo"])).toContain(CADASTRO.urlDeVerificacao);
+
+      // Em produção a variável não abre caminho nenhum: continua indisponível
+      // e nada novo chega à pasta.
+      const producao = saidaDeEmailDoAmbiente({
+        NODE_ENV: "production",
+        CAIXA_DE_EMAIL_DE_PROVA: pasta,
+      });
+      expect(producao.disponivel).toBe(false);
+      await expect(
+        producao.enviar(montarEmailDeVerificacao(CADASTRO)),
+      ).rejects.toBeInstanceOf(ErroDeEnvioNaoConfigurado);
+      expect(await readdir(pasta)).toHaveLength(1);
+    } finally {
+      await rm(pasta, { recursive: true, force: true });
+    }
   });
 });

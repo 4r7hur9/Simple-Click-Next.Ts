@@ -15,6 +15,7 @@ import { redirect } from "next/navigation";
 
 import { enderecoDaApi } from "../api-client.ts";
 import {
+  dominioDoCookieDeSessao,
   NOME_DO_COOKIE_DE_ACESSO,
   NOME_DO_COOKIE_DE_RENOVACAO,
 } from "../session-cookie.ts";
@@ -54,11 +55,20 @@ async function pedirEncerramento(caminho: Caminho): Promise<boolean> {
   }
 }
 
-/** Apaga os dois cookies da sessão deste navegador. */
+/**
+ * Apaga os dois cookies da sessão deste navegador. O de renovação nasce com
+ * o domínio compartilhado (`dominioDoCookieDeSessao`), e o navegador só
+ * apaga cookie de domínio quando a ordem de apagar leva o mesmo domínio.
+ */
 async function apagarCookiesDaSessao(): Promise<void> {
   const armazenamento = await cookies();
-  armazenamento.delete(NOME_DO_COOKIE_DE_RENOVACAO);
-  armazenamento.delete(NOME_DO_COOKIE_DE_ACESSO);
+  const dominio = dominioDoCookieDeSessao();
+  armazenamento.delete({
+    name: NOME_DO_COOKIE_DE_RENOVACAO,
+    path: "/",
+    ...(dominio === undefined ? {} : { domain: dominio }),
+  });
+  armazenamento.delete({ name: NOME_DO_COOKIE_DE_ACESSO, path: "/" });
 }
 
 /** Sai apenas deste navegador, revogando antes o token na API. */

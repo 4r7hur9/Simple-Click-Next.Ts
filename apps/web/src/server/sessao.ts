@@ -68,12 +68,19 @@ export function ehAcaoDeSessao(acao: string): acao is AcaoDeSessao {
   return (ACOES_DE_SESSAO as readonly string[]).includes(acao);
 }
 
-/** Para onde cada papel vai depois de entrar. */
+/**
+ * Para onde cada papel vai depois de entrar. O cliente vai para os pedidos
+ * dele, que é a primeira tela da conta que existe (a raiz `/minha-conta`
+ * ainda não tem página — o ponta a ponta da T-114 achou o 404).
+ */
 export function destinoDoPapel(papel: unknown): string {
   if (papel === "OWNER") return "/painel";
   if (papel === "ADMIN") return "/admin";
-  return "/minha-conta";
+  return DESTINO_DO_CLIENTE;
 }
+
+/** A tela do cliente depois de entrar. */
+export const DESTINO_DO_CLIENTE = "/minha-conta/pedidos";
 
 function respostaJson(
   status: number,
