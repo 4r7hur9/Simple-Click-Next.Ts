@@ -182,7 +182,10 @@ async function gravarItens(
   lojaId: string,
   itens: readonly ItemParaCriar[],
 ): Promise<void> {
-  for (const item of itens) {
+  // A posição de cada item (e de cada escolha) vira o sortOrder: quem lê o
+  // pedido de volta (fila, acompanhamento, histórico, repetir, cupom) ordena
+  // por ele, e sem isso todos empatariam em 0 e a ordem ficaria ao acaso.
+  for (const [posicao, item] of itens.entries()) {
     const gravado = await tx.orderItem.create({
       data: {
         storeId: lojaId,
@@ -197,11 +200,12 @@ async function gravarItens(
         optionsTotalCents: BigInt(item.opcoesEmCentavos ?? 0),
         lineTotalCents: BigInt(item.totalDaLinhaEmCentavos),
         note: item.observacao ?? null,
+        sortOrder: posicao,
       },
       select: { id: true },
     });
 
-    for (const opcao of item.opcoes ?? []) {
+    for (const [posicaoDaOpcao, opcao] of (item.opcoes ?? []).entries()) {
       await tx.orderItemOption.create({
         data: {
           storeId: lojaId,
@@ -212,6 +216,7 @@ async function gravarItens(
           optionNameSnapshot: opcao.nomeDaOpcao,
           quantity: opcao.quantidade ?? 1,
           priceDeltaCents: BigInt(opcao.acrescimoEmCentavos ?? 0),
+          sortOrder: posicaoDaOpcao,
         },
       });
     }
@@ -347,14 +352,21 @@ export async function criarPedido(
   await gravarItens(tx, criado.id, entrada.lojaId, entrada.itens);
 
   // O primeiro passo do histórico nasce junto com o pedido. Sem ele, a fila do
-  // dono mostraria um pedido sem saber desde quando ele está esperando.
+  // dono mostraria um pedido sem saber desde quando ele está esperando. Quem
+  // lançou é quem está no contexto: o pedido manual (AC-707) nasce pelas mãos
+  // da equipe da loja, e o histórico diz isso; o do site, pelas do cliente.
+  const lancadoPelaLoja =
+    contexto.papel === "OWNER" || contexto.papel === "STAFF";
   await tx.orderStatusEntry.create({
     data: {
       storeId: entrada.lojaId,
       orderId: criado.id,
       fromStatus: null,
       toStatus: STATUS_INICIAL,
-      actorRole: "CUSTOMER",
+      actorRole: lancadoPelaLoja ? contexto.papel : "CUSTOMER",
+      ...(lancadoPelaLoja && contexto.usuarioId
+        ? { changedByIdentityId: contexto.usuarioId }
+        : {}),
     },
   });
 

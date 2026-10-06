@@ -8,6 +8,8 @@
  * nunca a partir de um id enviado pela URL.
  */
 
+import type { RegistroDeAcessoAdministrativo } from "../../core/acesso-administrativo.ts";
+
 export type PapelDeAutorizacao = "CUSTOMER" | "OWNER" | "STAFF" | "ADMIN";
 
 /** Identidade já verificada na borda, antes de chegar ao domínio. */
@@ -48,10 +50,7 @@ export function podeAcessarLoja(
 }
 
 /** Interrompe a operação antes da consulta quando o escopo não pertence ao ator. */
-export function exigirAcessoALoja(
-  ator: AtorAutenticado,
-  lojaId: string,
-): void {
+export function exigirAcessoALoja(ator: AtorAutenticado, lojaId: string): void {
   if (!podeAcessarLoja(ator, lojaId)) throw new ErroDeAcessoNegado();
 }
 
@@ -59,9 +58,7 @@ export function podeAcessarPainelDaLoja(ator: AtorAutenticado): boolean {
   return ehDaEquipeDaLoja(ator);
 }
 
-export function podeAcessarAreaAdministrativa(
-  ator: AtorAutenticado,
-): boolean {
+export function podeAcessarAreaAdministrativa(ator: AtorAutenticado): boolean {
   return ator.papel === "ADMIN";
 }
 
@@ -79,15 +76,7 @@ export function rotaSeguraParaAreaDeGestao(
   return permitido ? undefined : "/sem-permissao";
 }
 
-export interface RegistroDeAcessoAdministrativo {
-  readonly lojaId: string;
-  readonly atorId: string;
-  readonly papelDoAtor: "ADMIN";
-  readonly acao: "ADMIN_ACCESS";
-  readonly entidade: string;
-  readonly entidadeId: string | undefined;
-  readonly ocorridoEm: Date;
-}
+export type { RegistroDeAcessoAdministrativo };
 
 export interface ConsultaAdministrativa<T> {
   readonly lojaId: string;

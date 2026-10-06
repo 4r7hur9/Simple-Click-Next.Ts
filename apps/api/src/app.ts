@@ -73,6 +73,19 @@ import {
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
 import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
+import {
+  criarRotasDosClientes,
+  type OpcoesDosClientes,
+} from "./modules/customers/clientes.routes.ts";
+import {
+  criarRotasDosEnderecos,
+  type OpcoesDosEnderecos,
+} from "./modules/customers/enderecos.routes.ts";
+import {
+  criarRotasDoPedidoManual,
+  type OpcoesDoPedidoManual,
+} from "./modules/orders/pedido-manual.routes.ts";
+import type { OpcoesDaRotaDoCupom } from "./modules/printing/cupom.routes.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -117,6 +130,14 @@ export interface OpcoesDoApp {
    * estado dele no painel — o limite do pareamento, a fila e o relógio.
    */
   readonly impressaoAutomatica?: Partial<OpcoesDaImpressaoAutomatica>;
+  /** O mesmo, para os clientes da loja (T-700 a T-703, T-706). */
+  readonly clientes?: Partial<OpcoesDosClientes>;
+  /** O mesmo, para o pedido lançado pelo dono e a repetição (T-704, T-706). */
+  readonly pedidoManual?: Partial<OpcoesDoPedidoManual>;
+  /** O mesmo, para os endereços salvos da conta (T-707). */
+  readonly enderecos?: Partial<OpcoesDosEnderecos>;
+  /** O mesmo, para o cupom impresso (T-705 prova o do pedido manual). */
+  readonly cupom?: Partial<OpcoesDaRotaDoCupom>;
 }
 
 /**
@@ -442,6 +463,74 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
           return null;
         }
       },
+      ...opcoes.cupom,
+    }),
+  );
+
+  // OS CLIENTES DA LOJA (T-700 a T-703, T-706): o mesmo portão de dono das
+  // rotas acima — loja pelo apelido, identidade e papel no contexto.
+  app.use(
+    "/v1/lojas",
+    criarRotasDosClientes({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.clientes,
+    }),
+  );
+
+  // O PEDIDO MANUAL É COSTURADO AQUI (T-704): ler o produto como a vitrine o
+  // mostra é do módulo da vitrine, e a configuração de entrega também; criar o
+  // pedido é de `orders`. A borda passa as funções, e nenhum módulo importa o
+  // outro — o mesmo arranjo do carrinho e do fechamento.
+  app.use(
+    "/v1/lojas",
+    criarRotasDoPedidoManual({
+      resolverLoja: identificarLoja,
+      lerProduto: (produtoId, agora) => produtoDaVitrine(produtoId, agora),
+      lerFechamento: async () => {
+        const vitrine = await lojaDaVitrine(
+          new Date(),
+          await horarioDaLoja(new Date()),
+        );
+        if (vitrine === null) return null;
+        return fechamentoDaLoja(vitrine.publica.formasDeEntrega);
+      },
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.pedidoManual,
     }),
   );
 
@@ -618,6 +707,33 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.conta,
+    }),
+  );
+
+  // OS ENDEREÇOS SALVOS (T-707) também são da pessoa, e não da loja: mesma
+  // porta da conta, sessão de CLIENTE, e nenhuma loja no contexto.
+  app.use(
+    PREFIXO_DA_CONTA,
+    criarRotasDosEnderecos({
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "CUSTOMER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "CUSTOMER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.enderecos,
     }),
   );
 
