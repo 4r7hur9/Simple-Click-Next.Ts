@@ -2,7 +2,8 @@
  * Prova dos encaminhamentos das métricas (T-803, T-808).
  *
  * A tela fala com `/api/painel/metricas` do próprio site; a rota lê o token
- * do cookie httpOnly (P-008) e leva a MESMA consulta à API. O que se prova
+ * do cookie httpOnly (P-008), descobre a loja pela sessão (`GET /v1/eu`,
+ * T-115) e leva a MESMA consulta à API. O que se prova
  * aqui é o caminho da rota inteiro — sessão, endereço, cabeçalhos e corpo —,
  * com a API trocada por uma resposta escrita pelo teste.
  */
@@ -10,6 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { GET as metricas } from "../src/app/api/painel/metricas/route.ts";
 import { GET as exportar } from "../src/app/api/painel/metricas/exportar/route.ts";
+import { LOJA_DA_SESSAO, quemSouEu } from "./apoio-da-loja-da-sessao";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -21,11 +23,18 @@ interface ChamadaNaApi {
   readonly metodo: string;
 }
 
+/**
+ * A API de mentira: `GET /v1/eu` responde a dona com a loja da sessão, e as
+ * demais chamadas (as que a prova confere) recebem a resposta do teste.
+ */
 function simularApi(resposta: () => Response): ChamadaNaApi[] {
   const chamadas: ChamadaNaApi[] = [];
   vi.stubGlobal(
     "fetch",
     async (endereco: RequestInfo | URL, init?: RequestInit) => {
+      if (String(endereco).endsWith("/v1/eu")) {
+        return Response.json(quemSouEu());
+      }
       chamadas.push({
         url: String(endereco),
         cabecalhos: new Headers(init?.headers),
@@ -69,7 +78,9 @@ describe("encaminhamento das métricas", () => {
     expect(chamadas).toHaveLength(1);
     expect(chamadas[0]?.metodo).toBe("GET");
     expect(chamadas[0]?.url).toMatch(
-      /\/v1\/lojas\/[^/]+\/metricas\?periodo=personalizado&de=2026-08-01&ate=2026-08-15$/,
+      new RegExp(
+        `/v1/lojas/${LOJA_DA_SESSAO.apelido}/metricas\\?periodo=personalizado&de=2026-08-01&ate=2026-08-15$`,
+      ),
     );
     expect(chamadas[0]?.cabecalhos.get("authorization")).toBe(
       "Bearer token-do-dono",
@@ -119,7 +130,9 @@ describe("encaminhamento das métricas", () => {
     );
 
     expect(chamadas[0]?.url).toMatch(
-      /\/v1\/lojas\/[^/]+\/metricas\/exportar\?periodo=7d$/,
+      new RegExp(
+        `/v1/lojas/${LOJA_DA_SESSAO.apelido}/metricas/exportar\\?periodo=7d$`,
+      ),
     );
     expect(resposta.status).toBe(200);
     expect(resposta.headers.get("content-type")).toBe(

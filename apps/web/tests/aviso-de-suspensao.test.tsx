@@ -18,6 +18,7 @@ import {
   ENDERECO_DA_SITUACAO,
 } from "../src/features/config/AvisoDeSuspensao.tsx";
 import { desmontar, esperar, montar, simularApi } from "./apoio-config.tsx";
+import { LOJA_DA_SESSAO, quemSouEu } from "./apoio-da-loja-da-sessao";
 
 afterEach(() => {
   desmontar();
@@ -93,6 +94,8 @@ describe("o site repassa a pergunta com a sessão do dono (AC-209)", () => {
   it("@spec:AC-209 com o cookie da sessão, o site pergunta à API com o token e devolve a resposta sem cache", async () => {
     const pedidos: { url: string; autorizacao: string | null }[] = [];
     vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      // A loja vem da sessão (T-115): o site pergunta "quem sou eu" antes.
+      if (url.endsWith("/v1/eu")) return Response.json(quemSouEu());
       pedidos.push({
         url,
         autorizacao: new Headers(init?.headers).get("authorization"),
@@ -113,7 +116,9 @@ describe("o site repassa a pergunta com a sessão do dono (AC-209)", () => {
     expect(resposta.headers.get("cache-control")).toBe("no-store");
     expect(await resposta.json()).toEqual(SUSPENSA);
     expect(pedidos).toHaveLength(1);
-    expect(pedidos[0]?.url).toMatch(/\/v1\/lojas\/[a-z0-9-]+\/situacao$/);
+    expect(pedidos[0]?.url).toMatch(
+      new RegExp(`/v1/lojas/${LOJA_DA_SESSAO.apelido}/situacao$`),
+    );
     expect(pedidos[0]?.autorizacao).toBe("Bearer token-do-dono");
   });
 

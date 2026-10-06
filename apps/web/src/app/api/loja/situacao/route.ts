@@ -6,28 +6,21 @@
  * (P-008) e quem decide se a pessoa é da loja é a API. A resposta nunca vai
  * para cache — a suspensão pode ter acabado de acontecer, ou de acabar.
  *
- * A loja ainda é a de desenvolvimento, como no resto do painel, até a loja
- * da sessão chegar (LAC-02).
+ * A loja é a da sessão (T-115, `sessaoParaEncaminhar`), nunca a da
+ * configuração do servidor.
  */
 import { enderecoDaApi } from "../../../../server/api-client.ts";
-import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
-
-const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
+import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
 
 export async function GET(requisicao: Request): Promise<Response> {
-  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
-  if (token === undefined) {
-    return Response.json(
-      { erro: "nao_autenticado" },
-      { status: 401, headers: { "cache-control": "no-store" } },
-    );
-  }
+  const sessao = await sessaoParaEncaminhar(requisicao);
+  if (sessao instanceof Response) return sessao;
+  const { token } = sessao;
 
   let resposta: Response;
   try {
     resposta = await fetch(
-      `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA_DE_DESENVOLVIMENTO)}/situacao`,
+      `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/situacao`,
       {
         cache: "no-store",
         headers: {
