@@ -79,9 +79,9 @@
 - Notas: serviço no ambiente local que recebe a impressão e devolve pré-visualização, para validar acento, alinhamento e corte sem impressora física. Em Node/TypeScript (decisão de 03/10): servidor TCP na porta 9100 com `node:net`, que também roda dentro do processo do Vitest, sem Docker; no compose, substitui o nginx provisório do perfil `print`. O decodificador de ESC/POS (hoje `lerPapel`, dentro de `cupom-escpos.test.ts`) sobe para `packages/core` e passa a ser um só para o teste do gerador e para o emulador.
 - Esforço: medio
 
-## T-611 — Teste de ponta a ponta da operação [pendente]
+## T-611 — Teste de ponta a ponta da operação [concluida]
 
-- Refs: US-600, US-601, US-603, AC-600, AC-604, AC-612
-- Arquivos: e2e/specs/painel-pedidos.spec.ts, e2e/specs/acompanhamento.spec.ts
-- Notas: cobre o pedido entrando na fila, o avanço de status refletindo na página do cliente, e a recusa de endereço adivinhado.
+- Refs: US-600, US-601, US-603, AC-600, AC-604, AC-612, AC-613, AC-614
+- Arquivos: e2e/specs/painel-pedidos.spec.ts, e2e/specs/acompanhamento.spec.ts, e2e/fixtures/pedido-operacao.ts, apps/web/src/app/(loja)/l/[slug]/pedido/[token]/not-found.tsx
+- Notas: cobre o pedido entrando na fila, o avanço de status refletindo na página do cliente, e a recusa de endereço adivinhado. O pedido nasce na vitrine, pelo caminho do cliente, e dono e cliente ficam em navegadores separados (`fixtures/pedido-operacao.ts`); o bipe é contado trocando o `AudioContext` da página, e cada cenário roda com a loja do painel só para ele (`comALojaDoPainelSoParaMim`, da T-908) e apaga os pedidos no fim. O ponta a ponta achou que link adivinhado caía na página "Esta loja não está disponível" (o `not-found` da loja): a página de acompanhamento ganhou o próprio `not-found.tsx`, "Pedido não encontrado". A impressão automática (AC-622..AC-626) não entra aqui: é da T-608/T-609. Os specs rodam fora da prova escopada (só Vitest), com `test:e2e:isolado`.
 - Esforço: medio
