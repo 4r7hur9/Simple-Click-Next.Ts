@@ -2,13 +2,10 @@ import Link from "next/link";
 import { Erro } from "@simpleclick/ui";
 
 import { MontarPedido } from "../../../../../features/painel-pedidos/MontarPedido.tsx";
+import { exigirLojaDaPagina } from "../../../../../server/loja-da-pagina.ts";
 import { produtosDoBalcao } from "../../../../../server/produtos-do-balcao.ts";
 
 export const metadata = { title: "Novo pedido | SimpleClick" };
-
-/** A loja do painel, a mesma que as rotas de encaminhamento usam. */
-const APELIDO_DA_LOJA =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
 
 /** Um valor de busca da URL, só quando é texto simples. */
 function parametro(valor: string | string[] | undefined): string | null {
@@ -23,7 +20,9 @@ export default async function PaginaDoNovoPedido({
   >;
 }) {
   const busca = await searchParams;
-  const catalogo = await produtosDoBalcao(APELIDO_DA_LOJA);
+  // A loja da sessão, a mesma que as rotas de encaminhamento usam (T-115).
+  const { loja } = await exigirLojaDaPagina();
+  const catalogo = await produtosDoBalcao(loja.apelido);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">

@@ -21,14 +21,7 @@ import {
 
 import { enderecoDaApi } from "./api-client.ts";
 import { enderecoDoSite } from "./endereco-do-site.ts";
-import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
-
-/**
- * A loja do painel. É a mesma escolha das outras rotas do painel nesta fase:
- * a loja vem do ambiente até o login de produção dizer de qual loja é o dono.
- */
-const APELIDO_DA_LOJA =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
+import { lojaDoPainel } from "./loja-do-painel.ts";
 
 /**
  * Largura de cada caractere, em fração do tamanho da letra, usada para
@@ -77,6 +70,7 @@ export interface FolhaDoCupom {
 export type CupomParaImprimir =
   | { readonly estado: "pronto"; readonly folha: FolhaDoCupom }
   | { readonly estado: "sem-sessao" }
+  | { readonly estado: "escolher-loja" }
   | { readonly estado: "nao-encontrado" }
   | { readonly estado: "indisponivel" };
 
@@ -122,6 +116,7 @@ export function folhaDoCupom(cupom: CupomImpresso): FolhaDoCupom {
  * Cada chamada EMITE uma via (AC-621): é por isso que a página chama esta
  * função uma vez por abertura, e nunca em pré-carregamento. Sem sessão, nem
  * chega a perguntar — e a resposta que a página mostra é "entre de novo".
+ * A loja vem da sessão (T-115): sem loja decidida, nenhuma via é emitida.
  *
  * `buscar` entra por parâmetro para o teste responder sem rede.
  */
@@ -130,13 +125,17 @@ export async function emitirCupomParaImprimir(
   cabecalhoCookie: string | null,
   buscar: typeof fetch = fetch,
 ): Promise<CupomParaImprimir> {
-  const token = lerTokenDeAcessoDoCookie(cabecalhoCookie);
-  if (token === undefined) return { estado: "sem-sessao" };
+  const sessao = await lojaDoPainel(cabecalhoCookie, buscar);
+  if (sessao.estado === "sem-sessao") return { estado: "sem-sessao" };
+  if (sessao.estado === "escolher") return { estado: "escolher-loja" };
+  if (sessao.estado === "sem-loja") return { estado: "nao-encontrado" };
+  if (sessao.estado === "indisponivel") return { estado: "indisponivel" };
+  const { token } = sessao;
 
   let resposta: Response;
   try {
     resposta = await buscar(
-      `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/pedidos/${encodeURIComponent(pedidoId)}/cupom`,
+      `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.loja.apelido)}/pedidos/${encodeURIComponent(pedidoId)}/cupom`,
       {
         method: "POST",
         cache: "no-store",

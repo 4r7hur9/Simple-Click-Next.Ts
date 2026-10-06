@@ -3,27 +3,35 @@ import type { ReactNode } from "react";
 
 import { AvisoDeSuspensao } from "../../../features/config/AvisoDeSuspensao.tsx";
 import { AvisosPendentes } from "../../../features/config/AvisosPendentes.tsx";
+import { exigirLojaDaPagina } from "../../../server/loja-da-pagina.ts";
 
 /**
- * Casca sem dados do painel da loja.
+ * Casca do painel da loja.
  *
- * A decisão de papel e de loja é feita no servidor pela API, antes de qualquer
- * consulta. Esta casca não busca nem serializa dado de loja, para que abrir
- * uma URL não vire uma fonte de enumeração de recursos.
+ * A loja vem da sessão (T-115): sem sessão a pessoa vai para a entrada, e
+ * dono de mais de uma loja escolhe antes de ver o painel. A casca mostra só o
+ * nome e o apelido da loja da própria sessão — o acesso a cada dado continua
+ * decidido pela API, que confere o vínculo do dono em toda rota.
  */
-export default function LayoutDoPainel({
+export default async function LayoutDoPainel({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  const { loja, lojas } = await exigirLojaDaPagina();
   return (
     <div className="min-h-screen bg-[var(--cor-papel)] text-[var(--cor-tinta)]">
       <header className="border-b border-[var(--cor-borda)] bg-[var(--cor-superficie)]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/painel"
-            className="text-xl font-semibold tracking-[-0.04em]"
-          >
-            simpleclick
-          </Link>
+          <div className="flex flex-col">
+            <Link
+              href="/painel"
+              className="text-xl font-semibold tracking-[-0.04em]"
+            >
+              simpleclick
+            </Link>
+            <p className="text-sm text-[var(--cor-tinta-suave)]">
+              Loja: <strong className="font-semibold">{loja.nome}</strong>
+            </p>
+          </div>
           <nav aria-label="Navegação do painel">
             <ul className="flex flex-wrap items-center gap-2">
               <li>
@@ -42,11 +50,21 @@ export default function LayoutDoPainel({
               <li>
                 <Link
                   className="sc-botao sc-botao--fantasma"
-                  href="/l/pastelaria-da-vila"
+                  href={`/l/${encodeURIComponent(loja.apelido)}`}
                 >
                   Ver minha loja
                 </Link>
               </li>
+              {lojas.length > 1 ? (
+                <li>
+                  <Link
+                    className="sc-botao sc-botao--fantasma"
+                    href="/escolher-loja"
+                  >
+                    Trocar de loja
+                  </Link>
+                </li>
+              ) : null}
               <li>
                 <Link
                   className="sc-botao sc-botao--fantasma"

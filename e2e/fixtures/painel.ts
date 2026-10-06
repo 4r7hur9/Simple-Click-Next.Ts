@@ -7,6 +7,9 @@
  * exemplo, que outros cenários medem. Roupa porque o ramo controla estoque
  * (`tracks_stock`), e a prova de estoque precisa disso.
  *
+ * Desde a T-115 o site não lê mais essa variável: descobre a loja pela sessão
+ * (`GET /v1/eu`). O painel abre nesta loja porque o dono dela só tem ela.
+ *
  * A SESSÃO É EMITIDA AQUI, e não pela tela de entrada. O site do ponta a ponta
  * roda em modo produção, e nele o cookie de sessão sai preso ao domínio de
  * produção — em `localhost` ele não pega. A entrada tem prova própria (T-110);

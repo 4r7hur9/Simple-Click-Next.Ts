@@ -35,6 +35,8 @@ const CONEXAO_DIRETA = "postgresql://migracao:trocar@127.0.0.1:1/sc_partida";
 const CONEXAO_DE_TESTE =
   "postgresql://aplicacao:trocar@127.0.0.1:1/sc_partida_teste";
 const CHAVE_DE_ASSINATURA = "x".repeat(48);
+/** 32 bytes de exemplo: produção não parte sem a chave da cifra (AC-130). */
+const CHAVE_DE_CIFRA = Buffer.alloc(32, 7).toString("base64");
 
 /** Pede ao sistema uma porta livre, para o teste não disputar com o ambiente. */
 async function portaLivre(): Promise<number> {
@@ -451,6 +453,7 @@ describe("o que a partida sobe", () => {
       const api = await iniciarApi({
         fonte: ambienteDeProva({
           NODE_ENV: "production",
+          CHAVE_CIFRA_TOTP: CHAVE_DE_CIFRA,
           PORT: String(porta),
           REDIS_URL: `redis://127.0.0.1:${enderecoDoRedis.port}/0`,
           SEGUNDO_PLANO: "desligado",

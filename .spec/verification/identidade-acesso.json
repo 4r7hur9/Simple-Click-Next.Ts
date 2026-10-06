@@ -1,35 +1,35 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-10-06T02:36:47.258Z",
-  "gitRev": "5943fc8",
+  "timestamp": "2026-10-06T07:43:08.566Z",
+  "gitRev": "69f23e0",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh identidade-acesso",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 124,
+  "testsParsed": 246,
   "results": {
     "AC-100": {
       "status": "pass",
-      "testName": "cadastro de cliente final @spec:AC-100 cadastro válido cria conta pendente de verificação e envia instruções @spec:AC-100 cadastro válido cria conta pendente de verificação e envia instruções",
+      "testName": "cadastro e verificação de e-mail gravados no banco @spec:AC-100 @spec:AC-129 cadastro válido grava a conta pendente com a senha derivada, e outra instância a reconhece sem deixar entrar @spec:AC-100 @spec:AC-129 cadastro válido grava a conta pendente com a senha derivada, e outra instância a reconhece sem deixar entrar",
       "method": "vitest-json"
     },
     "AC-101": {
       "status": "pass",
-      "testName": "cadastro de cliente final @spec:AC-101 e-mail já cadastrado devolve a mesma confirmação e avisa o dono do endereço @spec:AC-101 e-mail já cadastrado devolve a mesma confirmação e avisa o dono do endereço",
+      "testName": "cadastro e verificação de e-mail gravados no banco @spec:AC-101 o mesmo e-mail de novo devolve a mesma confirmação, avisa o dono do endereço e não troca a senha de quem já tinha conta @spec:AC-101 o mesmo e-mail de novo devolve a mesma confirmação, avisa o dono do endereço e não troca a senha de quem já tinha conta",
       "method": "vitest-json"
     },
     "AC-102": {
       "status": "pass",
-      "testName": "cadastro de cliente final @spec:AC-102 senha fraca recusa o cadastro com cada motivo e não cria conta @spec:AC-102 senha fraca recusa o cadastro com cada motivo e não cria conta",
+      "testName": "cadastro e verificação de e-mail @spec:AC-102 senha fraca volta com o motivo de cada regra e não cria conta @spec:AC-102 senha fraca volta com o motivo de cada regra e não cria conta",
       "method": "vitest-json"
     },
     "AC-103": {
       "status": "pass",
-      "testName": "convite do dono @spec:AC-103 convite válido define a primeira senha, libera o acesso e não funciona uma segunda vez @spec:AC-103 convite válido define a primeira senha, libera o acesso e não funciona uma segunda vez",
+      "testName": "cadastro e verificação de e-mail gravados no banco @spec:AC-103 o link libera o login, vale uma vez só, e a segunda instância enxerga o e-mail verificado @spec:AC-103 o link libera o login, vale uma vez só, e a segunda instância enxerga o e-mail verificado",
       "method": "vitest-json"
     },
     "AC-104": {
       "status": "pass",
-      "testName": "verificação de e-mail @spec:AC-104 link expirado oferece reenvio, gera outro link e limita tentativas na janela @spec:AC-104 link expirado oferece reenvio, gera outro link e limita tentativas na janela",
+      "testName": "cadastro e verificação de e-mail gravados no banco @spec:AC-104 @spec:AC-129 link expirado oferece reenvio, o link novo funciona, e o limite conta por conta entre instâncias @spec:AC-104 @spec:AC-129 link expirado oferece reenvio, o link novo funciona, e o limite conta por conta entre instâncias",
       "method": "vitest-json"
     },
     "AC-105": {
@@ -39,72 +39,72 @@
     },
     "AC-106": {
       "status": "pass",
-      "testName": "confirmação do segundo fator @spec:AC-106 código correto cria a sessão e o código não serve de novo @spec:AC-106 código correto cria a sessão e o código não serve de novo",
+      "testName": "login, segundo fator e sessão @spec:AC-105 @spec:AC-106 dona recebe o desafio por e-mail, nenhuma sessão nasce antes do código, e o código vale uma vez @spec:AC-105 @spec:AC-106 dona recebe o desafio por e-mail, nenhuma sessão nasce antes do código, e o código vale uma vez",
       "method": "vitest-json"
     },
     "AC-107": {
       "status": "pass",
-      "testName": "confirmação do segundo fator @spec:AC-107 código errado tem cinco tentativas, bloqueia e invalida o desafio @spec:AC-107 código errado tem cinco tentativas, bloqueia e invalida o desafio",
+      "testName": "segundo fator limitado pela conta, não pelo desafio @spec:AC-107 dez códigos errados espalhados por desafios novos bloqueiam o segundo fator da conta, mesmo com o código certo @spec:AC-107 dez códigos errados espalhados por desafios novos bloqueiam o segundo fator da conta, mesmo com o código certo",
       "method": "vitest-json"
     },
     "AC-108": {
       "status": "pass",
-      "testName": "login com senha @spec:AC-108 cliente final com segundo fator desativado entra direto, enquanto dono continua protegido @spec:AC-108 cliente final com segundo fator desativado entra direto, enquanto dono continua protegido",
+      "testName": "login, segundo fator e sessão @spec:AC-108 @spec:AC-109 cliente sem segundo fator entra direto, e o refresh só sai em cookie HttpOnly, Secure e SameSite @spec:AC-108 @spec:AC-109 cliente sem segundo fator entra direto, e o refresh só sai em cookie HttpOnly, Secure e SameSite",
       "method": "vitest-json"
     },
     "AC-121": {
       "status": "pass",
-      "testName": "aplicativo autenticador @spec:AC-121 ativação confirma o código, cifra o segredo e entrega recuperações @spec:AC-121 ativação confirma o código, cifra o segredo e entrega recuperações",
+      "testName": "aplicativo autenticador no banco @spec:AC-121 @spec:AC-130 ativar guarda só o segredo cifrado, exige código válido, devolve códigos de recuperação, e o código por e-mail deixa de valer @spec:AC-121 @spec:AC-130 ativar guarda só o segredo cifrado, exige código válido, devolve códigos de recuperação, e o código por e-mail deixa de valer",
       "method": "vitest-json"
     },
     "AC-122": {
       "status": "pass",
-      "testName": "aplicativo autenticador @spec:AC-122 administrador sem aplicativo só pode ir para a configuração @spec:AC-122 administrador sem aplicativo só pode ir para a configuração",
+      "testName": "aplicativo autenticador e códigos de recuperação @spec:AC-122 a administração sem aplicativo não recebe sessão nem código por e-mail @spec:AC-122 a administração sem aplicativo não recebe sessão nem código por e-mail",
       "method": "vitest-json"
     },
     "AC-123": {
       "status": "pass",
-      "testName": "códigos de recuperação @spec:AC-123 consumo único libera a sessão, avisa por e-mail e orienta recadastrar o aplicativo @spec:AC-123 consumo único libera a sessão, avisa por e-mail e orienta recadastrar o aplicativo",
+      "testName": "aplicativo autenticador no banco @spec:AC-123 código de recuperação entra uma vez só, avisa, orienta a configurar de novo, e só o último jogo vale @spec:AC-123 código de recuperação entra uma vez só, avisa, orienta a configurar de novo, e só o último jogo vale",
       "method": "vitest-json"
     },
     "AC-124": {
       "status": "pass",
-      "testName": "aplicativo autenticador @spec:AC-124 código do aplicativo consumido não pode ser usado outra vez @spec:AC-124 código do aplicativo consumido não pode ser usado outra vez",
+      "testName": "aplicativo autenticador no banco @spec:AC-124 o mesmo código do aplicativo não entra duas vezes, nem o código que ativou @spec:AC-124 o mesmo código do aplicativo não entra duas vezes, nem o código que ativou",
       "method": "vitest-json"
     },
     "AC-109": {
       "status": "pass",
-      "testName": "sessão web @spec:AC-109 sessão web sai só em cookie HttpOnly, Secure e SameSite, sem token no corpo @spec:AC-109 sessão web sai só em cookie HttpOnly, Secure e SameSite, sem token no corpo",
+      "testName": "login, segundo fator e sessão @spec:AC-108 @spec:AC-109 cliente sem segundo fator entra direto, e o refresh só sai em cookie HttpOnly, Secure e SameSite @spec:AC-108 @spec:AC-109 cliente sem segundo fator entra direto, e o refresh só sai em cookie HttpOnly, Secure e SameSite",
       "method": "vitest-json"
     },
     "AC-110": {
       "status": "pass",
-      "testName": "rotação de refresh @spec:AC-110 renovação troca o par, reuso revoga a família e envia um aviso @spec:AC-110 renovação troca o par, reuso revoga a família e envia um aviso",
+      "testName": "login, segundo fator e sessão @spec:AC-110 @spec:AC-129 outra instância renova pelo banco, e o token antigo derruba a família e avisa @spec:AC-110 @spec:AC-129 outra instância renova pelo banco, e o token antigo derruba a família e avisa",
       "method": "vitest-json"
     },
     "AC-111": {
       "status": "pass",
-      "testName": "sessão nativa @spec:AC-111 cliente nativo recebe o par no corpo e usa o acesso como Bearer na mesma API @spec:AC-111 cliente nativo recebe o par no corpo e usa o acesso como Bearer na mesma API",
+      "testName": "login, segundo fator e sessão @spec:AC-111 cliente nativo recebe o par no corpo, sem cookie, e renova pelo corpo @spec:AC-111 cliente nativo recebe o par no corpo, sem cookie, e renova pelo corpo",
       "method": "vitest-json"
     },
     "AC-112": {
       "status": "pass",
-      "testName": "encerramento de sessão @spec:AC-112 sair revoga a sessão atual no servidor e o token anterior não renova acesso @spec:AC-112 sair revoga a sessão atual no servidor e o token anterior não renova acesso",
+      "testName": "login, segundo fator e sessão @spec:AC-112 sair revoga no servidor e apaga o cookie; o token anterior não renova mais @spec:AC-112 sair revoga no servidor e apaga o cookie; o token anterior não renova mais",
       "method": "vitest-json"
     },
     "AC-113": {
       "status": "pass",
-      "testName": "encerramento de sessão @spec:AC-113 encerrar todas as sessões revoga a atual e a de outro dispositivo @spec:AC-113 encerrar todas as sessões revoga a atual e a de outro dispositivo",
+      "testName": "sessões e recuperação de senha @spec:AC-113 encerrar todas derruba as sessões dos dois dispositivos na próxima renovação @spec:AC-113 encerrar todas derruba as sessões dos dois dispositivos na próxima renovação",
       "method": "vitest-json"
     },
     "AC-114": {
       "status": "pass",
-      "testName": "recuperação de senha @spec:AC-114 confirma igualmente pedidos para e-mail cadastrado e desconhecido @spec:AC-114 confirma igualmente pedidos para e-mail cadastrado e desconhecido",
+      "testName": "recuperação de senha gravada no banco @spec:AC-114 a confirmação é a mesma com e sem conta, e só a conta existente ganha link — guardado como resumo @spec:AC-114 a confirmação é a mesma com e sem conta, e só a conta existente ganha link — guardado como resumo",
       "method": "vitest-json"
     },
     "AC-115": {
       "status": "pass",
-      "testName": "recuperação de senha @spec:AC-115 consome o link ao trocar a senha e revoga todas as sessões na operação atômica @spec:AC-115 consome o link ao trocar a senha e revoga todas as sessões na operação atômica",
+      "testName": "recuperação de senha gravada no banco @spec:AC-115 @spec:AC-129 a senha nova vale, o link não serve de novo, o pedido anterior morre e toda sessão antiga cai — em qualquer instância @spec:AC-115 @spec:AC-129 a senha nova vale, o link não serve de novo, o pedido anterior morre e toda sessão antiga cai — em qualquer instância",
       "method": "vitest-json"
     },
     "AC-116": {
@@ -114,7 +114,7 @@
     },
     "AC-117": {
       "status": "pass",
-      "testName": "autorização por papel @spec:AC-117 cliente final recebe rota neutra e não ganha acesso a nenhuma área de gestão @spec:AC-117 cliente final recebe rota neutra e não ganha acesso a nenhuma área de gestão",
+      "testName": "rotação do token de renovação no banco @spec:AC-117 o banco não grava sessão com papel acima do papel real da identidade @spec:AC-117 o banco não grava sessão com papel acima do papel real da identidade",
       "method": "vitest-json"
     },
     "AC-118": {
@@ -150,6 +150,46 @@
     "AC-128": {
       "status": "pass",
       "testName": "sessão do navegador em requisição de outro site @spec:AC-128 formulário de site de terceiros enviado com o cookie da vítima não executa a operação @spec:AC-128 formulário de site de terceiros enviado com o cookie da vítima não executa a operação",
+      "method": "vitest-json"
+    },
+    "AC-129": {
+      "status": "pass",
+      "testName": "cadastro e verificação de e-mail gravados no banco @spec:AC-100 @spec:AC-129 cadastro válido grava a conta pendente com a senha derivada, e outra instância a reconhece sem deixar entrar @spec:AC-100 @spec:AC-129 cadastro válido grava a conta pendente com a senha derivada, e outra instância a reconhece sem deixar entrar",
+      "method": "vitest-json"
+    },
+    "AC-130": {
+      "status": "pass",
+      "testName": "aplicativo autenticador no banco @spec:AC-121 @spec:AC-130 ativar guarda só o segredo cifrado, exige código válido, devolve códigos de recuperação, e o código por e-mail deixa de valer @spec:AC-121 @spec:AC-130 ativar guarda só o segredo cifrado, exige código válido, devolve códigos de recuperação, e o código por e-mail deixa de valer",
+      "method": "vitest-json"
+    },
+    "AC-131": {
+      "status": "pass",
+      "testName": "dado de acesso fora do alcance da credencial das lojas @spec:AC-131 a dona de uma loja não lê sessão, segredo nem código de recuperação do cliente, e ninguém lê código de uso único — nem o próprio @spec:AC-131 a dona de uma loja não lê sessão, segredo nem código de recuperação do cliente, e ninguém lê código de uso único — nem o próprio",
+      "method": "vitest-json"
+    },
+    "AC-132": {
+      "status": "pass",
+      "testName": "cadastro e verificação de e-mail @spec:AC-132 @spec:AC-100 @spec:AC-103 cadastro cria conta pendente, o link verifica uma vez só, e só depois o login entra @spec:AC-132 @spec:AC-100 @spec:AC-103 cadastro cria conta pendente, o link verifica uma vez só, e só depois o login entra",
+      "method": "vitest-json"
+    },
+    "AC-133": {
+      "status": "pass",
+      "testName": "limite, atalho de desenvolvimento e e-mail @spec:AC-133 sem provedor, a API diz que o envio está indisponível, igual para conta existente e inexistente @spec:AC-133 sem provedor, a API diz que o envio está indisponível, igual para conta existente e inexistente",
+      "method": "vitest-json"
+    },
+    "AC-134": {
+      "status": "pass",
+      "testName": "quem sou eu (GET /v1/eu) @spec:AC-134 cada dono recebe a própria identidade e só as lojas com vínculo ativo @spec:AC-134 cada dono recebe a própria identidade e só as lojas com vínculo ativo",
+      "method": "vitest-json"
+    },
+    "AC-135": {
+      "status": "pass",
+      "testName": "escolher a loja (AC-136) @spec:AC-135 sem sessão vai para a entrada; sem loja e API fora do ar explicam @spec:AC-135 sem sessão vai para a entrada; sem loja e API fora do ar explicam",
+      "method": "vitest-json"
+    },
+    "AC-136": {
+      "status": "pass",
+      "testName": "escolher a loja (AC-136) @spec:AC-136 a tela lista as lojas da sessão, cada uma com o seu botão @spec:AC-136 a tela lista as lojas da sessão, cada uma com o seu botão",
       "method": "vitest-json"
     }
   },

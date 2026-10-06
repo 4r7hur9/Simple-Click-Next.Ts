@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Tela de login (AC-105, AC-108, AC-119, AC-122, T-113).
+ *
+ * Fala com a API pela ponte do site (`/api/auth/login`): os tokens ficam em
+ * cookie HttpOnly gravado pelo servidor do site, e este código só recebe o
+ * próximo passo — segundo fator ou a área da pessoa.
+ */
 import { useRouter } from "next/navigation";
 
 import {
@@ -7,6 +14,7 @@ import {
   type RespostaDoLoginNaTela,
 } from "../../../features/auth/LoginForm.tsx";
 import { CascaDaConta } from "../../../features/auth/CascaDaConta.tsx";
+import { respostaDoLogin } from "../../../features/auth/respostas-de-acesso.ts";
 
 async function enviarLogin(entrada: {
   readonly email: string;
@@ -18,16 +26,8 @@ async function enviarLogin(entrada: {
     credentials: "include",
     body: JSON.stringify(entrada),
   });
-  const corpo = (await resposta.json()) as {
-    readonly autenticado?: boolean;
-  };
-  if (resposta.ok && corpo.autenticado === true) {
-    return {
-      status: "SESSAO_CRIADA",
-      redirecionarPara: "/painel",
-    };
-  }
-  return { status: "CREDENCIAIS_INVALIDAS" };
+  const corpo = (await resposta.json()) as Record<string, unknown>;
+  return respostaDoLogin(resposta.status, corpo);
 }
 
 export default function PaginaDeEntrar() {
@@ -41,15 +41,16 @@ export default function PaginaDeEntrar() {
     >
       <LoginForm
         aoEntrar={enviarLogin}
-        aoPedirSegundoFator={(desafioId) =>
+        aoPedirSegundoFator={(desafioId, canal) =>
           roteador.push(
-            `/entrar/verificacao?desafio=${encodeURIComponent(desafioId)}`,
+            `/entrar/verificacao?desafio=${encodeURIComponent(desafioId)}&canal=${canal}`,
           )
         }
         aoCriarSessao={(destino) => roteador.replace(destino)}
       />
       <p className="sc-conta__rodape-formulario">
-        Primeiro acesso? Use o convite recebido para configurar sua conta.
+        Ainda não tem conta? <a href="/cadastrar">Criar conta</a>. Dono de loja:
+        use o convite recebido por e-mail para o primeiro acesso.
       </p>
     </CascaDaConta>
   );

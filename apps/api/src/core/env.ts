@@ -17,6 +17,12 @@
 
 import { z } from "zod";
 
+import {
+  COMO_GERAR_A_CHAVE,
+  problemaDaChaveDeCifra,
+  VARIAVEL_DA_CHAVE_DO_TOTP,
+} from "./cifra.ts";
+
 /** Ambientes de execução reconhecidos. */
 const AMBIENTES = ["development", "test", "production"] as const;
 
@@ -174,6 +180,26 @@ const forma = z.object({
     .describe(
       `filas e trabalhadores neste processo — ${ESTADOS_DO_SEGUNDO_PLANO.join(" | ")}; sem valor, liga em production e fica desligado fora dela`,
     ),
+
+  // Obrigatória só em produção, e a regra mora em `problemasDaChaveDeCifra`:
+  // fora dela, quem não mexe no aplicativo autenticador não precisa gerar
+  // chave para subir a API. Presente, vale sempre o mesmo formato (AC-130).
+  // Valor vazio conta como ausente — é o que sobra de um modelo copiado.
+  CHAVE_CIFRA_TOTP: z
+    .preprocess(
+      (valor) =>
+        typeof valor === "string" && valor.trim() === "" ? undefined : valor,
+      z
+        .string()
+        .trim()
+        .refine((valor) => problemaDaChaveDeCifra(valor) === undefined, {
+          error: "não é uma chave de 32 bytes em base64",
+        })
+        .optional(),
+    )
+    .describe(
+      `chave AES-256 que cifra o segredo do aplicativo autenticador, obrigatória em production — ${COMO_GERAR_A_CHAVE}`,
+    ),
 });
 
 /** Ambiente já validado e tipado, pronto para o resto da API consumir. */
@@ -213,7 +239,30 @@ function problema(variavel: string, motivo: string): ProblemaDeAmbiente {
  * provado.
  */
 function problemasEntreVariaveis(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
-  return [...problemasDoBancoDeTeste(fonte), ...problemasDoNomeDaPorta(fonte)];
+  return [
+    ...problemasDoBancoDeTeste(fonte),
+    ...problemasDoNomeDaPorta(fonte),
+    ...problemasDaChaveDeCifra(fonte),
+  ];
+}
+
+/**
+ * Produção não parte sem a chave que cifra o segredo do aplicativo
+ * autenticador (AC-130). Sem ela, a primeira pessoa a ativar o aplicativo
+ * descobriria o problema — e a administração, para quem o aplicativo é
+ * obrigatório (AC-122), não teria como entrar. O formato da chave presente é
+ * conferido pelo esquema, em qualquer ambiente.
+ */
+function problemasDaChaveDeCifra(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
+  const ambiente = valorDe(fonte, "NODE_ENV") ?? "development";
+  if (ambiente !== "production") return [];
+  if (valorDe(fonte, VARIAVEL_DA_CHAVE_DO_TOTP) !== undefined) return [];
+  return [
+    problema(
+      VARIAVEL_DA_CHAVE_DO_TOTP,
+      "ausente — obrigatória em production, porque o segredo do aplicativo autenticador só é guardado cifrado",
+    ),
+  ];
 }
 
 /**

@@ -20,6 +20,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 
+import { PASTA_DA_CAIXA_DE_EMAIL } from "./fixtures/caixa-de-email.ts";
+
 /**
  * O ambiente do REPOSITÓRIO, carregado antes de tudo.
  *
@@ -45,14 +47,6 @@ export const ENDERECO_DA_API = "http://localhost:3101";
 
 export default defineConfig({
   testDir: "./specs",
-  // Estes três arquivos são testes Vitest legados que vivem no pacote E2E
-  // por compartilharem fixtures de domínio. O Playwright não deve importá-los:
-  // os dois runners registram matchers globais incompatíveis.
-  testIgnore: [
-    "**/cadastro.spec.ts",
-    "**/login-2fa.spec.ts",
-    "**/recuperar-senha.spec.ts",
-  ],
   // Um cenário que depende de outro é um cenário que mente quando roda
   // sozinho. Cada arquivo monta o que precisa.
   fullyParallel: true,
@@ -105,6 +99,11 @@ export default defineConfig({
         API_PORT: "3101",
         ORIGENS_PERMITIDAS: ENDERECO_DO_SITE,
         URL_DO_SITE: ENDERECO_DO_SITE,
+        // OS E-MAILS VÃO PARA A CAIXA DE PROVA (T-114): cada mensagem vira um
+        // arquivo nesta pasta, e os cenários de acesso leem dela o link de
+        // verificação, o código do login e o link de recuperação. Só vale
+        // fora de produção; a API do ponta a ponta roda em desenvolvimento.
+        CAIXA_DE_EMAIL_DE_PROVA: PASTA_DA_CAIXA_DE_EMAIL,
       },
     },
     {
@@ -133,6 +132,11 @@ export default defineConfig({
         // de exemplo, que outros cenários medem. Entra no build, por ser
         // pública.
         NEXT_PUBLIC_DEV_STORE_SLUG: "e2e-painel",
+        // O COOKIE DE RENOVAÇÃO PRECISA PEGAR EM localhost (T-114). O site do
+        // ponta a ponta roda em modo produção, cujo domínio padrão do cookie
+        // é o do ambiente com TLS (`simpleclick.localhost`): o navegador o
+        // recusaria aqui, e a entrada pela tela nunca abriria sessão.
+        NEXT_PUBLIC_SESSION_COOKIE_DOMAIN: "localhost",
       },
     },
   ],

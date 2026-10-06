@@ -1491,6 +1491,66 @@ bash infra/scripts/verificar.sh  # o portão completo
       sem a trava enquanto `config-horarios.spec.ts` a deixa fechada por
       alguns segundos.
 
+96. **O que a persistência da identidade (T-111, 03/10) deixa para as rotas
+    (T-112).** Os repositórios de banco de cadastro, login, verificação,
+    recuperação, desafio do segundo fator, sessão, aplicativo autenticador,
+    códigos de recuperação e convite existem e estão provados contra
+    PostgreSQL (`apps/api/tests/*-persistid*.test.ts`), mas nenhuma rota os
+    monta ainda: `/v1/auth` continua só com o login de desenvolvimento.
+    - **Reenvio do link de verificação numa transação só.** A trava da conta
+      que conta os reenvios vale até o fim da transação; a rota precisa abrir
+      `autorizarReenvioDeLinkExpirado` e `criarVerificacao` dentro do mesmo
+      `emTransacao`, senão dois reenvios simultâneos passam do limite.
+    - **Passos de quem já está logado precisam da identidade no contexto.**
+      Ativar o aplicativo, gerar códigos de recuperação, sair e encerrar todas
+      dependem da política "só a própria identidade": a rota abre o contexto
+      com `usuarioId` do token. Sem isso, o banco devolve zero linhas (e o
+      repositório responde "não encontrado"), nunca a linha de outra pessoa.
+    - **O canal do segundo fator é decidido pela rota e conferido pelo banco.**
+      Quem tem aplicativo ativo recebe desafio pelo aplicativo; a
+      administração sem aplicativo vai para a configuração obrigatória
+      (`decidirSegundoFatorObrigatorio`). O banco recusa código por e-mail
+      nesses dois casos (AC-121, AC-122), então errar a escolha vira erro, não
+      brecha.
+    - **O papel da sessão é o papel real.** `auth_criar_sessao` recusa sessão
+      com papel diferente do calculado no banco, e a renovação derruba a
+      família quando o papel muda (vínculo revogado, administração retirada):
+      a rota usa `PAPEL_DA_SESSAO[papel do login]`.
+    - **`CHAVE_CIFRA_TOTP` passou a ser obrigatória em produção** (a partida
+      recusa sem ela). Precisa entrar no cofre do provedor antes da próxima
+      publicação (`infra/railway/README.md`). Trocar a chave invalida os
+      aplicativos ativados: cada pessoa ativa de novo (a troca sem migração,
+      com chave anterior aceita só para decifrar, fica para quando for
+      necessária — o formato já carrega o identificador da chave).
+    - **O e-mail continua sem provedor** (dívida 35) e sem adaptador de
+      registro fora de produção (dívida 94): os dois nascem com a T-112, que é
+      a primeira a enfileirar e-mail de identidade.
+    - **Limpeza de sessões e códigos vencidos** (índices por `expires_at` já
+      existem) não tem trabalho agendado ainda.
+
+97. **O que as rotas reais de identidade e as telas (T-112, T-113, 05/10)
+    deixam para depois.** `/v1/auth` autentica pelo banco em produção, com
+    limite de tentativas, cookie protegido e respostas neutras, e as telas de
+    acesso falam com essas rotas pela ponte do site. Ficou de fora:
+    - **Código de barras quadrado do aplicativo autenticador.** Sem
+      biblioteca nova, a tela mostra a chave em texto e o link `otpauth://`.
+      Desenhar o QR pede decisão: biblioteca pequena ou gerador próprio.
+    - **Renovação automática no site.** A ponte renova em
+      `/api/auth/renovar`, mas nenhuma tela a chama quando o token de acesso
+      (15 minutos) vence; até lá, quem fica parado precisa entrar de novo.
+    - **Primeiro administrador geral.** Administração sem aplicativo recebe
+      "configuração obrigatória" e nenhuma sessão (AC-122); o arranque do
+      banco de produção (T-115) precisa nascer com o aplicativo dele ativado.
+    - **E-mail síncrono.** A confirmação (verificação, código do login) sai
+      dentro da requisição; os avisos saem depois do commit. Com provedor
+      real (dívida 35), vale passar pela fila.
+    - **Convite do dono fora de produção** continua no adaptador que falha
+      alto (`app.ts`, rota da administração); a identidade já usa o que só
+      registra.
+    - **Ponta a ponta (T-114)** precisa de uma caixa de e-mail de prova na
+      API do ponta a ponta: o adaptador de registro, de propósito, não anota
+      link nem código.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que

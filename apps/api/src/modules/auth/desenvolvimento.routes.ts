@@ -1,10 +1,12 @@
 /**
- * Porta mínima de autenticação para o ambiente local.
+ * Atalho de login para o ambiente local (nunca montado em produção).
  *
- * A implementação real de identidade permanece nos casos de uso e será
- * conectada quando a camada de persistência de autenticação entrar na API.
- * Enquanto isso, esta rota existe SOMENTE quando o ambiente fornece uma
- * credencial de teste e nunca é montada em produção.
+ * A autenticação de verdade está em `auth.routes.ts` (T-112). Este atalho só
+ * existe quando o ambiente fornece uma credencial de teste, e só responde
+ * pelo e-mail dessa credencial: qualquer outro e-mail — ou ambiente sem a
+ * credencial — segue para a rota real de login, montada logo depois em
+ * `app.ts`. Assim `pnpm dev` e as montagens do ponta a ponta continuam
+ * entrando com o usuário de teste, e contas reais entram pelo banco.
  *
  * O USUÁRIO DE TESTE É UMA IDENTIDADE DE VERDADE, membro de verdade da loja
  * de desenvolvimento. Desde a migração 0041 a equipe só alcança a loja de que
@@ -45,7 +47,10 @@ interface CredenciaisDaSessaoLocal {
   readonly apelidoDaLoja: string;
 }
 
+/** Mesma forma da sessão da rota real, mais o refresh (atalho local). */
 interface SessaoParaNavegador {
+  readonly status: "SESSAO_CRIADA";
+  readonly papel: PapelDaSessao;
   readonly tokenDeAcesso: string;
   readonly tokenDeRenovacao: string;
   readonly acessoExpiraEm: string;
@@ -69,10 +74,6 @@ function credenciaisDoAmbiente(
   const apelidoDaLoja =
     fonte[APELIDO_DA_LOJA_LOCAL]?.trim() || LOJA_LOCAL_PADRAO;
   return { email, senha, segredo, apelidoDaLoja };
-}
-
-function respostaJson(status: number, corpo: Record<string, unknown>) {
-  return { status, corpo };
 }
 
 /**
@@ -136,23 +137,24 @@ export function criarRotasDeAutenticacaoDeDesenvolvimento(
 
   router.post("/login", async (requisicao, resposta, proximo) => {
     try {
-      if (credenciais === undefined) {
-        const indisponivel = respostaJson(404, { erro: "nao_encontrado" });
-        resposta.status(indisponivel.status).json(indisponivel.corpo);
-        return;
-      }
-
-      const corpo = requisicao.body as {
+      const corpo = (requisicao.body ?? {}) as {
         email?: unknown;
         senha?: unknown;
       };
       const email =
         typeof corpo.email === "string" ? corpo.email.trim().toLowerCase() : "";
-      const senha = typeof corpo.senha === "string" ? corpo.senha : "";
 
+      // Sem credencial de teste, ou outro e-mail: é login de verdade, e quem
+      // responde é a rota real montada depois desta.
+      if (credenciais === undefined || email !== credenciais.email) {
+        proximo();
+        return;
+      }
+
+      const senha = typeof corpo.senha === "string" ? corpo.senha : "";
       hashDaSenha ??= derivarSenha(credenciais.senha);
       const senhaValida = await senhaConfere(senha, await hashDaSenha);
-      if (email !== credenciais.email || !senhaValida) {
+      if (!senhaValida) {
         resposta.status(401).json({ erro: "nao_autenticado" });
         return;
       }
@@ -169,6 +171,8 @@ export function criarRotasDeAutenticacaoDeDesenvolvimento(
       const acessoExpiraEm = new Date(agora.getTime() + 15 * 60 * 1_000);
 
       const sessao: SessaoParaNavegador = {
+        status: "SESSAO_CRIADA",
+        papel: "OWNER",
         tokenDeAcesso: assinarTokenDeAcesso(
           {
             identidadeId,

@@ -1,9 +1,10 @@
-import TotpForm from "../../../../../features/auth/TotpForm.tsx";
+import { AtivacaoDoAplicativo } from "./AtivacaoDoAplicativo.tsx";
 
 export const metadata = {
   title: "Configurar aplicativo autenticador | SimpleClick",
 };
 
+/** Tela de ativação do aplicativo autenticador (AC-121, AC-123). */
 export default function PaginaDoAplicativoAutenticador() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
@@ -11,10 +12,10 @@ export default function PaginaDoAplicativoAutenticador() {
         Proteger a conta com aplicativo
       </h1>
       <p className="mt-3 text-[var(--cor-tinta-suave)]">
-        Escaneie o código no aplicativo autenticador e informe o código de seis
-        dígitos para ativar esta proteção.
+        Com o aplicativo autenticador, o login pede o código que aparece no seu
+        celular. Invadir o seu e-mail deixa de bastar para entrar na conta.
       </p>
-      <TotpForm />
+      <AtivacaoDoAplicativo />
     </main>
   );
 }

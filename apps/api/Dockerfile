@@ -57,6 +57,7 @@ COPY apps/web/package.json apps/web/
 COPY packages/config-eslint/package.json packages/config-eslint/
 COPY packages/config-ts/package.json packages/config-ts/
 COPY packages/contracts/package.json packages/contracts/
+COPY packages/core/package.json packages/core/
 COPY packages/database/package.json packages/database/
 COPY packages/testing/package.json packages/testing/
 COPY packages/ui/package.json packages/ui/
@@ -137,6 +138,9 @@ ENV PORT=3001
 COPY --from=construcao --chown=node:node /app/package.json /app/pnpm-workspace.yaml ./
 COPY --from=construcao --chown=node:node /app/node_modules ./node_modules
 COPY --from=construcao --chown=node:node /app/packages/contracts ./packages/contracts
+# Regras puras compartilhadas (dinheiro, status, cupom...): a API importa
+# daqui em execução, como código-fonte TypeScript, igual ao contrato.
+COPY --from=construcao --chown=node:node /app/packages/core ./packages/core
 COPY --from=construcao --chown=node:node /app/packages/database ./packages/database
 COPY --from=construcao --chown=node:node /app/apps/api/package.json ./apps/api/package.json
 COPY --from=construcao --chown=node:node /app/apps/api/node_modules ./apps/api/node_modules

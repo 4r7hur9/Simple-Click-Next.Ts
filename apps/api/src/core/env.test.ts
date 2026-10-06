@@ -170,6 +170,7 @@ describe("carregarAmbiente", () => {
 
   it("@spec:AC-002 descreve todas as variáveis previstas, para que nenhuma falhe sem explicação", () => {
     expect([...VARIAVEIS].sort()).toEqual([
+      "CHAVE_CIFRA_TOTP",
       "DATABASE_URL",
       "DATABASE_URL_DIRETA",
       "DATABASE_URL_TEST",
@@ -275,5 +276,62 @@ describe("o segundo plano", () => {
 
     expect(erro.variaveis).toEqual(["SEGUNDO_PLANO"]);
     expect(erro.message).toContain("ligado | desligado");
+  });
+});
+
+describe("a chave que cifra o segredo do aplicativo autenticador", () => {
+  /** 32 bytes de exemplo — não é chave de lugar nenhum. */
+  const CHAVE_DE_EXEMPLO = Buffer.alloc(32, 7).toString("base64");
+
+  function producaoCompleta(): Record<string, string> {
+    const fonte = ambienteCompleto();
+    fonte.NODE_ENV = "production";
+    delete fonte.DATABASE_URL_TEST;
+    return fonte;
+  }
+
+  it("@spec:AC-130 produção não parte sem a chave, e a recusa diz o nome dela e como gerá-la", () => {
+    const erro = recusaAoCarregar(producaoCompleta());
+
+    expect(erro.variaveis).toEqual(["CHAVE_CIFRA_TOTP"]);
+    expect(erro.message).toContain("obrigatória em production");
+    expect(erro.message).toContain("randomBytes(32)");
+  });
+
+  it("@spec:AC-130 produção parte com a chave de 32 bytes em base64", () => {
+    const fonte = producaoCompleta();
+    fonte.CHAVE_CIFRA_TOTP = CHAVE_DE_EXEMPLO;
+
+    expect(carregarAmbiente(fonte).CHAVE_CIFRA_TOTP).toBe(CHAVE_DE_EXEMPLO);
+  });
+
+  it("@spec:AC-130 chave de tamanho errado ou fora de base64 é recusada em qualquer ambiente, sem ecoar o valor", () => {
+    const curta = Buffer.alloc(16, 7).toString("base64");
+    for (const ambiente of ["development", "production"] as const) {
+      for (const valor of [curta, "isto não é base64 nenhum!"]) {
+        const fonte =
+          ambiente === "production" ? producaoCompleta() : ambienteCompleto();
+        fonte.CHAVE_CIFRA_TOTP = valor;
+
+        const erro = recusaAoCarregar(fonte);
+
+        expect(erro.variaveis).toEqual(["CHAVE_CIFRA_TOTP"]);
+        expect(erro.message).toContain("valor inválido");
+        expect(erro.message).not.toContain(valor);
+      }
+    }
+  });
+
+  it("@spec:AC-130 fora de produção a chave é opcional, e valor vazio conta como ausente", () => {
+    expect(carregarAmbiente(ambienteCompleto()).CHAVE_CIFRA_TOTP).toBe(
+      undefined,
+    );
+    const fonte = ambienteCompleto();
+    fonte.CHAVE_CIFRA_TOTP = "   ";
+    expect(carregarAmbiente(fonte).CHAVE_CIFRA_TOTP).toBe(undefined);
+
+    const producao = producaoCompleta();
+    producao.CHAVE_CIFRA_TOTP = "";
+    expect(recusaAoCarregar(producao).variaveis).toEqual(["CHAVE_CIFRA_TOTP"]);
   });
 });

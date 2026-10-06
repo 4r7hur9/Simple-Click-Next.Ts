@@ -9,12 +9,9 @@
 import { revalidatePath } from "next/cache";
 
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
-import { lerTokenDeAcessoDoCookie } from "../../../../../server/session-cookie.ts";
+import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
 
 const TIPOS = new Set(["logo", "capa"]);
-const APELIDO_DA_LOJA_DE_DESENVOLVIMENTO =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
-
 /** Trava do encaminhamento: acima disto nem vale a ida à API. */
 const MAXIMO_ENCAMINHADO_EM_BYTES = 8 * 1024 * 1024;
 
@@ -27,10 +24,9 @@ export async function PUT(
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });
   }
 
-  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
-  if (token === undefined) {
-    return Response.json({ erro: "nao_autenticado" }, { status: 401 });
-  }
+  const sessao = await sessaoParaEncaminhar(requisicao);
+  if (sessao instanceof Response) return sessao;
+  const { token } = sessao;
 
   const bytes = await requisicao.arrayBuffer();
   if (bytes.byteLength > MAXIMO_ENCAMINHADO_EM_BYTES) {
@@ -38,7 +34,7 @@ export async function PUT(
   }
 
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA_DE_DESENVOLVIMENTO)}/configuracao/aparencia/imagem/${tipo}`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/configuracao/aparencia/imagem/${tipo}`,
     {
       method: "PUT",
       cache: "no-store",
@@ -55,8 +51,8 @@ export async function PUT(
 
   if (resposta.ok) {
     try {
-      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}`);
-      revalidatePath(`/l/${APELIDO_DA_LOJA_DE_DESENVOLVIMENTO}/sobre`);
+      revalidatePath(`/l/${sessao.apelido}`);
+      revalidatePath(`/l/${sessao.apelido}/sobre`);
     } catch {
       // A gravação já foi confirmada; a vitrine pega o valor novo quando a
       // janela de cache expirar.

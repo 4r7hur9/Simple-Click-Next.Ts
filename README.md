@@ -75,6 +75,7 @@ Uma frase por pasta ou arquivo que importa. Só conta o que está no Git; ficam 
 | `tsconfig.json`, `tsconfig.build.json` | tipos de `src` e `tests`; a construção gera `dist` sem os testes                                                                                |
 | `src/app.ts`                           | monta o Express sem escutar porta, na ordem da seção 4.1, e costura os módulos entre si                                                         |
 | `src/main.ts`                          | partida (valida o ambiente, sobe as filas, escuta `PORT`) e desligamento ordenado com prazo de 8 s                                              |
+| `src/arranque.ts`                      | arranque do banco de produção vazio e primeira administração com aplicativo autenticador (seção 8.6)                                            |
 | `src/contracts/gerar.ts`               | gera ou confere `contrato/openapi.json` a partir de `@simpleclick/contracts`                                                                    |
 | `src/jobs/`                            | filas de segundo plano: `fila.ts` (BullMQ), `email.job.ts` (porta de envio de e-mail) e `index.ts` (qual motor cada fila usa)                   |
 | `tests/`                               | testes de integração contra PostgreSQL de verdade, um banco descartável por arquivo, e os apoios `apoio-*.ts`                                   |
@@ -100,19 +101,19 @@ Uma frase por pasta ou arquivo que importa. Só conta o que está no Git; ficam 
 
 `src/modules` — uma pasta por área de negócio:
 
-| Módulo       | O que atende                                                                                                                                     | Onde monta                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
-| `health`     | saúde: `live` (processo de pé) e `ready` (banco e cache alcançáveis)                                                                             | `/v1/health`                            |
-| `auth`       | casos de uso de identidade (cadastro, login, segundo fator, recuperação, convite, sessão); hoje só o login local de desenvolvimento está montado | `/v1/auth`                              |
-| `storefront` | vitrine pública: loja, catálogo, produto, busca, filtros, dados do fechamento e apelido antigo                                                   | `/v1/vitrine`                           |
-| `cart`       | carrinho do visitante e conferência de preço contra o catálogo                                                                                   | `/v1/vitrine`                           |
-| `orders`     | fechamento do pedido, acompanhamento, WhatsApp, fila do dono, status, pedido manual, repetir pedido e "meus pedidos"                             | `/v1/vitrine`, `/v1/lojas`, `/v1/conta` |
-| `catalog`    | catálogo do dono: categorias, produtos, imagens, preços, grupos de escolha, variações, estoque e especificações                                  | `/v1/lojas`                             |
-| `stores`     | configurações da loja por seção (pagamento, entrega, horário, contato, aparência, impressão) e pendências                                        | `/v1/lojas`                             |
-| `customers`  | clientes da loja e endereços salvos da pessoa                                                                                                    | `/v1/lojas`, `/v1/conta`                |
-| `printing`   | cupom da impressão por clique e a fila de impressão em banco (a fila ainda não tem rota)                                                         | `/v1/lojas`                             |
-| `metrics`    | métricas do painel e exportação em planilha                                                                                                      | `/v1/lojas`                             |
-| `admin`      | administração pela credencial `sc_admin`: lojas, tipo de negócio, apelido, documentos e trilha                                                   | `/v1/admin`                             |
+| Módulo       | O que atende                                                                                                                                                             | Onde monta                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `health`     | saúde: `live` (processo de pé) e `ready` (banco e cache alcançáveis)                                                                                                     | `/v1/health`                            |
+| `auth`       | identidade ligada ao banco (cadastro, login, segundo fator, recuperação, convite, sessão) e "quem sou eu" com as lojas da sessão; fora de produção, também o login local | `/v1/auth`, `/v1/eu`                    |
+| `storefront` | vitrine pública: loja, catálogo, produto, busca, filtros, dados do fechamento e apelido antigo                                                                           | `/v1/vitrine`                           |
+| `cart`       | carrinho do visitante e conferência de preço contra o catálogo                                                                                                           | `/v1/vitrine`                           |
+| `orders`     | fechamento do pedido, acompanhamento, WhatsApp, fila do dono, status, pedido manual, repetir pedido e "meus pedidos"                                                     | `/v1/vitrine`, `/v1/lojas`, `/v1/conta` |
+| `catalog`    | catálogo do dono: categorias, produtos, imagens, preços, grupos de escolha, variações, estoque e especificações                                                          | `/v1/lojas`                             |
+| `stores`     | configurações da loja por seção (pagamento, entrega, horário, contato, aparência, impressão) e pendências                                                                | `/v1/lojas`                             |
+| `customers`  | clientes da loja e endereços salvos da pessoa                                                                                                                            | `/v1/lojas`, `/v1/conta`                |
+| `printing`   | cupom da impressão por clique e a fila de impressão em banco (a fila ainda não tem rota)                                                                                 | `/v1/lojas`                             |
+| `metrics`    | métricas do painel e exportação em planilha                                                                                                                              | `/v1/lojas`                             |
+| `admin`      | administração pela credencial `sc_admin`: lojas, tipo de negócio, apelido, documentos e trilha                                                                           | `/v1/admin`                             |
 
 Testes que vale conhecer em `apps/api/tests`: `isolamento-varredura.test.ts` pergunta ao banco quais são as tabelas de loja e cobra isolamento de cada uma (e reprova tabela sem construtor); `isolamento-entre-lojas-dono.test.ts` prova que o dono da loja A não alcança a loja B em nenhum módulo; `isolamento-concorrente.test.ts` prova que o contexto não vaza entre requisições simultâneas; `apoio-de-fila.ts` isola cada arquivo de teste num prefixo do Redis.
 
@@ -173,16 +174,18 @@ Testes que vale conhecer em `apps/api/tests`: `isolamento-varredura.test.ts` per
 
 Dentro de `packages/database`:
 
-| Caminho                | O que é                                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| `migrations/`          | migrações SQL escritas à mão, com as políticas de isolamento junto de cada tabela (seção 6.1)             |
-| `src/migrate.ts`       | aplicador próprio: `aplicar` e `verificar`                                                                |
-| `src/guards.ts`        | executor das guardas estruturais                                                                          |
-| `guards/`              | as dez guardas G1 a G10 em SQL (seção 6.4)                                                                |
-| `seed/`                | carga de exemplo determinística: `index.ts`, `lojas.ts`, `catalogo.ts`, `pedidos.ts`, `deterministico.ts` |
-| `prisma/schema.prisma` | esquema declarado só para gerar o cliente tipado em `gerado/cliente`                                      |
-| `policies/README.md`   | o padrão canônico das políticas (resumido na seção 6.3)                                                   |
-| `tests/`               | `esquema-cobre-o-banco.test.ts`: toda tabela das migrações tem modelo no Prisma                           |
+| Caminho                                                                                       | O que é                                                                                                                                                     |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `migrations/`                                                                                 | migrações SQL escritas à mão, com as políticas de isolamento junto de cada tabela (seção 6.1)                                                               |
+| `src/migrate.ts`                                                                              | aplicador próprio: `aplicar` e `verificar`                                                                                                                  |
+| `src/arranque.ts`                                                                             | primeira aplicação num banco vazio, com a credencial de dono, e conferência dos três papéis (seção 8.6)                                                     |
+| `src/copia-de-seguranca.ts`, `src/ensaio-de-restauracao.ts`, `src/ferramentas-do-postgres.ts` | cópia diária com manifesto e retenção de sete dias, ensaio de restauração em banco descartável e as chamadas a `pg_dump`, `pg_restore` e `psql` (seção 8.7) |
+| `src/guards.ts`                                                                               | executor das guardas estruturais                                                                                                                            |
+| `guards/`                                                                                     | as dez guardas G1 a G10 em SQL (seção 6.4)                                                                                                                  |
+| `seed/`                                                                                       | carga de exemplo determinística: `index.ts`, `lojas.ts`, `catalogo.ts`, `pedidos.ts`, `deterministico.ts`                                                   |
+| `prisma/schema.prisma`                                                                        | esquema declarado só para gerar o cliente tipado em `gerado/cliente`                                                                                        |
+| `policies/README.md`                                                                          | o padrão canônico das políticas (resumido na seção 6.3)                                                                                                     |
+| `tests/`                                                                                      | `esquema-cobre-o-banco.test.ts`: toda tabela das migrações tem modelo no Prisma                                                                             |
 
 As migrações, uma linha cada:
 
@@ -393,7 +396,7 @@ node --env-file=.env packages/database/seed/index.ts
 pnpm dev                           # site em http://localhost:3000, API em http://localhost:3001
 ```
 
-`make setup` faz o passo 1 e chama o `setup.sh`. `make seed` e o script `seed` do pacote de banco **não leem o `.env`**: rode com `node --env-file=.env` como acima, ou exporte as variáveis antes (`set -a; . ./.env; set +a`).
+`make setup` faz o passo 1 e chama o `setup.sh`. `make seed` e os scripts `seed`, `migrar` e `migrar:verificar` do pacote de banco leem o `.env` da raiz quando ele existe; variável já exportada no terminal vence a do arquivo.
 
 A carga de exemplo só roda em banco vazio e nunca com `NODE_ENV=production`. Para recarregar, recrie o banco de desenvolvimento.
 
@@ -416,26 +419,27 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 
 **`.env`** (lido pela API, pelo site, pelos testes e pelos scripts; modelo em `.env.example`):
 
-| Variável                                                                     | Para quê                                                                                                                                                                                                                          |
-| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                                                                   | `development`, `test` ou `production`                                                                                                                                                                                             |
-| `PORT`                                                                       | porta da API (3001). `API_PORT` é o nome antigo: tolerado se for igual, recusado se for diferente                                                                                                                                 |
-| `LOG_LEVEL`                                                                  | nível do registro estruturado                                                                                                                                                                                                     |
-| `DATABASE_URL`                                                               | conexão da aplicação, com a credencial `sc_app`. Em produção passa pelo agrupador (`?pgbouncer=true`); na máquina local não há agrupador e ela aponta direto para a porta 5432. A API recusa credencial que contorne o isolamento |
-| `DATABASE_URL_DIRETA`                                                        | conexão direta para migração. Num banco vazio precisa ser uma credencial de arranque, que pode criar papel (na máquina local, o usuário do Postgres de desenvolvimento)                                                           |
-| `DATABASE_URL_TEST`                                                          | banco de teste (porta 5433). Tem de ser outro banco: a suíte apaga e recria dados                                                                                                                                                 |
-| `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO` | senhas dos papéis `sc_migrator`, `sc_app` e `sc_admin`, que a migração 0001 cria (12 caracteres ou mais)                                                                                                                          |
-| `REDIS_URL`, `REDIS_URL_TEST`                                                | cache e filas; o de teste tem de ser outro servidor ou outro índice                                                                                                                                                               |
-| `JWT_SECRET`                                                                 | assinatura dos tokens de sessão (32 caracteres ou mais)                                                                                                                                                                           |
-| `ORIGENS_PERMITIDAS`                                                         | origens que podem chamar a API, separadas por vírgula (no local: `http://localhost:3000`, e `3100`/`3101` para o ponta a ponta)                                                                                                   |
-| `NEXT_PUBLIC_API_URL`                                                        | endereço da API que o site e o navegador usam                                                                                                                                                                                     |
-| `NEXT_PUBLIC_DEV_STORE_SLUG`                                                 | loja que o painel local usa (padrão `pastelaria-da-vila`)                                                                                                                                                                         |
-| `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`                                          | domínio do cookie de sessão; deixe ausente em `http://localhost:3000`                                                                                                                                                             |
-| `URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`                                      | aviso de "o catálogo mudou" da API para o site; andam juntas                                                                                                                                                                      |
-| `SIMPLECLICK_DEV_TEST_EMAIL`, `SIMPLECLICK_DEV_TEST_PHRASE`                  | usuário de teste local (seção 5.5); nunca em produção                                                                                                                                                                             |
-| `SEGUNDO_PLANO`                                                              | `ligado` ou `desligado`; sem valor, liga só em produção                                                                                                                                                                           |
-| `CLOUDINARY_URL`                                                             | opcional; envio de logo, capa e imagem de produto                                                                                                                                                                                 |
-| `ARMAZENAMENTO_PRIVADO_DIR`                                                  | opcional e só local; pasta dos documentos da loja (ignorada em produção)                                                                                                                                                          |
+| Variável                                                                     | Para quê                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                                                   | `development`, `test` ou `production`                                                                                                                                                                                                                                                                                                          |
+| `PORT`                                                                       | porta da API (3001). `API_PORT` é o nome antigo: tolerado se for igual, recusado se for diferente                                                                                                                                                                                                                                              |
+| `LOG_LEVEL`                                                                  | nível do registro estruturado                                                                                                                                                                                                                                                                                                                  |
+| `DATABASE_URL`                                                               | conexão da aplicação, com a credencial `sc_app`. Em produção passa pelo agrupador (`?pgbouncer=true`); na máquina local não há agrupador e ela aponta direto para a porta 5432. A API recusa credencial que contorne o isolamento                                                                                                              |
+| `DATABASE_URL_DIRETA`                                                        | conexão direta para migração. Num banco vazio precisa ser uma credencial de arranque, que pode criar papel (na máquina local, o usuário do Postgres de desenvolvimento)                                                                                                                                                                        |
+| `DATABASE_URL_TEST`                                                          | banco de teste (porta 5433). Tem de ser outro banco: a suíte apaga e recria dados                                                                                                                                                                                                                                                              |
+| `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO` | senhas dos papéis `sc_migrator`, `sc_app` e `sc_admin`, que a migração 0001 cria (12 caracteres ou mais)                                                                                                                                                                                                                                       |
+| `REDIS_URL`, `REDIS_URL_TEST`                                                | cache e filas; o de teste tem de ser outro servidor ou outro índice                                                                                                                                                                                                                                                                            |
+| `JWT_SECRET`                                                                 | assinatura dos tokens de sessão (32 caracteres ou mais)                                                                                                                                                                                                                                                                                        |
+| `ORIGENS_PERMITIDAS`                                                         | origens que podem chamar a API, separadas por vírgula (no local: `http://localhost:3000`, e `3100`/`3101` para o ponta a ponta)                                                                                                                                                                                                                |
+| `NEXT_PUBLIC_API_URL`                                                        | endereço da API que o site e o navegador usam                                                                                                                                                                                                                                                                                                  |
+| `NEXT_PUBLIC_DEV_STORE_SLUG`                                                 | só o login local de desenvolvimento da API: loja de que o usuário de teste vira dono (padrão `pastelaria-da-vila`). O site não a lê; em produção não tem efeito                                                                                                                                                                                |
+| `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`                                          | domínio do cookie de sessão; deixe ausente em `http://localhost:3000`                                                                                                                                                                                                                                                                          |
+| `URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`                                      | aviso de "o catálogo mudou" da API para o site; andam juntas                                                                                                                                                                                                                                                                                   |
+| `SEGREDO_DA_PONTE`                                                           | na API e no site, o mesmo valor (32 caracteres ou mais). Com ele o site informa à API o endereço real do visitante no login e no segundo fator, e o limite de tentativas conta cada visitante no próprio balde. Sem ele, todo login pelo site cai no balde do servidor do site; a API de produção avisa no registro (`auth.ponte.sem_segredo`) |
+| `SIMPLECLICK_DEV_TEST_EMAIL`, `SIMPLECLICK_DEV_TEST_PHRASE`                  | usuário de teste local (seção 5.5); nunca em produção                                                                                                                                                                                                                                                                                          |
+| `SEGUNDO_PLANO`                                                              | `ligado` ou `desligado`; sem valor, liga só em produção                                                                                                                                                                                                                                                                                        |
+| `CLOUDINARY_URL`                                                             | opcional; envio de logo, capa e imagem de produto                                                                                                                                                                                                                                                                                              |
+| `ARMAZENAMENTO_PRIVADO_DIR`                                                  | opcional e só local; pasta dos documentos da loja (ignorada em produção)                                                                                                                                                                                                                                                                       |
 
 `bash infra/scripts/check-ambientes.sh` confere que banco e cache de teste não são os da aplicação. O portão roda essa conferência antes de tudo.
 
@@ -454,12 +458,12 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 
 ### 5.5 Login local de desenvolvimento
 
-Ainda não existe login de produção ligado à API (é uma das lacunas do `HarnessPlan.md`). Para entrar no painel na sua máquina:
+O login de produção (`/v1/auth`, T-112) já funciona contra o banco, mas pede e-mail de verdade para o segundo fator. Para entrar no painel na sua máquina sem isso:
 
 1. Preencha `SIMPLECLICK_DEV_TEST_EMAIL` e `SIMPLECLICK_DEV_TEST_PHRASE` (12 caracteres ou mais) no `.env`, com a carga de exemplo já aplicada.
 2. Abra `http://localhost:3000/entrar` e entre com esse e-mail e essa frase.
 3. A rota `POST /v1/auth/login` (`modules/auth/desenvolvimento.routes.ts`) só existe fora de produção. Ela cria a identidade pelo e-mail e o vínculo `OWNER` com a loja de `NEXT_PUBLIC_DEV_STORE_SLUG`. O site guarda a sessão nos cookies `httpOnly` `sc_access` e `sc_refresh`.
-4. O painel fica em `http://localhost:3000/painel`.
+4. O painel fica em `http://localhost:3000/painel`. Ele descobre a loja pela sessão (`GET /v1/eu`, T-115): com uma loja só, abre direto nela; com mais de uma, pede a escolha em `/escolher-loja` e guarda a escolhida no cookie `httpOnly` `sc_loja`. A API confere o vínculo do dono com a loja em toda rota, então o cookie é só preferência.
 
 ### 5.6 Portas
 
@@ -719,7 +723,7 @@ A migração acontece **antes** de a versão nova receber a primeira requisiçã
 
 ### 8.2 Variáveis do serviço da API
 
-Vêm do cofre do provedor, nunca de arquivo: `DATABASE_URL` (pelo agrupador), `DATABASE_URL_DIRETA` (direta, credencial de migração), `REDIS_URL`, `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO`, `JWT_SECRET`, `ORIGENS_PERMITIDAS`, `PORT` (o provedor injeta; a imagem traz 3001) e, opcional, `SEGUNDO_PLANO`. **Não podem existir** ali `DATABASE_URL_TEST` nem `REDIS_URL_TEST`. `API_PORT` não deve ser cadastrada. A lista ainda não inclui as variáveis que entraram depois (`URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`, `CLOUDINARY_URL` e as que virão com e-mail e armazenamento privado): ver as lacunas no `HarnessPlan.md`.
+Vêm do cofre do provedor, nunca de arquivo: `DATABASE_URL` (pelo agrupador), `DATABASE_URL_DIRETA` (direta, credencial de migração), `REDIS_URL`, `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO`, `JWT_SECRET`, `CHAVE_CIFRA_TOTP` (32 bytes em base64, a mesma usada no arranque da seção 8.6), `SEGREDO_DA_PONTE` (o mesmo valor no site), `ORIGENS_PERMITIDAS`, `PORT` (o provedor injeta; a imagem traz 3001) e, opcional, `SEGUNDO_PLANO`. **Não podem existir** ali `DATABASE_URL_TEST`, `REDIS_URL_TEST` nem `DATABASE_URL_ARRANQUE`. `API_PORT` não deve ser cadastrada. A lista ainda não inclui as variáveis que entraram depois (`URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`, `CLOUDINARY_URL` e as que virão com e-mail e armazenamento privado): ver as lacunas no `HarnessPlan.md`.
 
 ### 8.3 Troca de versão e desligamento
 
@@ -742,12 +746,71 @@ As duas seguem três regras verificadas por teste: vários estágios, nenhuma de
 docker build -f apps/api/Dockerfile -t simpleclick-api .
 docker build -f apps/web/Dockerfile -t simpleclick-web .
 docker run --rm simpleclick-api id -un            # tem de responder node
-docker run --rm -d -p 3001:3001 --name sc-api simpleclick-api
+# a imagem roda em production e recusa partir sem as variáveis da seção 8.2
+# (AC-002): para conferir à mão, passe-as com --env-file e SEGUNDO_PLANO=desligado
+docker run --rm -d -p 3001:3001 --env-file <arquivo de produção> --name sc-api simpleclick-api
 curl -s http://127.0.0.1:3001/v1/health/live
 docker stop sc-api
 ```
 
+Em 06/10 as duas imagens foram construídas e responderam (a API em `/v1/health/live`, o site com 200 na raiz) depois de dois consertos: o `.dockerignore` só ignorava o `node_modules` da raiz (agora `**/node_modules/`), e o `packages/core` faltava na instalação e na imagem final.
+
 Para ensaiar o `pre-deploy.sh` sem publicar, rode-o com `env -i` e as variáveis apontando para um **banco descartável** (o script não lê `.env` de propósito); o roteiro está no cabeçalho do próprio script. Nunca aponte o ensaio para o banco de desenvolvimento.
+
+### 8.6 Primeira publicação: arranque do banco e primeira administração
+
+Um banco de produção novo vem vazio, e a credencial de migração (`sc_migrator`) ainda não existe: quem a cria é a migração 0001. Por isso a primeira aplicação é feita **uma vez**, do seu computador, com a credencial de dono que o provedor entrega. O script é `apps/api/src/arranque.ts` (na imagem, `apps/api/dist/arranque.js`).
+
+1. Crie um arquivo de ambiente **fora do repositório** (por exemplo `$HOME/simpleclick-producao.env`) com:
+   - `DATABASE_URL_ARRANQUE`: endereço público do banco, com o usuário dono do provedor. Só o arranque usa; ela nunca vai para o serviço da API.
+   - `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO`: as mesmas do cofre do serviço.
+   - `CHAVE_CIFRA_TOTP`: a mesma do serviço. Com outra chave, o aplicativo da administração não confere.
+   - `PRIMEIRO_ADMIN_EMAIL` e, se quiser, `PRIMEIRO_ADMIN_NOME`.
+2. Digite a senha da administração só na hora, sem gravá-la em arquivo nem no histórico: `read -rs PRIMEIRO_ADMIN_SENHA && export PRIMEIRO_ADMIN_SENHA`.
+3. Rode `node --env-file=$HOME/simpleclick-producao.env apps/api/src/arranque.ts`. Ele:
+   - recusa se `DATABASE_URL_TEST` ou `REDIS_URL_TEST` estiverem no ambiente, antes de tocar o banco;
+   - aplica as migrações e entra como `sc_migrator`, `sc_app` e `sc_admin` para provar que as senhas valem. Com `sc_migrator`, confere que o banco está em dia, que é o que a publicação vai usar daqui em diante;
+   - cria a primeira administração pela credencial `sc_admin`: e-mail confirmado, senha conferida pela política e aplicativo autenticador obrigatório. Ele mostra a chave e o link `otpauth://`, você cadastra no aplicativo e digita o código. Só com o código certo algo é gravado;
+   - mostra os 10 códigos de recuperação **uma vez**. Guarde fora do computador.
+4. Rodar de novo é seguro: com a mesma administração, nada muda. Se já existe outra administração, ou se o e-mail é de uma conta comum, ele recusa sem gravar.
+5. Depois, apague o arquivo de ambiente (ou guarde-o no cofre). Toda publicação seguinte segue só pelo `pre-deploy.sh`.
+
+O código de saída é 0 quando está pronto, 1 quando há recusa ou conferência reprovada e 2 quando falta variável. O primeiro login da administração pede a senha e depois o código do aplicativo, e o código digitado no arranque não vale de novo.
+
+### 8.7 Cópia de segurança e ensaio de restauração
+
+A regra (Q-004): cópia diária, sete dias de retenção e restauração ensaiada de tempos em tempos. Há duas vias, e **a escolha é do dono**:
+
+| Via                  | Como                                                                   | A favor                                          | Atenção                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| A, cópia do provedor | cópias agendadas do volume do PostgreSQL, ligadas no painel do Railway | não depende de máquina ligada                    | confira no painel se o plano contratado oferece e com que retenção; a restauração do provedor também precisa ser ensaiada |
+| B, cópia própria     | `copia-de-seguranca.ts copiar`, agendado todo dia numa máquina sua     | não depende do provedor; o arquivo fica com você | exige o cliente do PostgreSQL instalado e a máquina ligada no horário; guarde também uma cópia fora dessa máquina         |
+
+As ferramentas são `pg_dump`, `pg_restore` e `psql` da instalação do PostgreSQL, na mesma versão principal do servidor ou mais nova. Se não estiverem no `PATH`, aponte `PG_BIN` para a pasta `bin`. No Windows, o script procura sozinho em `C:\Program Files\PostgreSQL\<versão>\bin`.
+
+**Fazer a cópia (via B).** `DATABASE_URL_DIRETA` é o endereço direto com `sc_migrator`, que enxerga todas as lojas:
+
+```bash
+node --env-file=$HOME/simpleclick-producao.env packages/database/src/copia-de-seguranca.ts copiar /caminho/das/copias
+```
+
+Ela grava `simpleclick-AAAAMMDDTHHMMSSZ.dump` e, ao lado, o manifesto `.dump.json`, com as migrações aplicadas e as linhas de cada tabela. O manifesto é tirado do **mesmo instante** da cópia, pelo mesmo retrato do banco, e por isso vale mesmo com lojas vendendo. Depois, a cópia apaga da pasta as cópias com mais de sete dias, sem tocar em outros arquivos. Para rodar todo dia, use o Agendador de Tarefas do Windows chamando o Git Bash com o comando acima, ou o `cron`.
+
+**Ensaiar a restauração** pelo menos uma vez por mês e sempre que o procedimento mudar. `DATABASE_URL_ENSAIO` é um servidor PostgreSQL com credencial que cria banco, extensão e gatilho de evento (a de dono). O servidor precisa ter os papéis `sc_migrator`, `sc_app` e `sc_admin`. O Postgres de teste local (porta 5433) serve.
+
+```bash
+node --env-file=$HOME/simpleclick-producao.env packages/database/src/copia-de-seguranca.ts ensaiar /caminho/das/copias
+```
+
+O ensaio pega a cópia mais nova (ou o arquivo informado) e confere o resumo SHA-256 contra o manifesto: se a cópia estiver corrompida, ele para ali. Depois cria um banco `sc_ensaio_*`, restaura numa transação só e confere o livro de migrações, o isolamento forçado e a contagem de linhas de cada tabela. O banco é apagado no fim, passe ou falhe.
+
+**Restaurar de verdade** (perda do banco):
+
+1. Pare o serviço da API.
+2. Crie um banco novo no provedor. Se o **servidor** também for novo, crie antes os papéis, com as senhas do cofre e os mesmos atributos da 0001: `sc_migrator` com `LOGIN BYPASSRLS CREATEROLE`, e `sc_app` e `sc_admin` com `LOGIN NOINHERIT`.
+3. Restaure com a credencial de dono: `pg_restore --exit-on-error --single-transaction --dbname <endereço do banco novo> <arquivo.dump>`. Se o seu `pg_restore` for mais novo que o servidor, faça como o ensaio: `pg_restore --file=- <arquivo.dump> | psql --set=ON_ERROR_STOP=1 --single-transaction --dbname <endereço>`, tirando antes as linhas `SET` de parâmetro que o servidor não conhece (por exemplo `transaction_timeout`).
+4. Confira com a credencial de migração: `DATABASE_URL_DIRETA=<endereço do banco novo com sc_migrator> node packages/database/src/migrate.ts verificar`.
+5. Aponte `DATABASE_URL` e `DATABASE_URL_DIRETA` do serviço para o banco novo e publique.
 
 ## 9. Convenções
 

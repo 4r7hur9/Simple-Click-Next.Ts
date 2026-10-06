@@ -47,7 +47,7 @@ export interface TelaDoManifesto {
  * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
  * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
  * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 51 linhas no mapa, 54 rotas no produto.
+ * separadas — 52 linhas no mapa, 55 rotas no produto.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
@@ -142,6 +142,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-105..AC-107, AC-121..AC-124",
+    arquivo: "apps/web/src/app/(conta)/entrar/verificacao/page.tsx",
   },
   {
     rota: "/cadastrar",
@@ -149,6 +150,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-100..AC-102",
+    arquivo: "apps/web/src/app/(conta)/cadastrar/page.tsx",
   },
   {
     rota: "/verificar-email",
@@ -156,6 +158,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-103, AC-104",
+    arquivo: "apps/web/src/app/(conta)/verificar-email/page.tsx",
   },
   {
     rota: "/recuperar-senha",
@@ -163,6 +166,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-114",
+    arquivo: "apps/web/src/app/(conta)/recuperar-senha/page.tsx",
   },
   {
     rota: "/definir-senha",
@@ -170,6 +174,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-115, AC-200",
+    arquivo: "apps/web/src/app/(conta)/definir-senha/page.tsx",
   },
   {
     rota: "/termos",
@@ -236,6 +241,24 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-108, AC-112, AC-113",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/seguranca/page.tsx",
+  },
+  {
+    rota: "/minha-conta/seguranca/aplicativo",
+    tela: "Ativar o aplicativo autenticador",
+    acesso: "CLIENTE",
+    quatroEstados: true,
+    criterios: "AC-121, AC-123",
+    arquivo:
+      "apps/web/src/app/(conta)/minha-conta/seguranca/aplicativo/page.tsx",
+  },
+  {
+    rota: "/escolher-loja",
+    tela: "Escolha da loja do painel",
+    acesso: "DONO",
+    quatroEstados: true,
+    criterios: "AC-135, AC-136",
+    arquivo: "apps/web/src/app/(conta)/escolher-loja/page.tsx",
   },
   {
     rota: "/painel",

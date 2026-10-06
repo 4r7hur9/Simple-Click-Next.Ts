@@ -37,6 +37,8 @@ const CONEXAO_DIRETA = "postgresql://migracao:trocar@127.0.0.1:1/sc_partida";
 const CONEXAO_DE_TESTE =
   "postgresql://aplicacao:trocar@127.0.0.1:1/sc_partida_teste";
 const CHAVE_DE_ASSINATURA = "x".repeat(48);
+/** 32 bytes de exemplo: produção não parte sem a chave da cifra (AC-130). */
+const CHAVE_DE_CIFRA = Buffer.alloc(32, 7).toString("base64");
 
 async function portaLivre(): Promise<number> {
   return new Promise((resolver, rejeitar) => {
@@ -118,6 +120,7 @@ describe("a partida sobe o segundo plano", () => {
     const api = await iniciarApi({
       fonte: {
         NODE_ENV: "production",
+        CHAVE_CIFRA_TOTP: CHAVE_DE_CIFRA,
         PORT: String(porta),
         DATABASE_URL: CONEXAO_DA_APLICACAO,
         DATABASE_URL_DIRETA: CONEXAO_DIRETA,

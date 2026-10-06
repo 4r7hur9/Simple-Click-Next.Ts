@@ -383,3 +383,6 @@ export type {
   FuncionalidadesDaLojaNoContrato,
   FuncionalidadesParaODonoNoContrato,
 } from "./admin-funcionalidades.ts";
+export * from "./auth.ts";
+export * from "./auth-rotas.ts";
+export * from "./eu.ts";

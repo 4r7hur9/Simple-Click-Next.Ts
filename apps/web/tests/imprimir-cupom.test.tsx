@@ -45,6 +45,7 @@ import {
   folhaDoCupom,
   type FolhaDoCupom as Folha,
 } from "../src/server/cupom";
+import { LOJA_DA_SESSAO, quemSouEu } from "./apoio-da-loja-da-sessao";
 
 const PEDIDO_ID = "0b6f8a4e-6c1d-4f3a-9d2e-7a5b3c1d9e0f";
 const COOKIE_DO_DONO = "sc_access=token-de-acesso-do-dono";
@@ -100,17 +101,32 @@ function cupomDe(larguraMm: 58 | 80, via = 1): CupomImpresso {
   });
 }
 
-/** Uma API de mentira que responde uma vez, e guarda o que recebeu. */
-function apiQueResponde(status: number, corpo: unknown) {
+/**
+ * Uma API de mentira que responde uma vez, e guarda o que recebeu. A pergunta
+ * "quem sou eu" (de que loja é o dono, T-115) fica à parte, em `perguntas`:
+ * `chamadas` são só os pedidos de via.
+ */
+function apiQueResponde(
+  status: number,
+  corpo: unknown,
+  eu: unknown = quemSouEu(),
+) {
   const chamadas: { url: string; init: RequestInit | undefined }[] = [];
+  const perguntas: { url: string; init: RequestInit | undefined }[] = [];
   const buscar = (async (url: RequestInfo | URL, init?: RequestInit) => {
+    const resposta = (valor: unknown, codigo: number) =>
+      new Response(JSON.stringify(valor), {
+        status: codigo,
+        headers: { "content-type": "application/json" },
+      });
+    if (String(url).endsWith("/v1/eu")) {
+      perguntas.push({ url: String(url), init });
+      return resposta(eu, 200);
+    }
     chamadas.push({ url: String(url), init });
-    return new Response(JSON.stringify(corpo), {
-      status,
-      headers: { "content-type": "application/json" },
-    });
+    return resposta(corpo, status);
   }) as typeof fetch;
-  return { buscar, chamadas };
+  return { buscar, chamadas, perguntas };
 }
 
 type LinhaDeTexto = Extract<LinhaDoCupom, { tipo: "texto" }>;
@@ -187,7 +203,9 @@ describe("o cupom sai por um clique, sem instalar nada (AC-617)", () => {
   });
 
   it("@spec:AC-617 a página pede UMA via à API, com a sessão do dono, e devolve o cupom legível", async () => {
-    const { buscar, chamadas } = apiQueResponde(200, { cupom: cupomDe(80) });
+    const { buscar, chamadas, perguntas } = apiQueResponde(200, {
+      cupom: cupomDe(80),
+    });
 
     const resultado = await emitirCupomParaImprimir(
       PEDIDO_ID,
@@ -197,8 +215,15 @@ describe("o cupom sai por um clique, sem instalar nada (AC-617)", () => {
 
     expect(chamadas).toHaveLength(1);
     const [chamada] = chamadas;
+    // A loja do endereço é a da sessão, e não uma escrita na configuração.
     expect(chamada?.url).toMatch(
-      new RegExp(`/v1/lojas/[^/]+/pedidos/${PEDIDO_ID}/cupom$`),
+      new RegExp(
+        `/v1/lojas/${LOJA_DA_SESSAO.apelido}/pedidos/${PEDIDO_ID}/cupom$`,
+      ),
+    );
+    expect(perguntas).toHaveLength(1);
+    expect(new Headers(perguntas[0]?.init?.headers).get("authorization")).toBe(
+      "Bearer token-de-acesso-do-dono",
     );
     expect(chamada?.init?.method).toBe("POST");
     const cabecalhos = new Headers(chamada?.init?.headers);
@@ -426,6 +451,7 @@ describe("estados e acessibilidade da página do cupom", () => {
 
     for (const motivo of [
       "sem-sessao",
+      "escolher-loja",
       "nao-encontrado",
       "indisponivel",
     ] as const) {

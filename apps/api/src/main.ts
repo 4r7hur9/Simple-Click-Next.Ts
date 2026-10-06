@@ -30,6 +30,7 @@ import { fileURLToPath } from "node:url";
 import { criarApp } from "./app.ts";
 import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
 import { encerrarCache } from "./core/cache.ts";
+import { encerrarCacheDoLimite } from "./modules/auth/limite-da-identidade.ts";
 import { encerrarBanco, encerrarBancoDaAdministracao } from "./core/db.ts";
 import {
   carregarAmbiente,
@@ -99,6 +100,9 @@ export const RECURSOS_DA_API: readonly RecursoDaApi[] = [
   { nome: "banco", encerrar: encerrarBanco },
   { nome: "banco_da_administracao", encerrar: encerrarBancoDaAdministracao },
   { nome: "cache", encerrar: encerrarCache },
+  // A conexão do limite de tentativas da identidade (T-112), aberta no
+  // primeiro login.
+  { nome: "cache_do_limite", encerrar: encerrarCacheDoLimite },
 ];
 
 /** Ajustes da partida. Tudo tem padrão; a prova troca o que precisa. */

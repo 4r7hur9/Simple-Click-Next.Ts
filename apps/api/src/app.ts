@@ -12,6 +12,15 @@ import {
 } from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
+import {
+  CAMINHO_DO_EU,
+  criarRotaDoEu,
+  type OpcoesDoEu,
+} from "./modules/auth/eu.routes.ts";
+import {
+  criarRotasDeIdentidade,
+  type OpcoesDaIdentidade,
+} from "./modules/auth/auth.routes.ts";
 import { criarRotasDasCategorias } from "./modules/catalog/categorias.routes.ts";
 import { criarRotasDosProdutos } from "./modules/catalog/produtos.routes.ts";
 import { criarRotasDasImagens } from "./modules/catalog/imagens.routes.ts";
@@ -72,7 +81,10 @@ import {
   gerarTokenDeConvite,
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
-import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
+import {
+  enviadorNaoConfigurado,
+  saidaDeEmailDoAmbiente,
+} from "./jobs/email.job.ts";
 import {
   criarRotasDosClientes,
   type OpcoesDosClientes,
@@ -192,6 +204,13 @@ export interface OpcoesDoApp {
   readonly funcionalidades?: Partial<OpcoesDoPortaoDeFuncionalidade>;
   /** O mesmo, para o que o painel do dono lê das funcionalidades (T-207). */
   readonly funcionalidadesDaLoja?: Partial<OpcoesDasFuncionalidadesDaLoja>;
+  /**
+   * O mesmo, para a identidade de produção (T-112): ambiente, acesso, saída
+   * de e-mail, cifra e cache do limite de tentativas.
+   */
+  readonly identidade?: OpcoesDaIdentidade;
+  /** O mesmo, para a rota "quem sou eu" (T-115): acesso e segredo do token. */
+  readonly eu?: OpcoesDoEu;
 }
 
 /**
@@ -239,10 +258,20 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     avisarOSiteQuandoODonoAltera(opcoes.avisarSite ?? naoAvisarOSite),
   );
 
-  // Usuário de teste local: só existe quando uma credencial explícita foi
-  // colocada no ambiente e a rota recusa produção. A autenticação de produção
-  // entra aqui quando a persistência da identidade for conectada à API.
-  app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+  // Identidade (T-112). Fora de produção, o atalho do usuário de teste local
+  // vem primeiro e só responde pelo e-mail dele; o resto segue para as rotas
+  // reais, ligadas ao banco. Em produção o atalho nem é montado (AC-132).
+  const fonteDaIdentidade = opcoes.identidade?.fonte ?? process.env;
+  if (fonteDaIdentidade.NODE_ENV !== "production") {
+    app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+  }
+  app.use(
+    "/v1/auth",
+    criarRotasDeIdentidade({
+      email: saidaDeEmailDoAmbiente(fonteDaIdentidade),
+      ...opcoes.identidade,
+    }),
+  );
 
   // O PORTÃO DE FUNCIONALIDADE POR LOJA (T-207, AC-212): o PONTO ÚNICO que
   // tira do ar, para a loja em que a administração desligou, cada rota da
@@ -915,6 +944,11 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
       ...opcoes.enderecos,
     }),
   );
+
+  // "QUEM SOU EU" (T-115): a pessoa da sessão e as lojas com vínculo ativo.
+  // É por aqui que o site descobre a loja do painel, sem loja escrita na
+  // configuração do servidor.
+  app.use(CAMINHO_DO_EU, criarRotaDoEu(opcoes.eu));
 
   app.get("/", (_req, res) => {
     res.json(IDENTIFICACAO_DA_API);

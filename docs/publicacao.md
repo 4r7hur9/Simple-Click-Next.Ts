@@ -190,6 +190,12 @@ que está em curso e fechar filas, banco e cache nessa ordem, com prazo de 8 s
 (AC-047) — o provedor precisa esperar pelo menos 10 s antes de matar à força
 (ver `infra/railway/README.md`).
 
+Desde a T-111, produção também exige `CHAVE_CIFRA_TOTP` (32 bytes em base64):
+é a chave que cifra o segredo do aplicativo autenticador antes de ele ir ao
+banco (AC-130). Sem ela, ou com tamanho errado, a partida é recusada — gere a
+chave uma vez, guarde no cofre do provedor e não a troque à toa, porque trocar
+invalida os aplicativos já ativados.
+
 Enquanto o provedor de e-mail não é escolhido (dívida 35), o trabalhador de
 e-mail sobe com o adaptador que falha alto: o trabalho esgota as tentativas e
 fica falho e inspecionável, e cada tentativa sai no registro como

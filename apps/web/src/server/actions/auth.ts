@@ -1,63 +1,90 @@
 "use server";
 
+/**
+ * Sair deste dispositivo e encerrar todas as sessões (AC-112, AC-113,
+ * T-113), como ações do servidor: os formulários da tela de segurança
+ * funcionam sem JavaScript e o cookie de renovação nunca chega ao navegador
+ * como texto.
+ *
+ * Sair revoga no servidor ANTES de apagar o cookie: se a API falhar, o
+ * cookie fica e a pessoa tenta de novo, em vez de deixar o token válido
+ * escondido em outro lugar.
+ */
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { enderecoDaApi } from "../api-client.ts";
-import { NOME_DO_COOKIE_DE_RENOVACAO } from "../session-cookie.ts";
+import {
+  dominioDoCookieDeSessao,
+  NOME_DO_COOKIE_DE_ACESSO,
+  NOME_DO_COOKIE_DE_RENOVACAO,
+} from "../session-cookie.ts";
 
-type ResultadoDaAcaoDeSessao =
-  { readonly ok: true } | { readonly ok: false; readonly mensagem: string };
+type Caminho =
+  "/v1/auth/sessoes/atual/encerrar" | "/v1/auth/sessoes/encerrar-todas";
 
-async function pedirEncerramento(
-  caminho:
-    "/v1/auth/sessoes/atual/encerrar" | "/v1/auth/sessoes/encerrar-todas",
-): Promise<ResultadoDaAcaoDeSessao> {
-  const armazenamentoDeCookies = await cookies();
-  const token = armazenamentoDeCookies.get(NOME_DO_COOKIE_DE_RENOVACAO);
+/** Pede o encerramento à API; devolve se ela confirmou. */
+async function pedirEncerramento(caminho: Caminho): Promise<boolean> {
+  const armazenamento = await cookies();
+  const renovacao = armazenamento.get(NOME_DO_COOKIE_DE_RENOVACAO)?.value;
+  const acesso = armazenamento.get(NOME_DO_COOKIE_DE_ACESSO)?.value;
 
-  // Sem cookie não há sessão local a encerrar. Ainda assim removemos qualquer
-  // cookie residual para a pessoa não ficar presa a um estado inconsistente.
-  if (token === undefined) {
-    armazenamentoDeCookies.delete(NOME_DO_COOKIE_DE_RENOVACAO);
-    return { ok: true };
+  // Sem cookie nenhum não há sessão local a encerrar.
+  if (renovacao === undefined && acesso === undefined) return true;
+
+  const cabecalhos: Record<string, string> = {
+    accept: "application/json",
+    "x-simpleclick-client": "navegador",
+    // A API confere a origem antes de toda escrita.
+    origin: process.env["URL_DO_SITE"] ?? "http://localhost:3000",
+  };
+  if (renovacao !== undefined) {
+    cabecalhos["cookie"] = `sc_refresh=${encodeURIComponent(renovacao)}`;
   }
+  if (acesso !== undefined) cabecalhos["authorization"] = `Bearer ${acesso}`;
 
-  let resposta: Response;
   try {
-    resposta = await fetch(`${enderecoDaApi()}${caminho}`, {
+    const resposta = await fetch(`${enderecoDaApi()}${caminho}`, {
       method: "POST",
       cache: "no-store",
-      headers: {
-        accept: "application/json",
-        cookie: `${token.name}=${token.value}`,
-      },
+      headers: cabecalhos,
     });
+    return resposta.ok;
   } catch {
-    return {
-      ok: false,
-      mensagem: "Não foi possível encerrar a sessão. Tente novamente.",
-    };
+    return false;
   }
-
-  if (!resposta.ok) {
-    return {
-      ok: false,
-      mensagem: "Não foi possível encerrar a sessão. Tente novamente.",
-    };
-  }
-
-  // Apagar só depois da confirmação impede que um token ainda válido fique
-  // ativo no servidor se a chamada tiver falhado antes de ser processada.
-  armazenamentoDeCookies.delete(NOME_DO_COOKIE_DE_RENOVACAO);
-  return { ok: true };
 }
 
-/** Sai apenas deste navegador, revogando antes o token de renovação na API. */
+/**
+ * Apaga os dois cookies da sessão deste navegador. O de renovação nasce com
+ * o domínio compartilhado (`dominioDoCookieDeSessao`), e o navegador só
+ * apaga cookie de domínio quando a ordem de apagar leva o mesmo domínio.
+ */
+async function apagarCookiesDaSessao(): Promise<void> {
+  const armazenamento = await cookies();
+  const dominio = dominioDoCookieDeSessao();
+  armazenamento.delete({
+    name: NOME_DO_COOKIE_DE_RENOVACAO,
+    path: "/",
+    ...(dominio === undefined ? {} : { domain: dominio }),
+  });
+  armazenamento.delete({ name: NOME_DO_COOKIE_DE_ACESSO, path: "/" });
+}
+
+/** Sai apenas deste navegador, revogando antes o token na API. */
 export async function sairDaConta(): Promise<void> {
-  await pedirEncerramento("/v1/auth/sessoes/atual/encerrar");
+  if (!(await pedirEncerramento("/v1/auth/sessoes/atual/encerrar"))) {
+    redirect("/minha-conta/seguranca?estado=erro");
+  }
+  await apagarCookiesDaSessao();
+  redirect("/entrar");
 }
 
 /** Sai de todos os navegadores e dispositivos conectados à conta. */
 export async function encerrarTodasAsSessoes(): Promise<void> {
-  await pedirEncerramento("/v1/auth/sessoes/encerrar-todas");
+  if (!(await pedirEncerramento("/v1/auth/sessoes/encerrar-todas"))) {
+    redirect("/minha-conta/seguranca?estado=erro");
+  }
+  await apagarCookiesDaSessao();
+  redirect("/entrar");
 }

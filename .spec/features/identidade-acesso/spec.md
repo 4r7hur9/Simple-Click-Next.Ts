@@ -246,6 +246,68 @@ pedido, alterar produto nem ler dados usando a sessão aberta da vítima.
 - **Quando** ele é enviado com o navegador da vítima, carregando o cookie de sessão automaticamente
 - **Então** a operação não acontece, porque o cookie tem restrição de envio entre sites e a origem é conferida em toda requisição que muda estado
 
+### US-110 — A identidade funciona na API publicada
+
+Como responsável pela plataforma, quero que cadastro, verificação de e-mail,
+login, segundo fator e sessão gravem e leiam do banco de verdade na API
+publicada, para que a primeira loja real consiga entrar sem depender do atalho
+de desenvolvimento e sem perder a sessão quando a API reinicia ou ganha outra
+instância.
+
+#### AC-129 — Conta, códigos e sessão vivem no banco, não na memória do processo
+
+- **Dado** duas instâncias da API ligadas ao mesmo banco, cada uma com o próprio agrupador de conexões
+- **Quando** a conta é criada, o e-mail é verificado, o segundo fator é aceito e a sessão é aberta pela primeira instância
+- **Então** a segunda instância reconhece a mesma conta e a mesma senha, aceita a renovação da sessão, detecta o reuso do token anterior e enxerga a saída feita pela primeira — tudo pela credencial que atende requisição, sem a credencial da administração e sem nada guardado na memória do processo
+
+#### AC-130 — Segredo do aplicativo autenticador só existe cifrado
+
+- **Dado** que ativo o aplicativo autenticador na minha conta
+- **Quando** o segredo do aplicativo é guardado
+- **Então** o banco recebe só o segredo cifrado com AES-256-GCM e chave vinda do ambiente (nunca o segredo em claro), a API de produção recusa partir sem essa chave ou com chave de tamanho errado, e segredo adulterado ou cifrado com outra chave faz o código ser recusado em vez de aceito
+
+#### AC-131 — Dado de acesso não é alcançável pela credencial das lojas
+
+- **Dado** que sou dono de uma loja com sessão aberta e existe um cliente com conta, sessão, aplicativo autenticador e códigos de recuperação
+- **Quando** a credencial que atende requisição consulta direto as tabelas de sessão, de códigos de uso único, de segredo do autenticador e de códigos de recuperação
+- **Então** não recebe nenhuma linha de outra pessoa, não lê código de uso único nem os próprios, e os passos de acesso anteriores à sessão só alcançam esses dados por funções dedicadas que devolvem a lista fechada de campos de que cada passo precisa
+
+#### AC-132 — A API publicada autentica pelo banco, sem o atalho de desenvolvimento
+
+- **Dado** a API rodando com `NODE_ENV=production`
+- **Quando** chamo as rotas de cadastro, verificação de e-mail, login, segundo fator, renovação, saída, recuperação de senha, aplicativo autenticador e aceite de convite
+- **Então** elas respondem pelos casos de uso ligados ao banco, com o token de renovação em cookie protegido e o limite de tentativas montado, e o login de desenvolvimento responde que a rota não existe
+
+#### AC-133 — Sem provedor de e-mail a API não finge que enviou
+
+- **Dado** a API de produção sem provedor de e-mail configurado (escolha ainda pendente do dono do produto)
+- **Quando** um passo precisa mandar e-mail (verificação, código do segundo fator, recuperação de senha, convite ou aviso)
+- **Então** a resposta diz com clareza que o envio está indisponível, com o mesmo texto para conta existente e inexistente, e fora de produção o envio é anotado no registro sem endereço, código nem link
+
+### US-111 — O dono chega à própria loja pela sessão
+
+Como dono de loja, quero que o painel abra a minha loja a partir do meu login,
+para que o site publicado não dependa de uma loja escrita na configuração do
+servidor e eu nunca caia na loja de outra pessoa.
+
+#### AC-134 — "Quem sou eu" devolve a pessoa e só as lojas em que ela tem vínculo ativo
+
+- **Dado** dois donos, cada um com vínculo aceito numa loja diferente, e o primeiro também com uma segunda loja, um vínculo revogado numa terceira, um convite ainda não aceito numa quarta e uma quinta loja excluída
+- **Quando** cada um consulta a rota "quem sou eu" (`GET /v1/eu`) com o próprio token de acesso
+- **Então** recebe a própria identidade (identificador, e-mail, nome e papel da sessão) e só as lojas em que tem vínculo ativo com o papel da sessão (apelido, nome e situação, inclusive suspensa), nunca a loja do outro dono nem as do vínculo revogado, do convite pendente ou excluída; sem token, com token adulterado ou vencido a resposta é 401; sessão de cliente ou da administração recebe a lista de lojas vazia; e a resposta nunca vai para cache
+
+#### AC-135 — O painel abre a loja da sessão, sem loja escrita na configuração
+
+- **Dado** o site rodando em produção, sem `NEXT_PUBLIC_DEV_STORE_SLUG` ou com ela apontando para outra loja, e dois donos de lojas diferentes
+- **Quando** cada dono abre o painel e as telas do painel leem e gravam dados (catálogo, configuração, pedidos, clientes, cupom)
+- **Então** o site descobre a loja pela sessão (rota "quem sou eu") e cada dono vê e altera só a própria loja; nenhum arquivo do site lê `NEXT_PUBLIC_DEV_STORE_SLUG`, que continua valendo só para o login local de desenvolvimento da API, fora de produção; sem sessão o painel manda para a tela de entrada, e sessão sem loja nenhuma recebe a explicação, não a loja de outra pessoa
+
+#### AC-136 — Dono de mais de uma loja escolhe com qual trabalhar
+
+- **Dado** um dono com vínculo ativo em duas lojas
+- **Quando** abre o painel sem ter escolhido a loja
+- **Então** o site mostra a lista das lojas dele (nome e apelido) para escolher, guarda a escolha num cookie protegido (HttpOnly, Secure, SameSite) e passa a abrir a loja escolhida, com a opção de trocar; escolher uma loja que não está na lista dele é recusado sem mudar nada, e uma escolha guardada que deixou de valer (vínculo revogado, loja excluída) não abre a loja: o site volta a pedir a escolha
+
 ## Fora de escopo
 
 - Login social (Google, Apple, Facebook) — avaliado depois da versão 1.

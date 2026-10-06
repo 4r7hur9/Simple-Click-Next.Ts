@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Código de seis dígitos do segundo fator (AC-106, AC-107, AC-124, T-113):
+ * o que chegou por e-mail ou o que o aplicativo autenticador mostra.
+ * Errar mostra quantas tentativas restam; o bloqueio manda recomeçar o login.
+ */
 import { useState, type FormEvent } from "react";
 import { Aviso, Botao, Campo } from "@simpleclick/ui";
 
@@ -12,12 +17,15 @@ export type RespostaDoCodigoNaTela =
   | { readonly status: "BLOQUEADO" | "DESAFIO_EXPIRADO" | "DESAFIO_INVALIDO" };
 
 export interface CodigoFormProps {
+  /** De onde vem o código: muda só a dica do campo. Padrão: e-mail. */
+  readonly canal?: "EMAIL" | "TOTP";
   readonly aoConfirmar: (codigo: string) => Promise<RespostaDoCodigoNaTela>;
   readonly aoCriarSessao: (redirecionarPara: string) => void;
   readonly aoRecomecarLogin: () => void;
 }
 
 export function CodigoForm({
+  canal = "EMAIL",
   aoConfirmar,
   aoCriarSessao,
   aoRecomecarLogin,
@@ -74,7 +82,11 @@ export function CodigoForm({
           autoComplete="one-time-code"
           maxLength={6}
           rotulo="Código de seis dígitos"
-          dica="Enviamos o código para seu e-mail."
+          dica={
+            canal === "TOTP"
+              ? "Abra o aplicativo autenticador e informe o código atual."
+              : "Enviamos o código para seu e-mail. Ele vale por 10 minutos."
+          }
           obrigatorio
           value={codigo}
           onChange={(evento) =>
