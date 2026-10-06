@@ -1470,20 +1470,25 @@ bash infra/scripts/verificar.sh  # o portão completo
       cenário da entrega grátis (`config-pagamento.spec.ts`) começa num
       carrinho novo apagando o cookie `sc_carrinho`; tirar isso quando o
       conserto entrar.
-    - **AC-517 pela metade na tela: o horário de reabertura não chega ao
-      cliente.** O caso de uso monta "A loja está fechada agora. Ela abre…",
-      mas a rota responde 409 só com o código do catálogo de erros
-      (`CorpoDeErro` não leva detalhe), e `criarPedido` do site mostra o texto
-      genérico "Não foi possível fechar o pedido agora…". A vitrine mostra a
-      próxima abertura; o fechamento não. Antes da T-908 nem o genérico
-      aparecia — a reconferência do carrinho o apagava (`fix(checkout)`).
-    - **`imprimir.spec.ts` grava a largura do papel da loja do painel direto
-      no banco, sem a trava de `fixtures/config-loja.ts`.** Rodando a suíte
-      inteira em paralelo, ele e `config-impressao.spec.ts` podem trocar o
-      papel um do outro no meio da medida; o mesmo vale para outros arquivos
-      que leem a loja do painel enquanto `config-horarios.spec.ts` a deixa
-      fechada por alguns segundos. Conserto: os cenários que dependem da
-      configuração da loja do painel usarem `comALojaDoPainelSoParaMim`.
+    - **AC-517 — resolvido na revisão da faixa (06/10).** O 409 da criação
+      continua só com o código (`CorpoDeErro` não mudou); diante dele, o site
+      pergunta à vitrine pública se a loja está fechada — mesmo cálculo da
+      criação (`lojaDaVitrine`) — e mostra "A loja está fechada agora. Ela
+      abre…" (`criarPedido` em `lib/carrinho-do-navegador.ts`, prova em
+      `fechamento-loja-fechada.test.ts`). Se o dono preferir o motivo no
+      próprio corpo do erro, a troca fica para quando `CorpoDeErro` ganhar
+      detalhe.
+    - **`imprimir.spec.ts` — resolvido na revisão da faixa (06/10).** Era
+      pior que colisão: o arquivo criava o pedido na loja de
+      `NEXT_PUBLIC_DEV_STORE_SLUG` do processo do teste (que cai em
+      `pastelaria-da-vila`), enquanto o site do ponta a ponta fala com
+      `e2e-painel` (`playwright.config.ts`, desde a T-313); o AC-617 reprovava
+      com "Não foi possível abrir este pedido". Agora ele usa a loja e o dono
+      do painel (`garantirLojaDoPainel`), e cada cenário cria o próprio pedido
+      dentro de `comALojaDoPainelSoParaMim`, que devolve o papel como estava.
+      Continua valendo só o risco menor: arquivos que LEEM a loja do painel
+      sem a trava enquanto `config-horarios.spec.ts` a deixa fechada por
+      alguns segundos.
 
 ## Portão contornado
 
