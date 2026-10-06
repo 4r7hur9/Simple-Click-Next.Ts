@@ -30,8 +30,11 @@ import {
 } from "../../lib/metricas.ts";
 import { CartoesDeMetrica } from "./CartoesDeMetrica.tsx";
 import { ComparativoPeriodo } from "./ComparativoPeriodo.tsx";
+import { DistribuicaoPorHora } from "./DistribuicaoPorHora.tsx";
+import { EvolucaoDiaria } from "./EvolucaoDiaria.tsx";
 import { HorarioDeReferencia } from "./HorarioDeReferencia.tsx";
 import { PainelVazio } from "./PainelVazio.tsx";
+import { RankingProdutos } from "./RankingProdutos.tsx";
 import { useMetricas, type UsoDasMetricas } from "./useMetricas.ts";
 
 /** "de hoje", "dos últimos 7 dias": o que a espera está calculando. */
@@ -135,6 +138,15 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
         comparacao={metricas.comparacao}
         periodo={metricas.periodo}
       />
+      {/* Um dia só não tem evolução: a coluna única não diz nada que os
+          cartões já não digam. */}
+      {metricas.porDia.length > 1 ? (
+        <EvolucaoDiaria pontos={metricas.porDia} />
+      ) : null}
+      <div className="grid grid-cols-1 gap-6 min-[1024px]:grid-cols-2">
+        <RankingProdutos produtos={metricas.maisVendidos} />
+        <DistribuicaoPorHora pontos={metricas.porHora} />
+      </div>
     </div>
   );
 }
