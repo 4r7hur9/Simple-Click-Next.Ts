@@ -1458,8 +1458,8 @@ bash infra/scripts/verificar.sh  # o portão completo
       resolveu. A prova que vale continua sendo a da integração.
 
 95. **O que o ponta a ponta das configurações (T-908, 06/10) achou fora dela.**
-    - **Carrinho que vira pedido — resolvido na T-516 (06/10).** Nada na API
-      gravava `carts.converted_at`, e a política do visitante (0012) não
+    - **Carrinho que vira pedido — resolvido na T-516 (06/10, `cbe093a`).**
+      Nada na API gravava `carts.converted_at`, e a política do visitante (0012) não
       deixava o `sc_app` gravá-lo; depois de pedir, o cliente voltava ao
       fechamento com os mesmos itens, e um segundo "Fechar pedido" (chave
       nova) criava outro pedido igual. Agora `app.converter_carrinho`

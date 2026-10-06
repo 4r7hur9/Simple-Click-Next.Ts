@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-10-06T05:35:31.500Z",
-  "gitRev": "1693720",
+  "timestamp": "2026-10-06T07:04:19.567Z",
+  "gitRev": "cbe093a",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-checkout",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 324,
+  "testsParsed": 327,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -89,7 +89,7 @@
     },
     "AC-516": {
       "status": "pass",
-      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-516 a MESMA chave devolve o MESMO pedido, e nunca um segundo @spec:AC-516 a MESMA chave devolve o MESMO pedido, e nunca um segundo",
+      "testName": "a nova tentativa com a mesma chave depois da conversão (AC-516) @spec:AC-516 a mesma chave devolve o mesmo pedido, com os valores e a mensagem do pedido guardado @spec:AC-516 a mesma chave devolve o mesmo pedido, com os valores e a mensagem do pedido guardado",
       "method": "vitest-json"
     },
     "AC-517": {
@@ -100,6 +100,11 @@
     "AC-518": {
       "status": "pass",
       "testName": "pedido de convidado é registrado sem conta (AC-518) @spec:AC-518 o pedido é criado sem cliente cadastrado e devolve o link de acompanhamento @spec:AC-518 o pedido é criado sem cliente cadastrado e devolve o link de acompanhamento",
+      "method": "vitest-json"
+    },
+    "AC-524": {
+      "status": "pass",
+      "testName": "o carrinho que virou pedido sai de cena (AC-524) @spec:AC-524 depois de pedir, a mesma sessão volta a um carrinho vazio e um segundo fechamento não cria outro pedido igual @spec:AC-524 depois de pedir, a mesma sessão volta a um carrinho vazio e um segundo fechamento não cria outro pedido igual",
       "method": "vitest-json"
     },
     "AC-519": {
