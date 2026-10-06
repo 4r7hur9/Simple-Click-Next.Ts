@@ -15,6 +15,14 @@ test.beforeAll(async () => {
 test("@spec:AC-419 página pública não tem violação séria ou crítica", async ({
   page,
 }) => {
+  // O AXE MEDE A COR DE UM INSTANTE. A página da loja entra com um esmaecer
+  // de meio segundo (EntradaDaLoja), e no meio dele o texto é uma mistura com
+  // o fundo: na execução completa de 06/10 o axe pegou o botão do cardápio a
+  // 60% de opacidade (contraste 1,88) e reprovou uma cor que, parada, passa.
+  // Com movimento reduzido a página entrega direto o estado final — o mesmo
+  // que toda pessoa vê depois da entrada —, e é ele que este critério mede.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+
   const axeSource = await readFile(
     new URL("../../apps/web/node_modules/axe-core/axe.js", import.meta.url),
     "utf8",
