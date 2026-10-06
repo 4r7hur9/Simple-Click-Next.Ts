@@ -25,7 +25,7 @@ provados (40,4%).
 | `pedido-operacao`    | 0/12  | não começou                                 |
 | `clientes-loja`      | 9/9   | pronta na faixa sc-F1; falta integrar       |
 | `dashboard-metricas` | 0/10  | não começou                                 |
-| `admin-lojas`        | 0/10  | não começou                                 |
+| `admin-lojas`        | 10/10 | pronta na faixa sc-F8; falta integrar       |
 | `cardapio-na-tv`     | 0/5   | não começou                                 |
 
 A contagem de critérios provados (109 de 270) parece baixa perto das tarefas
