@@ -43,6 +43,8 @@ import {
   RECUSA_DE_PERMISSAO,
 } from "./apoio-de-isolamento.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
+import { criarPedido } from "../src/modules/orders/criar-pedido.usecase.ts";
+import { tokenPublico } from "../src/modules/orders/numero-pedido.ts";
 
 let migrador: pg.Client;
 let api: ApiDaAdministracao;
@@ -115,7 +117,95 @@ function ligadaParaODono(corpo: unknown, chave: string): boolean | undefined {
     .funcionalidades.find((item) => item.chave === chave)?.ligada;
 }
 
+/** Uma loja que ligou a impressão automática na configuração dela. */
+async function lojaComAutomatico(nome: string) {
+  const loja = await criarLoja({ nome });
+  await migrador.query(
+    `UPDATE app.store_settings
+        SET printing = printing || '{"automatico": true}'::jsonb
+      WHERE store_id = $1`,
+    [loja.id],
+  );
+  return loja;
+}
+
+/** Um pedido do cliente, pelo mesmo caminho do fechamento da vitrine. */
+async function pedidoDoCliente(lojaId: string): Promise<string> {
+  const resultado = await comoRequisicao(
+    acessoDasLojas,
+    { lojaId, papel: "CUSTOMER", tokenDoPedido: tokenPublico() },
+    () =>
+      criarPedido(
+        {
+          lojaId,
+          contato: {
+            nome: "Maria Conceição",
+            telefoneE164: "5511988887777",
+            logradouro: "Rua das Flores",
+            numero: "123",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "01000-000",
+          },
+          itens: [
+            {
+              nomeDoProduto: "Guaraná",
+              quantidade: 1,
+              precoUnitarioEmCentavos: 650,
+              totalDaLinhaEmCentavos: 650,
+            },
+          ],
+          entrega: "DELIVERY",
+          formaDePagamento: "CASH",
+          subtotalEmCentavos: 650,
+          taxaDeEntregaEmCentavos: 0,
+          modoDaTaxaDeEntrega: "VALUE",
+          totalEmCentavos: 650,
+        },
+        { aberta: true },
+      ),
+  );
+  if (!resultado.ok) throw new Error("o pedido de apoio não foi criado");
+  return resultado.pedido.id;
+}
+
+/** Quantos trabalhos de impressão o pedido ganhou. */
+async function trabalhosDeImpressao(pedidoId: string): Promise<number> {
+  const { rows } = await migrador.query<{ total: number }>(
+    "SELECT count(*)::int AS total FROM app.print_jobs WHERE order_id = $1",
+    [pedidoId],
+  );
+  return rows[0]?.total ?? 0;
+}
+
 describe("funcionalidades por loja", () => {
+  it(
+    "@spec:AC-212 com a impressão térmica desligada, o pedido novo não entra na fila de impressão automática; religada, volta a entrar",
+    async () => {
+      const loja = await lojaComAutomatico("Loja Sem Fila");
+      const vizinha = await lojaComAutomatico("Loja Com Fila");
+      expect((await alterar(loja.id, "auto_print", false)).status).toBe(200);
+
+      // A configuração da loja ainda diz "automático", mas a administração
+      // desligou a área: nada entra na fila (senão o agente, ao voltar,
+      // imprimiria de uma vez os pedidos do período desligado).
+      expect(await trabalhosDeImpressao(await pedidoDoCliente(loja.id))).toBe(
+        0,
+      );
+      // A vizinha segue imprimindo.
+      expect(
+        await trabalhosDeImpressao(await pedidoDoCliente(vizinha.id)),
+      ).toBe(1);
+
+      expect((await alterar(loja.id, "auto_print", true)).status).toBe(200);
+      expect(await trabalhosDeImpressao(await pedidoDoCliente(loja.id))).toBe(
+        1,
+      );
+    },
+    ESPERA_DA_ADMINISTRACAO,
+  );
+
   it(
     "@spec:AC-213 loja recém-cadastrada nasce com todas as funcionalidades ligadas, sem limite e sem exceção",
     async () => {
