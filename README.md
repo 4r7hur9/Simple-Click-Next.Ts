@@ -27,7 +27,7 @@ O SimpleClick atende lojas pequenas de ramos diferentes: lanchonete, loja de rou
 - **Administração da plataforma** (`/admin`): cadastro de lojas, tipo de negócio, apelido, contrato e documentos.
 - **Cardápio na TV** (`/l/<apelido>/tv`): o catálogo em tela grande, com rodízio e código para abrir no celular.
 
-A página inicial (`/`) é a landing da própria plataforma. **Nada está publicado ainda.** O que falta para produção (login de verdade, loja pela sessão, e-mail, armazenamento privado, contas e domínio) está no `HarnessPlan.md`.
+A página inicial (`/`) é a landing da própria plataforma. **Nada está publicado ainda.** O que falta para produção (e-mail, armazenamento privado, LGPD, contas e domínio, e a escolha da via de backup) está no `HarnessPlan.md`. O login de verdade, a loja do dono pela sessão e o arranque do banco de produção já estão feitos.
 
 ## 2. Arquitetura em poucas linhas
 
@@ -227,7 +227,14 @@ As migrações, uma linha cada:
 | 0035 | clientes da loja: telefone normalizado, endereço e remoção                                             |
 | 0036 | `customer_addresses`, endereços da pessoa                                                              |
 | 0037 | índices das métricas                                                                                   |
+| 0038 | pareamento do agente de impressão (`print_pairing_codes`) e a chave do modo automático                 |
+| 0039 | pedido de loja suspensa continua acompanhável pelo link                                                |
+| 0040 | `store_features`, as exceções de funcionalidade por loja                                               |
 | 0041 | `app.is_store_staff()` passa a exigir vínculo ativo com a loja                                         |
+| 0043 | o carrinho que vira pedido sai de cena na mesma transação                                              |
+| 0044 | persistência da identidade: senha, segundo fator, sessões e códigos                                    |
+| 0045 | funções de acesso antes da sessão (cadastro, login, verificação e recuperação)                         |
+| 0046 | funções do segundo fator, da sessão e do convite, e as lojas da sessão (`/v1/eu`)                      |
 
 ### 3.5 `infra` — ambiente, portão e publicação
 
@@ -273,7 +280,7 @@ As migrações, uma linha cada:
 | `fixtures/`                           | loja de teste sempre aberta, loja com página Sobre, loja do painel `e2e-painel` com sessão de dono e interceptação do WhatsApp                                                                                 |
 | `specs/`                              | um arquivo por fluxo: vitrine, produto, carrinho, fechamento, painel do catálogo, estoque, clientes, pedido manual, impressão, TV, landing, acessibilidade, teclado, desempenho, canônico e manifesto de rotas |
 
-`cadastro.spec.ts`, `login-2fa.spec.ts` e `recuperar-senha.spec.ts` são testes antigos em formato Vitest: o Playwright os ignora e o Vitest exclui `e2e/`, então hoje nenhum executor os roda.
+`cadastro.spec.ts`, `login-2fa.spec.ts` e `recuperar-senha.spec.ts` são os cenários do acesso real (T-114): cadastro, login com segundo fator, renovação, saída e recuperação de senha, com o e-mail lido do adaptador de teste. São Playwright como os demais e rodam no ponta a ponta.
 
 ### 3.7 `contrato`
 
@@ -433,7 +440,7 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 | `ORIGENS_PERMITIDAS`                                                         | origens que podem chamar a API, separadas por vírgula (no local: `http://localhost:3000`, e `3100`/`3101` para o ponta a ponta)                                                                                                                                                                                                                |
 | `NEXT_PUBLIC_API_URL`                                                        | endereço da API que o site e o navegador usam                                                                                                                                                                                                                                                                                                  |
 | `NEXT_PUBLIC_DEV_STORE_SLUG`                                                 | só o login local de desenvolvimento da API: loja de que o usuário de teste vira dono (padrão `pastelaria-da-vila`). O site não a lê; em produção não tem efeito                                                                                                                                                                                |
-| `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`                                          | domínio do cookie de sessão; deixe ausente em `http://localhost:3000`                                                                                                                                                                                                                                                                          |
+| `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`                                          | domínio comum de site e API para os cookies `sc_access` e `sc_refresh`; deixe ausente em `http://localhost:3000`. **Obrigatória em produção** com o domínio real: sem ela o site usa `simpleclick.localhost`, o navegador recusa os cookies sem avisar, a sessão não se renova e a API não reconhece o cliente logado no fechamento (AC-616)   |
 | `URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`                                      | aviso de "o catálogo mudou" da API para o site; andam juntas                                                                                                                                                                                                                                                                                   |
 | `SEGREDO_DA_PONTE`                                                           | na API e no site, o mesmo valor (32 caracteres ou mais). Com ele o site informa à API o endereço real do visitante no login e no segundo fator, e o limite de tentativas conta cada visitante no próprio balde. Sem ele, todo login pelo site cai no balde do servidor do site; a API de produção avisa no registro (`auth.ponte.sem_segredo`) |
 | `SIMPLECLICK_DEV_TEST_EMAIL`, `SIMPLECLICK_DEV_TEST_PHRASE`                  | usuário de teste local (seção 5.5); nunca em produção                                                                                                                                                                                                                                                                                          |
