@@ -65,9 +65,9 @@
 - Notas: um pedido por linha, respeitando o período escolhido, sem dado que o dono não veria na tela e sem pedido de outra loja. A exportação é registrada na auditoria. A rota é `GET /v1/lojas/:apelido/metricas/exportar`, em CSV genérico (decisão de 03/10/2026; Q-803 segue aberta). Na tela, o botão fica na página de períodos e pede a planilha do período EM VIGOR (o mesmo dos números, nunca o recusado); o arquivo é baixado pela tela, para sessão vencida ou recusa aparecerem como aviso em vez de um arquivo com erro dentro.
 - Esforço: medio
 
-## T-809 — Teste de ponta a ponta do painel [pendente]
+## T-809 — Teste de ponta a ponta do painel [concluida]
 
-- Refs: US-800, US-801, US-802, AC-800, AC-803, AC-807
-- Arquivos: e2e/specs/dashboard.spec.ts
-- Notas: cobre abrir o painel do dia, alternar entre hoje, três e sete dias, escolher intervalo e conferir que o endereço preserva o período.
+- Refs: US-800, US-801, US-802, AC-800, AC-803, AC-806, AC-807, AC-815
+- Arquivos: e2e/specs/dashboard.spec.ts, e2e/fixtures/painel.ts
+- Notas: cobre abrir o painel do dia, alternar entre hoje, três e sete dias, escolher intervalo e conferir que o endereço preserva o período. Os pedidos aceitos são gravados no banco em instantes escolhidos (hoje, anteontem, cinco dias atrás) por `criarPedidoAceito` em `e2e/fixtures/painel.ts`, com produtos de nome único por projeto; o cenário confere a lista dos mais vendidos (quantidade e valor), as pontas do período em vigor, o endereço `?periodo=...`, o recarregar, o link aberto em outra aba e o nome da planilha baixada. Em série, um trabalhador por projeto: com os cenários espalhados, as cópias dos pedidos de outros trabalhadores empurravam os produtos de pouca venda para fora dos dez lugares da lista. Execução (06/10/2026): `bash ../com-trava.sh F2-e2e-dashboard env PLAYWRIGHT_CHANNEL=chrome pnpm --filter @simpleclick/e2e test:e2e:isolado specs/dashboard.spec.ts`, 6 de 6 passaram (3 cenários × perfis `publico` e `celular`, 2,0 min). As duas primeiras execuções reprovaram por ambiente: o cliente Prisma da worktree estava velho depois do merge, a rota do catálogo respondia 500 e a API do ponta a ponta não passava do aquecimento; `pnpm --filter @simpleclick/database run gerar` resolveu.
 - Esforço: medio

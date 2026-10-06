@@ -370,3 +370,76 @@ export async function criarProdutoSimples(
     await cliente.end();
   }
 }
+
+/** Um item do pedido aceito que o cenário grava: nome, quantas e quanto. */
+export interface ItemDoPedidoAceito {
+  readonly nome: string;
+  readonly quantidade: number;
+  readonly totalCentavos: number;
+}
+
+/**
+ * Grava, direto no banco, um pedido ACEITO da loja no instante pedido — o
+ * movimento que as métricas do painel contam (T-809). Fazer o pedido pela
+ * vitrine e aceitá-lo pela fila tem ponta a ponta próprio; aqui o pedido é só
+ * o cenário dos números, e o instante precisa ser escolhido (ontem, anteontem)
+ * para provar a troca de período.
+ */
+export async function criarPedidoAceito(
+  lojaId: string,
+  colocadoEm: Date,
+  itens: readonly ItemDoPedidoAceito[],
+): Promise<string> {
+  const cliente = conectar();
+  await cliente.connect();
+  try {
+    await cliente.query("BEGIN");
+    const { rows: numero } = await cliente.query<{ n: string }>(
+      `SELECT app.proximo_numero_de_pedido($1::uuid) AS n`,
+      [lojaId],
+    );
+    const n = Number(numero[0]?.n);
+    const total = itens.reduce((soma, item) => soma + item.totalCentavos, 0);
+    const { rows: pedido } = await cliente.query<{ id: string }>(
+      `INSERT INTO app.orders
+         (store_id, number, code, public_token, status, channel, total_cents,
+          subtotal_cents, items_total_cents, placed_at)
+       VALUES ($1, $2, $3, $4, 'ACCEPTED', 'ONLINE', $5, $5, $5, $6)
+       RETURNING id`,
+      [
+        lojaId,
+        n,
+        `M-${String(n).padStart(4, "0")}`,
+        randomUUID().replaceAll("-", ""),
+        total,
+        colocadoEm,
+      ],
+    );
+    const pedidoId = pedido[0]?.id;
+    if (pedidoId === undefined) throw new Error("o pedido aceito não entrou");
+    for (const [ordem, item] of itens.entries()) {
+      await cliente.query(
+        `INSERT INTO app.order_items
+           (store_id, order_id, product_name, quantity, unit_price_cents,
+            line_total_cents, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          lojaId,
+          pedidoId,
+          item.nome,
+          item.quantidade,
+          Math.round(item.totalCentavos / item.quantidade),
+          item.totalCentavos,
+          ordem,
+        ],
+      );
+    }
+    await cliente.query("COMMIT");
+    return pedidoId;
+  } catch (erro) {
+    await cliente.query("ROLLBACK").catch(() => undefined);
+    throw erro;
+  } finally {
+    await cliente.end();
+  }
+}
