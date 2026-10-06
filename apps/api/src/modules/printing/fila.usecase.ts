@@ -252,6 +252,17 @@ async function exigirAgenteValido(
   }
 }
 
+/**
+ * A loja do agente está com o automático ligado? O papel do agente não lê a
+ * configuração da loja; quem responde é `app.impressao_automatica_ligada`
+ * (migração 0038), que lê a MESMA chave que o enfileiramento lê.
+ */
+async function automaticoLigado(tx: TransacaoDoBanco): Promise<boolean> {
+  const [linha] = await tx.$queryRaw<{ ligado: boolean }[]>`
+    SELECT app.impressao_automatica_ligada() AS ligado`;
+  return linha?.ligado === true;
+}
+
 /** A reivindicação em curso: a transação, quem reivindica, de qual loja. */
 interface QuemReivindica {
   readonly tx: TransacaoDoBanco;
@@ -325,6 +336,7 @@ async function prepararPrimeiraEntrega(
 
 /**
  * Entrega ao agente os trabalhos pendentes da loja, travando-os por um prazo.
+ * Com o automático desligado na loja, não entrega nada (AC-626).
  *
  * Entra: o que está na fila (QUEUED), o que falhou e já cumpriu a espera
  * (FAILED), e o que estava com algum agente cujo prazo venceu sem confirmação
@@ -349,6 +361,12 @@ export async function reivindicarTrabalhos(
   );
 
   await exigirAgenteValido(tx, agenteId);
+
+  // Com o automático desligado o agente continua dando sinal de vida (o
+  // batimento acima já contou), mas não recebe nada: os pendentes ficam onde
+  // estão, à vista do dono para o clique (AC-626). Religar o automático
+  // devolve a fila ao agente — nada se perde e nada sai duas vezes.
+  if (!(await automaticoLigado(tx))) return [];
 
   await tx.$executeRaw`
     UPDATE app.print_jobs

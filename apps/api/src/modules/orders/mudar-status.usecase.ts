@@ -15,6 +15,7 @@ import { decidirTransicao, type StatusDoPedido } from "@simpleclick/core";
 
 import { exigirContexto, exigirLojaDoContexto } from "../../core/contexto.ts";
 import { transacaoAtual } from "../../core/db.ts";
+import { cancelarImpressoesPendentesDoPedido } from "./cancelar-impressoes.ts";
 import { devolverEstoqueDoPedido } from "./devolver-estoque.ts";
 
 export class ErroDeTransicaoDoPedido extends Error {
@@ -108,8 +109,11 @@ export async function mudarStatusDoPedido(
   }
 
   // O que a baixa tirou volta ao estoque na MESMA transação (AC-334).
-  if (decisao.para === "CANCELLED")
+  // E o cupom que ainda esperava o agente não sai mais (AC-624).
+  if (decisao.para === "CANCELLED") {
     await devolverEstoqueDoPedido(pedido.id, agora);
+    await cancelarImpressoesPendentesDoPedido(lojaId, pedido.id);
+  }
 
   await tx.orderStatusEntry.create({
     data: {

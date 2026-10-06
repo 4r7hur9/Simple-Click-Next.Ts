@@ -562,6 +562,18 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     }),
   },
 
+  print_pairing_codes: {
+    chave: "id",
+    // Zerar ou esgotar as tentativas do código da loja vizinha: o primeiro
+    // abriria a porta à força bruta, o segundo travaria o pareamento dela.
+    alteracao: { coluna: "failed_attempts", valor: 3 },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      code_sha256: `\\x${createHash("sha256").update(`codigo-${marca}`).digest("hex")}`,
+      expires_at: "2099-01-01T00:00:00Z",
+    }),
+  },
+
   print_jobs: {
     chave: "id",
     // Cancelar o cupom da loja vizinha é o ataque útil: a cozinha dela não
@@ -1019,6 +1031,7 @@ beforeAll(async () => {
       "store_hours",
       "store_hour_exceptions",
       "print_agents",
+      "print_pairing_codes",
     ],
     [
       "orders",

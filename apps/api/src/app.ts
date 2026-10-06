@@ -42,6 +42,11 @@ import {
   type OpcoesDaConta,
 } from "./modules/orders/conta.routes.ts";
 import { criarRotasDoCupom } from "./modules/printing/cupom.routes.ts";
+import {
+  criarRotasDaImpressaoAutomatica,
+  type OpcoesDaImpressaoAutomatica,
+} from "./modules/printing/impressao-automatica.routes.ts";
+import { cacheDoLimiteSobDemanda } from "./core/limite.ts";
 import { normalizarConfiguracaoDeImpressao } from "./modules/stores/impressao-config.usecase.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
@@ -131,6 +136,11 @@ export interface OpcoesDoApp {
    * `sc_admin`, envio do convite e relógio.
    */
   readonly administracao?: Partial<OpcoesDaAdministracao>;
+  /**
+   * O mesmo, para a impressão automática (T-608): o agente de impressão e o
+   * estado dele no painel — o limite do pareamento, a fila e o relógio.
+   */
+  readonly impressaoAutomatica?: Partial<OpcoesDaImpressaoAutomatica>;
   /** O mesmo, para os clientes da loja (T-700 a T-703, T-706). */
   readonly clientes?: Partial<OpcoesDosClientes>;
   /** O mesmo, para o pedido lançado pelo dono e a repetição (T-704, T-706). */
@@ -551,6 +561,39 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.pedidoManual,
+    }),
+  );
+
+  // A IMPRESSÃO AUTOMÁTICA (T-608) tem roteador próprio, numa linha: o agente
+  // de impressão (pareamento, trabalhos, confirmação) e o estado dele no
+  // painel do dono. O portão de funcionalidade por loja (T-207) entra aqui. O
+  // limite do pareamento conta no Redis, conectado só na primeira tentativa;
+  // Redis fora do ar FECHA o pareamento, e o resto da impressão segue.
+  app.use(
+    "/v1",
+    criarRotasDaImpressaoAutomatica({
+      resolverLoja: identificarLoja,
+      lerConfiguracaoDoCupom: normalizarConfiguracaoDeImpressao,
+      cacheDoLimite: cacheDoLimiteSobDemanda(process.env.REDIS_URL),
+      autenticarDono: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.impressaoAutomatica,
     }),
   );
 

@@ -2,7 +2,10 @@ import { FormularioImpressao } from "../../../../../features/config/FormularioIm
 
 export const metadata = { title: "Impressão do cupom | SimpleClick" };
 
-/** Largura do papel e conteúdo do cupom (US-905: AC-919, AC-920). */
+/**
+ * Largura do papel e conteúdo do cupom (US-905: AC-919, AC-920), a chave da
+ * impressão automática e o pareamento do agente (US-605: AC-622, AC-626).
+ */
 export default function PaginaDeImpressao() {
   return (
     <section className="pt-8" aria-labelledby="titulo-impressao">
@@ -16,7 +19,8 @@ export default function PaginaDeImpressao() {
         Impressão do cupom
       </h1>
       <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--cor-tinta-suave)]">
-        Escolha a largura do papel da sua impressora e o que sai no cupom.
+        Escolha a largura do papel da sua impressora, o que sai no cupom e se
+        ele sai sozinho, pelo agente de impressão.
       </p>
       <FormularioImpressao />
     </section>

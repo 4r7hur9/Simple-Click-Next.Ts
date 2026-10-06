@@ -184,4 +184,10 @@ export {
   NUMERO_DA_TABELA_NO_ESCPOS,
 } from "./cupom-escpos.ts";
 export type { CorteDoPapel, PerfilDaImpressora } from "./cupom-escpos.ts";
+export {
+  ErroDaLeituraEscPos,
+  lerEscPos,
+  previaDoPapel,
+} from "./cupom-escpos-leitura.ts";
+export type { PapelLido } from "./cupom-escpos-leitura.ts";
 export { lerJanelasDeDisponibilidade } from "./janela-disponibilidade.ts";

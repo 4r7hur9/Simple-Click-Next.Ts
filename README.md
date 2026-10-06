@@ -348,7 +348,7 @@ As três credenciais de banco:
 - **Cupom em blocos** (`packages/core/src/cupom-blocos.ts`): o cupom é um documento semântico versionado (`versao: 1`), com papel de 58 ou 80 mm e uma lista de blocos. Ele não guarda bytes de impressora, então um pedido antigo é reimpresso igual. Daí saem duas saídas com as mesmas linhas: o HTML da impressão pelo navegador e os bytes ESC/POS (`cupom-escpos.ts`, com a tabela de caracteres certa para o acento).
 - **Impressão por clique** (padrão): o dono abre `/imprimir/<id>`; a rota `POST` do cupom (`printing/cupom.routes.ts`) soma uma via na mesma transação em que gera o cupom. Duas impressões simultâneas saem como 2ª e 3ª via, nunca duas 2ª vias.
 - **Fila de impressão** (`app.print_jobs`, migração 0034, `printing/fila.usecase.ts`): fica no PostgreSQL, e não no Redis, para a cozinha continuar recebendo cupom se o cache cair. O trabalho nasce na criação do pedido (só com o automático ligado). O agente reivindica com `FOR UPDATE SKIP LOCKED` e prazo de posse; a via é somada na primeira reivindicação e os blocos ficam guardados, então o reenvio não imprime de novo nem soma via. Falha volta com espera crescente e vira `DEAD` no limite. Imprimir por clique um trabalho pendente o cancela.
-- **Agente de impressão — em construção**: a borda do agente (T-608), o emulador (T-610) e o agente em Node/TypeScript que fala com impressora de rede na porta TCP 9100 (T-609) ainda não estão na integração. O serviço `emulador-de-impressora` do perfil `print` do Docker ainda é um nginx provisório.
+- **Agente de impressão** (`apps/agente-impressao`, T-609): programa Node 24 que roda na máquina da loja, pergunta à API a cada 2,5 s se há cupom e escreve na impressora de rede (TCP 9100), compilando o cupom com as mesmas funções de `packages/core`. Grava num diário local cada trabalho impresso ANTES de confirmar, então confirmação perdida não imprime duas vezes. Pareia pelo código de seis dígitos do painel (`pnpm parear`) e roda com `pnpm start`; instruções no README do próprio app. O emulador de impressora (T-610, `src/emulador.ts`) lê os bytes pelo mesmo decodificador do teste (`lerEscPos`) e mostra a prévia do papel: `bash infra/scripts/testar-impressao.sh` manda um cupom de exemplo e confere.
 
 ### 4.4 Cache e aviso ao site
 
@@ -448,7 +448,7 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 | `core`  | `traefik`, `postgres-dev`, `redis` | a base de qualquer trabalho                                                     |
 | `test`  | `postgres-test`                    | em memória, `fsync` desligado, sem volume                                       |
 | `app`   | `api`, `web`                       | **ainda são nginx provisórios**; o site e a API de verdade rodam com `pnpm dev` |
-| `print` | `emulador-de-impressora`           | **ainda é nginx provisório**; o emulador real é a T-610                         |
+| `print` | `emulador-de-impressora`           | emulador TCP 9100 em Node (T-610); a prévia de cada cupom sai no log            |
 
 `make down` derruba todos os perfis. `make certs` regera o certificado local.
 

@@ -37,6 +37,9 @@ export const camadas = [
   { type: "web-features", pattern: "apps/web/src/features/**" },
   { type: "web-server", pattern: "apps/web/src/server/**" },
   { type: "web-lib", pattern: "apps/web/src/lib/**" },
+
+  // --- agente de impressão (T-609) ---
+  { type: "agente-impressao", pattern: "apps/agente-impressao/**" },
 ];
 
 /** Atalho para declarar "esta camada pode importar estas". */
@@ -116,6 +119,12 @@ export const politicas = [
   // componente continua recebendo tudo por propriedade, e o único jeito de a
   // tela alcançar o cálculo é pelo vocabulário compartilhado.
   permite("web-lib", ["pkg-contracts", "pkg-core"]),
+
+  // O agente de impressão roda na máquina da loja e fala com a API só por
+  // HTTP: lê o contrato (o formato do trabalho) e as regras puras do cupom
+  // (diagramar e compilar para ESC/POS). Nunca o banco nem a API por dentro —
+  // é um programa à parte, e a única ponte é o contrato.
+  permite("agente-impressao", ["pkg-core", "pkg-contracts"]),
 
   // Regras puras não conhecem nada do projeto — é o que as mantém testáveis
   // sem banco, sem HTTP e sem framework. Nenhuma política as autoriza a nada.

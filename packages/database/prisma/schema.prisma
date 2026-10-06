@@ -1080,3 +1080,23 @@ model PrintJob {
   @@map("print_jobs")
   @@schema("app")
 }
+
+/// Código curto de pareamento do agente de impressão (0038, T-608). Um aberto
+/// por loja; guarda só o sha256 de "<loja>:<código>". Fecha ao parear, ao ser
+/// trocado por outro ou ao esgotar as tentativas — nunca se apaga.
+///
+/// Sem relação declarada, pelo mesmo motivo de `PrintAgent`.
+model PrintPairingCode {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId        String    @map("store_id") @db.Uuid
+  codeSha256     Bytes     @map("code_sha256")
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz(6)
+  failedAttempts Int       @default(0) @map("failed_attempts") @db.SmallInt
+  consumedAt     DateTime? @map("consumed_at") @db.Timestamptz(6)
+  agentId        String?   @map("agent_id") @db.Uuid
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("print_pairing_codes")
+  @@schema("app")
+}

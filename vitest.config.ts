@@ -115,6 +115,21 @@ export default defineConfig({
       {
         oxc: conversaoDeJsx,
         test: {
+          // `agente` — o agente de impressão da loja (T-609) e o emulador de
+          // impressora (T-610). Sem banco e sem Redis: a API é falsa e a
+          // impressora é o emulador TCP subindo numa porta livre do próprio
+          // processo. Projeto próprio porque o agente é um programa à parte,
+          // com a rede local como dependência, e a linha vermelha do portão
+          // diz logo que o problema é da impressão.
+          name: "agente",
+          include: ["apps/agente-impressao/src/**/*.test.ts"],
+          exclude: excluidos,
+          testTimeout: 20_000,
+        },
+      },
+      {
+        oxc: conversaoDeJsx,
+        test: {
           name: "web",
           ...esperaSemServico,
           // O jsdom não implementa `matchMedia`, e componente que pergunta

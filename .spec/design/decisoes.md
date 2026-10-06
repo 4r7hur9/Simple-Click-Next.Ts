@@ -322,6 +322,29 @@ quando deixa de valer.
   confirmar depois de o dono ter imprimido por clique, o trabalho continua
   cancelado e a contagem de vias do pedido segue sendo a verdade.
 
+### 2026-10-03 — Pareamento do agente: uma impressora, porta fechada sem Redis, pendentes que esperam
+
+- **Origem:** decidido na implementação da T-608 (faixa de impressão, onda 1),
+  como consequência das decisões de 03/10 acima; a confirmar com o dono.
+- **Contexto:** o pareamento por código de seis dígitos é a única porta da API
+  sem credencial nenhuma, e o limite de tentativas da borda mora no Redis, que é
+  o primeiro serviço a cair. Também faltava dizer o que acontece com os cupons
+  pendentes quando o dono desliga e religa o automático, e com o agente antigo
+  quando a loja pareia outro.
+- **Decisão:** (1) parear um agente novo revoga os anteriores da loja — uma
+  impressora por loja na versão 1, e o agente perdido ou trocado deixa de
+  reivindicar na hora; (2) o código fecha no banco depois de cinco erros, com ou
+  sem Redis, e o limite por loja e por origem no Redis FECHA o pareamento (503)
+  quando o Redis não responde — sem contagem, seis dígitos ficariam abertos à
+  força bruta; o resto da impressão segue sem Redis; (3) desligar o automático
+  não cancela os pendentes: eles ficam na fila, à vista na tela de pedidos para
+  o clique (que os cancela), e religar devolve ao agente só o que ainda espera.
+- **Consequência:** a janela de duas folhas com dois agentes e confirmação
+  perdida, registrada na T-607, deixa de existir enquanto a loja tiver um agente
+  só. Com o Redis fora do ar, ninguém pareia agente novo até ele voltar — o
+  agente já pareado continua imprimindo. Um cupom deixado na fila com o
+  automático desligado sai quando o dono religar, se ninguém o imprimiu antes.
+
 ### 2026-10-03 — Painel de métricas: gráfico próprio, comparação justa e planilha genérica
 
 - **Contexto:** o painel do dono (dashboard-metricas) precisa de gráficos de

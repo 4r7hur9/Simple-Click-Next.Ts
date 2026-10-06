@@ -1,3 +1,4 @@
+import { EstadoDoAgente } from "../../../../features/painel-pedidos/EstadoDoAgente.tsx";
 import { QuadroDePedidos } from "../../../../features/painel-pedidos/QuadroDePedidos.tsx";
 
 export const metadata = { title: "Pedidos | SimpleClick" };
@@ -17,7 +18,12 @@ export default function PaginaDePedidos() {
           recarregar a página.
         </p>
       </header>
-      <div className="mt-10">
+      {/* A impressão automática fala acima da fila, e só quando importa:
+          agente fora do ar, ou cupom que não saiu (AC-624, AC-626). */}
+      <div className="mt-8 empty:hidden">
+        <EstadoDoAgente />
+      </div>
+      <div className="mt-8">
         <QuadroDePedidos />
       </div>
     </main>

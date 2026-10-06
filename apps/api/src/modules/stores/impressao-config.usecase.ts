@@ -5,6 +5,14 @@
  * recebe: o mesmo pedido sai em 58 ou em 80 mm conforme o que está salvo
  * aqui. O essencial — número do pedido, itens e total — não desliga: a
  * normalização o liga de novo, mesmo que a entrada peça o contrário.
+ *
+ * A CHAVE DO MODO AUTOMÁTICO (T-608: AC-622, AC-626) mora aqui também, como
+ * `automatico`, e é OPCIONAL de propósito. O esquema é estrito e a leitura cai
+ * no padrão quando a validação falha: se o campo fosse obrigatório, toda
+ * configuração gravada antes dele deixaria de validar, e uma loja de 58 mm
+ * voltaria a imprimir em 80 mm sem ninguém ter mexido em nada. Ausente, vale
+ * desligado — a impressão por clique é o padrão (ASM-600). Quem lê a chave no
+ * banco é a fila de impressão (`printing.automatico = true`, migração 0034).
  */
 import { z } from "zod";
 
@@ -26,11 +34,14 @@ export const esquemaDaConfiguracaoDeImpressao = z.strictObject({
     totalEmDestaque: interruptor("Total em destaque"),
     observacoes: interruptor("Observações"),
   }),
+  automatico: z.boolean("Impressão automática: ligue ou desligue.").optional(),
 });
 
-export type ConfiguracaoDeImpressao = z.infer<
-  typeof esquemaDaConfiguracaoDeImpressao
->;
+/** A configuração já normalizada: a chave do automático sempre presente. */
+export type ConfiguracaoDeImpressao = Omit<
+  z.infer<typeof esquemaDaConfiguracaoDeImpressao>,
+  "automatico"
+> & { readonly automatico: boolean };
 
 export const CONFIGURACAO_DE_IMPRESSAO_PADRAO: ConfiguracaoDeImpressao = {
   larguraMm: 80,
@@ -42,7 +53,22 @@ export const CONFIGURACAO_DE_IMPRESSAO_PADRAO: ConfiguracaoDeImpressao = {
     totalEmDestaque: false,
     observacoes: true,
   },
+  automatico: false,
 };
+
+/**
+ * A chave do automático do jeito que o BANCO a lê: só `true` liga. Lida do
+ * documento cru, e não do validado, para que a tela e a fila digam a mesma
+ * coisa mesmo quando o resto do documento está velho ou incompleto — a fila
+ * (`app.enfileirar_impressao`) não passa pelo esquema.
+ */
+function automaticoGuardado(valor: unknown): boolean {
+  return (
+    typeof valor === "object" &&
+    valor !== null &&
+    (valor as Record<string, unknown>)["automatico"] === true
+  );
+}
 
 /** Normaliza o documento persistido e nunca permite desligar o essencial. */
 export function normalizarConfiguracaoDeImpressao(
@@ -61,6 +87,7 @@ export function normalizarConfiguracaoDeImpressao(
       itens: true,
       total: true,
     },
+    automatico: automaticoGuardado(valor),
   };
 }
 
