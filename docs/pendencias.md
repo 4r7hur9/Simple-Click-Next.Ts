@@ -1457,6 +1457,34 @@ bash infra/scripts/verificar.sh  # o portão completo
       fazia o AC-010 responder 500; `pnpm --filter @simpleclick/database gerar`
       resolveu. A prova que vale continua sendo a da integração.
 
+95. **O que o ponta a ponta das configurações (T-908, 06/10) achou fora dela.**
+    - **O carrinho que vira pedido não é marcado como convertido.** Nada na
+      API grava `carts.converted_at`, e a política do visitante
+      (`0012_carrinho_do_visitante.sql`) não deixa o `sc_app` gravá-lo — o
+      `WITH CHECK` exige `converted_at IS NULL`. Efeito: depois de pedir, o
+      cliente volta ao fechamento com os mesmos itens, e um segundo "Fechar
+      pedido" (chave de idempotência nova) cria outro pedido igual. Conserto:
+      função definidora com `search_path` fixo que converte o carrinho da
+      sessão na mesma transação do pedido (migração nova), chamada pela rota
+      `POST /v1/vitrine/:apelido/pedidos` depois de `criarPedido` dar certo. O
+      cenário da entrega grátis (`config-pagamento.spec.ts`) começa num
+      carrinho novo apagando o cookie `sc_carrinho`; tirar isso quando o
+      conserto entrar.
+    - **AC-517 pela metade na tela: o horário de reabertura não chega ao
+      cliente.** O caso de uso monta "A loja está fechada agora. Ela abre…",
+      mas a rota responde 409 só com o código do catálogo de erros
+      (`CorpoDeErro` não leva detalhe), e `criarPedido` do site mostra o texto
+      genérico "Não foi possível fechar o pedido agora…". A vitrine mostra a
+      próxima abertura; o fechamento não. Antes da T-908 nem o genérico
+      aparecia — a reconferência do carrinho o apagava (`fix(checkout)`).
+    - **`imprimir.spec.ts` grava a largura do papel da loja do painel direto
+      no banco, sem a trava de `fixtures/config-loja.ts`.** Rodando a suíte
+      inteira em paralelo, ele e `config-impressao.spec.ts` podem trocar o
+      papel um do outro no meio da medida; o mesmo vale para outros arquivos
+      que leem a loja do painel enquanto `config-horarios.spec.ts` a deixa
+      fechada por alguns segundos. Conserto: os cenários que dependem da
+      configuração da loja do painel usarem `comALojaDoPainelSoParaMim`.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que
