@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-10-04T00:45:42.557Z",
-  "gitRev": "a4ed3ab",
+  "timestamp": "2026-10-06T02:11:05.366Z",
+  "gitRev": "0e39502",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh fundacao",
   "reporter": "vitest-json",
-  "exitCode": 1,
-  "testsParsed": 521,
+  "exitCode": 0,
+  "testsParsed": 546,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
+      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -33,13 +33,13 @@
       "method": "vitest-json"
     },
     "AC-006": {
-      "status": "fail",
-      "testName": "leitura das respostas da API pelo contrato @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site @spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site",
+      "status": "pass",
+      "testName": "contrato compartilhado @spec:AC-006 declara só as rotas que a API serve hoje @spec:AC-006 declara só as rotas que a API serve hoje",
       "method": "vitest-json"
     },
     "AC-007": {
-      "status": "fail",
-      "testName": "documento de contrato publicado @spec:AC-007 o arquivo versionado é exatamente o que o código produz hoje @spec:AC-007 o arquivo versionado é exatamente o que o código produz hoje",
+      "status": "pass",
+      "testName": "contrato compartilhado @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada @spec:AC-007 toda rota do catálogo tem etiqueta descrita e resposta declarada",
       "method": "vitest-json"
     },
     "AC-008": {
@@ -98,7 +98,7 @@
       "method": "vitest-json"
     },
     "AC-017": {
-      "status": "fail",
+      "status": "pass",
       "testName": "portão de qualidade — o comando único @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação",
       "method": "vitest-json"
     },
@@ -113,27 +113,27 @@
       "method": "vitest-json"
     },
     "AC-020": {
-      "status": "fail",
+      "status": "pass",
       "testName": "gancho antes do registro @spec:AC-020 segredo escrito no código bloqueia o registro e não chega ao histórico @spec:AC-020 segredo escrito no código bloqueia o registro e não chega ao histórico",
       "method": "vitest-json"
     },
     "AC-040": {
-      "status": "fail",
+      "status": "pass",
       "testName": "gancho antes do registro @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir",
       "method": "vitest-json"
     },
     "AC-041": {
-      "status": "fail",
+      "status": "pass",
       "testName": "gancho antes do envio @spec:AC-041 envio é bloqueado quando qualquer etapa do portão falha, e o remoto não recebe nada @spec:AC-041 envio é bloqueado quando qualquer etapa do portão falha, e o remoto não recebe nada",
       "method": "vitest-json"
     },
     "AC-042": {
-      "status": "fail",
-      "testName": "reprodutibilidade da verificação @spec:AC-042 a ferramenta que roda é a versão fixada, e não a que a máquina tiver @spec:AC-042 a ferramenta que roda é a versão fixada, e não a que a máquina tiver",
+      "status": "pass",
+      "testName": "reprodutibilidade da verificação @spec:AC-042 a mesma versão verificada duas vezes dá exatamente o mesmo resultado @spec:AC-042 a mesma versão verificada duas vezes dá exatamente o mesmo resultado",
       "method": "vitest-json"
     },
     "AC-043": {
-      "status": "fail",
+      "status": "pass",
       "testName": "pular o portão @spec:AC-043 pular exige sinalização explícita: sem ela, o portão bloqueia @spec:AC-043 pular exige sinalização explícita: sem ela, o portão bloqueia",
       "method": "vitest-json"
     },
@@ -158,7 +158,7 @@
       "method": "vitest-json"
     },
     "AC-025": {
-      "status": "fail",
+      "status": "pass",
       "testName": "envio de e-mail do cadastro @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail @spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail",
       "method": "vitest-json"
     },
@@ -178,17 +178,17 @@
       "method": "vitest-json"
     },
     "AC-029": {
-      "status": "fail",
-      "testName": "pré-publicação: migração antes da troca de versão @spec:AC-029 migração que falha interrompe a publicação, e a versão anterior continua atendendo @spec:AC-029 migração que falha interrompe a publicação, e a versão anterior continua atendendo",
+      "status": "pass",
+      "testName": "publicação com o banco no ar @spec:AC-029 aplica todas as migrações e só então libera a troca de versão @spec:AC-029 aplica todas as migrações e só então libera a troca de versão",
       "method": "vitest-json"
     },
     "AC-030": {
-      "status": "fail",
+      "status": "pass",
       "testName": "portão de qualidade e o verificador de ambientes @spec:AC-030 o portão também cobra a compatibilidade das migrações com a versão anterior @spec:AC-030 o portão também cobra a compatibilidade das migrações com a versão anterior",
       "method": "vitest-json"
     },
     "AC-031": {
-      "status": "fail",
+      "status": "pass",
       "testName": "check-ambientes.sh @spec:AC-031 aprova quando teste tem banco e cache próprios @spec:AC-031 aprova quando teste tem banco e cache próprios",
       "method": "vitest-json"
     },
