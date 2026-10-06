@@ -59,6 +59,7 @@
 
 | #   | Rota                   | Tela                                  | Acesso | Estados | E2E               | Critérios                      |
 | --- | ---------------------- | ------------------------------------- | ------ | ------- | ----------------- | ------------------------------ |
+| 21b | `/escolher-loja`       | Escolha da loja do painel             | OWNER  | 4E      | e2e-loja-sessao   | AC-135, AC-136                 |
 | 22  | `/painel`              | Painel com métricas do dia            | OWNER  | 4E      | e2e-painel        | AC-800..AC-802, AC-814         |
 | 23  | `/painel/metricas`     | Métricas por período                  | OWNER  | 4E      | e2e-metricas      | AC-803..AC-813, AC-815, AC-816 |
 | 24  | `/painel/pedidos`      | Fila de pedidos ao vivo               | OWNER  | 4E      | e2e-fila-pedidos  | AC-600..AC-603, AC-609, AC-611 |

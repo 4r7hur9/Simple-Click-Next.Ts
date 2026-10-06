@@ -1,5 +1,5 @@
 import { enderecoDaApi } from "../../../../../../../server/api-client.ts";
-import { lerTokenDeAcessoDoCookie } from "../../../../../../../server/session-cookie.ts";
+import { sessaoParaEncaminhar } from "../../../../../../../server/loja-do-painel.ts";
 
 /**
  * Envio do ARQUIVO da foto do produto (T-303, AC-306).
@@ -9,21 +9,17 @@ import { lerTokenDeAcessoDoCookie } from "../../../../../../../server/session-co
  * conferência do conteúdo acontece na API — esta rota só leva os bytes, a
  * sessão e as opções da consulta (principal, texto alternativo).
  */
-const APELIDO_DA_LOJA =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
-
 export async function POST(
   requisicao: Request,
   contexto: { params: Promise<{ produtoId: string }> },
 ): Promise<Response> {
-  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
-  if (token === undefined) {
-    return Response.json({ erro: "nao_autenticado" }, { status: 401 });
-  }
+  const sessao = await sessaoParaEncaminhar(requisicao);
+  if (sessao instanceof Response) return sessao;
+  const { token } = sessao;
   const { produtoId } = await contexto.params;
   const consulta = new URL(requisicao.url).search;
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/catalogo/produtos/${encodeURIComponent(produtoId)}/imagens/arquivo${consulta}`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/catalogo/produtos/${encodeURIComponent(produtoId)}/imagens/arquivo${consulta}`,
     {
       method: "POST",
       cache: "no-store",

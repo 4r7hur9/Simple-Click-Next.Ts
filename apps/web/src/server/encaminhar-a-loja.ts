@@ -6,25 +6,21 @@
  * site lê o token de acesso do cookie httpOnly (P-008: o script da página
  * nunca o vê) e repassa à API; sem sessão, nem chega a pedir. A resposta nunca
  * vai para cache — é a lista de clientes de agora, e não a de minutos atrás.
+ * A loja vem da sessão (T-115, `loja-do-painel.ts`); a conta não tem loja.
  */
 import { enderecoDaApi } from "./api-client.ts";
+import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
-
-const APELIDO_DA_LOJA =
-  process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila";
 
 /** Métodos que levam corpo JSON até a API. */
 const COM_CORPO = new Set(["POST", "PUT", "PATCH"]);
 
+/** Repassa o pedido à API com o token da pessoa. */
 async function encaminhar(
   requisicao: Request,
+  token: string,
   destino: string,
 ): Promise<Response> {
-  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
-  if (token === undefined) {
-    return Response.json({ erro: "nao_autenticado" }, { status: 401 });
-  }
-
   const leva = COM_CORPO.has(requisicao.method);
   const corpo = leva ? await requisicao.text() : "";
   const consulta = new URL(requisicao.url).search;
@@ -57,20 +53,27 @@ async function encaminhar(
  * @param caminho o trecho depois do apelido, já com os identificadores
  *   codificados por quem chama — "clientes", "pedidos/manual".
  */
-export function encaminharALoja(
+export async function encaminharALoja(
   requisicao: Request,
   caminho: string,
 ): Promise<Response> {
+  const sessao = await sessaoParaEncaminhar(requisicao);
+  if (sessao instanceof Response) return sessao;
   return encaminhar(
     requisicao,
-    `/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/${caminho}`,
+    sessao.token,
+    `/v1/lojas/${encodeURIComponent(sessao.apelido)}/${caminho}`,
   );
 }
 
 /** Para `/v1/conta/{caminho}`: a área da pessoa, sem loja nenhuma. */
-export function encaminharAConta(
+export async function encaminharAConta(
   requisicao: Request,
   caminho: string,
 ): Promise<Response> {
-  return encaminhar(requisicao, `/v1/conta/${caminho}`);
+  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
+  if (token === undefined) {
+    return Response.json({ erro: "nao_autenticado" }, { status: 401 });
+  }
+  return encaminhar(requisicao, token, `/v1/conta/${caminho}`);
 }

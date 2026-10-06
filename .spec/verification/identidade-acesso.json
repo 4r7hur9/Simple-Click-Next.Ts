@@ -1,11 +1,11 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-10-06T04:47:27.874Z",
-  "gitRev": "df51010",
+  "timestamp": "2026-10-06T05:47:36.513Z",
+  "gitRev": "ea98e96",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh identidade-acesso",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 226,
+  "testsParsed": 242,
   "results": {
     "AC-100": {
       "status": "pass",
@@ -175,6 +175,21 @@
     "AC-133": {
       "status": "pass",
       "testName": "limite, atalho de desenvolvimento e e-mail @spec:AC-133 sem provedor, a API diz que o envio está indisponível, igual para conta existente e inexistente @spec:AC-133 sem provedor, a API diz que o envio está indisponível, igual para conta existente e inexistente",
+      "method": "vitest-json"
+    },
+    "AC-134": {
+      "status": "pass",
+      "testName": "quem sou eu (GET /v1/eu) @spec:AC-134 cada dono recebe a própria identidade e só as lojas com vínculo ativo @spec:AC-134 cada dono recebe a própria identidade e só as lojas com vínculo ativo",
+      "method": "vitest-json"
+    },
+    "AC-135": {
+      "status": "pass",
+      "testName": "escolher a loja (AC-136) @spec:AC-135 sem sessão vai para a entrada; sem loja e API fora do ar explicam @spec:AC-135 sem sessão vai para a entrada; sem loja e API fora do ar explicam",
+      "method": "vitest-json"
+    },
+    "AC-136": {
+      "status": "pass",
+      "testName": "escolher a loja (AC-136) @spec:AC-136 a tela lista as lojas da sessão, cada uma com o seu botão @spec:AC-136 a tela lista as lojas da sessão, cada uma com o seu botão",
       "method": "vitest-json"
     }
   },

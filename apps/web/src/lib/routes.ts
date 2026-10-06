@@ -253,6 +253,14 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
       "apps/web/src/app/(conta)/minha-conta/seguranca/aplicativo/page.tsx",
   },
   {
+    rota: "/escolher-loja",
+    tela: "Escolha da loja do painel",
+    acesso: "DONO",
+    quatroEstados: true,
+    criterios: "AC-135, AC-136",
+    arquivo: "apps/web/src/app/(conta)/escolher-loja/page.tsx",
+  },
+  {
     rota: "/painel",
     tela: "Painel com métricas do dia",
     acesso: "PUBLICO",

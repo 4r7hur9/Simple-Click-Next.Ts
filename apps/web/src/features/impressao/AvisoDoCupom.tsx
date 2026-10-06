@@ -4,7 +4,8 @@
  * uma folha em branco que o dono mandaria para a impressora.
  */
 
-export type MotivoSemCupom = "sem-sessao" | "nao-encontrado" | "indisponivel";
+export type MotivoSemCupom =
+  "sem-sessao" | "escolher-loja" | "nao-encontrado" | "indisponivel";
 
 const TEXTO: Readonly<
   Record<
@@ -22,6 +23,14 @@ const TEXTO: Readonly<
       "Sua sessão terminou. Entre na sua conta e abra o pedido outra vez.",
     acao: "Entrar",
   },
+  // Dono de mais de uma loja que ainda não escolheu, ou cuja escolha deixou
+  // de valer (T-115): sem saber a loja, nenhuma via é emitida.
+  "escolher-loja": {
+    titulo: "Escolha a loja para imprimir",
+    explicacao:
+      "Sua conta tem mais de uma loja. Escolha a loja e abra o pedido outra vez. Nenhuma via foi contada.",
+    acao: "Escolher a loja",
+  },
   "nao-encontrado": {
     titulo: "Pedido não encontrado",
     explicacao:
@@ -38,6 +47,7 @@ const TEXTO: Readonly<
 
 function destino(motivo: MotivoSemCupom, pedidoId: string): string {
   if (motivo === "sem-sessao") return "/entrar";
+  if (motivo === "escolher-loja") return "/escolher-loja";
   if (motivo === "nao-encontrado") return "/painel/pedidos";
   return `/imprimir/${encodeURIComponent(pedidoId)}`;
 }

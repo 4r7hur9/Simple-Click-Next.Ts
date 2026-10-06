@@ -100,19 +100,19 @@ Uma frase por pasta ou arquivo que importa. Só conta o que está no Git; ficam 
 
 `src/modules` — uma pasta por área de negócio:
 
-| Módulo       | O que atende                                                                                                                                     | Onde monta                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
-| `health`     | saúde: `live` (processo de pé) e `ready` (banco e cache alcançáveis)                                                                             | `/v1/health`                            |
-| `auth`       | casos de uso de identidade (cadastro, login, segundo fator, recuperação, convite, sessão); hoje só o login local de desenvolvimento está montado | `/v1/auth`                              |
-| `storefront` | vitrine pública: loja, catálogo, produto, busca, filtros, dados do fechamento e apelido antigo                                                   | `/v1/vitrine`                           |
-| `cart`       | carrinho do visitante e conferência de preço contra o catálogo                                                                                   | `/v1/vitrine`                           |
-| `orders`     | fechamento do pedido, acompanhamento, WhatsApp, fila do dono, status, pedido manual, repetir pedido e "meus pedidos"                             | `/v1/vitrine`, `/v1/lojas`, `/v1/conta` |
-| `catalog`    | catálogo do dono: categorias, produtos, imagens, preços, grupos de escolha, variações, estoque e especificações                                  | `/v1/lojas`                             |
-| `stores`     | configurações da loja por seção (pagamento, entrega, horário, contato, aparência, impressão) e pendências                                        | `/v1/lojas`                             |
-| `customers`  | clientes da loja e endereços salvos da pessoa                                                                                                    | `/v1/lojas`, `/v1/conta`                |
-| `printing`   | cupom da impressão por clique e a fila de impressão em banco (a fila ainda não tem rota)                                                         | `/v1/lojas`                             |
-| `metrics`    | métricas do painel e exportação em planilha                                                                                                      | `/v1/lojas`                             |
-| `admin`      | administração pela credencial `sc_admin`: lojas, tipo de negócio, apelido, documentos e trilha                                                   | `/v1/admin`                             |
+| Módulo       | O que atende                                                                                                                                                             | Onde monta                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `health`     | saúde: `live` (processo de pé) e `ready` (banco e cache alcançáveis)                                                                                                     | `/v1/health`                            |
+| `auth`       | identidade ligada ao banco (cadastro, login, segundo fator, recuperação, convite, sessão) e "quem sou eu" com as lojas da sessão; fora de produção, também o login local | `/v1/auth`, `/v1/eu`                    |
+| `storefront` | vitrine pública: loja, catálogo, produto, busca, filtros, dados do fechamento e apelido antigo                                                                           | `/v1/vitrine`                           |
+| `cart`       | carrinho do visitante e conferência de preço contra o catálogo                                                                                                           | `/v1/vitrine`                           |
+| `orders`     | fechamento do pedido, acompanhamento, WhatsApp, fila do dono, status, pedido manual, repetir pedido e "meus pedidos"                                                     | `/v1/vitrine`, `/v1/lojas`, `/v1/conta` |
+| `catalog`    | catálogo do dono: categorias, produtos, imagens, preços, grupos de escolha, variações, estoque e especificações                                                          | `/v1/lojas`                             |
+| `stores`     | configurações da loja por seção (pagamento, entrega, horário, contato, aparência, impressão) e pendências                                                                | `/v1/lojas`                             |
+| `customers`  | clientes da loja e endereços salvos da pessoa                                                                                                                            | `/v1/lojas`, `/v1/conta`                |
+| `printing`   | cupom da impressão por clique e a fila de impressão em banco (a fila ainda não tem rota)                                                                                 | `/v1/lojas`                             |
+| `metrics`    | métricas do painel e exportação em planilha                                                                                                                              | `/v1/lojas`                             |
+| `admin`      | administração pela credencial `sc_admin`: lojas, tipo de negócio, apelido, documentos e trilha                                                                           | `/v1/admin`                             |
 
 Testes que vale conhecer em `apps/api/tests`: `isolamento-varredura.test.ts` pergunta ao banco quais são as tabelas de loja e cobra isolamento de cada uma (e reprova tabela sem construtor); `isolamento-entre-lojas-dono.test.ts` prova que o dono da loja A não alcança a loja B em nenhum módulo; `isolamento-concorrente.test.ts` prova que o contexto não vaza entre requisições simultâneas; `apoio-de-fila.ts` isola cada arquivo de teste num prefixo do Redis.
 
@@ -429,7 +429,7 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 | `JWT_SECRET`                                                                 | assinatura dos tokens de sessão (32 caracteres ou mais)                                                                                                                                                                           |
 | `ORIGENS_PERMITIDAS`                                                         | origens que podem chamar a API, separadas por vírgula (no local: `http://localhost:3000`, e `3100`/`3101` para o ponta a ponta)                                                                                                   |
 | `NEXT_PUBLIC_API_URL`                                                        | endereço da API que o site e o navegador usam                                                                                                                                                                                     |
-| `NEXT_PUBLIC_DEV_STORE_SLUG`                                                 | loja que o painel local usa (padrão `pastelaria-da-vila`)                                                                                                                                                                         |
+| `NEXT_PUBLIC_DEV_STORE_SLUG`                                                 | só o login local de desenvolvimento da API: loja de que o usuário de teste vira dono (padrão `pastelaria-da-vila`). O site não a lê; em produção não tem efeito                                                                   |
 | `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`                                          | domínio do cookie de sessão; deixe ausente em `http://localhost:3000`                                                                                                                                                             |
 | `URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`                                      | aviso de "o catálogo mudou" da API para o site; andam juntas                                                                                                                                                                      |
 | `SIMPLECLICK_DEV_TEST_EMAIL`, `SIMPLECLICK_DEV_TEST_PHRASE`                  | usuário de teste local (seção 5.5); nunca em produção                                                                                                                                                                             |
@@ -454,12 +454,12 @@ São dois arquivos, os dois fora do Git. Nunca escreva segredo em arquivo versio
 
 ### 5.5 Login local de desenvolvimento
 
-Ainda não existe login de produção ligado à API (é uma das lacunas do `HarnessPlan.md`). Para entrar no painel na sua máquina:
+O login de produção (`/v1/auth`, T-112) já funciona contra o banco, mas pede e-mail de verdade para o segundo fator. Para entrar no painel na sua máquina sem isso:
 
 1. Preencha `SIMPLECLICK_DEV_TEST_EMAIL` e `SIMPLECLICK_DEV_TEST_PHRASE` (12 caracteres ou mais) no `.env`, com a carga de exemplo já aplicada.
 2. Abra `http://localhost:3000/entrar` e entre com esse e-mail e essa frase.
 3. A rota `POST /v1/auth/login` (`modules/auth/desenvolvimento.routes.ts`) só existe fora de produção. Ela cria a identidade pelo e-mail e o vínculo `OWNER` com a loja de `NEXT_PUBLIC_DEV_STORE_SLUG`. O site guarda a sessão nos cookies `httpOnly` `sc_access` e `sc_refresh`.
-4. O painel fica em `http://localhost:3000/painel`.
+4. O painel fica em `http://localhost:3000/painel`. Ele descobre a loja pela sessão (`GET /v1/eu`, T-115): com uma loja só, abre direto nela; com mais de uma, pede a escolha em `/escolher-loja` e guarda a escolhida no cookie `httpOnly` `sc_loja`. A API confere o vínculo do dono com a loja em toda rota, então o cookie é só preferência.
 
 ### 5.6 Portas
 

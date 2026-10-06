@@ -1,8 +1,11 @@
 import { EditorDeMensagem } from "../../../../../features/config/EditorDeMensagem.tsx";
+import { exigirLojaDaPagina } from "../../../../../server/loja-da-pagina.ts";
 
 export const metadata = { title: "Contato da loja | SimpleClick" };
 
-export default function PaginaDeContato() {
+/** O contato da loja da sessão; a prévia da mensagem usa o apelido dela. */
+export default async function PaginaDeContato() {
+  const { loja } = await exigirLojaDaPagina();
   return (
     <main className="pt-8">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
@@ -15,11 +18,7 @@ export default function PaginaDeContato() {
         Defina o WhatsApp que recebe os pedidos e a saudação que abre a
         mensagem.
       </p>
-      <EditorDeMensagem
-        apelidoDaLoja={
-          process.env.NEXT_PUBLIC_DEV_STORE_SLUG ?? "pastelaria-da-vila"
-        }
-      />
+      <EditorDeMensagem apelidoDaLoja={loja.apelido} />
     </main>
   );
 }
