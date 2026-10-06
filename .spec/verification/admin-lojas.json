@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-06T06:11:43.393Z",
-  "gitRev": "4fb0fe5",
+  "timestamp": "2026-10-06T06:20:40.127Z",
+  "gitRev": "12e5dfd",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 206,
+  "testsParsed": 207,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -79,7 +79,7 @@
     },
     "AC-212": {
       "status": "pass",
-      "testName": "funcionalidades por loja @spec:AC-212 com a impressão térmica desligada, o dono a lê desligada e as rotas da área respondem indisponível mesmo acessadas direto @spec:AC-212 com a impressão térmica desligada, o dono a lê desligada e as rotas da área respondem indisponível mesmo acessadas direto",
+      "testName": "funcionalidades por loja @spec:AC-212 com a impressão térmica desligada, o pedido novo não entra na fila de impressão automática; religada, volta a entrar @spec:AC-212 com a impressão térmica desligada, o pedido novo não entra na fila de impressão automática; religada, volta a entrar",
       "method": "vitest-json"
     },
     "AC-213": {
