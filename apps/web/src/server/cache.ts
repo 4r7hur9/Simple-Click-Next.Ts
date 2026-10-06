@@ -131,6 +131,44 @@ export function etiquetasDaEntrada(
   return [etiquetaDaLoja(lojaId), etiquetaDoDado(lojaId, nome)];
 }
 
+/**
+ * O começo das etiquetas da vitrine pública.
+ *
+ * A vitrine é lida pelo APELIDO, e não pelo identificador: é o apelido que vem
+ * no endereço que o cliente abriu, e a leitura precisa da etiqueta antes de
+ * saber qual loja responde. O prefixo separa as duas famílias — nenhum
+ * identificador de loja se chama `vitrine`, então a etiqueta de um apelido
+ * nunca coincide com a de uma loja nem com a de um dado dela.
+ */
+const PREFIXO_DA_VITRINE = "vitrine";
+
+/**
+ * A etiqueta de tudo o que o site guarda da vitrine pública de uma loja: a
+ * apresentação, o catálogo (com qualquer busca ou filtro), a página de cada
+ * produto e a configuração do fechamento (dívida 93).
+ *
+ * UMA etiqueta para as quatro leituras, de propósito: o dono muda uma coisa e
+ * várias telas dependem dela — o horário aparece na apresentação, no produto e
+ * no fechamento. Esquecer a loja inteira custa uma leitura a mais por tela;
+ * esquecer de menos deixa a vitrine mentindo.
+ */
+export function etiquetaDaVitrine(apelido: string): string {
+  return [PREFIXO_DA_VITRINE, exigirParte("o apelido da loja", apelido)].join(
+    SEPARADOR,
+  );
+}
+
+/**
+ * As etiquetas de uma leitura da vitrine, sem nunca lançar.
+ *
+ * O apelido vem do endereço digitado. Apelido impossível não pode derrubar a
+ * página antes de a API responder que a loja não existe: a leitura vai sem
+ * etiqueta, e não há o que invalidar numa loja que não existe.
+ */
+export function etiquetasDaVitrine(apelido: string): string[] {
+  return ehParteDeChaveValida(apelido) ? [etiquetaDaVitrine(apelido)] : [];
+}
+
 /** O que o motor de cache precisa saber para guardar uma leitura. */
 export interface PedidoDeLembranca<T> {
   readonly chave: string;
@@ -142,16 +180,38 @@ export interface PedidoDeLembranca<T> {
 /** Quem guarda de fato. Em produção é o Next; no teste, um dublê fiel. */
 export interface MotorDeCacheDoSite {
   lembrar<T>(pedido: PedidoDeLembranca<T>): Promise<T>;
+  /** Marca a etiqueta como velha: a leitura seguinte ainda pode recebê-la. */
   invalidar(etiqueta: string): void;
+  /**
+   * Vence a etiqueta NA HORA: a leitura seguinte já busca de novo. Motor que
+   * não sabe fazer diferente cai em `invalidar`.
+   */
+  vencer?(etiqueta: string): void;
 }
+
+/**
+ * Como o Next deve tratar a etiqueta vencida: com prazo zero.
+ *
+ * O perfil `"max"` do Next 16 NÃO vence a etiqueta. Ele a marca como velha, e
+ * o Next entrega a cópia antiga uma última vez enquanto busca a nova por trás
+ * (`areTagsStale` → `isStale` no `incremental-cache`; conferido no 16.3.1).
+ * Para o dono que acabou de salvar, essa última vez é o defeito da dívida 93:
+ * ele abre a loja e vê a versão de antes. Com `expire: 0` a entrada é dada por
+ * vencida (`areTagsExpired`) e a visita seguinte busca de novo. `updateTag`,
+ * que faz o mesmo, só existe dentro de Server Action — e o aviso chega por
+ * rota.
+ */
+export const VENCER_NA_HORA = { expire: 0 } as const;
 
 /**
  * O motor do Next.
  *
- * `unstable_cache` guarda por partes de chave e aceita etiquetas;
- * `revalidateTag` com o perfil `"max"` expira a etiqueta na hora, que é o
- * comportamento que AC-028 pede — a próxima leitura recalcula, sem reinício de
- * serviço nem limpeza manual.
+ * `unstable_cache` guarda por partes de chave e aceita etiquetas.
+ * `invalidar` usa o perfil `"max"`: a etiqueta fica velha, a próxima leitura
+ * ainda recebe a cópia guardada e dispara a busca da nova — a alteração
+ * aparece dentro do prazo, sem reinício de serviço nem limpeza manual (AC-028).
+ * `vencer` usa prazo zero, para quando a próxima leitura já precisa da versão
+ * nova: a vitrine depois de uma alteração do dono (dívida 93).
  */
 export const motorDoNext: MotorDeCacheDoSite = {
   lembrar<T>(pedido: PedidoDeLembranca<T>): Promise<T> {
@@ -163,6 +223,9 @@ export const motorDoNext: MotorDeCacheDoSite = {
   },
   invalidar(etiqueta: string): void {
     revalidateTag(etiqueta, "max");
+  },
+  vencer(etiqueta: string): void {
+    revalidateTag(etiqueta, VENCER_NA_HORA);
   },
 };
 
@@ -217,4 +280,20 @@ export function invalidarNoSite(
 
   for (const etiqueta of etiquetas) motor.invalidar(etiqueta);
   return etiquetas;
+}
+
+/**
+ * Vence a vitrine pública daquela loja e devolve a etiqueta vencida.
+ *
+ * Vence, e não só invalida: quem pede é a alteração do dono, e o dono abre a
+ * própria loja logo depois de salvar (dívida 93).
+ */
+export function vencerVitrineNoSite(
+  apelido: string,
+  motor: MotorDeCacheDoSite = motorDoNext,
+): readonly string[] {
+  const etiqueta = etiquetaDaVitrine(apelido);
+  if (motor.vencer === undefined) motor.invalidar(etiqueta);
+  else motor.vencer(etiqueta);
+  return [etiqueta];
 }

@@ -47,7 +47,8 @@ export class ProtecaoContraTentativas {
     this.agora = dependencias.agora ?? (() => new Date());
     this.avisarDono = dependencias.avisarDono ?? (async () => undefined);
     this.limitePorOrigemPorMinuto =
-      dependencias.limitePorOrigemPorMinuto ?? LIMITE_PADRAO_POR_ORIGEM_POR_MINUTO;
+      dependencias.limitePorOrigemPorMinuto ??
+      LIMITE_PADRAO_POR_ORIGEM_POR_MINUTO;
   }
 
   verificar(entrada: {
@@ -57,8 +58,14 @@ export class ProtecaoContraTentativas {
     readonly enderecoRealInformadoPelaBorda?: string;
   }): ResultadoDaProtecaoContraTentativas {
     const agora = this.agora();
-    const origem = entrada.enderecoRealInformadoPelaBorda ?? entrada.enderecoDaBorda;
-    const tentativasDaOrigem = this.tentativasRecentes(this.tentativasPorOrigem, origem, agora, 60_000);
+    const origem =
+      entrada.enderecoRealInformadoPelaBorda ?? entrada.enderecoDaBorda;
+    const tentativasDaOrigem = this.tentativasRecentes(
+      this.tentativasPorOrigem,
+      origem,
+      agora,
+      60_000,
+    );
     if (tentativasDaOrigem.length >= this.limitePorOrigemPorMinuto) {
       return { status: "ORIGEM_LIMITADA", statusHttp: 429 };
     }
@@ -77,10 +84,17 @@ export class ProtecaoContraTentativas {
     return { status: "PERMITIDA" };
   }
 
-  async registrarFalha(contaId: string): Promise<ResultadoDaProtecaoContraTentativas> {
+  async registrarFalha(
+    contaId: string,
+  ): Promise<ResultadoDaProtecaoContraTentativas> {
     const agora = this.agora();
-    const estado = this.contas.get(contaId) ?? { falhas: [], quantidadeDeBloqueios: 0 };
-    estado.falhas = estado.falhas.filter((falha) => agora.getTime() - falha.getTime() < JANELA_DE_FALHAS_EM_MS);
+    const estado = this.contas.get(contaId) ?? {
+      falhas: [],
+      quantidadeDeBloqueios: 0,
+    };
+    estado.falhas = estado.falhas.filter(
+      (falha) => agora.getTime() - falha.getTime() < JANELA_DE_FALHAS_EM_MS,
+    );
     estado.falhas.push(agora);
 
     if (estado.falhas.length < FALHAS_PARA_BLOQUEAR) {

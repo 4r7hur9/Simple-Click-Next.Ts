@@ -1,4 +1,5 @@
 import { criarApp } from "./app.ts";
+import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
 import { registrar } from "./core/log.ts";
 
 /** Porta usada quando o ambiente não diz outra. */
@@ -26,7 +27,13 @@ export function lerPorta(ambiente: NodeJS.ProcessEnv): number {
 
 const porta = lerPorta(process.env);
 
-criarApp().listen(porta, () => {
+// O aviso ao site é lido aqui, na partida, e não dentro de `criarApp`: é o
+// processo que serve de verdade que precisa avisar o site quando o dono muda a
+// loja (dívida 93). Configuração pela metade recusa a partida, nomeando a
+// variável, como a porta acima.
+const avisarSite = avisoDoSiteDoAmbiente(process.env);
+
+criarApp({ avisarSite }).listen(porta, () => {
   // A linha de partida já sai pelo registro estruturado (AC-021): quem lê a
   // saída da API por máquina não deveria encontrar uma linha em outro formato
   // logo na primeira. A porta entra como campo, não como texto interpolado.

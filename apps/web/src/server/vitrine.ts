@@ -21,6 +21,7 @@ import {
 
 import { PARAMETRO_DA_BUSCA } from "../lib/catalogo.ts";
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
+import { etiquetasDaVitrine } from "./cache.ts";
 
 /** O que a página recebe: a loja, ou o motivo de não haver loja. */
 export type ResultadoDaVitrine =
@@ -28,7 +29,14 @@ export type ResultadoDaVitrine =
   | { readonly estado: "nao-encontrada" }
   | { readonly estado: "indisponivel"; readonly motivo: string };
 
-/** Quanto tempo a vitrine pode ficar guardada antes de ser buscada de novo. */
+/**
+ * Quanto tempo a vitrine pode ficar guardada antes de ser buscada de novo.
+ *
+ * É a REDE DE PROTEÇÃO, e não o caminho rápido. O caminho rápido é a etiqueta
+ * da vitrine (`etiquetasDaVitrine`): quando o dono altera catálogo ou
+ * configuração, a API avisa o site, que vence a etiqueta na hora e a visita
+ * seguinte já busca de novo (dívida 93). O prazo só pesa se o aviso se perder.
+ */
 export const SEGUNDOS_DE_CACHE = 60;
 
 /**
@@ -47,10 +55,13 @@ export async function buscarVitrine(
   let resposta: Response;
   try {
     resposta = await buscar(endereco, {
-      // A vitrine muda pouco e é lida muito: guardar por um minuto tira da API
-      // a repetição de quem abriu a mesma loja, sem deixar o dono esperando
-      // muito por uma mudança de preço.
-      next: { revalidate: SEGUNDOS_DE_CACHE },
+      // A vitrine muda pouco e é lida muito: guardar tira da API a repetição de
+      // quem abriu a mesma loja. A etiqueta é o que deixa a alteração do dono
+      // aparecer na visita seguinte, sem esperar o prazo vencer.
+      next: {
+        revalidate: SEGUNDOS_DE_CACHE,
+        tags: etiquetasDaVitrine(apelido),
+      },
       signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
       headers: { accept: "application/json" },
     } as RequestInit);
@@ -143,7 +154,10 @@ export async function buscarCatalogo(
   let resposta: Response;
   try {
     resposta = await buscar(endereco, {
-      next: { revalidate: SEGUNDOS_DE_CACHE },
+      next: {
+        revalidate: SEGUNDOS_DE_CACHE,
+        tags: etiquetasDaVitrine(apelido),
+      },
       signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
       headers: { accept: "application/json" },
     } as RequestInit);

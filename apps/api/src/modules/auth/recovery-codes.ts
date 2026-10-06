@@ -33,9 +33,13 @@ export async function criarCodigosDeRecuperacao(
   gerarBytes: () => Uint8Array = () => randomBytes(5),
 ): Promise<readonly string[]> {
   if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 20) {
-    throw new Error("A quantidade de códigos de recuperação deve estar entre 1 e 20.");
+    throw new Error(
+      "A quantidade de códigos de recuperação deve estar entre 1 e 20.",
+    );
   }
-  const codigos = Array.from({ length: quantidade }, () => formatarCodigo(gerarBytes()));
+  const codigos = Array.from({ length: quantidade }, () =>
+    formatarCodigo(gerarBytes()),
+  );
   await repositorio.criar(
     codigos.map((codigo) => ({ identidadeId, resumo: resumirCodigo(codigo) })),
   );
@@ -47,7 +51,9 @@ export async function usarCodigoDeRecuperacao(
   dependencias: {
     readonly repositorio: RepositorioDeCodigosDeRecuperacao;
     readonly avisador: AvisadorDeUsoDeRecuperacao;
-    readonly criarSessao: (identidadeId: string) => Promise<{ readonly sessaoId: string }>;
+    readonly criarSessao: (
+      identidadeId: string,
+    ) => Promise<{ readonly sessaoId: string }>;
   },
 ): Promise<ResultadodoCodigoOuInvalido> {
   const consumido = await dependencias.repositorio.consumir({
@@ -66,8 +72,7 @@ export async function usarCodigoDeRecuperacao(
 }
 
 export type ResultadodoCodigoOuInvalido =
-  | ResultadoDoCodigoDeRecuperacao
-  | { readonly status: "CODIGO_INVALIDO" };
+  ResultadoDoCodigoDeRecuperacao | { readonly status: "CODIGO_INVALIDO" };
 
 export function resumirCodigo(codigo: string): string {
   const normalizado = codigo.replace(/[^A-Za-z0-9]/g, "").toUpperCase();

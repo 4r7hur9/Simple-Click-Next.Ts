@@ -28,7 +28,9 @@ describe("Proteção contra tentativas de login", () => {
       esperaEmMs: 60_000,
     });
 
-    expect(protecao.verificar({ contaId, enderecoDaBorda: "198.51.100.7" })).toMatchObject({
+    expect(
+      protecao.verificar({ contaId, enderecoDaBorda: "198.51.100.7" }),
+    ).toMatchObject({
       status: "CONTA_BLOQUEADA",
       esperaEmMs: 60_000,
     });
@@ -37,7 +39,9 @@ describe("Proteção contra tentativas de login", () => {
     for (let tentativa = 0; tentativa < 10; tentativa += 1) {
       await protecao.registrarFalha(contaId);
     }
-    await expect(protecao.verificar({ contaId, enderecoDaBorda: "198.51.100.7" })).toMatchObject({
+    await expect(
+      protecao.verificar({ contaId, enderecoDaBorda: "198.51.100.7" }),
+    ).toMatchObject({
       status: "CONTA_BLOQUEADA",
       esperaEmMs: 120_000,
     });

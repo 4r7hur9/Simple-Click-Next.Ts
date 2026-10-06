@@ -86,6 +86,12 @@ import {
   type OpcoesDoPedidoManual,
 } from "./modules/orders/pedido-manual.routes.ts";
 import type { OpcoesDaRotaDoCupom } from "./modules/printing/cupom.routes.ts";
+import { criarRotaDoApelidoAntigo } from "./modules/storefront/apelido-antigo.ts";
+import {
+  avisarOSiteQuandoODonoAltera,
+  naoAvisarOSite,
+  type AvisarOSite,
+} from "./core/aviso-ao-site.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -138,6 +144,13 @@ export interface OpcoesDoApp {
   readonly enderecos?: Partial<OpcoesDosEnderecos>;
   /** O mesmo, para o cupom impresso (T-705 prova o do pedido manual). */
   readonly cupom?: Partial<OpcoesDaRotaDoCupom>;
+  /**
+   * Quem avisa o site quando o dono altera catálogo ou configuração, para a
+   * vitrine refletir na visita seguinte (dívida 93). `main.ts` passa o aviso
+   * lido do ambiente; sem ele a aplicação não avisa ninguém — e teste nenhum
+   * sai pela rede atrás de um site que não está de pé.
+   */
+  readonly avisarSite?: AvisarOSite;
 }
 
 /**
@@ -176,6 +189,14 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
   app.use(PREFIXO_DE_SAUDE, criarRotasDeSaude());
+
+  // ANTES DE TODA ROTA DO DONO: o ponto único que avisa o site quando o
+  // catálogo ou a configuração de uma loja muda (dívida 93). Fica na frente
+  // para que rota nova do painel já nasça avisando, sem ninguém lembrar.
+  app.use(
+    "/v1/lojas",
+    avisarOSiteQuandoODonoAltera(opcoes.avisarSite ?? naoAvisarOSite),
+  );
 
   // Usuário de teste local: só existe quando uma credencial explícita foi
   // colocada no ambiente e a rota recusa produção. A autenticação de produção
@@ -613,6 +634,17 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     PREFIXO_DA_VITRINE,
     criarRotasDaVitrine({ lerHorario: horarioDaLoja, ...opcoes.vitrine }),
+  );
+
+  // O apelido antigo de uma loja leva ao atual (AC-208): o site pergunta aqui
+  // para onde mandar quem chegou pelo link que o dono já tinha divulgado.
+  app.use(
+    PREFIXO_DA_VITRINE,
+    criarRotaDoApelidoAntigo(
+      opcoes.vitrine?.acesso === undefined
+        ? {}
+        : { acesso: opcoes.vitrine.acesso },
+    ),
   );
 
   // O CARRINHO É COSTURADO AQUI PELO MESMO MOTIVO. Ele precisa resolver a loja

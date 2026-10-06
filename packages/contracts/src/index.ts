@@ -154,6 +154,46 @@ export type {
   SituacaoDaLoja,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
+// Ficha, edição e trilha da administração (T-202).
+export {
+  esquemaDaEdicaoDaLoja,
+  esquemaDaFichaDaLoja,
+  esquemaDoCampoDaTrilha,
+  esquemaDoRegistroDaTrilha,
+  ROTULOS_DOS_ATOS,
+  ROTULOS_DOS_CAMPOS_DA_LOJA,
+} from "./admin.ts";
+export type {
+  CampoDaTrilhaNoContrato,
+  EdicaoDaLojaEnviada,
+  EdicaoDaLojaNoContrato,
+  FichaDaLojaNoContrato,
+  RegistroDaTrilhaNoContrato,
+} from "./admin.ts";
+// Tipo de negócio trocado pela administração (T-203).
+export { esquemaDaTrocaDeTipoDeNegocio } from "./admin.ts";
+export type { TrocaDeTipoDeNegocioEnviada } from "./admin.ts";
+// Apelido trocado pela administração (T-204).
+export { esquemaDaTrocaDeApelido } from "./admin.ts";
+export type { TrocaDeApelidoEnviada } from "./admin.ts";
+// Contrato e documentos da loja (T-205).
+export {
+  esquemaDoDocumentoDaLoja,
+  esquemaDoEnvioDeDocumento,
+  esquemaDoLinkDoDocumento,
+  esquemaDosDocumentosDaLoja,
+  FORMATOS_POR_TIPO_DE_DOCUMENTO,
+  LIMITE_DA_IMAGEM_EM_BYTES,
+  LIMITE_DO_PDF_EM_BYTES,
+  ROTULOS_DOS_TIPOS_DE_DOCUMENTO,
+  TIPOS_DE_DOCUMENTO,
+} from "./admin.ts";
+export type {
+  DocumentoDaLojaNoContrato,
+  DocumentosDaLojaNoContrato,
+  LinkDoDocumentoNoContrato,
+  TipoDeDocumentoDaLoja,
+} from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,
