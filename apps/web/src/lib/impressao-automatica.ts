@@ -7,6 +7,10 @@
  * responder (`packages/contracts/src/impressao.ts`). Resposta fora do contrato
  * vira erro aqui, e a tela diz que não conseguiu conferir — em vez de mostrar
  * um estado que ninguém prometeu.
+ *
+ * A exceção é a recusa da funcionalidade (403 `funcionalidade_indisponivel`,
+ * AC-212): com a impressão térmica desligada pela administração, a área não
+ * existe para a loja, e a leitura diz `indisponivel` — a tela se cala.
  */
 import {
   esquemaDoCodigoDePareamento,
@@ -35,7 +39,9 @@ export type LeituraDaImpressaoAutomatica =
       readonly impressao: EstadoDaImpressaoAutomatica;
       readonly pendentes: readonly TrabalhoPendente[];
     }
-  | { readonly estado: "erro" };
+  | { readonly estado: "erro" }
+  /** A administração desligou a impressão térmica da loja (AC-212). */
+  | { readonly estado: "indisponivel" };
 
 /** Leitor da impressão automática. Entra por parâmetro para a prova. */
 export type BuscarImpressaoAutomatica =
@@ -51,13 +57,33 @@ async function lerJson(
     ...init,
     headers: { accept: "application/json", ...init?.headers },
   });
+  if (resposta.status === 403 && (await recusaDaFuncionalidade(resposta))) {
+    throw new FuncionalidadeIndisponivel();
+  }
   if (!resposta.ok) throw new Error(`${endereco} respondeu ${resposta.status}`);
   return resposta.json();
 }
 
+/** A API recusou porque a funcionalidade está desligada para a loja. */
+class FuncionalidadeIndisponivel extends Error {}
+
+async function recusaDaFuncionalidade(resposta: Response): Promise<boolean> {
+  try {
+    const corpo: unknown = await resposta.json();
+    return (
+      typeof corpo === "object" &&
+      corpo !== null &&
+      (corpo as { erro?: unknown }).erro === "funcionalidade_indisponivel"
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Lê o estado do agente e os pendentes. Nunca lança: queda de rede e resposta
- * estranha viram `erro`, e a tela tenta de novo na próxima volta.
+ * estranha viram `erro`, e a tela tenta de novo na próxima volta; a recusa da
+ * funcionalidade vira `indisponivel`.
  */
 export async function buscarImpressaoAutomatica(
   buscar: typeof fetch = fetch,
@@ -72,8 +98,10 @@ export async function buscarImpressaoAutomatica(
       impressao: esquemaDoEstadoDaImpressaoAutomatica.parse(estado),
       pendentes: esquemaDosTrabalhosPendentes.parse(pendentes).trabalhos,
     };
-  } catch {
-    return { estado: "erro" };
+  } catch (falha) {
+    return falha instanceof FuncionalidadeIndisponivel
+      ? { estado: "indisponivel" }
+      : { estado: "erro" };
   }
 }
 

@@ -17,6 +17,9 @@
  *   saiu no papel. Imprimir assim cancela o trabalho da fila — o cupom não sai
  *   duas vezes.
  *
+ * Com a impressão térmica desligada pela administração (AC-212), a área não
+ * existe para a loja: a tela não mostra nada e para de perguntar.
+ *
  * Rota própria (`/api/painel/impressao/...`): o formato da fila de pedidos não
  * muda por causa da impressão. A próxima leitura só é agendada quando a
  * anterior termina, como na fila.
@@ -158,6 +161,7 @@ export function EstadoDoAgente({
       const nova = await buscar();
       if (!ativo) return;
       setLeitura(nova);
+      if (nova.estado === "indisponivel") return;
       espera = setTimeout(() => void ler(), intervaloMs);
     };
     void ler();
@@ -175,6 +179,8 @@ export function EstadoDoAgente({
       />
     );
   }
+
+  if (leitura.estado === "indisponivel") return null;
 
   if (leitura.estado === "erro") {
     return (

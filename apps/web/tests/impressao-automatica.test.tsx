@@ -348,3 +348,38 @@ describe("desligado, o que ficou na fila continua à vista (AC-626)", () => {
     expect(tela.textContent).toBe("");
   });
 });
+
+describe("impressão térmica desligada pela administração (AC-212)", () => {
+  const RECUSA = {
+    status: 403,
+    corpo: {
+      erro: "funcionalidade_indisponivel",
+      mensagem: "Este recurso não está disponível para esta loja.",
+    },
+  };
+
+  it("@spec:AC-212 a fila de pedidos não mostra nada da impressão e para de perguntar", async () => {
+    const chamadas = simularApi(() => RECUSA);
+    const tela = montar(<EstadoDoAgente intervaloMs={5} />);
+    await esperar();
+    const depoisDaPrimeira = chamadas.length;
+    await new Promise((fim) => setTimeout(fim, 40));
+    await esperar();
+
+    // Nem aviso de erro, nem a promessa de que o clique continua: a área
+    // não existe para a loja.
+    expect(tela.textContent).toBe("");
+    expect(depoisDaPrimeira).toBeGreaterThan(0);
+    expect(chamadas.length).toBe(depoisDaPrimeira);
+  });
+
+  it("@spec:AC-212 só a recusa da funcionalidade cala a tela: outro 403 continua sendo erro", async () => {
+    simularApi(() => ({ status: 403, corpo: { erro: "proibido" } }));
+    const tela = montar(<EstadoDoAgente intervaloMs={60_000} />);
+    await esperar();
+
+    expect(tela.textContent).toContain(
+      "Não foi possível conferir a impressão automática",
+    );
+  });
+});
