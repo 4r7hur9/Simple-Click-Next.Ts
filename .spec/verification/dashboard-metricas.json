@@ -1,11 +1,11 @@
 {
   "feature": "dashboard-metricas",
-  "timestamp": "2026-10-04T00:13:33.093Z",
-  "gitRev": "0765ce1",
+  "timestamp": "2026-10-06T01:58:38.442Z",
+  "gitRev": "0abccbe",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh dashboard-metricas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 56,
+  "testsParsed": 97,
   "results": {
     "AC-800": {
       "status": "pass",
@@ -15,6 +15,11 @@
     "AC-817": {
       "status": "pass",
       "testName": "vendido, concluído e em andamento, com o cancelado à parte (AC-817, AC-812, AC-810) @spec:AC-817 três valores distintos e rotulados, e o concluído somado ao em andamento é o vendido @spec:AC-817 três valores distintos e rotulados, e o concluído somado ao em andamento é o vendido",
+      "method": "vitest-json"
+    },
+    "AC-801": {
+      "status": "pass",
+      "testName": "dia sem venda orienta em vez de zero seco (AC-801) @spec:AC-801 os números zerados vêm com a explicação e o caminho para compartilhar o link da vitrine @spec:AC-801 os números zerados vêm com a explicação e o caminho para compartilhar o link da vitrine",
       "method": "vitest-json"
     },
     "AC-802": {
@@ -35,6 +40,11 @@
     "AC-805": {
       "status": "pass",
       "testName": "intervalo inválido é recusado com explicação (AC-805) @spec:AC-805 data final antes da inicial, intervalo acima de um ano ou data faltando: 400 com a explicação, e nenhum número @spec:AC-805 data final antes da inicial, intervalo acima de um ano ou data faltando: 400 com a explicação, e nenhum número",
+      "method": "vitest-json"
+    },
+    "AC-806": {
+      "status": "pass",
+      "testName": "o período escolhido fica no endereço da página (AC-806) @spec:AC-806 todo período escrito no endereço é lido de volta igual, inclusive no formato do Next @spec:AC-806 todo período escrito no endereço é lido de volta igual, inclusive no formato do Next",
       "method": "vitest-json"
     },
     "AC-807": {
