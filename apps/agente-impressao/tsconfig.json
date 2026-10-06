@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@simpleclick/config-ts/node.json",
+  "compilerOptions": {
+    // O agente roda na máquina da loja com `node src/main.ts`: o Node 24 apaga
+    // os tipos e executa, sem passo de compilação nem empacotador (decisão de
+    // 03/10). Por isso o import aponta para o arquivo `.ts` que existe no
+    // disco, e só vale sintaxe apagável.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "coverage"]
+}

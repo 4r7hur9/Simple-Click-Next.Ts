@@ -11,7 +11,8 @@ import {
   ErroDaSaidaEscPos,
   NUMERO_DA_TABELA_NO_ESCPOS,
 } from "./cupom-escpos.ts";
-import { caractereDoByte, type TabelaDeCaracteres } from "./cupom-largura.ts";
+import { lerEscPos } from "./cupom-escpos-leitura.ts";
+import type { TabelaDeCaracteres } from "./cupom-largura.ts";
 
 const ESC = 0x1b;
 const GS = 0x1d;
@@ -60,9 +61,10 @@ function pedido(sobrescrita: Partial<PedidoParaCupom> = {}): PedidoParaCupom {
 /**
  * Lê os bytes como a impressora os leria — o papel, de volta em linhas.
  *
- * Só entende os comandos que a saída promete emitir. Qualquer outro byte de
- * controle reprova: se a compilação um dia emitir algo a mais (ou deixar
- * passar um ESC vindo do texto do cliente), este leitor acusa.
+ * O decodificador é o de `packages/core` (T-610), o MESMO que o emulador de
+ * impressora usa: ele recusa qualquer byte de controle fora dos comandos que a
+ * saída promete emitir. Aqui só se confere, além disso, que o cupom começa
+ * por ESC @ e ESC t.
  */
 function lerPapel(
   bytes: Uint8Array,
@@ -70,44 +72,7 @@ function lerPapel(
 ): { readonly tabelaSelecionada: number; readonly linhas: LinhaDoCupom[] } {
   expect([bytes[0], bytes[1]]).toEqual([ESC, 0x40]);
   expect([bytes[2], bytes[3]]).toEqual([ESC, 0x74]);
-  const tabelaSelecionada = bytes[4] ?? -1;
-
-  const linhas: LinhaDoCupom[] = [];
-  let negrito = false;
-  let tamanho: "normal" | "duplo" = "normal";
-  let atual = "";
-  let i = 5;
-  while (i < bytes.length) {
-    const byte = bytes[i] ?? 0;
-    const comando = bytes[i + 1];
-    const argumento = bytes[i + 2];
-    if (byte === ESC && comando === 0x45) {
-      negrito = argumento === 1;
-      i += 3;
-    } else if (byte === GS && comando === 0x21) {
-      expect([0x00, 0x11]).toContain(argumento);
-      tamanho = argumento === 0x11 ? "duplo" : "normal";
-      i += 3;
-    } else if (byte === GS && comando === 0x56) {
-      expect(atual).toBe("");
-      linhas.push({ tipo: "corte" });
-      i += 3;
-    } else if (byte === LF) {
-      linhas.push({ tipo: "texto", texto: atual, negrito, tamanho });
-      atual = "";
-      i += 1;
-    } else {
-      const caractere = caractereDoByte(byte, tabela);
-      if (caractere === undefined) {
-        throw new Error(
-          `byte 0x${byte.toString(16)} inesperado na posição ${i}`,
-        );
-      }
-      atual += caractere;
-      i += 1;
-    }
-  }
-  expect(atual).toBe("");
+  const { tabelaSelecionada, linhas } = lerEscPos(bytes, tabela);
   return { tabelaSelecionada, linhas };
 }
 

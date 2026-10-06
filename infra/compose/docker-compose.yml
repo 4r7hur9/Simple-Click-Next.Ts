@@ -210,19 +210,39 @@ services:
       start_period: 15s
 
   # --------------------------------------------------------------------------
-  # Emulador de impressora térmica — recebe o cupom que o agente enviaria à
-  # impressora, para conferir o layout sem hardware. Provisório até F6.
+  # Emulador de impressora térmica (T-610) — escuta TCP na 9100 como uma
+  # impressora de rede e mostra no log a prévia de cada cupom que o agente de
+  # impressão mandar (`docker compose logs -f emulador-de-impressora`). É o
+  # MESMO código que roda dentro do Vitest (apps/agente-impressao/src/emulador.ts),
+  # executado pelo Node 24 sem compilação. O pacote de regras puras é montado
+  # só para leitura e ligado por um link, como o pnpm faz na máquina.
   # --------------------------------------------------------------------------
   emulador-de-impressora:
-    image: nginx:1.27-alpine
+    image: node:24-alpine
     profiles: [print]
     restart: unless-stopped
+    working_dir: /app/apps/agente-impressao
+    environment:
+      HOST_IMPRESSORA: 0.0.0.0
+      PORTA_IMPRESSORA: "9100"
+    volumes:
+      - ../../packages/core:/app/packages/core:ro
+      - ../../apps/agente-impressao/package.json:/app/apps/agente-impressao/package.json:ro
+      - ../../apps/agente-impressao/src:/app/apps/agente-impressao/src:ro
+    command:
+      - sh
+      - -c
+      - mkdir -p node_modules/@simpleclick && ln -sfn /app/packages/core node_modules/@simpleclick/core && exec node src/emulador.ts
     ports:
-      - "${PORTA_IMPRESSORA:-9100}:80"
+      - "${PORTA_IMPRESSORA:-9100}:9100"
     networks:
       - dados
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:net').connect(9100, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"
       interval: 10s
       timeout: 3s
       retries: 6

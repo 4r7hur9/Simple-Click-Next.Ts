@@ -1,0 +1,28 @@
+{
+  "name": "@simpleclick/agente-impressao",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agente de impressão da loja: consulta a API e escreve o cupom na impressora de rede (TCP 9100).",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "parear": "node src/parear.ts",
+    "emulador": "node src/emulador.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test:unit": "vitest run --root ../.. --project agente apps/agente-impressao/"
+  },
+  "dependencies": {
+    "@simpleclick/contracts": "workspace:*",
+    "@simpleclick/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@simpleclick/config-ts": "workspace:*",
+    "@types/node": "26.2.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
