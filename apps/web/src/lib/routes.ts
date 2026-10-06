@@ -228,6 +228,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-509",
+    arquivo: "apps/web/src/app/(conta)/minha-conta/enderecos/page.tsx",
   },
   {
     rota: "/minha-conta/seguranca",
@@ -273,6 +274,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-707..AC-710",
+    arquivo: "apps/web/src/app/(painel)/painel/pedidos/novo/page.tsx",
   },
   {
     rota: "/painel/categorias",
@@ -346,6 +348,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-700..AC-702",
+    arquivo: "apps/web/src/app/(painel)/painel/clientes/page.tsx",
   },
   {
     rota: "/painel/clientes/{id}",
@@ -353,6 +356,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-703..AC-706, AC-711..AC-713",
+    arquivo: "apps/web/src/app/(painel)/painel/clientes/[id]/page.tsx",
   },
   {
     rota: "/painel/config/pagamento",
@@ -431,6 +435,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-207..AC-211, AC-214",
+    arquivo: "apps/web/src/app/(admin)/admin/lojas/[id]/page.tsx",
   },
   {
     rota: "/admin/lojas/{id}/documentos",
@@ -438,6 +443,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-203..AC-205",
+    arquivo: "apps/web/src/app/(admin)/admin/lojas/[id]/documentos/page.tsx",
   },
   {
     rota: "/admin/lojas/{id}/funcionalidades",

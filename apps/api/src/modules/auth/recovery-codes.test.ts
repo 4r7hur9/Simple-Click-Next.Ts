@@ -9,7 +9,10 @@ import {
 
 describe("códigos de recuperação", () => {
   it("@spec:AC-123 consumo único libera a sessão, avisa por e-mail e orienta recadastrar o aplicativo", async () => {
-    const consumir = vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    const consumir = vi
+      .fn()
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
     const criarSessao = vi.fn().mockResolvedValue({ sessaoId: "sessao-nova" });
     const avisarUso = vi.fn().mockResolvedValue(undefined);
     const repositorio: RepositorioDeCodigosDeRecuperacao = {
@@ -39,7 +42,10 @@ describe("códigos de recuperação", () => {
 
   it("códigos gerados são devolvidos uma vez e persistidos somente como resumo", async () => {
     const criar = vi.fn().mockResolvedValue(undefined);
-    const repositorio: RepositorioDeCodigosDeRecuperacao = { criar, consumir: vi.fn() };
+    const repositorio: RepositorioDeCodigosDeRecuperacao = {
+      criar,
+      consumir: vi.fn(),
+    };
     const codigos = await criarCodigosDeRecuperacao(
       "dono-1",
       repositorio,
@@ -49,7 +55,10 @@ describe("códigos de recuperação", () => {
 
     expect(codigos).toHaveLength(2);
     expect(criar).toHaveBeenCalledWith(
-      codigos.map((codigo) => ({ identidadeId: "dono-1", resumo: resumirCodigo(codigo) })),
+      codigos.map((codigo) => ({
+        identidadeId: "dono-1",
+        resumo: resumirCodigo(codigo),
+      })),
     );
     expect(JSON.stringify(criar.mock.calls[0])).not.toContain(codigos[0]);
   });

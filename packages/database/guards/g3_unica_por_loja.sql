@@ -24,6 +24,8 @@ WITH excecoes(indice, razao) AS (
      'endereço é chave de roteamento; dois inquilinos não podem reivindicar o mesmo host'),
     ('orders_public_token_uk',
      'token de alta entropia do acompanhamento sem login: a busca global É o objetivo'),
+    ('print_agents_token_uk',
+     'sha256 da credencial aleatória que o servidor sorteia para o agente de impressão: é a credencial que diz a loja, então a busca é global, e ninguém escolhe o valor para sondar outra loja'),
     ('identities_email_uk',
      'única chave única global de dado pessoal, enumerável por desenho e mitigada na aplicação')
 )

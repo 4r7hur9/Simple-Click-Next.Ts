@@ -13,20 +13,26 @@
  * a configuração da loja — quem a interpreta é o módulo da loja, e a borda
  * (`app.ts`) passa a função pronta, porque a tabela de fronteiras não deixa um
  * módulo importar o outro.
+ *
+ * Imprimir por clique um cupom que ainda está na fila de impressão CANCELA o
+ * trabalho da fila, na mesma transação (T-607, decisão de 03/10): o cupom
+ * nunca sai duas vezes, uma pela mão do dono e outra pelo agente.
  */
-import {
-  gerarCupom,
-  type ConteudoDoCupom,
-  type CupomImpresso,
-  type FormaDeEntrega,
-  type FormaDePagamento,
-  type LarguraDoPapel,
-  type ModoDaTaxaDeEntrega,
-  type PedidoParaCupom,
-} from "@simpleclick/core";
+import { gerarCupom, type CupomImpresso } from "@simpleclick/core";
 
 import { exigirLojaDoContexto } from "../../core/contexto.ts";
 import { transacaoAtual } from "../../core/db.ts";
+import { cancelarTrabalhosDoPedido } from "./fila.usecase.ts";
+import {
+  montarPedidoParaCupom,
+  type LerConfiguracaoDoCupom,
+  type PedidoGuardadoParaCupom,
+} from "./pedido-para-cupom.ts";
+
+export type {
+  ConfiguracaoDoCupom,
+  LerConfiguracaoDoCupom,
+} from "./pedido-para-cupom.ts";
 
 /** O pedido não existe — ou é de outra loja, o que para quem pede é o mesmo. */
 export class PedidoSemCupom extends Error {
@@ -34,57 +40,6 @@ export class PedidoSemCupom extends Error {
     super("Pedido não encontrado.");
     this.name = "PedidoSemCupom";
   }
-}
-
-/** O que o cupom precisa da configuração de impressão da loja (T-906). */
-export interface ConfiguracaoDoCupom {
-  readonly larguraMm: LarguraDoPapel;
-  readonly conteudo: ConteudoDoCupom;
-}
-
-/**
- * Interpreta a configuração GUARDADA (`store_settings.printing`), inclusive
- * quando ela está vazia ou velha — nunca falha, devolve o padrão.
- */
-export type LerConfiguracaoDoCupom = (guardada: unknown) => ConfiguracaoDoCupom;
-
-const FORMAS_DE_PAGAMENTO: readonly FormaDePagamento[] = [
-  "PIX",
-  "CASH",
-  "CARD_ON_DELIVERY",
-  "OTHER",
-];
-
-const MODOS_DA_TAXA: readonly ModoDaTaxaDeEntrega[] = [
-  "VALUE",
-  "FREE",
-  "ASK",
-  "OUTSIDE_AREA",
-  "NEIGHBORHOOD_NOT_FOUND",
-];
-
-function formaDePagamento(guardada: string | null): FormaDePagamento {
-  return FORMAS_DE_PAGAMENTO.find((forma) => forma === guardada) ?? "OTHER";
-}
-
-/** Sem modo guardado, o valor decide: taxa cobrada é valor, zero é grátis. */
-function modoDaTaxa(
-  guardado: string | null,
-  valorEmCentavos: number,
-): ModoDaTaxaDeEntrega {
-  return (
-    MODOS_DA_TAXA.find((modo) => modo === guardado) ??
-    (valorEmCentavos > 0 ? "VALUE" : "FREE")
-  );
-}
-
-/** Centavos do banco (`bigint`) para número inteiro, sem perder precisão. */
-function centavos(valor: bigint): number {
-  const numero = Number(valor);
-  if (!Number.isSafeInteger(numero)) {
-    throw new Error(`valor em centavos fora do intervalo seguro: ${valor}`);
-  }
-  return numero;
 }
 
 /**
@@ -107,11 +62,15 @@ async function somarVia(pedidoId: string, lojaId: string): Promise<number> {
   return Number(via);
 }
 
-/** O pedido do banco, do jeito que o gerador do cupom o recebe. */
-async function lerPedidoParaCupom(
+/** O pedido do banco, pelo cliente tipado, com o nome da loja e a configuração. */
+async function lerPedidoGuardado(
   pedidoId: string,
   lojaId: string,
-): Promise<{ readonly pedido: PedidoParaCupom; readonly guardada: unknown }> {
+): Promise<{
+  readonly pedido: PedidoGuardadoParaCupom;
+  readonly nomeDaLoja: string;
+  readonly guardada: unknown;
+}> {
   const tx = transacaoAtual();
   const [pedido, loja, configuracao] = await Promise.all([
     tx.order.findFirst({
@@ -176,71 +135,7 @@ async function lerPedidoParaCupom(
   ]);
   if (pedido === null || loja === null) throw new PedidoSemCupom();
 
-  const contato = pedido.contato;
-  const taxa = centavos(pedido.deliveryFeeCents);
-  const entrega: FormaDeEntrega =
-    pedido.fulfillment === "DELIVERY"
-      ? {
-          tipo: "DELIVERY",
-          endereco: {
-            logradouro: contato?.street ?? "",
-            numero: contato?.number ?? null,
-            complemento: contato?.complement ?? null,
-            bairro: contato?.neighborhood ?? null,
-            cidade: contato?.city ?? null,
-            uf: contato?.uf ?? null,
-            cep: contato?.zip ?? null,
-            pontoDeReferencia: contato?.referencePoint ?? null,
-            destinatario: contato?.recipientName ?? null,
-          },
-        }
-      : { tipo: "PICKUP" };
-
-  return {
-    guardada: configuracao?.printing,
-    pedido: {
-      loja: loja.name,
-      codigo: pedido.code,
-      feitoEm: pedido.placedAt.toISOString(),
-      fusoHorario: pedido.storeTimezone,
-      canal: pedido.channel === "MANUAL" ? "MANUAL" : "ONLINE",
-      cliente: {
-        nome: contato?.name ?? "Cliente sem nome",
-        telefone: contato?.phoneE164 ?? "",
-      },
-      itens: pedido.itens.map((item) => ({
-        nome: item.productName,
-        variacao: item.variantName,
-        quantidade: item.quantity,
-        totalDaLinhaEmCentavos: centavos(item.lineTotalCents),
-        observacao: item.note,
-        opcoes: item.opcoes.map((opcao) => ({
-          grupo: opcao.groupNameSnapshot,
-          opcao: opcao.optionNameSnapshot,
-          acao: opcao.action === "REMOVE" ? "REMOVE" : "ADD",
-          quantidade: opcao.quantity,
-          acrescimoEmCentavos: centavos(opcao.priceDeltaCents),
-        })),
-      })),
-      observacao: pedido.customerNote,
-      entrega,
-      taxaDeEntrega: {
-        modo: modoDaTaxa(pedido.deliveryFeeMode, taxa),
-        valorEmCentavos: taxa,
-      },
-      pagamento: {
-        forma: formaDePagamento(pedido.paymentMethod),
-        trocoParaEmCentavos:
-          pedido.changeForCents === null
-            ? null
-            : centavos(pedido.changeForCents),
-      },
-      subtotalEmCentavos: centavos(pedido.subtotalCents),
-      descontoEmCentavos: centavos(pedido.discountCents),
-      descontoDeRetiradaEmCentavos: centavos(pedido.pickupDiscountCents),
-      totalEmCentavos: centavos(pedido.totalCents),
-    },
-  };
+  return { pedido, nomeDaLoja: loja.name, guardada: configuracao?.printing };
 }
 
 /**
@@ -256,10 +151,19 @@ export async function emitirCupomDoPedido(
   lerConfiguracao: LerConfiguracaoDoCupom,
 ): Promise<CupomImpresso> {
   const lojaId = exigirLojaDoContexto();
+  // O dono imprimiu: o que ainda esperava pelo agente não sai mais. Cancelar
+  // ANTES de somar a via é de propósito: a reivindicação do agente trava o
+  // trabalho e depois o pedido, e travar na mesma ordem aqui é o que impede as
+  // duas transações de esperarem uma pela outra para sempre. Pedido que não
+  // existe não tem trabalho, e a soma logo abaixo recusa e desfaz tudo.
+  await cancelarTrabalhosDoPedido(pedidoId);
   const via = await somarVia(pedidoId, lojaId);
-  const { pedido, guardada } = await lerPedidoParaCupom(pedidoId, lojaId);
+  const { pedido, nomeDaLoja, guardada } = await lerPedidoGuardado(
+    pedidoId,
+    lojaId,
+  );
   const configuracao = lerConfiguracao(guardada);
-  return gerarCupom(pedido, {
+  return gerarCupom(montarPedidoParaCupom(pedido, nomeDaLoja), {
     larguraMm: configuracao.larguraMm,
     via,
     conteudo: configuracao.conteudo,

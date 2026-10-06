@@ -154,6 +154,46 @@ export type {
   SituacaoDaLoja,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
+// Ficha, edição e trilha da administração (T-202).
+export {
+  esquemaDaEdicaoDaLoja,
+  esquemaDaFichaDaLoja,
+  esquemaDoCampoDaTrilha,
+  esquemaDoRegistroDaTrilha,
+  ROTULOS_DOS_ATOS,
+  ROTULOS_DOS_CAMPOS_DA_LOJA,
+} from "./admin.ts";
+export type {
+  CampoDaTrilhaNoContrato,
+  EdicaoDaLojaEnviada,
+  EdicaoDaLojaNoContrato,
+  FichaDaLojaNoContrato,
+  RegistroDaTrilhaNoContrato,
+} from "./admin.ts";
+// Tipo de negócio trocado pela administração (T-203).
+export { esquemaDaTrocaDeTipoDeNegocio } from "./admin.ts";
+export type { TrocaDeTipoDeNegocioEnviada } from "./admin.ts";
+// Apelido trocado pela administração (T-204).
+export { esquemaDaTrocaDeApelido } from "./admin.ts";
+export type { TrocaDeApelidoEnviada } from "./admin.ts";
+// Contrato e documentos da loja (T-205).
+export {
+  esquemaDoDocumentoDaLoja,
+  esquemaDoEnvioDeDocumento,
+  esquemaDoLinkDoDocumento,
+  esquemaDosDocumentosDaLoja,
+  FORMATOS_POR_TIPO_DE_DOCUMENTO,
+  LIMITE_DA_IMAGEM_EM_BYTES,
+  LIMITE_DO_PDF_EM_BYTES,
+  ROTULOS_DOS_TIPOS_DE_DOCUMENTO,
+  TIPOS_DE_DOCUMENTO,
+} from "./admin.ts";
+export type {
+  DocumentoDaLojaNoContrato,
+  DocumentosDaLojaNoContrato,
+  LinkDoDocumentoNoContrato,
+  TipoDeDocumentoDaLoja,
+} from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,
@@ -193,3 +233,80 @@ export type {
   MeusPedidosNoContrato,
   PedidoDaContaNoContrato,
 } from "./conta.ts";
+export {
+  esquemaDaEscolhaDoPedidoManual,
+  esquemaDaFichaComHistorico,
+  esquemaDaFichaDoCliente,
+  esquemaDaListaDeClientes,
+  esquemaDaOpcaoDoHistorico,
+  esquemaDaPendenciaDoPedidoManual,
+  esquemaDaRecusaDoPedidoManual,
+  esquemaDaRepeticaoDoPedido,
+  esquemaDeQuemPede,
+  esquemaDoClienteDaLoja,
+  esquemaDoClienteExistente,
+  esquemaDoClienteParaCadastrar,
+  esquemaDoClienteParaEditar,
+  esquemaDoEnderecoDaFicha,
+  esquemaDoEnderecoParaSalvar,
+  esquemaDoEnderecoSalvo,
+  esquemaDoItemDoHistorico,
+  esquemaDoItemDoPedidoManual,
+  esquemaDoItemIndisponivel,
+  esquemaDoItemRepetido,
+  esquemaDoPedidoDoHistorico,
+  esquemaDoPedidoManualCriado,
+  esquemaDoPedidoManualParaCriar,
+  esquemaDosEnderecosSalvos,
+} from "./clientes.ts";
+export type {
+  ClienteDaLojaNoContrato,
+  ClienteExistenteNoContrato,
+  ClienteParaCadastrarNoContrato,
+  ClienteParaEditarNoContrato,
+  EnderecoDaFichaNoContrato,
+  EnderecoParaSalvarNoContrato,
+  EnderecoSalvoNoContrato,
+  EnderecosSalvosNoContrato,
+  FichaComHistoricoNoContrato,
+  FichaDoClienteNoContrato,
+  ItemDoPedidoManualNoContrato,
+  ListaDeClientesNoContrato,
+  PedidoDoHistoricoNoContrato,
+  PedidoManualCriadoNoContrato,
+  PedidoManualParaCriarNoContrato,
+  RecusaDoPedidoManualNoContrato,
+  RepeticaoDoPedidoNoContrato,
+} from "./clientes.ts";
+export {
+  ESTADOS_DO_TRABALHO_DE_IMPRESSAO,
+  esquemaDaConfirmacaoDeImpressao,
+  esquemaDaFalhaDeImpressao,
+  esquemaDaFalhaRegistrada,
+  esquemaDoAgentePareado,
+  esquemaDoBlocoDoCupom,
+  esquemaDoCodigoDePareamento,
+  esquemaDoCupomImpresso,
+  esquemaDoEstadoDaImpressaoAutomatica,
+  esquemaDoEstadoDoTrabalho,
+  esquemaDoPedidoDePareamento,
+  esquemaDosTrabalhosEntregues,
+  esquemaDosTrabalhosPendentes,
+  esquemaDoTrabalhoDeImpressao,
+  esquemaDoTrabalhoPendente,
+} from "./impressao.ts";
+export type {
+  AgentePareadoNoContrato,
+  CodigoDePareamentoNoContrato,
+  ConfirmacaoDeImpressaoNoContrato,
+  CupomImpressoNoContrato,
+  EstadoDaImpressaoAutomaticaNoContrato,
+  EstadoDoTrabalhoDeImpressao,
+  FalhaDeImpressaoNoContrato,
+  FalhaRegistradaNoContrato,
+  PedidoDePareamentoNoContrato,
+  TrabalhoDeImpressaoNoContrato,
+  TrabalhoPendenteNoContrato,
+  TrabalhosEntreguesNoContrato,
+  TrabalhosPendentesNoContrato,
+} from "./impressao.ts";

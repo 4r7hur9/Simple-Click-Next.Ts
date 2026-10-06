@@ -66,16 +66,14 @@ export function prepararAtivacaoTotp(
     `otpauth://totp/SimpleClick:${encodeURIComponent(nomeDaConta)}` +
     `?secret=${segredo}&issuer=SimpleClick&algorithm=SHA1&digits=6&period=30`;
 
-  return dependencias.cifrador
-    .cifrar(segredo)
-    .then(async (segredoCifrado) => {
-      await dependencias.repositorio.guardarPendente({
-        identidadeId,
-        segredoCifrado,
-        ativo: false,
-      });
-      return { segredo, uriDoAplicativo };
+  return dependencias.cifrador.cifrar(segredo).then(async (segredoCifrado) => {
+    await dependencias.repositorio.guardarPendente({
+      identidadeId,
+      segredoCifrado,
+      ativo: false,
     });
+    return { segredo, uriDoAplicativo };
+  });
 }
 
 export async function ativarAplicativoTotp(
@@ -127,7 +125,10 @@ export function gerarCodigoTotp(segredo: string, agora: Date): string {
   return String(numero % 1_000_000).padStart(6, "0");
 }
 
-export function codigosTotpAceitos(segredo: string, agora: Date): readonly string[] {
+export function codigosTotpAceitos(
+  segredo: string,
+  agora: Date,
+): readonly string[] {
   return Array.from({ length: JANELA_DE_PASSOS * 2 + 1 }, (_, indice) => {
     const deslocamento = indice - JANELA_DE_PASSOS;
     return gerarCodigoTotp(
@@ -192,5 +193,7 @@ function decodificarBase32(segredo: string): Buffer {
 export function comparacaoSeguraTotp(a: string, b: string): boolean {
   const esquerda = Buffer.from(a);
   const direita = Buffer.from(b);
-  return esquerda.length === direita.length && timingSafeEqual(esquerda, direita);
+  return (
+    esquerda.length === direita.length && timingSafeEqual(esquerda, direita)
+  );
 }

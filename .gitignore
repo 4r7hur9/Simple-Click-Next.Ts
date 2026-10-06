@@ -58,3 +58,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# documentos da loja guardados em disco no ambiente local (T-205, ARMAZENAMENTO_PRIVADO_DIR)
+.armazenamento-privado/

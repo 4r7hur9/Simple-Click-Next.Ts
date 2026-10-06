@@ -17,6 +17,7 @@ import {
 } from "@simpleclick/contracts";
 
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
+import { etiquetasDaVitrine } from "./cache.ts";
 
 /** O que a página recebe: a configuração, ou o motivo de não haver. */
 export type ResultadoDoFechamento =
@@ -45,7 +46,12 @@ export async function buscarFechamento(
   let resposta: Response;
   try {
     resposta = await buscar(endereco, {
-      next: { revalidate: SEGUNDOS_DE_CACHE_DO_FECHAMENTO },
+      // Mesma etiqueta da vitrine: forma de pagamento e entrega mudam pelo
+      // painel, e o aviso do dono vence o fechamento junto (dívida 93).
+      next: {
+        revalidate: SEGUNDOS_DE_CACHE_DO_FECHAMENTO,
+        tags: etiquetasDaVitrine(apelido),
+      },
       signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
       headers: { accept: "application/json" },
     } as RequestInit);

@@ -28,6 +28,7 @@ import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
 import { criarApp } from "./app.ts";
+import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
 import { encerrarCache } from "./core/cache.ts";
 import { encerrarBanco, encerrarBancoDaAdministracao } from "./core/db.ts";
 import {
@@ -232,7 +233,13 @@ export async function iniciarApi(
   }
 
   const aplicacao =
-    opcoes.aplicacao ?? criarApp({ origens: ambiente.ORIGENS_PERMITIDAS });
+    opcoes.aplicacao ??
+    criarApp({
+      origens: ambiente.ORIGENS_PERMITIDAS,
+      // O processo que serve de verdade avisa o site quando o dono muda a
+      // loja (dívida 93); configuração pela metade recusa a partida.
+      avisarSite: avisoDoSiteDoAmbiente(fonte),
+    });
 
   // As respostas ainda abertas. Ao desligar, as que não mandaram cabeçalho
   // ganham `Connection: close`: sem isso a conexão persistente do cliente

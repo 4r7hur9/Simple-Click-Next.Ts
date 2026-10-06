@@ -51,32 +51,32 @@
 - Notas: página de cupom sem o layout do aplicativo, com largura de papel configurada, para impressão direta pelo navegador sem instalar nada. Abrir a página emite uma via (`POST /v1/lojas/:apelido/pedidos/:id/cupom`, AC-621) e abre o diálogo de impressão do navegador; os links para ela são `<a>` comuns, nunca `Link`, para pré-carregamento não contar via. O HTML desenha as MESMAS linhas de `diagramarCupom` que a impressora recebe; a fonte da folha tem negrito próprio e `font-synthesis: none`, porque negrito sintetizado alarga a letra e tira o valor da coluna (medido no Chrome). O botão "Imprimir cupom" entrou no detalhe do pedido (`painel/pedidos/[id]/page.tsx`, da T-601).
 - Esforço: medio
 
-## T-607 — Fila de impressão em banco com reivindicação e prazo [pendente]
+## T-607 — Fila de impressão em banco com reivindicação e prazo [concluida]
 
 - Refs: US-605, AC-624, AC-625
-- Arquivos: packages/database/migrations/0008_fila_impressao.sql, apps/api/src/modules/printing/fila.usecase.ts, apps/api/src/modules/printing/fila.usecase.test.ts, apps/api/tests/impressao-sem-duplicar.test.ts
-- Notas: reivindicação com travamento que ignora linha ocupada, prazo de posse, repetição com espera crescente e estado final inspecionável. Cada trabalho tem identificador próprio, então confirmação perdida não imprime duas vezes.
+- Arquivos: packages/database/migrations/0034_fila_de_impressao.sql, packages/database/prisma/schema.prisma, packages/database/guards/g3_unica_por_loja.sql, packages/contracts/src/impressao.ts, packages/contracts/src/index.ts, apps/api/src/core/contexto.ts, apps/api/src/core/contexto.test.ts, apps/api/src/modules/printing/fila.usecase.ts, apps/api/src/modules/printing/fila.usecase.test.ts, apps/api/src/modules/printing/pedido-para-cupom.ts, apps/api/src/modules/printing/cupom.usecase.ts, apps/api/src/modules/orders/criar-pedido.usecase.ts, apps/api/tests/impressao-sem-duplicar.test.ts, apps/api/tests/isolamento-varredura.test.ts
+- Notas: reivindicação com travamento que ignora linha ocupada, prazo de posse, repetição com espera crescente e estado final inspecionável. Cada trabalho tem identificador próprio, então confirmação perdida não imprime duas vezes. A migração é a 0034, número reservado no plano paralelo (a 0008 já é a de pedidos). Decisões de 03/10 (`.spec/design/decisoes.md`): o trabalho entra na fila na criação do pedido, por função SQL chamada na mesma transação, para o módulo `orders` não importar `printing`; a via é somada na PRIMEIRA reivindicação e reaproveitada nas seguintes, então o reenvio depois de confirmação perdida não soma via; imprimir por clique um cupom pendente cancela o trabalho da fila, e o cupom nunca sai duplicado; uma impressora por loja (Q-601 segue aberta). Como ficou: `app.print_agents` (só o sha256 da credencial; a chave global do resumo é exceção justificada na guarda G3) e `app.print_jobs` (QUEUED, LEASED, PRINTED, FAILED, DEAD, CANCELED; `blocks` nulo até a primeira reivindicação; `available_at` guarda a espera crescente de 5 s × 2^(n-1); DEAD na sexta tentativa). O papel novo `PRINT_AGENT` lê e muda só `print_jobs` da loja; não lê pedido — os dados do cupom saem de `app.cupom_do_trabalho`, com os direitos de quem a definiu, só para o trabalho que está com aquele agente, e é ela que soma a via. `app.enfileirar_impressao` (chamada em `criar-pedido.usecase.ts`) só enfileira com `store_settings.printing.automatico = true`; `app.registrar_batimento` atualiza o último contato e recusa agente revogado ou de outra loja. A tradução do pedido para o cupom (`pedido-para-cupom.ts`) é uma só para o clique e para a fila. Imprimir por clique cancela o trabalho ANTES de somar a via, na mesma ordem de trava da reivindicação (trabalho, depois pedido), para as duas transações não se esperarem. O contrato do agente e do painel (trabalho entregue, confirmação, falha, pareamento, estado do agente, pendentes) está em `packages/contracts/src/impressao.ts`; as rotas são da T-608.
 - Esforço: max
 
 ## T-608 — Modo automático por chave e pareamento do agente [pendente]
 
 - Refs: US-605, AC-622, AC-623, AC-626
 - Arquivos: apps/api/src/modules/printing/parear.usecase.ts, apps/api/src/modules/printing/parear.usecase.test.ts, apps/api/src/modules/printing/entregar.usecase.ts, apps/web/src/app/(painel)/painel/config/impressao/page.tsx, apps/web/src/features/painel-pedidos/EstadoDoAgente.tsx
-- Notas: nasce desligado, com a impressão por clique como padrão. Agente pareado por código curto, com credencial de escopo mínimo. Desligar o automático volta ao clique sem perder cupom pendente.
+- Notas: nasce desligado, com a impressão por clique como padrão. Agente pareado por código curto, com credencial de escopo mínimo. Desligar o automático volta ao clique sem perder cupom pendente. As rotas do agente e do pareamento ficam num roteador próprio, para o portão de funcionalidade por loja (T-207) entrar numa linha só. O campo do automático entra na configuração de impressão como opcional com padrão desligado: o esquema é estrito, e campo obrigatório faria a configuração já gravada cair no padrão de 80 mm.
 - Esforço: alto
 
 ## T-609 — Agente de impressão [pendente]
 
 - Refs: US-605, AC-623, AC-624
-- Arquivos: agente/README.md, agente/main.go, agente/impressora.go, agente/fila.go, agente/impressora_test.go
-- Notas: programa pequeno que consulta o servidor e escreve na impressora; não abre porta para a internet. Compila os blocos recebidos conforme o perfil da impressora daquela loja. Depende da decisão sobre quais sistemas atender (Q-603).
+- Arquivos: apps/agente-impressao/package.json, apps/agente-impressao/README.md, apps/agente-impressao/src/main.ts, apps/agente-impressao/src/agente.ts, apps/agente-impressao/src/cliente.ts, apps/agente-impressao/src/impressora-tcp.ts, apps/agente-impressao/src/diario.ts, apps/agente-impressao/src/agente.test.ts
+- Notas: programa pequeno que consulta o servidor e escreve na impressora; não abre porta para a internet. Compila os blocos recebidos conforme o perfil da impressora daquela loja. Decisão de 03/10 (`.spec/design/decisoes.md`): Node/TypeScript dentro do monorepo, sem tecnologia nova, rodando com o Node 24 instalado na máquina da loja (sem empacotador nem executável único). Reaproveita `lerCupomImpresso`, `diagramarCupom` e `compilarEscPos` de `packages/core`, então não existe segunda implementação do cupom nem biblioteca ESC/POS. A versão 1 fala só com impressora de rede (TCP 9100, `node:net`); USB fica para decisão futura. Guarda num diário local o identificador de cada trabalho impresso, ANTES de confirmar, para que a confirmação reenviada não imprima de novo (AC-625). Q-603 continua aberta: o Node 24 roda nos três sistemas, mas a instalação como serviço não entra na versão 1.
 - Esforço: max
 
 ## T-610 — Emulador de impressora para testar sem hardware [pendente]
 
 - Refs: US-604, AC-620, AC-621
-- Arquivos: infra/compose/docker-compose.yml, infra/scripts/testar-impressao.sh, agente/emulador_test.go
-- Notas: serviço no ambiente local que recebe a impressão e devolve pré-visualização, para validar acento, alinhamento e corte sem impressora física.
+- Arquivos: infra/compose/docker-compose.yml, infra/scripts/testar-impressao.sh, packages/core/src/cupom-escpos-leitura.ts, packages/core/src/cupom-escpos-leitura.test.ts, apps/agente-impressao/src/emulador.ts, apps/agente-impressao/src/emulador.test.ts
+- Notas: serviço no ambiente local que recebe a impressão e devolve pré-visualização, para validar acento, alinhamento e corte sem impressora física. Em Node/TypeScript (decisão de 03/10): servidor TCP na porta 9100 com `node:net`, que também roda dentro do processo do Vitest, sem Docker; no compose, substitui o nginx provisório do perfil `print`. O decodificador de ESC/POS (hoje `lerPapel`, dentro de `cupom-escpos.test.ts`) sobe para `packages/core` e passa a ser um só para o teste do gerador e para o emulador.
 - Esforço: medio
 
 ## T-611 — Teste de ponta a ponta da operação [pendente]
