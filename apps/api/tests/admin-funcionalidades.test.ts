@@ -7,7 +7,8 @@
  *   o dono lê isso ao entrar (AC-213);
  * - a administração desliga a impressão térmica de UMA loja: o dono dela lê a
  *   funcionalidade desligada (o painel esconde o menu) e as rotas da área —
- *   a configuração do papel e o cupom — respondem indisponível mesmo
+ *   a configuração do papel, o cupom e o lado do dono da impressão automática
+ *   (pareamento, estado do agente, pendentes) — respondem indisponível mesmo
  *   acessadas direto; a outra loja segue igual (AC-212);
  * - o ato fica na trilha com o motivo; religar devolve as rotas;
  * - o dono não religa sozinho: a tabela é só leitura para a conexão das lojas.
@@ -275,6 +276,19 @@ describe("funcionalidades por loja", () => {
       const via = await cupom(loja.apelido, loja.dono.id);
       expect(via.status).toBe(403);
       expect(via.body).toMatchObject({ erro: "funcionalidade_indisponivel" });
+      // O lado do dono da impressão automática (T-608) também sai do ar.
+      const estado = await request(api.app)
+        .get(`/v1/lojas/${loja.apelido}/impressao/estado`)
+        .set(comoPapel(loja.dono.id, "OWNER"));
+      expect(estado.status).toBe(403);
+      expect(estado.body).toMatchObject({
+        erro: "funcionalidade_indisponivel",
+      });
+      const pareamento = await request(api.app)
+        .post(`/v1/lojas/${loja.apelido}/impressao/pareamento`)
+        .set(comoPapel(loja.dono.id, "OWNER"))
+        .send({});
+      expect(pareamento.status).toBe(403);
 
       // A loja vizinha segue com a área no ar.
       expect(

@@ -118,6 +118,10 @@ import {
 export const ROTAS_DA_IMPRESSAO_TERMICA = [
   "/:apelido/configuracao/impressao",
   "/:apelido/pedidos/:id/cupom",
+  // O lado do dono da impressão automática (T-608): pareamento, estado do
+  // agente e pendentes. O lado do agente não tem apelido no endereço; com a
+  // área desligada, nada novo entra na fila dele (criar-pedido.usecase.ts).
+  "/:apelido/impressao",
 ] as const;
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
