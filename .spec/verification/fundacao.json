@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-10-06T07:02:29.164Z",
-  "gitRev": "40539d3",
+  "timestamp": "2026-10-06T07:20:34.417Z",
+  "gitRev": "23c527d",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh fundacao",
   "reporter": "vitest-json",
-  "exitCode": 1,
-  "testsParsed": 575,
+  "exitCode": 0,
+  "testsParsed": 578,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -92,6 +92,11 @@
       "testName": "relação de contraste do WCAG @spec:AC-015 mede luminância nos extremos com os valores da especificação @spec:AC-015 mede luminância nos extremos com os valores da especificação",
       "method": "vitest-json"
     },
+    "AC-016": {
+      "status": "pass",
+      "testName": "vitrine do design system @spec:AC-016 @spec:AC-949 a verificação avaliou de fato os componentes da página @spec:AC-016 @spec:AC-949 a verificação avaliou de fato os componentes da página",
+      "method": "vitest-json"
+    },
     "AC-017": {
       "status": "pass",
       "testName": "portão de qualidade — o comando único @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação",
@@ -113,7 +118,7 @@
       "method": "vitest-json"
     },
     "AC-040": {
-      "status": "fail",
+      "status": "pass",
       "testName": "gancho antes do registro @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir",
       "method": "vitest-json"
     },
