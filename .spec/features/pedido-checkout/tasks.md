@@ -163,3 +163,15 @@
 - Notas: os pedidos criados pelo cenário são APAGADOS no fim; a loja e o carrinho ficam. Pedido de teste aparece na fila do dono, e fila com pedido de teste é fila em que ninguém confia — já o carrinho abandonado é rastro que o dono usa, e recriar a loja a cada execução seria trabalho sem ganho.
 - Notas: **o cenário encontrou uma falha de tela.** O resumo do fechamento mostrava só o subtotal e a taxa — não listava os itens. Atendia a letra do AC-507 ("o valor dos itens") e falhava o propósito: quem chega ao fechamento precisa CONFERIR o que está comprando antes de dar nome e telefone. Resumo que esconde o que se leva é resumo que se aceita sem ler, e a reclamação chega depois, com o pedido na cozinha.
 - Esforço: medio
+
+## T-516 — Carrinho convertido na mesma transação do pedido [concluida]
+
+- Refs: US-503, AC-516, AC-524
+- Arquivos: packages/database/migrations/0043_carrinho_convertido_no_pedido.sql, apps/api/src/modules/orders/pedido-fechado.usecase.ts, apps/api/src/modules/orders/pedidos.routes.ts, apps/api/tests/carrinho-convertido.int.test.ts, e2e/specs/config-pagamento.spec.ts
+- Notas: NASCEU DA DÍVIDA 95 (achado do ponta a ponta das configurações, T-908). Nada gravava `carts.converted_at`, e nem podia: a política do visitante (0012) exige `converted_at IS NULL` no `WITH CHECK`. Depois de pedir, o cliente voltava ao fechamento com os mesmos itens, e um segundo "Fechar pedido" — chave de fechamento nova, porque é uma por tentativa — criava outro pedido igual.
+- Notas: quem converte é `app.converter_carrinho` (migração 0043), função com os direitos de quem a definiu e caminho de busca fixo (guarda G10), chamada pela rota NA MESMA transação do pedido, depois de `criarPedido` dar certo e de o estoque ser reservado. Mesmo desenho da fila de impressão: o módulo `orders` não importa `cart`. A função só converte o carrinho da loja e da SESSÃO declaradas, e só para o pedido do token declarado na transação; a política do visitante não mudou.
+- Notas: converter de novo devolve falso, e a rota desfaz a transação com 409. É o que faz a corrida de dois fechamentos do mesmo carrinho (chaves diferentes) perder um deles: o segundo espera a trava da linha, acha o carrinho já convertido, e o pedido duplicado não chega a existir.
+- Notas: a sessão do carrinho NÃO mudou. O carrinho aberto já era procurado com `convertedAt: null`, e o índice único da sessão (0008) vale só para carrinho aberto: o próximo acesso da mesma sessão abre um carrinho novo, vazio.
+- Notas: **a nova tentativa com a MESMA chave mudou de fonte.** Antes ela relia o carrinho, que continuava igual; agora o carrinho já foi convertido, e relê-lo daria subtotal zero, recusa por mínimo e mensagem sem itens. A rota procura o pedido da chave ANTES de ler o carrinho e, achando, responde com o pedido guardado — valores, taxa e mensagem dele (`pedido-fechado.usecase.ts`), lidos numa transação com o token do pedido declarado. O mesmo vale quando a outra tentativa chega primeiro no meio do caminho.
+- Notas: o ponta a ponta da entrega grátis (`config-pagamento.spec.ts`) apagava o cookie `sc_carrinho` para começar num carrinho novo; o contorno saiu.
+- Esforço: alto

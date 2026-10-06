@@ -58,9 +58,9 @@
 - Notas: regra pura em `pendencias.usecase.ts`: sem forma de pagamento que o checkout ofereça (PIX sem chave não conta), sem entrega nem retirada, sem WhatsApp e sem horário, cada aviso dizendo a consequência para o cliente e com atalho para a tela que resolve — inclusive a de horário. O aviso aparece destacado (tom de atenção) no topo de todo o painel; falha ao consultar não vira aviso falso.
 - Esforço: baixo
 
-## T-908 — Teste de ponta a ponta das configurações [pendente]
+## T-908 — Teste de ponta a ponta das configurações [concluida]
 
-- Refs: US-900, US-902, US-904, AC-900, AC-909, AC-916
-- Arquivos: e2e/specs/config-pagamento.spec.ts, e2e/specs/config-horarios.spec.ts, e2e/specs/config-aparencia.spec.ts
-- Notas: cobre cadastrar a chave PIX e vê-la aparecer no checkout, fechar a loja e o cliente ser impedido, e editar a apresentação refletindo na página pública.
+- Refs: US-900, US-901, US-902, US-903, US-904, US-905, AC-900, AC-902, AC-905, AC-906, AC-907, AC-908, AC-909, AC-911, AC-913, AC-915, AC-916, AC-919, AC-920
+- Arquivos: e2e/fixtures/config-loja.ts, e2e/specs/config-pagamento.spec.ts, e2e/specs/config-horarios.spec.ts, e2e/specs/config-aparencia.spec.ts, e2e/specs/config-contato.spec.ts, e2e/specs/config-impressao.spec.ts
+- Notas: o dono salva cada seção pela tela do painel e o cliente vê o efeito na loja do painel, sem esperar o cache vencer (aviso da dívida 93): chave PIX e recebedor no checkout (e sem chave o PIX não aparece), taxa com o nome do dono, entrega grátis, mínimo só da entrega com retirada liberada e modo desligado sumindo do checkout, dia sem faixa e "fechar agora" deixando a vitrine fechada e o fechamento recusando (o carrinho fica), semana intacta ao reabrir, número normalizado e saudação na conversa do WhatsApp sem marca da plataforma, apresentação com prévia e na página pública (logo e capa servidas pelo navegador do cenário), papel de 58/80 mm e endereço tirado do cupom seguinte do mesmo pedido. Cada cenário tem a loja do painel só para ele (trava da montagem) e a devolve como estava, avisando o site. É ponta a ponta, fora do portão e da prova escopada (que é Vitest); roda com `test:e2e:isolado`. Achados fora do escopo na dívida 95 de `docs/pendencias.md` (carrinho não convertido, horário de reabertura que não chega ao fechamento); a recusa que sumia da tela foi corrigida em `fix(checkout)`.
 - Esforço: medio

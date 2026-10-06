@@ -1457,6 +1457,40 @@ bash infra/scripts/verificar.sh  # o portão completo
       fazia o AC-010 responder 500; `pnpm --filter @simpleclick/database gerar`
       resolveu. A prova que vale continua sendo a da integração.
 
+95. **O que o ponta a ponta das configurações (T-908, 06/10) achou fora dela.**
+    - **Carrinho que vira pedido — resolvido na T-516 (06/10, `cbe093a`).**
+      Nada na API gravava `carts.converted_at`, e a política do visitante (0012) não
+      deixava o `sc_app` gravá-lo; depois de pedir, o cliente voltava ao
+      fechamento com os mesmos itens, e um segundo "Fechar pedido" (chave
+      nova) criava outro pedido igual. Agora `app.converter_carrinho`
+      (migração 0043, definidora com `search_path` fixo) converte o carrinho
+      da sessão na mesma transação do pedido, chamada pela rota depois de
+      `criarPedido` dar certo; converter de novo devolve falso e a rota desfaz
+      com 409 (corrida de dois fechamentos). A nova tentativa com a MESMA
+      chave responde com o pedido guardado (`pedido-fechado.usecase.ts`), e
+      não com o carrinho, que já saiu de cena. Prova: AC-524 e AC-516 em
+      `carrinho-convertido.int.test.ts`. O contorno do cookie `sc_carrinho`
+      saiu de `config-pagamento.spec.ts`.
+    - **AC-517 — resolvido na revisão da faixa (06/10).** O 409 da criação
+      continua só com o código (`CorpoDeErro` não mudou); diante dele, o site
+      pergunta à vitrine pública se a loja está fechada — mesmo cálculo da
+      criação (`lojaDaVitrine`) — e mostra "A loja está fechada agora. Ela
+      abre…" (`criarPedido` em `lib/carrinho-do-navegador.ts`, prova em
+      `fechamento-loja-fechada.test.ts`). Se o dono preferir o motivo no
+      próprio corpo do erro, a troca fica para quando `CorpoDeErro` ganhar
+      detalhe.
+    - **`imprimir.spec.ts` — resolvido na revisão da faixa (06/10).** Era
+      pior que colisão: o arquivo criava o pedido na loja de
+      `NEXT_PUBLIC_DEV_STORE_SLUG` do processo do teste (que cai em
+      `pastelaria-da-vila`), enquanto o site do ponta a ponta fala com
+      `e2e-painel` (`playwright.config.ts`, desde a T-313); o AC-617 reprovava
+      com "Não foi possível abrir este pedido". Agora ele usa a loja e o dono
+      do painel (`garantirLojaDoPainel`), e cada cenário cria o próprio pedido
+      dentro de `comALojaDoPainelSoParaMim`, que devolve o papel como estava.
+      Continua valendo só o risco menor: arquivos que LEEM a loja do painel
+      sem a trava enquanto `config-horarios.spec.ts` a deixa fechada por
+      alguns segundos.
+
 ## Portão contornado
 
 `LEFTHOOK=0 git push` continua funcionando — situação excepcional existe. O que

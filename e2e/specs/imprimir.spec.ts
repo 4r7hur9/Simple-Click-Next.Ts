@@ -11,9 +11,9 @@
  * é que a página pede a impressão, uma vez, com o papel certo — e não que
  * existe uma impressora ligada na máquina do teste.
  *
- * O PEDIDO É DO PRÓPRIO TESTE, montado direto no banco na loja do painel, e
+ * O PEDIDO É DO PRÓPRIO CENÁRIO, montado direto no banco na loja do painel, e
  * apagado no fim: fila com pedido de teste é fila em que ninguém confia. A
- * largura de papel da loja é restaurada no fim, qualquer que seja o resultado.
+ * loja volta como estava no fim, qualquer que seja o resultado.
  */
 import { randomUUID } from "node:crypto";
 
@@ -21,25 +21,25 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { Client } from "pg";
 
 import { assinarTokenDeAcesso } from "../../apps/api/src/modules/auth/token.ts";
-import { garantirDonoDaLoja } from "../fixtures/painel.ts";
-
-/** A loja que o painel mostra nesta fase (mesma escolha das rotas do painel). */
-const APELIDO_DO_PAINEL =
-  process.env["NEXT_PUBLIC_DEV_STORE_SLUG"] ?? "pastelaria-da-vila";
+import { ENDERECO_DO_SITE } from "../playwright.config.ts";
+import { comALojaDoPainelSoParaMim } from "../fixtures/config-loja.ts";
+import { garantirLojaDoPainel } from "../fixtures/painel.ts";
 
 /** 1 mm em pixels de CSS: 96 pixels por polegada, 25,4 mm por polegada. */
 const PX_POR_MM = 96 / 25.4;
 
-// Os cenários mudam a largura de papel da MESMA loja: em paralelo, um mudaria
-// o papel do outro no meio da medida.
-test.describe.configure({ mode: "serial" });
+// Os cenários mudam a largura de papel da LOJA DO PAINEL — a mesma que o site
+// do ponta a ponta usa (`NEXT_PUBLIC_DEV_STORE_SLUG` do `playwright.config.ts`)
+// e que `config-impressao.spec.ts` configura. Por isso cada cenário roda com a
+// loja só para ele, cria o próprio pedido e a devolve como estava
+// (`comALojaDoPainelSoParaMim`). Esperar a vez conta no prazo.
+test.describe.configure({ mode: "serial", timeout: 180_000 });
 
 let banco: Client;
 let lojaId: string;
 /** O dono da loja do painel: identidade e vínculo de verdade (dívida 92). */
 let donoId: string;
 let pedidoId: string;
-let impressaoOriginal: unknown;
 
 function conectar(): Client {
   const url = process.env["DATABASE_URL_DIRETA"];
@@ -193,77 +193,68 @@ function larguraDoPdfEmMm(pdf: Buffer): number {
 }
 
 test.beforeAll(async () => {
+  // A loja e o dono do painel, os mesmos que o site do ponta a ponta usa.
+  ({ id: lojaId, donoId } = await garantirLojaDoPainel());
   banco = conectar();
   await banco.connect();
-  const loja = await banco.query<{ id: string; printing: unknown }>(
-    `SELECT s.id, c.printing
-       FROM app.stores s JOIN app.store_settings c ON c.store_id = s.id
-      WHERE s.slug = $1 AND s.deleted_at IS NULL`,
-    [APELIDO_DO_PAINEL],
-  );
-  const linha = loja.rows[0];
-  if (linha === undefined) {
-    throw new Error(`a loja ${APELIDO_DO_PAINEL} não existe no banco do E2E`);
-  }
-  lojaId = linha.id;
-  donoId = await garantirDonoDaLoja(banco, lojaId, "dono@imprimir.test");
-  impressaoOriginal = linha.printing;
-  pedidoId = await criarPedido();
 });
 
 test.afterAll(async () => {
-  if (banco === undefined) return;
-  try {
-    if (pedidoId !== undefined) await apagarPedido(pedidoId);
-    if (lojaId !== undefined) {
-      await banco.query(
-        `UPDATE app.store_settings SET printing = $2::jsonb WHERE store_id = $1`,
-        [lojaId, JSON.stringify(impressaoOriginal ?? {})],
-      );
-    }
-  } finally {
-    await banco.end();
-  }
+  await banco?.end();
 });
+
+/** Roda o cenário com a loja do painel só para ele e um pedido novo nela. */
+async function comPedidoNaLojaDoPainel(cenario: () => Promise<void>) {
+  await comALojaDoPainelSoParaMim(ENDERECO_DO_SITE, async () => {
+    pedidoId = await criarPedido();
+    try {
+      await cenario();
+    } finally {
+      await apagarPedido(pedidoId);
+    }
+  });
+}
 
 test("@spec:AC-617 o cupom sai por um clique no pedido, no papel configurado, sem instalar nada", async ({
   page,
   context,
   baseURL,
 }) => {
-  await usarPapel(80);
-  await prepararNavegador(context, baseURL);
+  await comPedidoNaLojaDoPainel(async () => {
+    await usarPapel(80);
+    await prepararNavegador(context, baseURL);
 
-  await page.goto(`/painel/pedidos/${pedidoId}`);
-  const [cupom] = await Promise.all([
-    context.waitForEvent("page"),
-    page.getByRole("link", { name: "Imprimir cupom" }).click(),
-  ]);
-  await cupom.waitForLoadState("load");
+    await page.goto(`/painel/pedidos/${pedidoId}`);
+    const [cupom] = await Promise.all([
+      context.waitForEvent("page"),
+      page.getByRole("link", { name: "Imprimir cupom" }).click(),
+    ]);
+    await cupom.waitForLoadState("load");
 
-  const folha = cupom.locator(".sc-cupom");
-  await expect(folha).toBeVisible();
-  // O diálogo de impressão do navegador abriu sozinho, uma vez.
-  await expect.poll(() => impressoes(cupom)).toBe(1);
+    const folha = cupom.locator(".sc-cupom");
+    await expect(folha).toBeVisible();
+    // O diálogo de impressão do navegador abriu sozinho, uma vez.
+    await expect.poll(() => impressoes(cupom)).toBe(1);
 
-  // Sem a casca do aplicativo: nada do painel vai para o papel.
-  await expect(
-    cupom.getByRole("navigation", { name: "Navegação do painel" }),
-  ).toHaveCount(0);
+    // Sem a casca do aplicativo: nada do painel vai para o papel.
+    await expect(
+      cupom.getByRole("navigation", { name: "Navegação do painel" }),
+    ).toHaveCount(0);
 
-  // Legível: o conteúdo do pedido, com acento.
-  await expect(folha).toContainText("Açaí com granola (500 ml)");
-  await expect(folha).toContainText("Guaraná Antarctica");
-  await expect(folha).toContainText("Maria Conceição");
-  await expect(folha).toContainText("Tocar a campainha do portão azul");
+    // Legível: o conteúdo do pedido, com acento.
+    await expect(folha).toContainText("Açaí com granola (500 ml)");
+    await expect(folha).toContainText("Guaraná Antarctica");
+    await expect(folha).toContainText("Maria Conceição");
+    await expect(folha).toContainText("Tocar a campainha do portão azul");
 
-  // O papel impresso tem a largura configurada: o Chromium gera a página com
-  // o CSS de página do cupom.
-  const pdf = await cupom.pdf({
-    preferCSSPageSize: true,
-    printBackground: true,
+    // O papel impresso tem a largura configurada: o Chromium gera a página com
+    // o CSS de página do cupom.
+    const pdf = await cupom.pdf({
+      preferCSSPageSize: true,
+      printBackground: true,
+    });
+    expect(larguraDoPdfEmMm(pdf)).toBeCloseTo(80, 0);
   });
-  expect(larguraDoPdfEmMm(pdf)).toBeCloseTo(80, 0);
 });
 
 for (const larguraMm of [58, 80] as const) {
@@ -272,65 +263,67 @@ for (const larguraMm of [58, 80] as const) {
     context,
     baseURL,
   }) => {
-    await usarPapel(larguraMm);
-    await prepararNavegador(context, baseURL);
-    await page.goto(`/imprimir/${pedidoId}`);
-    await expect(page.locator(".sc-cupom")).toBeVisible();
-    await page.emulateMedia({ media: "print" });
+    await comPedidoNaLojaDoPainel(async () => {
+      await usarPapel(larguraMm);
+      await prepararNavegador(context, baseURL);
+      await page.goto(`/imprimir/${pedidoId}`);
+      await expect(page.locator(".sc-cupom")).toBeVisible();
+      await page.emulateMedia({ media: "print" });
 
-    const medida = await page.locator(".sc-cupom").evaluate((folha) => {
-      const caixa = folha.getBoundingClientRect();
-      const estilo = getComputedStyle(folha);
-      const direitaDoTexto =
-        caixa.right - Number.parseFloat(estilo.paddingRight);
-      const esquerdaDoTexto =
-        caixa.left + Number.parseFloat(estilo.paddingLeft);
-      const linhas = [...folha.querySelectorAll(".sc-cupom__linha")].map(
-        (linha) => {
-          const trecho = document.createRange();
-          trecho.selectNodeContents(linha);
-          const texto = trecho.getBoundingClientRect();
-          return {
-            texto: linha.textContent ?? "",
-            duplo: linha.classList.contains("sc-cupom__linha--duplo"),
-            esquerda: texto.left,
-            direita: texto.right,
-          };
-        },
+      const medida = await page.locator(".sc-cupom").evaluate((folha) => {
+        const caixa = folha.getBoundingClientRect();
+        const estilo = getComputedStyle(folha);
+        const direitaDoTexto =
+          caixa.right - Number.parseFloat(estilo.paddingRight);
+        const esquerdaDoTexto =
+          caixa.left + Number.parseFloat(estilo.paddingLeft);
+        const linhas = [...folha.querySelectorAll(".sc-cupom__linha")].map(
+          (linha) => {
+            const trecho = document.createRange();
+            trecho.selectNodeContents(linha);
+            const texto = trecho.getBoundingClientRect();
+            return {
+              texto: linha.textContent ?? "",
+              duplo: linha.classList.contains("sc-cupom__linha--duplo"),
+              esquerda: texto.left,
+              direita: texto.right,
+            };
+          },
+        );
+        return {
+          larguraPx: caixa.width,
+          esquerdaDoTexto,
+          direitaDoTexto,
+          linhas,
+        };
+      });
+
+      // A folha tem a largura da bobina escolhida.
+      expect(medida.larguraPx / PX_POR_MM).toBeCloseTo(larguraMm, 0);
+
+      // Nenhuma linha passa da área que a cabeça de impressão alcança.
+      const comTexto = medida.linhas.filter((l) => l.texto.trim() !== "");
+      expect(comTexto.length).toBeGreaterThan(20);
+      for (const linha of comTexto) {
+        expect(linha.esquerda, linha.texto).toBeGreaterThanOrEqual(
+          medida.esquerdaDoTexto - 0.5,
+        );
+        expect(linha.direita, linha.texto).toBeLessThanOrEqual(
+          medida.direitaDoTexto + 0.5,
+        );
+      }
+
+      // Os valores formam UMA coluna, encostada à direita.
+      const valores = comTexto.filter(
+        (l) => !l.duplo && /R\$ [\d.]+,\d{2}$/.test(l.texto),
       );
-      return {
-        larguraPx: caixa.width,
-        esquerdaDoTexto,
-        direitaDoTexto,
-        linhas,
-      };
+      expect(valores.length).toBeGreaterThanOrEqual(5);
+      const bordas = valores.map((l) => l.direita);
+      expect(Math.max(...bordas) - Math.min(...bordas)).toBeLessThan(1);
+
+      const pdf = await page.pdf({ preferCSSPageSize: true });
+      expect(larguraDoPdfEmMm(pdf)).toBeCloseTo(larguraMm, 0);
     });
-
-    // A folha tem a largura da bobina escolhida.
-    expect(medida.larguraPx / PX_POR_MM).toBeCloseTo(larguraMm, 0);
-
-    // Nenhuma linha passa da área que a cabeça de impressão alcança.
-    const comTexto = medida.linhas.filter((l) => l.texto.trim() !== "");
-    expect(comTexto.length).toBeGreaterThan(20);
-    for (const linha of comTexto) {
-      expect(linha.esquerda, linha.texto).toBeGreaterThanOrEqual(
-        medida.esquerdaDoTexto - 0.5,
-      );
-      expect(linha.direita, linha.texto).toBeLessThanOrEqual(
-        medida.direitaDoTexto + 0.5,
-      );
-    }
-
-    // Os valores formam UMA coluna, encostada à direita.
-    const valores = comTexto.filter(
-      (l) => !l.duplo && /R\$ [\d.]+,\d{2}$/.test(l.texto),
-    );
-    expect(valores.length).toBeGreaterThanOrEqual(5);
-    const bordas = valores.map((l) => l.direita);
-    expect(Math.max(...bordas) - Math.min(...bordas)).toBeLessThan(1);
-
-    const pdf = await page.pdf({ preferCSSPageSize: true });
-    expect(larguraDoPdfEmMm(pdf)).toBeCloseTo(larguraMm, 0);
   });
 }
 
@@ -339,19 +332,21 @@ test("@spec:AC-621 imprimir de novo sai marcado como reimpressão, com o número
   context,
   baseURL,
 }) => {
-  await usarPapel(80);
-  await prepararNavegador(context, baseURL);
-  await page.goto(`/imprimir/${pedidoId}`);
-  await expect(page.locator(".sc-cupom")).toBeVisible();
+  await comPedidoNaLojaDoPainel(async () => {
+    await usarPapel(80);
+    await prepararNavegador(context, baseURL);
+    await page.goto(`/imprimir/${pedidoId}`);
+    await expect(page.locator(".sc-cupom")).toBeVisible();
 
-  await page.getByRole("link", { name: "Imprimir outra via" }).click();
-  await expect(page.locator(".sc-cupom")).toContainText("REIMPRESSÃO");
-  await expect(page.locator(".sc-cupom")).toContainText(/\d+ª VIA/);
-  await expect.poll(() => impressoes(page)).toBe(1);
+    await page.getByRole("link", { name: "Imprimir outra via" }).click();
+    await expect(page.locator(".sc-cupom")).toContainText("REIMPRESSÃO");
+    await expect(page.locator(".sc-cupom")).toContainText(/\d+ª VIA/);
+    await expect.poll(() => impressoes(page)).toBe(1);
 
-  const vias = await banco.query<{ print_count: number }>(
-    `SELECT print_count FROM app.orders WHERE id = $1`,
-    [pedidoId],
-  );
-  expect(vias.rows[0]?.print_count).toBeGreaterThanOrEqual(2);
+    const vias = await banco.query<{ print_count: number }>(
+      `SELECT print_count FROM app.orders WHERE id = $1`,
+      [pedidoId],
+    );
+    expect(vias.rows[0]?.print_count).toBeGreaterThanOrEqual(2);
+  });
 });

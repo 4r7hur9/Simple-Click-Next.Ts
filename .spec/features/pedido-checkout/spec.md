@@ -148,6 +148,12 @@ e minhas métricas sejam verdade.
 - **Quando** informo nome e telefone e confirmo o pedido
 - **Então** o pedido é criado normalmente e recebo o link de acompanhamento, e a tela me oferece criar conta depois para guardar o histórico
 
+#### AC-524 — Carrinho que virou pedido não gera outro pedido igual
+
+- **Dado** que fechei um pedido
+- **Quando** volto ao fechamento ou à vitrine na mesma sessão e toco de novo em "Fechar pedido"
+- **Então** o carrinho aparece vazio, pronto para uma compra nova, e nenhum segundo pedido com os mesmos itens é criado
+
 ### US-504 — Pedido chega ao WhatsApp formatado e legível
 
 Como dono de loja, quero receber o pedido em texto pronto no WhatsApp, para que

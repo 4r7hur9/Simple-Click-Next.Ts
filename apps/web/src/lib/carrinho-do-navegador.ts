@@ -238,9 +238,14 @@ export async function criarPedido(
   if (resposta.estado === "conflito") {
     // 409 é o mundo tendo mudado desde que a página abriu — a loja fechou, o
     // preço subiu, o item acabou. Não é erro nosso nem culpa de quem comprou.
+    // Loja fechada é o 409 que mais acontece, e o AC-517 manda dizer quando
+    // ela abre. O corpo do erro não traz detalhe (`CorpoDeErro`); a vitrine
+    // pública traz, com o mesmo cálculo da criação do pedido.
+    const fechada = await motivoDaLojaFechada(apelidoDaLoja, buscar);
     return {
       estado: "nao-pode",
       motivo:
+        fechada ??
         "Não foi possível fechar o pedido agora. Confira o carrinho e tente de novo.",
     };
   }
@@ -249,6 +254,36 @@ export async function criarPedido(
   }
 
   return { estado: "criado", pedido: resposta.corpo as PedidoNaTela };
+}
+
+/**
+ * Pergunta à vitrine se a loja está fechada e, se estiver, devolve a frase que
+ * diz quando ela abre — a mesma que a API monta na recusa. Nulo quando a loja
+ * está aberta (o 409 foi outro) ou quando a vitrine não respondeu: aí vale o
+ * texto genérico, e nunca um "fechada" inventado.
+ */
+async function motivoDaLojaFechada(
+  apelidoDaLoja: string,
+  buscar: typeof fetch,
+): Promise<string | null> {
+  try {
+    const resposta = await buscar(
+      `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(apelidoDaLoja)}`,
+      { headers: { accept: "application/json" }, cache: "no-store" },
+    );
+    if (!resposta.ok) return null;
+    const corpo = (await resposta.json()) as {
+      abertura?: { aberta?: unknown; proximaAbertura?: unknown };
+    };
+    const abertura = corpo.abertura;
+    if (abertura === undefined || abertura.aberta !== false) return null;
+    return typeof abertura.proximaAbertura === "string" &&
+      abertura.proximaAbertura !== ""
+      ? `A loja está fechada agora. Ela ${abertura.proximaAbertura}.`
+      : "A loja está fechada agora e ainda não informou o próximo horário de funcionamento.";
+  } catch {
+    return null;
+  }
 }
 
 /** Registra que o cliente abriu a conversa do pedido. */
