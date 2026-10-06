@@ -29,7 +29,13 @@ test("@spec:AC-418 a vitrine percorre links com foco visível pelo teclado", asy
 
   expect(focados.some((foco) => foco.startsWith("A:"))).toBe(true);
   expect(focados.some((foco) => foco.endsWith(":solid"))).toBe(true);
+  // O PRODUTO APARECE DUAS VEZES, de propósito: a loja de teste o marca como
+  // destaque (a televisão precisa de uma tela de destaques, AC-925), e o
+  // destaque tem área própria acima do cardápio (AC-406). O link procurado é o
+  // da seção da categoria, que existe com ou sem destaque.
   await expect(
-    page.getByRole("link", { name: /Pastel de Teste/ }),
+    page
+      .getByRole("region", { name: "Salgados" })
+      .getByRole("link", { name: /Pastel de Teste/ }),
   ).toBeVisible();
 });
