@@ -127,17 +127,18 @@ SC/
 
 ## 3. Regras de fronteira (verificadas por AC-005)
 
-| Camada                | Pode importar                        | Nunca importa                                              |
-| --------------------- | ------------------------------------ | ---------------------------------------------------------- |
-| `packages/core`       | nada do projeto                      | banco, HTTP, React, Express                                |
-| `packages/contracts`  | nada do projeto                      | qualquer aplicação                                         |
-| `packages/database`   | `contracts`                          | `apps/*`                                                   |
-| `apps/api/modules/*`  | `core`, `contracts`, `apps/api/core` | outro módulo diretamente, cliente de banco próprio (P-004) |
-| `apps/api/contracts`  | `contracts`                          | `apps/api/core`, módulo de domínio, banco                  |
-| `apps/web/features/*` | `ui`, `contracts`, `lib`             | `apps/api`, banco, `server/*` diretamente                  |
-| `apps/web/app/*`      | `features`, `server`, `ui`           | `apps/api`                                                 |
-| `apps/web/server/*`   | `contracts`, `core`, `lib`           | `features`                                                 |
-| `apps/web/lib/*`      | `contracts`, `core`                  | `features`, `server`, `ui`, `apps/api`, banco              |
+| Camada                  | Pode importar                        | Nunca importa                                              |
+| ----------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| `packages/core`         | nada do projeto                      | banco, HTTP, React, Express                                |
+| `packages/contracts`    | nada do projeto                      | qualquer aplicação                                         |
+| `packages/database`     | `contracts`                          | `apps/*`                                                   |
+| `apps/api/modules/*`    | `core`, `contracts`, `apps/api/core` | outro módulo diretamente, cliente de banco próprio (P-004) |
+| `apps/api/contracts`    | `contracts`                          | `apps/api/core`, módulo de domínio, banco                  |
+| `apps/web/features/*`   | `ui`, `contracts`, `lib`             | `apps/api`, banco, `server/*` diretamente                  |
+| `apps/web/app/*`        | `features`, `server`, `ui`           | `apps/api`                                                 |
+| `apps/web/server/*`     | `contracts`, `core`, `lib`           | `features`                                                 |
+| `apps/web/lib/*`        | `contracts`, `core`                  | `features`, `server`, `ui`, `apps/api`, banco              |
+| `apps/agente-impressao` | `core`, `contracts`                  | `apps/api`, banco (fala com a API só por HTTP — T-609)     |
 
 Módulo fala com módulo **pelo caso de uso**, nunca importando o repositório do
 vizinho. Quando dois módulos precisam da mesma regra, ela sobe para
