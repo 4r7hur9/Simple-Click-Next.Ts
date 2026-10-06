@@ -13,6 +13,11 @@ import {
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
 import {
+  CAMINHO_DO_EU,
+  criarRotaDoEu,
+  type OpcoesDoEu,
+} from "./modules/auth/eu.routes.ts";
+import {
   criarRotasDeIdentidade,
   type OpcoesDaIdentidade,
 } from "./modules/auth/auth.routes.ts";
@@ -162,6 +167,8 @@ export interface OpcoesDoApp {
    * de e-mail, cifra e cache do limite de tentativas.
    */
   readonly identidade?: OpcoesDaIdentidade;
+  /** O mesmo, para a rota "quem sou eu" (T-115): acesso e segredo do token. */
+  readonly eu?: OpcoesDoEu;
 }
 
 /**
@@ -787,6 +794,11 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
       ...opcoes.enderecos,
     }),
   );
+
+  // "QUEM SOU EU" (T-115): a pessoa da sessão e as lojas com vínculo ativo.
+  // É por aqui que o site descobre a loja do painel, sem loja escrita na
+  // configuração do servidor.
+  app.use(CAMINHO_DO_EU, criarRotaDoEu(opcoes.eu));
 
   app.get("/", (_req, res) => {
     res.json(IDENTIFICACAO_DA_API);

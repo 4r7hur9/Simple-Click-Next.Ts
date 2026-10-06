@@ -1,6 +1,7 @@
 -- ===========================================================================
 -- 0046 — Funções de acesso do segundo fator, da sessão e do convite do dono
--- (T-111, AC-105 a AC-107, AC-109 a AC-113, AC-121 a AC-124, AC-129, AC-131).
+-- (T-111, AC-105 a AC-107, AC-109 a AC-113, AC-121 a AC-124, AC-129, AC-131),
+-- e as lojas da sessão para a rota "quem sou eu" (T-115, AC-134 a AC-136).
 --
 -- Continuação de 0044 (tabelas e desenho de acesso) e 0045 (cadastro, login,
 -- verificação e recuperação). Aqui ficam os passos que ainda acontecem sem
@@ -413,5 +414,36 @@ GRANT EXECUTE ON FUNCTION app.auth_criar_sessao(uuid, uuid, uuid, text, text, te
 GRANT EXECUTE ON FUNCTION app.auth_rotacionar_sessao(text, uuid, text, timestamptz, timestamptz, timestamptz) TO sc_app;
 GRANT EXECUTE ON FUNCTION app.auth_encerrar_pelo_token(text, timestamptz) TO sc_app;
 GRANT EXECUTE ON FUNCTION app.auth_aceitar_convite(text, text, timestamptz) TO sc_app;
+
+-- ---------------------------------------------------------------------------
+-- "Quem sou eu": as lojas da sessão (T-115, AC-134 a AC-136)
+-- ---------------------------------------------------------------------------
+-- O painel precisa saber de qual loja é o dono ANTES de ter loja no contexto,
+-- e a política de `store_members` exige loja no contexto. Esta função abre,
+-- só para a identidade e o papel do contexto, as lojas em que o vínculo está
+-- ativo — a mesma regra de `app.is_store_staff()` (0041): convite aceito, sem
+-- revogação, mesmo papel da sessão. Loja excluída fica de fora; suspensa
+-- aparece, para o dono saber por que a vitrine sumiu. Lista fechada de campos;
+-- sem identidade no contexto, ou sessão de cliente, devolve nada.
+CREATE OR REPLACE FUNCTION app.lojas_da_sessao()
+RETURNS TABLE (store_slug text, store_name text, member_role text, store_status text)
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = app, pg_temp
+AS $$
+  SELECT s.slug, s.name, m.role, s.status
+    FROM app.store_members m
+    JOIN app.stores s ON s.id = m.store_id
+   WHERE app.current_user_id() IS NOT NULL
+     AND app.current_role_name() IN ('OWNER', 'STAFF')
+     AND m.identity_id = app.current_user_id()
+     AND m.role = app.current_role_name()
+     AND m.invite_accepted_at IS NOT NULL
+     AND m.revoked_at IS NULL
+     AND s.deleted_at IS NULL
+     AND s.status <> 'DELETED'
+   ORDER BY s.name, s.slug $$;
+
+REVOKE ALL ON FUNCTION app.lojas_da_sessao() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.lojas_da_sessao() TO sc_app;
 
 RESET ROLE;

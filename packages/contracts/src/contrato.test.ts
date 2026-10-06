@@ -35,6 +35,7 @@ describe("contrato compartilhado", () => {
       "post /v1/auth/senha/redefinir",
       "post /v1/auth/sessoes/atual/encerrar",
       "post /v1/auth/sessoes/encerrar-todas",
+      "get /v1/eu",
       "get /v1/vitrine/{apelido}",
       "get /v1/vitrine/{apelido}/carrinho",
       "post /v1/vitrine/{apelido}/carrinho/conferencia",

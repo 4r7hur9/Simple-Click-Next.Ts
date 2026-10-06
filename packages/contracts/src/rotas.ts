@@ -34,6 +34,7 @@ import {
   esquemaDoResultadoDoSegundoFator,
 } from "./auth.ts";
 import { ROTAS_DA_IDENTIDADE } from "./auth-rotas.ts";
+import { esquemaDaLojaDaSessao, esquemaDoEu, rotaDoEu } from "./eu.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
 import {
   esquemaDaVitrine,
@@ -68,6 +69,7 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDoFechamento,
   rotaDeCriarPedido,
   ...ROTAS_DA_IDENTIDADE,
+  rotaDoEu,
 ]);
 
 /**
@@ -108,6 +110,8 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     SessaoAberta: esquemaDaSessaoAberta,
     ResultadoDoLogin: esquemaDoResultadoDoLogin,
     ResultadoDoSegundoFator: esquemaDoResultadoDoSegundoFator,
+    Eu: esquemaDoEu,
+    LojaDaSessao: esquemaDaLojaDaSessao,
   });
 
 /**

@@ -1397,6 +1397,48 @@
         }
       }
     },
+    "/v1/eu": {
+      "get": {
+        "operationId": "get_v1_eu",
+        "summary": "Quem está logado e de quais lojas",
+        "tags": [
+          "identidade"
+        ],
+        "description": "Devolve a pessoa do token de acesso e as lojas em que ela tem vínculo ativo com o papel da sessão. Cliente e administração recebem a lista vazia. Sem token válido, 401.",
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eu"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente ou inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vitrine/{apelido}": {
       "get": {
         "operationId": "get_v1_vitrine_por_apelido",
@@ -2988,6 +3030,90 @@
         ],
         "additionalProperties": false
       },
+      "Eu": {
+        "type": "object",
+        "properties": {
+          "identidade": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "email": {
+                "type": "string"
+              },
+              "nome": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "papel": {
+                "type": "string",
+                "enum": [
+                  "CUSTOMER",
+                  "OWNER",
+                  "ADMIN"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "email",
+              "nome",
+              "papel"
+            ],
+            "additionalProperties": false
+          },
+          "lojas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apelido": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "papel": {
+                  "type": "string",
+                  "enum": [
+                    "OWNER",
+                    "STAFF"
+                  ]
+                },
+                "situacao": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING",
+                    "ACTIVE",
+                    "SUSPENDED"
+                  ]
+                }
+              },
+              "required": [
+                "apelido",
+                "nome",
+                "papel",
+                "situacao"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "identidade",
+          "lojas"
+        ],
+        "additionalProperties": false
+      },
       "Fechamento": {
         "type": "object",
         "properties": {
@@ -3531,6 +3657,39 @@
           "produtoId",
           "quantidade",
           "escolhas"
+        ],
+        "additionalProperties": false
+      },
+      "LojaDaSessao": {
+        "type": "object",
+        "properties": {
+          "apelido": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "papel": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "STAFF"
+            ]
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          }
+        },
+        "required": [
+          "apelido",
+          "nome",
+          "papel",
+          "situacao"
         ],
         "additionalProperties": false
       },
