@@ -17,6 +17,7 @@
 import "@simpleclick/ui/styles/vitrine.css";
 import "@simpleclick/ui/styles/fechamento.css";
 
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
@@ -24,6 +25,8 @@ import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 import { FechamentoDaCompra } from "../../../../../features/checkout/FechamentoDaCompra.tsx";
 import { buscarFechamento } from "../../../../../server/fechamento.ts";
 import { buscarVitrine } from "../../../../../server/vitrine.ts";
+import { conhecidosDaConta } from "../../../../../lib/enderecos-da-conta.ts";
+import { NOME_DO_COOKIE_DE_ACESSO } from "../../../../../server/session-cookie.ts";
 
 /** A cor de reserva quando a loja não escolheu nenhuma (AC-014). */
 const COR_DE_RESERVA = PALETA_CLARA.primaria;
@@ -59,9 +62,14 @@ export default async function PaginaDoFechamento({
 }: ParametrosDaPagina) {
   const { slug } = await params;
 
-  const [vitrine, fechamento] = await Promise.all([
+  // QUEM ESTÁ LOGADO CHEGA COM O ENDEREÇO PADRÃO PREENCHIDO (AC-509, T-707).
+  // O token fica no servidor (P-008): a página pede o endereço daqui, e o
+  // navegador recebe só os campos já preenchidos — editáveis.
+  const token = (await cookies()).get(NOME_DO_COOKIE_DE_ACESSO)?.value;
+  const [vitrine, fechamento, conhecidos] = await Promise.all([
     buscarVitrine(slug),
     buscarFechamento(slug),
+    conhecidosDaConta(token),
   ]);
 
   if (vitrine.estado === "nao-encontrada") notFound();
@@ -113,6 +121,7 @@ export default async function PaginaDoFechamento({
           }}
           linkDoCatalogo={`/l/${loja.apelido}/catalogo`}
           rotuloDoCatalogo={rotulo}
+          conhecidos={conhecidos}
         />
       </main>
     </TemaDaLoja>

@@ -63,6 +63,7 @@ model Identity {
   convitesFeitos      StoreMember[]      @relation("QuemConvidou")
   produtosCriados     Product[]          @relation("QuemCriouOProduto")
   clientesDeLoja      StoreCustomer[]
+  enderecos           CustomerAddress[]
   atosAuditados       AuditLog[]
   movimentosDeEstoque StockMovement[]
   mudancasDeStatus    OrderStatusEntry[] @relation("QuemMudouOStatus")
@@ -395,6 +396,12 @@ model StoreCustomer {
   anonymizedAt    DateTime? @map("anonymized_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  /// Gerada pelo banco a partir de `phone_e164` (0035): só se lê, nunca se escreve.
+  phoneKey        String?   @map("phone_key")
+  /// Remoção com retenção: a ficha some das listagens e a linha fica (0035, AC-705).
+  removedAt       DateTime? @map("removed_at") @db.Timestamptz(6)
+  /// Endereço anotado na ficha do cliente sem conta (0035, AC-703).
+  address         Json?
 
   loja       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade Identity? @relation(fields: [identityId], references: [id])
@@ -403,6 +410,32 @@ model StoreCustomer {
   carrinhos Cart[]
 
   @@map("store_customers")
+  @@schema("app")
+}
+
+/// Endereços salvos do comprador, presos à identidade e não à loja: cadastra
+/// uma vez e usa em qualquer loja (0036, AC-509). Fora do perímetro do dono.
+model CustomerAddress {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identityId     String    @map("identity_id") @db.Uuid
+  label          String?
+  recipientName  String?   @map("recipient_name")
+  street         String
+  number         String?
+  complement     String?
+  neighborhood   String?
+  city           String?
+  uf             String?   @db.Char(2)
+  zip            String?
+  referencePoint String?   @map("reference_point")
+  isDefault      Boolean   @default(false) @map("is_default")
+  anonymizedAt   DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  identidade Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@map("customer_addresses")
   @@schema("app")
 }
 
@@ -998,5 +1031,52 @@ model StoreContract {
   @@unique([storeId, storageKey], map: "store_contracts_chave_uk")
   @@index([storeId, kind, createdAt(sort: Desc)], map: "store_contracts_loja_ix")
   @@map("store_contracts")
+  @@schema("app")
+}
+
+/// Agente de impressão pareado com a loja (0034, T-607/T-608). Guarda só o
+/// sha256 da credencial que ele recebe no pareamento — nunca a credencial.
+/// Revogar é preencher `revokedAt`; agente não se apaga.
+///
+/// Sem relação declarada com loja de propósito: o modelo da loja não precisa
+/// navegar até aqui, e a chave estrangeira mora na migração 0034.
+model PrintAgent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId         String    @map("store_id") @db.Uuid
+  name            String
+  tokenSha256     Bytes     @map("token_sha256")
+  agentVersion    String?   @map("agent_version")
+  /// Último contato do agente: é o que diz ao painel que ele está fora do ar.
+  lastHeartbeatAt DateTime? @map("last_heartbeat_at") @db.Timestamptz(6)
+  revokedAt       DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("print_agents")
+  @@schema("app")
+}
+
+/// Um trabalho da fila de impressão (0034, T-607): um cupom, com identificador
+/// próprio. QUEUED, LEASED, PRINTED, FAILED, DEAD ou CANCELED — a verificação
+/// mora no banco. `blocks` é o cupom semântico versão 1, nulo até a primeira
+/// reivindicação, que soma a via e o grava; o reenvio entrega o mesmo cupom.
+///
+/// Sem relação declarada, pelo mesmo motivo de `PrintAgent`.
+model PrintJob {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId     String    @map("store_id") @db.Uuid
+  orderId     String    @map("order_id") @db.Uuid
+  orderCode   String    @map("order_code")
+  agentId     String?   @map("agent_id") @db.Uuid
+  status      String    @default("QUEUED")
+  blocks      Json?     @db.JsonB
+  attempt     Int       @default(0) @db.SmallInt
+  leaseUntil  DateTime? @map("lease_until") @db.Timestamptz(6)
+  availableAt DateTime  @default(now()) @map("available_at") @db.Timestamptz(6)
+  lastError   String?   @map("last_error")
+  printedAt   DateTime? @map("printed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("print_jobs")
   @@schema("app")
 }

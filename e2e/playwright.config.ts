@@ -115,7 +115,10 @@ export default defineConfig({
       // O build standalone leva cerca de 100 s no Windows antes da cópia dos
       // arquivos estáticos. O limite anterior de 120 s encerrava o launcher
       // quando o artefato já estava pronto, mas o servidor ainda não ouvindo.
-      timeout: 240_000,
+      // Com outras faixas compilando na mesma máquina de 4 CPUs, o build passou
+      // de 240 s e o cenário morreu antes de rodar (T-708, 03/10). O prazo só
+      // pesa quando o build é lento; folgado, ele não atrasa nada.
+      timeout: 600_000,
       env: {
         NEXT_PUBLIC_API_URL: ENDERECO_DA_API,
         // O SITE PRECISA SABER O PRÓPRIO ENDEREÇO (AC-403): canônico, mapa do

@@ -32,7 +32,9 @@ export default function TotpForm() {
           autoComplete="one-time-code"
           maxLength={6}
           value={codigo}
-          onChange={(evento) => setCodigo(evento.target.value.replace(/\D/g, ""))}
+          onChange={(evento) =>
+            setCodigo(evento.target.value.replace(/\D/g, ""))
+          }
           className="mt-1 block rounded border px-3 py-2"
         />
       </label>

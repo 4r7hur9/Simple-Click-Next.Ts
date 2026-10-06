@@ -1,11 +1,11 @@
 {
   "feature": "pedido-checkout",
-  "timestamp": "2026-08-27T15:35:15.934Z",
-  "gitRev": "3df4d7b",
-  "command": "pnpm vitest run --reporter=json --outputFile=.spec/.vitest-report.json",
+  "timestamp": "2026-10-06T02:40:05.938Z",
+  "gitRev": "5943fc8",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-checkout",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 1149,
+  "testsParsed": 319,
   "results": {
     "AC-500": {
       "status": "pass",
@@ -24,7 +24,7 @@
     },
     "AC-503": {
       "status": "pass",
-      "testName": "a conferência cobra o que a pessoa viu (AC-503, AC-504) @spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça @spec:AC-503 o acréscimo da opção entra no subtotal, e não sai de graça",
+      "testName": "a conferência cobra o que a pessoa viu (AC-503, AC-504) @spec:AC-503 @spec:AC-315 o acréscimo da opção entra no subtotal, e não sai de graça @spec:AC-503 @spec:AC-315 o acréscimo da opção entra no subtotal, e não sai de graça",
       "method": "vitest-json"
     },
     "AC-504": {
@@ -54,7 +54,7 @@
     },
     "AC-509": {
       "status": "pass",
-      "testName": "quem já pediu chega com os dados preenchidos (AC-509) @spec:AC-509 nome, telefone e endereço vêm preenchidos @spec:AC-509 nome, telefone e endereço vêm preenchidos",
+      "testName": "o endereço salvo é da pessoa e vale em qualquer loja (AC-509) @spec:AC-509 o primeiro endereço salvo nasce padrão, e o padrão vem primeiro na lista @spec:AC-509 o primeiro endereço salvo nasce padrão, e o padrão vem primeiro na lista",
       "method": "vitest-json"
     },
     "AC-510": {
@@ -84,7 +84,7 @@
     },
     "AC-515": {
       "status": "pass",
-      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra @spec:AC-515 o pedido congela nome, preço e escolhas do momento da compra",
+      "testName": "fechar o pedido (AC-504, AC-511, AC-516, AC-517) @spec:AC-515 @spec:AC-315 o pedido congela nome, preço e escolhas do momento da compra, com acréscimo separado @spec:AC-515 @spec:AC-315 o pedido congela nome, preço e escolhas do momento da compra, com acréscimo separado",
       "method": "vitest-json"
     },
     "AC-516": {
@@ -135,7 +135,7 @@
     },
     "P-003": {
       "status": "pass",
-      "testName": "muitas requisições de quatro lojas, com escrita e leitura misturadas @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra @spec:AC-011 @principle:P-003 cada requisição enxergou no banco a própria loja, e nenhuma outra"
+      "testName": "ninguém além da pessoa alcança os endereços dela (AC-509) @spec:AC-509 @principle:P-003 a outra pessoa não lista, não troca e não apaga o endereço alheio @spec:AC-509 @principle:P-003 a outra pessoa não lista, não troca e não apaga o endereço alheio"
     },
     "P-010": {
       "status": "pass",
@@ -143,19 +143,11 @@
     },
     "P-009": {
       "status": "pass",
-      "testName": "o que é do dono não sai pela rota (AC-904) @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo @spec:AC-904 @principle:P-009 chave PIX, documento e telefone não aparecem no corpo"
-    },
-    "P-012": {
-      "status": "pass",
-      "testName": "a régua dos pontos de quebra (P-012) @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px @principle:P-012 o menor ponto suportado é o dobrável fechado, em 344px"
+      "testName": "o que é do dono não sai na vitrine (AC-904, P-009) @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco @spec:AC-904 @principle:P-009 a CHAVE PIX não sai, mesmo estando na mesma linha do banco"
     },
     "P-007": {
       "status": "pass",
-      "testName": "borda de validação de entrada @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda @principle:P-007 corpo reprovado não chega ao domínio, e a rota nem roda"
-    },
-    "P-011": {
-      "status": "pass",
-      "testName": "a animação é camada, e não requisito (P-011) @principle:P-011 a entrada não desenha conteúdo nenhum @principle:P-011 a entrada não desenha conteúdo nenhum"
+      "testName": "endereço é condicional à forma de entrega (AC-505) @spec:AC-505 @principle:P-007 entrega com endereço completo é aceita @spec:AC-505 @principle:P-007 entrega com endereço completo é aceita"
     }
   }
 }

@@ -129,9 +129,10 @@ RUN find packages \( -name '*.test.ts' -o -name '*.test.tsx' -o -name '*.prova.t
 FROM base AS producao
 
 ENV NODE_ENV=production
-# `main.ts` lê API_PORT. Declarar aqui evita que a imagem dependa de o cofre do
-# provedor lembrar de uma variável cujo padrão já é o certo.
-ENV API_PORT=3001
+# `main.ts` lê PORT (AC-048). Declarar aqui evita que a imagem dependa de o
+# cofre do provedor lembrar de uma variável cujo padrão já é o certo; o
+# provedor que injeta a própria PORT continua valendo por cima desta.
+ENV PORT=3001
 
 COPY --from=construcao --chown=node:node /app/package.json /app/pnpm-workspace.yaml ./
 COPY --from=construcao --chown=node:node /app/node_modules ./node_modules
@@ -156,6 +157,6 @@ EXPOSE 3001
 # dependesse do banco, a primeira queda do banco faria o orquestrador matar e
 # recriar todas as instâncias — trocando falha parcial por total.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.API_PORT || 3001) + '/v1/health/live').then(function (r) { process.exit(r.ok ? 0 : 1); }, function () { process.exit(1); })"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3001) + '/v1/health/live').then(function (r) { process.exit(r.ok ? 0 : 1); }, function () { process.exit(1); })"]
 
 CMD ["node", "apps/api/dist/main.js"]

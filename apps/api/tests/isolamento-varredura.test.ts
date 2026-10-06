@@ -28,7 +28,7 @@
  * por fora dele provaria o PostgreSQL, não o SimpleClick.
  */
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -36,6 +36,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { bancoDoArquivo, conectarNoBancoDoArquivo } from "@simpleclick/testing";
 
 import {
+  abrirAcessoDaAdministracaoNoBanco,
   abrirAcessoDaAplicacao,
   codigoDoPostgres,
   comandoDeInsercao,
@@ -266,6 +267,29 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       action: "CRIACAO",
       entity: "teste",
       entity_id: marca,
+    }),
+  },
+
+  // ── Administração (migração 0033) ────────────────────────────────────────
+
+  // Contrato e documentos do responsável (T-205). Só a administração alcança
+  // esta tabela: a leitura é cobrada com o rigor de SO_DA_ADMINISTRACAO, e as
+  // escritas da loja A esbarram no privilégio retirado.
+  store_contracts: {
+    chave: "id",
+    // Trocar a chave de armazenamento do contrato da loja vizinha apontaria o
+    // documento dela para outro arquivo.
+    alteracao: { coluna: "storage_key", valor: "sequestrado/contrato.pdf" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      kind: "CONTRACT",
+      storage_key: `${loja}/${marca}`,
+      mime_type: "application/pdf",
+      byte_size: 2048,
+      // Resumo de 32 bytes, como a restrição da tabela exige.
+      sha256: `\\x${createHash("sha256").update(`contrato-${marca}`).digest("hex")}`,
+      original_filename: `contrato-${marca}.pdf`,
+      uploaded_by: identidadeDeApoio,
     }),
   },
 
@@ -522,6 +546,33 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       quantity: 1,
     }),
   },
+
+  // ── Impressão (migração 0034) ────────────────────────────────────────────
+
+  print_agents: {
+    chave: "id",
+    // Renomear o agente da loja vizinha é o ataque visível; o sério seria
+    // revogá-lo, e a mesma política barra os dois.
+    alteracao: { coluna: "name", valor: "Agente sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      name: `Caixa ${marca}`,
+      // Só o resumo da credencial é guardado; um por agente, em todo o banco.
+      token_sha256: `\\x${createHash("sha256").update(`agente-${marca}`).digest("hex")}`,
+    }),
+  },
+
+  print_jobs: {
+    chave: "id",
+    // Cancelar o cupom da loja vizinha é o ataque útil: a cozinha dela não
+    // recebe o pedido.
+    alteracao: { coluna: "status", valor: "CANCELED" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      order_id: exigirApoio(loja, "pedido"),
+      order_code: `PED-${marca}`,
+    }),
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -597,6 +648,8 @@ const lojaSemDados = randomUUID();
 
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
+/** A credencial da administração: o contraste das tabelas só dela. */
+let acessoDaAdministracao: AcessoAoBanco;
 let descobertas: TabelaDeLoja[] = [];
 const alvos: AlvoDaVarredura[] = [];
 
@@ -642,6 +695,9 @@ async function linhaVistaPeloMigrador(
  * listagem — e enxerga a própria, que é o que separa "isolado" de "cego".
  */
 async function violacoesDeLeitura(alvo: AlvoDaVarredura): Promise<Violacao[]> {
+  if (SO_DA_ADMINISTRACAO.has(alvo.tabela)) {
+    return violacoesDeLeituraSoDaAdministracao(alvo);
+  }
   const tabela = exigirIdentificador(alvo.tabela);
   const chave = exigirIdentificador(alvo.construtor.chave);
   const loja = exigirIdentificador(alvo.colunaDaLoja);
@@ -680,6 +736,80 @@ async function violacoesDeLeitura(alvo: AlvoDaVarredura): Promise<Violacao[]> {
   if ((visto?.proprias ?? 0) !== 1) {
     acusar(
       `a loja A deveria enxergar exatamente a própria linha e enxergou ${visto?.proprias} — a prova ficaria vazia`,
+    );
+  }
+
+  return violacoes;
+}
+
+/**
+ * Tabelas de loja que a conexão das lojas (`sc_app`) não alcança DE JEITO
+ * NENHUM — nem a linha da própria loja.
+ *
+ * É decisão do modelo de dados, não exceção da prova: contrato assinado e
+ * documento do responsável (`store_contracts`, migração 0033) não têm política
+ * para `sc_app`, e o privilégio é retirado, para que uma injeção numa rota de
+ * lojista não chegue a eles (AC-205).
+ *
+ * A lista não afrouxa nada. Inserção, alteração e remoção seguem a cobrança de
+ * todas as tabelas, em que a recusa por privilégio já é resposta aceita. Só a
+ * leitura muda, e para MAIS rigor: em vez de "enxerga a própria e nenhuma
+ * alheia", a conexão das lojas tem de ser recusada por privilégio. Pôr aqui uma
+ * tabela que a loja consegue ler reprova a varredura.
+ */
+const SO_DA_ADMINISTRACAO: ReadonlySet<string> = new Set(["store_contracts"]);
+
+/**
+ * Leitura numa tabela só da administração: a loja A é recusada por privilégio
+ * até na própria linha, e a administração enxerga as duas linhas semeadas.
+ *
+ * O contraste com a administração separa "fechada" de "quebrada": uma tabela
+ * que ninguém consegue ler também recusaria a loja A.
+ */
+async function violacoesDeLeituraSoDaAdministracao(
+  alvo: AlvoDaVarredura,
+): Promise<Violacao[]> {
+  const tabela = exigirIdentificador(alvo.tabela);
+  const chave = exigirIdentificador(alvo.construtor.chave);
+
+  const violacoes: Violacao[] = [];
+  const acusar = (problema: string) =>
+    violacoes.push({ tabela: alvo.tabela, operacao: "leitura", problema });
+
+  try {
+    const [visto] = await comoRequisicao(
+      acesso,
+      { lojaId: lojaA, usuarioId: identidadeDeApoio, papel: "OWNER" },
+      (tx) =>
+        tx.$queryRawUnsafe<{ total: number }[]>(
+          `SELECT count(*)::int AS total FROM app.${tabela}`,
+        ),
+    );
+    acusar(
+      `a tabela é só da administração, e a conexão das lojas a leu (${visto?.total ?? 0} linha(s)) em vez de ser recusada por privilégio`,
+    );
+  } catch (erro) {
+    const codigo = codigoDoPostgres(erro);
+    if (codigo !== RECUSA_DE_PERMISSAO) {
+      acusar(
+        `a leitura falhou com ${codigo ?? "código desconhecido"}, e não com ${RECUSA_DE_PERMISSAO} (privilégio retirado): ${resumoDoErro(erro)}`,
+      );
+    }
+  }
+
+  const [daAdministracao] = await comoRequisicao(
+    acessoDaAdministracao,
+    { usuarioId: identidadeDeApoio },
+    (tx) =>
+      tx.$queryRawUnsafe<{ total: number }[]>(
+        `SELECT count(*)::int AS total FROM app.${tabela} t WHERE t.${chave}::text IN ($1, $2)`,
+        alvo.chaveDeA,
+        alvo.chaveDeB,
+      ),
+  );
+  if ((daAdministracao?.total ?? 0) !== 2) {
+    acusar(
+      `a administração deveria enxergar as duas linhas semeadas e enxergou ${daAdministracao?.total ?? 0} — a recusa à loja A seria de uma tabela quebrada, não fechada`,
     );
   }
 
@@ -878,6 +1008,7 @@ beforeAll(async () => {
       "store_settings",
       "store_domains",
       "store_members",
+      "store_contracts",
       "store_customers",
       "products",
       "assets",
@@ -887,6 +1018,7 @@ beforeAll(async () => {
       "store_sequences",
       "store_hours",
       "store_hour_exceptions",
+      "print_agents",
     ],
     [
       "orders",
@@ -907,6 +1039,7 @@ beforeAll(async () => {
       "variant_option_values",
       "stock_movements",
       "product_attributes",
+      "print_jobs",
     ],
     ["order_item_options"],
   ];
@@ -965,9 +1098,14 @@ beforeAll(async () => {
   }
 
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
+  acessoDaAdministracao = abrirAcessoDaAdministracaoNoBanco(
+    bancoDoArquivo().url,
+    { maxDeConexoes: 2 },
+  );
 }, ESPERA_LONGA);
 
 afterAll(async () => {
+  await acessoDaAdministracao?.encerrar();
   await acesso?.encerrar();
   await migrador?.end();
 });
@@ -1152,6 +1290,35 @@ describe("a varredura enxerga o vazamento", () => {
       // O vazamento é o que se espera dele: a loja A leu a linha da loja B.
       expect(relatar(porOperacao.leitura)).toMatch(/endereço direto/);
       expect(relatar(porOperacao.remoção)).toMatch(/apagou/);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-010 @principle:P-003 acusa a tabela só da administração que a conexão das lojas consegue ler",
+    async () => {
+      // A cobrança própria de SO_DA_ADMINISTRACAO também é provada: devolver à
+      // conexão das lojas o privilégio de leitura que a migração retira tem de
+      // virar violação, mesmo sem política nenhuma que entregue linha.
+      for (const nome of SO_DA_ADMINISTRACAO) {
+        const alvo = alvos.find(({ tabela }) => tabela === nome);
+        expect(alvo, `a varredura não semeou app.${nome}`).toBeDefined();
+        if (alvo === undefined) continue;
+
+        const tabela = exigirIdentificador(nome);
+        await migrador.query("SET ROLE sc_migrator");
+        await migrador.query(`GRANT SELECT ON app.${tabela} TO sc_app`);
+        await migrador.query("RESET ROLE");
+        try {
+          expect(relatar(await violacoesDeLeitura(alvo))).toMatch(
+            /conexão das lojas a leu/,
+          );
+        } finally {
+          await migrador.query("SET ROLE sc_migrator");
+          await migrador.query(`REVOKE SELECT ON app.${tabela} FROM sc_app`);
+          await migrador.query("RESET ROLE");
+        }
+      }
     },
     ESPERA_LONGA,
   );

@@ -340,6 +340,75 @@ quando deixa de valer.
   LAC-03, que ainda vai subir `montarSegundoPlano` em `main.ts`. A guarda do
   contrato depois da remoção é proposta da faixa, a confirmar com o dono.
 
+### 2026-10-03 — Agente de impressão em Node/TypeScript, dentro do monorepo
+
+- **Origem:** decidido na orquestração da onda 1, ao abrir a faixa de impressão
+  (T-607 a T-610).
+- **Contexto:** as tarefas do agente e do emulador pediam arquivos em Go, mas o
+  projeto não introduz linguagem nem ferramenta nova sem o dono pedir, e tudo o
+  que o agente precisa já existe em TypeScript puro, sem dependência externa: o
+  contrato do cupom (versão 1), `diagramarCupom`, `lerCupomImpresso` e
+  `compilarEscPos`, em `packages/core`.
+- **Decisão:** o agente é um programa Node/TypeScript dentro do monorepo, em
+  `apps/agente-impressao`, que roda com o Node 24 instalado na máquina da loja,
+  sem empacotador nem executável único. A versão 1 fala só com impressora de rede
+  (TCP na porta 9100, por `node:net`); impressora USB fica para decisão futura,
+  porque exigiria módulo nativo ou chamar o spooler do sistema. O emulador de
+  impressora (T-610) também é Node/TypeScript e roda dentro do processo do teste.
+- **Consequência:** o cupom tem UMA implementação, a mesma da impressão pelo
+  navegador, e o agente não pode divergir dela; nenhuma dependência npm nova. O
+  custo é exigir o Node 24 instalado na máquina da loja e não ter, por enquanto,
+  instalação como serviço do sistema nem impressora USB. Q-603 (quais sistemas
+  na versão 1) continua aberta: o Node roda nos três, mas instalar e manter o
+  agente em cada um é outra decisão.
+
+### 2026-10-03 — Fila de impressão: quando enfileira, quando soma a via, e o clique
+
+- **Origem:** decidido na orquestração da onda 1, ao abrir a faixa de impressão.
+- **Contexto:** a decisão de 17/08 pôs a fila no PostgreSQL e o enfileiramento na
+  transação do pedido, mas deixou abertos três pontos que mudam o que sai no
+  papel: em que momento o trabalho entra na fila, quando a via (AC-621) é somada,
+  e o que acontece quando o dono imprime por clique um cupom que ainda está na
+  fila.
+- **Decisão:** o trabalho entra na fila na CRIAÇÃO do pedido, por uma função SQL
+  chamada na mesma transação — assim o módulo de pedidos não importa o de
+  impressão, e a função só enfileira para a loja com o automático ligado. A via é
+  somada na PRIMEIRA reivindicação do trabalho e guardada junto com os blocos; o
+  reenvio do mesmo trabalho reaproveita os blocos e não soma via. Imprimir por
+  clique um cupom pendente CANCELA o trabalho da fila, e o cupom nunca sai
+  duplicado. Uma impressora por loja na versão 1 (Q-601 segue aberta).
+- **Consequência:** o pedido que ainda aguarda confirmação no WhatsApp também
+  imprime, porque já é pedido criado. Um trabalho que nunca saiu não conta via,
+  e por isso a primeira impressão manual dele sai como via 1. Se o agente
+  confirmar depois de o dono ter imprimido por clique, o trabalho continua
+  cancelado e a contagem de vias do pedido segue sendo a verdade.
+
+### 2026-10-03 — Painel de métricas: gráfico próprio, comparação justa e planilha genérica
+
+- **Contexto:** o painel do dono (dashboard-metricas) precisa de gráficos de
+  evolução por dia e de movimento por hora, compara o período com o anterior
+  equivalente (AC-802) e exporta o período em planilha (AC-815). O site não tem
+  biblioteca de gráfico (só GSAP e Three.js), a pilha não recebe tecnologia nova
+  sem pedido, e "hoje" é um dia que ainda não acabou.
+- **Decisão:** três escolhas, tomadas pelo orquestrador da onda 1:
+  1. **Gráficos em SVG e CSS próprios**, sem biblioteca. Barras e linhas simples,
+     legíveis no celular antes de bonitas na tela grande (ASM-805).
+  2. **Período em curso compara com o mesmo pedaço do anterior.** Quando o
+     período ainda não terminou (o "hoje", ou os atalhos de 3 e 7 dias que
+     terminam hoje), o período anterior equivalente é cortado no mesmo ponto do
+     relógio da loja: hoje até as 14h32 compara com ontem até as 14h32, e não
+     com o dia de ontem inteiro. Período já encerrado compara com o anterior
+     inteiro. A resposta diz até que instante o anterior foi contado e se foi
+     cortado, para a tela poder escrever "ontem até 14h32".
+  3. **Exportação em CSV genérico** (ponto e vírgula, marca de codificação,
+     quebra de linha do Windows), que o Excel em português abre sem assistente.
+     A compatibilidade com um sistema de contabilidade específico segue aberta
+     (Q-803).
+- **Consequência:** nenhuma dependência nova no site; a comparação do meio do
+  dia deixa de acusar queda que não existe (ontem inteiro contra hoje pela
+  metade sempre "cai"); e a planilha atende o contador hoje, ficando o formato
+  dedicado para quando a Q-803 for respondida.
+
 ## Pendentes — bloqueiam implementação
 
 | #   | Decisão que falta                                   | Por que bloqueia                                                                                                                                                                                                                                                                                                     | Opções                                                                                                 |

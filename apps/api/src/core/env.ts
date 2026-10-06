@@ -36,6 +36,23 @@ const NIVEIS_DE_LOG = [
  */
 const TAMANHO_MINIMO_DO_SEGREDO = 32;
 
+/** Porta em que a API escuta quando o ambiente não diz outra. */
+export const PORTA_PADRAO = 3001;
+
+/** Estados do segundo plano (filas e trabalhadores) neste processo. */
+const ESTADOS_DO_SEGUNDO_PLANO = ["ligado", "desligado"] as const;
+
+/**
+ * Nomes que a API já leu e não lê mais (AC-048).
+ *
+ * `API_PORT` era o nome da porta em `main.ts` enquanto `core/env.ts` e o
+ * provedor de hospedagem chamavam a mesma coisa de `PORT`. A porta agora tem
+ * um nome só; o antigo continua sendo olhado, mas só para recusar a partida
+ * quando ele aponta para OUTRA porta — que é exatamente o caso em que alguém
+ * acha que configurou uma coisa e a API faz outra.
+ */
+export const VARIAVEIS_APOSENTADAS = ["API_PORT"] as const;
+
 /** Fonte de onde as variáveis são lidas — normalmente `process.env`. */
 export type FonteDeAmbiente = Readonly<Record<string, string | undefined>>;
 
@@ -111,7 +128,7 @@ const forma = z.object({
     .int()
     .min(1)
     .max(65535)
-    .default(3001)
+    .default(PORTA_PADRAO)
     .describe("porta TCP em que a API escuta — inteiro entre 1 e 65535"),
 
   DATABASE_URL: cadeiaDeConexao(["postgres", "postgresql"]).describe(
@@ -147,6 +164,16 @@ const forma = z.object({
     .enum(NIVEIS_DE_LOG)
     .default("info")
     .describe(`um de: ${NIVEIS_DE_LOG.join(" | ")}`),
+
+  // Opcional de propósito, e sem padrão fixo: o padrão depende de NODE_ENV e é
+  // resolvido por `segundoPlanoLigado`. Produção liga sem ninguém precisar
+  // lembrar; fora dela, quem sobe a API para um teste não precisa de Redis.
+  SEGUNDO_PLANO: z
+    .enum(ESTADOS_DO_SEGUNDO_PLANO)
+    .optional()
+    .describe(
+      `filas e trabalhadores neste processo — ${ESTADOS_DO_SEGUNDO_PLANO.join(" | ")}; sem valor, liga em production e fica desligado fora dela`,
+    ),
 });
 
 /** Ambiente já validado e tipado, pronto para o resto da API consumir. */
@@ -180,11 +207,44 @@ function problema(variavel: string, motivo: string): ProblemaDeAmbiente {
  * um campo falha, e aí quem está configurando corrigiria o que apareceu, rodaria
  * de novo e levaria um segundo susto — o oposto do que AC-002 pede.
  *
- * A comparação aqui é literal. A checagem completa — máquina, porta e nome do
- * banco, que pegam o mesmo destino escrito de outro jeito — é responsabilidade
- * de `infra/scripts/check-ambientes.sh`, e é lá que AC-031 é provado.
+ * A comparação do banco de teste é literal. A checagem completa — máquina,
+ * porta e nome do banco, que pegam o mesmo destino escrito de outro jeito — é
+ * responsabilidade de `infra/scripts/check-ambientes.sh`, e é lá que AC-031 é
+ * provado.
  */
 function problemasEntreVariaveis(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
+  return [...problemasDoBancoDeTeste(fonte), ...problemasDoNomeDaPorta(fonte)];
+}
+
+/**
+ * O nome antigo da porta só reprova quando aponta para outra porta (AC-048).
+ *
+ * Igual à porta efetiva, ele é inofensivo — é o que todo `.env` local copiado
+ * do modelo antigo tem — e recusar ali quebraria a máquina de todo mundo sem
+ * proteger ninguém. Diferente, ele é a configuração que alguém escolheu e a
+ * API ignoraria em silêncio. Se `PORT` já é inválida, quem reclama é ela.
+ */
+function problemasDoNomeDaPorta(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
+  const antiga = valorDe(fonte, "API_PORT");
+  if (antiga === undefined) return [];
+
+  const declarada = valorDe(fonte, "PORT");
+  const efetiva = declarada === undefined ? PORTA_PADRAO : Number(declarada);
+  if (!Number.isInteger(efetiva)) return [];
+  if (Number(antiga) === efetiva) return [];
+
+  return [
+    {
+      variavel: "API_PORT",
+      motivo: `nome aposentado da porta, valendo ${antiga}, enquanto a API escuta em PORT (${efetiva}${declarada === undefined ? ", o padrão" : ""}) — a porta tem um nome só`,
+      esperado:
+        "apague API_PORT e ponha o número em PORT, o nome que a API e o provedor de hospedagem leem",
+    },
+  ];
+}
+
+/** O banco de teste é obrigatório fora de produção e nunca é o da aplicação. */
+function problemasDoBancoDeTeste(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
   const ambiente = valorDe(fonte, "NODE_ENV") ?? "development";
   const bancoDeTeste = valorDe(fonte, "DATABASE_URL_TEST");
 
@@ -289,4 +349,32 @@ export function carregarAmbiente(fonte: FonteDeAmbiente): Ambiente {
     throw new ErroDeAmbiente(problemas);
   }
   return resultado.data;
+}
+
+/**
+ * Se este processo sobe as filas de segundo plano (AC-046).
+ *
+ * Sem valor explícito, liga em produção e fica desligado fora dela: produção
+ * não pode depender de alguém lembrar de uma variável para mandar e-mail, e o
+ * teste que sobe a API para conferir a partida não pode passar a exigir Redis.
+ */
+export function segundoPlanoLigado(
+  ambiente: Pick<Ambiente, "NODE_ENV" | "SEGUNDO_PLANO">,
+): boolean {
+  const estado =
+    ambiente.SEGUNDO_PLANO ??
+    (ambiente.NODE_ENV === "production" ? "ligado" : "desligado");
+  return estado === "ligado";
+}
+
+/**
+ * Nomes aposentados que ainda aparecem na fonte. A partida só avisa: quando
+ * eles contradizem o nome atual, `carregarAmbiente` já recusou antes.
+ */
+export function variaveisAposentadasPresentes(
+  fonte: FonteDeAmbiente,
+): readonly string[] {
+  return VARIAVEIS_APOSENTADAS.filter(
+    (nome) => valorDe(fonte, nome) !== undefined,
+  );
 }

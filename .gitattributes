@@ -1,0 +1,6 @@
+# Fim de linha LF em todo arquivo de texto, em qualquer sistema.
+#
+# O Prettier exige LF e varios testes leem arquivo como texto (contrato,
+# verificar.sh, snapshots). Com core.autocrlf=true no Windows, o checkout
+# gravava CRLF e o portao reprovava sem nada ter mudado de verdade.
+* text=auto eol=lf

@@ -1,11 +1,11 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-09-27T11:59:34.021Z",
-  "gitRev": "6956a42",
+  "timestamp": "2026-10-06T02:42:42.742Z",
+  "gitRev": "5943fc8",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-operacao",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 205,
+  "testsParsed": 222,
   "results": {
     "AC-600": {
       "status": "pass",
@@ -115,6 +115,16 @@
     "AC-621": {
       "status": "pass",
       "testName": "a rota do cupom para a impressão por clique (AC-617) @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão @spec:AC-621 cada pedido à rota emite uma via: a segunda sai como reimpressão",
+      "method": "vitest-json"
+    },
+    "AC-624": {
+      "status": "pass",
+      "testName": "o cupom espera o agente @spec:AC-624 com o agente fora do ar o cupom aguarda na fila e, quando ele volta, sai uma vez, na ordem em que entrou @spec:AC-624 com o agente fora do ar o cupom aguarda na fila e, quando ele volta, sai uma vez, na ordem em que entrou",
+      "method": "vitest-json"
+    },
+    "AC-625": {
+      "status": "pass",
+      "testName": "o cupom sai uma vez só @spec:AC-625 dois agentes reivindicando ao mesmo tempo não se esperam e nunca recebem o mesmo trabalho @spec:AC-625 dois agentes reivindicando ao mesmo tempo não se esperam e nunca recebem o mesmo trabalho",
       "method": "vitest-json"
     }
   },

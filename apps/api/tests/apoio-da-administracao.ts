@@ -14,12 +14,12 @@ import type pg from "pg";
 import { bancoDoArquivo } from "@simpleclick/testing";
 
 import {
+  abrirAcessoDaAdministracaoNoBanco,
   abrirAcessoDaAplicacao,
-  exigirVariavel,
 } from "./apoio-de-isolamento.ts";
 import { criarApp, type OpcoesDoApp } from "../src/app.ts";
 import { armazenamentoPrivadoEmMemoria } from "../src/core/arquivo-privado.ts";
-import { criarAcessoAoBanco, type AcessoAoBanco } from "../src/core/db.ts";
+import type { AcessoAoBanco } from "../src/core/db.ts";
 import {
   assinarTokenDeAcesso,
   type PapelDaSessao,
@@ -65,14 +65,8 @@ export function comoPapel(
 
 /** Acesso pela credencial da administração, sobre o banco deste arquivo. */
 export function abrirAcessoDaAdministracao(): AcessoAoBanco {
-  const destino = new URL(bancoDoArquivo().url);
-  destino.username = "sc_admin";
-  destino.password = exigirVariavel("SENHA_BANCO_ADMINISTRACAO");
-  return criarAcessoAoBanco({
-    urlDaAplicacao: destino.toString(),
+  return abrirAcessoDaAdministracaoNoBanco(bancoDoArquivo().url, {
     maxDeConexoes: 4,
-    esperaPorConexaoMs: 60_000,
-    duracaoMaximaMs: 60_000,
   });
 }
 

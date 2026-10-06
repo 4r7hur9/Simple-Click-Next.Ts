@@ -73,6 +73,12 @@ const SENHAS = {
   SENHA_BANCO_ADMINISTRACAO: exigirVariavel("SENHA_BANCO_ADMINISTRACAO"),
 };
 
+/**
+ * Espera dos passos que rodam a pré-publicação inteira (bash e dois processos
+ * do Node aplicando as migrações). No Windows, com a máquina ocupada, uma
+ * execução passa de meio minuto: os casos que publicam de novo dentro do
+ * próprio teste também precisam desta espera, e não do minuto do projeto.
+ */
 const ESPERA_LONGA = 180_000;
 
 /** Códigos de saída combinados com o provedor. */
@@ -229,15 +235,19 @@ describe("publicação com o banco no ar", () => {
     expect(tabelasDeLoja).toBeGreaterThan(0);
   });
 
-  it("@spec:AC-029 publicar de novo sem migração nova não altera nada e libera igual", async () => {
-    const antes = await migracoesRegistradas(cliente);
+  it(
+    "@spec:AC-029 publicar de novo sem migração nova não altera nada e libera igual",
+    async () => {
+      const antes = await migracoesRegistradas(cliente);
 
-    const segunda = publicar(banco.url);
+      const segunda = publicar(banco.url);
 
-    expect(segunda.codigo).toBe(LIBERADA);
-    expect(segunda.texto).toContain("nenhuma migração pendente");
-    expect(await migracoesRegistradas(cliente)).toEqual(antes);
-  });
+      expect(segunda.codigo).toBe(LIBERADA);
+      expect(segunda.texto).toContain("nenhuma migração pendente");
+      expect(await migracoesRegistradas(cliente)).toEqual(antes);
+    },
+    ESPERA_LONGA,
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -412,14 +422,18 @@ describe("publicação com migração que falha no meio", () => {
     }
   });
 
-  it("@spec:AC-029 a publicação seguinte encontra o banco intacto e volta a reprovar do mesmo jeito", async () => {
-    const antes = await migracoesRegistradas(cliente);
+  it(
+    "@spec:AC-029 a publicação seguinte encontra o banco intacto e volta a reprovar do mesmo jeito",
+    async () => {
+      const antes = await migracoesRegistradas(cliente);
 
-    const segunda = publicar(banco.url);
+      const segunda = publicar(banco.url);
 
-    // Reprovar de novo, igual, é o que torna a falha investigável: nada mudou
-    // por dentro entre uma tentativa e outra.
-    expect(segunda.codigo).toBe(REPROVOU);
-    expect(await migracoesRegistradas(cliente)).toEqual(antes);
-  });
+      // Reprovar de novo, igual, é o que torna a falha investigável: nada mudou
+      // por dentro entre uma tentativa e outra.
+      expect(segunda.codigo).toBe(REPROVOU);
+      expect(await migracoesRegistradas(cliente)).toEqual(antes);
+    },
+    ESPERA_LONGA,
+  );
 });
