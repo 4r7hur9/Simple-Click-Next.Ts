@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-06T02:46:45.447Z",
-  "gitRev": "943f36a",
+  "timestamp": "2026-10-06T05:09:57.489Z",
+  "gitRev": "6c3460c",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 167,
+  "testsParsed": 187,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -57,6 +57,11 @@
       "testName": "alterar o apelido preserva o endereço antigo (AC-208) @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico",
       "method": "vitest-json"
     },
+    "AC-215": {
+      "status": "pass",
+      "testName": "o histórico de auditoria da administração (AC-215) @spec:AC-215 lista os atos de todas as lojas, do mais recente ao mais antigo, com quem, quando, loja e antes e depois @spec:AC-215 lista os atos de todas as lojas, do mais recente ao mais antigo, com quem, quando, loja e antes e depois",
+      "method": "vitest-json"
+    },
     "AC-209": {
       "status": "pass",
       "testName": "loja suspensa sai do ar sem perder dados (AC-209) @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico",
@@ -80,7 +85,7 @@
     },
     "P-011": {
       "status": "pass",
-      "testName": "a ficha da loja na tela (AC-207) @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo"
+      "testName": "o histórico de auditoria na tela @spec:AC-215 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo @spec:AC-215 @principle:P-011 cobre carregando, vazio, erro e sucesso, cada um com o papel de acessibilidade certo"
     }
   }
 }

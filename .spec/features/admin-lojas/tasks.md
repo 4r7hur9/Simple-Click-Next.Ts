@@ -58,10 +58,10 @@
 - Notas: funcionalidade desligada não aparece no menu do dono e a rota correspondente responde indisponível mesmo acessada direto. Na versão 1 tudo nasce ligado, sem cobrança e sem limite, e nenhuma tela pede pagamento.
 - Esforço: medio
 
-## T-208 — Histórico de auditoria consultável [pendente]
+## T-208 — Histórico de auditoria consultável [concluida]
 
-- Refs: US-202, AC-118, AC-922
-- Arquivos: apps/api/src/modules/admin/auditoria.usecase.ts, apps/api/src/modules/admin/auditoria.usecase.test.ts, apps/web/src/app/(admin)/admin/auditoria/page.tsx
+- Refs: US-202, AC-215, AC-118, AC-922
+- Arquivos: packages/contracts/src/admin-auditoria.ts, packages/contracts/src/index.ts, apps/api/src/modules/admin/auditoria.usecase.ts, apps/api/src/modules/admin/auditoria.usecase.test.ts, apps/api/src/modules/admin/auditoria-consulta.repo.ts, apps/api/src/modules/admin/admin.routes.ts, apps/api/src/modules/admin/admin.schema.ts, apps/api/tests/admin-auditoria.test.ts, apps/web/src/features/admin/HistoricoDeAuditoria.tsx, apps/web/src/app/(admin)/admin/auditoria/page.tsx, apps/web/src/lib/routes.ts, apps/web/tests/admin-auditoria.test.tsx
 - Notas: trilha que não pode ser alterada nem apagada. Alterações sensíveis, como a chave PIX, aparecem destacadas.
 - Esforço: medio
 

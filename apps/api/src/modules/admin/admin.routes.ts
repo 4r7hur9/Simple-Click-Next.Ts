@@ -39,6 +39,7 @@ import {
 } from "@simpleclick/contracts";
 
 import {
+  esquemasDaAuditoria,
   esquemasDaEdicao,
   esquemasDaExclusao,
   esquemasDaFicha,
@@ -76,6 +77,8 @@ import {
   sugerirApelido,
   type DependenciasDoCadastro,
 } from "./criar-loja.usecase.ts";
+import { repositorioDaAuditoria } from "./auditoria-consulta.repo.ts";
+import { consultarAuditoria, lojasDaPagina } from "./auditoria.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
 import { repositorioDaSituacao } from "./situacao.repo.ts";
@@ -266,6 +269,40 @@ export function criarRotasDaAdministracao(
           );
           resposta.setHeader("cache-control", "no-store");
           resposta.json(lista);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Histórico de auditoria consultável (AC-215, AC-118) ───────────────
+  // A leitura do histórico também é acesso a dados de loja: cada loja que
+  // aparece na página ganha o seu registro de consulta, na mesma transação.
+  const entradaDaAuditoria = validar(esquemasDaAuditoria);
+  rotas.get(
+    "/auditoria",
+    entradaDaAuditoria,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { query } = entradaDaAuditoria.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const pagina = await acesso().emTransacao(async () => {
+            const encontrada = await consultarAuditoria(
+              query,
+              repositorioDaAuditoria(),
+            );
+            for (const lojaId of lojasDaPagina(encontrada)) {
+              await registrarConsultaDaAdministracao({
+                lojaId,
+                atorId: administradorId,
+                entidade: "audit_log",
+              });
+            }
+            return encontrada;
+          });
+          resposta.setHeader("cache-control", "no-store");
+          resposta.json(pagina);
         });
       } catch (causa) {
         proximo(causa);

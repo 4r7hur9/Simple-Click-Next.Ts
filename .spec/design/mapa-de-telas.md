@@ -100,7 +100,7 @@
 | 44  | `/admin/lojas/{id}`                 | Ficha da loja, tipo de negócio e status | ADMIN_GERAL | 4E      | e2e-admin-loja-ficha | AC-207..AC-211, AC-214 |
 | 45  | `/admin/lojas/{id}/documentos`      | Contrato e documentos                   | ADMIN_GERAL | 4E      | e2e-admin-documentos | AC-203..AC-205         |
 | 46  | `/admin/lojas/{id}/funcionalidades` | Funcionalidades liberadas               | ADMIN_GERAL | 4E      | e2e-admin-features   | AC-212, AC-213         |
-| 47  | `/admin/auditoria`                  | Histórico de auditoria                  | ADMIN_GERAL | 4E      | e2e-admin-auditoria  | AC-118, AC-922         |
+| 47  | `/admin/auditoria`                  | Histórico de auditoria                  | ADMIN_GERAL | 4E      | e2e-admin-auditoria  | AC-118, AC-922, AC-215 |
 
 ## Contagem e regra de cobertura
 

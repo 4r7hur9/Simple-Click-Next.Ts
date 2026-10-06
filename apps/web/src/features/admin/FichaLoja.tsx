@@ -394,6 +394,12 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
         ) : (
           <ListaDaTrilha registros={ficha.historico} />
         )}
+        <Link
+          className="mt-3 inline-block text-sm font-medium text-[var(--cor-primaria)] underline-offset-2 hover:underline"
+          href={`/admin/auditoria?loja=${ficha.id}`}
+        >
+          Ver o histórico completo desta loja
+        </Link>
       </Secao>
     </article>
   );

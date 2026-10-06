@@ -89,6 +89,12 @@ eu ache e ajuste qualquer cadastro rapidamente.
 - **Quando** altero o apelido para `pastelaria-joi`
 - **Então** o endereço novo funciona e o antigo redireciona para ele, para que link já compartilhado com clientes não quebre
 
+#### AC-215 — Histórico de auditoria consultável, com filtros e sem dado pessoal
+
+- **Dado** que existem atos registrados na trilha de várias lojas, entre eles a troca de uma chave PIX
+- **Quando** eu, como administrador geral, abro o histórico de auditoria e filtro por loja, por ato ou por período
+- **Então** vejo, página a página e do mais recente para o mais antigo, quem fez, quando, em qual loja, o que mudou e o valor anterior, com as alterações sensíveis destacadas e o dado pessoal mascarado; a tela trata os estados de carregando, vazio e erro; a própria consulta fica registrada como acesso da administração àquelas lojas; e nenhum registro do histórico pode ser alterado nem apagado
+
 ### US-203 — Administrador suspende ou reativa uma loja
 
 Como administrador geral, quero suspender o acesso de uma loja sem apagar nada,

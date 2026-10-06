@@ -354,3 +354,17 @@ export type {
   ResumoDeMetricasNoContrato,
   VariacaoDeMetricaNoContrato,
 } from "./metricas.ts";
+// Histórico de auditoria consultável pela administração (T-208).
+export {
+  esquemaDaConsultaDaAuditoria,
+  esquemaDaLojaDoRegistro,
+  esquemaDaPaginaDaAuditoria,
+  esquemaDoRegistroDaAuditoria,
+  FORMATO_DO_ATO,
+  FORMATO_DO_DIA,
+} from "./admin-auditoria.ts";
+export type {
+  ConsultaDaAuditoriaNoContrato,
+  PaginaDaAuditoriaNoContrato,
+  RegistroDaAuditoriaNoContrato,
+} from "./admin-auditoria.ts";
