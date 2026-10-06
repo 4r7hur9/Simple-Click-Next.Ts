@@ -1,7 +1,7 @@
 {
   "feature": "pedido-operacao",
-  "timestamp": "2026-10-06T04:53:33.145Z",
-  "gitRev": "723016d",
+  "timestamp": "2026-10-06T05:33:57.990Z",
+  "gitRev": "1693720",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh pedido-operacao",
   "reporter": "vitest-json",
   "exitCode": 0,
