@@ -28,6 +28,8 @@ import { createHmac, randomUUID } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
 import { Client } from "pg";
 
+import { abrirODiaInteiro } from "./loja-de-teste.ts";
+
 /** O apelido da loja do painel — o mesmo que o site do ponta a ponta usa. */
 export const APELIDO_DO_PAINEL = "e2e-painel";
 
@@ -192,16 +194,7 @@ export async function garantirLojaDoPainel(): Promise<LojaDoPainel> {
     );
     // Aberta sempre: o horário tem prova própria (T-903), e o relógio não
     // pode decidir se um cenário do painel passa.
-    await cliente.query(`DELETE FROM app.store_hours WHERE store_id = $1`, [
-      lojaId,
-    ]);
-    for (let dia = 0; dia <= 6; dia += 1) {
-      await cliente.query(
-        `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
-         VALUES ($1, $2, '00:00', '23:59')`,
-        [lojaId, dia],
-      );
-    }
+    await abrirODiaInteiro(cliente, lojaId);
     const donoId = await garantirDonoDaLoja(
       cliente,
       lojaId,

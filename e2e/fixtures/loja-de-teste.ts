@@ -98,6 +98,43 @@ function ehChaveDuplicada(erro: unknown): boolean {
   );
 }
 
+/**
+ * Troca o horário da loja por "aberta o dia inteiro, todos os dias".
+ *
+ * EM UM COMANDO SÓ, E DENTRO DE TRANSAÇÃO COM TRAVA. Apagar e depois inserir
+ * em comandos soltos abre uma janela em que a loja não tem horário nenhum — e
+ * quem carregar a página nela vê "a loja está fechada". Com `fullyParallel`,
+ * cada trabalhador roda o `beforeAll` do arquivo: na execução completa de
+ * 06/10 um trabalhador regravou o horário da pastelaria enquanto o outro abria
+ * o produto, e o botão de adicionar apareceu como "Indisponível". Dentro da
+ * transação, quem lê continua vendo o horário anterior até o fim; a trava
+ * impede dois regravadores de somarem catorze linhas. A loja do painel usa a
+ * mesma função (`painel.ts`).
+ */
+export async function abrirODiaInteiro(
+  cliente: Client,
+  lojaId: string,
+): Promise<void> {
+  await cliente.query("BEGIN");
+  try {
+    await cliente.query("SELECT pg_advisory_xact_lock($1)", [TRAVA_DO_HORARIO]);
+    await cliente.query(
+      `WITH apagadas AS (DELETE FROM app.store_hours WHERE store_id = $1)
+       INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
+       SELECT $1, dia, '00:00'::time, '23:59'::time
+         FROM generate_series(0, 6) AS dia`,
+      [lojaId],
+    );
+    await cliente.query("COMMIT");
+  } catch (erro) {
+    await cliente.query("ROLLBACK").catch(() => undefined);
+    throw erro;
+  }
+}
+
+/** A chave da trava que serializa quem regrava o horário de uma loja. */
+const TRAVA_DO_HORARIO = 8_140_621;
+
 function conectar(): Client {
   const url = process.env["DATABASE_URL_DIRETA"];
   if (url === undefined || url === "") {
@@ -193,16 +230,7 @@ export async function garantirLojaDeTeste(): Promise<LojaDoTeste> {
 
     // ABERTA SEMPRE. É o que tira o relógio da equação — e o horário em si tem
     // prova própria, na T-903.
-    await cliente.query(`DELETE FROM app.store_hours WHERE store_id = $1`, [
-      lojaId,
-    ]);
-    for (let dia = 0; dia <= 6; dia += 1) {
-      await cliente.query(
-        `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
-         VALUES ($1, $2, '00:00', '23:59')`,
-        [lojaId, dia],
-      );
-    }
+    await abrirODiaInteiro(cliente, lojaId);
 
     const categoriaId = await garantirLinha(cliente, {
       procura: `SELECT id FROM app.categories
@@ -279,16 +307,7 @@ export async function garantirPastelariaDeTesteAberta(): Promise<void> {
       throw new Error("a loja pastelaria-da-vila não existe no banco de E2E");
     }
 
-    await cliente.query(`DELETE FROM app.store_hours WHERE store_id = $1`, [
-      lojaId,
-    ]);
-    for (let dia = 0; dia <= 6; dia += 1) {
-      await cliente.query(
-        `INSERT INTO app.store_hours (store_id, weekday, opens_at, closes_at)
-         VALUES ($1, $2, '00:00', '23:59')`,
-        [lojaId, dia],
-      );
-    }
+    await abrirODiaInteiro(cliente, lojaId);
   } finally {
     await cliente.end();
   }
