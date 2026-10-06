@@ -286,6 +286,43 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
     },
     ESPERA_DA_OPERACAO,
   );
+
+  it(
+    "@spec:AC-616 a compra pelo navegador, que leva a sessão no cookie sc_access e nenhum cabeçalho, também entra no histórico; cookie de dono ou estragado compra como convidado",
+    async () => {
+      // A página não lê o token (HttpOnly) e não monta Authorization: o que
+      // chega à API é só o cookie, junto com o do carrinho.
+      const peloNavegador = await fecharPeloSite(app, lojaB, produtoB, {
+        cookieDeAcesso: tokenDeAcesso(maria.id, "CUSTOMER"),
+      });
+      const comCookieDeDono = await fecharPeloSite(app, lojaB, produtoB, {
+        cookieDeAcesso: tokenDeAcesso(donoB.identidade.id, "OWNER"),
+      });
+      const comCookieEstragado = await fecharPeloSite(app, lojaB, produtoB, {
+        cookieDeAcesso: "nao.e.um-token",
+      });
+
+      const { pedidos } = esquemaDosMeusPedidos.parse(
+        (await meusPedidos(comoCliente(maria))).body,
+      );
+      const ids = pedidos.map((pedido) => pedido.id);
+      expect(ids).toContain(peloNavegador.id);
+      expect(ids).not.toContain(comCookieDeDono.id);
+      expect(ids).not.toContain(comCookieEstragado.id);
+
+      const ligacoes = await migrador.query<{
+        id: string;
+        store_customer_id: string | null;
+      }>(`SELECT id, store_customer_id FROM app.orders WHERE id = ANY($1)`, [
+        [comCookieDeDono.id, comCookieEstragado.id],
+      ]);
+      expect(ligacoes.rows.map((linha) => linha.store_customer_id)).toEqual([
+        null,
+        null,
+      ]);
+    },
+    ESPERA_DA_OPERACAO,
+  );
 });
 
 describe("nenhuma loja enxerga o histórico da outra (P-003)", () => {

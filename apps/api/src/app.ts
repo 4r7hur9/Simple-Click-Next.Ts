@@ -38,6 +38,7 @@ import {
   tokenDoCabecalhoDeAutorizacao,
   verificarTokenDeAcesso,
 } from "./modules/auth/token.ts";
+import { clienteDaCompra } from "./modules/auth/cliente-da-compra.ts";
 import {
   criarRotasDePedidos,
   PREFIXO_DOS_PEDIDOS,
@@ -812,23 +813,12 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         };
       },
       // O cliente logado, quando a sessão é de CLIENTE: o pedido nasce ligado
-      // à conta dele e aparece no histórico (AC-616). Dono e administração não
-      // compram "como conta", e convidado segue sem vínculo (ASM-103).
-      autenticarCliente: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "CUSTOMER") return null;
-          return { identidadeId: alegacoes.identidadeId };
-        } catch {
-          return null;
-        }
-      },
+      // à conta dele e aparece no histórico (AC-616). O navegador leva a
+      // sessão no cookie `sc_access`, e o nativo no Bearer. Dono e
+      // administração não compram "como conta", e convidado segue sem vínculo
+      // (ASM-103).
+      autenticarCliente: (requisicao) =>
+        clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()),
       ...opcoes.pedidos,
     }),
   );

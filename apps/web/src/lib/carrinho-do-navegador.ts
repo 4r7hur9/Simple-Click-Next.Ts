@@ -346,7 +346,10 @@ type Resposta =
  * O caminho comum das três chamadas: cookie junto, JSON de ida e de volta.
  *
  * `credentials: "include"` NÃO É OPCIONAL em nenhuma delas — sem o cookie, a
- * API emite uma sessão nova e a chamada fala com um carrinho vazio.
+ * API emite uma sessão nova e a chamada fala com um carrinho vazio. É também
+ * ele que leva o `sc_access` de quem está logado: a página não lê o token e
+ * não monta `Authorization`, e é pelo cookie que a API liga o pedido à conta
+ * do cliente (AC-616, `cliente-da-compra.ts`).
  */
 async function chamar(
   apelidoDaLoja: string,

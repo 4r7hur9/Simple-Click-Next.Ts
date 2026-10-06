@@ -56,19 +56,20 @@ async function pedirEncerramento(caminho: Caminho): Promise<boolean> {
 }
 
 /**
- * Apaga os dois cookies da sessão deste navegador. O de renovação nasce com
- * o domínio compartilhado (`dominioDoCookieDeSessao`), e o navegador só
- * apaga cookie de domínio quando a ordem de apagar leva o mesmo domínio.
+ * Apaga os dois cookies da sessão deste navegador. Os dois nascem com o
+ * domínio compartilhado (`dominioDoCookieDeSessao`), e o navegador só apaga
+ * cookie de domínio quando a ordem de apagar leva o mesmo domínio.
  */
 async function apagarCookiesDaSessao(): Promise<void> {
   const armazenamento = await cookies();
   const dominio = dominioDoCookieDeSessao();
-  armazenamento.delete({
-    name: NOME_DO_COOKIE_DE_RENOVACAO,
-    path: "/",
-    ...(dominio === undefined ? {} : { domain: dominio }),
-  });
-  armazenamento.delete({ name: NOME_DO_COOKIE_DE_ACESSO, path: "/" });
+  for (const nome of [NOME_DO_COOKIE_DE_RENOVACAO, NOME_DO_COOKIE_DE_ACESSO]) {
+    armazenamento.delete({
+      name: nome,
+      path: "/",
+      ...(dominio === undefined ? {} : { domain: dominio }),
+    });
+  }
 }
 
 /** Sai apenas deste navegador, revogando antes o token na API. */

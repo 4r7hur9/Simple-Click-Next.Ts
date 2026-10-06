@@ -86,15 +86,29 @@ export function adicionarCookieDeRenovacao(
  * site usam para falar com a API em nome da pessoa. HttpOnly como o de
  * renovação: script nenhum o lê. Vale também em produção (T-113) — é por ele
  * que o painel e a conta alcançam a API depois do login real.
+ *
+ * Mora no MESMO domínio comum do de renovação: o fechamento do pedido sai do
+ * navegador direto para a API (o carrinho é cookie da API), e é por este
+ * cookie que a API reconhece o cliente logado e liga a compra à conta dele
+ * (AC-616). A API só o lê para isso (`cliente-da-compra.ts`).
  */
 export function adicionarCookieDeAcesso(
   cabecalhos: Headers,
   token: string,
-  _fonte: Readonly<Record<string, string | undefined>> = process.env,
+  fonte: Readonly<Record<string, string | undefined>> = process.env,
 ): void {
+  const dominio = dominioDoCookieDeSessao(fonte);
   cabecalhos.append(
     "set-cookie",
-    `${NOME_DO_COOKIE_DE_ACESSO}=${encodeURIComponent(token)}; Max-Age=${DURACAO_DO_COOKIE_DE_ACESSO_EM_SEGUNDOS}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+    [
+      `${NOME_DO_COOKIE_DE_ACESSO}=${encodeURIComponent(token)}`,
+      `Max-Age=${DURACAO_DO_COOKIE_DE_ACESSO_EM_SEGUNDOS}`,
+      "Path=/",
+      ...(dominio === undefined ? [] : [`Domain=${dominio}`]),
+      "HttpOnly",
+      "Secure",
+      "SameSite=Lax",
+    ].join("; "),
   );
 }
 
@@ -135,6 +149,14 @@ export function adicionarCookiesQueApagam(
   );
   cabecalhos.append(
     "set-cookie",
-    `${NOME_DO_COOKIE_DE_ACESSO}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`,
+    [
+      `${NOME_DO_COOKIE_DE_ACESSO}=`,
+      "Max-Age=0",
+      "Path=/",
+      ...(dominio === undefined ? [] : [`Domain=${dominio}`]),
+      "HttpOnly",
+      "Secure",
+      "SameSite=Lax",
+    ].join("; "),
   );
 }

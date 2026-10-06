@@ -5,7 +5,9 @@
  * bastante para provar a fila e a máquina de status. O histórico da conta,
  * não: o que liga o pedido à conta acontece na ROTA do fechamento, quando o
  * cliente chega com sessão. Provar isso exige o caminho inteiro — carrinho,
- * fechamento, cabeçalho de autorização — como o navegador o percorre.
+ * fechamento e a sessão do cliente — como ela chega de verdade: no cookie
+ * `sc_access`, quando é o navegador (que não lê o token), ou no cabeçalho de
+ * autorização, quando é um cliente nativo.
  *
  * A loja de teste nasce sem entrega configurada e sem horário: sem os dois, o
  * fechamento recusa com "loja fechada", que é o comportamento certo da loja e
@@ -66,16 +68,23 @@ function sessaoDe(resposta: request.Response): string {
 }
 
 export interface OpcoesDaCompra {
-  /** O cabeçalho `Authorization` de um cliente logado. Ausente compra como convidado. */
+  /** O cabeçalho `Authorization` de um cliente logado (cliente nativo). */
   readonly autorizacao?: string | undefined;
+  /**
+   * O token de acesso no cookie `sc_access`, como o NAVEGADOR o leva: a página
+   * não lê o token (HttpOnly) e não monta cabeçalho nenhum. Sem esta opção e
+   * sem `autorizacao`, a compra é de convidado.
+   */
+  readonly cookieDeAcesso?: string | undefined;
   readonly contato?: { readonly nome: string; readonly telefone: string };
 }
 
 /**
  * Monta o carrinho e fecha o pedido, como a vitrine faz.
  *
- * Com `autorizacao`, a compra é de um cliente logado e o pedido nasce ligado à
- * conta dele (AC-616). Sem ela, é a compra de convidado da ASM-103.
+ * Com `cookieDeAcesso` (navegador) ou `autorizacao` (nativo), a compra é de um
+ * cliente logado e o pedido nasce ligado à conta dele (AC-616). Sem nenhum
+ * dos dois, é a compra de convidado da ASM-103.
  */
 export async function fecharPeloSite(
   app: Express,
@@ -97,7 +106,12 @@ export async function fecharPeloSite(
   let fechamento = request(app)
     .post(`/v1/vitrine/${alvo.apelido}/pedidos`)
     .set("Origin", ORIGEM_DO_PAINEL)
-    .set("Cookie", `${COOKIE_DA_SESSAO}=${sessao}`);
+    .set(
+      "Cookie",
+      opcoes.cookieDeAcesso === undefined
+        ? `${COOKIE_DA_SESSAO}=${sessao}`
+        : `${COOKIE_DA_SESSAO}=${sessao}; sc_access=${encodeURIComponent(opcoes.cookieDeAcesso)}`,
+    );
   if (opcoes.autorizacao !== undefined) {
     fechamento = fechamento.set("Authorization", opcoes.autorizacao);
   }
