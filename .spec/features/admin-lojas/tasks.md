@@ -65,9 +65,9 @@
 - Notas: trilha que não pode ser alterada nem apagada. Alterações sensíveis, como a chave PIX, aparecem destacadas.
 - Esforço: medio
 
-## T-209 — Telas de ponta a ponta da administração [pendente]
+## T-209 — Telas de ponta a ponta da administração [concluida]
 
-- Refs: US-200, US-203, AC-200, AC-209
-- Arquivos: e2e/specs/admin-lojas.spec.ts, e2e/specs/admin-documentos.spec.ts
-- Notas: cobre criar loja, alterar tipo de negócio, suspender e reativar, e o upload de contrato com arquivo de tipo disfarçado.
+- Refs: US-200, US-203, AC-200, AC-209, AC-210, AC-211, AC-214, AC-203, AC-204, AC-205
+- Arquivos: e2e/specs/admin-lojas.spec.ts, e2e/specs/admin-documentos.spec.ts, e2e/fixtures/admin.ts, e2e/iniciar-api.mjs
+- Notas: cobre criar loja, alterar tipo de negócio, suspender e reativar, e o upload de contrato com arquivo de tipo disfarçado. Feito: a sessão de administrador é emitida pela montagem (`e2e/fixtures/admin.ts`), com identidade e registro em `platform_admins` de verdade, porque o cookie da tela de entrada não pega em `localhost` no modo produção. A API do ponta a ponta ganhou uma pasta temporária em `ARMAZENAMENTO_PRIVADO_DIR`. Os cenários cobrem cadastro pela tela e troca de Restaurante para Roupas; suspensão com motivo (vitrine fora do ar na API e no site) e reativação; exclusão que só age com o nome exato e restauração no prazo; contrato em PDF aceito, executável com nome e tipo de PDF recusado, e abertura pelo link gerado no clique, que entrega com a sessão e responde 401 sem ela. 8 cenários (4 por largura de tela) passam, e `rotas-manifesto` e `manifesto-cobre-arquivos` também passam com `/admin/auditoria` e `/admin/lojas/{id}/funcionalidades`.
 - Esforço: medio
