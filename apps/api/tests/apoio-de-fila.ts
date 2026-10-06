@@ -128,7 +128,7 @@ export interface ChamadaDeEnvio {
  * Duplo da porta de saída de e-mail: conta chamadas e falha sob comando.
  *
  * Nenhum teste deste projeto fala com serviço de e-mail de verdade. O duplo
- * também demora de propósito — é a demora dele que torna mensurável a promessa
+ * também demora de propósito, e pode ser PRESO: é o que deixa provar a promessa
  * de AC-025 de que a resposta não espera o envio.
  */
 export interface EnviadorDeProva extends EnviadorDeEmail {
@@ -139,6 +139,13 @@ export interface EnviadorDeProva extends EnviadorDeEmail {
   falhar: boolean;
   /** Motivo da falha; nunca carrega dado pessoal (P-009). */
   motivoDaFalha: string;
+  /**
+   * Prende todo envio até a função devolvida ser chamada: o envio começa, mas
+   * não termina. Assim "a resposta não esperou o envio" se prova pela ORDEM dos
+   * acontecimentos — a resposta que chega com o envio preso não esperou por
+   * ele — e não por um cronômetro, que mede também a carga da máquina.
+   */
+  segurarEnvios(): () => void;
 }
 
 /** Opções iniciais do duplo. Todas mutáveis depois, pelo próprio objeto. */
@@ -153,12 +160,25 @@ export function criarEnviadorDeProva(
   opcoes: OpcoesDoEnviadorDeProva = {},
 ): EnviadorDeProva {
   const chamadas: ChamadaDeEnvio[] = [];
+  let preso: Promise<void> | undefined;
 
   const duplo: EnviadorDeProva = {
     chamadas,
     duracaoMs: opcoes.duracaoMs ?? 0,
     falhar: opcoes.falhar ?? false,
     motivoDaFalha: opcoes.motivoDaFalha ?? "serviço de e-mail indisponível",
+
+    segurarEnvios(): () => void {
+      let soltar = (): void => undefined;
+      const estaRetencao = new Promise<void>((seguir) => {
+        soltar = seguir;
+      });
+      preso = estaRetencao;
+      return () => {
+        if (preso === estaRetencao) preso = undefined;
+        soltar();
+      };
+    },
 
     async enviar(mensagem: MensagemDeEmail): Promise<void> {
       const chamada: ChamadaDeEnvio = {
@@ -169,6 +189,8 @@ export function criarEnviadorDeProva(
       };
       chamadas.push(chamada);
 
+      // Preso, o envio nem começa a correr: a demora conta a partir de solto.
+      if (preso !== undefined) await preso;
       if (duplo.duracaoMs > 0) {
         await new Promise((seguir) => setTimeout(seguir, duplo.duracaoMs));
       }

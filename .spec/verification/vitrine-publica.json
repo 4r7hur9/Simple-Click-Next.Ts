@@ -1,7 +1,7 @@
 {
   "feature": "vitrine-publica",
-  "timestamp": "2026-09-27T07:33:59.673Z",
-  "gitRev": "4a4d813",
+  "timestamp": "2026-10-06T02:44:11.055Z",
+  "gitRev": "5943fc8",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh vitrine-publica",
   "reporter": "vitest-json",
   "exitCode": 0,

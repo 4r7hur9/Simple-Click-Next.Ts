@@ -30,6 +30,16 @@ const preparacaoDeBanco = ["./packages/testing/src/vitest-banco.ts"];
 const esperaDeIntegracao = { testTimeout: 60_000, hookTimeout: 180_000 };
 
 /**
+ * Espera dos projetos sem serviço (`unit` e `web`). O padrão do Vitest é 5 s,
+ * e numa máquina de quatro núcleos lógicos com Windows ele media a carga, não
+ * o teste: com a suíte inteira em paralelo, ler os arquivos do site, importar
+ * o `proxy.ts` do Next ou rodar um script de shell passava de 5 s sem nada
+ * estar errado. Nenhum teste destes afirma tempo pela espera — quem cobra
+ * tempo (AC-040) mede e afirma dentro do próprio teste.
+ */
+const esperaSemServico = { testTimeout: 60_000 };
+
+/**
  * Cinco projetos, separados pelo que cada teste precisa para rodar:
  *
  * - `unit`    — nada além do processo. É o que responde em segundos.
@@ -76,6 +86,13 @@ export default defineConfig({
         oxc: conversaoDeJsx,
         test: {
           name: "unit",
+          ...esperaSemServico,
+          // Roda DEPOIS dos outros projetos quando a suíte vem inteira. A prova
+          // do gancho antes do registro (AC-040) mede o tempo do gancho de
+          // verdade, e medido ao lado do ESLint e do jsdom das provas do site o
+          // número dizia quanto a máquina estava ocupada, não quanto o gancho
+          // custa a quem registra. No portão (`--project unit`) nada muda.
+          sequence: { groupOrder: 1 },
           include: [
             "apps/api/src/**/*.test.ts",
             "packages/*/src/**/*.test.{ts,tsx}",
@@ -99,6 +116,7 @@ export default defineConfig({
         oxc: conversaoDeJsx,
         test: {
           name: "web",
+          ...esperaSemServico,
           // O jsdom não implementa `matchMedia`, e componente que pergunta
           // sobre preferência do sistema estoura ao montar — com mensagem que
           // fala de uma função ausente, e não do componente.

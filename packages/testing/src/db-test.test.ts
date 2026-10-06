@@ -509,9 +509,12 @@ describe("uso fora de um projeto de integração", () => {
 
   beforeAll(async () => {
     // Simula um arquivo que não passou pela preparação: importa o módulo num
-    // processo limpo e pede o banco do arquivo.
+    // processo limpo e pede o banco do arquivo. O módulo vai como URL
+    // `file://`, e não como caminho: no Windows o caminho absoluto (`C:\...`)
+    // não é especificador de módulo válido, e o `import` recusa antes de o
+    // teste chegar a pedir o banco.
     const programa = [
-      `const m = await import(${JSON.stringify(fileURLToPath(new URL("./db-test.ts", import.meta.url)))});`,
+      `const m = await import(${JSON.stringify(new URL("./db-test.ts", import.meta.url).href)});`,
       "try { m.bancoDoArquivo(); console.log('SEM_ERRO'); }",
       "catch (e) { console.log(e.name + '|' + e.message.split('\\n')[0]); }",
     ].join("\n");
