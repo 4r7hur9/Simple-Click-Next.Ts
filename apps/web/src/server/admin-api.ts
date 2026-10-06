@@ -58,6 +58,9 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
     padrao: /^arquivos\/[A-Za-z0-9_-]{16,600}\.[A-Za-z0-9_-]{43}$/,
     metodos: ["GET"],
   },
+  // O histórico de auditoria consultável (T-208, AC-215); os filtros vão na
+  // consulta, que o repasse leva junto.
+  { padrao: /^auditoria$/, metodos: ["GET"] },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */

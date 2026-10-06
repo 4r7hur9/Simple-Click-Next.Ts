@@ -20,6 +20,7 @@ import {
   SEM_FILTROS,
   type PainelDaAuditoriaProps,
 } from "../src/features/admin/HistoricoDeAuditoria.tsx";
+import { caminhoPermitido } from "../src/server/admin-api.ts";
 import {
   botao,
   clicar,
@@ -234,5 +235,18 @@ describe("o histórico de auditoria na tela", () => {
     expect(tela.querySelector('[role="alert"]')?.textContent).toContain(
       MENSAGEM_DE_SESSAO,
     );
+  });
+});
+
+describe("o repasse do site (AC-215)", () => {
+  it("@spec:AC-215 o site repassa a consulta do histórico, só para leitura", () => {
+    // Sem esta entrada na lista fechada, a tela pedia /api/admin/auditoria e
+    // o repasse respondia 404 antes de chegar à API.
+    expect(caminhoPermitido("auditoria", "GET")).toBe(true);
+    expect(caminhoPermitido("auditoria", "POST")).toBe(false);
+    expect(caminhoPermitido("auditoria", "DELETE")).toBe(false);
+    expect(
+      enderecoDoHistorico(SEM_FILTROS, 1).startsWith("/api/admin/auditoria?"),
+    ).toBe(true);
   });
 });
