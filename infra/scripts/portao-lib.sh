@@ -48,6 +48,7 @@ PORTAO_APROVADAS=0
 PORTAO_REPROVADAS=() # nome das que reprovaram
 PORTAO_DIARIOS=()    # arquivo com a saída de cada etapa, para apagar no fim
 PORTAO_DIARIOS_REPROVADOS=() # só os das que reprovaram, para o resumo repetir
+PORTAO_DESTINO=""    # o que fazer com a etapa em curso (portao_destino_da_etapa)
 PORTAO_INICIO=$SECONDS
 
 # Retrato do repositório tirado AGORA, antes de a primeira etapa rodar. É este
@@ -99,30 +100,35 @@ portao_carregar_ambiente() {
 # Etapas
 # ---------------------------------------------------------------------------
 
-# Devolve o que fazer com uma etapa: listar, pular, ensaiar (aprovando ou
-# reprovando) ou rodar de verdade.
+# Diz o que fazer com uma etapa — listar, pular, ensaiar (aprovando ou
+# reprovando) ou rodar de verdade — gravando a resposta em PORTAO_DESTINO.
+#
+# Grava numa variável, e não imprime para quem chama capturar com `$(...)`, de
+# propósito: a captura abre um subprocesso por etapa, e no Windows cada
+# subprocesso custa de décimos de segundo a mais de um segundo. Eram dezesseis
+# a cada execução, e o ensaio que prova o portão passava de um minuto.
 portao_destino_da_etapa() {
   local nome="$1"
 
   if [ "$PORTAO_LISTAR" = "1" ]; then
-    printf 'listar\n'
+    PORTAO_DESTINO="listar"
     return 0
   fi
   if [ -n "$PORTAO_SOMENTE" ] && [ "${nome#*$PORTAO_SOMENTE}" = "$nome" ]; then
-    printf 'pular\n'
+    PORTAO_DESTINO="pular"
     return 0
   fi
   case "$PORTAO_ENSAIO" in
-    "") printf 'rodar\n' ;;
+    "") PORTAO_DESTINO="rodar" ;;
     reprovar:*)
       local alvo="${PORTAO_ENSAIO#reprovar:}"
       if [ "${nome#*$alvo}" != "$nome" ]; then
-        printf 'ensaio-reprova\n'
+        PORTAO_DESTINO="ensaio-reprova"
       else
-        printf 'ensaio-aprova\n'
+        PORTAO_DESTINO="ensaio-aprova"
       fi
       ;;
-    *) printf 'ensaio-aprova\n' ;;
+    *) PORTAO_DESTINO="ensaio-aprova" ;;
   esac
 }
 
@@ -138,8 +144,8 @@ portao_etapa() {
 
   PORTAO_NOMES[${#PORTAO_NOMES[@]}]="$nome"
 
-  local destino
-  destino="$(portao_destino_da_etapa "$nome")"
+  portao_destino_da_etapa "$nome"
+  local destino="$PORTAO_DESTINO"
 
   case "$destino" in
     listar)
@@ -158,15 +164,17 @@ portao_etapa() {
   # portão tem dezesseis etapas e leva minutos, e quando uma reprova a
   # explicação fica soterrada centenas de linhas acima do veredito. Quem lê rola
   # para cima procurando, ou — pior — reexecuta filtrando a saída e não vê nada.
-  # Guardando, o resumo repete o trecho da falha ao lado do nome dela.
-  local diario
-  diario="$(mktemp "${TMPDIR:-/tmp}/portao-etapa-XXXXXX")"
-  PORTAO_DIARIOS[${#PORTAO_DIARIOS[@]}]="$diario"
+  # Guardando, o resumo repete o trecho da falha ao lado do nome dela. No
+  # ensaio nada roda e não há saída a guardar: o arquivo só nasce para a etapa
+  # que roda de verdade, sem gastar um processo por etapa à toa.
+  local diario=""
 
   case "$destino" in
     ensaio-aprova) veredito=0 ;;
     ensaio-reprova) veredito=1 ;;
     *)
+      diario="$(mktemp "${TMPDIR:-/tmp}/portao-etapa-XXXXXX")"
+      PORTAO_DIARIOS[${#PORTAO_DIARIOS[@]}]="$diario"
       # `PIPESTATUS` porque o código que importa é o do comando, não o do `tee`.
       if "$@" 2>&1 | tee "$diario"; then :; fi
       veredito=${PIPESTATUS[0]}
@@ -204,7 +212,9 @@ portao_etapa() {
 # limpo: se alguma reprovou, os arquivos ficam para quem quiser ler inteiro.
 portao_limpar_diarios() {
   local arquivo
-  for arquivo in "${PORTAO_DIARIOS[@]}"; do
+  # Lista vazia (ensaio, ou só etapas puladas) com `set -u`: o `+` evita o
+  # "variável não definida" das versões antigas do bash.
+  for arquivo in ${PORTAO_DIARIOS[@]+"${PORTAO_DIARIOS[@]}"}; do
     [ -n "$arquivo" ] && rm -f "$arquivo"
   done
 }

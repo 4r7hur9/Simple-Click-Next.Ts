@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CAMINHO_DA_IDENTIFICACAO,
   descreverIdentificacao,
@@ -21,10 +21,24 @@ function responder(corpo: unknown, status = 200): typeof fetch {
     })) as unknown as typeof fetch;
 }
 
+// O endereço da API vem de `NEXT_PUBLIC_API_URL`, e quem roda a prova pode tê-lo
+// no ambiente — o motor de prova carrega o `.env`, que aponta para a API local.
+// Cada teste declara o ambiente que lê, e o que ele declarou sai depois dele.
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("leitura das respostas da API pelo contrato", () => {
   it("@spec:AC-006 o endereço consultado é o que o contrato declara, não um texto solto no site", () => {
     expect(CAMINHO_DA_IDENTIFICACAO).toBe("/");
+
+    // Sem endereço declarado, vale o padrão — e não o `.env` de quem roda.
+    vi.stubEnv("NEXT_PUBLIC_API_URL", undefined);
     expect(enderecoDaApi()).toBe(ENDERECO_PADRAO_DA_API);
+
+    // Declarado, ele vence o padrão, sem a barra que sobrar no fim.
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.exemplo.test/");
+    expect(enderecoDaApi()).toBe("https://api.exemplo.test");
   });
 
   it("@spec:AC-006 lê o sinal de vida e monta a frase da tela a partir dos campos do contrato", () => {

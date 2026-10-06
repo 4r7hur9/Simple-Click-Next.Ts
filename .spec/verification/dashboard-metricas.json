@@ -1,0 +1,97 @@
+{
+  "feature": "dashboard-metricas",
+  "timestamp": "2026-10-04T00:13:33.093Z",
+  "gitRev": "0765ce1",
+  "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh dashboard-metricas",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 56,
+  "results": {
+    "AC-800": {
+      "status": "pass",
+      "testName": "o dia do painel é o dia da loja (AC-800) @spec:AC-800 às 23:59 de São Paulo o pedido das 23:59 é de hoje e o das 23:59 de ontem não é, embora o UTC diga o contrário @spec:AC-800 às 23:59 de São Paulo o pedido das 23:59 é de hoje e o das 23:59 de ontem não é, embora o UTC diga o contrário",
+      "method": "vitest-json"
+    },
+    "AC-817": {
+      "status": "pass",
+      "testName": "vendido, concluído e em andamento, com o cancelado à parte (AC-817, AC-812, AC-810) @spec:AC-817 três valores distintos e rotulados, e o concluído somado ao em andamento é o vendido @spec:AC-817 três valores distintos e rotulados, e o concluído somado ao em andamento é o vendido",
+      "method": "vitest-json"
+    },
+    "AC-802": {
+      "status": "pass",
+      "testName": "comparação com o período anterior equivalente (AC-802) @spec:AC-802 R$ 500 hoje até as 14h32 contra R$ 400 ontem até as 14h32: subiu R$ 100, 25%, e a venda de ontem à noite não entra @spec:AC-802 R$ 500 hoje até as 14h32 contra R$ 400 ontem até as 14h32: subiu R$ 100, 25%, e a venda de ontem à noite não entra",
+      "method": "vitest-json"
+    },
+    "AC-803": {
+      "status": "pass",
+      "testName": "os atalhos recalculam tudo e mostram o período (AC-803) @spec:AC-803 hoje, três e sete dias trocam números, listas e gráficos juntos, e o período em vigor vem com início e fim @spec:AC-803 hoje, três e sete dias trocam números, listas e gráficos juntos, e o período em vigor vem com início e fim",
+      "method": "vitest-json"
+    },
+    "AC-804": {
+      "status": "pass",
+      "testName": "o intervalo a dedo cobre as duas pontas por inteiro (AC-804) @spec:AC-804 de 1º a 15 do mês passado conta do primeiro instante do dia 1º ao último do dia 15, e nada fora disso @spec:AC-804 de 1º a 15 do mês passado conta do primeiro instante do dia 1º ao último do dia 15, e nada fora disso",
+      "method": "vitest-json"
+    },
+    "AC-805": {
+      "status": "pass",
+      "testName": "intervalo inválido é recusado com explicação (AC-805) @spec:AC-805 data final antes da inicial, intervalo acima de um ano ou data faltando: 400 com a explicação, e nenhum número @spec:AC-805 data final antes da inicial, intervalo acima de um ano ou data faltando: 400 com a explicação, e nenhum número",
+      "method": "vitest-json"
+    },
+    "AC-807": {
+      "status": "pass",
+      "testName": "mais vendidos, evolução por dia e movimento por hora (AC-807, AC-808, AC-809) @spec:AC-807 os mais vendidos vêm com quantidade e valor, por quantidade, e o líder em valor também está na lista @spec:AC-807 os mais vendidos vêm com quantidade e valor, por quantidade, e o líder em valor também está na lista",
+      "method": "vitest-json"
+    },
+    "AC-808": {
+      "status": "pass",
+      "testName": "mais vendidos, evolução por dia e movimento por hora (AC-807, AC-808, AC-809) @spec:AC-808 sete dias viram sete pontos, com os dias sem venda em zero @spec:AC-808 sete dias viram sete pontos, com os dias sem venda em zero",
+      "method": "vitest-json"
+    },
+    "AC-809": {
+      "status": "pass",
+      "testName": "mais vendidos, evolução por dia e movimento por hora (AC-807, AC-808, AC-809) @spec:AC-809 a distribuição por hora tem as 24 horas do relógio da loja, com o pico do fim da tarde e as horas paradas em zero @spec:AC-809 a distribuição por hora tem as 24 horas do relógio da loja, com o pico do fim da tarde e as horas paradas em zero",
+      "method": "vitest-json"
+    },
+    "AC-810": {
+      "status": "pass",
+      "testName": "vendido, concluído e em andamento, com o cancelado à parte (AC-817, AC-812, AC-810) @spec:AC-810 o vendido soma o site e o balcão, e a divisão por canal fecha com ele @spec:AC-810 o vendido soma o site e o balcão, e a divisão por canal fecha com ele",
+      "method": "vitest-json"
+    },
+    "AC-811": {
+      "status": "pass",
+      "testName": "as métricas da loja A não enxergam a loja B (AC-811) @spec:AC-811 @principle:P-003 o dono da A pedindo as métricas e a planilha da B sai por 'não encontrado', igual a apelido que não existe, e nada da B muda @spec:AC-811 @principle:P-003 o dono da A pedindo as métricas e a planilha da B sai por 'não encontrado', igual a apelido que não existe, e nada da B muda",
+      "method": "vitest-json"
+    },
+    "AC-812": {
+      "status": "pass",
+      "testName": "vendido, concluído e em andamento, com o cancelado à parte (AC-817, AC-812, AC-810) @spec:AC-812 dez pedidos com dois cancelados: o vendido só soma os válidos, o cancelado aparece à parte e a regra vem escrita @spec:AC-812 dez pedidos com dois cancelados: o vendido só soma os válidos, o cancelado aparece à parte e a regra vem escrita",
+      "method": "vitest-json"
+    },
+    "AC-813": {
+      "status": "pass",
+      "testName": "o painel com histórico grande (AC-813) @spec:AC-813 com dezenas de milhares de pedidos, o corte de sete dias responde em menos de um segundo @spec:AC-813 com dezenas de milhares de pedidos, o corte de sete dias responde em menos de um segundo",
+      "method": "vitest-json"
+    },
+    "AC-814": {
+      "status": "pass",
+      "testName": "número guardado nunca se passa por número do instante (AC-814) @spec:AC-814 a leitura guardada traz o horário em que foi calculada, o pedido novo aparece na leitura seguinte e 'atualizar agora' recalcula @spec:AC-814 a leitura guardada traz o horário em que foi calculada, o pedido novo aparece na leitura seguinte e 'atualizar agora' recalcula",
+      "method": "vitest-json"
+    },
+    "AC-815": {
+      "status": "pass",
+      "testName": "a exportação do período (AC-815, AC-816) @spec:AC-815 @spec:AC-816 a planilha traz um pedido por linha no recorte da tela, sem telefone nem endereço, e a exportação fica na auditoria @spec:AC-815 @spec:AC-816 a planilha traz um pedido por linha no recorte da tela, sem telefone nem endereço, e a exportação fica na auditoria",
+      "method": "vitest-json"
+    },
+    "AC-816": {
+      "status": "pass",
+      "testName": "a exportação do período (AC-815, AC-816) @spec:AC-815 @spec:AC-816 a planilha traz um pedido por linha no recorte da tela, sem telefone nem endereço, e a exportação fica na auditoria @spec:AC-815 @spec:AC-816 a planilha traz um pedido por linha no recorte da tela, sem telefone nem endereço, e a exportação fica na auditoria",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {
+    "P-003": {
+      "status": "pass",
+      "testName": "as métricas da loja A não enxergam a loja B (AC-811) @spec:AC-811 @principle:P-003 o dono da A pedindo as métricas e a planilha da B sai por 'não encontrado', igual a apelido que não existe, e nada da B muda @spec:AC-811 @principle:P-003 o dono da A pedindo as métricas e a planilha da B sai por 'não encontrado', igual a apelido que não existe, e nada da B muda"
+    }
+  }
+}

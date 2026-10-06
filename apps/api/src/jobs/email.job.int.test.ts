@@ -32,15 +32,17 @@ import {
 
 const URL_DO_REDIS = urlDoRedisDeTeste();
 
-/** Quanto o serviço de e-mail simulado demora. É a régua da medição. */
+/** Quanto o serviço de e-mail simulado demora, depois de solto. */
 const DURACAO_DO_ENVIO_MS = 1_500;
 
 /**
- * Teto da resposta ao cadastro. Bem abaixo da demora do envio de propósito:
- * uma resposta que esperasse o e-mail levaria pelo menos `DURACAO_DO_ENVIO_MS`,
- * então qualquer valor abaixo deste teto só é possível se ela não esperou.
+ * Até quando a prova espera a resposta com o envio preso, antes de soltá-lo à
+ * força. Não é a régua da prova: a régua é a ordem — a resposta que chega com
+ * o envio preso não esperou por ele, rode a máquina rápida ou lenta. O prazo
+ * só existe para que um cadastro que ESPERA o e-mail reprove dizendo isso, em
+ * vez de ficar pendurado até o limite do Vitest.
  */
-const TETO_DA_RESPOSTA_MS = 500;
+const PRAZO_DA_RESPOSTA_MS = 30_000;
 
 const CADASTRO = {
   destinatario: "pessoa@exemplo.test",
@@ -109,26 +111,42 @@ describe("envio de e-mail do cadastro", () => {
   it("@spec:AC-025 a resposta do cadastro chega sem esperar o envio do e-mail", async () => {
     const app = montarCenario({ duracaoMs: DURACAO_DO_ENVIO_MS });
 
-    const antes = Date.now();
-    const resposta = await request(app).post("/cadastro").send({});
-    const depois = Date.now();
+    // O envio fica PRESO enquanto a resposta não chega. Cronometrar a resposta
+    // contra um teto oscila com a carga da máquina — mede o processador, não o
+    // critério. Com o envio preso, a ordem decide sozinha: se o cadastro
+    // esperasse o e-mail, a resposta só viria depois de o envio ser solto.
+    const soltarEnvio = enviador.segurarEnvios();
+    let soltoPeloPrazo = false;
+    const prazo = setTimeout(() => {
+      soltoPeloPrazo = true;
+      soltarEnvio();
+    }, PRAZO_DA_RESPOSTA_MS);
 
-    expect(resposta.status).toBe(201);
-    expect(resposta.body).toMatchObject({
-      cadastrado: true,
-      emailEnfileirado: true,
-    });
+    let depois: number;
+    try {
+      const resposta = await request(app).post("/cadastro").send({});
+      depois = Date.now();
 
-    // A medição do critério: a resposta custou uma fração do envio.
-    const duracaoDaResposta = depois - antes;
-    expect(duracaoDaResposta).toBeLessThan(TETO_DA_RESPOSTA_MS);
-    expect(duracaoDaResposta).toBeLessThan(DURACAO_DO_ENVIO_MS);
+      // A medição do critério: a resposta chegou com o envio ainda preso.
+      expect(
+        soltoPeloPrazo,
+        "a resposta só chegou depois de o envio ser solto: o cadastro esperou o e-mail",
+      ).toBe(false);
+      expect(resposta.status).toBe(201);
+      expect(resposta.body).toMatchObject({
+        cadastrado: true,
+        emailEnfileirado: true,
+      });
 
-    // E, no instante em que ela chegou, nenhum envio tinha terminado.
-    const concluidosNaResposta = enviador.chamadas.filter(
-      (chamada) => chamada.terminouEm !== undefined,
-    );
-    expect(concluidosNaResposta).toHaveLength(0);
+      // E, no instante em que ela chegou, nenhum envio tinha terminado.
+      const concluidosNaResposta = enviador.chamadas.filter(
+        (chamada) => chamada.terminouEm !== undefined,
+      );
+      expect(concluidosNaResposta).toHaveLength(0);
+    } finally {
+      clearTimeout(prazo);
+      soltarEnvio();
+    }
 
     // O envio acontece mesmo — em segundo plano, depois da resposta.
     await esperarPor(

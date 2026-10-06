@@ -466,7 +466,12 @@ bash infra/scripts/verificar.sh  # o portão completo
     vinda do ambiente (P-002). Enquanto isso, AC-025 e AC-026 estão provados
     contra o Redis real com um duplo no lugar do serviço externo.
 
-36. **`montarSegundoPlano` ainda não é chamado por `main.ts`.** A T-014 NÃO
+36. ~~**`montarSegundoPlano` ainda não é chamado por `main.ts`.**~~
+    **Resolvido pela T-023 em 03/10:** a partida (`iniciarApi`, em
+    `apps/api/src/main.ts`) sobe o segundo plano quando ele está ligado — o
+    padrão em produção, AC-046 —, passa `aoFalhar` para o registro e fecha as
+    filas no desligamento, antes de banco e cache (AC-047). A anotação
+    original segue abaixo. A T-014 NÃO
     tocou em `apps/api/src/app.ts` nem em `apps/api/src/main.ts`, de propósito:
     várias tarefas deste grupo disputam esses dois arquivos e um conflito ali
     custa mais do que a espera. O ponto de composição existe, está provado e é
@@ -613,7 +618,11 @@ bash infra/scripts/verificar.sh  # o portão completo
     colidiria com quem está na T-003. Entra junto com a montagem das rotas de
     entrada, na feature `identidade-acesso`.
 
-50. **`main.ts` ainda não chama `carregarAmbiente`.** `criarApp()` lê
+50. ~~**`main.ts` ainda não chama `carregarAmbiente`.**~~ **Resolvido pela
+    T-023 em 03/10:** a partida valida o ambiente antes de abrir qualquer
+    conexão, recusa nomeando a variável na saída de erro e passa a lista de
+    origens já validada para `criarApp` (prova por processo em
+    `apps/api/src/main.test.ts`, AC-002). A anotação original: `criarApp()` lê
     `ORIGENS_PERMITIDAS` do ambiente e, se ela faltar, a lista fica VAZIA — o que
     fecha a porta (nenhuma origem autorizada a mudar estado) em vez de abri-la.
     É o padrão seguro, mas não substitui a recusa de partida que AC-002 exige:
@@ -764,7 +773,10 @@ bash infra/scripts/verificar.sh  # o portão completo
     regra de compatibilidade das migrações já foi escrita para esse mundo; é
     exatamente a janela que ela protege.
 
-56. **Dois nomes para a mesma porta da API.** `apps/api/src/main.ts` lê
+56. ~~**Dois nomes para a mesma porta da API.**~~ **Resolvido pela T-023 em
+    03/10:** a porta se chama `PORT` em todo lugar (AC-048); `API_PORT` é nome
+    aposentado, tolerado só quando aponta para a mesma porta. A anotação
+    original: `apps/api/src/main.ts` lê
     `API_PORT`; `apps/api/src/core/env.ts` e o `.env.example` chamam a mesma
     coisa de `PORT`. Hoje convivem porque o padrão é 3001 nos dois, e a imagem
     de produção declara `API_PORT`. Unificar é mexer em teste de duas tarefas
@@ -1410,6 +1422,40 @@ bash infra/scripts/verificar.sh  # o portão completo
     T-908 confere no navegador; (c) o manifesto de etiquetas do Next é da
     memória do processo: com mais de uma réplica do site, a invalidação
     precisaria de um gerenciador de cache compartilhado.
+
+94. **O que a partida de produção (T-023, 03/10) deixou de fora.**
+    - **Fora de produção, o e-mail continua sem adaptador de registro.** A
+      partida passa `enviadorNaoConfigurado` em todo ambiente: com
+      `SEGUNDO_PLANO=ligado` na máquina local, o trabalho de e-mail falha alto
+      do mesmo jeito que em produção. O adaptador que só registra (sem o
+      endereço nem o link, por P-009) nasce com a primeira tarefa de identidade
+      que enfileirar e-mail; o provedor real continua sendo decisão do dono
+      (dívida 35).
+    - **O sinal de término é provado por dentro do processo.** No Windows,
+      `kill('SIGTERM')` num processo filho o derruba sem chamar ouvinte nenhum,
+      então a prova liga o desligamento a um emissor de mentira no lugar de
+      `process`. O caminho com sinal de verdade se confere à mão no ensaio da
+      imagem: `docker stop` no contêiner da API e procurar `api.desligou` como
+      última linha do registro.
+    - **O prazo de drenagem do provedor não foi conferido.** O desligamento tem
+      8 s; o provedor precisa esperar pelo menos 10 s entre o sinal de término e
+      a morte forçada (`infra/railway/README.md`).
+    - **`e2e/iniciar-api.mjs` e `e2e/playwright.config.ts` ainda passam
+      `API_PORT`**, igual a `PORT`: é inofensivo (a partida só avisa) e fica
+      para quem mexer no ponta a ponta tirar.
+    - **A prova escopada de `fundacao` numa árvore de trabalho do Windows
+      reprova critérios que a T-023 não tocou**, todos por ambiente: os `.sh` e
+      o `contrato/openapi.json` saem com CRLF (`core.autocrlf=true`), o que
+      quebra a leitura de `verificar.sh` por expressão regular (AC-030, AC-031)
+      e deixa o contrato "equivalente, mas fora do formato" (AC-007); os testes
+      do portão que montam repositório e rodam ganchos falham nessa árvore
+      (AC-017, AC-020, AC-040 a AC-043); o motor carrega o `.env`, e o
+      `NEXT_PUBLIC_API_URL` dele derruba o teste do endereço padrão (AC-006);
+      e o teste de AC-025 mede menos de 500 ms na primeira requisição e oscila
+      sob carga (passa sozinho na segunda execução). O cliente do Prisma
+      gerado estava velho nesta árvore (de antes do `schema.prisma` de 27/09) e
+      fazia o AC-010 responder 500; `pnpm --filter @simpleclick/database gerar`
+      resolveu. A prova que vale continua sendo a da integração.
 
 ## Portão contornado
 

@@ -2,32 +2,32 @@
 
 > feature: dashboard-metricas
 
-## T-800 — Consulta de métricas por período no fuso da loja [pendente]
+## T-800 — Consulta de métricas por período no fuso da loja [concluida]
 
 - Refs: US-800, US-801, AC-800, AC-803, AC-804, AC-805
-- Arquivos: apps/api/src/modules/metrics/periodo.ts, apps/api/src/modules/metrics/periodo.test.ts, apps/api/src/modules/metrics/metricas.usecase.ts, apps/api/src/modules/metrics/metricas.usecase.test.ts, apps/api/src/modules/metrics/metrics.schema.ts, packages/contracts/src/metrics.ts
-- Notas: o corte de hoje e de qualquer intervalo usa o fuso da loja. Intervalo escolhido cobre os dois dias das pontas por completo. Data final anterior à inicial, ou intervalo acima do limite, é recusado mantendo o período anterior.
+- Arquivos: apps/api/src/modules/metrics/periodo.ts, apps/api/src/modules/metrics/periodo.test.ts, apps/api/src/modules/metrics/consultas.ts, apps/api/src/modules/metrics/metricas.usecase.ts, apps/api/src/modules/metrics/metrics.schema.ts, apps/api/src/modules/metrics/metricas.routes.ts, packages/contracts/src/metricas.ts, packages/contracts/src/index.ts, apps/api/src/app.ts, apps/api/tests/apoio-de-metricas.ts, apps/api/tests/metricas-periodo.test.ts
+- Notas: o corte de hoje e de qualquer intervalo usa o fuso da loja. Intervalo escolhido cobre os dois dias das pontas por completo. Data final anterior à inicial, ou intervalo acima do limite, é recusado mantendo o período anterior. A rota é `GET /v1/lojas/:apelido/metricas` (`periodo`, `de`, `ate`, `atualizar`), montada em `app.ts`; o fuso vem de `storefront/fuso-da-loja.ts` pela composição, e o vínculo do dono com a loja é o de `core/db.ts` (404, dívida 92). O período em curso compara com o mesmo pedaço do anterior (decisão de 03/10/2026). A parte de tela do AC-803 e do AC-805 (período visível, recusa explicada mantendo o anterior) é da T-804.
 - Esforço: alto
 
-## T-801 — Três números: vendido, concluído e em andamento [pendente]
+## T-801 — Três números: vendido, concluído e em andamento [em-andamento]
 
 - Refs: US-800, US-803, AC-817, AC-812
-- Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx
+- Arquivos: apps/api/src/modules/metrics/faturamento.ts, apps/api/src/modules/metrics/faturamento.test.ts, apps/api/tests/metricas-faturamento.test.ts, apps/web/src/features/dashboard/CartoesDeMetrica.tsx
 - Notas: venda conta a partir de aceito pelo dono. Concluído somado ao em andamento corresponde ao vendido. Cancelado nunca conta e aparece à parte, com a regra visível na tela.
 - Esforço: medio
 
-## T-802 — Índices e desempenho das consultas de métrica [pendente]
+## T-802 — Índices e desempenho das consultas de métrica [concluida]
 
 - Refs: US-803, AC-813
-- Arquivos: packages/database/migrations/0009_indices_metricas.sql, apps/api/tests/metricas-desempenho.test.ts, packages/database/guards/g5_indice_cobre_politica.sql
-- Notas: o índice inclui também as colunas citadas pelas políticas de isolamento — sem isso não há leitura direta pelo índice, achado medido durante a modelagem. Enquanto carrega, a tela mostra carregamento em vez de número errado.
+- Arquivos: packages/database/migrations/0037_indices_metricas.sql, apps/api/tests/metricas-desempenho.test.ts
+- Notas: o índice inclui também as colunas citadas pelas políticas de isolamento — sem isso não há leitura direta pelo índice, achado medido durante a modelagem; a guarda G5 (`packages/database/guards/g5_indice_cobre_politica.sql`, inalterada) cobra isso e passa sobre a 0037. O estado de carregamento da tela (enquanto carrega, carregamento em vez de número errado) é entregue com as telas da T-803 e da T-804.
 - Esforço: alto
 
 ## T-803 — Painel do dia com comparação e estado inicial útil [pendente]
 
 - Refs: US-800, AC-801, AC-802
-- Arquivos: apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/features/dashboard/ComparativoPeriodo.tsx, apps/web/src/features/dashboard/PainelVazio.tsx
-- Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho.
+- Arquivos: apps/web/src/app/(painel)/painel/page.tsx, apps/web/src/app/api/painel/metricas/route.ts, apps/web/src/features/dashboard/ComparativoPeriodo.tsx, apps/web/src/features/dashboard/PainelVazio.tsx
+- Notas: dia sem venda orienta e oferece compartilhar o link da vitrine, em vez de mostrar zero seco. Variação frente ao período anterior equivalente indica direção e tamanho; no período em curso a API devolve até que instante o anterior foi contado (`comparacao.periodoAnterior.fim` e `parcial`), para a tela escrever "ontem até 14h32". O encaminhamento `/api/painel/metricas` segue o padrão de `server/encaminhar-ao-painel.ts`. Os atalhos atuais do painel (configuração, categorias, produtos) continuam alcançáveis.
 - Esforço: medio
 
 ## T-804 — Seletor de período com endereço compartilhável [pendente]
@@ -37,32 +37,32 @@
 - Notas: o período em vigor fica no endereço da página, então sobrevive ao recarregar e pode ser aberto em outra aba.
 - Esforço: medio
 
-## T-805 — Produtos mais vendidos, evolução e distribuição por hora [pendente]
+## T-805 — Produtos mais vendidos, evolução e distribuição por hora [em-andamento]
 
 - Refs: US-802, AC-807, AC-808, AC-809, AC-810
-- Arquivos: apps/api/src/modules/metrics/ranking.usecase.ts, apps/api/src/modules/metrics/ranking.usecase.test.ts, apps/api/src/modules/metrics/serie.usecase.ts, apps/api/src/modules/metrics/serie.usecase.test.ts, apps/web/src/features/dashboard/RankingProdutos.tsx, apps/web/src/features/dashboard/EvolucaoDiaria.tsx, apps/web/src/features/dashboard/DistribuicaoPorHora.tsx
-- Notas: dia e hora sem venda aparecem como zero, não desaparecem do gráfico. Ordenação alternável entre quantidade e valor. Divisão entre pedido do site e manual, com o total somando os dois. Gráfico legível em tela pequena antes de bonito em tela grande.
+- Arquivos: apps/api/src/modules/metrics/metricas.usecase.test.ts, apps/api/tests/metricas-ranking.test.ts, apps/web/src/features/dashboard/RankingProdutos.tsx, apps/web/src/features/dashboard/EvolucaoDiaria.tsx, apps/web/src/features/dashboard/DistribuicaoPorHora.tsx
+- Notas: dia e hora sem venda aparecem como zero, não desaparecem do gráfico. Ordenação alternável entre quantidade e valor. Divisão entre pedido do site e manual, com o total somando os dois. Gráfico legível em tela pequena antes de bonito em tela grande, em SVG e CSS próprios, sem biblioteca (decisão de 03/10/2026). O cálculo do ranking e das séries mora em `apps/api/src/modules/metrics/consultas.ts` e `apps/api/src/modules/metrics/metricas.usecase.ts` (`unirRankings`, `completarDias`, `completarHoras`), entregues com a T-800.
 - Esforço: alto
 
-## T-806 — Métricas nunca cruzam loja [pendente]
+## T-806 — Métricas nunca cruzam loja [concluida]
 
 - Refs: US-803, AC-811
 - Arquivos: apps/api/tests/metricas-isolamento.test.ts
 - Notas: inclui a tentativa de informar o identificador de outra loja na requisição. Vale também para qualquer visão agregada — visão de banco precisa executar com os direitos de quem consulta, senão mostra todas as lojas. Marcado com @principle:P-003.
 - Esforço: medio
 
-## T-807 — Cache das métricas com horário de referência [pendente]
+## T-807 — Cache das métricas com horário de referência [em-andamento]
 
 - Refs: US-803, AC-814
-- Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx
+- Arquivos: apps/api/src/modules/metrics/cache.ts, apps/api/src/modules/metrics/cache.test.ts, apps/api/tests/metricas-cache.test.ts, apps/web/src/features/dashboard/HorarioDeReferencia.tsx
 - Notas: a tela informa a que momento os números se referem e oferece atualizar agora. Pedido novo aparece dentro do prazo definido.
 - Esforço: medio
 
-## T-808 — Exportação do período [pendente]
+## T-808 — Exportação do período [em-andamento]
 
 - Refs: US-804, AC-815, AC-816
-- Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/web/src/features/dashboard/BotaoExportar.tsx
-- Notas: um pedido por linha, respeitando o período escolhido, sem dado que o dono não veria na tela e sem pedido de outra loja. A exportação é registrada na auditoria.
+- Arquivos: apps/api/src/modules/metrics/exportar.usecase.ts, apps/api/src/modules/metrics/exportar.usecase.test.ts, apps/api/tests/metricas-exportacao.test.ts, apps/web/src/app/api/painel/metricas/exportar/route.ts, apps/web/src/features/dashboard/BotaoExportar.tsx
+- Notas: um pedido por linha, respeitando o período escolhido, sem dado que o dono não veria na tela e sem pedido de outra loja. A exportação é registrada na auditoria. A rota é `GET /v1/lojas/:apelido/metricas/exportar`, em CSV genérico (decisão de 03/10/2026; Q-803 segue aberta).
 - Esforço: medio
 
 ## T-809 — Teste de ponta a ponta do painel [pendente]

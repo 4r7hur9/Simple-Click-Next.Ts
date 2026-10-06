@@ -1005,6 +1005,35 @@ model ProductAttribute {
   @@schema("app")
 }
 
+/// Contrato e documentos do responsável pela loja (admin-lojas, T-205,
+/// migração 0033). Só a credencial da administração alcança a tabela: nem o
+/// próprio dono vê o contrato pela conexão das lojas (AC-205). Os bytes moram
+/// no armazenamento privado; aqui fica o que os descreve.
+///
+/// Sem relação declarada com `Store` e `Identity` de propósito: a chave
+/// estrangeira existe no banco, e a leitura é da administração, por consulta
+/// própria — declarar a relação obrigaria a mexer nos dois modelos centrais.
+model StoreContract {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId          String   @map("store_id") @db.Uuid
+  /// CONTRACT, ID_DOC ou ADDRESS_PROOF.
+  kind             String
+  /// `<loja>/<uuid>`, gerada pelo servidor; nunca o nome do arquivo.
+  storageKey       String   @map("storage_key")
+  /// Conferido pelos bytes, nunca pela extensão (AC-204).
+  mimeType         String   @map("mime_type")
+  byteSize         BigInt   @map("byte_size")
+  sha256           Bytes
+  originalFilename String?  @map("original_filename")
+  uploadedBy       String   @map("uploaded_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([storeId, storageKey], map: "store_contracts_chave_uk")
+  @@index([storeId, kind, createdAt(sort: Desc)], map: "store_contracts_loja_ix")
+  @@map("store_contracts")
+  @@schema("app")
+}
+
 /// Agente de impressão pareado com a loja (0034, T-607/T-608). Guarda só o
 /// sha256 da credencial que ele recebe no pareamento — nunca a credencial.
 /// Revogar é preencher `revokedAt`; agente não se apaga.
@@ -1069,34 +1098,5 @@ model PrintPairingCode {
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("print_pairing_codes")
-  @@schema("app")
-}
-
-/// Contrato e documentos do responsável pela loja (admin-lojas, T-205,
-/// migração 0033). Só a credencial da administração alcança a tabela: nem o
-/// próprio dono vê o contrato pela conexão das lojas (AC-205). Os bytes moram
-/// no armazenamento privado; aqui fica o que os descreve.
-///
-/// Sem relação declarada com `Store` e `Identity` de propósito: a chave
-/// estrangeira existe no banco, e a leitura é da administração, por consulta
-/// própria — declarar a relação obrigaria a mexer nos dois modelos centrais.
-model StoreContract {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId          String   @map("store_id") @db.Uuid
-  /// CONTRACT, ID_DOC ou ADDRESS_PROOF.
-  kind             String
-  /// `<loja>/<uuid>`, gerada pelo servidor; nunca o nome do arquivo.
-  storageKey       String   @map("storage_key")
-  /// Conferido pelos bytes, nunca pela extensão (AC-204).
-  mimeType         String   @map("mime_type")
-  byteSize         BigInt   @map("byte_size")
-  sha256           Bytes
-  originalFilename String?  @map("original_filename")
-  uploadedBy       String   @map("uploaded_by") @db.Uuid
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  @@unique([storeId, storageKey], map: "store_contracts_chave_uk")
-  @@index([storeId, kind, createdAt(sort: Desc)], map: "store_contracts_loja_ix")
-  @@map("store_contracts")
   @@schema("app")
 }

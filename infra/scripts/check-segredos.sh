@@ -23,22 +23,38 @@ set -uo pipefail
 # `${SENHA}` e `"" + senha` continuam livres. O corpo precisa de 8 caracteres
 # ou mais — abaixo disso é marcador de teste, não credencial.
 padrao='(api[_-]?key|secret|senha|password|token|database_url|redis_url)[A-Za-z0-9_]*[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'$\{][^"'"'"']{7,}'
-achou=0
 
+alvos=()
 for arquivo in "$@"; do
   [ -f "$arquivo" ] || continue
   case "$arquivo" in
     # Exemplo, documentação e teste falam SOBRE segredo — inclusive este script
     # e a prova dele, que precisam carregar o padrão e uma credencial de mentira
-    # no corpo para poder verificar que a busca funciona.
-    *.example | *.md | */check-segredos.sh | *.test.* | */tests/*) continue ;;
+    # no corpo para poder verificar que a busca funciona. `*.spec.ts` é a prova
+    # de ponta a ponta (Playwright, `e2e/specs/`): teste como qualquer
+    # `*.test.ts`, com a senha de mentira da pessoa que a prova cadastra.
+    *.example | *.md | */check-segredos.sh | *.test.* | *.spec.ts | */tests/*) continue ;;
   esac
-  if grep -nEi "$padrao" "$arquivo" >/dev/null 2>&1; then
-    printf '\033[31m✘ possível segredo em %s:\033[0m\n' "$arquivo"
-    grep -nEi "$padrao" "$arquivo" | sed 's/^/    /'
-    achou=1
-  fi
+  alvos+=("$arquivo")
 done
+[ ${#alvos[@]} -eq 0 ] && exit 0
+
+# UMA busca sobre todos os arquivos, e não um `grep` por arquivo. No Windows
+# cada processo novo custa de décimos de segundo a mais de um segundo, e a
+# etapa do portão varre perto de mil arquivos: um processo por arquivo levava
+# a varredura a quinze minutos. `-Z` separa o nome do arquivo com um byte nulo
+# (nome com `:` não confunde a leitura) e `-a` lê binário como texto, para que
+# arquivo binário com o padrão também seja apontado com a linha.
+achou=0
+anterior=""
+while IFS= read -r -d '' arquivo && IFS= read -r linha; do
+  if [ "$arquivo" != "$anterior" ]; then
+    printf '\033[31m✘ possível segredo em %s:\033[0m\n' "$arquivo"
+    anterior="$arquivo"
+  fi
+  printf '    %s\n' "$linha"
+  achou=1
+done < <(grep -naHZEi -- "$padrao" "${alvos[@]}" 2>/dev/null)
 
 if [ $achou -eq 1 ]; then
   printf '\nSegredo vem de variável de ambiente, nunca do código (P-002).\n'

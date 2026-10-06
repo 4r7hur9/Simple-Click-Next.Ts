@@ -179,15 +179,31 @@ para plano pago tem data marcada (decisão de 17/08).
 Em todos os casos acima, menos o último, **nada foi trocado**: a versão anterior
 continua atendendo, porque ela nunca chegou a ser desligada.
 
+## A partida e a troca de versão (T-023)
+
+A API valida o ambiente inteiro ANTES de abrir qualquer conexão e recusa partir
+nomeando cada variável ausente ou inválida (AC-002). Em produção, as filas de
+segundo plano sobem no mesmo processo sem precisar de variável nenhuma
+(`SEGUNDO_PLANO=desligado` desliga de propósito; AC-046). Na troca de versão, o
+sinal de término faz a instância antiga parar de aceitar conexão, entregar o
+que está em curso e fechar filas, banco e cache nessa ordem, com prazo de 8 s
+(AC-047) — o provedor precisa esperar pelo menos 10 s antes de matar à força
+(ver `infra/railway/README.md`).
+
+Enquanto o provedor de e-mail não é escolhido (dívida 35), o trabalhador de
+e-mail sobe com o adaptador que falha alto: o trabalho esgota as tentativas e
+fica falho e inspecionável, e cada tentativa sai no registro como
+`segundo_plano.tentativa_falhou`, sem o endereço de ninguém.
+
 ## O que ainda não existe
 
 Registrado também em `docs/pendencias.md`:
 
 - Conta no provedor, domínio e primeira publicação — fase de publicação.
-- A imagem da API traz `API_PORT`, que é o nome que `apps/api/src/main.ts` lê. O
-  `.env.example` e `apps/api/src/core/env.ts` chamam a mesma coisa de `PORT`. As
-  duas convivem hoje porque o padrão (3001) é o mesmo; unificar o nome é dívida
-  registrada.
+- ~~A porta da API com dois nomes~~ — resolvido pela T-023 em 03/10: a porta se
+  chama `PORT` na imagem, no `.env.example`, em `core/env.ts` e em `main.ts`
+  (AC-048). `API_PORT` é nome aposentado: tolerado quando aponta para a mesma
+  porta, recusado na partida quando aponta para outra.
 - Publicação com duas instâncias ao mesmo tempo (uma nova e uma antiga atendendo
   juntas) ainda não foi ensaiada. A regra de compatibilidade das migrações já foi
   escrita para esse mundo — é exatamente a janela que ela protege.
