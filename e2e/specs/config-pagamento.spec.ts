@@ -135,10 +135,9 @@ test("@spec:AC-905 @spec:AC-906 @spec:AC-907 @spec:AC-908 taxa, entrega grátis,
       page.getByRole("button", { name: /Enviar pelo WhatsApp/ }),
     ).toBeVisible();
 
-    // PEDIDO DE R$ 70,00: acima de R$ 60,00 a entrega sai grátis. Começa num
-    // carrinho novo: hoje o carrinho que virou pedido não é marcado como
-    // convertido e continua com os itens (pendência registrada na T-908).
-    await page.context().clearCookies({ name: "sc_carrinho" });
+    // PEDIDO DE R$ 70,00: acima de R$ 60,00 a entrega sai grátis. O carrinho
+    // que virou o pedido anterior já saiu de cena (AC-524), então a mesma
+    // sessão começa num carrinho novo, só com a jaqueta.
     await irAoFechamentoCom(page, apelido, [caro]);
     await expect(resumo).toContainText(/Frete da malharia\s*Grátis/);
     await expect(resumo).toContainText(/Total\s*R\$\s70,00/);

@@ -1458,18 +1458,19 @@ bash infra/scripts/verificar.sh  # o portão completo
       resolveu. A prova que vale continua sendo a da integração.
 
 95. **O que o ponta a ponta das configurações (T-908, 06/10) achou fora dela.**
-    - **O carrinho que vira pedido não é marcado como convertido.** Nada na
-      API grava `carts.converted_at`, e a política do visitante
-      (`0012_carrinho_do_visitante.sql`) não deixa o `sc_app` gravá-lo — o
-      `WITH CHECK` exige `converted_at IS NULL`. Efeito: depois de pedir, o
-      cliente volta ao fechamento com os mesmos itens, e um segundo "Fechar
-      pedido" (chave de idempotência nova) cria outro pedido igual. Conserto:
-      função definidora com `search_path` fixo que converte o carrinho da
-      sessão na mesma transação do pedido (migração nova), chamada pela rota
-      `POST /v1/vitrine/:apelido/pedidos` depois de `criarPedido` dar certo. O
-      cenário da entrega grátis (`config-pagamento.spec.ts`) começa num
-      carrinho novo apagando o cookie `sc_carrinho`; tirar isso quando o
-      conserto entrar.
+    - **Carrinho que vira pedido — resolvido na T-516 (06/10).** Nada na API
+      gravava `carts.converted_at`, e a política do visitante (0012) não
+      deixava o `sc_app` gravá-lo; depois de pedir, o cliente voltava ao
+      fechamento com os mesmos itens, e um segundo "Fechar pedido" (chave
+      nova) criava outro pedido igual. Agora `app.converter_carrinho`
+      (migração 0043, definidora com `search_path` fixo) converte o carrinho
+      da sessão na mesma transação do pedido, chamada pela rota depois de
+      `criarPedido` dar certo; converter de novo devolve falso e a rota desfaz
+      com 409 (corrida de dois fechamentos). A nova tentativa com a MESMA
+      chave responde com o pedido guardado (`pedido-fechado.usecase.ts`), e
+      não com o carrinho, que já saiu de cena. Prova: AC-524 e AC-516 em
+      `carrinho-convertido.int.test.ts`. O contorno do cookie `sc_carrinho`
+      saiu de `config-pagamento.spec.ts`.
     - **AC-517 — resolvido na revisão da faixa (06/10).** O 409 da criação
       continua só com o código (`CorpoDeErro` não mudou); diante dele, o site
       pergunta à vitrine pública se a loja está fechada — mesmo cálculo da

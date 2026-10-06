@@ -60,6 +60,11 @@ import { validar } from "../../core/validar.ts";
 import { criarPedido } from "./criar-pedido.usecase.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
 import { reservarEstoque } from "./reservar-estoque.ts";
+import {
+  converterCarrinhoNoPedido,
+  pedidoDaChaveDeFechamento,
+  pedidoGuardado,
+} from "./pedido-fechado.usecase.ts";
 import { acompanharPedido } from "./acompanhar.usecase.ts";
 import { vincularClienteDaLoja } from "./meus-pedidos.usecase.ts";
 import {
@@ -249,6 +254,15 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
         },
         () =>
           acesso.emTransacao(async () => {
+            // A NOVA TENTATIVA COM A MESMA CHAVE vem antes do carrinho: o
+            // carrinho que virou aquele pedido já foi convertido, e reler a
+            // sessão daria um carrinho vazio (AC-516, AC-524).
+            const jaFechado = await pedidoDaChaveDeFechamento(
+              lojaId,
+              body.chaveDeIdempotencia,
+            );
+            if (jaFechado !== null) return { jaFechado } as const;
+
             const carrinho = await opcoes.lerCarrinho();
             const conferencia = await opcoes.conferirCarrinho(
               carrinho.id,
@@ -330,16 +344,39 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
             );
 
             // Idempotência devolve o pedido já baixado. Só a criação nova
-            // reserva saldo; repetir o checkout nunca baixa duas vezes.
-            if (criado.ok && !criado.pedido.jaExistia) {
+            // reserva saldo; repetir o checkout nunca baixa duas vezes. E a
+            // resposta da repetição é a do pedido GUARDADO, não a deste
+            // carrinho.
+            if (criado.ok && criado.pedido.jaExistia) {
+              return {
+                jaFechado: { tokenPublico: criado.pedido.tokenPublico },
+              } as const;
+            }
+            if (criado.ok) {
               await reservarEstoque({
                 lojaId,
                 pedidoId: criado.pedido.id,
                 itens,
               });
+              // O CARRINHO SAI DE CENA NA MESMA TRANSAÇÃO (AC-524): sem isso,
+              // voltar ao fechamento traria os mesmos itens, e um segundo
+              // "Fechar pedido" faria outro pedido igual. Falso é a corrida de
+              // dois fechamentos do mesmo carrinho: este perde e é desfeito.
+              const convertido = await converterCarrinhoNoPedido(
+                carrinho.id,
+                criado.pedido.id,
+              );
+              if (!convertido) {
+                throw erroDeDominio("conflito", {
+                  recurso: "carrinho",
+                  recursoId: carrinho.id,
+                  motivo: "carrinho_ja_virou_pedido",
+                });
+              }
             }
 
             return {
+              jaFechado: null,
               criado,
               valores,
               whatsapp,
@@ -349,6 +386,19 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
             };
           }),
       );
+
+      if (resultado.jaFechado !== null) {
+        res.status(200).json(
+          await respostaDoPedidoGuardado({
+            opcoes,
+            acesso,
+            lojaId,
+            tokenPublico: resultado.jaFechado.tokenPublico,
+            apelidoDaLoja: params.apelido,
+          }),
+        );
+        return;
+      }
 
       if (!resultado.criado.ok) {
         // LOJA FECHADA e CARRINHO VAZIO são recusas de negócio, e o carrinho
@@ -367,17 +417,19 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       // com o nome que o dono deu, forma de pagamento. O segundo é o número da
       // loja: montando aqui, ele vai embutido no endereço e nunca vira campo
       // de resposta. Quem recebe o endereço é quem acabou de pedir.
-      const mensagem = montarMensagem({
-        pedido,
-        valores: resultado.valores,
-        whatsapp: resultado.whatsapp,
-        carrinho: resultado.carrinho,
-        conferencia: resultado.conferencia,
-        fechamento: resultado.fechamento,
-        corpo: body,
-        enderecoDoSite: opcoes.enderecoDoSite ?? "",
-        apelidoDaLoja: params.apelido,
-      });
+      const mensagem = mensagemPronta(
+        textoDoFechamento({
+          pedido,
+          valores: resultado.valores,
+          carrinho: resultado.carrinho,
+          conferencia: resultado.conferencia,
+          fechamento: resultado.fechamento,
+          corpo: body,
+          enderecoDoSite: opcoes.enderecoDoSite ?? "",
+          apelidoDaLoja: params.apelido,
+        }),
+        resultado.whatsapp,
+      );
 
       res.status(pedido.jaExistia ? 200 : 201).json({
         id: pedido.id,
@@ -663,7 +715,6 @@ interface DadosDaMensagem {
     readonly tokenPublico: string;
   };
   readonly valores: ReturnType<typeof calcularValores>;
-  readonly whatsapp: WhatsAppParaFechar | null;
   readonly carrinho: CarrinhoParaFechar;
   readonly conferencia: ConferenciaParaFechar;
   readonly fechamento: FechamentoParaFechar | null;
@@ -687,6 +738,13 @@ interface DadosDaMensagem {
   readonly apelidoDaLoja: string;
 }
 
+/** A mensagem pronta para a loja, como a resposta do fechamento a devolve. */
+type MensagemPronta = {
+  readonly endereco: string;
+  readonly texto: string;
+  readonly completo: boolean;
+} | null;
+
 /**
  * Monta a mensagem que a pessoa manda para a loja (AC-519 a AC-522).
  *
@@ -700,20 +758,102 @@ interface DadosDaMensagem {
  * o código para a pessoa combinar por outro meio. Devolver nulo é mais honesto
  * que devolver um endereço que não abre nada.
  */
-function montarMensagem(dados: DadosDaMensagem): {
-  readonly endereco: string;
-  readonly texto: string;
-  readonly completo: boolean;
-} | null {
-  if (dados.whatsapp === null) return null;
+function mensagemPronta(
+  paraTexto: PedidoParaTexto,
+  whatsapp: WhatsAppParaFechar | null,
+): MensagemPronta {
+  if (whatsapp === null) return null;
 
-  const numero = normalizarWhatsApp(dados.whatsapp.numero);
+  const numero = normalizarWhatsApp(whatsapp.numero);
   if (!numero.ok) {
     // Número impossível gera link silenciosamente inútil: a pessoa toca, abre
     // uma conversa vazia e acha que enviou. Melhor não oferecer o caminho.
     return null;
   }
 
+  const gerado = gerarTextoDoPedido(paraTexto);
+  const saudacao = whatsapp.saudacao;
+  const texto =
+    saudacao === null ? gerado.texto : `${saudacao}\n\n${gerado.texto}`;
+
+  return {
+    endereco: linkDoWhatsApp(numero, texto),
+    texto,
+    completo: gerado.dentroDoLimite && !gerado.encurtado,
+  };
+}
+
+/** O endereço público de acompanhamento, que vai dentro da mensagem. */
+function linkDeAcompanhamento(
+  enderecoDoSite: string,
+  apelidoDaLoja: string,
+  tokenPublico: string,
+): string {
+  return `${enderecoDoSite}/l/${apelidoDaLoja}/pedido/${tokenPublico}`;
+}
+
+/**
+ * A resposta da NOVA TENTATIVA com a mesma chave: o pedido guardado, com os
+ * valores e a mensagem DELE (AC-516). O carrinho que o originou já foi
+ * convertido (AC-524), e é o pedido o registro do que foi comprado.
+ *
+ * Transação própria, com o token do pedido declarado: é ele que autoriza ler
+ * o contato e os itens (políticas de acompanhamento, migrações 0008 e 0009).
+ */
+async function respostaDoPedidoGuardado(dados: {
+  readonly opcoes: OpcoesDosPedidos;
+  readonly acesso: AcessoAoBanco;
+  readonly lojaId: string;
+  readonly tokenPublico: string;
+  readonly apelidoDaLoja: string;
+}) {
+  const lido = await executarComoRequisicao(
+    {
+      papel: "PUBLIC",
+      lojaId: dados.lojaId,
+      tokenDoPedido: dados.tokenPublico,
+    },
+    () =>
+      dados.acesso.emTransacao(async () => {
+        const fechamento = await dados.opcoes.lerFechamento();
+        const guardado = await pedidoGuardado(
+          fechamento?.entrega.nomeDaTaxa ?? null,
+        );
+        const whatsapp = await dados.opcoes.lerWhatsApp();
+        return { guardado, whatsapp };
+      }),
+  );
+  if (lido.guardado === null) {
+    throw erroDeDominio("nao_encontrado", { recurso: "pedido" });
+  }
+
+  const { pedido, paraTexto } = lido.guardado;
+  return {
+    id: pedido.id,
+    numero: pedido.numero,
+    codigo: pedido.codigo,
+    tokenPublico: pedido.tokenPublico,
+    status: pedido.status,
+    jaExistia: true,
+    subtotalCentavos: lido.guardado.subtotalEmCentavos,
+    taxaDeEntregaCentavos: lido.guardado.taxaDeEntregaEmCentavos,
+    totalCentavos: lido.guardado.totalEmCentavos,
+    whatsapp: mensagemPronta(
+      {
+        ...paraTexto,
+        linkDeAcompanhamento: linkDeAcompanhamento(
+          dados.opcoes.enderecoDoSite ?? "",
+          dados.apelidoDaLoja,
+          pedido.tokenPublico,
+        ),
+      },
+      lido.whatsapp,
+    ),
+  };
+}
+
+/** O texto do pedido recém-criado: preço da conferência, texto do carrinho. */
+function textoDoFechamento(dados: DadosDaMensagem): PedidoParaTexto {
   const porItem = new Map(dados.carrinho.itens.map((i) => [i.id, i]));
   const itens: ItemDoPedido[] = dados.conferencia.itensQueSeguem.map(
     (precificado) => {
@@ -733,7 +873,7 @@ function montarMensagem(dados: DadosDaMensagem): {
   );
 
   const contato = dados.corpo.contato;
-  const paraTexto: PedidoParaTexto = {
+  return {
     codigo: dados.pedido.codigo,
     cliente: { nome: contato.nome, telefone: contato.telefone },
     itens,
@@ -766,17 +906,10 @@ function montarMensagem(dados: DadosDaMensagem): {
     },
     subtotalEmCentavos: dados.valores.subtotalEmCentavos,
     totalEmCentavos: dados.valores.totalEmCentavos,
-    linkDeAcompanhamento: `${dados.enderecoDoSite}/l/${dados.apelidoDaLoja}/pedido/${dados.pedido.tokenPublico}`,
-  };
-
-  const gerado = gerarTextoDoPedido(paraTexto);
-  const saudacao = dados.whatsapp.saudacao;
-  const texto =
-    saudacao === null ? gerado.texto : `${saudacao}\n\n${gerado.texto}`;
-
-  return {
-    endereco: linkDoWhatsApp(numero, texto),
-    texto,
-    completo: gerado.dentroDoLimite && !gerado.encurtado,
+    linkDeAcompanhamento: linkDeAcompanhamento(
+      dados.enderecoDoSite,
+      dados.apelidoDaLoja,
+      dados.pedido.tokenPublico,
+    ),
   };
 }
