@@ -44,9 +44,11 @@ import {
   type DadosDeEmail,
   type EnviadorDeEmail,
 } from "./email.job.ts";
+import { agendarRetencao, type RetencaoAgendada } from "./retencao.job.ts";
 
 export * from "./fila.ts";
 export * from "./email.job.ts";
+export * from "./retencao.job.ts";
 
 /** As três filas previstas pela arquitetura. */
 export const NOMES_DAS_FILAS = ["email", "webhook", "impressao"] as const;
@@ -110,12 +112,27 @@ export interface OpcoesDoSegundoPlano {
   readonly repeticao?: PoliticaDeRepeticao | undefined;
   readonly concorrencia?: number | undefined;
   readonly aoFalhar?: ((falha: FalhaDeTentativa) => void) | undefined;
+  /**
+   * A remoção definitiva do que venceu a retenção (AC-211): quem compõe o
+   * processo passa `criarRemocaoDefinitiva()` do módulo da administração.
+   * Não mora numa fila do Redis — é guiada pela data gravada no banco (veja
+   * `retencao.job.ts`). Ausente, nada é agendado.
+   */
+  readonly retencao?:
+    | {
+        readonly remover: (agora: Date) => Promise<number>;
+        readonly intervaloMs?: number | undefined;
+        readonly aoFalhar?: ((motivo: string) => void) | undefined;
+      }
+    | undefined;
 }
 
 /** Filas e trabalhadores de pé, com um único ponto de desligamento. */
 export interface SegundoPlano {
   readonly email: FilaAberta<DadosDeEmail>;
   readonly trabalhadores: readonly TrabalhadorAberto[];
+  /** A retenção agendada, quando o processo a recebeu. */
+  readonly retencao: RetencaoAgendada | null;
   fechar(): Promise<void>;
 }
 
@@ -144,11 +161,17 @@ export function montarSegundoPlano(opcoes: OpcoesDoSegundoPlano): SegundoPlano {
   });
 
   const trabalhadores = [trabalhadorDeEmail];
+  const retencao =
+    opcoes.retencao === undefined ? null : agendarRetencao(opcoes.retencao);
 
   return {
     email,
     trabalhadores,
+    retencao,
     fechar: async () => {
+      // A retenção para antes: a rodada em curso termina enquanto o processo
+      // ainda tem as conexões de pé.
+      await retencao?.fechar();
       // Trabalhadores primeiro: com a fila fechada antes, o trabalhador
       // perderia a conexão no meio de um trabalho em curso.
       for (const trabalhador of trabalhadores) await trabalhador.fechar();

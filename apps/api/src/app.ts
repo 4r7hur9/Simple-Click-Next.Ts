@@ -69,6 +69,11 @@ import {
 } from "./modules/auth/convite.usecase.ts";
 import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
 import { criarRotaDoApelidoAntigo } from "./modules/storefront/apelido-antigo.ts";
+import { identificarLojaNaoExcluida } from "./modules/storefront/resolver-loja.usecase.ts";
+import {
+  criarRotaDaSituacaoDaLoja,
+  type OpcoesDaSituacaoDaLoja,
+} from "./modules/stores/situacao.routes.ts";
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -108,6 +113,8 @@ export interface OpcoesDoApp {
    * `sc_admin`, envio do convite e relógio.
    */
   readonly administracao?: Partial<OpcoesDaAdministracao>;
+  /** O mesmo, para o aviso de suspensão do painel do dono (T-206). */
+  readonly situacaoDaLoja?: Partial<OpcoesDaSituacaoDaLoja>;
 }
 
 /**
@@ -518,6 +525,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     PREFIXO_DOS_PEDIDOS,
     criarRotasDePedidos({
       identificarLoja,
+      // Só o acompanhamento enxerga a loja suspensa (Q-203, T-206).
+      identificarLojaDoAcompanhamento: identificarLojaNaoExcluida,
       lerCarrinho: () => verCarrinho(),
       conferirCarrinho: (carrinhoId, agora) =>
         conferirAntesDeFechar(carrinhoId, {}, agora),
@@ -587,6 +596,35 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.conta,
+    }),
+  );
+
+  // O AVISO DE SUSPENSÃO do painel do dono (AC-209, T-206): a única rota do
+  // dono que alcança a loja suspensa, para dizer desde quando e por quê. A
+  // resolução que a enxerga é do módulo da vitrine, e a borda a passa.
+  app.use(
+    "/v1/lojas",
+    criarRotaDaSituacaoDaLoja({
+      resolverLoja: identificarLojaNaoExcluida,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.situacaoDaLoja,
     }),
   );
 

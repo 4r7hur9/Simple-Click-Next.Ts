@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-03T23:30:25.949Z",
-  "gitRev": "a0dea06",
+  "timestamp": "2026-10-06T02:46:45.447Z",
+  "gitRev": "943f36a",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 120,
+  "testsParsed": 167,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -56,12 +56,27 @@
       "status": "pass",
       "testName": "alterar o apelido preserva o endereço antigo (AC-208) @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico @spec:AC-208 o endereço novo funciona, o antigo leva a ele e a troca fica no histórico",
       "method": "vitest-json"
+    },
+    "AC-209": {
+      "status": "pass",
+      "testName": "loja suspensa sai do ar sem perder dados (AC-209) @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico @spec:AC-209 suspender com o motivo tira a vitrine e o fechamento do ar, e a suspensão vai para o histórico",
+      "method": "vitest-json"
+    },
+    "AC-210": {
+      "status": "pass",
+      "testName": "reativação devolve a loja ao ar como estava (AC-210) @spec:AC-210 reativada, a vitrine volta com o mesmo catálogo e o período da suspensão fica no histórico @spec:AC-210 reativada, a vitrine volta com o mesmo catálogo e o período da suspensão fica no histórico",
+      "method": "vitest-json"
+    },
+    "AC-211": {
+      "status": "pass",
+      "testName": "exclusão exige confirmação e é reversível por prazo (AC-211) @spec:AC-211 sem o nome da loja digitado, nada é excluído @spec:AC-211 sem o nome da loja digitado, nada é excluído",
+      "method": "vitest-json"
     }
   },
   "principles": {
     "P-012": {
       "status": "pass",
-      "testName": "os quatro estados da tela dos documentos (P-011) @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade @principle:P-012 a tela dos documentos não tem violação crítica nem séria de acessibilidade"
+      "testName": "acessibilidade das confirmações (P-012) @spec:AC-211 @principle:P-012 a confirmação da exclusão não tem violação crítica nem séria @spec:AC-211 @principle:P-012 a confirmação da exclusão não tem violação crítica nem séria"
     },
     "P-011": {
       "status": "pass",

@@ -130,6 +130,43 @@ export async function identificarLoja(
   };
 }
 
+/** A loja existe e não foi excluída, esteja no ar ou suspensa. */
+export interface LojaNaoExcluida {
+  readonly encontrada: true;
+  readonly id: string;
+  readonly apelido: string;
+  readonly situacao: string;
+}
+
+/**
+ * O PASSO 1 para os DOIS caminhos que enxergam a loja suspensa — e só eles:
+ *
+ * - a página de acompanhamento do pedido, porque o cliente que já pediu
+ *   continua acompanhando o pedido da loja suspensa (Q-203, decisão de
+ *   03/10/2026);
+ * - o aviso de suspensão do painel do dono, porque é por ele que o dono fica
+ *   sabendo por que a vitrine sumiu (AC-209).
+ *
+ * A vitrine, o carrinho e o fechamento continuam com `identificarLoja`, que
+ * responde igual para inexistente e suspensa (AC-402). Loja excluída não
+ * passa nem aqui: a função do banco já não a devolve.
+ */
+export async function identificarLojaNaoExcluida(
+  chegada: ChegadaNaLoja,
+): Promise<LojaNaoExcluida | LojaIndisponivel> {
+  if (!chegada.host && !chegada.apelido) return INDISPONIVEL;
+
+  const linha = await resolverNoBanco(transacaoAtual(), chegada);
+  if (linha === null || linha.status === "DELETED") return INDISPONIVEL;
+
+  return {
+    encontrada: true,
+    id: linha.id,
+    apelido: linha.slug,
+    situacao: linha.status,
+  };
+}
+
 /**
  * PASSO 2 — lê o que a vitrine mostra, já COM a loja no contexto.
  *

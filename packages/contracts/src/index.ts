@@ -194,6 +194,25 @@ export type {
   LinkDoDocumentoNoContrato,
   TipoDeDocumentoDaLoja,
 } from "./admin.ts";
+// Suspender, reativar, excluir e restaurar a loja (T-206).
+export {
+  confirmacaoConfere,
+  DIAS_DE_RETENCAO_DA_LOJA_EXCLUIDA,
+  esquemaDaExclusaoDaLoja,
+  esquemaDaReativacaoDaLoja,
+  esquemaDaRetencaoDaLoja,
+  esquemaDaSituacaoParaODono,
+  esquemaDaSuspensaoDaLoja,
+  esquemaDaSuspensaoEmCurso,
+  MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
+} from "./admin.ts";
+export type {
+  ExclusaoDaLojaEnviada,
+  RetencaoDaLojaNoContrato,
+  SituacaoParaODonoNoContrato,
+  SuspensaoDaLojaEnviada,
+  SuspensaoEmCursoNoContrato,
+} from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   ehSecaoDoDono,

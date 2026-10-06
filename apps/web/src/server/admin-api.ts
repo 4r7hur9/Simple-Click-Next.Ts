@@ -27,7 +27,15 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
 }[] = [
   { padrao: /^tipos-de-negocio$/, metodos: ["GET"] },
   { padrao: /^lojas$/, metodos: ["GET", "POST"] },
-  { padrao: new RegExp(`^lojas/${UUID}$`), metodos: ["GET", "PATCH"] },
+  // A ficha, a edição e a exclusão confirmada pelo nome (T-206, AC-211).
+  {
+    padrao: new RegExp(`^lojas/${UUID}$`),
+    metodos: ["GET", "PATCH", "DELETE"],
+  },
+  // Suspender, reativar e restaurar (T-206, AC-209 a AC-211).
+  { padrao: new RegExp(`^lojas/${UUID}/suspensao$`), metodos: ["PUT"] },
+  { padrao: new RegExp(`^lojas/${UUID}/reativacao$`), metodos: ["PUT"] },
+  { padrao: new RegExp(`^lojas/${UUID}/restauracao$`), metodos: ["PUT"] },
   // A troca do tipo de negócio (T-203, AC-214).
   {
     padrao: new RegExp(`^lojas/${UUID}/tipo-de-negocio$`),

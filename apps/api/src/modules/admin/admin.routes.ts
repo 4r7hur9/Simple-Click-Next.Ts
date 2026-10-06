@@ -35,12 +35,16 @@ import { validar } from "../../core/validar.ts";
 import {
   LIMITE_DO_PDF_EM_BYTES,
   MENSAGEM_DE_APELIDO_EM_USO,
+  MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
 } from "@simpleclick/contracts";
 
 import {
   esquemasDaEdicao,
+  esquemasDaExclusao,
   esquemasDaFicha,
   esquemasDaListagem,
+  esquemasDaReativacao,
+  esquemasDaSuspensao,
   esquemasDaTrocaDeApelido,
   esquemasDaTrocaDeTipo,
   esquemasDoArquivo,
@@ -74,6 +78,13 @@ import {
 } from "./criar-loja.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
+import { repositorioDaSituacao } from "./situacao.repo.ts";
+import {
+  excluirLoja,
+  reativarLoja,
+  restaurarLoja,
+  suspenderLoja,
+} from "./status-loja.usecase.ts";
 import {
   administradorAtivo,
   buscarLojas,
@@ -500,6 +511,198 @@ export function criarRotasDaAdministracao(
             return;
           }
           resposta.status(404).json({ erro: "nao_encontrado" });
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Situação: suspender, reativar, excluir, restaurar (AC-209..AC-211) ─
+  // Cada ato muda a situação e entra na trilha numa transação só, e a
+  // resposta é a ficha nova — com o ato no topo do histórico. Nada aqui apaga
+  // produto ou pedido: é a situação que tira a vitrine do ar (AC-402).
+
+  /** A ficha depois do ato, ou 404 quando a loja não existe. */
+  function responderComFicha(
+    resposta: Response,
+    ficha: Awaited<ReturnType<typeof lerFichaDaLoja>>,
+  ): void {
+    resposta.setHeader("cache-control", "no-store");
+    if (ficha === null) {
+      resposta.status(404).json({ erro: "nao_encontrado" });
+      return;
+    }
+    resposta.json(ficha);
+  }
+
+  /** Loja excluída não é suspensa nem reativada: ela é restaurada. */
+  function recusarExcluida(resposta: Response): void {
+    resposta.setHeader("cache-control", "no-store");
+    resposta.status(409).json({
+      erro: "loja_excluida",
+      mensagem:
+        "Esta loja está excluída. Para trazê-la de volta, use a restauração, dentro do prazo.",
+    });
+  }
+
+  const entradaDaSuspensao = validar(esquemasDaSuspensao);
+  rotas.put(
+    "/lojas/:id/suspensao",
+    entradaDaSuspensao,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params, body } = entradaDaSuspensao.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const resultado = await acesso().emTransacao(async () => {
+            const ato = await suspenderLoja(
+              params.id,
+              body.motivo,
+              administradorId,
+              repositorioDaSituacao(),
+            );
+            return ato.ok
+              ? { ato, ficha: await lerFichaDaLoja(params.id) }
+              : { ato, ficha: null };
+          });
+          if (!resultado.ato.ok && resultado.ato.motivo === "EXCLUIDA") {
+            recusarExcluida(resposta);
+            return;
+          }
+          responderComFicha(resposta, resultado.ficha);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  const entradaDaReativacao = validar(esquemasDaReativacao);
+  rotas.put(
+    "/lojas/:id/reativacao",
+    entradaDaReativacao,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params } = entradaDaReativacao.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const resultado = await acesso().emTransacao(async () => {
+            const ato = await reativarLoja(
+              params.id,
+              administradorId,
+              repositorioDaSituacao(),
+              agora(),
+            );
+            return ato.ok
+              ? { ato, ficha: await lerFichaDaLoja(params.id) }
+              : { ato, ficha: null };
+          });
+          if (!resultado.ato.ok && resultado.ato.motivo === "EXCLUIDA") {
+            recusarExcluida(resposta);
+            return;
+          }
+          responderComFicha(resposta, resultado.ficha);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // A exclusão pede o nome da loja digitado (AC-211): a mesma regra que a
+  // tela aplica antes de habilitar o botão, conferida de novo aqui — quem
+  // chama a API direto não passa pela tela.
+  const entradaDaExclusao = validar(esquemasDaExclusao);
+  rotas.delete(
+    "/lojas/:id",
+    entradaDaExclusao,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params, body } = entradaDaExclusao.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          const resultado = await acesso().emTransacao(async () => {
+            const ato = await excluirLoja(
+              {
+                lojaId: params.id,
+                confirmacao: body.confirmacao,
+                administradorId,
+              },
+              repositorioDaSituacao(),
+              agora(),
+            );
+            return ato.ok
+              ? { ato, ficha: await lerFichaDaLoja(params.id) }
+              : { ato, ficha: null };
+          });
+          if (
+            !resultado.ato.ok &&
+            resultado.ato.motivo === "CONFIRMACAO_DIFERENTE"
+          ) {
+            resposta.setHeader("cache-control", "no-store");
+            resposta.status(422).json({
+              erro: "confirmacao_diferente",
+              campos: [
+                {
+                  onde: "body",
+                  caminho: "confirmacao",
+                  mensagem: MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
+                },
+              ],
+            });
+            return;
+          }
+          responderComFicha(resposta, resultado.ficha);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // A restauração devolve a loja excluída, dentro do prazo, à situação de
+  // antes da exclusão (AC-211: "reversível por prazo").
+  rotas.put(
+    "/lojas/:id/restauracao",
+    entradaDaReativacao,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { params } = entradaDaReativacao.dados(requisicao);
+        await comoAdministrador(resposta, async (administradorId) => {
+          let resultado: {
+            readonly ato: Awaited<ReturnType<typeof restaurarLoja>>;
+            readonly ficha: Awaited<ReturnType<typeof lerFichaDaLoja>>;
+          };
+          try {
+            resultado = await acesso().emTransacao(async () => {
+              const ato = await restaurarLoja(
+                params.id,
+                administradorId,
+                repositorioDaSituacao(),
+                agora(),
+              );
+              return ato.ok
+                ? { ato, ficha: await lerFichaDaLoja(params.id) }
+                : { ato, ficha: null };
+            });
+          } catch (causa) {
+            if (!(causa instanceof ErroDeApelidoTomado)) throw causa;
+            resposta.setHeader("cache-control", "no-store");
+            resposta.status(409).json({
+              erro: "apelido_em_uso",
+              mensagem:
+                "O endereço desta loja passou a ser de outra loja. Troque o apelido dela antes de restaurar.",
+            });
+            return;
+          }
+          if (!resultado.ato.ok && resultado.ato.motivo === "PRAZO_VENCIDO") {
+            resposta.setHeader("cache-control", "no-store");
+            resposta.status(409).json({
+              erro: "prazo_vencido",
+              mensagem:
+                "O prazo para restaurar esta loja venceu: os dados dela foram, ou estão sendo, removidos em definitivo.",
+            });
+            return;
+          }
+          responderComFicha(resposta, resultado.ficha);
         });
       } catch (causa) {
         proximo(causa);

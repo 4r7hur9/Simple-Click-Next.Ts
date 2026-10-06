@@ -9,7 +9,10 @@
 import {
   esquemaDaConsultaDeLojas,
   esquemaDaEdicaoDaLoja,
+  esquemaDaExclusaoDaLoja,
   esquemaDaNovaLoja,
+  esquemaDaReativacaoDaLoja,
+  esquemaDaSuspensaoDaLoja,
   esquemaDaTrocaDeApelido,
   esquemaDaTrocaDeTipoDeNegocio,
   esquemaDoEnvioDeDocumento,
@@ -74,4 +77,25 @@ export const esquemasDoArquivo = {
   params: z.object({
     link: z.string().regex(FORMATO_DO_LINK, "Link inválido."),
   }),
+};
+
+/** PUT /v1/admin/lojas/:id/suspensao — com o motivo, que o dono vai ler. */
+export const esquemasDaSuspensao = {
+  params: esquemaDoCaminhoDaLoja,
+  body: esquemaDaSuspensaoDaLoja,
+};
+
+/**
+ * PUT /v1/admin/lojas/:id/reativacao e PUT /v1/admin/lojas/:id/restauracao —
+ * corpo vazio: o ato é o endereço.
+ */
+export const esquemasDaReativacao = {
+  params: esquemaDoCaminhoDaLoja,
+  body: esquemaDaReativacaoDaLoja,
+};
+
+/** DELETE /v1/admin/lojas/:id — com o nome da loja digitado. */
+export const esquemasDaExclusao = {
+  params: esquemaDoCaminhoDaLoja,
+  body: esquemaDaExclusaoDaLoja,
 };

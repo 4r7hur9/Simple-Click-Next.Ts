@@ -61,7 +61,8 @@ export function ListaDaTrilha({ registros, complemento }: ListaDaTrilhaProps) {
                 <div key={campo.campo} className="flex flex-wrap gap-x-2">
                   <dt className="font-medium">{rotuloDoCampo(campo.campo)}:</dt>
                   <dd>
-                    {valorNaTela(campo.antes)} → {valorNaTela(campo.depois)}
+                    {valorNaTela(campo.antes, campo.campo)} →{" "}
+                    {valorNaTela(campo.depois, campo.campo)}
                   </dd>
                 </div>
               ))}

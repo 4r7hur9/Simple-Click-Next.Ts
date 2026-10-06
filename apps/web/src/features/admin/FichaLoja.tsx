@@ -37,6 +37,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { AcoesLoja } from "./AcoesLoja.tsx";
 import { telaDosDocumentos } from "./documentos-da-loja.ts";
 import {
   edicaoDoFormulario,
@@ -381,6 +382,10 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
             Ver contrato e documentos
           </Link>
         </p>
+      </Secao>
+
+      <Secao id="ficha-situacao" titulo="Situação da loja">
+        <AcoesLoja ficha={ficha} aoMudar={props.aoAtualizar} />
       </Secao>
 
       <Secao id="ficha-historico" titulo="Histórico de alterações">

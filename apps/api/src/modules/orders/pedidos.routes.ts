@@ -175,6 +175,16 @@ export interface OpcoesDosPedidos {
   readonly identificarLoja: (params: {
     readonly apelido: string;
   }) => Promise<{ readonly encontrada: boolean; readonly id?: string }>;
+  /**
+   * A resolução da página de ACOMPANHAMENTO, que enxerga também a loja
+   * suspensa: o cliente que já pediu continua acompanhando o pedido (Q-203,
+   * decisão de 03/10/2026). Ausente, vale `identificarLoja` — só loja no ar.
+   */
+  readonly identificarLojaDoAcompanhamento?:
+    | ((params: {
+        readonly apelido: string;
+      }) => Promise<{ readonly encontrada: boolean; readonly id?: string }>)
+    | undefined;
   readonly lerCarrinho: () => Promise<CarrinhoParaFechar>;
   readonly conferirCarrinho: (
     carrinhoId: string,
@@ -406,11 +416,15 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
         return;
       }
       const acesso = opcoes.acesso ?? banco();
+      // A loja suspensa continua acompanhável (Q-203): a resolução daqui é a
+      // única do fechamento que a enxerga.
+      const identificar =
+        opcoes.identificarLojaDoAcompanhamento ?? opcoes.identificarLoja;
       const identificacao = await executarComoRequisicao(
         { papel: "PUBLIC" },
         () =>
           acesso.emTransacao(() =>
-            opcoes.identificarLoja({ apelido: req.params.apelido }),
+            identificar({ apelido: req.params.apelido }),
           ),
       );
       if (!identificacao.encontrada || identificacao.id === undefined) {

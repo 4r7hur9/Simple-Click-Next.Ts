@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AvisoDeSuspensao } from "../../../features/config/AvisoDeSuspensao.tsx";
 import { AvisosPendentes } from "../../../features/config/AvisosPendentes.tsx";
 
 /**
@@ -83,6 +84,9 @@ export default function LayoutDoPainel({
         </div>
       </header>
       <main aria-label="Painel da loja">
+        {/* A suspensão vem antes das pendências: com a loja fora do ar,
+            é o que o dono precisa ler primeiro (AC-209). */}
+        <AvisoDeSuspensao />
         <AvisosPendentes />
         {children}
       </main>
