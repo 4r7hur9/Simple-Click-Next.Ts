@@ -588,3 +588,115 @@ export function limitarTentativas(opcoes: OpcoesDoLimitador): RequestHandler {
     aplicar(req, res, proximo).catch(proximo);
   };
 }
+
+// ---------------------------------------------------------------------------
+// Cache aberto sob demanda, que falha rápido (T-608)
+// ---------------------------------------------------------------------------
+
+/** Quanto uma conversa com o cache do limite pode durar antes de desistir. */
+export const TEMPO_LIMITE_DO_CACHE_DO_LIMITE_MS = 1_500;
+
+/** O cache do limite não respondeu, não está configurado, ou caiu. */
+export class ErroDoCacheDoLimite extends Error {
+  constructor(motivo: string, causa?: unknown) {
+    super(
+      `O cache do limite de tentativas não respondeu: ${motivo}.`,
+      causa === undefined ? undefined : { cause: causa },
+    );
+    this.name = "ErroDoCacheDoLimite";
+  }
+}
+
+/**
+ * O cache do limite para uma rota de produção: conecta na PRIMEIRA tentativa
+ * (montar a aplicação não pode exigir Redis no ar, como não exige banco) e
+ * FALHA RÁPIDO quando o Redis não responde.
+ *
+ * Falhar rápido é o ponto. O cliente do Redis, por padrão, guarda o comando
+ * enquanto tenta reconectar — e a rota pendura até alguém desistir. Aqui não
+ * há fila de espera nem reconexão automática: o comando que não volta dentro
+ * do prazo rejeita com `ErroDoCacheDoLimite`, a conexão é descartada, e a
+ * tentativa seguinte abre outra. O que fazer com a recusa é decisão da rota:
+ * a do pareamento do agente de impressão FECHA (responde indisponível), porque
+ * sem contagem o código de seis dígitos ficaria aberto à força bruta.
+ *
+ * Sem endereço configurado, todo comando rejeita — a ausência de configuração
+ * fecha a porta, nunca a abre.
+ */
+export function cacheDoLimiteSobDemanda(
+  url: string | undefined,
+  tempoLimiteMs: number = TEMPO_LIMITE_DO_CACHE_DO_LIMITE_MS,
+): CacheDoLimite {
+  /** O mínimo do cliente que esta função usa: rodar o script e descartar. */
+  interface Cliente {
+    rodar(
+      script: string,
+      chaves: readonly string[],
+      argumentos: readonly string[],
+    ): Promise<unknown>;
+    destroy(): void;
+  }
+  let conectado: Promise<Cliente> | undefined;
+
+  function descartar(cliente: Promise<Cliente> | undefined): void {
+    if (conectado === cliente) conectado = undefined;
+    void cliente
+      ?.then((aberto) => {
+        try {
+          aberto.destroy();
+        } catch {
+          // Já estava fechado: nada a descartar.
+        }
+      })
+      .catch(() => {});
+  }
+
+  async function conectar(endereco: string): Promise<Cliente> {
+    const cliente = createClient({
+      url: endereco,
+      disableOfflineQueue: true,
+      socket: { connectTimeout: tempoLimiteMs, reconnectStrategy: false },
+    });
+    // Sem ouvinte, o erro do cliente derruba o processo (ver acima).
+    cliente.on("error", () => {});
+    await cliente.connect();
+    return {
+      rodar: (script, chaves, argumentos) =>
+        cliente.eval(script, {
+          keys: [...chaves],
+          arguments: [...argumentos],
+        }),
+      destroy: () => cliente.destroy(),
+    };
+  }
+
+  function comPrazo<T>(promessa: Promise<T>): Promise<T> {
+    let relogio: ReturnType<typeof setTimeout> | undefined;
+    const prazo = new Promise<never>((_, rejeitar) => {
+      relogio = setTimeout(
+        () => rejeitar(new ErroDoCacheDoLimite("o prazo acabou")),
+        tempoLimiteMs,
+      );
+    });
+    return Promise.race([promessa, prazo]).finally(() => clearTimeout(relogio));
+  }
+
+  return {
+    async executarScript(script, chaves, argumentos) {
+      const endereco = url?.trim();
+      if (endereco === undefined || endereco === "") {
+        throw new ErroDoCacheDoLimite("REDIS_URL não está configurada");
+      }
+      conectado ??= conectar(endereco);
+      const desta = conectado;
+      try {
+        const cliente = await comPrazo(desta);
+        return await comPrazo(cliente.rodar(script, chaves, argumentos));
+      } catch (causa) {
+        descartar(desta);
+        if (causa instanceof ErroDoCacheDoLimite) throw causa;
+        throw new ErroDoCacheDoLimite("a conexão falhou", causa);
+      }
+    },
+  };
+}

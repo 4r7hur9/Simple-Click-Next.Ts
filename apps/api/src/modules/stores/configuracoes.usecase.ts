@@ -440,10 +440,18 @@ const impressao: DefinicaoDaSecao<"impressao"> = {
     // O essencial do cupom não é negociável (AC-920): a normalização o liga de
     // novo mesmo que a entrada tente desligar.
     const configuracao = normalizarConfiguracaoDeImpressao(valor);
+    // A chave do automático (T-608) é opcional: quem salva sem ela — a tela
+    // de antes dela, no meio de uma publicação — não desliga o automático de
+    // ninguém. O valor guardado continua valendo.
+    const informouAutomatico = valor.automatico !== undefined;
     exigirLinha(
       await tx.$executeRaw`
         UPDATE app.store_settings
            SET printing = ${JSON.stringify(configuracao)}::jsonb
+                 || CASE WHEN ${informouAutomatico}::boolean THEN '{}'::jsonb
+                         ELSE jsonb_build_object('automatico',
+                                coalesce(printing -> 'automatico', 'false'::jsonb))
+                    END
          WHERE store_id = ${lojaId}::uuid`,
       "impressão",
     );
