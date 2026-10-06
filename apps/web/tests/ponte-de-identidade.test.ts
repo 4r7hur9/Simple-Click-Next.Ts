@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { cabecalhosParaApi } from "../src/server/chamada-de-identidade.ts";
 import { responderFormularioDeAcesso } from "../src/server/formularios-de-acesso.ts";
 import { responderAcaoDeSessao } from "../src/server/sessao.ts";
 
@@ -245,5 +246,31 @@ describe("formulários sem script", () => {
     expect(aceito.headers.get("location")).toBe(
       `${SITE}/definir-senha?estado=concluido&convite=true`,
     );
+  });
+});
+
+describe("endereço do visitante para o limite da API", () => {
+  const SEGREDO = "segredo-da-ponte-da-prova-com-mais-de-32-caracteres";
+  const pedido = new Request(`${SITE}/api/auth/login`, {
+    method: "POST",
+    headers: { "x-forwarded-for": "203.0.113.9, 198.51.100.77" },
+  });
+
+  it("@spec:AC-120 a ponte informa o endereço que a borda viu, com o segredo, e sem segredo não informa nada", () => {
+    const comPonte = cabecalhosParaApi(
+      pedido,
+      {},
+      { SEGREDO_DA_PONTE: SEGREDO },
+    );
+    expect(comPonte.get("x-simpleclick-endereco-do-cliente")).toBe(
+      "198.51.100.77",
+    );
+    expect(comPonte.get("x-simpleclick-ponte")).toBe(SEGREDO);
+
+    for (const fonte of [{}, { SEGREDO_DA_PONTE: "curto" }]) {
+      const semPonte = cabecalhosParaApi(pedido, {}, fonte);
+      expect(semPonte.get("x-simpleclick-endereco-do-cliente")).toBeNull();
+      expect(semPonte.get("x-simpleclick-ponte")).toBeNull();
+    }
   });
 });

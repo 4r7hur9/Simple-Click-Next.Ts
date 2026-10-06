@@ -89,6 +89,19 @@ export const CONFIRMACAO_DE_CADASTRO: ConfirmacaoDeCadastro = {
 export const MENSAGEM_DE_ENVIO_INDISPONIVEL =
   "O envio de e-mail está indisponível no momento. Tente novamente mais tarde.";
 
+/**
+ * Ponte do site → API (AC-120): o servidor do site chama a API em nome do
+ * navegador, então a API só vê o endereço do site. O site informa o endereço
+ * do visitante em `CABECALHO_DO_ENDERECO_DO_VISITANTE` e prova que é ele em
+ * `CABECALHO_DA_PONTE` com o segredo compartilhado `SEGREDO_DA_PONTE`; sem a
+ * prova, a API ignora o endereço informado.
+ */
+export const CABECALHO_DA_PONTE = "x-simpleclick-ponte";
+export const CABECALHO_DO_ENDERECO_DO_VISITANTE =
+  "x-simpleclick-endereco-do-cliente";
+/** Tamanho mínimo do segredo da ponte; mais curto é tratado como ausente. */
+export const TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE = 32;
+
 // ---------------------------------------------------------------------------
 // Verificação de e-mail (AC-103, AC-104)
 // ---------------------------------------------------------------------------

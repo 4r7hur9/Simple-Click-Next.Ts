@@ -137,6 +137,13 @@ export interface OpcoesDoLimitador {
   readonly porOrigem?: RegraDeLimite;
   /** Quantas bordas nossas escrevem no cabeçalho de encaminhamento. Padrão: 1. */
   readonly proxiesConfiaveis?: number;
+  /**
+   * Endereço do visitante informado por uma borda AUTENTICADA (a ponte do
+   * site, que fala com a API em nome do navegador). `undefined` quando a
+   * requisição não traz essa informação com a prova de origem: vale então o
+   * endereço lido de `X-Forwarded-For` pelos saltos confiáveis.
+   */
+  readonly enderecoInformado?: (req: Request) => string | undefined;
   /** De onde sai o instante atual. Padrão: o relógio do sistema. */
   readonly agora?: () => number;
   /** Chamado uma vez por bloqueio NOVO, para quem precisa avisar alguém. */
@@ -552,7 +559,8 @@ export function limitarTentativas(opcoes: OpcoesDoLimitador): RequestHandler {
     res: Response,
     proximo: NextFunction,
   ): Promise<void> {
-    const endereco = enderecoDoCliente(req, proxies);
+    const endereco =
+      opcoes.enderecoInformado?.(req) ?? enderecoDoCliente(req, proxies);
     const conta = opcoes.porConta?.identificar(req);
 
     const daConta =

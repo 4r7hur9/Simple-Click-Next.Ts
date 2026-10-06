@@ -17,6 +17,8 @@
  *    vai ser avisado usa a política "só a própria identidade", num contexto
  *    só daquela identidade — nunca a credencial da administração.
  */
+import { TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE } from "@simpleclick/contracts";
+
 import {
   cifradorDoTotpDoAmbiente,
   type CifradorDeSegredos,
@@ -72,7 +74,10 @@ type FonteDeAmbiente = Readonly<Record<string, string | undefined>>;
 
 /** O que a composição precisa de fora. Tudo tem padrão; a prova troca. */
 export interface OpcoesDaIdentidade {
-  /** De onde vêm NODE_ENV, JWT_SECRET, URL_DO_SITE, CHAVE_CIFRA_TOTP e REDIS_URL. */
+  /**
+   * De onde vêm NODE_ENV, JWT_SECRET, URL_DO_SITE, CHAVE_CIFRA_TOTP,
+   * REDIS_URL e SEGREDO_DA_PONTE.
+   */
   readonly fonte?: FonteDeAmbiente;
   /** Acesso pela credencial que atende requisição. Padrão: o do ambiente. */
   readonly acesso?: () => AcessoAoBanco;
@@ -285,11 +290,33 @@ export function criarServicosDaIdentidade(opcoes: OpcoesDaIdentidade = {}) {
     }
   }
 
+  // Sem o segredo da ponte, o login pelo site conta todo visitante no balde
+  // de origem do servidor do site (AC-120): avisa alto em produção.
+  const segredoDaPonte = fonte["SEGREDO_DA_PONTE"]?.trim() ?? "";
+  if (
+    fonte["NODE_ENV"] === "production" &&
+    segredoDaPonte.length < TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE
+  ) {
+    registrar.aviso("auth.ponte.sem_segredo", {
+      nome: "SEGREDO_DA_PONTE",
+    });
+  }
+
   const limitadores = limitadoresDaIdentidade({
     cache: opcoes.cacheDoLimite ?? cacheDoLimiteDoAmbiente(fonte["REDIS_URL"]),
     ...(opcoes.proxiesConfiaveis === undefined
       ? {}
       : { proxiesConfiaveis: opcoes.proxiesConfiaveis }),
+    // AC-120: o endereço do visitante que a ponte do site informa só vale
+    // com este segredo, que o site também tem.
+    segredoDaPonte,
+    // AC-107: os erros de código somam na conta dona do desafio.
+    donoDoDesafio: async (desafioId) => {
+      const desafio = await naTransacao({}, () =>
+        repos.auxiliar.desafioAberto(desafioId, agora()),
+      );
+      return desafio?.identidadeId ?? null;
+    },
     // AC-119: o dono da conta bloqueada é avisado. Só se a conta existe —
     // e-mail sem conta não recebe nada, e quem tenta não fica sabendo.
     aoBloquearConta: async (aviso) => {

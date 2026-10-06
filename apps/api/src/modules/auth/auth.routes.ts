@@ -363,6 +363,8 @@ function montarRotasDeEntrada(rotas: Router, s: ServicosDaIdentidade): void {
         resposta.json(resultado);
         return;
       }
+      // O erro que bloqueia o desafio também é erro: conta na conta (AC-107).
+      if (resultado.status === "BLOQUEADO") await limite.registrarFalha();
       resposta.json({
         status:
           resultado.status === "BLOQUEADO" ? "BLOQUEADO" : resultado.status,

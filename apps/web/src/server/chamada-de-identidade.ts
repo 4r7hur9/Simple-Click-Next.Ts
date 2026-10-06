@@ -2,11 +2,18 @@
  * A chamada do servidor do site às rotas de `/v1/auth` da API (T-113).
  *
  * Um lugar só monta os cabeçalhos: origem do site (a API confere a lista
- * fechada antes de toda escrita), tipo de cliente "navegador" e, quando há,
- * o cookie de renovação e o Bearer de acesso. A resposta volta crua, para
- * quem chamou decidir o que repassar à página — nunca token nem Set-Cookie
- * da API sem filtro.
+ * fechada antes de toda escrita), tipo de cliente "navegador", o endereço do
+ * visitante com a prova da ponte (AC-120) e, quando há, o cookie de
+ * renovação e o Bearer de acesso. A resposta volta crua, para quem chamou
+ * decidir o que repassar à página — nunca token nem Set-Cookie da API sem
+ * filtro.
  */
+import {
+  CABECALHO_DA_PONTE,
+  CABECALHO_DO_ENDERECO_DO_VISITANTE,
+  TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE,
+} from "@simpleclick/contracts";
+
 import { enderecoDaApi } from "./api-client.ts";
 
 /** O que a chamada leva além do corpo. */
@@ -24,10 +31,25 @@ export interface RespostaDaIdentidade {
   readonly setCookies: readonly string[];
 }
 
+/**
+ * O endereço do visitante como a borda na frente do site o viu: o ÚLTIMO item
+ * de `X-Forwarded-For` (o que a borda acrescentou; o começo da lista quem
+ * chama escreve à vontade), ou `X-Real-IP`. `undefined` sem borda nenhuma.
+ */
+export function enderecoDoVisitante(requisicao: Request): string | undefined {
+  const lista = (requisicao.headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+  const endereco = lista.at(-1) ?? requisicao.headers.get("x-real-ip")?.trim();
+  return endereco === undefined || endereco === "" ? undefined : endereco;
+}
+
 /** Os cabeçalhos que a API espera do site. */
 export function cabecalhosParaApi(
   requisicao: Request,
   extras: ExtrasDaChamada = {},
+  fonte: Readonly<Record<string, string | undefined>> = process.env,
 ): Headers {
   const cabecalhos = new Headers({
     accept: "application/json",
@@ -35,6 +57,18 @@ export function cabecalhosParaApi(
     origin: requisicao.headers.get("origin") ?? new URL(requisicao.url).origin,
     "x-simpleclick-client": "navegador",
   });
+  // AC-120: sem isto a API veria só o endereço do site, e todo visitante
+  // dividiria o mesmo balde do limite de tentativas. A API só acredita no
+  // endereço com o segredo da ponte, que nunca vai ao navegador.
+  const segredo = fonte["SEGREDO_DA_PONTE"]?.trim() ?? "";
+  const visitante = enderecoDoVisitante(requisicao);
+  if (
+    segredo.length >= TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE &&
+    visitante !== undefined
+  ) {
+    cabecalhos.set(CABECALHO_DA_PONTE, segredo);
+    cabecalhos.set(CABECALHO_DO_ENDERECO_DO_VISITANTE, visitante);
+  }
   if (extras.tokenDeRenovacao !== undefined) {
     cabecalhos.set(
       "cookie",
