@@ -45,6 +45,7 @@ import type { OpcoesDoApp } from "../src/app.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import type { CacheDoLimite } from "../src/core/limite.ts";
 import { criarPedido } from "../src/modules/orders/criar-pedido.usecase.ts";
+import { mudarStatusDoPedido } from "../src/modules/orders/mudar-status.usecase.ts";
 import { tokenPublico } from "../src/modules/orders/numero-pedido.ts";
 import { emitirCupomDoPedido } from "../src/modules/printing/cupom.usecase.ts";
 import { normalizarConfiguracaoDeImpressao } from "../src/modules/stores/impressao-config.usecase.ts";
@@ -307,6 +308,15 @@ export function imprimirPorClique(loja: LojaDeTeste, pedidoId: string) {
     acesso,
     { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
     () => emitirCupomDoPedido(pedidoId, normalizarConfiguracaoDeImpressao),
+  );
+}
+
+/** O dono cancela o pedido pela fila de pedidos, com motivo (AC-607). */
+export function cancelarPedidoPeloDono(loja: LojaDeTeste, pedidoId: string) {
+  return comoRequisicao(
+    acesso,
+    { lojaId: loja.id, usuarioId: loja.dono.id, papel: "OWNER" },
+    () => mudarStatusDoPedido(pedidoId, "CANCELLED", "Cliente desistiu"),
   );
 }
 

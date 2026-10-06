@@ -16,6 +16,7 @@ import { lerSecao, tokenDoDono } from "./apoio-de-configuracao.ts";
 import {
   agenteSomeHaCincoMinutos,
   aplicacao,
+  cancelarPedidoPeloDono,
   chaveDoAutomatico,
   CONTEUDO_PADRAO,
   estadoNoPainel,
@@ -146,6 +147,36 @@ describe("agente desconectado avisa e não perde cupom (AC-624)", () => {
         pendentes: 0,
       });
       expect(await viasDoPedido(pedidoId)).toBe(1);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "@spec:AC-624 pedido cancelado enquanto o agente estava fora do ar não sai quando ele volta, e some dos pendentes",
+    async () => {
+      const app = aplicacao();
+      const loja = await criarLoja({ nome: "Pizzaria Cancelada" });
+      await chaveDoAutomatico(app, loja, true);
+      const agente = await parear(app, loja);
+      await agenteSomeHaCincoMinutos(agente.id);
+
+      const cancelado = await pedidoDoCliente(loja);
+      const valendo = await pedidoDoCliente(loja);
+      expect((await pendentesNoPainel(app, loja)).length).toBe(2);
+
+      await cancelarPedidoPeloDono(loja, cancelado);
+
+      // O cupom do pedido cancelado não espera mais ninguém: a cozinha não
+      // pode receber, na volta do agente, um pedido que não existe mais.
+      expect((await trabalhosDoPedido(cancelado))[0]?.status).toBe("CANCELED");
+      expect(
+        (await pendentesNoPainel(app, loja)).map((p) => p.pedido.id),
+      ).toEqual([valendo]);
+
+      const entregues = await agente.rodar();
+      expect(entregues.map((t) => t.pedido.id)).toEqual([valendo]);
+      expect(agente.impressora).toEqual([valendo]);
+      expect(await viasDoPedido(cancelado)).toBe(0);
     },
     ESPERA_LONGA,
   );
