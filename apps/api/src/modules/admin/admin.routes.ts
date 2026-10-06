@@ -80,6 +80,7 @@ import {
 import { repositorioDaAuditoria } from "./auditoria-consulta.repo.ts";
 import { consultarAuditoria, lojasDaPagina } from "./auditoria.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
+import { montarRotasDasFuncionalidades } from "./funcionalidades.routes.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
 import { repositorioDaSituacao } from "./situacao.repo.ts";
 import {
@@ -994,6 +995,9 @@ export function criarRotasDaAdministracao(
       }
     },
   );
+
+  // ── Funcionalidades liberadas por loja (AC-212, AC-213) ─────────────────
+  montarRotasDasFuncionalidades(rotas, { acesso, comoAdministrador });
 
   return rotas;
 }

@@ -384,6 +384,21 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
         </p>
       </Secao>
 
+      <Secao id="ficha-funcionalidades" titulo="Funcionalidades liberadas">
+        <p className="max-w-prose">
+          Toda loja nasce com tudo ligado, sem custo e sem limite. Aqui a
+          administração desliga, como exceção desta loja, o que ela não usa.
+        </p>
+        <p className="mt-3">
+          <Link
+            className="sc-botao sc-botao--secundaria"
+            href={`/admin/lojas/${encodeURIComponent(ficha.id)}/funcionalidades`}
+          >
+            Ver funcionalidades
+          </Link>
+        </p>
+      </Secao>
+
       <Secao id="ficha-situacao" titulo="Situação da loja">
         <AcoesLoja ficha={ficha} aoMudar={props.aoAtualizar} />
       </Secao>

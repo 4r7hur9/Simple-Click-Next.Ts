@@ -368,3 +368,18 @@ export type {
   PaginaDaAuditoriaNoContrato,
   RegistroDaAuditoriaNoContrato,
 } from "./admin-auditoria.ts";
+// Funcionalidades liberadas por loja (T-207).
+export {
+  esquemaDaAlteracaoDeFuncionalidade,
+  esquemaDaExcecaoDeFuncionalidade,
+  esquemaDaFuncionalidadeNaAdministracao,
+  esquemaDasFuncionalidadesDaLoja,
+  esquemaDasFuncionalidadesParaODono,
+  FORMATO_DA_CHAVE_DE_FUNCIONALIDADE,
+} from "./admin-funcionalidades.ts";
+export type {
+  AlteracaoDeFuncionalidadeEnviada,
+  FuncionalidadeNaAdministracaoNoContrato,
+  FuncionalidadesDaLojaNoContrato,
+  FuncionalidadesParaODonoNoContrato,
+} from "./admin-funcionalidades.ts";

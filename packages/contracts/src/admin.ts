@@ -353,6 +353,8 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   LOJA_EXCLUIDA: "Loja excluída",
   LOJA_RESTAURADA: "Loja restaurada",
   LOJA_REMOVIDA: "Dados da loja removidos em definitivo",
+  FUNCIONALIDADE_DESLIGADA: "Funcionalidade desligada",
+  FUNCIONALIDADE_RELIGADA: "Funcionalidade religada",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
@@ -378,6 +380,8 @@ export const ROTULOS_DOS_CAMPOS_DA_LOJA: Readonly<Record<string, string>> = {
   tipoDeConteudo: "Formato",
   status: "Situação",
   motivo: "Motivo",
+  funcionalidade: "Funcionalidade",
+  ligada: "Ligada",
   suspensaDesde: "Suspensa desde",
   suspensaAte: "Suspensa até",
   excluidaEm: "Excluída em",

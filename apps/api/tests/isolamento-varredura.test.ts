@@ -293,6 +293,22 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     }),
   },
 
+  // Exceções de funcionalidade por loja (T-207, migração 0040). A equipe lê a
+  // linha da própria loja; escrever é só da administração.
+  store_feature_overrides: {
+    chave: "store_id",
+    // Mudar o motivo da exceção da loja vizinha reescreveria o histórico dela.
+    alteracao: { coluna: "reason", valor: "Motivo sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      feature_key: "auto_print",
+      // Texto, como os outros valores do registro: o banco o lê como booleano.
+      is_enabled: "false",
+      reason: `Motivo ${marca}`,
+      set_by: identidadeDeApoio,
+    }),
+  },
+
   // ── Catálogo (migração 0007) ─────────────────────────────────────────────
 
   assets: {

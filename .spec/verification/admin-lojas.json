@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-06T05:09:57.489Z",
-  "gitRev": "6c3460c",
+  "timestamp": "2026-10-06T05:54:45.922Z",
+  "gitRev": "7eb31c3",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 187,
+  "testsParsed": 206,
   "results": {
     "AC-200": {
       "status": "pass",
@@ -75,6 +75,16 @@
     "AC-211": {
       "status": "pass",
       "testName": "exclusão exige confirmação e é reversível por prazo (AC-211) @spec:AC-211 sem o nome da loja digitado, nada é excluído @spec:AC-211 sem o nome da loja digitado, nada é excluído",
+      "method": "vitest-json"
+    },
+    "AC-212": {
+      "status": "pass",
+      "testName": "funcionalidades por loja @spec:AC-212 com a impressão térmica desligada, o dono a lê desligada e as rotas da área respondem indisponível mesmo acessadas direto @spec:AC-212 com a impressão térmica desligada, o dono a lê desligada e as rotas da área respondem indisponível mesmo acessadas direto",
+      "method": "vitest-json"
+    },
+    "AC-213": {
+      "status": "pass",
+      "testName": "funcionalidades por loja @spec:AC-213 loja recém-cadastrada nasce com todas as funcionalidades ligadas, sem limite e sem exceção @spec:AC-213 loja recém-cadastrada nasce com todas as funcionalidades ligadas, sem limite e sem exceção",
       "method": "vitest-json"
     }
   },

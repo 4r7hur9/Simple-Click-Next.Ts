@@ -185,3 +185,16 @@ export {
 } from "./cupom-escpos.ts";
 export type { CorteDoPapel, PerfilDaImpressora } from "./cupom-escpos.ts";
 export { lerJanelasDeDisponibilidade } from "./janela-disponibilidade.ts";
+export {
+  CATALOGO_DE_FUNCIONALIDADES,
+  CHAVES_DE_FUNCIONALIDADE,
+  ehChaveDeFuncionalidade,
+  funcionalidadeLigada,
+  funcionalidadesDaLoja,
+} from "./funcionalidades.ts";
+export type {
+  ChaveDeFuncionalidade,
+  DescricaoDaFuncionalidade,
+  ExcecaoDeFuncionalidade,
+  FuncionalidadeDaLoja,
+} from "./funcionalidades.ts";

@@ -312,6 +312,14 @@ quando deixa de valer.
   de impressão que existem na base da faixa e documentado para ser ligado às
   rotas novas da fila de impressão na integração. Decidido na orquestração da
   onda 1, em 03/10/2026.
+- **Como ficou na T-207 (06/10/2026):** `auto_print` responde pela ÁREA DE
+  IMPRESSÃO TÉRMICA inteira — cupom por clique, configuração do papel e agente
+  —, que é o que o AC-212 pede para sumir do menu. A lista das rotas da área é
+  `ROTAS_DA_IMPRESSAO_TERMICA`, em `apps/api/src/app.ts`; as rotas do agente e
+  do pareamento entram nela, e só nela. Só a chave com efeito pode ser
+  desligada (as outras respondem 422), e religar apaga a exceção. Proposta da
+  faixa, a confirmar com o dono: o nome da chave segue o modelo de dados, mas
+  cobre mais que a impressão automática.
 
 ### 2026-10-03 — Loja excluída fica 30 dias retida; a remoção definitiva respeita a guarda legal
 

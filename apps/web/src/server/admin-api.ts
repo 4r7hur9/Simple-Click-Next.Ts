@@ -61,6 +61,15 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
   // O histórico de auditoria consultável (T-208, AC-215); os filtros vão na
   // consulta, que o repasse leva junto.
   { padrao: /^auditoria$/, metodos: ["GET"] },
+  // Funcionalidades liberadas por loja (T-207, AC-212, AC-213).
+  {
+    padrao: new RegExp(`^lojas/${UUID}/funcionalidades$`),
+    metodos: ["GET"],
+  },
+  {
+    padrao: new RegExp(`^lojas/${UUID}/funcionalidades/[a-z][a-z0-9_]{1,62}$`),
+    metodos: ["PUT"],
+  },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */

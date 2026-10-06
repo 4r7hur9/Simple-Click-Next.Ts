@@ -97,6 +97,23 @@ import {
   type OpcoesDasMetricas,
 } from "./modules/metrics/metricas.routes.ts";
 import { fusoDaLoja } from "./modules/storefront/fuso-da-loja.ts";
+import {
+  exigirFuncionalidade,
+  type OpcoesDoPortaoDeFuncionalidade,
+} from "./core/funcionalidades.ts";
+import {
+  criarRotaDasFuncionalidadesDaLoja,
+  type OpcoesDasFuncionalidadesDaLoja,
+} from "./modules/stores/funcionalidades.routes.ts";
+
+/**
+ * As rotas da área de impressão térmica, sob `/v1/lojas` (T-207, AC-212).
+ * Todas passam pelo portão da funcionalidade `auto_print`.
+ */
+export const ROTAS_DA_IMPRESSAO_TERMICA = [
+  "/:apelido/configuracao/impressao",
+  "/:apelido/pedidos/:id/cupom",
+] as const;
 
 /** Identificação que a raiz devolve. Sem dado de negócio: só sinal de vida. */
 export const IDENTIFICACAO_DA_API = {
@@ -157,6 +174,10 @@ export interface OpcoesDoApp {
    * O mesmo, para as métricas do painel do dono: acesso, cache e relógio.
    */
   readonly metricas?: Partial<OpcoesDasMetricas>;
+  /** O mesmo, para o portão de funcionalidade por loja (T-207). */
+  readonly funcionalidades?: Partial<OpcoesDoPortaoDeFuncionalidade>;
+  /** O mesmo, para o que o painel do dono lê das funcionalidades (T-207). */
+  readonly funcionalidadesDaLoja?: Partial<OpcoesDasFuncionalidadesDaLoja>;
 }
 
 /**
@@ -208,6 +229,19 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // colocada no ambiente e a rota recusa produção. A autenticação de produção
   // entra aqui quando a persistência da identidade for conectada à API.
   app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+
+  // O PORTÃO DE FUNCIONALIDADE POR LOJA (T-207, AC-212): o PONTO ÚNICO que
+  // tira do ar, para a loja em que a administração desligou, cada rota da
+  // área de impressão térmica — e antes de qualquer rota dela, acessada
+  // direto ou não. Rota nova da área (o agente e o pareamento da fila de
+  // impressão) entra NESTA lista, e só nela.
+  app.use(
+    ROTAS_DA_IMPRESSAO_TERMICA.map((caminho) => `/v1/lojas${caminho}`),
+    exigirFuncionalidade("auto_print", {
+      resolverLoja: identificarLoja,
+      ...opcoes.funcionalidades,
+    }),
+  );
 
   app.use(
     "/v1/lojas",
@@ -774,6 +808,34 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.situacaoDaLoja,
+    }),
+  );
+
+  // O QUE VALE PARA A LOJA DO DONO (T-207): o painel esconde do menu a área
+  // que a administração desligou. Quem barra é o portão lá em cima.
+  app.use(
+    "/v1/lojas",
+    criarRotaDasFuncionalidadesDaLoja({
+      resolverLoja: identificarLoja,
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          if (alegacoes.papel !== "OWNER") return null;
+          return {
+            identidadeId: alegacoes.identidadeId,
+            papel: "OWNER" as const,
+          };
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.funcionalidadesDaLoja,
     }),
   );
 
