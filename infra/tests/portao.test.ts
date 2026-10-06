@@ -506,6 +506,26 @@ describe("portão de qualidade — o comando único", () => {
     ESPERA_DE_PROCESSOS,
   );
 
+  it("@spec:AC-017 todo projeto do Vitest roda no portão: projeto novo ganha etapa", () => {
+    // Nasceu de um projeto que ficou de fora: o `agente` (agente de impressão
+    // e emulador) entrou no Vitest e nenhuma etapa o chamava, então a prova
+    // dele nunca passava pelo envio à main.
+    const configuracao = readFileSync(join(RAIZ, "vitest.config.ts"), "utf8");
+    const projetos = [...configuracao.matchAll(/\bname:\s*"([a-z-]+)"/g)].map(
+      (achado) => achado[1],
+    );
+    expect(projetos.length).toBeGreaterThan(0);
+
+    const portao = readFileSync(VERIFICAR, "utf8");
+    const chamados = new Set(
+      [...portao.matchAll(/--project\s+([a-z-]+)/g)].map((achado) => achado[1]),
+    );
+    const esquecidos = projetos.filter((nome) => !chamados.has(nome));
+    expect(esquecidos, "projeto do Vitest sem etapa no verificar.sh").toEqual(
+      [],
+    );
+  });
+
   it(
     "@spec:AC-017 reprova dizendo qual etapa falhou, e não reprova as que passaram",
     () => {
@@ -679,7 +699,7 @@ describe("o portão explica a etapa que reprovou", () => {
   it(
     "@spec:AC-017 o resumo repete as últimas linhas de cada etapa que reprovou",
     () => {
-      // O portão tem dezesseis etapas e leva minutos. Sem esta repetição, a
+      // O portão tem dezessete etapas e leva minutos. Sem esta repetição, a
       // explicação de uma falha fica centenas de linhas acima do veredito: quem
       // lê rola para cima procurando, ou reexecuta filtrando a saída e não vê
       // nada — que é como uma falha intermitente vira "roda de novo que passa".

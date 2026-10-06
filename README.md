@@ -494,7 +494,7 @@ Ainda não existe login de produção ligado à API (é uma das lacunas do `Harn
 
 **`Makefile`:** `make` (lista os alvos), `make setup`, `make up`, `make down`, `make certs`, `make seed`, `make test`, `make verificar` (portão completo), `make audit` (auditoria completa da especificação) e `make limpar`.
 
-**Nota sobre `make test` e `pnpm test:*`:** os scripts dos pacotes só cobrem os projetos `unit` e `web` (`test:unit`) e o `db-rls` de `packages/database` e `packages/testing` (`test:int`). Ficam de fora `api-int`, `filas`, `cache-int` e `infra/tests`. Para rodar tudo, use o portão ou `pnpm vitest run` (todos os projetos de uma vez, pesado).
+**Nota sobre `make test` e `pnpm test:*`:** os scripts dos pacotes só cobrem os projetos `unit`, `web` e `agente` (`test:unit`) e o `db-rls` de `packages/database` e `packages/testing` (`test:int`). Ficam de fora `api-int`, `filas`, `cache-int` e `infra/tests`. Para rodar tudo, use o portão ou `pnpm vitest run` (todos os projetos de uma vez, pesado).
 
 **Pacotes:** `pnpm --filter @simpleclick/database run migrar | migrar:verificar | guardas | seed | gerar` (exigem as variáveis no ambiente) e `pnpm --filter @simpleclick/api run contrato:escrever | contrato:verificar`.
 
@@ -503,7 +503,7 @@ Ainda não existe login de produção ligado à API (é uma das lacunas do `Harn
 ### 6.1 Migrações
 
 - Ficam em `packages/database/migrations`, **escritas à mão em SQL**, com nome `NNNN_nome_em_minusculas.sql` (quatro dígitos). O Prisma não gera migração aqui: `prisma/schema.prisma` serve só para gerar os tipos do cliente.
-- Alguns números estão vagos (0031, 0038–0040, 0042–0043) porque foram reservados para faixas paralelas. A ordem de aplicação é a do número.
+- Alguns números estão vagos (0031 e 0042) porque foram reservados para faixas paralelas. A ordem de aplicação é a do número.
 - `packages/database/src/migrate.ts` é o aplicador:
   - `aplicar` roda cada arquivo pendente uma vez, em ordem, **uma transação por arquivo**, com trava entre processos, e registra a impressão digital (sha256) no livro de controle. No fim, recusa o esquema se existir tabela de loja sem isolamento ligado e forçado.
   - `verificar` só confere: recusa migração pendente, migração alterada depois de aplicada ou arquivo sumido.
@@ -610,6 +610,7 @@ Consultas ao catálogo do PostgreSQL em `packages/database/guards`. Cada uma dev
 | ----------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
 | `unit`      | `apps/api/src/**/*.test.ts`, testes de `packages/*` (menos `database` e `testing`) e `infra/tests/*.test.ts` | nada além do processo |
 | `web`       | `apps/web/tests` e testes em `apps/web/src`, com jsdom                                                       | nada além do processo |
+| `agente`    | `apps/agente-impressao/src/**/*.test.ts`: o agente de impressão e o emulador de impressora (TCP local)       | nada além do processo |
 | `api-int`   | `apps/api/tests` e `apps/api/src/**/*.int.test.ts` (menos `jobs`)                                            | PostgreSQL de teste   |
 | `db-rls`    | testes de `packages/database`, `packages/testing` e `infra/tests/*.int.test.ts`                              | PostgreSQL de teste   |
 | `filas`     | `apps/api/src/jobs/**/*.int.test.ts`                                                                         | Redis de teste        |
@@ -661,12 +662,13 @@ PLAYWRIGHT_CHANNEL=chrome pnpm --filter @simpleclick/e2e test:e2e
 | 8   | contrato publicado em dia                 | confira se a mudança é intencional e rode `pnpm --filter @simpleclick/api run contrato:escrever`                                                              |
 | 9   | testes de unidade                         | `pnpm vitest run --project unit`                                                                                                                              |
 | 10  | testes do site (estados e acessibilidade) | `pnpm vitest run --project web`                                                                                                                               |
-| 11  | testes do cache (Redis de teste)          | suba o Redis de teste                                                                                                                                         |
-| 12  | testes de fila (Redis)                    | suba o Redis de teste                                                                                                                                         |
-| 13  | banco local em dia com as migrações       | `node --env-file=.env packages/database/src/migrate.ts aplicar`; se uma migração foi editada depois de aplicada, desfaça a edição e escreva uma migração nova |
-| 14  | testes de integração (banco efêmero)      | suba o banco de teste (`up.sh core test`) e confira `DATABASE_URL_TEST`                                                                                       |
-| 15  | migração compatível com a versão anterior | reescreva conforme a seção 6.1                                                                                                                                |
-| 16  | guardas estruturais do banco              | conserte na migração, nunca no banco à mão (`bash infra/scripts/db-guards.sh`)                                                                                |
+| 11  | testes do agente de impressão             | `pnpm vitest run --project agente`                                                                                                                            |
+| 12  | testes do cache (Redis de teste)          | suba o Redis de teste                                                                                                                                         |
+| 13  | testes de fila (Redis)                    | suba o Redis de teste                                                                                                                                         |
+| 14  | banco local em dia com as migrações       | `node --env-file=.env packages/database/src/migrate.ts aplicar`; se uma migração foi editada depois de aplicada, desfaça a edição e escreva uma migração nova |
+| 15  | testes de integração (banco efêmero)      | suba o banco de teste (`up.sh core test`) e confira `DATABASE_URL_TEST`                                                                                       |
+| 16  | migração compatível com a versão anterior | reescreva conforme a seção 6.1                                                                                                                                |
+| 17  | guardas estruturais do banco              | conserte na migração, nunca no banco à mão (`bash infra/scripts/db-guards.sh`)                                                                                |
 
 O portão carrega o `.env` antes de começar. O diário de cada etapa não fica guardado: para investigar, redirecione a saída inteira para um arquivo. A mesma versão verificada duas vezes dá o mesmo resultado (versões fixas, banco criado do zero, saída sem cor fora do terminal).
 

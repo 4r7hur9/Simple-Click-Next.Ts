@@ -135,6 +135,13 @@ portao_etapa "testes do site (estados e acessibilidade)" \
   "componentes e páginas do Next: os quatro estados e a verificação de acessibilidade com axe" \
   pnpm vitest run --project web
 
+# Projeto próprio do Vitest desde a T-609/T-610: o agente roda na máquina da
+# loja, fora da API, e a impressora é o emulador TCP numa porta livre do
+# processo. Todo projeto do Vitest tem etapa aqui (a prova é do portao.test.ts).
+portao_etapa "testes do agente de impressão" \
+  "agente da loja e emulador de impressora, com API falsa e impressora TCP local" \
+  pnpm vitest run --project agente
+
 # ── Bloco 4 · testes contra serviço de verdade ────────────────────────────
 # Cada etapa cobra UM serviço. Misturar faria a prova do cache reprovar por
 # PostgreSQL fora do ar — falha por motivo alheio é ruído, não informação.

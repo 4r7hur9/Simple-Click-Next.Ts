@@ -161,7 +161,7 @@ portao_etapa() {
   local inicio=$SECONDS
   local veredito=0
   # A saída é MOSTRADA ao vivo e GUARDADA ao mesmo tempo. O motivo é prático: o
-  # portão tem dezesseis etapas e leva minutos, e quando uma reprova a
+  # portão tem dezessete etapas e leva minutos, e quando uma reprova a
   # explicação fica soterrada centenas de linhas acima do veredito. Quem lê rola
   # para cima procurando, ou — pior — reexecuta filtrando a saída e não vê nada.
   # Guardando, o resumo repete o trecho da falha ao lado do nome dela. No
