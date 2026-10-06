@@ -192,6 +192,9 @@ export function useMetricas(opcoes: OpcoesDasMetricas): UsoDasMetricas {
             atualizando: false,
             atualizacaoFalhou: false,
           });
+          // A leitura recusada desmarcou a releitura do período que continua
+          // valendo; sem remarcá-la, o painel parava de se atualizar (AC-814).
+          agendar(anterior.consulta);
           return;
         }
         if (!mesmoPeriodo(consulta, PERIODO_DE_HOJE)) {

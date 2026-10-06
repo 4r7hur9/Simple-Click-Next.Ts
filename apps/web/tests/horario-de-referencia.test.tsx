@@ -11,10 +11,19 @@
 import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { MetricasPorPeriodo } from "../src/features/dashboard/MetricasPorPeriodo.tsx";
 import { PainelDoDia } from "../src/features/dashboard/PainelDeMetricas.tsx";
 import { INTERVALO_DE_RELEITURA_MS } from "../src/features/dashboard/useMetricas.ts";
-import { botao, clicar, desmontar, exigir, montar } from "./apoio-config.tsx";
 import {
+  botao,
+  clicar,
+  desmontar,
+  digitar,
+  exigir,
+  montar,
+} from "./apoio-config.tsx";
+import {
+  PERIODOS,
   RESUMO_DE_HOJE,
   adiada,
   assentar,
@@ -159,5 +168,62 @@ describe("o pedido novo aparece com o painel aberto (AC-814)", () => {
     expect(chamadas[1]?.consulta.get("atualizar")).toBeNull();
     expect(valorDaMetrica(tela, "vendido")).toBe("R$ 625,00");
     expect(exigir(horario(tela), "time").textContent).toBe("14h33");
+  });
+  it("@spec:AC-814 o intervalo recusado não para a releitura do período que continua valendo", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    let vendidos = 0;
+    const chamadas = simularMetricas((chamada) => {
+      if (chamada.consulta.get("periodo") === "personalizado") {
+        return {
+          status: 400,
+          corpo: {
+            erro: "periodo_invalido",
+            explicacao:
+              "A data final precisa ser igual ou posterior à data inicial.",
+          },
+        };
+      }
+      vendidos += 1;
+      return {
+        status: 200,
+        corpo: conferirNoContrato({
+          ...calculadasEm(
+            vendidos === 1
+              ? "2026-09-27T17:32:00.000Z"
+              : "2026-09-27T17:34:00.000Z",
+            vendidos === 1 ? 50_000 : 62_500,
+          ),
+          periodo: PERIODOS["7d"],
+        }),
+      };
+    });
+    const tela = montar(
+      <MetricasPorPeriodo
+        consultaInicial={{ periodo: "7d" }}
+        gravarNoEndereco={() => {}}
+      />,
+    );
+    await avancar(0);
+    expect(valorDaMetrica(tela, "vendido")).toBe("R$ 500,00");
+
+    // Meio minuto depois, o dono tenta um intervalo impossível.
+    await avancar(30_000);
+    digitar(exigir<HTMLInputElement>(tela, 'input[name="de"]'), "2026-09-20");
+    digitar(exigir<HTMLInputElement>(tela, 'input[name="ate"]'), "2026-09-10");
+    act(() => {
+      exigir<HTMLFormElement>(tela, "form[data-intervalo]").dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+    await avancar(0);
+    expect(exigir(tela, "[data-recusa]").textContent).toContain("data final");
+    expect(chamadas).toHaveLength(2);
+
+    // Os sete dias continuam valendo, e continuam se relendo sozinhos: o
+    // pedido novo aparece dentro do prazo de um minuto.
+    await avancar(INTERVALO_DE_RELEITURA_MS);
+    expect(chamadas).toHaveLength(3);
+    expect(chamadas[2]?.consulta.get("periodo")).toBe("7d");
+    expect(valorDaMetrica(tela, "vendido")).toBe("R$ 625,00");
   });
 });
