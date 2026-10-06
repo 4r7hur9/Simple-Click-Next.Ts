@@ -13,20 +13,20 @@ tela. Último trabalho: **27/08**, a T-406 (encontrabilidade e compartilhamento)
 **50 de 133 tarefas concluídas.** 270 critérios de aceite declarados, 109
 provados (40,4%).
 
-| Feature              | Feito | Situação                                    |
-| -------------------- | ----- | ------------------------------------------- |
-| `fundacao`           | 22/22 | **fechada**                                 |
-| `pedido-checkout`    | 16/16 | **fechada**                                 |
-| `vitrine-publica`    | 7/10  | falta T-407, T-408 e T-409                  |
-| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)            |
-| `config-loja`        | 1/9   | só a T-903 (horários), a reboque da vitrine |
-| `identidade-acesso`  | 0/11  | não começou                                 |
-| `catalogo-produtos`  | 0/14  | não começou                                 |
-| `pedido-operacao`    | 0/12  | não começou                                 |
-| `clientes-loja`      | 9/9   | pronta na faixa sc-F1; falta integrar       |
-| `dashboard-metricas` | 0/10  | não começou                                 |
-| `admin-lojas`        | 0/10  | não começou                                 |
-| `cardapio-na-tv`     | 0/5   | não começou                                 |
+| Feature              | Feito | Situação                                                     |
+| -------------------- | ----- | ------------------------------------------------------------ |
+| `fundacao`           | 22/22 | **fechada**                                                  |
+| `pedido-checkout`    | 16/16 | **fechada**                                                  |
+| `vitrine-publica`    | 7/10  | falta T-407, T-408 e T-409                                   |
+| `landing-plataforma` | 4/5   | falta só a T-963 (ponta a ponta)                             |
+| `config-loja`        | 1/9   | só a T-903 (horários), a reboque da vitrine                  |
+| `identidade-acesso`  | 0/11  | não começou                                                  |
+| `catalogo-produtos`  | 0/14  | não começou                                                  |
+| `pedido-operacao`    | 0/12  | não começou                                                  |
+| `clientes-loja`      | 9/9   | pronta na faixa sc-F1; falta integrar                        |
+| `dashboard-metricas` | 10/10 | 18/18 critérios provados; e2e da T-809 passa nos dois perfis |
+| `admin-lojas`        | 0/10  | não começou                                                  |
+| `cardapio-na-tv`     | 0/5   | não começou                                                  |
 
 A contagem de critérios provados (109 de 270) parece baixa perto das tarefas
 (50 de 133), e é assim de propósito: a fundação inteira sustenta critérios de

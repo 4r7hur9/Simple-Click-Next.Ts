@@ -57,3 +57,62 @@ export async function encaminharAoPainel(
     },
   });
 }
+
+/**
+ * Cabeçalhos da API que a tela precisa receber de volta numa leitura: o tipo,
+ * o nome do arquivo de uma planilha baixada e quantas linhas ela traz.
+ */
+const DEVOLVIDOS_NA_LEITURA = [
+  "content-type",
+  "content-disposition",
+  "x-quantidade-de-pedidos",
+] as const;
+
+/**
+ * Encaminha uma LEITURA do painel para uma rota da loja na API, com a
+ * consulta do jeito que chegou (as métricas: T-803, T-804, T-808).
+ *
+ * A consulta não é filtrada aqui, de propósito: quem decide o que ela aceita
+ * é a borda da API, que recusa chave desconhecida com 400 (AC-811). Filtrar
+ * no site trocaria a recusa por um silêncio — e a tentativa de pedir a loja
+ * de outra pessoa deixaria de ser negada para ser só ignorada.
+ *
+ * @param requisicao o pedido que a tela fez ao site
+ * @param caminhoNaLoja o trecho depois de `/v1/lojas/:apelido/`
+ */
+export async function encaminharLeituraDaLoja(
+  requisicao: Request,
+  caminhoNaLoja: string,
+): Promise<Response> {
+  const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
+  if (token === undefined) {
+    return Response.json({ erro: "nao_autenticado" }, { status: 401 });
+  }
+
+  const endereco = new URL(requisicao.url);
+  const resposta = await fetch(
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(APELIDO_DA_LOJA)}/${caminhoNaLoja}${endereco.search}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: requisicao.headers.get("accept") ?? "application/json",
+        authorization: `Bearer ${token}`,
+        origin: endereco.origin,
+      },
+    },
+  );
+
+  const cabecalhos = new Headers({ "cache-control": "no-store" });
+  for (const nome of DEVOLVIDOS_NA_LEITURA) {
+    const valor = resposta.headers.get(nome);
+    if (valor !== null) cabecalhos.set(nome, valor);
+  }
+  // Em bytes, e não em texto: a planilha começa com a marca de codificação, e
+  // é ela que faz o programa de planilha ler o acento certo.
+  const corpo = await resposta.arrayBuffer();
+  return new Response(corpo.byteLength === 0 ? null : corpo, {
+    status: resposta.status,
+    headers: cabecalhos,
+  });
+}
