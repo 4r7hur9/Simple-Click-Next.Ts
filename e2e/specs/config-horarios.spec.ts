@@ -91,12 +91,9 @@ test("@spec:AC-911 fechar agora pelo painel impede o cliente de pedir, e desliga
     await page.goto(`/l/${apelido}`);
     await expect(situacao(page)).toHaveClass(/sc-loja__situacao--fechada/);
     await tentarFechar(page, apelido);
-    // O pedido não nasce: a tela recusa e o carrinho continua lá. O texto é o
-    // genérico do 409 — a API não repassa ao site o horário de reabertura,
-    // que só a vitrine mostra (pendência registrada na T-908).
-    await expect(
-      page.getByText(/Não foi possível fechar o pedido agora/),
-    ).toBeVisible();
+    // O pedido não nasce: a tela recusa dizendo que a loja está fechada (e,
+    // quando há previsão, quando abre — AC-517) e o carrinho continua lá.
+    await expect(page.getByText(/^A loja está fechada agora/)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /Enviar pelo WhatsApp/ }),
     ).toHaveCount(0);
