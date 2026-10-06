@@ -335,3 +335,5 @@ export type {
   ResumoDeMetricasNoContrato,
   VariacaoDeMetricaNoContrato,
 } from "./metricas.ts";
+export * from "./auth.ts";
+export * from "./auth-rotas.ts";

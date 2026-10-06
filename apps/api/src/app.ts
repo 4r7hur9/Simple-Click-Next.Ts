@@ -12,6 +12,10 @@ import {
 } from "./modules/cart/carrinho.routes.ts";
 import { criarRotasDeSaude } from "./modules/health/health.routes.ts";
 import { criarRotasDeAutenticacaoDeDesenvolvimento } from "./modules/auth/desenvolvimento.routes.ts";
+import {
+  criarRotasDeIdentidade,
+  type OpcoesDaIdentidade,
+} from "./modules/auth/auth.routes.ts";
 import { criarRotasDasCategorias } from "./modules/catalog/categorias.routes.ts";
 import { criarRotasDosProdutos } from "./modules/catalog/produtos.routes.ts";
 import { criarRotasDasImagens } from "./modules/catalog/imagens.routes.ts";
@@ -67,7 +71,10 @@ import {
   gerarTokenDeConvite,
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
-import { enviadorNaoConfigurado } from "./jobs/email.job.ts";
+import {
+  enviadorNaoConfigurado,
+  saidaDeEmailDoAmbiente,
+} from "./jobs/email.job.ts";
 import {
   criarRotasDosClientes,
   type OpcoesDosClientes,
@@ -150,6 +157,11 @@ export interface OpcoesDoApp {
    * O mesmo, para as métricas do painel do dono: acesso, cache e relógio.
    */
   readonly metricas?: Partial<OpcoesDasMetricas>;
+  /**
+   * O mesmo, para a identidade de produção (T-112): ambiente, acesso, saída
+   * de e-mail, cifra e cache do limite de tentativas.
+   */
+  readonly identidade?: OpcoesDaIdentidade;
 }
 
 /**
@@ -197,10 +209,20 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     avisarOSiteQuandoODonoAltera(opcoes.avisarSite ?? naoAvisarOSite),
   );
 
-  // Usuário de teste local: só existe quando uma credencial explícita foi
-  // colocada no ambiente e a rota recusa produção. A autenticação de produção
-  // entra aqui quando a persistência da identidade for conectada à API.
-  app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+  // Identidade (T-112). Fora de produção, o atalho do usuário de teste local
+  // vem primeiro e só responde pelo e-mail dele; o resto segue para as rotas
+  // reais, ligadas ao banco. Em produção o atalho nem é montado (AC-132).
+  const fonteDaIdentidade = opcoes.identidade?.fonte ?? process.env;
+  if (fonteDaIdentidade.NODE_ENV !== "production") {
+    app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
+  }
+  app.use(
+    "/v1/auth",
+    criarRotasDeIdentidade({
+      email: saidaDeEmailDoAmbiente(fonteDaIdentidade),
+      ...opcoes.identidade,
+    }),
+  );
 
   app.use(
     "/v1/lojas",

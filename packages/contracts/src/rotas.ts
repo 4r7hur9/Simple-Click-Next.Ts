@@ -28,6 +28,12 @@ import {
   rotaDeCriarPedido,
 } from "./carrinho.ts";
 import { montarCatalogo, type RotaDoContrato } from "./rota.ts";
+import {
+  esquemaDaSessaoAberta,
+  esquemaDoResultadoDoLogin,
+  esquemaDoResultadoDoSegundoFator,
+} from "./auth.ts";
+import { ROTAS_DA_IDENTIDADE } from "./auth-rotas.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
 import {
   esquemaDaVitrine,
@@ -61,6 +67,7 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeConferirCarrinho,
   rotaDoFechamento,
   rotaDeCriarPedido,
+  ...ROTAS_DA_IDENTIDADE,
 ]);
 
 /**
@@ -98,6 +105,9 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     PedidoParaCriar: esquemaDoPedidoParaCriar,
     PedidoCriado: esquemaDoPedidoCriado,
     ContatoDoPedido: esquemaDoContato,
+    SessaoAberta: esquemaDaSessaoAberta,
+    ResultadoDoLogin: esquemaDoResultadoDoLogin,
+    ResultadoDoSegundoFator: esquemaDoResultadoDoSegundoFator,
   });
 
 /**
@@ -117,4 +127,6 @@ export const ETIQUETAS_DO_CONTRATO: Readonly<Record<string, string>> =
       "O que o público vê de uma loja. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna.",
     carrinho:
       "O carrinho do visitante, identificado por um token de sessão que a API emite como cookie. Comprar não exige cadastro.",
+    identidade:
+      "Cadastro, verificação de e-mail, login com segundo fator, sessão, recuperação de senha, aplicativo autenticador e convite do dono. Respostas neutras: nada revela se um e-mail tem conta.",
   });

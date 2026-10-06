@@ -9,7 +9,9 @@
  */
 
 import { type Job } from "bullmq";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { criarRegistrador, definirRegistrador } from "../core/log.ts";
 
 import {
   ASSUNTO_DE_VERIFICACAO,
@@ -19,6 +21,7 @@ import {
   ErroDeTrabalhoDesconhecido,
   enviadorNaoConfigurado,
   montarEmailDeVerificacao,
+  saidaDeEmailDoAmbiente,
   TRABALHOS_DE_EMAIL,
   type DadosDeEmail,
   type EnviadorDeEmail,
@@ -154,5 +157,39 @@ describe("enfileiramento do e-mail de verificação", () => {
       enfileirado: false,
       motivo: "Redis indisponível",
     });
+  });
+});
+
+describe("saída de e-mail conforme o ambiente (T-112)", () => {
+  afterEach(() => definirRegistrador(undefined));
+
+  it("@spec:AC-133 em produção sem provedor se declara indisponível e não finge que enviou", async () => {
+    const saida = saidaDeEmailDoAmbiente({ NODE_ENV: "production" });
+
+    expect(saida.disponivel).toBe(false);
+    await expect(
+      saida.enviar(montarEmailDeVerificacao(CADASTRO)),
+    ).rejects.toBeInstanceOf(ErroDeEnvioNaoConfigurado);
+  });
+
+  it("@spec:AC-133 fora de produção só anota o assunto, sem endereço, código nem link", async () => {
+    const linhas: string[] = [];
+    definirRegistrador(
+      criarRegistrador({
+        nivel: "debug",
+        ambiente: "test",
+        destino: { write: (texto: string) => void linhas.push(texto) },
+      }),
+    );
+    const saida = saidaDeEmailDoAmbiente({ NODE_ENV: "development" });
+
+    expect(saida.disponivel).toBe(true);
+    await saida.enviar(montarEmailDeVerificacao(CADASTRO));
+
+    const registro = linhas.join(" ");
+    expect(registro).toContain("email.registrado");
+    expect(registro).toContain(ASSUNTO_DE_VERIFICACAO);
+    expect(registro).not.toContain(CADASTRO.destinatario);
+    expect(registro).not.toContain(CADASTRO.urlDeVerificacao);
   });
 });
