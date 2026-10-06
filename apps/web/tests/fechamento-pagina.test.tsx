@@ -301,6 +301,27 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
     desmontar();
   });
 
+  it("@spec:AC-517 a recusa da loja fechada continua na tela depois de reconferir o carrinho", async () => {
+    // A recusa dispara uma nova conferência do carrinho; ela não pode apagar
+    // o motivo que acabou de chegar, ou a pessoa fica sem saber quando a loja
+    // abre (achado no ponta a ponta da T-908).
+    const { caixa, conferir, fechar, desmontar } = await montar();
+    const motivo = "A loja está fechada agora. Ela abre amanhã às 18:00.";
+    fechar.mockResolvedValueOnce({ estado: "nao-pode", motivo });
+
+    preencher(caixa);
+    const form = caixa.querySelector("form");
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(conferir).toHaveBeenCalledTimes(2);
+    expect(caixa.querySelector('[role="alert"]')?.textContent).toBe(motivo);
+    desmontar();
+  });
+
   it("@spec:AC-520 criado o pedido, a tela oferece enviar pelo WhatsApp", async () => {
     const { caixa, desmontar } = await montar();
 

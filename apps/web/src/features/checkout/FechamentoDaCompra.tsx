@@ -131,17 +131,23 @@ export function FechamentoDaCompra({
   const [pedido, setPedido] = useState<PedidoNaTela | null>(null);
   const [chave] = useState(novaChave);
 
-  const carregar = useCallback(async () => {
-    setCarregando(true);
-    const resultado = await conferir(apelidoDaLoja, null);
-    if (resultado.estado === "conferido") {
-      setConferencia(resultado.conferencia);
-      setErro(null);
-    } else {
-      setErro("Não foi possível carregar seu carrinho agora.");
-    }
-    setCarregando(false);
-  }, [apelidoDaLoja, conferir]);
+  // `manterAviso` é a reconferência depois de uma recusa: o motivo que acabou
+  // de chegar (loja fechada, mínimo, item esgotado) continua na tela, em vez
+  // de ser apagado pelo carrinho que voltou bem (AC-517).
+  const carregar = useCallback(
+    async (manterAviso = false) => {
+      setCarregando(true);
+      const resultado = await conferir(apelidoDaLoja, null);
+      if (resultado.estado === "conferido") {
+        setConferencia(resultado.conferencia);
+        if (!manterAviso) setErro(null);
+      } else {
+        setErro("Não foi possível carregar seu carrinho agora.");
+      }
+      setCarregando(false);
+    },
+    [apelidoDaLoja, conferir],
+  );
 
   useEffect(() => {
     void carregar();
@@ -191,7 +197,7 @@ export function FechamentoDaCompra({
       );
       // O mundo mudou desde que a página abriu: reconferir é o que mostra o
       // QUE mudou, em vez de deixar a pessoa adivinhar.
-      void carregar();
+      void carregar(true);
     } finally {
       setEnviando(false);
     }
