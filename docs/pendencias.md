@@ -651,6 +651,13 @@ bash infra/scripts/verificar.sh  # o portão completo
     entrada dentro do próprio teste, com senha e domínio de mentira — o que
     prova o limite, e não a autenticação.
 
+    **Atualizada em 06/10 (integração da faixa de produção):** a T-112 montou o
+    limite em `POST /v1/auth/login`, `/v1/auth/segundo-fator` e
+    `/v1/auth/segundo-fator/recuperacao` (`limite-da-identidade.ts`), e a T-608
+    no pareamento do agente de impressão. Continuam SEM limite: cadastro,
+    reenvio do link de verificação, `senha/esqueci` e a confirmação do
+    aplicativo autenticador. A dívida fica aberta por essas rotas.
+
 54. **Um servidor por requisição no supertest deu flutuação de verdade.** Duas
     execuções em quinze reprovaram com 404 numa rota que existe, em testes que
     passavam sozinhos. A causa é o volume: provar um limite de tentativas exige
@@ -801,6 +808,12 @@ bash infra/scripts/verificar.sh  # o portão completo
     repetir isso à mão estão em `docs/publicacao.md`. O que roda no portão
     confere o que a receita MANDA acontecer: estágios separados, poda das
     dependências de desenvolvimento e usuário sem privilégio.
+
+    **Situação em 06/10 (integração da faixa de produção):** continua aberta.
+    A T-024 construiu as duas imagens à mão, achou que os `Dockerfile` não
+    levavam `packages/core` e corrigiu isso (`ca90a2f`) — mas o portão
+    (`infra/scripts/verificar.sh`) segue sem construir imagem nenhuma, então a
+    próxima quebra desse tipo também só aparece em quem construir à mão.
 
 59. ~~**O botão principal da loja leva a uma página que não existe.**~~
     **Resolvido pela T-403 em 25/08:** a página do catálogo entrou em
