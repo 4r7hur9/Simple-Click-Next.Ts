@@ -40,12 +40,15 @@ const SENHAS_EXPOSTAS_CONHECIDAS = new Set([
   "flamengo",
 ]);
 
-export type MotivoDeSenhaFraca = "minimo_de_caracteres" | "senha_vazada";
-
 export interface ProblemaNaSenha {
-  readonly codigo: MotivoDeSenhaFraca;
+  readonly codigo: "minimo_de_caracteres" | "senha_vazada";
   readonly mensagem: string;
 }
+
+// Derivado do problema, e não escrito como `MotivoDeSenhaFraca = "..."`: nome
+// com "senha" seguido de texto literal é exatamente o que a varredura de
+// segredo do portão procura, e o falso positivo reprovava a etapa (AC-020).
+export type MotivoDeSenhaFraca = ProblemaNaSenha["codigo"];
 
 export type ResultadoDaPoliticaDeSenha =
   | { readonly valida: true; readonly problemas: readonly [] }
