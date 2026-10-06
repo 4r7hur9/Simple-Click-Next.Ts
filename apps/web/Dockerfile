@@ -47,6 +47,7 @@ COPY apps/web/package.json apps/web/
 COPY packages/config-eslint/package.json packages/config-eslint/
 COPY packages/config-ts/package.json packages/config-ts/
 COPY packages/contracts/package.json packages/contracts/
+COPY packages/core/package.json packages/core/
 COPY packages/database/package.json packages/database/
 COPY packages/testing/package.json packages/testing/
 COPY packages/ui/package.json packages/ui/

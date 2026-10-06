@@ -1,11 +1,11 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-10-06T02:11:05.366Z",
-  "gitRev": "0e39502",
+  "timestamp": "2026-10-06T07:02:29.164Z",
+  "gitRev": "40539d3",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh fundacao",
   "reporter": "vitest-json",
-  "exitCode": 0,
-  "testsParsed": 546,
+  "exitCode": 1,
+  "testsParsed": 575,
   "results": {
     "AC-001": {
       "status": "pass",
@@ -19,7 +19,7 @@
     },
     "AC-003": {
       "status": "pass",
-      "testName": "@spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado @spec:AC-003 grava a chave compartilhada e enxerga apenas o próprio dado",
+      "testName": "banco próprio de cada arquivo de teste @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio @spec:AC-003 este arquivo recebeu um banco descartável só dele, já migrado e vazio",
       "method": "vitest-json"
     },
     "AC-004": {
@@ -92,11 +92,6 @@
       "testName": "relação de contraste do WCAG @spec:AC-015 mede luminância nos extremos com os valores da especificação @spec:AC-015 mede luminância nos extremos com os valores da especificação",
       "method": "vitest-json"
     },
-    "AC-016": {
-      "status": "pass",
-      "testName": "vitrine do design system @spec:AC-016 @spec:AC-949 a verificação avaliou de fato os componentes da página @spec:AC-016 @spec:AC-949 a verificação avaliou de fato os componentes da página",
-      "method": "vitest-json"
-    },
     "AC-017": {
       "status": "pass",
       "testName": "portão de qualidade — o comando único @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação @spec:AC-017 um comando só percorre tipos, qualidade, testes, banco, telas e a auditoria da especificação",
@@ -118,7 +113,7 @@
       "method": "vitest-json"
     },
     "AC-040": {
-      "status": "pass",
+      "status": "fail",
       "testName": "gancho antes do registro @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir @spec:AC-040 o gancho roda formatação, qualidade, tipos e segredo em segundos, sem ninguém pedir",
       "method": "vitest-json"
     },
@@ -245,6 +240,26 @@
     "AC-048": {
       "status": "pass",
       "testName": "partida da API @spec:AC-048 o processo recusa partir quando o nome antigo da porta aponta para outra porta, nomeando as duas @spec:AC-048 o processo recusa partir quando o nome antigo da porta aponta para outra porta, nomeando as duas",
+      "method": "vitest-json"
+    },
+    "AC-049": {
+      "status": "pass",
+      "testName": "banco vazio @spec:AC-049 o arranque leva o banco vazio ao estado do código, e daí em diante a credencial de migração basta @spec:AC-049 o arranque leva o banco vazio ao estado do código, e daí em diante a credencial de migração basta",
+      "method": "vitest-json"
+    },
+    "AC-050": {
+      "status": "pass",
+      "testName": "primeira administração @spec:AC-050 nasce com e-mail confirmado e administração ativa, sem a senha na saída, e rodar de novo não muda nada @spec:AC-050 nasce com e-mail confirmado e administração ativa, sem a senha na saída, e rodar de novo não muda nada",
+      "method": "vitest-json"
+    },
+    "AC-051": {
+      "status": "pass",
+      "testName": "primeira administração @spec:AC-051 o segredo do aplicativo vai cifrado, os códigos de recuperação saem uma vez e a senha sozinha não abre sessão @spec:AC-051 o segredo do aplicativo vai cifrado, os códigos de recuperação saem uma vez e a senha sozinha não abre sessão",
+      "method": "vitest-json"
+    },
+    "AC-052": {
+      "status": "pass",
+      "testName": "cópia de segurança @spec:AC-052 sai com data no nome e manifesto do mesmo instante, e a retenção apaga só o que passou de sete dias @spec:AC-052 sai com data no nome e manifesto do mesmo instante, e a retenção apaga só o que passou de sete dias",
       "method": "vitest-json"
     }
   },

@@ -8,15 +8,18 @@
 # dentro, a partir do arquivo de trava, e é isso que torna a construção
 # reproduzível.
 
-# dependências e saídas de build — reconstruídas dentro da imagem
-node_modules/
+# dependências e saídas de build — reconstruídas dentro da imagem. O `**/` é
+# obrigatório: no .dockerignore um padrão sem ele vale só na raiz, e o
+# `node_modules` de cada pacote (com ligações do Windows que não funcionam no
+# Linux) entrava por cima do que a imagem acabou de instalar.
+**/node_modules/
 .pnpm-store/
-dist/
-.next/
+**/dist/
+**/.next/
 out/
-*.tsbuildinfo
-coverage/
-.turbo/
+**/*.tsbuildinfo
+**/coverage/
+**/.turbo/
 
 # cliente tipado do banco: nasce do esquema declarado, dentro da imagem
 packages/database/gerado/

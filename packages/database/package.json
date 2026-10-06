@@ -5,14 +5,15 @@
   "type": "module",
   "exports": {
     ".": "./src/migrate.ts",
+    "./arranque": "./src/arranque.ts",
     "./cliente": "./gerado/cliente/client.ts"
   },
   "scripts": {
     "gerar": "prisma generate --schema prisma/schema.prisma",
-    "migrar": "node src/migrate.ts aplicar",
-    "migrar:verificar": "node src/migrate.ts verificar",
+    "migrar": "node --env-file-if-exists=../../.env src/migrate.ts aplicar",
+    "migrar:verificar": "node --env-file-if-exists=../../.env src/migrate.ts verificar",
     "guardas": "node src/guards.ts",
-    "seed": "node seed/index.ts",
+    "seed": "node --env-file-if-exists=../../.env seed/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test:int": "vitest run --root ../.. --project db-rls packages/database/"
