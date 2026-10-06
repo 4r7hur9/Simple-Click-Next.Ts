@@ -51,6 +51,7 @@ import {
   type FalhaDeTentativa,
   type SegundoPlano,
 } from "./jobs/index.ts";
+import { criarRemocaoDefinitiva } from "./modules/admin/remocao-definitiva.ts";
 
 /**
  * Quanto o desligamento pode levar antes de desistir e sair com erro.
@@ -77,6 +78,7 @@ export const EVENTOS_DA_PARTIDA = {
   segundoPlanoIniciou: "segundo_plano.iniciou",
   segundoPlanoDesligado: "segundo_plano.desligado",
   tentativaFalhou: "segundo_plano.tentativa_falhou",
+  retencaoFalhou: "segundo_plano.retencao_falhou",
   desligando: "api.desligando",
   desligou: "api.desligou",
   recursoNaoFechou: "api.recurso_nao_fechou",
@@ -218,6 +220,13 @@ export async function iniciarApi(
         enviadorDeEmail: opcoes.enviadorDeEmail ?? enviadorNaoConfigurado(),
         prefixo: opcoes.prefixoDasFilas,
         aoFalhar: (falha) => registrarTentativa(registro, falha),
+        // A remoção definitiva das lojas excluídas cujo prazo venceu (AC-211,
+        // T-206): guiada pela data no banco, na partida e de hora em hora.
+        retencao: {
+          remover: criarRemocaoDefinitiva(),
+          aoFalhar: (motivo) =>
+            registro.aviso(EVENTOS_DA_PARTIDA.retencaoFalhou, { motivo }),
+        },
       })
     : undefined;
 

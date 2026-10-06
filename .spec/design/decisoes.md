@@ -336,8 +336,9 @@ quando deixa de valer.
   mesma loja ao mesmo tempo (trava de linha que pula a já reivindicada). Roda
   pela credencial da administração e registra `LOJA_REMOVIDA` na trilha, sem
   pessoa. A anonimização do dado do COMPRADOR nos pedidos segue a regra própria
-  (decisão 9 do modelo), e não esta. A partida da tarefa no processo da API é da
-  LAC-03, que ainda vai subir `montarSegundoPlano` em `main.ts`. A guarda do
+  (decisão 9 do modelo), e não esta. A partida da tarefa é do processo da API:
+  `main.ts` a entrega a `montarSegundoPlano`, que só sobe com o segundo plano
+  ligado (o padrão em produção). A guarda do
   contrato depois da remoção é proposta da faixa, a confirmar com o dono.
 
 ### 2026-10-03 — Agente de impressão em Node/TypeScript, dentro do monorepo
