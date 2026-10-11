@@ -1,7 +1,7 @@
 /**
- * Diagramação do cupom (AC-620): os blocos semânticos viram linhas para um
- * perfil de colunas e tabela de caracteres. As duas saídas, navegador e
- * impressora, partem destas linhas sem medir nem quebrar texto por conta própria.
+ * Diagramação do cupom (AC-620): os blocos viram linhas para um perfil de
+ * colunas e tabela de caracteres. Navegador e impressora partem destas linhas,
+ * e nenhum dos dois mede, quebra ou alinha texto por conta própria.
  */
 
 import {
@@ -52,6 +52,7 @@ function recuoValido(recuo: number | undefined, capacidadeDaLinha: number) {
   return Math.min(pedido, capacidadeDaLinha - 1);
 }
 
+/** Texto corrido em linhas: quebra por palavra, recuo e alinhamento. */
 function diagramarTexto(
   bloco: BlocoDeTexto,
   colunas: number,
@@ -80,6 +81,7 @@ function diagramarTexto(
   return linhas;
 }
 
+/** Rótulo e valor: o valor encosta na direita e o rótulo quebra com recuo. */
 function diagramarPar(
   bloco: BlocoDePar,
   colunas: number,

@@ -12,14 +12,17 @@ import {
   type TamanhoDoTexto,
 } from "./cupom-contrato.ts";
 
+/** Objeto simples: nem nulo, nem lista. */
 function ehObjeto(valor: unknown): valor is Record<string, unknown> {
   return typeof valor === "object" && valor !== null && !Array.isArray(valor);
 }
 
+/** Campo opcional: ausente, ou presente e aceito pela conferência dada. */
 function opcional<T>(valor: unknown, aceita: (v: unknown) => v is T): boolean {
   return valor === undefined || aceita(valor);
 }
 
+// Conferências de cada campo de um bloco, uma por tipo de valor.
 const ehTexto = (v: unknown): v is string => typeof v === "string";
 const ehBooleano = (v: unknown): v is boolean => typeof v === "boolean";
 const ehTamanho = (v: unknown): v is TamanhoDoTexto =>
@@ -29,6 +32,7 @@ const ehAlinhamento = (v: unknown): v is Alinhamento =>
 const ehInteiroNaoNegativo = (v: unknown): v is number =>
   typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
 
+/** O bloco é de um tipo do contrato e todos os campos dele conferem. */
 function ehBloco(valor: unknown): valor is BlocoDoCupom {
   if (!ehObjeto(valor)) return false;
   switch (valor.tipo) {

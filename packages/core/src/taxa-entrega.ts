@@ -80,6 +80,7 @@ function taxaDaRetirada(): TaxaDeEntrega {
   return { modo: "FREE", valorEmCentavos: 0, nome: null };
 }
 
+/** A taxa da entrega: a combinar sem valor, grátis a partir do limite. */
 function taxaDaEntrega(
   configuracao: ConfiguracaoDeEntrega,
   subtotalEmCentavos: number,
@@ -139,6 +140,7 @@ function conferirMinimo(
   };
 }
 
+/** Recusa a forma de entrega que a loja não oferece, dizendo a que ela faz. */
 function conferirDisponibilidade(
   configuracao: ConfiguracaoDeEntrega,
   forma: FormaDeEntrega["tipo"],

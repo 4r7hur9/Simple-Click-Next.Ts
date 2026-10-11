@@ -72,6 +72,7 @@ function acaoDoPasso(atual: StatusDoPedido, proximo: StatusDoPedido): string {
   return ACOES[proximo];
 }
 
+/** O texto é um status da máquina; status desconhecido não tem próximo. */
 function statusConhecido(status: string): status is StatusDoPedido {
   return (STATUS_DO_PEDIDO as readonly string[]).includes(status);
 }

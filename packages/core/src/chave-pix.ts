@@ -45,6 +45,7 @@ export const FORMATO_DA_CHAVE_PIX: Readonly<Record<TipoDaChavePix, string>> = {
     "Chave aleatória tem 32 letras e números em cinco grupos separados por traço, por exemplo 123e4567-e89b-12d3-a456-426614174000 — copie do aplicativo do seu banco.",
 };
 
+/** Tira a máscara: CPF, CNPJ e telefone valem com ou sem pontuação. */
 function somenteDigitos(texto: string): string {
   return texto.replace(/\D/g, "");
 }
@@ -96,6 +97,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALEATORIA =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** A recusa traz o formato esperado do tipo escolhido, e não só "inválida". */
 function recusar(tipo: TipoDaChavePix): ChavePixRecusada {
   return { ok: false, formatoEsperado: FORMATO_DA_CHAVE_PIX[tipo] };
 }

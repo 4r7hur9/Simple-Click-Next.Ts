@@ -70,6 +70,7 @@ export interface ResumoDeVendas {
 
 const VAZIA: ParcelaDoResumo = { quantidade: 0, totalCentavos: 0 };
 
+/** Mais um pedido na parcela: conta um e soma o valor dele. */
 function somar(parcela: ParcelaDoResumo, centavos: number): ParcelaDoResumo {
   return {
     quantidade: parcela.quantidade + 1,

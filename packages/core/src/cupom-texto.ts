@@ -11,9 +11,10 @@
  * texto fala na voz de quem pediu ("Acompanhe seu pedido") e traz os dados de
  * contato do cliente — o dono precisa deles para responder.
  *
- * Quem monta o endereço `https://wa.me/...?text=...` é `apps/web` (T-508).
- * Aqui mora só o CONTEÚDO, mais a medida do tamanho que aquele endereço vai
- * ter (`medirComprimentoNoLink`), para que as duas pontas usem a mesma régua.
+ * Quem monta o endereço `https://wa.me/...?text=...` é `linkDoWhatsApp`
+ * (`telefone.ts`), chamado pela API no fechamento do pedido. Aqui mora só o
+ * CONTEÚDO, mais a medida do tamanho que aquele endereço vai ter
+ * (`medirComprimentoNoLink`), para que as duas pontas usem a mesma régua.
  *
  * Porta de entrada: os tipos do pedido moram em `pedido-descrito.ts`, a
  * formatação em `cupom-texto-formato.ts` e os blocos em

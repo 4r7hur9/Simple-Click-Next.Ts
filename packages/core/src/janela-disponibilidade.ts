@@ -14,6 +14,7 @@ export interface JanelaDeDisponibilidade {
   readonly fecha: string;
 }
 
+/** "HH:MM" em minutos desde a meia-noite; hora fora do relógio vira `null`. */
 function minutos(hora: string): number | null {
   const partes = /^(\d{1,2}):(\d{2})$/.exec(hora.trim());
   if (partes === null) return null;
@@ -23,6 +24,7 @@ function minutos(hora: string): number | null {
   return h * 60 + m;
 }
 
+/** A janela em minutos, ou `null` se o dia, as horas ou a ordem não fecham. */
 function janelaValida(janela: JanelaDeDisponibilidade): {
   readonly abre: number;
   readonly fecha: number;

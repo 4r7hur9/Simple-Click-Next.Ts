@@ -88,6 +88,7 @@ export interface TotalDoItem {
   readonly podeAdicionar: boolean;
 }
 
+/** A palavra no singular ou no plural, conforme a quantidade da pendência. */
 function plural(quantos: number, singular: string, plural_: string): string {
   return quantos === 1 ? singular : plural_;
 }

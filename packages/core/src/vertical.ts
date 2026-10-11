@@ -27,12 +27,14 @@ const COMPOSICAO_VAZIA: ComposicaoDoRamo = {
   vitrine: [],
 };
 
+/** O JSON do banco como objeto; qualquer outra forma vira objeto vazio. */
 function objeto(valor: unknown): Record<string, unknown> {
   return typeof valor === "object" && valor !== null && !Array.isArray(valor)
     ? (valor as Record<string, unknown>)
     : {};
 }
 
+/** Só os nomes de bloco válidos: texto não vazio; o resto é descartado. */
 function lista(valor: unknown): readonly string[] {
   if (!Array.isArray(valor)) return [];
   return valor.filter(

@@ -145,6 +145,7 @@ export interface Conferencia {
   readonly houveDivergencia: boolean;
 }
 
+/** Centavos inteiros como "R$ 1.234,56", para explicar a mudança de preço. */
 function emReais(centavos: number): string {
   const inteiro = Math.trunc(Math.abs(centavos) / 100);
   const resto = String(Math.abs(centavos) % 100).padStart(2, "0");

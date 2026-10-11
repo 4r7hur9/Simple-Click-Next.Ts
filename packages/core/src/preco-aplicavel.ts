@@ -55,6 +55,7 @@ export interface PrecoAplicado {
   readonly totalEmCentavos: number;
 }
 
+/** O rótulo que o dono deu ao preço, ou o nome padrão do tipo. */
 function nomeDe(preco: PrecoCadastrado): string {
   const dado = preco.rotulo?.trim();
   return dado !== undefined && dado !== ""
@@ -62,6 +63,7 @@ function nomeDe(preco: PrecoCadastrado): string {
     : (NOME_PADRAO[preco.tipo] ?? preco.tipo);
 }
 
+/** "unidade" ou "unidades", para a explicação do preço por quantidade. */
 function plural(quantidade: number): string {
   return quantidade === 1 ? "unidade" : "unidades";
 }
