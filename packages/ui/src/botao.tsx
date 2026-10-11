@@ -31,6 +31,7 @@ export type BotaoProps = Omit<
   className?: string | undefined;
 };
 
+/** Botão que, carregando, bloqueia o clique de verdade e anuncia a espera. */
 export function Botao({
   children,
   variante = "primaria",

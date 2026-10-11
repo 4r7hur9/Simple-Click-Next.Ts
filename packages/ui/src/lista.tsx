@@ -36,6 +36,7 @@ export type ListaProps<T> = {
   className?: string | undefined;
 };
 
+/** Espera, erro ou vazio pelo estado declarado; pronta, vira `ul` rotulada. */
 export function Lista<T>({
   rotulo,
   itens,
