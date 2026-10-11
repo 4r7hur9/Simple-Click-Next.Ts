@@ -1,7 +1,7 @@
 {
   "feature": "landing-plataforma",
-  "timestamp": "2026-10-11T16:40:50.832Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:33:12.201Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh landing-plataforma",
   "reporter": "vitest-json",
   "exitCode": 0,

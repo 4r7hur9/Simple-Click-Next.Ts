@@ -1,7 +1,7 @@
 {
   "feature": "dashboard-metricas",
-  "timestamp": "2026-10-11T16:29:24.971Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:28:53.290Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh dashboard-metricas",
   "reporter": "vitest-json",
   "exitCode": 0,

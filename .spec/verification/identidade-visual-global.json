@@ -1,7 +1,7 @@
 {
   "feature": "identidade-visual-global",
-  "timestamp": "2026-10-11T16:40:20.553Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:32:47.444Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh identidade-visual-global",
   "reporter": "vitest-json",
   "exitCode": 0,

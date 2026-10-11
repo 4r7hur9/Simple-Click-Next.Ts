@@ -1,7 +1,7 @@
 {
   "feature": "clientes-loja",
-  "timestamp": "2026-10-11T16:24:36.149Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:25:10.612Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh clientes-loja",
   "reporter": "vitest-json",
   "exitCode": 0,

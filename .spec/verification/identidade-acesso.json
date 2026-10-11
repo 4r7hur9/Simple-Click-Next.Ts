@@ -1,7 +1,7 @@
 {
   "feature": "identidade-acesso",
-  "timestamp": "2026-10-11T16:33:07.661Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:31:57.002Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh identidade-acesso",
   "reporter": "vitest-json",
   "exitCode": 0,

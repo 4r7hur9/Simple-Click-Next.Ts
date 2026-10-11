@@ -1,7 +1,7 @@
 {
   "feature": "fundacao",
-  "timestamp": "2026-10-11T16:12:53.659Z",
-  "gitRev": "1e48cd9",
+  "timestamp": "2026-10-11T18:49:25.404Z",
+  "gitRev": "a15107e",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh fundacao",
   "reporter": "vitest-json",
   "exitCode": 0,
