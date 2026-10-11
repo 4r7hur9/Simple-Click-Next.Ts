@@ -1,6 +1,6 @@
 # HarnessPlan — o plano único do SimpleClick
 
-Levantado em 05/10/2026 e atualizado em 06/10/2026, depois do primeiro envio à `main`, da integração do segundo lote de faixas e da integração da faixa de produção, a partir do Git, das worktrees, dos `tasks.md`, das provas gravadas e dos registros de execução. Este é o **único plano** do projeto. Ele substitui `docs/retomada-2026-09-27.md` e `docs/retomada-2026-09-27-codex.md` (apagados) e o papel de plano de `.spec/plano-paralelo.md` e `.spec/design/plano-continuacao.md`, que ficam em `.spec` como registro histórico. Como o projeto funciona está no [`README.md`](README.md).
+Levantado em 05/10/2026 e atualizado em 06/10/2026 e em 11/10/2026, depois do primeiro envio à `main`, da integração do segundo lote de faixas e da faixa de produção, da renovação das provas e do começo da fase 3, a partir do Git, das worktrees, dos `tasks.md`, das provas gravadas e dos registros de execução. Este é o **único plano** do projeto. Ele substitui `docs/retomada-2026-09-27.md` e `docs/retomada-2026-09-27-codex.md` (apagados) e o papel de plano de `.spec/plano-paralelo.md` e `.spec/design/plano-continuacao.md`, que ficam em `.spec` como registro histórico. Como o projeto funciona está no [`README.md`](README.md).
 
 Regra de manutenção: quando o estado muda (tarefa fecha, faixa integra, decisão sai), este arquivo muda no mesmo commit. Antes de agir, confira `git status` e `git log` da worktree: as faixas guardam trabalho sem commit.
 
@@ -21,25 +21,28 @@ Regra de manutenção: quando o estado muda (tarefa fecha, faixa integra, decis�
 
 - **Todas as 150 tarefas** das 13 features estão concluídas na `integracao/onda-1`. O segundo lote foi integrado em 06/10: métricas (T-801 a T-809), impressão (T-608 a T-610), administração (T-206 a T-209) e pendências (T-908, T-611 e a nova T-516 do checkout). A faixa de produção entrou logo depois, também em 06/10, com T-111 a T-115 e T-024 (seção 4).
 - **Primeiro envio à `main` feito em 06/10/2026**: o GitHub foi de `9dbd2f6` para **`d7cad26`** (153 commits), com o portão completo aprovado nas 16 etapas e **277 dos 287 critérios então escritos com prova** (13 features, nenhuma reprovada).
-- Na integração, as provas gravadas somam **301 de 301 critérios com PASS**. Os critérios a mais são o AC-215 (auditoria), o AC-524 (carrinho convertido), o AC-049 a AC-052 (arranque do banco, T-024) e o AC-129 a AC-136 (identidade real e loja pela sessão). Essas provas vieram das faixas e ainda **não foram renovadas** sobre o código integrado: isso é o passo 3 da fase 2, antes do segundo envio.
-- O bloqueio da fundação (10 critérios) foi resolvido em 05/10 (seção 5).
-- Nenhuma faixa trabalha agora: a de produção foi integrada e vai para a `main` no próximo envio.
+- **Provas renovadas sobre o código integrado em 11/10/2026: 301 de 301 critérios com PASS**, as 13 features aprovadas, uma por vez sob a trava (`logs/provas-int5/`). Os critérios a mais que no primeiro envio são o AC-215 (auditoria), o AC-524 (carrinho convertido), o AC-049 a AC-052 (arranque do banco, T-024) e o AC-129 a AC-136 (identidade real e loja pela sessão).
+- A renovação de 06/10 tinha reprovado dois: o **AC-323** era regressão de verdade (a T-803 reescreveu o início do painel e deixou cair o aviso de que tipo de negócio, apelido, documento e contrato são da administração) e foi consertado em `1e48cd9`, junto com os atalhos fixos para a loja de demonstração, que agora saem da loja da sessão; o **AC-017** passou isolado e na renovação de 11/10 (a rodada de 06/10 levou 3h30, com a máquina carregada).
+- **Segundo envio à `main`**: a integração com as provas renovadas, logo depois deste plano (seção 2).
+- **Fase 3 (limpeza) começou em 11/10**: onda 1 com os lotes L1 e L2 em worktrees próprias (seção 6).
 - Mesmo com todas as tarefas fechadas, o sistema **não roda em produção**: faltam e-mail, armazenamento privado, LGPD, contas e domínio, e a escolha da via de backup (seção 7). Login de verdade, loja pela sessão, arranque do banco, o mecanismo de backup e as imagens Docker já estão feitos e integrados.
 
 ## 2. Onde o trabalho está agora
 
-| Ramo / árvore                                                      | Commit    | Situação                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main` (`C:/Users/arthu/Desktop/SimpleClick/Simple-Click-Next.Ts`) | `d7cad26` | igual a `origin/main` desde 06/10, árvore limpa e toda em LF. As alterações locais antigas (`sinais.json`, os `fora-de-formato-*.ts` e `docs/retomada-2026-09-27.md`) foram resolvidas: o documento está guardado no histórico (`21d05c1`) e absorvido neste plano                                                                                                                                                                                                                                                                             |
-| `integracao/onda-1` (worktree `onp-worktrees/sc-integracao-onda1`) | `6495f45` | à frente da `main` com o segundo lote integrado em 06/10 (métricas `e9d79eb`, impressão `a7be6cb`, administração `9c29196`, correção `c5371fb`, pendências `53ab0cf`) e, depois, a faixa de produção (`f8118b9`, juntada no merge `6495f45`), seguida das correções da revisão da integração (`3bff19b` e os `fix` seguintes). As migrações 0038 a 0040, 0043 e 0044 a 0046 estão aplicadas no banco de desenvolvimento. É o ponto de encontro das faixas antes de cada envio. Não existe `origin/integracao/onda-1`: o remoto só tem a `main` |
+| Ramo / árvore                                                      | Commit    | Situação                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main` (`C:/Users/arthu/Desktop/SimpleClick/Simple-Click-Next.Ts`) | `d7cad26` | igual a `origin/main` desde 06/10, árvore limpa e toda em LF. As alterações locais antigas (`sinais.json`, os `fora-de-formato-*.ts` e `docs/retomada-2026-09-27.md`) foram resolvidas: o documento está guardado no histórico (`21d05c1`) e absorvido neste plano                                                                                                                                                                                                                                                                                                                                                     |
+| `integracao/onda-1` (worktree `onp-worktrees/sc-integracao-onda1`) | `1e48cd9` | segundo lote integrado em 06/10 (métricas `e9d79eb`, impressão `a7be6cb`, administração `9c29196`, correção `c5371fb`, pendências `53ab0cf`), faixa de produção (`f8118b9`, juntada no merge `6495f45`), correções da revisão da integração (`3bff19b` e os `fix` seguintes) e o conserto do AC-323 (`1e48cd9`); provas renovadas e commitadas em 11/10 e enviadas à `main` no segundo envio. As migrações 0038 a 0040, 0043 e 0044 a 0046 estão aplicadas no banco de desenvolvimento. É o ponto de encontro dos lotes da fase 3 antes de cada envio. Não existe `origin/integracao/onda-1`: o remoto só tem a `main` |
+| `fase3/L1-pacotes` (worktree `onp-worktrees/sc-L1`)                | `1e48cd9` | fase 3, onda 1: lote L1 (contratos, core e ui), em andamento desde 11/10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `fase3/L2-web-vitrine-ds` (worktree `onp-worktrees/sc-L2`)         | `1e48cd9` | fase 3, onda 1: lote L2 (vitrine do design system, `routes.ts`, TV e landing), em andamento desde 11/10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 As worktrees ficam em `C:/Users/arthu/Desktop/SimpleClick/onp-worktrees`. As faixas `sc-F3`, `sc-F4` e `sc-F5` são antigas e já foram integradas; as demais estão na seção 4.
 
-**Prova na integração** (05/10, uma feature por vez com `vitest-feature.sh`, commitada em `d7cad26`): as 13 features aprovaram, 277 critérios com PASS e nenhum reprovado. Depois disso o pre-push rodou o portão completo (16/16) e o envio saiu.
+**Prova na integração** (11/10, uma feature por vez com `vitest-feature.sh`, sobre `1e48cd9`): as 13 features aprovaram, 301 critérios com PASS e nenhum reprovado. A do primeiro envio (05/10, commitada em `d7cad26`) tinha 277.
 
 ## 3. Estado por feature
 
-Tarefas lidas dos `tasks.md` da integração depois do segundo lote e da faixa de produção (06/10). Os critérios com prova `pass` vêm de `.spec/verification/<feature>.json` e são comparados com o total de critérios do `spec.md`. As provas de métricas, administração, operação, configurações, checkout, fundação e identidade vieram das faixas e precisam ser renovadas sobre o código integrado antes do envio.
+Tarefas lidas dos `tasks.md` da integração depois do segundo lote e da faixa de produção (06/10). Os critérios com prova `pass` vêm de `.spec/verification/<feature>.json` e são comparados com o total de critérios do `spec.md`. Todas as provas foram renovadas sobre o código integrado em 11/10 (`1e48cd9`).
 
 | Feature                    | Tarefas | Concluídas            | Abertas | Critérios com prova |
 | -------------------------- | ------- | --------------------- | ------- | ------------------- |
@@ -106,17 +109,49 @@ Feito em 05 e 06/10: fundação consertada, provas renovadas e **primeiro envio 
 
 ### Fase 3 — limpeza pedida pelo dono
 
-Começa só depois de as faixas terminarem, para não disputar arquivo com elas.
+**Em andamento desde 11/10/2026.** Onda 1: L1 em `sc-L1` (`fase3/L1-pacotes`) e L2 em `sc-L2` (`fase3/L2-web-vitrine-ds`), as duas a partir de `1e48cd9`. As instruções comuns que cada agente de lote recebe estão em `onp-worktrees/logs/fase3/INSTRUCOES-LOTE.md`, e o plano executável arquivo a arquivo em `onp-worktrees/logs/fase3/PLANO-FASE3.md`. Para o `lib/routes.ts` (decisão 9 da 8.2) o L2 usa a forma compacta recomendada, num commit só dela, para poder ser refeita se o dono preferir a outra. Os itens que pedem decisão do dono (8.2) ficam intocados até a resposta.
+
+Começa depois de as faixas terminarem (todas terminaram em 06/10), para não disputar arquivo com elas. O levantamento foi feito em 06/10, só com leitura (8 agentes; cada teste marcado para sair foi conferido por dois céticos independentes, um pela cobertura e outro pela equivalência das asserções). O detalhe arquivo a arquivo (como partir cada um, quem o importa e quais testes o cobrem) vai para os agentes de cada lote como material de trabalho; aqui fica o que decide e o que se acompanha.
+
+**Números (integração `64230d0`):**
+
+- **35 arquivos de código acima de 500 linhas**: 16 na API, 8 no site, 10 nos pacotes e 1 na infra (lista na seção 10). Ficam só registrados, sem partir: `schema.prisma` e as migrações 0007 e 0008.
+- **21 arquivos de teste acima de 500 linhas**, e 26 de código entre 400 e 500, só vigiados.
+- **873 de 2315 funções sem comentário (38%)**: API 29%, site 52%, pacotes 27%, infra e e2e 39%. São 88 arquivos sem cabeçalho e **45 comentários que contradizem o código**.
+- **Testes:** 362 arquivos e 301 critérios, todos com prova. **Saem 11 testes** em 8 arquivos; dois saem inteiros (`lockout.test.ts` e `limite-login.test.ts`, que testam uma classe que mais nada usa e que sai junto). Nenhum deles é a prova registrada do seu critério, e cada um tem outro teste que prova o mesmo na mesma camada ou numa mais forte. Três candidatos foram recusados e ficam.
+- **Defeito visual achado:** as classes `sc-botao--primario` e `sc-botao--fantasma` aparecem 84 vezes em 27 telas e não existem no CSS; esses botões estão sem a cor da variante (decisão 8 na seção 8.2).
+
+**Regras de todo lote:**
+
+1. O arquivo original fica como porta de entrada e reexporta o que saiu dele: nenhum import muda e nenhum caminho citado em `tasks.md` desaparece.
+2. Mover, não reescrever. As únicas exceções são as deduplicações previstas: a função de autenticação repetida 21 vezes no `app.ts`, o acesso do dono repetido nas 8 rotas do catálogo, `dinheiro()`, `Secao` e a troca otimista de ordem.
+3. A ordem de montagem das rotas não muda.
+4. Ao partir um teste, o nome do `describe` e o título de cada teste ficam idênticos (a prova guarda esse nome) e o sufixo que decide o projeto do Vitest fica.
+5. Arquivo novo com até 300 linhas sempre que der, teto de 500, e sempre com cabeçalho dizendo por que existe.
+6. Uma worktree por lote, a partir da integração; um commit por arquivo partido e um commit de comentários por pasta; no máximo dois lotes ao mesmo tempo; dentro do lote só testes pontuais, tipos e lint. A prova completa é uma só, no fim.
+
+**Lotes (13, em 7 ondas):**
+
+| Onda                    | Lote A                                                        | Lote B                                                       |
+| ----------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
+| 1 (risco baixo)         | L1 pacotes: contratos, core e ui                              | L2 site: vitrine do design system, `routes.ts`, TV e landing |
+| 2                       | L3 API: administração, loja e impressão                       | L4 site: administração                                       |
+| 3                       | L5 pacotes do banco: seed, `database/src` e apoio de teste    | L6 API: base do catálogo (`acesso-do-dono.ts`)               |
+| 4                       | L7 API: rotas grandes do catálogo (depois do L6)              | L8 site: painel                                              |
+| 5                       | L9 API: pedidos e carrinho (risco alto: fechamento do pedido) | L10 site: loja, conta e servidor                             |
+| 6                       | L11 infra e e2e                                               | L12 API: core                                                |
+| 7 (sozinho, risco alto) | L13 API: `app.ts` em `composicao/`, acesso, filas e `main.ts` |                                                              |
+
+**Verificação:** cada lote roda os testes pontuais do que mexeu, tipos e lint. No fim, os lotes entram na integração na ordem das ondas, e vêm as provas de todas as features, a suíte ponta a ponta inteira e o portão completo; só então o envio.
+
+**Documentos** (também fase 3):
 
 1. **Um README e um plano, nada redundante.** Absorver no `README.md` e neste plano o que ainda vale de `docs/pendencias.md`, `docs/publicacao.md`, `docs/verificacao.md`, `infra/railway/README.md` e `packages/database/policies/README.md`, e apagá-los. Cuidado com o que depende deles:
    - `infra/scripts/registrar-pulo.sh` **escreve** o registro de portão pulado em `docs/pendencias.md` (padrão de `PORTAO_PENDENCIAS`, entre os marcadores `<!-- portao-contornado:inicio -->` e `<!-- portao-contornado:fim -->`), e `infra/tests/portao.test.ts` prova isso (AC-043). Antes de apagar, levar os marcadores e as linhas para este plano, mudar o padrão do script, o teste e o texto do AC-043;
    - citações a trocar: `lefthook.yml`, `infra/scripts/portao-lib.sh` (mensagens do resumo), `apps/api/src/main.ts`, `infra/tests/imagens-de-producao.test.ts` e os `tasks.md` e planos da fundação;
    - a citação no comentário da migração `0009` **fica**: editar migração aplicada muda a impressão digital e o aplicador recusa o banco.
-2. **Partir os arquivos acima de 500 linhas** (lista na seção 10), cada parte com uma responsabilidade.
-3. **Comentário curto e direto** explicando cada função, e cabeçalho de arquivo dizendo por que ele existe.
-4. **Auditar os testes**: duplicados e os que testam o que não existe mais. Já se sabe de três: `e2e/specs/cadastro.spec.ts`, `login-2fa.spec.ts` e `recuperar-senha.spec.ts` não rodam em executor nenhum (o Playwright os ignora e o Vitest exclui `e2e/`); `manifesto-cobre-arquivos.spec.ts` passa vazio no Windows por causa da barra invertida; a T-409 não cobre a busca.
-5. **Acertar comentários e documentos que derivaram do código**: `vitest.config.ts` fala em "cinco" e "quatro" projetos (são seis); `verificar.sh`, `db-guards.sh` e o `policies/README.md` falam em nove guardas (são dez); o perfil `app` e o `print` do compose ainda são nginx "provisórios até a T-019"; o `.env.example` põe o banco de teste na porta 5432 (é 5433); o cabeçalho do `schema.prisma` diz que a 0007 não tem modelo; `health.cache.ts` e `contracts/src/saude.ts` falam de tarefas já feitas; `api-client.ts` se diz a "única porta" do site para a API, e não é; `arquitetura.md` cita `.github` e projetos que não existem; `decisoes.md` lista D3 e D5 como pendentes, já implementadas; `make test` diz rodar "unidade e integração", mas os scripts dos pacotes deixam de fora `api-int`, `filas`, `cache-int` e `infra/tests`.
-6. **Não muda**: a pasta `.spec` fica inteira (decisão do dono) e os nomes das pastas de código ficam. Há logs de execução versionados dentro de `.spec` (`vitest-*.log`, `T101-commit.*.log`): perguntar ao dono antes de tirar.
+2. **Acertar comentários e documentos que derivaram do código** (os 45 comentários mentirosos do levantamento entram nos lotes; estes são os de documento): `vitest.config.ts` fala em "cinco" e "quatro" projetos (são seis); `verificar.sh`, `db-guards.sh` e o `policies/README.md` falam em nove guardas (são dez); o perfil `app` e o `print` do compose ainda são nginx "provisórios até a T-019"; o `.env.example` põe o banco de teste na porta 5432 (é 5433); o cabeçalho do `schema.prisma` diz que a 0007 não tem modelo; `health.cache.ts` e `contracts/src/saude.ts` falam de tarefas já feitas; `api-client.ts` se diz a "única porta" do site para a API, e não é; `arquitetura.md` cita `.github` e projetos que não existem; `decisoes.md` lista D3 e D5 como pendentes, já implementadas; `make test` diz rodar "unidade e integração", mas os scripts dos pacotes deixam de fora `api-int`, `filas`, `cache-int` e `infra/tests`.
+3. **Não muda**: a pasta `.spec` fica inteira (decisão do dono) e os nomes das pastas de código ficam. Há logs de execução versionados dentro de `.spec` (`vitest-*.log`, `T101-commit.*.log`): perguntar ao dono antes de tirar.
 
 ## 7. Lacunas para produção
 
@@ -181,6 +216,16 @@ Nenhuma tarefa fechava estes pontos. Ordem sugerida: identidade real, loja pela 
 - **`auto_print` desligado pela administração com cupom já na fila**: o agente ainda pode imprimir esse cupom, porque as rotas do agente (`/v1/impressao/agente/*`) não têm apelido no endereço e não passam pelo portão (a reivindicação só consulta `impressao_automatica_ligada()`, nunca `store_feature_enabled('auto_print')`). Nada novo entra na fila (`12e5dfd`). Pelo mesmo motivo, um código de pareamento gerado pouco antes do desligamento (vale 10 min) ainda pareia um agente novo, que passa a receber esses pendentes. O desligamento deve também cancelar os pendentes e fechar as rotas do agente, inclusive o pareamento?
 - Também abertas: Q-802 (visão geral da administração), Q-803 (planilha para um sistema de contabilidade específico), Q-701 a Q-703 (pedido manual), o texto da landing que fala "cardápio" para todos os ramos (dívida 72) e o que fazer quando um adicional ou variante esgota entre o carrinho e o fechamento (dívida 71).
 - Autorizar o envio de `integracao/onda-1` ao remoto como cópia de segurança.
+- **Pedidas pela limpeza da fase 3** (levantamento de 06/10):
+  1. `apps/web/src/features/carrinho/*` (gaveta, linha e `useCarrinho`, 319 linhas): nenhuma página monta esses componentes, mas eles são a prova de tela de AC-500 a AC-502. Ligar a gaveta na vitrine, ou apagar junto com os dois testes deles?
+  2. `orders/checkout.schema.ts`, `pagamento.ts` e `snapshot.ts`: sem uso em produção, mas são a única prova de AC-505, AC-508 e AC-512. Para apagar, primeiro escrever testes de rota que provem esses critérios.
+  3. Fila de `email`: o trabalhador sobe em produção e nada a alimenta. Ligar a verificação e o convite à fila, ou tirar a fila?
+  4. `server/resumo-de-valores.ts` e `linhasDoResumo()` em `FechamentoDaCompra.tsx` fazem a mesma conta: qual das duas cópias sai?
+  5. `schema.prisma` (1198 linhas): a recomendação é **não partir**, porque a constituição confere tipos de dinheiro nesse caminho exato.
+  6. `core/db.test.ts` fala com o PostgreSQL de verdade mas roda no projeto de unidade: passar para teste de integração muda o projeto e a preparação.
+  7. `infra/compose/docker-compose.ci.yml`: não há CI que o use; manter ou apagar com o caso do teste.
+  8. Botões: trocar `--primario` por `primaria` e `--fantasma` por `discreta`. Os botões **passam a ter cor**, o que é mudança visível (hoje está quebrado).
+  9. `lib/routes.ts`: forma compacta, uma linha por tela (recomendada), ou dois arquivos com um objeto por tela.
 
 ## 9. Dívidas abertas
 
@@ -227,7 +272,6 @@ Lista curta das dívidas de `docs/pendencias.md` que continuam abertas, com o me
 - **Sem número (segundo lote)** — com `auto_print` desligado, o botão "Imprimir cupom" do detalhe do pedido (`BotaoImprimirCupom`, `/painel/pedidos/[id]`) continua à vista e leva a uma página que a API recusa com 403. A fila de pedidos já se cala nesse caso (`EstadoDoAgente`); o botão do detalhe ainda não consulta as funcionalidades.
 - **Sem número (segundo lote)** — o pareamento do agente (`POST /v1/impressao/agente/pareamento`, sem credencial) conta o limite por loja pelo apelido público. Um anônimo com 10 códigos errados em 15 min bloqueia o pareamento da loja inteira, com espera que dobra até 6 h, e um único endereço de origem (20 por 15 min) basta para manter o bloqueio. No banco, o 5º erro já fecha o código aberto do dono (0038). Não vaza dado; o custo para a disponibilidade não foi decidido (a 8.1 só fala do fechamento no 5º erro).
 - **Sem número (segundo lote)** — documentação velha depois da integração: a tabela "Onde paramos" de `docs/pendencias.md` mistura datas e ainda diz 50 de 133 tarefas (pedido-checkout 16/16, config-loja 1/9, pedido-operacao 0/12, identidade-acesso 0/11); as linhas "Sem número" desta seção não têm entrada nem número em `docs/pendencias.md` (o próximo número livre é o 98); e a seção 10 tem contagens velhas (hoje `app.ts` 934, `admin.routes.ts` 1003, `isolamento-varredura.test.ts` 1354, `lojas.repo.ts` 838, `fila.usecase.ts` 627) e não lista `apps/api/tests/admin-situacao.test.ts` (699 linhas), criado em `6eb60f2` depois da regra de 05/10 de arquivo novo abaixo de 500.
-- **Sem número (integração da faixa de produção)** — o início do painel (`apps/web/src/app/(painel)/painel/page.tsx`) tem três atalhos fixos para `/l/pastelaria-da-vila` (apresentação, catálogo e fechamento), e `painel-inicial.test.tsx` exige esses endereços. Com a identidade real, o dono de outra loja vê atalhos para uma loja que não é a dele. Não abre dado nenhum; os atalhos devem sair da loja da sessão (T-115).
 - **Sem número (integração da faixa de produção)** — `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN` ausente em produção faz o site gravar `sc_access` e `sc_refresh` com `Domain=simpleclick.localhost`, que o navegador recusa sem avisar num domínio real: o login não pega, a sessão não se renova e a API não reconhece o cliente logado no fechamento. Nada recusa a partida nessa situação; é a mesma família da 28 e 69. O README (seção de variáveis) já a marca como obrigatória em produção.
 - **Sem número (integração da faixa de produção)** — os encaminhadores do painel no servidor do site (`encaminhar-ao-painel.ts`, `encaminhar-a-loja.ts`, `painel/impressao/[recurso]/route.ts` e as rotas de catálogo e loja) trocam a `Origin` do navegador pela do próprio site. A lista fechada de origens da API (AC-125 a AC-128), que substitui o token anti-falsificação, nunca vê a origem real, e a defesa dessas escritas fica só no `SameSite=Lax` do `sc_access`, que não separa subdomínios do mesmo site (as lojas são servidas por subdomínio). A ponte de identidade (`chamada-de-identidade.ts`) já repassa a `Origin` do navegador; os encaminhadores devem fazer o mesmo.
 - **Sem número (integração da faixa de produção)** — a compra do cliente logado pelo site só ficou ligada à conta depois da correção da revisão (AC-616: a API lê o `sc_access`, que passou ao domínio comum de site e API). A prova é de integração (`meus-pedidos.test.ts`, compra com o cookie e sem cabeçalho) e de unidade no site; não há ponta a ponta de compra logada até "Meus pedidos".
@@ -237,76 +281,17 @@ Esperam decisão do dono (seção 8): 35 (e-mail), 55 (conta, domínio e primeir
 
 ## 10. Arquivos acima de 500 linhas
 
-Contagem de 05/10 (`git ls-files` e `wc -l`), para a fase 3; só `pedidos.routes.ts` foi recontado em 06/10. As duas migrações **não** se partem (migração aplicada não se edita), e os `executar-tarefas.sh` de `.spec` são gerados pelo motor; sobram 35 arquivos de código para partir.
+Contagem do levantamento da fase 3, na integração `64230d0` (06/10, `wc -l`). Cada lote mede o próprio arquivo de novo antes de começar, porque os números andam.
 
-**Código (41):**
+**Código: 35 arquivos para partir.**
 
-| Linhas | Arquivo                                                                  |
-| -----: | ------------------------------------------------------------------------ |
-|   1248 | `packages/database/seed/catalogo.ts`                                     |
-|   1218 | `apps/api/src/modules/catalog/especificacoes.routes.ts`                  |
-|   1143 | `packages/testing/src/factories.ts`                                      |
-|    929 | `apps/api/src/modules/orders/pedidos.routes.ts` (cresceu com a T-516)    |
-|    927 | `apps/api/src/core/cache.ts`                                             |
-|    923 | `.spec/features/fundacao/executar-tarefas.sh` (gerado)                   |
-|    910 | `packages/core/src/cupom-blocos.ts`                                      |
-|    843 | `apps/api/src/modules/catalog/produtos.routes.ts`                        |
-|    815 | `packages/database/migrations/0007_catalogo_completo.sql` (não se parte) |
-|    801 | `apps/api/src/modules/admin/lojas.repo.ts`                               |
-|    789 | `packages/database/seed/index.ts`                                        |
-|    784 | `apps/api/src/app.ts`                                                    |
-|    759 | `apps/api/src/modules/admin/admin.routes.ts`                             |
-|    734 | `apps/web/src/features/painel-pedidos/MontarPedido.tsx`                  |
-|    688 | `apps/api/src/modules/catalog/opcoes.routes.ts`                          |
-|    681 | `apps/api/src/modules/catalog/variacoes.routes.ts`                       |
-|    672 | `packages/database/src/migrate.ts`                                       |
-|    671 | `packages/database/seed/lojas.ts`                                        |
-|    653 | `apps/api/src/modules/stores/configuracoes.usecase.ts`                   |
-|    642 | `.spec/features/identidade-acesso/executar-tarefas.sh` (gerado)          |
-|    630 | `apps/web/src/features/painel-catalogo/EditorEspecificacoes.tsx`         |
-|    627 | `apps/api/src/core/db.ts`                                                |
-|    622 | `packages/database/migrations/0008_pedidos.sql` (não se parte)           |
-|    617 | `apps/web/src/features/landing/mundo.ts`                                 |
-|    613 | `.spec/features/admin-lojas/executar-tarefas.sh` (gerado)                |
-|    609 | `apps/api/src/modules/printing/fila.usecase.ts`                          |
-|    601 | `apps/web/src/features/tv/codigo.ts`                                     |
-|    592 | `apps/api/src/modules/catalog/categorias.routes.ts`                      |
-|    590 | `apps/api/src/core/limite.ts`                                            |
-|    580 | `packages/core/src/cupom-texto.ts`                                       |
-|    578 | `packages/database/seed/pedidos.ts`                                      |
-|    575 | `apps/api/src/modules/catalog/imagens.routes.ts`                         |
-|    550 | `packages/contracts/src/admin.ts`                                        |
-|    547 | `apps/web/src/features/admin/DocumentosDaLoja.tsx`                       |
-|    540 | `packages/testing/src/db-test.ts`                                        |
-|    523 | `infra/scripts/check-migracao-compativel.mjs`                            |
-|    511 | `apps/web/src/app/(dev)/ui/page.tsx`                                     |
-|    510 | `.spec/features/identidade-visual-global/executar-tarefas.sh` (gerado)   |
-|    507 | `apps/web/src/features/painel-catalogo/ListaCategorias.tsx`              |
-|    507 | `apps/api/src/modules/cart/carrinho.routes.ts`                           |
-|    504 | `apps/web/src/lib/routes.ts`                                             |
+- **API (16):** `modules/catalog/especificacoes.routes.ts` 1218, `modules/admin/admin.routes.ts` 1003, `app.ts` 958, `modules/orders/pedidos.routes.ts` 929, `core/cache.ts` 927, `modules/catalog/produtos.routes.ts` 843, `modules/admin/lojas.repo.ts` 838, `core/limite.ts` 710, `modules/catalog/opcoes.routes.ts` 688, `modules/catalog/variacoes.routes.ts` 681, `modules/stores/configuracoes.usecase.ts` 661, `core/db.ts` 627, `modules/printing/fila.usecase.ts` 627, `modules/catalog/categorias.routes.ts` 592, `modules/catalog/imagens.routes.ts` 575, `modules/cart/carrinho.routes.ts` 507 (todos em `apps/api/src/`).
+- **Site (8):** `features/painel-pedidos/MontarPedido.tsx` 734, `features/painel-catalogo/EditorEspecificacoes.tsx` 630, `features/landing/mundo.ts` 617, `features/tv/codigo.ts` 601, `features/admin/DocumentosDaLoja.tsx` 547, `lib/routes.ts` 531, `app/(dev)/ui/page.tsx` 511, `features/painel-catalogo/ListaCategorias.tsx` 507 (todos em `apps/web/src/`).
+- **Pacotes (10):** `database/seed/catalogo.ts` 1248, `testing/src/factories.ts` 1143, `core/src/cupom-blocos.ts` 910, `database/seed/index.ts` 789, `database/src/migrate.ts` 672, `database/seed/lojas.ts` 671, `contracts/src/admin.ts` 669, `core/src/cupom-texto.ts` 580, `database/seed/pedidos.ts` 578, `testing/src/db-test.ts` 540 (todos em `packages/`).
+- **Infra (1):** `infra/scripts/check-migracao-compativel.mjs` 523.
 
-**Teste (19):**
+**Só registrados, sem partir:** `packages/database/prisma/schema.prisma` 1198 (decisão 5 da seção 8.2), as migrações `0007_catalogo_completo.sql` 815 e `0008_pedidos.sql` 622 (migração aplicada não se edita) e os quatro `.spec/features/*/executar-tarefas.sh`, gerados pelo motor (a `.spec` fica inteira).
 
-| Linhas | Arquivo                                               |
-| -----: | ----------------------------------------------------- |
-|   1187 | `apps/api/tests/isolamento-varredura.test.ts`         |
-|   1172 | `infra/tests/portao.test.ts`                          |
-|   1093 | `apps/api/tests/carrinho-rota.int.test.ts`            |
-|   1017 | `apps/api/src/core/db.test.ts`                        |
-|    881 | `packages/database/src/migrate.test.ts`               |
-|    828 | `packages/database/seed/seed.test.ts`                 |
-|    795 | `packages/database/src/guards.test.ts`                |
-|    794 | `apps/api/tests/vitrine-sem-dado-sensivel.test.ts`    |
-|    766 | `apps/api/tests/impressao-sem-duplicar.test.ts`       |
-|    720 | `apps/api/src/core/limite.redis.test.ts`              |
-|    715 | `apps/web/tests/cardapio-na-tv.test.tsx`              |
-|    652 | `apps/web/tests/produto-pagina.test.tsx`              |
-|    648 | `apps/api/tests/isolamento-entre-lojas-dono.test.ts`  |
-|    591 | `apps/web/tests/admin-documentos.test.tsx`            |
-|    562 | `apps/api/tests/estoque-do-produto.int.test.ts`       |
-|    545 | `apps/api/tests/especificacoes-do-painel.int.test.ts` |
-|    542 | `apps/api/tests/pedido-idempotente.test.ts`           |
-|    533 | `packages/testing/src/db-test.test.ts`                |
-|    522 | `apps/api/src/core/cache.test.ts`                     |
+**Teste: 21 arquivos para partir por assunto.** `infra/tests/portao.test.ts` 1370, `apps/api/tests/isolamento-varredura.test.ts` 1354, `apps/api/tests/carrinho-rota.int.test.ts` 1093, `apps/api/src/core/db.test.ts` 1017, `packages/database/src/migrate.test.ts` 881, `packages/database/seed/seed.test.ts` 828, `packages/database/src/guards.test.ts` 795, `apps/api/tests/vitrine-sem-dado-sensivel.test.ts` 794, `apps/api/tests/impressao-sem-duplicar.test.ts` 766, `apps/api/src/core/limite.redis.test.ts` 720, `apps/web/tests/cardapio-na-tv.test.tsx` 715, `apps/api/tests/admin-situacao.test.ts` 699, `apps/web/tests/produto-pagina.test.tsx` 652, `apps/api/tests/isolamento-entre-lojas-dono.test.ts` 648, `apps/web/tests/admin-documentos.test.tsx` 593, `apps/api/tests/estoque-do-produto.int.test.ts` 562, `apps/api/tests/especificacoes-do-painel.int.test.ts` 545, `apps/api/tests/pedido-idempotente.test.ts` 542, `packages/testing/src/db-test.test.ts` 536, `apps/api/src/core/cache.test.ts` 522, `apps/api/src/main.test.ts` 501.
 
-As contagens mudam com o trabalho das faixas (`isolamento-varredura.test.ts`, por exemplo, cresceu no conserto do AC-010): refazer a lista no começo da fase 3.
+**Entre 400 e 500 linhas (vigiar):** 26 de código — 10 na API, 11 no site, 4 nos pacotes e `e2e/fixtures/painel.ts` (448), que entra no lote L11.
