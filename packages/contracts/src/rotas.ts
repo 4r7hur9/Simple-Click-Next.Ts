@@ -1,9 +1,8 @@
 /**
- * Catálogo do contrato: tudo que a API promete, num lugar só.
- *
- * É a lista que a geração do documento percorre e a que o Express vai montar.
- * Rota que não está aqui não existe para o aplicativo nativo — e é por isso
- * que a etapa do portão compara este catálogo com o documento publicado.
+ * Catálogo do contrato: o que a API promete ao aplicativo nativo. A geração do
+ * documento publicado (`apps/api/src/contracts/gerar.ts`) percorre esta lista;
+ * o Express monta as rotas à parte. Rota fora daqui não existe para o
+ * aplicativo, e o portão compara o catálogo com o documento publicado.
  */
 
 import type { z } from "zod";

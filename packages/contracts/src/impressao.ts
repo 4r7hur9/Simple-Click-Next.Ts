@@ -7,7 +7,7 @@
  * não existe uma segunda descrição do formato para divergir desta.
  *
  * O cupom que viaja dentro do trabalho é o CUPOM SEMÂNTICO, versão 1, descrito
- * no topo de `packages/core/src/cupom-blocos.ts`. O esquema daqui o descreve
+ * no topo de `packages/core/src/cupom-contrato.ts`. O esquema daqui o descreve
  * para quem só enxerga o contrato (o documento publicado, o aplicativo
  * nativo); quem imprime ainda passa o cupom por `lerCupomImpresso`, que recusa
  * versão desconhecida — imprimir errado é pior que não imprimir.

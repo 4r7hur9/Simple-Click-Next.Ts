@@ -1,10 +1,8 @@
 /**
- * Contrato de saúde da API.
- *
- * É o domínio que já tem uso: `apps/api/src/app.ts` responde na raiz desde a
- * T-019, e o site precisa saber ler essa resposta. As verificações separadas
- * de vivo e pronto (`/v1/health/live` e `/ready`, AC-023) entram aqui quando a
- * T-012 as escrever — contrato de rota que ainda não existe não é inventado.
+ * Contrato de saúde da API: o sinal de vida da raiz (`GET /`), sem dado de
+ * negócio. Vivo e pronto (`/v1/health/live` e `/ready`, AC-023) existem na
+ * API (`modules/health/health.routes.ts`), mas ficam fora do contrato
+ * publicado: quem os consulta é o orquestrador, e não o aplicativo.
  */
 
 import { z } from "zod";

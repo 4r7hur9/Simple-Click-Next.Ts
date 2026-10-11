@@ -43,6 +43,7 @@ export class ErroDeValidacaoDoContrato extends Error {
   readonly rota: string;
   readonly problemas: readonly ProblemaDeValidacao[];
 
+  /** Resume os campos recusados na mensagem; a lista fica em `problemas`. */
   constructor(rota: string, problemas: readonly ProblemaDeValidacao[]) {
     const resumo = problemas
       .map((problema) => `${problema.parte}.${problema.campo}`)
@@ -292,6 +293,7 @@ export function definirRota<
     resposta: definicao.resposta,
     status: definicao.status ?? 200,
     errosPossiveis: Object.freeze([...(definicao.errosPossiveis ?? [])]),
+    // Confere as três partes e recusa com TODOS os problemas, não o primeiro.
     validar(entrada) {
       const problemas: ProblemaDeValidacao[] = [];
       const parametros = validarParte(
