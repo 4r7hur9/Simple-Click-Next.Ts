@@ -10,11 +10,11 @@
  *     ter decidido que ela existe, sem estados, sem acessibilidade e sem
  *     critério que a cubra;
  *   * uma tela que está aqui e ainda não tem arquivo é TRABALHO PLANEJADO, e
- *     apenas conta. São 45 delas hoje, e cada uma é uma tarefa por fazer.
+ *     apenas conta.
  *
  * A ROTA É ESCRITA COMO O MAPA A ESCREVE — `{slug}`, `{id}` —, e não como o
  * Next a escreve — `[slug]`, `[id]`. A tradução acontece na verificação, uma
- * vez, e não em 50 linhas escritas à mão: escrever no formato do framework
+ * vez, e não em cada linha escrita à mão: escrever no formato do framework
  * faria o manifesto envelhecer junto com ele.
  */
 
@@ -44,10 +44,9 @@ export interface TelaDoManifesto {
 /**
  * O inventário inteiro.
  *
- * Gerado a partir do mapa de telas e conferido linha a linha. Três linhas do
- * mapa declaram DUAS rotas cada (`/termos e /privacidade`, `/nao-encontrado e
- * erro`, `/painel/produtos/novo e /{id}`), e aqui elas viram entradas
- * separadas — 52 linhas no mapa, 55 rotas no produto.
+ * Gerado a partir do mapa de telas e conferido linha a linha. As linhas do mapa
+ * que declaram DUAS rotas (`/termos e /privacidade`, `/nao-encontrado e erro`,
+ * `/painel/produtos/novo e /{id}`) viram aqui entradas separadas.
  */
 export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   {
@@ -314,6 +313,8 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
     acesso: "PUBLICO",
     quatroEstados: true,
     criterios: "AC-325..AC-330",
+    arquivo:
+      "apps/web/src/app/(painel)/painel/categorias/[id]/especificacoes/page.tsx",
   },
   {
     rota: "/painel/produtos",
@@ -503,7 +504,7 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
  * os grupos entre parênteses somem (eles organizam pastas, não endereços), os
  * colchetes viram chaves, e `page.tsx` sai do fim.
  *
- * A tradução mora AQUI, e não em 51 linhas escritas à mão, porque assim ela é
+ * A tradução mora AQUI, e não escrita à mão em cada linha, porque assim ela é
  * uma regra só — e o dia em que o framework mudar de convenção, muda um lugar.
  */
 export function rotaDoArquivo(caminho: string): string | null {
