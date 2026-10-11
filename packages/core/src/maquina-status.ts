@@ -17,7 +17,6 @@ export const STATUS_DO_PEDIDO = [
 ] as const;
 
 export type StatusDoPedido = (typeof STATUS_DO_PEDIDO)[number];
-export type FormaDeEntregaDoPedido = "DELIVERY" | "PICKUP";
 
 export interface OpcaoDeStatus {
   readonly status: StatusDoPedido;

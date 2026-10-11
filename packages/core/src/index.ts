@@ -87,7 +87,6 @@ export {
 export type {
   DecisaoDeTransicao,
   EntradaDeHistorico,
-  FormaDeEntregaDoPedido,
   OpcaoDeStatus,
   StatusDoPedido,
 } from "./maquina-status.ts";
