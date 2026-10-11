@@ -60,6 +60,7 @@ export interface CatalogoDaTv {
   readonly semRede: boolean;
 }
 
+/** Busca o catálogo a cada intervalo e na volta da conexão, sem nunca apagar o último bom. */
 export function useCatalogoDaTv({
   apelido,
   catalogoInicial,

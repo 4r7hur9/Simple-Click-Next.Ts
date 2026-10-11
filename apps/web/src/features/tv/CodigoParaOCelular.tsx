@@ -28,6 +28,7 @@ export interface CodigoParaOCelularProps {
   readonly chamada?: string | undefined;
 }
 
+/** O código de leitura da vitrine marcada como vinda da TV, com o endereço curto ao lado. */
 export function CodigoParaOCelular({
   enderecoDaVitrine,
   chamada = "Aponte a câmera e peça pelo celular",
