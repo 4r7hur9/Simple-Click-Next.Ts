@@ -43,5 +43,4 @@ export const esquemaDoMeuPedido = z.strictObject({
 });
 
 export type PedidoDaContaNoContrato = z.infer<typeof esquemaDoPedidoDaConta>;
-export type MeusPedidosNoContrato = z.infer<typeof esquemaDosMeusPedidos>;
 export type MeuPedidoNoContrato = z.infer<typeof esquemaDoMeuPedido>;

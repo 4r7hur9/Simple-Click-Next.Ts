@@ -222,10 +222,6 @@ export const esquemaDaRecusaDeCadastro = z.strictObject({
   sugestao: z.string().nullable().optional(),
 });
 
-export type RecusaDeCadastroNoContrato = z.infer<
-  typeof esquemaDaRecusaDeCadastro
->;
-
 /** Os tipos de negócio que o formulário oferece. */
 export const esquemaDoTipoDeNegocioDisponivel = z.strictObject({
   codigo: z.string(),
@@ -497,10 +493,6 @@ export const esquemaDaTrocaDeTipoDeNegocio = z.strictObject({
   tipoDeNegocio: esquemaDoTipoDeNegocio,
 });
 
-export type TrocaDeTipoDeNegocioEnviada = z.input<
-  typeof esquemaDaTrocaDeTipoDeNegocio
->;
-
 // ---------------------------------------------------------------------------
 // Apelido trocado pela administração (AC-208)
 // ---------------------------------------------------------------------------
@@ -512,8 +504,6 @@ export type TrocaDeTipoDeNegocioEnviada = z.input<
 export const esquemaDaTrocaDeApelido = z.strictObject({
   apelido: esquemaDoApelidoDaLoja,
 });
-
-export type TrocaDeApelidoEnviada = z.input<typeof esquemaDaTrocaDeApelido>;
 
 // ---------------------------------------------------------------------------
 // Contrato e documentos da loja (AC-203, AC-204, AC-205)
@@ -585,12 +575,6 @@ export const esquemaDoLinkDoDocumento = z.strictObject({
 export type DocumentoDaLojaNoContrato = z.infer<
   typeof esquemaDoDocumentoDaLoja
 >;
-export type DocumentosDaLojaNoContrato = z.infer<
-  typeof esquemaDosDocumentosDaLoja
->;
-export type LinkDoDocumentoNoContrato = z.infer<
-  typeof esquemaDoLinkDoDocumento
->;
 
 // ---------------------------------------------------------------------------
 // Suspender, reativar, excluir e restaurar (AC-209, AC-210, AC-211)
@@ -614,8 +598,6 @@ export const esquemaDaSuspensaoDaLoja = z.strictObject({
     .max(500, "O motivo cabe em até 500 caracteres."),
 });
 
-export type SuspensaoDaLojaEnviada = z.input<typeof esquemaDaSuspensaoDaLoja>;
-
 /**
  * `PUT /v1/admin/lojas/:id/reativacao` e `PUT /v1/admin/lojas/:id/restauracao`.
  * Sem campo nenhum: o ato é o próprio endereço.
@@ -630,8 +612,6 @@ export const esquemaDaExclusaoDaLoja = z.strictObject({
     .min(1, "Digite o nome da loja para confirmar.")
     .max(200, "Digite o nome da loja para confirmar."),
 });
-
-export type ExclusaoDaLojaEnviada = z.input<typeof esquemaDaExclusaoDaLoja>;
 
 /** A recusa da confirmação que não confere. Nada foi excluído. */
 export const MENSAGEM_DE_CONFIRMACAO_DIFERENTE =
@@ -648,11 +628,6 @@ export function confirmacaoConfere(confirmacao: string, nome: string): boolean {
   const digitado = normalizar(confirmacao);
   return digitado !== "" && digitado === normalizar(nome);
 }
-
-export type SuspensaoEmCursoNoContrato = z.infer<
-  typeof esquemaDaSuspensaoEmCurso
->;
-export type RetencaoDaLojaNoContrato = z.infer<typeof esquemaDaRetencaoDaLoja>;
 
 /**
  * `GET /v1/lojas/:apelido/situacao` — o que o painel do dono pergunta ao abrir

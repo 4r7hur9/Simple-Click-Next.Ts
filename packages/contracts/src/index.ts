@@ -65,12 +65,7 @@ export {
   esquemaDoPedidoParaCriar,
   rotaDeCriarPedido,
 } from "./carrinho.ts";
-export type {
-  CarrinhoNoContrato,
-  ConferenciaNoContrato,
-  PedidoCriadoNoContrato,
-  ItemParaAcrescentarNoContrato,
-} from "./carrinho.ts";
+export type { CarrinhoNoContrato } from "./carrinho.ts";
 export {
   esquemaDaVitrine,
   esquemaDeAbertura,
@@ -102,16 +97,12 @@ export { esquemaDoAcompanhamento } from "./acompanhamento.ts";
 export type { AcompanhamentoNoContrato } from "./acompanhamento.ts";
 export type {
   CatalogoDaVitrineNoContrato,
-  GrupoDeEscolhaNoContrato,
   LojaPublicaNoContrato,
   ProdutoNaVitrineNoContrato,
   FechamentoNoContrato,
   ProdutoNoContrato,
-  RotulosNoContrato,
-  VariacaoNoContrato,
   Vitrine,
 } from "./vitrine.ts";
-export type { ComposicaoDoRamoNoContrato } from "./vertical.ts";
 export {
   conferirDocumento,
   MENSAGEM_DE_DOCUMENTO_INVALIDO,
@@ -149,7 +140,6 @@ export type {
   LojaNaListaNoContrato,
   NovaLojaEnviada,
   NovaLojaNoContrato,
-  RecusaDeCadastroNoContrato,
   SituacaoDaLoja,
   TipoDeNegocioNoContrato,
 } from "./admin.ts";
@@ -171,10 +161,8 @@ export type {
 } from "./admin.ts";
 // Tipo de negócio trocado pela administração (T-203).
 export { esquemaDaTrocaDeTipoDeNegocio } from "./admin.ts";
-export type { TrocaDeTipoDeNegocioEnviada } from "./admin.ts";
 // Apelido trocado pela administração (T-204).
 export { esquemaDaTrocaDeApelido } from "./admin.ts";
-export type { TrocaDeApelidoEnviada } from "./admin.ts";
 // Contrato e documentos da loja (T-205).
 export {
   esquemaDoDocumentoDaLoja,
@@ -189,8 +177,6 @@ export {
 } from "./admin.ts";
 export type {
   DocumentoDaLojaNoContrato,
-  DocumentosDaLojaNoContrato,
-  LinkDoDocumentoNoContrato,
   TipoDeDocumentoDaLoja,
 } from "./admin.ts";
 // Suspender, reativar, excluir e restaurar a loja (T-206).
@@ -205,13 +191,7 @@ export {
   esquemaDaSuspensaoEmCurso,
   MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
 } from "./admin.ts";
-export type {
-  ExclusaoDaLojaEnviada,
-  RetencaoDaLojaNoContrato,
-  SituacaoParaODonoNoContrato,
-  SuspensaoDaLojaEnviada,
-  SuspensaoEmCursoNoContrato,
-} from "./admin.ts";
+export type { SituacaoParaODonoNoContrato } from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   esquemaDaChavePixDaLoja,
@@ -245,11 +225,7 @@ export {
   esquemaDoPedidoDaConta,
   esquemaDosMeusPedidos,
 } from "./conta.ts";
-export type {
-  MeuPedidoNoContrato,
-  MeusPedidosNoContrato,
-  PedidoDaContaNoContrato,
-} from "./conta.ts";
+export type { MeuPedidoNoContrato, PedidoDaContaNoContrato } from "./conta.ts";
 export {
   esquemaDaEscolhaDoPedidoManual,
   esquemaDaFichaComHistorico,
@@ -280,15 +256,11 @@ export type {
   ClienteDaLojaNoContrato,
   ClienteExistenteNoContrato,
   ClienteParaCadastrarNoContrato,
-  ClienteParaEditarNoContrato,
   EnderecoDaFichaNoContrato,
   EnderecoParaSalvarNoContrato,
   EnderecoSalvoNoContrato,
-  EnderecosSalvosNoContrato,
   FichaComHistoricoNoContrato,
   FichaDoClienteNoContrato,
-  ItemDoPedidoManualNoContrato,
-  ListaDeClientesNoContrato,
   PedidoDoHistoricoNoContrato,
   PedidoManualCriadoNoContrato,
   PedidoManualParaCriarNoContrato,
@@ -316,16 +288,12 @@ export type {
   AgentePareadoNoContrato,
   CodigoDePareamentoNoContrato,
   ConfirmacaoDeImpressaoNoContrato,
-  CupomImpressoNoContrato,
   EstadoDaImpressaoAutomaticaNoContrato,
-  EstadoDoTrabalhoDeImpressao,
-  FalhaDeImpressaoNoContrato,
   FalhaRegistradaNoContrato,
   PedidoDePareamentoNoContrato,
   TrabalhoDeImpressaoNoContrato,
   TrabalhoPendenteNoContrato,
   TrabalhosEntreguesNoContrato,
-  TrabalhosPendentesNoContrato,
 } from "./impressao.ts";
 export {
   esquemaDaComparacaoDeMetricas,
@@ -348,7 +316,6 @@ export type {
   PontoDiarioNoContrato,
   PontoHorarioNoContrato,
   ProdutoMaisVendidoNoContrato,
-  RecusaDePeriodoNoContrato,
   ResumoDeMetricasNoContrato,
   VariacaoDeMetricaNoContrato,
 } from "./metricas.ts";
@@ -375,10 +342,8 @@ export {
   esquemaDasFuncionalidadesParaODono,
 } from "./admin-funcionalidades.ts";
 export type {
-  AlteracaoDeFuncionalidadeEnviada,
   FuncionalidadeNaAdministracaoNoContrato,
   FuncionalidadesDaLojaNoContrato,
-  FuncionalidadesParaODonoNoContrato,
 } from "./admin-funcionalidades.ts";
 export * from "./auth.ts";
 export * from "./auth-rotas.ts";

@@ -182,10 +182,6 @@ export const esquemaDosTrabalhosPendentes = z.strictObject({
   trabalhos: z.array(esquemaDoTrabalhoPendente),
 });
 
-export type CupomImpressoNoContrato = z.infer<typeof esquemaDoCupomImpresso>;
-export type EstadoDoTrabalhoDeImpressao = z.infer<
-  typeof esquemaDoEstadoDoTrabalho
->;
 export type TrabalhoDeImpressaoNoContrato = z.infer<
   typeof esquemaDoTrabalhoDeImpressao
 >;
@@ -194,9 +190,6 @@ export type TrabalhosEntreguesNoContrato = z.infer<
 >;
 export type ConfirmacaoDeImpressaoNoContrato = z.infer<
   typeof esquemaDaConfirmacaoDeImpressao
->;
-export type FalhaDeImpressaoNoContrato = z.infer<
-  typeof esquemaDaFalhaDeImpressao
 >;
 export type FalhaRegistradaNoContrato = z.infer<
   typeof esquemaDaFalhaRegistrada
@@ -213,7 +206,4 @@ export type EstadoDaImpressaoAutomaticaNoContrato = z.infer<
 >;
 export type TrabalhoPendenteNoContrato = z.infer<
   typeof esquemaDoTrabalhoPendente
->;
-export type TrabalhosPendentesNoContrato = z.infer<
-  typeof esquemaDosTrabalhosPendentes
 >;

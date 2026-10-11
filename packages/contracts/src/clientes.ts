@@ -301,17 +301,11 @@ export const esquemaDosEnderecosSalvos = z.strictObject({
 });
 
 export type ClienteDaLojaNoContrato = z.infer<typeof esquemaDoClienteDaLoja>;
-export type ListaDeClientesNoContrato = z.infer<
-  typeof esquemaDaListaDeClientes
->;
 export type EnderecoDaFichaNoContrato = z.infer<
   typeof esquemaDoEnderecoDaFicha
 >;
 export type ClienteParaCadastrarNoContrato = z.input<
   typeof esquemaDoClienteParaCadastrar
->;
-export type ClienteParaEditarNoContrato = z.input<
-  typeof esquemaDoClienteParaEditar
 >;
 export type ClienteExistenteNoContrato = z.infer<
   typeof esquemaDoClienteExistente
@@ -322,9 +316,6 @@ export type PedidoDoHistoricoNoContrato = z.infer<
 >;
 export type FichaComHistoricoNoContrato = z.infer<
   typeof esquemaDaFichaComHistorico
->;
-export type ItemDoPedidoManualNoContrato = z.input<
-  typeof esquemaDoItemDoPedidoManual
 >;
 export type PedidoManualParaCriarNoContrato = z.input<
   typeof esquemaDoPedidoManualParaCriar
@@ -342,6 +333,3 @@ export type EnderecoParaSalvarNoContrato = z.input<
   typeof esquemaDoEnderecoParaSalvar
 >;
 export type EnderecoSalvoNoContrato = z.infer<typeof esquemaDoEnderecoSalvo>;
-export type EnderecosSalvosNoContrato = z.infer<
-  typeof esquemaDosEnderecosSalvos
->;

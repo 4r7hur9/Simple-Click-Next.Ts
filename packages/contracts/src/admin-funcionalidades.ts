@@ -60,9 +60,3 @@ export type FuncionalidadeNaAdministracaoNoContrato = z.infer<
 export type FuncionalidadesDaLojaNoContrato = z.infer<
   typeof esquemaDasFuncionalidadesDaLoja
 >;
-export type AlteracaoDeFuncionalidadeEnviada = z.input<
-  typeof esquemaDaAlteracaoDeFuncionalidade
->;
-export type FuncionalidadesParaODonoNoContrato = z.infer<
-  typeof esquemaDasFuncionalidadesParaODono
->;

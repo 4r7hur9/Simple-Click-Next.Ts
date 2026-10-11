@@ -78,9 +78,6 @@ export const esquemaDoCarrinho = z.strictObject({
 });
 
 export type CarrinhoNoContrato = z.infer<typeof esquemaDoCarrinho>;
-export type ItemParaAcrescentarNoContrato = z.infer<
-  typeof esquemaDeItemParaAcrescentar
->;
 
 /** A quantidade nova de um item. Zero remove — é o que a gaveta já faz. */
 export const esquemaDeQuantidadeNova = z.strictObject({
@@ -223,8 +220,6 @@ export const esquemaDaConferencia = z.strictObject({
   subtotalCentavos: z.int().nonnegative(),
 });
 
-export type ConferenciaNoContrato = z.infer<typeof esquemaDaConferencia>;
-
 /** O que a tela declara ter mostrado. Nunca compõe a conta. */
 export const esquemaDaDeclaracao = z.strictObject({
   totalVistoCentavos: z.int().nonnegative().nullable().optional(),
@@ -344,8 +339,6 @@ export const esquemaDoPedidoCriado = z.strictObject({
     })
     .nullable(),
 });
-
-export type PedidoCriadoNoContrato = z.infer<typeof esquemaDoPedidoCriado>;
 
 /**
  * `POST /v1/vitrine/:apelido/pedidos` — fecha o pedido.

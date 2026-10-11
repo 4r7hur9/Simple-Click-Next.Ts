@@ -6,7 +6,3 @@ export const esquemaDeComposicaoDoRamo = z.strictObject({
   detalheProduto: z.array(z.string()),
   vitrine: z.array(z.string()),
 });
-
-export type ComposicaoDoRamoNoContrato = z.infer<
-  typeof esquemaDeComposicaoDoRamo
->;
