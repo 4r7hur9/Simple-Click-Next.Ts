@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 
-import { esquemaDoRegistroDaTrilha } from "./admin.ts";
+import { esquemaDoRegistroDaTrilha } from "./admin-ficha.ts";
 
 /** Dia do calendário, como o campo de data do navegador o envia. */
 export const FORMATO_DO_DIA = /^\d{4}-\d{2}-\d{2}$/;
