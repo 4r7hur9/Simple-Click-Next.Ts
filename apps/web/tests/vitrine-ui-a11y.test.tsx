@@ -9,10 +9,9 @@ import VitrineDoDesignSystem from "../src/app/(dev)/ui/page";
  * automática de acessibilidade, sem violação de nível crítico ou sério.
  *
  * A verificação roda em teste de unidade, com o motor do axe sobre um documento
- * montado em memória. O navegador de verdade entra na T-020, com o Playwright
- * percorrendo as rotas do manifesto. O que este teste cobre é a parte que não
- * depende de pintura de tela: papéis, nomes acessíveis, rótulo ligado a
- * controle, hierarquia de títulos, marcos da página e atributos de estado.
+ * montado em memória, sem navegador. O que ela cobre é a parte que não depende
+ * de pintura de tela: papéis, nomes acessíveis, rótulo ligado a controle,
+ * hierarquia de títulos, marcos da página e atributos de estado.
  *
  * A metade que falta — o contraste das cores em si — é conferida por cálculo em
  * `packages/ui/tests/tokens.test.ts`, que mede cada par que o design system
