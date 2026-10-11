@@ -12,8 +12,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CONFIGURACOES_DA_PLATAFORMA } from "@simpleclick/contracts";
 
 import LayoutDaConfiguracao from "../src/app/(painel)/painel/config/layout.tsx";
-import PaginaInicialDoPainel from "../src/app/(painel)/painel/page.tsx";
 import { FormularioHorario } from "../src/features/config/FormularioHorario.tsx";
+import { InicioDoPainel } from "../src/features/dashboard/InicioDoPainel.tsx";
 import { MENSAGEM_DE_RECUSA } from "../src/features/config/useSecao.ts";
 import {
   clicar,
@@ -89,7 +89,9 @@ describe("o tipo de negócio não é campo do painel (AC-323)", () => {
 
   it("@spec:AC-323 nem a casa do painel nem as configurações oferecem o tipo de negócio para editar", () => {
     const telas = [
-      renderToStaticMarkup(<PaginaInicialDoPainel />),
+      renderToStaticMarkup(
+        <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+      ),
       renderToStaticMarkup(
         <LayoutDaConfiguracao>
           <p>conteúdo</p>
@@ -108,7 +110,9 @@ describe("o tipo de negócio não é campo do painel (AC-323)", () => {
   it("@spec:AC-323 o painel diz que o tipo de negócio é cuidado pela administração da plataforma", () => {
     const texto = new DOMParser()
       .parseFromString(
-        renderToStaticMarkup(<PaginaInicialDoPainel />),
+        renderToStaticMarkup(
+          <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+        ),
         "text/html",
       )
       .body.textContent?.replace(/\s+/g, " ");
