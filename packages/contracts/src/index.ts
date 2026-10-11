@@ -114,7 +114,6 @@ export type {
 export type { ComposicaoDoRamoNoContrato } from "./vertical.ts";
 export {
   conferirDocumento,
-  documentoValido,
   MENSAGEM_DE_DOCUMENTO_INVALIDO,
   somenteDigitos,
 } from "./documento.ts";
@@ -215,7 +214,6 @@ export type {
 } from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
-  ehSecaoDoDono,
   esquemaDaChavePixDaLoja,
   esquemaDaConfiguracaoDeAparencia,
   esquemaDaConfiguracaoDeContato,
@@ -375,7 +373,6 @@ export {
   esquemaDaFuncionalidadeNaAdministracao,
   esquemaDasFuncionalidadesDaLoja,
   esquemaDasFuncionalidadesParaODono,
-  FORMATO_DA_CHAVE_DE_FUNCIONALIDADE,
 } from "./admin-funcionalidades.ts";
 export type {
   AlteracaoDeFuncionalidadeEnviada,

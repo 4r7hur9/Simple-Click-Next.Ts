@@ -95,8 +95,3 @@ export function conferirDocumento(valor: string): DocumentoConferido {
   }
   return recusa;
 }
-
-/** Atalho para quem só precisa do sim ou não. */
-export function documentoValido(valor: string): boolean {
-  return conferirDocumento(valor).valido;
-}
