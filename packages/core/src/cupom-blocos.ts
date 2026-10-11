@@ -118,7 +118,7 @@ import type {
   OpcaoDoItem,
   PagamentoDoPedido,
   TaxaDeEntrega,
-} from "./cupom-texto.ts";
+} from "./pedido-descrito.ts";
 import { emReais } from "./taxa-entrega.ts";
 import { normalizarWhatsApp } from "./telefone.ts";
 

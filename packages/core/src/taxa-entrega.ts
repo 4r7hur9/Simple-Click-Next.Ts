@@ -16,12 +16,12 @@
  * Função PURA, como a tabela de fronteiras de `.spec/design/arquitetura.md`
  * exige de `packages/core`.
  *
- * O tipo `TaxaDeEntrega` vem do gerador de texto ao lado de propósito: é o
+ * O tipo `TaxaDeEntrega` vem de `pedido-descrito.ts` de propósito: é o
  * MESMO vocabulário que o texto do WhatsApp imprime e que `orders` guarda. Duas
  * definições paralelas divergiriam em silêncio, e o resumo na tela passaria a
  * dizer uma coisa enquanto a mensagem enviada diz outra.
  */
-import type { FormaDeEntrega, TaxaDeEntrega } from "./cupom-texto.ts";
+import type { FormaDeEntrega, TaxaDeEntrega } from "./pedido-descrito.ts";
 
 /** O que a loja configurou sobre entrega (AC-906, AC-907, AC-908). */
 export interface ConfiguracaoDeEntrega {
