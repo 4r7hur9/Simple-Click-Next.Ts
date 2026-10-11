@@ -36,6 +36,7 @@ export type CartaoProps = {
   className?: string | undefined;
 };
 
+/** A moldura com o estado da tela dentro dela, ou o conteúdo quando pronto. */
 export function Cartao({
   titulo,
   nivelDoTitulo = 3,

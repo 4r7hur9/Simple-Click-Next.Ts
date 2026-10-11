@@ -50,12 +50,14 @@ function digitoVerificador(base: string, pesos: readonly number[]): number {
   return resto < 2 ? 0 : 11 - resto;
 }
 
+/** Confere os dois dígitos do CPF (pesos de 10 a 2, depois de 11 a 2). */
 function cpfConfere(digitos: string): boolean {
   const primeiro = digitoVerificador(digitos, [10, 9, 8, 7, 6, 5, 4, 3, 2]);
   const segundo = digitoVerificador(digitos, [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
   return Number(digitos[9]) === primeiro && Number(digitos[10]) === segundo;
 }
 
+/** Confere os dois dígitos do CNPJ, com os pesos da Receita. */
 function cnpjConfere(digitos: string): boolean {
   const primeiro = digitoVerificador(
     digitos,
@@ -94,9 +96,4 @@ export function conferirDocumento(valor: string): DocumentoConferido {
       : recusa;
   }
   return recusa;
-}
-
-/** Atalho para quem só precisa do sim ou não. */
-export function documentoValido(valor: string): boolean {
-  return conferirDocumento(valor).valido;
 }

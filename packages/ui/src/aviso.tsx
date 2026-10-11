@@ -26,6 +26,7 @@ export type AvisoProps = {
   className?: string | undefined;
 };
 
+/** Mostra a mensagem com o tom e o anúncio que a urgência pede. */
 export function Aviso({
   tom = "info",
   titulo,

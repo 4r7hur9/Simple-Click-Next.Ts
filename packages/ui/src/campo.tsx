@@ -37,6 +37,7 @@ export type CampoProps = Omit<
   controle?: ReactNode | undefined;
 };
 
+/** Rótulo, controle e mensagens de dica, espera, erro e sucesso, por `id`. */
 export function Campo({
   id,
   rotulo,

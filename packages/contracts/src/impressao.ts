@@ -7,7 +7,7 @@
  * não existe uma segunda descrição do formato para divergir desta.
  *
  * O cupom que viaja dentro do trabalho é o CUPOM SEMÂNTICO, versão 1, descrito
- * no topo de `packages/core/src/cupom-blocos.ts`. O esquema daqui o descreve
+ * no topo de `packages/core/src/cupom-contrato.ts`. O esquema daqui o descreve
  * para quem só enxerga o contrato (o documento publicado, o aplicativo
  * nativo); quem imprime ainda passa o cupom por `lerCupomImpresso`, que recusa
  * versão desconhecida — imprimir errado é pior que não imprimir.
@@ -182,10 +182,6 @@ export const esquemaDosTrabalhosPendentes = z.strictObject({
   trabalhos: z.array(esquemaDoTrabalhoPendente),
 });
 
-export type CupomImpressoNoContrato = z.infer<typeof esquemaDoCupomImpresso>;
-export type EstadoDoTrabalhoDeImpressao = z.infer<
-  typeof esquemaDoEstadoDoTrabalho
->;
 export type TrabalhoDeImpressaoNoContrato = z.infer<
   typeof esquemaDoTrabalhoDeImpressao
 >;
@@ -194,9 +190,6 @@ export type TrabalhosEntreguesNoContrato = z.infer<
 >;
 export type ConfirmacaoDeImpressaoNoContrato = z.infer<
   typeof esquemaDaConfirmacaoDeImpressao
->;
-export type FalhaDeImpressaoNoContrato = z.infer<
-  typeof esquemaDaFalhaDeImpressao
 >;
 export type FalhaRegistradaNoContrato = z.infer<
   typeof esquemaDaFalhaRegistrada
@@ -213,7 +206,4 @@ export type EstadoDaImpressaoAutomaticaNoContrato = z.infer<
 >;
 export type TrabalhoPendenteNoContrato = z.infer<
   typeof esquemaDoTrabalhoPendente
->;
-export type TrabalhosPendentesNoContrato = z.infer<
-  typeof esquemaDosTrabalhosPendentes
 >;

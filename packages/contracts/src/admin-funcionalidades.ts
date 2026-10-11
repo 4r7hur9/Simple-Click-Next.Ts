@@ -8,9 +8,6 @@
 
 import { z } from "zod";
 
-/** Chave do catálogo: minúsculas e sublinhado (`auto_print`). */
-export const FORMATO_DA_CHAVE_DE_FUNCIONALIDADE = /^[a-z][a-z0-9_]{1,62}$/;
-
 /** A exceção gravada: por que, quando e por quem. */
 export const esquemaDaExcecaoDeFuncionalidade = z.strictObject({
   motivo: z.string(),
@@ -62,10 +59,4 @@ export type FuncionalidadeNaAdministracaoNoContrato = z.infer<
 >;
 export type FuncionalidadesDaLojaNoContrato = z.infer<
   typeof esquemaDasFuncionalidadesDaLoja
->;
-export type AlteracaoDeFuncionalidadeEnviada = z.input<
-  typeof esquemaDaAlteracaoDeFuncionalidade
->;
-export type FuncionalidadesParaODonoNoContrato = z.infer<
-  typeof esquemaDasFuncionalidadesParaODono
 >;

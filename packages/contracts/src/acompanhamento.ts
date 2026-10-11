@@ -1,3 +1,9 @@
+/**
+ * Contrato do link público de acompanhamento do pedido (AC-612 a AC-615): o
+ * estado, o histórico e só o dado necessário, com o telefone mascarado. A conta
+ * do cliente reaproveita esta forma do pedido (`conta.ts`, AC-616).
+ */
+
 import { z } from "zod";
 
 /** Contrato público do link de acompanhamento (AC-612..AC-615). */

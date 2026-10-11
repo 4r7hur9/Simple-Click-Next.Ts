@@ -1,3 +1,8 @@
+/**
+ * Contrato da conta do cliente (AC-616): os pedidos do cliente logado, em todas
+ * as lojas, e o detalhe de um pedido na mesma forma do link público.
+ */
+
 import { z } from "zod";
 
 import { esquemaDoAcompanhamento } from "./acompanhamento.ts";
@@ -43,5 +48,4 @@ export const esquemaDoMeuPedido = z.strictObject({
 });
 
 export type PedidoDaContaNoContrato = z.infer<typeof esquemaDoPedidoDaConta>;
-export type MeusPedidosNoContrato = z.infer<typeof esquemaDosMeusPedidos>;
 export type MeuPedidoNoContrato = z.infer<typeof esquemaDoMeuPedido>;

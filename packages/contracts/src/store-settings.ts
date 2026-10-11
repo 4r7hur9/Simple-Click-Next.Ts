@@ -67,14 +67,6 @@ export const CONFIGURACOES_DA_PLATAFORMA = [
   "Funcionalidades liberadas",
 ] as const;
 
-/** Verdadeiro quando o texto é o nome de uma seção do dono. */
-export function ehSecaoDoDono(valor: unknown): valor is SecaoDoDono {
-  return (
-    typeof valor === "string" &&
-    (SECOES_DO_DONO as readonly string[]).includes(valor)
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Blocos
 // ---------------------------------------------------------------------------

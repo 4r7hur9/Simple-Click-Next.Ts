@@ -47,6 +47,7 @@ export type DialogoProps = {
   className?: string | undefined;
 };
 
+/** Diálogo nativo controlado por `aberto`, com nome acessível e estados. */
 export function Dialogo({
   id,
   aberto,

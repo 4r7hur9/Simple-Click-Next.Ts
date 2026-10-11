@@ -66,8 +66,6 @@ export const esquemaDeRotulosDoRamo = z.strictObject({
   buscaPlaceholder: z.string(),
 });
 
-export type RotulosNoContrato = z.infer<typeof esquemaDeRotulosDoRamo>;
-
 /** A loja como a vitrine a mostra. */
 export const esquemaDeLojaPublica = z.strictObject({
   apelido: z.string(),
@@ -373,8 +371,6 @@ export const esquemaDoProduto = z.strictObject({
 });
 
 export type ProdutoNoContrato = z.infer<typeof esquemaDoProduto>;
-export type GrupoDeEscolhaNoContrato = z.infer<typeof esquemaDeGrupoDeEscolha>;
-export type VariacaoNoContrato = z.infer<typeof esquemaDeVariacao>;
 
 /** O identificador do produto no endereço, junto do apelido da loja. */
 export const esquemaDoApelidoEProduto = esquemaDoApelido.extend({

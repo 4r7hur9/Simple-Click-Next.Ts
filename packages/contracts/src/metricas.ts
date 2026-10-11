@@ -155,6 +155,3 @@ export type ProdutoMaisVendidoNoContrato = z.infer<
 export type PontoDiarioNoContrato = z.infer<typeof esquemaDoPontoDiario>;
 export type PontoHorarioNoContrato = z.infer<typeof esquemaDoPontoHorario>;
 export type MetricasNoContrato = z.infer<typeof esquemaDasMetricas>;
-export type RecusaDePeriodoNoContrato = z.infer<
-  typeof esquemaDaRecusaDePeriodo
->;

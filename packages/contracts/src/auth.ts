@@ -145,8 +145,6 @@ export const esquemaDaSessaoAberta = z.strictObject({
   orientarPara: z.string().optional(),
 });
 
-export type SessaoAbertaNoContrato = z.infer<typeof esquemaDaSessaoAberta>;
-
 /** E-mail e senha do login. */
 export const esquemaDoLogin = z.strictObject({
   email: esquemaDoEmail,
@@ -167,10 +165,6 @@ export const esquemaDoResultadoDoLogin = z.discriminatedUnion("status", [
   }),
 ]);
 
-export type ResultadoDoLoginNoContrato = z.infer<
-  typeof esquemaDoResultadoDoLogin
->;
-
 /** O código do segundo fator, para o desafio aberto no login. */
 export const esquemaDoCodigoDoDesafio = z.strictObject({
   desafioId: z.uuid("Desafio inválido. Comece o login de novo."),
@@ -190,10 +184,6 @@ export const esquemaDoResultadoDoSegundoFator = z.discriminatedUnion("status", [
   }),
 ]);
 
-export type ResultadoDoSegundoFatorNoContrato = z.infer<
-  typeof esquemaDoResultadoDoSegundoFator
->;
-
 /** Código de recuperação no lugar do código de seis dígitos (AC-123). */
 export const esquemaDoCodigoDeRecuperacao = z.strictObject({
   desafioId: z.uuid("Desafio inválido. Comece o login de novo."),
@@ -209,10 +199,6 @@ export const esquemaDoResultadoDaRecuperacao = z.discriminatedUnion("status", [
   esquemaDaSessaoAberta,
   z.strictObject({ status: z.literal("CODIGO_INVALIDO") }),
 ]);
-
-export type ResultadoDaRecuperacaoNoContrato = z.infer<
-  typeof esquemaDoResultadoDaRecuperacao
->;
 
 /**
  * Renovar ou sair. O navegador manda o cookie e corpo nenhum; o cliente

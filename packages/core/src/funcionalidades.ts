@@ -81,6 +81,7 @@ export interface FuncionalidadeDaLoja extends DescricaoDaFuncionalidade {
   readonly porExcecao: boolean;
 }
 
+/** O texto é uma chave do catálogo de funcionalidades. */
 export function ehChaveDeFuncionalidade(
   valor: unknown,
 ): valor is ChaveDeFuncionalidade {

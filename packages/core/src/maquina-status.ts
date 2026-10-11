@@ -17,7 +17,6 @@ export const STATUS_DO_PEDIDO = [
 ] as const;
 
 export type StatusDoPedido = (typeof STATUS_DO_PEDIDO)[number];
-export type FormaDeEntregaDoPedido = "DELIVERY" | "PICKUP";
 
 export interface OpcaoDeStatus {
   readonly status: StatusDoPedido;
@@ -73,6 +72,7 @@ function acaoDoPasso(atual: StatusDoPedido, proximo: StatusDoPedido): string {
   return ACOES[proximo];
 }
 
+/** O texto é um status da máquina; status desconhecido não tem próximo. */
 function statusConhecido(status: string): status is StatusDoPedido {
   return (STATUS_DO_PEDIDO as readonly string[]).includes(status);
 }

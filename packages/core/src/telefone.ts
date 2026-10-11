@@ -144,6 +144,7 @@ const PAIS_BRASIL = "55";
 const MINIMO_E164 = 8;
 const MAXIMO_E164 = 15;
 
+/** A recusa com a causa e a frase que a tela mostra. */
 function recusar(causa: CausaDaRecusa, explicacao: string): NumeroRecusado {
   return { ok: false, causa, explicacao };
 }
@@ -245,6 +246,7 @@ function conferirBrasil(resto: string): ResultadoDoNumero {
   return aceitarBrasil(ddd, assinante, "FIXO");
 }
 
+/** O número brasileiro aceito, exibido como "+55 (11) 91234-5678". */
 function aceitarBrasil(
   ddd: string,
   assinante: string,
