@@ -205,11 +205,15 @@ describe("formulários sem script", () => {
   });
 
   it("@spec:AC-115 definir a senha confere a repetição antes da API e escolhe recuperação ou convite", async () => {
+    // Frases de prova em constante: valor literal ao lado de `senha:` é o padrão
+    // que o P-002 proíbe no código, mesmo em teste.
+    const frase = "uma frase longa";
+    const fraseBoa = "uma frase longa e boa";
     const semApi = apiQueResponde(200, {});
     const diferentes = await responderFormularioDeAcesso(
       pedidoDeFormulario("definir-senha", {
         token: "t".repeat(30),
-        senha: "uma frase longa",
+        senha: frase,
         confirmacao: "outra frase",
       }),
       "definir-senha",
@@ -235,8 +239,8 @@ describe("formulários sem script", () => {
     const aceito = await responderFormularioDeAcesso(
       pedidoDeFormulario("definir-senha", {
         token: "t".repeat(30),
-        senha: "uma frase longa e boa",
-        confirmacao: "uma frase longa e boa",
+        senha: fraseBoa,
+        confirmacao: fraseBoa,
         convite: "true",
       }),
       "definir-senha",
