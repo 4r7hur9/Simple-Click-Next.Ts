@@ -496,10 +496,6 @@ export const MANIFESTO_DE_ROTAS: readonly TelaDoManifesto[] = [
   },
 ];
 
-/** Só as telas que já existem, com o arquivo que as desenha. */
-export const TELAS_CONSTRUIDAS: readonly TelaDoManifesto[] =
-  MANIFESTO_DE_ROTAS.filter((tela) => tela.arquivo !== undefined);
-
 /**
  * Traduz o caminho de um arquivo do Next para a rota do MAPA.
  *
