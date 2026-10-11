@@ -102,8 +102,8 @@
 ## T-408 — Acessibilidade e uso por teclado [concluida]
 
 - Refs: US-405, AC-418, AC-419, AC-420
-- Arquivos: e2e/specs/a11y-vitrine.spec.ts, e2e/specs/teclado-vitrine.spec.ts, apps/web/tests/vitrine-acessibilidade.test.ts, packages/ui/src/foco.ts, packages/ui/styles/narrativa.css, packages/ui/styles/vitrine.css
-- Notas: ordem lógica de foco, foco visível, e o modal do carrinho devolve o foco ao fechar. Nenhuma violação crítica ou séria. Sem rolagem horizontal na menor largura. Marcado com @principle:P-012.
+- Arquivos: e2e/specs/a11y-vitrine.spec.ts, e2e/specs/teclado-vitrine.spec.ts, apps/web/tests/vitrine-acessibilidade.test.ts, packages/ui/styles/narrativa.css, packages/ui/styles/vitrine.css
+- Notas: ordem lógica de foco, foco visível, e o modal do carrinho devolve o foco ao fechar. Nenhuma violação crítica ou séria. Sem rolagem horizontal na menor largura. Marcado com @principle:P-012. O `packages/ui/src/foco.ts` que esta tarefa criou saiu na limpeza da fase 3 (11/10/2026): nenhum código o importava.
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 

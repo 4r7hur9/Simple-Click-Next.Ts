@@ -26,7 +26,7 @@
 ## T-954 — Ponte da parede para o celular [concluida]
 
 - Refs: US-908, AC-931
-- Arquivos: apps/web/src/features/tv/CodigoParaOCelular.tsx, apps/web/src/features/tv/codigo.ts, apps/web/src/features/tv/codigo.test.ts
+- Arquivos: apps/web/src/features/tv/CodigoParaOCelular.tsx, apps/web/src/features/tv/codigo.ts, apps/web/src/features/tv/codigo.test.ts, apps/web/src/features/tv/codigo/correcao.ts, apps/web/src/features/tv/codigo/fluxo.ts, apps/web/src/features/tv/codigo/geometria.ts, apps/web/src/features/tv/codigo/mascara.ts, apps/web/src/features/tv/codigo/quadro.ts
 - Notas: o código aparece em TODA tela do rodízio, e não só numa — quem decidiu pedir não espera a televisão dar a volta. Tamanho pensado para leitura a três metros, o que faz dele elemento grande e não selo de canto. O endereço leva à vitrine daquela loja, e carrega de onde a pessoa veio para o dono saber que a TV converteu. O gerador de QR é escrito no projeto (P-014: as bibliotecas trazem PNG, linha de comando e dependências para desenhar quadrados em SVG): modo de bytes, nível M, versões 1 a 10, máscara escolhida por penalidade. A prova lê o código de volta com um leitor independente (tabelas próprias, aritmética por logaritmo), nas dez versões. O endereço é `{vitrine}/catalogo?origem=tv`; o endereço curto (sem esquema, sem www) aparece escrito ao lado para quem prefere digitar. Preto sobre branco sempre, com margem silenciosa de quatro módulos, num `path` só; 44% do lado menor da tela.
 - Esforço: medio
 

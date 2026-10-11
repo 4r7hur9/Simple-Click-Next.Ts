@@ -53,7 +53,7 @@
 ## T-971 — Completar a vitrine interna da identidade [concluida]
 
 - Refs: US-913, AC-945, AC-949
-- Arquivos: apps/web/src/app/(dev)/ui/page.tsx, apps/web/tests/vitrine-ui-a11y.test.tsx, apps/web/tests/vitrine-identidade.test.tsx
+- Arquivos: apps/web/src/app/(dev)/ui/page.tsx, apps/web/tests/vitrine-ui-a11y.test.tsx, apps/web/tests/vitrine-identidade.test.tsx, apps/web/src/app/(dev)/ui/_secoes/SecaoDaVitrine.tsx, apps/web/src/app/(dev)/ui/_secoes/SecoesDaMarca.tsx, apps/web/src/app/(dev)/ui/_secoes/SecoesDeControles.tsx, apps/web/src/app/(dev)/ui/_secoes/SecoesDeDados.tsx, apps/web/src/app/(dev)/ui/_secoes/SecoesDeRetorno.tsx, apps/web/src/app/(dev)/ui/_secoes/dados-da-vitrine.ts
 - Modelo: gpt-5.6-luna
 - Esforço: medio
 - Notas: prova temas claro/escuro, largura de 344px, ativos da marca e todos os componentes/estados.
