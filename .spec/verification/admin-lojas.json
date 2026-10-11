@@ -1,11 +1,11 @@
 {
   "feature": "admin-lojas",
-  "timestamp": "2026-10-06T06:20:40.127Z",
-  "gitRev": "12e5dfd",
+  "timestamp": "2026-10-11T16:21:23.802Z",
+  "gitRev": "1e48cd9",
   "command": "\"C:/Program Files/Git/bin/bash.exe\" ../vitest-feature.sh admin-lojas",
   "reporter": "vitest-json",
   "exitCode": 0,
-  "testsParsed": 207,
+  "testsParsed": 231,
   "results": {
     "AC-200": {
       "status": "pass",
