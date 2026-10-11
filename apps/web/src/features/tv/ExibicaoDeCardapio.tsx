@@ -86,6 +86,7 @@ function horarioCurto(instante: number): string {
   });
 }
 
+/** A parede inteira: escolhe entre os quatro estados e, com catálogo, gira as telas do rodízio. */
 export function ExibicaoDeCardapio({
   loja,
   catalogoInicial,

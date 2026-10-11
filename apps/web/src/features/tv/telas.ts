@@ -42,6 +42,7 @@ export interface TelaDoRodizio {
 /** O nome da tela dos destaques, quando o dono marcou algum. */
 export const NOME_DOS_DESTAQUES = "Destaques";
 
+/** O produto da vitrine com o preço já escrito em reais, do jeito que a parede mostra. */
 function comoTv(produto: ProdutoNaVitrineNoContrato): ProdutoNaTv {
   return {
     id: produto.id,
@@ -58,6 +59,7 @@ function comoTv(produto: ProdutoNaVitrineNoContrato): ProdutoNaTv {
   };
 }
 
+/** Fatia a lista em pedaços do tamanho dado; o último pode sair menor. */
 function emPedacos<T>(lista: readonly T[], tamanho: number): T[][] {
   const pedacos: T[][] = [];
   for (let i = 0; i < lista.length; i += tamanho) {

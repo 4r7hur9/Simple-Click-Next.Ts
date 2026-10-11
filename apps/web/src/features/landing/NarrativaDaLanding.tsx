@@ -32,6 +32,7 @@ import { lerAparelho, podeRodar3D } from "./podeRodar3D.ts";
  */
 let jaRegistrou = false;
 
+/** Registra o ScrollTrigger no gsap na primeira chamada; as seguintes não fazem nada. */
 function registrarUmaVez(): void {
   if (jaRegistrou) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -42,6 +43,7 @@ export interface NarrativaDaLandingProps {
   readonly raiz?: string;
 }
 
+/** Anima a entrada dos capítulos que a página já desenhou e libera o mundo 3D se o aparelho aguentar. */
 export function NarrativaDaLanding({
   raiz = '[data-narrativa="landing"]',
 }: NarrativaDaLandingProps) {

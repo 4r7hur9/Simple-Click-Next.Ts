@@ -163,6 +163,7 @@ function Comecar({
   );
 }
 
+/** A landing inteira, legível sem script: luz de fundo, abertura, prévia (quando a página a passa) e capítulos. */
 export function HistoriaDaLanding({
   linkParaComecar,
   previa,

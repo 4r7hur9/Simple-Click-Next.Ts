@@ -1,17 +1,11 @@
 /**
- * A cor que a pessoa escolheu, propagada para a landing inteira (AC-939).
+ * A cor que a pessoa escolheu na prévia, propagada para a landing inteira (AC-939).
  *
- * O PROBLEMA. A escolha de cor mora na prévia, que é uma ilha de interação
- * dentro de uma página desenhada no servidor. O fundo da página e o mundo em
- * três dimensões precisam da mesma cor — e nenhum dos dois é filho da prévia.
- *
- * A saída é um AVISO, e não estado compartilhado. Levantar a cor para um
- * provedor obrigaria a página inteira a virar cliente, e ela deixaria de chegar
- * pronta do servidor — que é o que o AC-934 exige. Com um aviso, cada parte
- * escuta se quiser, e a página continua desenhada antes de qualquer script.
- *
- * A cor também é escrita como valor declarado no documento, para o CSS a
- * alcançar sem passar por script nenhum.
+ * A escolha mora na prévia, uma ilha de interação numa página desenhada no
+ * servidor, e o fundo da página não é filho dela. A cor vira VALOR DECLARADO no
+ * documento, que o CSS de `landing.css` alcança sem script, e a troca sai num
+ * AVISO. Levantar a cor para um provedor obrigaria a página inteira a virar
+ * cliente, e ela deixaria de chegar pronta do servidor (AC-934).
  */
 
 /** O nome do aviso. Um só, e escrito uma vez. */
@@ -24,11 +18,8 @@ export const VARIAVEL_DA_COR = "--cor-da-landing";
 export type OuvinteDeCor = (cor: string) => void;
 
 /**
- * Anuncia a cor escolhida.
- *
- * Escreve no documento E avisa. As duas coisas: o CSS lê o valor declarado sem
- * script, e o mundo em três dimensões precisa saber o momento da troca para
- * repintar o material — ele não observa folha de estilo.
+ * Anuncia a cor escolhida: escreve o valor declarado no documento, que é o que
+ * o fundo da página lê, e dispara o aviso da troca para quem o escutar.
  */
 export function anunciarCor(cor: string): void {
   if (typeof document === "undefined") return;
@@ -37,10 +28,8 @@ export function anunciarCor(cor: string): void {
 }
 
 /**
- * Escuta as trocas de cor, e devolve como parar de escutar.
- *
- * Devolver a forma de parar não é zelo: sem ela, um mundo desmontado continuaria
- * escutando e tentaria pintar um material já descartado.
+ * Escuta as trocas de cor, e devolve como parar de escutar. Só a prova a chama:
+ * o mundo 3D pinta com as cores das séries (`--cor-serie-*`), e não com esta.
  */
 export function ouvirCor(ouvinte: OuvinteDeCor): () => void {
   if (typeof window === "undefined") return () => {};

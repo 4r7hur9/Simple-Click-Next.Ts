@@ -54,6 +54,7 @@ const CORES = PALETA_DE_LOJA;
 
 const NOME_PADRAO = "Sua Loja";
 
+/** O celular com a loja de exemplo e a mensagem do WhatsApp, no nome e na cor que a pessoa escolhe. */
 export function PreviaDaLoja({ itens, total, mensagem }: PreviaDaLojaProps) {
   const campo = useId();
   const [nome, setNome] = useState("");

@@ -1,27 +1,16 @@
 /**
- * Quantos produtos cabem numa tela da televisão (AC-926, AC-927).
+ * Quantos produtos cabem numa tela da televisão (AC-926, AC-927). Função pura:
+ * recebe as medidas da janela e devolve números; a tela mede e chama.
  *
- * A PERGUNTA É INVERTIDA DE PROPÓSITO. A vitrine pergunta "quanto espaço cada
- * produto pode ocupar"; a parede pergunta "quantos produtos cabem sem reduzir a
- * letra". O corpo do texto é a variável FIXA — sai do tamanho da televisão e
- * nunca desce do mínimo legível a três metros — e a quantidade é o que sobra.
- * Ir pelo outro caminho é como o cardápio impresso acaba com vinte itens em
- * corpo 12, que ninguém na fila consegue ler.
+ * O CORPO DO TEXTO É FIXO e a quantidade é o que sobra: o corpo sai do lado
+ * menor da tela e nunca desce do mínimo legível a três metros. Deitada, o
+ * código ocupa uma faixa à direita e os produtos vão em até duas colunas; em
+ * pé, o código vai para baixo e os produtos ficam numa coluna só.
  *
- * EM PÉ E DEITADA DIVIDEM O ESPAÇO DE JEITOS DIFERENTES. Deitada, o código de
- * leitura ocupa uma faixa à direita e os produtos ficam em duas colunas; em
- * pé, o código ocupa uma faixa embaixo e os produtos ficam numa coluna só,
- * como o cardápio de parede que a lanchonete já conhece.
- *
- * A CONTA INCLUI TUDO O QUE A FOLHA GASTA NA VERTICAL. Respiro da tela,
- * cabeçalho, linhas, faixa do código e rodapé: cada número aqui tem o mesmo
- * número escrito em `exibicao.css`, e a prova da tela confere os dois lados.
- * Se um gasto da folha ficar de fora desta conta, a área de produtos (que é
- * `overflow: hidden`) esconde a última linha em vez de recusá-la — foi assim
- * que a televisão em pé cortou produto uma vez, com respiro e rodapé fora da
- * soma.
- *
- * FUNÇÃO PURA. Recebe medidas, devolve números; a tela mede a janela e chama.
+ * A CONTA SOMA TUDO O QUE A FOLHA GASTA NA VERTICAL (respiro, cabeçalho,
+ * linhas, faixa do código e rodapé), com os mesmos números de `exibicao.css`.
+ * A área de produtos é `overflow: hidden`: parcela esquecida aqui vira produto
+ * cortado lá, em vez de recusado.
  */
 
 /** As medidas da janela, em pixels de CSS. */
@@ -143,10 +132,9 @@ export function calcularDensidade({
 /**
  * A altura que uma tela montada com esta densidade ocupa, em pixels.
  *
- * Existe para a prova conferir que nada é cortado: respiro, cabeçalho, linhas,
- * rodapé e faixa do código somados nunca passam da altura da televisão. É a
- * soma COMPLETA do que a folha gasta — uma parcela esquecida aqui é um produto
- * cortado lá.
+ * Só a prova (`densidade.test.ts`) a chama, para conferir que respiro,
+ * cabeçalho, linhas, rodapé e faixa do código somados nunca passam da altura
+ * da televisão.
  */
 export function alturaOcupada(
   densidade: Densidade,
