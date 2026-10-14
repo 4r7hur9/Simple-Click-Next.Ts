@@ -10,11 +10,11 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2",
+    "@playwright/test": "1.64.0",
     "@simpleclick/config-ts": "workspace:*",
-    "@types/node": "26.2.0",
+    "@types/node": "catalog:",
     "typescript": "catalog:",
-    "pg": "8.23.0",
-    "@types/pg": "8.21.0"
+    "pg": "catalog:",
+    "@types/pg": "catalog:"
   }
 }

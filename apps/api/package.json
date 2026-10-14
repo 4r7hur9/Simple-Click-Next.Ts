@@ -15,26 +15,26 @@
     "contrato:verificar": "node src/contracts/gerar.ts verificar"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.9.1",
-    "@redis/client": "6.2.1",
+    "@prisma/adapter-pg": "catalog:",
+    "@redis/client": "6.3.0",
     "@simpleclick/contracts": "workspace:*",
     "@simpleclick/core": "workspace:*",
     "@simpleclick/database": "workspace:*",
-    "bullmq": "6.1.2",
-    "express": "5.2.1",
+    "bullmq": "6.3.14",
+    "express": "5.3.0",
     "ioredis": "6.0.0",
-    "pg": "8.23.0",
-    "pino": "10.1.0",
+    "pg": "catalog:",
+    "pino": "10.4.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@simpleclick/config-ts": "workspace:*",
     "@simpleclick/testing": "workspace:*",
     "@types/express": "5.0.6",
-    "@types/node": "26.2.0",
-    "@types/pg": "8.21.0",
-    "@types/supertest": "6.0.3",
-    "supertest": "7.2.2",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "@types/supertest": "7.2.1",
+    "supertest": "7.3.1",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

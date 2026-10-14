@@ -11,17 +11,29 @@ packages:
 # mesma biblioteca, que só aparece em produção.
 catalog:
   typescript: 6.0.3
-  eslint: 10.8.1
-  typescript-eslint: 8.67.0
-  vitest: 4.1.10
-  prettier: 3.9.6
-  zod: 4.4.3
+  eslint: 10.12.0
+  typescript-eslint: 8.71.2
+  vitest: 5.0.4
+  prettier: 3.9.10
+  zod: 4.6.7
   # Animação por rolagem, só nas landings. O ScrollTrigger vem no mesmo
   # pacote e é livre desde 2024 — não há plugin pago a instalar.
   gsap: 3.15.0
   # Mundo em três dimensões, SÓ na landing da plataforma. A regra do peso da
   # skill de design proíbe na vitrine, no carrinho e no painel.
-  three: 0.185.1
+  three: 0.186.1
+  # Compartilhadas por vários pacotes do monorepo.
+  pg: 8.23.1
+  "@types/pg": 8.23.1
+  "@types/node": 26.6.5
+  react: 19.3.0
+  react-dom: 19.3.0
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
+  # Prisma fica no 7.x: o 8 ainda é release candidate.
+  "@prisma/client": 7.10.0
+  "@prisma/adapter-pg": 7.10.0
+  prisma: 7.10.0
 
 # Só estes pacotes podem rodar script na instalação. Qualquer outro que peça
 # execução precisa ser aprovado aqui, de propósito — é superfície de ataque de

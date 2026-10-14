@@ -19,14 +19,14 @@
     "test:int": "vitest run --root ../.. --project db-rls packages/database/"
   },
   "dependencies": {
-    "@prisma/client": "7.9.1",
-    "pg": "8.23.0"
+    "@prisma/client": "catalog:",
+    "pg": "catalog:"
   },
   "devDependencies": {
     "@simpleclick/config-ts": "workspace:*",
-    "@types/node": "26.2.0",
-    "@types/pg": "8.21.0",
-    "prisma": "7.9.1",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "prisma": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
