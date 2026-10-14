@@ -143,7 +143,9 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
       {metricas.porDia.length > 1 ? (
         <EvolucaoDiaria pontos={metricas.porDia} />
       ) : null}
-      <div className="grid grid-cols-1 gap-6 min-[1024px]:grid-cols-2">
+      {/* As 24 colunas do movimento pedem a largura de dois terços: na
+          metade, os números em cima delas não caberiam sem rolar. */}
+      <div className="grid grid-cols-1 gap-6 min-[1280px]:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <RankingProdutos produtos={metricas.maisVendidos} />
         <DistribuicaoPorHora pontos={metricas.porHora} />
       </div>

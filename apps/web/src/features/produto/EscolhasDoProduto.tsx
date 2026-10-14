@@ -374,6 +374,7 @@ export function EscolhasDoProduto({
         enviando={enviando}
         aoMudarQuantidade={setQuantidade}
         aoAdicionar={() => void adicionar()}
+        linkDoCarrinho={`/l/${apelidoDaLoja}/checkout`}
       />
     </div>
   );

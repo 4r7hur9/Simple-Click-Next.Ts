@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Aviso, Carregando, Erro } from "@simpleclick/ui";
 
 import { AcoesDeStatus, type OpcaoDeStatusNaTela } from "./AcoesDeStatus.tsx";
+import { SeloDeStatus, rotuloDoStatus } from "./SeloDeStatus.tsx";
 
 export interface PedidoDetalhado {
   readonly id: string;
@@ -61,19 +62,7 @@ function dinheiro(centavos: number): string {
   }).format(centavos / 100);
 }
 
-const ROTULOS_DE_STATUS: Readonly<Record<string, string>> = {
-  PENDING: "Aguardando confirmação",
-  ACCEPTED: "Aceito",
-  PREPARING: "Em preparo",
-  READY_FOR_PICKUP: "Pronto para retirada",
-  OUT_FOR_DELIVERY: "Saiu para entrega",
-  COMPLETED: "Concluído",
-  CANCELLED: "Cancelado",
-};
-
-export function rotuloDoStatus(status: string): string {
-  return ROTULOS_DE_STATUS[status] ?? status;
-}
+export { rotuloDoStatus } from "./SeloDeStatus.tsx";
 
 const AUTORES: Readonly<Record<string, string>> = {
   OWNER: "Dono da loja",
@@ -151,7 +140,7 @@ export function DetalheDoPedido({
         mensagem="Confira a conexão e tente de novo. Se o pedido for de outra loja, ele não aparece aqui."
         acao={
           <button
-            className="sc-botao sc-botao--secundario"
+            className="sc-botao sc-botao--secundaria"
             type="button"
             onClick={() => void carregar()}
           >
@@ -167,23 +156,20 @@ export function DetalheDoPedido({
   return (
     <>
       <Link
-        className="text-sm font-medium text-[var(--cor-primaria)]"
+        className="sc-botao sc-botao--discreta sc-botao--pequeno"
         href="/painel/pedidos"
       >
         ← Voltar para a fila
       </Link>
-      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-tinta-suave)]">
             Pedido {pedido.codigo}
           </p>
           <h1 className="mt-2 text-4xl font-semibold">#{pedido.numero}</h1>
         </div>
-        <span
-          className="rounded-full bg-[var(--cor-papel)] px-3 py-2 font-medium"
-          data-status-atual={pedido.status}
-        >
-          {rotuloDoStatus(pedido.status)}
+        <span data-status-atual={pedido.status}>
+          <SeloDeStatus status={pedido.status} grande />
         </span>
       </div>
 
@@ -200,12 +186,21 @@ export function DetalheDoPedido({
         </Aviso>
       ) : null}
 
+      {/* A próxima ação vem antes dos detalhes: com a cozinha cheia, o dono
+          abre o pedido para fazê-lo andar. */}
+      <AcoesDeStatus
+        pedidoId={pedido.id}
+        opcoes={pedido.proximosStatus}
+        aoAtualizar={() => void carregar()}
+        buscar={buscar}
+      />
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
         <section aria-labelledby="itens-do-pedido">
           <h2 id="itens-do-pedido" className="text-xl font-semibold">
             Itens
           </h2>
-          <ul className="mt-4 divide-y divide-[var(--cor-borda)] rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)]">
+          <ul className="mt-4 divide-y divide-[var(--cor-borda)] rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)]">
             {pedido.itens.map((item) => (
               <li className="p-5" key={item.id}>
                 <div className="flex justify-between gap-4">
@@ -235,7 +230,7 @@ export function DetalheDoPedido({
             </li>
           </ul>
           {pedido.observacao ? (
-            <p className="mt-4 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] p-4">
+            <p className="mt-4 rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-atencao-suave)] p-4">
               <strong>Observação do cliente:</strong> {pedido.observacao}
             </p>
           ) : null}
@@ -246,7 +241,7 @@ export function DetalheDoPedido({
             <h2 id="dados-do-cliente" className="text-xl font-semibold">
               Cliente
             </h2>
-            <div className="mt-4 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-5 leading-7">
+            <div className="mt-4 rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] p-5 leading-7 shadow-[var(--sombra-larga)]">
               <p className="font-medium">
                 {pedido.contato?.nome ?? "Sem nome"}
               </p>
@@ -266,7 +261,7 @@ export function DetalheDoPedido({
             <ol className="mt-4 space-y-3" data-linha-do-tempo>
               {pedido.historico.map((entrada) => (
                 <li
-                  className="border-l-2 border-[var(--cor-primaria)] pl-4"
+                  className="border-l-2 border-[var(--cor-borda-forte)] pl-4"
                   key={entrada.id}
                   data-passo={entrada.para}
                 >
@@ -286,12 +281,6 @@ export function DetalheDoPedido({
         </aside>
       </div>
 
-      <AcoesDeStatus
-        pedidoId={pedido.id}
-        opcoes={pedido.proximosStatus}
-        aoAtualizar={() => void carregar()}
-        buscar={buscar}
-      />
     </>
   );
 }

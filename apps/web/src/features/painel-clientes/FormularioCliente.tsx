@@ -143,7 +143,7 @@ export function FormularioCliente({
   return (
     <form
       aria-label={titulo}
-      className="grid gap-4 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-5"
+      className="grid gap-4 rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-5"
       noValidate
       onSubmit={(evento) => void aoEnviar(evento)}
     >

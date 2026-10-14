@@ -3,9 +3,10 @@
  *
  * COMPONENTE DE SERVIDOR, e é isso que a página é. O conteúdo chega pronto ao
  * navegador, sem depender de script para mostrar produto — o que o AC-415 exige
- * e o que faz o cardápio abrir na fila do ônibus com uma barra de sinal. Não há
- * nenhum `"use client"` nesta árvore, e é de propósito: a vitrine é a
- * superfície de quem está com fome, e a régua do projeto não permite peso aqui.
+ * e o que faz o cardápio abrir na fila do ônibus com uma barra de sinal. O único
+ * `"use client"` desta árvore é o que recolhe a barra do topo ao rolar, e ele
+ * não desenha nada: a vitrine é a superfície de quem está com fome, e a régua
+ * do projeto não permite peso aqui.
  *
  * AS DUAS BUSCAS SAEM JUNTAS. A apresentação e o catálogo são rotas separadas
  * na API de propósito (quem só quer saber se a loja está aberta não baixa o
@@ -20,10 +21,8 @@ import type { Metadata } from "next";
 import { PALETA_CLARA, TemaDaLoja, Vazio } from "@simpleclick/ui";
 
 import { AbasDeCategoria } from "../../../../../features/vitrine/AbasDeCategoria.tsx";
-import {
-  BuscaProduto,
-  SemResultado,
-} from "../../../../../features/vitrine/BuscaProduto.tsx";
+import { BarraDoTopo } from "../../../../../features/vitrine/BarraDoTopo.tsx";
+import { SemResultado } from "../../../../../features/vitrine/BuscaProduto.tsx";
 import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
 import { FiltroEspecificacao } from "../../../../../features/vitrine/FiltroEspecificacao.tsx";
@@ -150,18 +149,22 @@ export default async function PaginaDoCatalogo({
       corPrincipal={loja.cores?.["primaria"] ?? COR_DE_RESERVA}
       className="sc-pagina-da-loja"
     >
-      <main className="sc-vitrine">
-        <header className="sc-vitrine__cabecalho">
-          {/*
-            O caminho de volta é um link de verdade para a apresentação, e não
-            um `history.back()`: quem chegou aqui por um endereço compartilhado
-            não tem para onde voltar, e o botão do navegador o tiraria da loja.
-          */}
-          <a className="sc-vitrine__voltar" href={`/l/${loja.apelido}`}>
-            ← {loja.nome}
-          </a>
-        </header>
+      {/*
+        A barra fica FORA do `main`: é a moldura da loja (marca, busca e
+        carrinho), e não o conteúdo da página. A busca some só na loja sem
+        catálogo, onde não há o que buscar — quem buscou e não achou continua
+        com o campo à mão para tentar outra palavra.
+      */}
+      <BarraDoTopo
+        apelidoDaLoja={loja.apelido}
+        nomeDaLoja={loja.nome}
+        logo={loja.logo}
+        rotuloDoCatalogo={loja.rotulos.catalogo}
+        termo={naTela.termoBuscado}
+        comBusca={!naTela.lojaSemCatalogo}
+      />
 
+      <main className="sc-vitrine">
         <h1 className="sc-vitrine__titulo">{loja.rotulos.catalogo}</h1>
 
         {/*
@@ -179,20 +182,6 @@ export default async function PaginaDoCatalogo({
             })}
           />
         ) : null}
-
-        {/*
-          O CAMPO FICA FORA DO `else`, e antes dos estados vazios: quem buscou e
-          não achou precisa do campo para tentar outra palavra, e escondê-lo
-          junto com a lista deixaria a pessoa com uma mensagem e nada a fazer.
-          Some só na loja sem catálogo, onde não há o que buscar.
-        */}
-        {naTela.lojaSemCatalogo ? null : (
-          <BuscaProduto
-            acao={`/l/${loja.apelido}/catalogo`}
-            termo={naTela.termoBuscado}
-            rotuloDoCatalogo={loja.rotulos.catalogo}
-          />
-        )}
 
         {naTela.lojaSemCatalogo ? (
           // AC-407: loja recém-criada explica que está montando o catálogo, em

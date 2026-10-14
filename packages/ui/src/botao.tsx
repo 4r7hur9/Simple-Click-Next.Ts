@@ -16,13 +16,26 @@ import { Girando } from "./estados";
 
 export type VarianteDeBotao = "primaria" | "secundaria" | "perigo" | "discreta";
 
+/** `pilula` é a do botão principal da vitrine; o resto do produto usa `padrao`. */
+export type FormaDeBotao = "padrao" | "pilula";
+
+export type TamanhoDeBotao = "normal" | "pequeno" | "grande";
+
 export type BotaoProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "disabled" | "className"
 > & {
   children: ReactNode;
   variante?: VarianteDeBotao | undefined;
-  tamanho?: "normal" | "pequeno" | undefined;
+  tamanho?: TamanhoDeBotao | undefined;
+  forma?: FormaDeBotao | undefined;
+  /** Ícone desenhado antes do rótulo (use os de `icones.ts`). */
+  icone?: ReactNode | undefined;
+  /**
+   * Botão só com o ícone. O `children` continua obrigatório e vira o NOME do
+   * botão para o leitor de tela — ícone sozinho não diz o que faz.
+   */
+  soIcone?: boolean | undefined;
   /** Ação em andamento: desabilita o clique e anuncia a espera. */
   carregando?: boolean | undefined;
   /** Texto que o leitor de tela ouve enquanto a ação corre. */
@@ -36,6 +49,9 @@ export function Botao({
   children,
   variante = "primaria",
   tamanho = "normal",
+  forma = "padrao",
+  icone,
+  soIcone = false,
   carregando = false,
   rotuloDeEspera = "Enviando…",
   desabilitado = false,
@@ -56,14 +72,16 @@ export function Botao({
       className={[
         "sc-botao",
         `sc-botao--${variante}`,
-        tamanho === "pequeno" && "sc-botao--pequeno",
+        tamanho !== "normal" && `sc-botao--${tamanho}`,
+        forma === "pilula" && "sc-botao--pilula",
+        soIcone && "sc-botao--so-icone",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      {carregando && <Girando />}
-      <span>{children}</span>
+      {carregando ? <Girando /> : icone}
+      <span className={soIcone ? "sc-so-leitor" : undefined}>{children}</span>
       {carregando && <span className="sc-so-leitor">{rotuloDeEspera}</span>}
     </button>
   );

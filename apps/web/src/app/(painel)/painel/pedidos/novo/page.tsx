@@ -27,13 +27,13 @@ export default async function PaginaDoNovoPedido({
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
       <Link
-        className="text-sm font-medium text-[var(--cor-primaria)]"
+        className="text-sm font-medium text-[var(--cor-primaria-texto)]"
         href="/painel/pedidos"
       >
         ← Voltar para a fila
       </Link>
       <header className="mt-4 mb-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
           Pedido do balcão
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">

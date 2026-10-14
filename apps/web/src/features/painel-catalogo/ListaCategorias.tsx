@@ -1,7 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  Carregando,
+  IconeConfiguracoes,
+  IconeExcluir,
+  IconeMostrar,
+  IconeOcultar,
+  IconeOrdemCrescente,
+  IconeOrdemDecrescente,
+  MenuSuspenso,
+  Selo,
+  Vazio,
+} from "@simpleclick/ui";
 
 /**
  * As categorias do dono (T-300).
@@ -253,20 +264,14 @@ export function ListaCategorias() {
         </div>
 
         {estado === "carregando" ? (
-          <p
-            className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
-            aria-busy="true"
-          >
-            Carregando categorias…
-          </p>
+          <div className="mt-6" aria-busy="true">
+            <Carregando rotulo="Carregando categorias…" />
+          </div>
         ) : estado === "erro" ? (
-          <div
-            role="alert"
-            className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
-          >
+          <div role="alert" className="sc-cartao mt-6">
             <p>Não conseguimos ler suas categorias agora. Nada foi alterado.</p>
             <button
-              className="sc-botao sc-botao--fantasma mt-4"
+              className="sc-botao sc-botao--secundaria self-start"
               type="button"
               onClick={() => void carregar()}
             >
@@ -274,9 +279,11 @@ export function ListaCategorias() {
             </button>
           </div>
         ) : categorias.length === 0 ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-[var(--cor-borda)] p-6">
-            Crie a primeira categoria ao lado para começar seu catálogo.
-          </p>
+          <Vazio
+            className="mt-6"
+            titulo="Nenhuma categoria ainda"
+            descricao="Crie a primeira categoria ao lado para começar seu catálogo."
+          />
         ) : (
           <ol
             className="mt-6 space-y-3"
@@ -285,61 +292,77 @@ export function ListaCategorias() {
             {categorias.map((categoria, indice) => (
               <li
                 key={categoria.id}
-                className="rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-5"
+                className="rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] px-4 py-3 shadow-[var(--sombra-larga)]"
               >
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="w-8 text-center text-sm font-semibold text-[var(--cor-primaria)]">
+                <div className="flex min-h-12 flex-wrap items-center gap-x-4 gap-y-2">
+                  <span className="w-7 text-center font-[family-name:var(--fonte-titulo)] text-sm font-semibold text-[var(--cor-tinta-suave)]">
                     {String(indice + 1).padStart(2, "0")}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold">{categoria.nome}</h3>
-                    <p className="text-sm text-[var(--cor-tinta-suave)]">
+                    <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
+                      {categoria.nome}
+                      {categoria.visivel ? (
+                        <Selo tom="sucesso">Visível</Selo>
+                      ) : (
+                        <Selo>Oculta</Selo>
+                      )}
+                    </h3>
+                    <p className="mt-0.5 text-sm text-[var(--cor-tinta-suave)]">
                       {categoria.descricao ?? "Sem descrição"} ·{" "}
-                      {categoria.visivel ? "Visível" : "Oculta"} ·{" "}
                       {rotuloDeProdutos(categoria.produtos)}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1">
                     <button
-                      className="sc-botao sc-botao--fantasma"
+                      className="sc-botao sc-botao--discreta sc-botao--so-icone"
                       type="button"
                       onClick={() => void mover(categoria, -1)}
                       disabled={indice === 0}
                       aria-label={`Mover ${categoria.nome} para cima`}
                     >
-                      ↑
+                      <IconeOrdemCrescente />
                     </button>
                     <button
-                      className="sc-botao sc-botao--fantasma"
+                      className="sc-botao sc-botao--discreta sc-botao--so-icone"
                       type="button"
                       onClick={() => void mover(categoria, 1)}
                       disabled={indice === categorias.length - 1}
                       aria-label={`Mover ${categoria.nome} para baixo`}
                     >
-                      ↓
+                      <IconeOrdemDecrescente />
                     </button>
-                    <button
-                      className="sc-botao sc-botao--fantasma"
-                      type="button"
-                      onClick={() => void alternarVisibilidade(categoria)}
-                    >
-                      {categoria.visivel ? "Ocultar" : "Mostrar"}
-                    </button>
-                    <Link
-                      className="sc-botao sc-botao--fantasma"
-                      href={`/painel/categorias/${categoria.id}/especificacoes`}
-                      aria-label={`Especificações de ${categoria.nome}`}
-                    >
-                      Especificações
-                    </Link>
-                    <button
-                      className="sc-botao sc-botao--fantasma"
-                      type="button"
-                      onClick={() => pedirRemocao(categoria)}
-                      aria-label={`Apagar ${categoria.nome}`}
-                    >
-                      Apagar
-                    </button>
+                    <MenuSuspenso
+                      id={`acoes-da-categoria-${categoria.id}`}
+                      rotulo="Ações"
+                      titulo={categoria.nome}
+                      variante="discreta"
+                      alinhamento="fim"
+                      itens={[
+                        {
+                          id: "visibilidade",
+                          rotulo: categoria.visivel ? "Ocultar" : "Mostrar",
+                          icone: categoria.visivel ? (
+                            <IconeOcultar />
+                          ) : (
+                            <IconeMostrar />
+                          ),
+                          aoEscolher: () => void alternarVisibilidade(categoria),
+                        },
+                        {
+                          id: "especificacoes",
+                          rotulo: "Especificações",
+                          icone: <IconeConfiguracoes />,
+                          href: `/painel/categorias/${categoria.id}/especificacoes`,
+                        },
+                        {
+                          id: "apagar",
+                          rotulo: "Apagar",
+                          icone: <IconeExcluir />,
+                          perigo: true,
+                          aoEscolher: () => pedirRemocao(categoria),
+                        },
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -347,7 +370,7 @@ export function ListaCategorias() {
                   <div
                     role="group"
                     aria-label={`Confirmar a remoção de ${categoria.nome}`}
-                    className="mt-4 border-t border-[var(--cor-borda)] pt-4"
+                    className="mt-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] bg-[var(--cor-erro-suave)] p-4"
                   >
                     {remocao.categoria.produtos === 0 ? (
                       <p className="text-sm">
@@ -385,7 +408,7 @@ export function ListaCategorias() {
                           <label className="mt-2 block text-sm">
                             <span>Categoria de destino</span>
                             <select
-                              className="sc-campo mt-1 w-full"
+                              className="sc-campo__controle mt-1 w-full"
                               value={remocao.destinoId}
                               onChange={(evento) =>
                                 setRemocao({
@@ -418,7 +441,7 @@ export function ListaCategorias() {
                     )}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
-                        className="sc-botao sc-botao--primario"
+                        className="sc-botao sc-botao--perigo"
                         type="button"
                         disabled={salvando}
                         onClick={() => void confirmarRemocao()}
@@ -426,7 +449,7 @@ export function ListaCategorias() {
                         Confirmar
                       </button>
                       <button
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         type="button"
                         onClick={() => setRemocao(null)}
                       >
@@ -443,7 +466,7 @@ export function ListaCategorias() {
 
       <form
         onSubmit={(evento) => void criar(evento)}
-        className="h-fit rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6"
+        className="sc-cartao h-fit"
       >
         <h2 className="text-xl font-semibold">Nova categoria</h2>
         <p className="mt-2 text-sm leading-6 text-[var(--cor-tinta-suave)]">
@@ -453,7 +476,7 @@ export function ListaCategorias() {
         <label className="mt-5 block">
           <span className="text-sm font-medium">Nome</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={formulario.nome}
             onChange={(evento) =>
               setFormulario((anterior) => ({
@@ -469,7 +492,7 @@ export function ListaCategorias() {
         <label className="mt-4 block">
           <span className="text-sm font-medium">Descrição (opcional)</span>
           <textarea
-            className="sc-campo mt-2 min-h-24 w-full"
+            className="sc-campo__controle mt-2 min-h-24 w-full"
             value={formulario.descricao}
             onChange={(evento) =>
               setFormulario((anterior) => ({
@@ -495,7 +518,7 @@ export function ListaCategorias() {
           Mostrar na vitrine agora
         </label>
         <button
-          className="sc-botao sc-botao--primario mt-6 w-full"
+          className="sc-botao sc-botao--primaria mt-6 w-full"
           type="submit"
           disabled={salvando}
         >

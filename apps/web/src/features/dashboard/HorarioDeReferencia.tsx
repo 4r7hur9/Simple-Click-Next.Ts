@@ -42,7 +42,7 @@ export function HorarioDeReferencia({
     <div
       data-horario-de-referencia
       data-de-cache={deCache ? "sim" : "nao"}
-      className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-3 min-[540px]:flex-row min-[540px]:flex-wrap min-[540px]:items-center min-[540px]:justify-between"
+      className="flex flex-col gap-2 rounded-[var(--raio-cartao)] border border-borda bg-superficie px-4 py-3 min-[540px]:flex-row min-[540px]:flex-wrap min-[540px]:items-center min-[540px]:justify-between"
     >
       <div className="text-sm">
         <p>

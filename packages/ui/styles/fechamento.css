@@ -6,9 +6,20 @@
  * de espera também. Nada de animação, nada que mova o botão de lugar, nada que
  * esconda o total.
  *
+ * Vale para a gaveta do carrinho, o fechamento e o pedido criado: é o mesmo
+ * fluxo, do "quero" ao WhatsApp, e nenhum trecho dele tem transição.
+ *
  * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
  * Depende de `theme.css`.
  */
+
+/*
+ * O fundo é a superfície, e os cartões a superfície alta, como na vitrine. Vai
+ * no `body` porque o contêiner do tema da loja é `display: contents`.
+ */
+body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
+  background: var(--cor-superficie);
+}
 
 .sc-fechamento__pagina {
   display: flex;
@@ -21,7 +32,6 @@
   padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
     max(var(--espaco-4), env(safe-area-inset-right));
   padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
-  background: var(--cor-fundo);
   color: var(--cor-tinta);
 }
 
@@ -52,17 +62,23 @@
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
+  align-items: center;
   padding: var(--espaco-6);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
+  border-radius: var(--raio-janela);
   background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
   text-align: center;
+}
+
+.sc-fechamento__estado p {
+  margin: 0;
 }
 
 .sc-fechamento__erro {
   margin: 0;
   padding: var(--espaco-3) var(--espaco-4);
-  border-radius: var(--raio-2);
+  border-inline-start: 4px solid var(--cor-erro);
+  border-radius: var(--raio-botao);
   background: var(--cor-erro-suave);
   color: var(--cor-erro);
   font-size: var(--texto-sm);
@@ -77,7 +93,7 @@
   gap: var(--espaco-4);
   padding: var(--espaco-6);
   border: 1px solid var(--cor-sucesso);
-  border-radius: var(--raio-3);
+  border-radius: var(--raio-janela);
   background: var(--cor-sucesso-suave);
   color: var(--cor-tinta);
 }
@@ -97,13 +113,373 @@
 .sc-fechamento__acompanhar {
   display: inline-flex;
   align-items: center;
-  min-block-size: 2.75rem;
+  justify-content: center;
+  min-block-size: var(--altura-toque-grande);
   padding-inline: var(--espaco-5);
   border-radius: var(--raio-completo);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font-weight: var(--peso-forte);
   text-decoration: none;
+}
+
+/* --- o resumo do pedido ----------------------------------------------------
+ *
+ * Um recibo: cada item numa linha, o nome à esquerda e o valor alinhado à
+ * direita em algarismos de mesma largura, e o total separado por um tracejado.
+ * É a última conferência antes de dar nome e telefone, e precisa ser lido de
+ * relance.
+ */
+
+.sc-resumo-cartao {
+  border-color: transparent;
+  border-radius: var(--raio-janela);
+}
+
+.sc-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.sc-resumo__linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+}
+
+.sc-resumo__rotulo {
+  min-inline-size: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.sc-resumo__valor {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.sc-resumo__observacao {
+  display: block;
+  color: var(--cor-sucesso);
+  font-size: var(--texto-xs);
+  white-space: normal;
+}
+
+.sc-resumo__linha--total {
+  margin-block-start: var(--espaco-2);
+  padding-block-start: var(--espaco-3);
+  border-block-start: 1px dashed var(--cor-borda-forte);
+}
+
+.sc-resumo__linha--total .sc-resumo__rotulo,
+.sc-resumo__linha--total .sc-resumo__valor {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+
+/* --- o formulário ----------------------------------------------------------
+ *
+ * As escolhas (entrega, pagamento) são CARTÕES de opção: a linha inteira é o
+ * alvo do toque, e a marcada muda borda e fundo — não só a bolinha do rádio.
+ */
+
+.sc-checkout,
+.sc-pagamento,
+.sc-endereco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  margin: 0;
+  padding: var(--espaco-5);
+  border: none;
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+/* O endereço já mora dentro do formulário: lá ele é um bloco, e não outro
+ * cartão com sombra dentro de um cartão. */
+.sc-checkout .sc-endereco {
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sc-checkout__entrega {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.sc-checkout__entrega legend,
+.sc-pagamento__titulo,
+.sc-endereco__titulo {
+  margin-block-end: var(--espaco-3);
+  padding: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+.sc-checkout__opcao,
+.sc-pagamento__opcao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-block-size: var(--altura-toque-grande);
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background: var(--cor-superficie-alta);
+}
+
+.sc-checkout__opcao:has(input:checked),
+.sc-pagamento__opcao:has(input:checked) {
+  border-color: var(--cor-tinta);
+  background: var(--cor-primaria-suave);
+  box-shadow: inset 0 0 0 1px var(--cor-tinta);
+}
+
+.sc-checkout__opcao input,
+.sc-pagamento__opcao input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--cor-tinta);
+}
+
+/* O rótulo cobre a linha inteira: o toque em qualquer ponto marca a opção. */
+.sc-checkout__opcao label,
+.sc-pagamento__opcao label {
+  flex: 1 1 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+}
+
+.sc-checkout__forma-unica {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-checkout__retirada {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  border-radius: var(--raio-botao);
+  background: var(--cor-superficie);
+}
+
+.sc-checkout__retirada p {
+  margin: 0;
+}
+
+.sc-checkout__endereco-da-loja {
+  font-weight: var(--peso-forte);
+}
+
+/* O botão de fechar ocupa a largura: é o alvo do polegar, e o fim da página. */
+.sc-checkout > .sc-botao,
+.sc-carrinho .sc-botao--grande,
+.sc-envio .sc-botao--grande {
+  inline-size: 100%;
+}
+
+/* --- o PIX ----------------------------------------------------------------- */
+
+.sc-pix {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  margin: 0;
+}
+
+.sc-pix__linha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.sc-pix__rotulo {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-pix__valor {
+  margin: 0;
+  font-weight: var(--peso-medio);
+  overflow-wrap: anywhere;
+}
+
+.sc-pix__valor code {
+  display: block;
+  padding: var(--espaco-3);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-botao);
+  background: var(--cor-superficie);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-sm);
+}
+
+/* --- o que mudou no carrinho ----------------------------------------------- */
+
+.sc-mudancas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin: 0 0 var(--espaco-3);
+  padding-inline-start: var(--espaco-5);
+}
+
+.sc-mudancas__total {
+  margin: 0 0 var(--espaco-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- o pedido criado e o WhatsApp ------------------------------------------ */
+
+.sc-envio {
+  border-color: transparent;
+  border-radius: var(--raio-janela);
+}
+
+.sc-envio__garantia,
+.sc-envio__acompanhar {
+  margin: 0;
+  line-height: var(--altura-linha-base);
+}
+
+.sc-envio__acompanhar {
+  text-align: center;
+}
+
+/* --- a gaveta do carrinho --------------------------------------------------
+ *
+ * Janela de raio grande. Cada linha: descrição à esquerda, total à direita, e
+ * os controles de quantidade embaixo da descrição — no dobrável fechado não
+ * cabe tudo numa linha só sem espremer o nome do produto.
+ */
+
+.sc-carrinho {
+  border-color: transparent;
+  border-radius: var(--raio-janela);
+}
+
+.sc-carrinho__vazio {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-carrinho__itens {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-linha-carrinho {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "descricao total"
+    "controles controles";
+  gap: var(--espaco-2) var(--espaco-3);
+  padding-block: var(--espaco-4);
+  border-block-end: 1px solid var(--cor-borda);
+}
+
+.sc-linha-carrinho:first-child {
+  padding-block-start: 0;
+}
+
+.sc-linha-carrinho__descricao {
+  grid-area: descricao;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
+}
+
+.sc-linha-carrinho__descricao p,
+.sc-linha-carrinho__total {
+  margin: 0;
+}
+
+.sc-linha-carrinho__nome {
+  font-weight: var(--peso-forte);
+  overflow-wrap: anywhere;
+}
+
+.sc-linha-carrinho__opcoes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-linha-carrinho__observacao,
+.sc-linha-carrinho__preco {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-linha-carrinho__controles {
+  grid-area: controles;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  justify-self: start;
+  padding: var(--espaco-1);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+}
+
+.sc-linha-carrinho__quantidade {
+  min-inline-size: 2ch;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sc-linha-carrinho__total {
+  grid-area: total;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  padding-block-start: var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+
+.sc-carrinho__total dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (min-width: 768px) {

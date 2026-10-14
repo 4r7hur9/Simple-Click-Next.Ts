@@ -11,7 +11,12 @@
  * trata: pares de nome e valor. Uma tabela prometeria linhas e colunas que não
  * existem, e uma pilha de `div` não diria nada a quem usa leitor de tela.
  */
-import { Aviso, Cartao, type EstadoDaTela } from "@simpleclick/ui";
+import {
+  Aviso,
+  Cartao,
+  IconePedido,
+  type EstadoDaTela,
+} from "@simpleclick/ui";
 
 /** Uma linha do resumo, já formatada pelo servidor. */
 export interface LinhaDoResumo {
@@ -39,6 +44,8 @@ export function ResumoDoPedido({
 }: ResumoDoPedidoProps) {
   return (
     <Cartao
+      className="sc-resumo-cartao"
+      icone={<IconePedido />}
       titulo="Resumo do pedido"
       nivelDoTitulo={2}
       estado={estado}

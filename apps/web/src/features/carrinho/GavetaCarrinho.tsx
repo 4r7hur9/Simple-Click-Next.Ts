@@ -11,8 +11,12 @@
  * O estado de erro NÃO diz "seu carrinho está vazio". Um carrinho que não
  * carregou não é um carrinho vazio, e mandar a pessoa "voltar à vitrine" faria
  * ela achar que perdeu o que montou.
+ *
+ * É uma JANELA (raio grande, `sc-carrinho`), e não uma lista solta: o carrinho
+ * é o lugar onde a pessoa confere antes de fechar, e o desenho diz isso. Nada
+ * nela anima — entre o carrinho e o WhatsApp, movimento é atrito.
  */
-import { Aviso, Botao, Cartao } from "@simpleclick/ui";
+import { Aviso, Botao, Cartao, IconePedido } from "@simpleclick/ui";
 
 import { LinhaCarrinho } from "./LinhaCarrinho.tsx";
 import type { UsoDoCarrinho } from "./useCarrinho.ts";
@@ -40,6 +44,7 @@ export function GavetaCarrinho({
   if (situacao === "carregando") {
     return (
       <Cartao
+        className="sc-carrinho"
         titulo="Seu carrinho"
         nivelDoTitulo={2}
         estado="carregando"
@@ -53,7 +58,7 @@ export function GavetaCarrinho({
 
   if (situacao === "erro") {
     return (
-      <Cartao titulo="Seu carrinho" nivelDoTitulo={2}>
+      <Cartao className="sc-carrinho" titulo="Seu carrinho" nivelDoTitulo={2}>
         <Aviso
           tom="erro"
           titulo="Não deu para abrir o carrinho"
@@ -71,12 +76,22 @@ export function GavetaCarrinho({
 
   if (situacao === "vazio") {
     return (
-      <Cartao titulo="Seu carrinho" nivelDoTitulo={2}>
+      <Cartao
+        className="sc-carrinho"
+        titulo="Seu carrinho"
+        nivelDoTitulo={2}
+        icone={<IconePedido />}
+      >
         <p className="sc-carrinho__vazio">
           Seu carrinho está vazio. Escolha um produto para começar.
         </p>
         <p>
-          <a href={linkDaVitrine}>Ver o cardápio</a>
+          <a
+            className="sc-botao sc-botao--secundaria sc-botao--pilula"
+            href={linkDaVitrine}
+          >
+            Ver o cardápio
+          </a>
         </p>
       </Cartao>
     );
@@ -84,8 +99,10 @@ export function GavetaCarrinho({
 
   return (
     <Cartao
+      className="sc-carrinho"
       titulo={`Seu carrinho (${dados?.totalDeItens ?? 0})`}
       nivelDoTitulo={2}
+      icone={<IconePedido />}
     >
       <ul className="sc-carrinho__itens">
         {dados?.itens.map((item) => (
@@ -104,7 +121,11 @@ export function GavetaCarrinho({
         <dd>{dados?.total}</dd>
       </dl>
 
-      {aoFechar ? <Botao onClick={aoFechar}>Fechar pedido</Botao> : null}
+      {aoFechar ? (
+        <Botao tamanho="grande" forma="pilula" onClick={aoFechar}>
+          Fechar pedido
+        </Botao>
+      ) : null}
     </Cartao>
   );
 }

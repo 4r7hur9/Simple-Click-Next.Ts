@@ -18,6 +18,12 @@ export type NivelDeTitulo = 2 | 3 | 4 | 5 | 6;
 export type CartaoProps = {
   titulo?: string | undefined;
   nivelDoTitulo?: NivelDeTitulo | undefined;
+  /** Linha curta abaixo do título, em tinta suave. */
+  descricao?: ReactNode | undefined;
+  /** Marca, avatar ou ícone à esquerda do título. */
+  icone?: ReactNode | undefined;
+  /** Ações curtas no canto do cabeçalho (botões só-ícone, um `Selo`). */
+  acoes?: ReactNode | undefined;
   estado?: EstadoDaTela | undefined;
   /** Texto mostrado quando o estado é `vazio`. */
   tituloVazio?: string | undefined;
@@ -40,6 +46,9 @@ export type CartaoProps = {
 export function Cartao({
   titulo,
   nivelDoTitulo = 3,
+  descricao,
+  icone,
+  acoes,
   estado = "pronto",
   tituloVazio = "Nada por aqui ainda",
   descricaoVazio,
@@ -54,14 +63,34 @@ export function Cartao({
   className,
 }: CartaoProps) {
   const Titulo = `h${nivelDoTitulo}` as const;
+  const temCabecalho =
+    titulo !== undefined ||
+    descricao !== undefined ||
+    icone !== undefined ||
+    acoes !== undefined;
 
   return (
     <section
       className={["sc-cartao", className].filter(Boolean).join(" ")}
       aria-busy={estado === "carregando" || undefined}
     >
-      {titulo !== undefined && (
-        <Titulo className="sc-cartao__titulo">{titulo}</Titulo>
+      {temCabecalho && (
+        <div className="sc-cartao__cabecalho">
+          {icone !== undefined && (
+            <div className="sc-cartao__icone">{icone}</div>
+          )}
+          <div className="sc-cartao__cabeca">
+            {titulo !== undefined && (
+              <Titulo className="sc-cartao__titulo">{titulo}</Titulo>
+            )}
+            {descricao !== undefined && (
+              <p className="sc-cartao__descricao">{descricao}</p>
+            )}
+          </div>
+          {acoes !== undefined && (
+            <div className="sc-cartao__acoes">{acoes}</div>
+          )}
+        </div>
       )}
 
       {estado === "carregando" &&

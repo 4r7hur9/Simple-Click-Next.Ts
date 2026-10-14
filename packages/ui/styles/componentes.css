@@ -5,6 +5,10 @@
  * prática: o pacote precisa funcionar em qualquer consumidor, inclusive um que
  * configure o Tailwind de outro jeito ou não use Tailwind nenhum. Toda cor,
  * medida e raio aqui vem de valor declarado em `theme.css` (AC-014).
+ *
+ * A linguagem: curva maior quanto maior a peça (controle, cartão, janela),
+ * sombra larga e fraca em vez de contorno pesado, e alvo de toque de 44 a 48px.
+ * Movimento só de opacidade e escala, curto, e nenhum para quem pediu menos.
  */
 
 /* --- base ---------------------------------------------------------------- */
@@ -22,7 +26,12 @@
 .sc-raiz :focus-visible,
 .sc-botao:focus-visible,
 .sc-campo__controle:focus-visible,
-.sc-dialogo__fechar:focus-visible {
+.sc-senha__olho:focus-visible,
+.sc-dialogo__fechar:focus-visible,
+.sc-sanfona__titulo:focus-visible,
+.sc-menu__item:focus-visible,
+.sc-tabela:focus-visible,
+.sc-tabela__ordenar:focus-visible {
   outline: 2px solid var(--cor-foco);
   outline-offset: 2px;
 }
@@ -46,6 +55,14 @@
   border-width: 0;
 }
 
+/* Ícone do lucide ao lado de texto: não encolhe quando a linha aperta. */
+.sc-botao .lucide,
+.sc-menu__item .lucide,
+.sc-sanfona__titulo .lucide,
+.sc-cartao__icone .lucide {
+  flex-shrink: 0;
+}
+
 /* --- botão --------------------------------------------------------------- */
 
 .sc-botao {
@@ -58,14 +75,21 @@
   border-radius: var(--raio-botao);
   font-family: inherit;
   font-size: var(--texto-base);
-  font-weight: var(--peso-medio);
+  font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
+  text-decoration: none;
   cursor: pointer;
   transition:
     background-color var(--transicao-rapida),
-    border-color var(--transicao-rapida);
+    border-color var(--transicao-rapida),
+    box-shadow var(--transicao-rapida),
+    transform var(--transicao-rapida);
   /* Alvo de toque confortável no celular, que é onde este produto vive. */
-  min-height: 2.75rem;
+  min-height: var(--altura-toque);
+}
+
+.sc-botao:not([disabled]):active {
+  transform: scale(0.98);
 }
 
 .sc-botao--pequeno {
@@ -74,9 +98,39 @@
   font-size: var(--texto-sm);
 }
 
+.sc-botao--grande {
+  min-height: var(--altura-toque-grande);
+  padding: var(--espaco-3) var(--espaco-5);
+  font-size: var(--texto-lg);
+}
+
+/* O botão principal da vitrine: pílula, como o selo. */
+.sc-botao--pilula {
+  border-radius: var(--raio-completo);
+  padding-inline: var(--espaco-5);
+}
+
+/* Só ícone: quadrado do tamanho do alvo de toque, nome no leitor de tela. */
+.sc-botao--so-icone {
+  padding: 0;
+  min-width: var(--altura-toque);
+}
+
+.sc-botao--so-icone.sc-botao--pequeno {
+  min-width: 2.25rem;
+}
+
+.sc-botao--so-icone.sc-botao--grande {
+  min-width: var(--altura-toque-grande);
+}
+
 .sc-botao--primaria {
   background-color: var(--cor-primaria);
   color: var(--cor-em-primaria);
+}
+
+.sc-botao--primaria:not([disabled]):hover {
+  box-shadow: var(--sombra-larga);
 }
 
 .sc-botao--secundaria {
@@ -85,8 +139,13 @@
   color: var(--cor-tinta);
 }
 
+.sc-botao--secundaria:not([disabled]):hover {
+  border-color: var(--cor-tinta);
+}
+
 .sc-botao--perigo {
   background-color: var(--cor-erro);
+  border-color: var(--cor-erro);
   color: var(--cor-em-erro);
 }
 
@@ -96,6 +155,10 @@
   /* Letra sobre o fundo da página usa o tom já conferido para leitura, não o
      tom de preenchimento — é neste ponto que a cor clara de uma loja some. */
   color: var(--cor-primaria-texto);
+}
+
+.sc-botao--discreta:not([disabled]):hover {
+  background-color: var(--cor-superficie);
 }
 
 .sc-botao[disabled] {
@@ -162,12 +225,17 @@
   width: 100%;
   padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-botao);
   background-color: var(--cor-fundo);
   color: var(--cor-tinta);
   font-family: inherit;
   font-size: var(--texto-base);
-  min-height: 2.75rem;
+  min-height: var(--altura-toque);
+  transition: border-color var(--transicao-rapida);
+}
+
+.sc-campo__controle:hover:not([disabled]) {
+  border-color: var(--cor-tinta);
 }
 
 .sc-campo__controle[aria-invalid="true"] {
@@ -199,30 +267,151 @@
   color: var(--cor-sucesso);
 }
 
+/* --- campo de senha ------------------------------------------------------ */
+
+.sc-senha {
+  position: relative;
+}
+
+/* Espaço para o botão do olho não cobrir o fim da senha. */
+.sc-senha__controle {
+  padding-inline-end: calc(var(--altura-toque) + var(--espaco-1));
+}
+
+.sc-senha__olho {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--altura-toque);
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-botao);
+  background-color: transparent;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+}
+
+.sc-senha__olho:hover:not([disabled]),
+.sc-senha__olho[aria-pressed="true"] {
+  color: var(--cor-tinta);
+}
+
+.sc-senha__olho[disabled] {
+  cursor: not-allowed;
+}
+
+.sc-senha__forca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  margin-block-start: var(--espaco-1);
+}
+
+.sc-senha__medidor {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaco-1);
+}
+
+.sc-senha__barra {
+  height: var(--espaco-1);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-borda);
+  transition: background-color var(--transicao-media);
+}
+
+/* A cor acompanha o nível; o texto ao lado diz o mesmo em palavras. */
+.sc-senha__medidor[data-nivel="1"] .sc-senha__barra[data-cheia] {
+  background-color: var(--cor-erro);
+}
+
+.sc-senha__medidor[data-nivel="2"] .sc-senha__barra[data-cheia] {
+  background-color: var(--cor-atencao);
+}
+
+.sc-senha__medidor[data-nivel="3"] .sc-senha__barra[data-cheia],
+.sc-senha__medidor[data-nivel="4"] .sc-senha__barra[data-cheia] {
+  background-color: var(--cor-sucesso);
+}
+
+.sc-senha__nivel {
+  margin: 0;
+  min-height: calc(var(--texto-sm) * var(--altura-linha-base));
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
 /* --- cartão -------------------------------------------------------------- */
 
 .sc-cartao {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
-  padding: var(--espaco-4);
+  padding: var(--espaco-5);
   background-color: var(--cor-superficie-alta);
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
-  box-shadow: var(--sombra-1);
+  border-radius: var(--raio-cartao);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-cartao__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.sc-cartao__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--altura-toque);
+  height: var(--altura-toque);
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-tinta);
+  overflow: hidden;
+}
+
+.sc-cartao__cabeca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  flex: 1;
+  min-width: 0;
 }
 
 .sc-cartao__titulo {
   margin: 0;
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
 }
 
+.sc-cartao__descricao {
+  margin: 0;
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-cartao__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  flex-shrink: 0;
+}
+
 .sc-cartao__rodape {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--espaco-2);
+  padding-block-start: var(--espaco-3);
+  border-top: 1px solid var(--cor-borda);
 }
 
 /* --- esqueleto de espera ------------------------------------------------- */
@@ -258,7 +447,7 @@
   align-items: flex-start;
   gap: var(--espaco-2);
   padding: var(--espaco-5) var(--espaco-4);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-cartao);
 }
 
 .sc-estado--centro {
@@ -340,7 +529,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-cartao);
   overflow: hidden;
 }
 
@@ -360,7 +549,7 @@
   flex-direction: column;
   gap: var(--espaco-1);
   padding: var(--espaco-3) var(--espaco-4);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-botao);
   border: 1px solid transparent;
   font-size: var(--texto-sm);
   color: var(--cor-tinta);
@@ -418,23 +607,47 @@
 .sc-dialogo {
   padding: 0;
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
+  border-radius: var(--raio-janela);
   background-color: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   box-shadow: var(--sombra-3);
-  max-width: min(32rem, calc(100vw - var(--espaco-6)));
+  max-width: min(30rem, calc(100vw - var(--espaco-5)));
   width: 100%;
+  animation: sc-surgir var(--transicao-media) both;
+}
+
+/* Embutido (sem `aria-modal`), o diálogo fica no fluxo da página, em vez de
+   flutuar por cima do vizinho como o `dialog` aberto faz por padrão. */
+.sc-dialogo:not([aria-modal]) {
+  position: relative;
+  inset: auto;
+  margin: 0;
+  max-width: 100%;
 }
 
 .sc-dialogo::backdrop {
   background-color: var(--cor-sobreposicao);
+  animation: sc-esmaecer var(--transicao-media) both;
+}
+
+@keyframes sc-surgir {
+  from {
+    opacity: 0;
+    transform: translateY(var(--espaco-2)) scale(0.97);
+  }
+}
+
+@keyframes sc-esmaecer {
+  from {
+    opacity: 0;
+  }
 }
 
 .sc-dialogo__corpo {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
-  padding: var(--espaco-5);
+  gap: var(--espaco-4);
+  padding: var(--espaco-6) var(--espaco-5) var(--espaco-5);
 }
 
 .sc-dialogo__cabecalho {
@@ -446,26 +659,38 @@
 
 .sc-dialogo__titulo {
   margin: 0;
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-xl);
   font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
 }
 
 .sc-dialogo__descricao {
-  margin: 0;
+  margin: var(--espaco-1) 0 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
 }
 
+/* O fechar sobe para o canto, fora do ritmo do título, como nas janelas do
+   sistema; o alvo continua com 44px. */
 .sc-dialogo__fechar {
-  border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: calc(var(--espaco-3) * -1) calc(var(--espaco-2) * -1) 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-completo);
   background-color: var(--cor-superficie);
   color: var(--cor-tinta);
   cursor: pointer;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  font-size: var(--texto-base);
+  min-width: var(--altura-toque);
+  min-height: var(--altura-toque);
+}
+
+.sc-dialogo__fechar:hover {
+  background-color: var(--cor-borda);
 }
 
 .sc-dialogo__rodape {
@@ -473,4 +698,383 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--espaco-2);
+  padding-block-start: var(--espaco-2);
+}
+
+/* No celular os botões de decisão ocupam a largura: o polegar acerta. */
+@media (max-width: 539px) {
+  .sc-dialogo__rodape > * {
+    flex: 1 1 100%;
+  }
+}
+
+/* --- selo ---------------------------------------------------------------- */
+
+.sc-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio-completo);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+  white-space: nowrap;
+  color: var(--cor-tinta);
+}
+
+.sc-selo__bolinha {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: var(--raio-completo);
+  background-color: currentcolor;
+}
+
+.sc-selo--neutro {
+  background-color: var(--cor-superficie);
+  border-color: var(--cor-borda);
+}
+
+.sc-selo--neutro .sc-selo__bolinha {
+  background-color: var(--cor-tinta-suave);
+}
+
+.sc-selo--sucesso {
+  background-color: var(--cor-sucesso-suave);
+}
+
+.sc-selo--sucesso .sc-selo__bolinha {
+  background-color: var(--cor-sucesso);
+}
+
+.sc-selo--atencao {
+  background-color: var(--cor-atencao-suave);
+}
+
+.sc-selo--atencao .sc-selo__bolinha {
+  background-color: var(--cor-atencao);
+}
+
+.sc-selo--erro {
+  background-color: var(--cor-erro-suave);
+}
+
+.sc-selo--erro .sc-selo__bolinha {
+  background-color: var(--cor-erro);
+}
+
+.sc-selo--info {
+  background-color: var(--cor-info-suave);
+}
+
+.sc-selo--info .sc-selo__bolinha {
+  background-color: var(--cor-info);
+}
+
+/* --- sanfona ------------------------------------------------------------- */
+
+.sc-sanfona {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  transition:
+    border-color var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+.sc-sanfona + .sc-sanfona {
+  margin-block-start: var(--espaco-2);
+}
+
+.sc-sanfona[open] {
+  border-color: var(--cor-borda-forte);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-sanfona__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-height: var(--altura-toque-grande);
+  padding: var(--espaco-2) var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  font-weight: var(--peso-forte);
+  list-style: none;
+  cursor: pointer;
+}
+
+.sc-sanfona__titulo::-webkit-details-marker {
+  display: none;
+}
+
+.sc-sanfona__texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.sc-sanfona__seta {
+  color: var(--cor-tinta-suave);
+  transition: transform var(--transicao-media);
+}
+
+.sc-sanfona[open] .sc-sanfona__seta {
+  transform: rotate(180deg);
+}
+
+.sc-sanfona__corpo {
+  padding: 0 var(--espaco-4) var(--espaco-4);
+  color: var(--cor-tinta-suave);
+}
+
+/* --- menu suspenso ------------------------------------------------------- */
+
+.sc-menu {
+  display: inline-block;
+}
+
+.sc-menu__seta {
+  transition: transform var(--transicao-media);
+}
+
+.sc-botao[aria-expanded="true"] .sc-menu__seta {
+  transform: rotate(180deg);
+}
+
+/* `popover` nasce centralizado na tela; aqui ele fica onde o script mandar,
+   sem nunca passar da largura da tela. */
+.sc-menu__painel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: var(--espaco-2);
+  min-width: 12rem;
+  width: max-content;
+  max-width: calc(100vw - var(--espaco-4));
+  max-height: min(24rem, calc(100svh - var(--espaco-4)));
+  overflow: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-menu__painel:popover-open {
+  animation: sc-surgir var(--transicao-rapida) both;
+}
+
+.sc-menu__titulo {
+  margin: 0;
+  padding: var(--espaco-2) var(--espaco-3);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-menu__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  width: 100%;
+  min-height: var(--altura-toque);
+  padding: 0 var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-botao);
+  background-color: transparent;
+  color: var(--cor-tinta);
+  font-family: inherit;
+  font-size: var(--texto-base);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sc-menu__item:hover:not([disabled]) {
+  background-color: var(--cor-superficie);
+}
+
+.sc-menu__item--perigo {
+  color: var(--cor-erro);
+}
+
+.sc-menu__item[disabled] {
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+}
+
+/* --- tabela -------------------------------------------------------------- */
+
+.sc-tabela {
+  overflow: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-tabela__tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--texto-sm);
+}
+
+.sc-tabela__legenda {
+  padding: var(--espaco-4) var(--espaco-4) var(--espaco-3);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  text-align: start;
+}
+
+.sc-tabela th {
+  height: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border-block: 1px solid var(--cor-borda);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  font-weight: var(--peso-medio);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.sc-tabela td {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-block-end: 1px solid var(--cor-borda);
+  vertical-align: middle;
+}
+
+.sc-tabela tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.sc-tabela tbody tr:hover td {
+  background-color: var(--cor-superficie);
+}
+
+.sc-tabela .sc-tabela__fim {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cabeçalho fixo: só quando a caixa tem altura máxima, senão quem rola é a
+   página e o `sticky` não teria onde grudar. */
+.sc-tabela--cabecalho-fixo thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sc-tabela__ordenar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-height: var(--altura-toque);
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-1);
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sc-tabela__ordenar:hover,
+.sc-tabela__ordenar[data-ordenada] {
+  color: var(--cor-tinta);
+}
+
+/* No celular, a opção `cartoes` vira uma pilha: cada linha um cartão, com o
+   nome da coluna ao lado de cada valor. As colunas ordenáveis ficam no topo,
+   como uma barra de ordenação. */
+@media (max-width: 539px) {
+  .sc-tabela--cartoes {
+    overflow: visible;
+    border: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .sc-tabela--cartoes :is(table, tbody, tr, td) {
+    display: block;
+  }
+
+  .sc-tabela--cartoes .sc-tabela__legenda {
+    padding-inline: 0;
+  }
+
+  .sc-tabela--cartoes thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2);
+    margin-block-end: var(--espaco-3);
+  }
+
+  .sc-tabela--cartoes thead th {
+    height: auto;
+    padding: 0 var(--espaco-3);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-completo);
+  }
+
+  .sc-tabela--cartoes thead th:not(:has(button)) {
+    display: none;
+  }
+
+  .sc-tabela--cartoes tbody tr {
+    margin-block-end: var(--espaco-3);
+    padding: var(--espaco-1) var(--espaco-4);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-cartao);
+    background-color: var(--cor-superficie-alta);
+    box-shadow: var(--sombra-larga);
+  }
+
+  .sc-tabela--cartoes tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--espaco-3);
+    padding: var(--espaco-2) 0;
+    text-align: end;
+  }
+
+  .sc-tabela--cartoes tbody tr td:not(:last-child) {
+    border-block-end: 1px solid var(--cor-borda);
+  }
+
+  .sc-tabela--cartoes tbody tr:hover td {
+    background-color: transparent;
+  }
+
+  .sc-tabela--cartoes tbody td::before {
+    content: attr(data-rotulo);
+    color: var(--cor-tinta-suave);
+    font-weight: var(--peso-medio);
+    text-align: start;
+  }
+}
+
+/* --- menos movimento ----------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-dialogo,
+  .sc-dialogo::backdrop,
+  .sc-menu__painel:popover-open {
+    animation: none;
+  }
+
+  .sc-botao:not([disabled]):active {
+    transform: none;
+  }
 }

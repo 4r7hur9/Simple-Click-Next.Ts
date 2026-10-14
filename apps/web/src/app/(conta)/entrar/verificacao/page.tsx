@@ -85,6 +85,7 @@ function ConteudoDaVerificacao() {
         <p className="sc-conta__rodape-formulario">
           <button
             type="button"
+            className="sc-conta__alternar"
             onClick={() => setPorRecuperacao((atual) => !atual)}
           >
             {porRecuperacao

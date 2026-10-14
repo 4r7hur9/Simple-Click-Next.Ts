@@ -3,10 +3,12 @@
 /**
  * O seletor de período das métricas (T-804; AC-803, AC-805, AC-806).
  *
- * TRÊS ATALHOS E UM INTERVALO. Hoje, três e sete dias resolvem a pergunta do
- * dia a dia com um toque; o intervalo a dedo resolve o fechamento do mês. Os
- * atalhos são botões de alternância (`aria-pressed`): quem ouve a tela sabe
- * qual está valendo sem depender da cor.
+ * TRÊS ATALHOS E UM INTERVALO. Hoje, três e sete dias ficam num menu
+ * suspenso cujo botão já diz o período em vigor ("Período: Últimos 7 dias");
+ * o intervalo a dedo, que resolve o fechamento do mês, fica à vista ao lado.
+ * No menu, o atalho em vigor leva a marca de conferido E o texto "em vigor"
+ * para o leitor de tela: quem ouve a tela sabe qual vale sem depender do
+ * desenho.
  *
  * O SELETOR NÃO DECIDE SE O INTERVALO SERVE. Data final antes da inicial ou
  * intervalo acima de um ano vão para a API, que recusa com explicação, e a
@@ -17,7 +19,13 @@
  * corrige o dia, em vez de digitar as duas datas de novo.
  */
 import { useEffect, useId, useState, type FormEvent } from "react";
-import { Botao, Campo } from "@simpleclick/ui";
+import {
+  Botao,
+  Campo,
+  IconeConfirmar,
+  MenuSuspenso,
+  type ItemDoMenu,
+} from "@simpleclick/ui";
 
 import {
   nomeDoAtalho,
@@ -40,11 +48,30 @@ export interface SeletorDePeriodoProps {
   readonly aoEscolher: (consulta: ConsultaDoPeriodo) => void;
 }
 
-const ATALHOS: readonly { atalho: AtalhoDoPeriodo; rotulo: string }[] = [
-  { atalho: "hoje", rotulo: "Hoje" },
-  { atalho: "3d", rotulo: "3 dias" },
-  { atalho: "7d", rotulo: "7 dias" },
-];
+const ATALHOS: readonly AtalhoDoPeriodo[] = ["hoje", "3d", "7d"];
+
+/** O que o botão do menu diz: o período em vigor, ou o convite a escolher. */
+export function rotuloDoMenuDePeriodo(
+  vigente: ConsultaDoPeriodo | null,
+): string {
+  if (vigente === null) return "Período: escolha";
+  return `Período: ${nomeDoAtalho(vigente.periodo)}`;
+}
+
+/** A marca do atalho em vigor: o desenho, e o texto para quem não o vê. */
+function MarcaEmVigor({ emVigor }: { readonly emVigor: boolean }) {
+  if (!emVigor) {
+    return <span aria-hidden="true" className="inline-block size-5 shrink-0" />;
+  }
+  return (
+    <>
+      <IconeConfirmar />
+      <span data-em-vigor className="sc-so-leitor">
+        Em vigor:{" "}
+      </span>
+    </>
+  );
+}
 
 export function SeletorDePeriodo({
   vigente,
@@ -53,6 +80,7 @@ export function SeletorDePeriodo({
   aoEscolher,
 }: SeletorDePeriodoProps) {
   const idDoTitulo = useId();
+  const idDoMenu = useId();
   const idDoIntervalo = useId();
   const [de, setDe] = useState(periodo?.de ?? "");
   const [ate, setAte] = useState(periodo?.ate ?? "");
@@ -71,44 +99,40 @@ export function SeletorDePeriodo({
     aoEscolher({ periodo: "personalizado", de, ate });
   }
 
+  const itens: ItemDoMenu[] = ATALHOS.map((atalho) => ({
+    id: atalho,
+    rotulo: nomeDoAtalho(atalho),
+    icone: <MarcaEmVigor emVigor={vigente?.periodo === atalho} />,
+    aoEscolher: () => aoEscolher({ periodo: atalho }),
+  }));
+
   return (
     <section
       aria-labelledby={idDoTitulo}
       data-seletor-de-periodo
+      data-vigente={vigente?.periodo}
       aria-busy={ocupado || undefined}
-      className="rounded-lg border border-borda bg-superficie p-4"
+      className="sc-cartao"
     >
-      <h2 id={idDoTitulo} className="text-base font-semibold">
+      {/* O nome da seção já está no botão do menu ("Período: …"). */}
+      <h2 id={idDoTitulo} className="sc-so-leitor">
         Período
       </h2>
-
-      <div
-        role="group"
-        aria-label="Atalhos de período"
-        className="mt-3 flex flex-wrap gap-2"
-      >
-        {ATALHOS.map(({ atalho, rotulo }) => {
-          const marcado = vigente?.periodo === atalho;
-          return (
-            <Botao
-              key={atalho}
-              data-atalho={atalho}
-              aria-pressed={marcado}
-              aria-label={nomeDoAtalho(atalho)}
-              variante={marcado ? "primaria" : "secundaria"}
-              onClick={() => aoEscolher({ periodo: atalho })}
-            >
-              {rotulo}
-            </Botao>
-          );
-        })}
-      </div>
+      <div className="flex flex-col gap-4 min-[900px]:flex-row min-[900px]:items-end min-[900px]:justify-between">
+        <MenuSuspenso
+          id={idDoMenu}
+          rotulo={rotuloDoMenuDePeriodo(vigente)}
+          titulo="Atalhos de período"
+          itens={itens}
+          variante="secundaria"
+          className="self-start min-[900px]:self-end"
+        />
 
       <form
         aria-labelledby={idDoIntervalo}
         data-intervalo
         onSubmit={aplicarIntervalo}
-        className="mt-4 grid grid-cols-1 items-end gap-3 min-[540px]:grid-cols-[1fr_1fr_auto]"
+        className="grid min-w-0 grid-cols-1 items-end gap-3 min-[540px]:grid-cols-[1fr_1fr_auto]"
       >
         <p
           id={idDoIntervalo}
@@ -136,6 +160,7 @@ export function SeletorDePeriodo({
         />
         <Botao
           type="submit"
+          forma="pilula"
           variante={
             vigente?.periodo === "personalizado" ? "primaria" : "secundaria"
           }
@@ -143,6 +168,7 @@ export function SeletorDePeriodo({
           Aplicar datas
         </Botao>
       </form>
+      </div>
     </section>
   );
 }

@@ -77,6 +77,7 @@ export function CodigoForm({
       <div className="sc-conta__campos">
         <Campo
           id="segundo-fator-codigo"
+          className="sc-conta__campo-codigo"
           name="codigo"
           inputMode="numeric"
           autoComplete="one-time-code"
@@ -100,7 +101,11 @@ export function CodigoForm({
           tom="erro"
           acao={
             erro.includes("Comece o login") ? (
-              <button type="button" onClick={aoRecomecarLogin}>
+              <button
+                type="button"
+                className="sc-conta__alternar"
+                onClick={aoRecomecarLogin}
+              >
                 Voltar ao login
               </button>
             ) : undefined
@@ -111,6 +116,7 @@ export function CodigoForm({
       ) : null}
       <Botao
         className="sc-conta__botao"
+        tamanho="grande"
         type="submit"
         carregando={enviando}
         rotuloDeEspera="Confirmando…"

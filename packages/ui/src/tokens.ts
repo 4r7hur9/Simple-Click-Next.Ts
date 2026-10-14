@@ -147,6 +147,36 @@ export const PALETAS = {
 
 export type NomeDoTema = keyof typeof PALETAS;
 
+/**
+ * Medidas da linguagem visual: curva, sombra e alvo de toque.
+ *
+ * Ficam espelhadas, como as cores, porque as peças dependem do NOME e o teste
+ * precisa saber o VALOR: um raio que volta a ser 6px sem ninguém ver é a
+ * reforma visual desfeita em silêncio.
+ */
+export const MEDIDAS = Object.freeze({
+  raioBotao: "0.625rem",
+  raioCartao: "1rem",
+  raioJanela: "1.5rem",
+  raioCompleto: "9999px",
+  sombraLarga: "0 8px 24px rgb(11 15 13 / 8%)",
+  alturaToque: "2.75rem",
+  alturaToqueGrande: "3rem",
+});
+
+/** Nome no CSS de cada medida. */
+export const NOME_NO_CSS_DAS_MEDIDAS: Readonly<
+  Record<keyof typeof MEDIDAS, string>
+> = {
+  raioBotao: "--raio-botao",
+  raioCartao: "--raio-cartao",
+  raioJanela: "--raio-janela",
+  raioCompleto: "--raio-completo",
+  sombraLarga: "--sombra-larga",
+  alturaToque: "--altura-toque",
+  alturaToqueGrande: "--altura-toque-grande",
+};
+
 /** Valores cromáticos publicados no manual oficial, sem derivação semântica. */
 export const PALETA_OFICIAL = Object.freeze({
   verdeClick: "#b7ff00",

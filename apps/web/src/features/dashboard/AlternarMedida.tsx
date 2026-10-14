@@ -3,7 +3,8 @@
  * pedidos e valor vendido (T-805; AC-807, AC-808).
  *
  * São dois botões com `aria-pressed`, e não um seletor escondido: no celular
- * o toque é um só, e o leitor de tela anuncia qual medida está valendo.
+ * o toque é um só, e o leitor de tela anuncia qual medida está valendo. O par
+ * fica numa pílula só, como um interruptor de duas posições.
  */
 import { Botao } from "@simpleclick/ui";
 
@@ -38,17 +39,20 @@ export function AlternarMedida({
       <span aria-hidden="true" className="text-sm text-tinta-suave">
         {rotulo}:
       </span>
+      <span className="inline-flex gap-1 rounded-[var(--raio-completo)] border border-borda bg-superficie p-1">
       {(["quantidade", "valor"] as const).map((opcao) => (
         <Botao
           key={opcao}
           data-medida={opcao}
           aria-pressed={medida === opcao}
-          variante={medida === opcao ? "primaria" : "secundaria"}
+          variante={medida === opcao ? "primaria" : "discreta"}
+          forma="pilula"
           onClick={() => aoTrocar(opcao)}
         >
           {nomes[opcao]}
         </Botao>
       ))}
+      </span>
     </div>
   );
 }

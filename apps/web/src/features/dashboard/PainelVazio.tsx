@@ -58,7 +58,7 @@ export function PainelVazio({ apelido, hoje, origem }: PainelVazioProps) {
     <section
       aria-labelledby={idDoTitulo}
       data-painel-vazio
-      className="rounded-lg border border-dashed border-borda-forte bg-superficie p-4 min-[540px]:p-5"
+      className="rounded-[var(--raio-cartao)] border border-dashed border-borda-forte bg-superficie p-4 min-[540px]:p-5"
     >
       <h2 id={idDoTitulo} className="text-lg font-semibold">
         {hoje ? "Ainda não houve pedido hoje" : "Nenhum pedido neste período"}

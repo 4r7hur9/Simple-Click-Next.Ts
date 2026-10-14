@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Aviso, Botao, Erro, Vazio } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  Cartao,
+  Erro,
+  IconeLoja,
+  Selo,
+  Vazio,
+} from "@simpleclick/ui";
 
 import { CascaDaConta } from "../../../features/auth/CascaDaConta.tsx";
 import { escolherLojaDoPainel } from "../../../server/actions/loja.ts";
@@ -51,7 +59,7 @@ export default async function PaginaDeEscolhaDaLoja({
   } else {
     const atual = decisao.estado === "pronta" ? decisao.loja.apelido : null;
     conteudo = (
-      <>
+      <div className="sc-conta__form">
         {estado === "recusada" ? (
           <Aviso tom="erro" titulo="Essa loja não está entre as suas">
             Escolha uma das lojas da lista.
@@ -62,32 +70,62 @@ export default async function PaginaDeEscolhaDaLoja({
             Ela saiu da sua conta ou foi encerrada. Escolha de novo.
           </Aviso>
         ) : null}
-        <ul className="sc-conta__campos" aria-label="Suas lojas">
-          {decisao.lojas.map((loja) => (
-            <li key={loja.apelido}>
-              <form action={escolherLojaDoPainel} className="sc-conta__form">
-                <input type="hidden" name="apelido" value={loja.apelido} />
-                <Botao
-                  className="sc-conta__botao"
-                  type="submit"
-                  variante={loja.apelido === atual ? "primaria" : "secundaria"}
-                  aria-describedby={`loja-${loja.apelido}`}
+        <ul className="sc-conta__lojas" aria-label="Suas lojas">
+          {decisao.lojas.map((loja) => {
+            const ehAtual = loja.apelido === atual;
+            const suspensa = loja.situacao === "SUSPENDED";
+            const temSituacao = suspensa || ehAtual;
+            return (
+              <li key={loja.apelido}>
+                <Cartao
+                  className={[
+                    "sc-conta__loja",
+                    ehAtual && "sc-conta__loja--atual",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  nivelDoTitulo={2}
+                  icone={<IconeLoja />}
+                  titulo={loja.nome}
+                  descricao={
+                    <span
+                      id={`loja-${loja.apelido}`}
+                      className="sc-conta__loja-endereco"
+                    >
+                      /l/{loja.apelido}
+                    </span>
+                  }
                 >
-                  Abrir {loja.nome}
-                </Botao>
-                <p
-                  id={`loja-${loja.apelido}`}
-                  className="sc-conta__linha-de-apoio"
-                >
-                  /l/{loja.apelido}
-                  {loja.situacao === "SUSPENDED" ? " · suspensa" : ""}
-                  {loja.apelido === atual ? " · loja atual" : ""}
-                </p>
-              </form>
-            </li>
-          ))}
+                  {temSituacao ? (
+                    <div
+                      id={`loja-${loja.apelido}-situacao`}
+                      className="sc-conta__loja-situacao"
+                    >
+                      {suspensa ? <Selo tom="atencao">suspensa</Selo> : null}
+                      {ehAtual ? <Selo tom="sucesso">loja atual</Selo> : null}
+                    </div>
+                  ) : null}
+                  <form action={escolherLojaDoPainel}>
+                    <input type="hidden" name="apelido" value={loja.apelido} />
+                    <Botao
+                      className="sc-conta__botao"
+                      type="submit"
+                      variante={ehAtual ? "primaria" : "secundaria"}
+                      aria-describedby={
+                        temSituacao
+                          ? `loja-${loja.apelido} loja-${loja.apelido}-situacao`
+                          : `loja-${loja.apelido}`
+                      }
+                    >
+                      Abrir {loja.nome}
+                    </Botao>
+                  </form>
+                </Cartao>
+              </li>
+            );
+          })}
         </ul>
-      </>
+      </div>
     );
   }
 

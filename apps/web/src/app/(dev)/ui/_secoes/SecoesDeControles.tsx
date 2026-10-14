@@ -1,6 +1,12 @@
 // Seções dos controles na vitrine do design system: botão e campo em cada estado
 // que oferecem, para o axe medir todos (AC-013, AC-016).
-import { Botao, Campo } from "@simpleclick/ui";
+import {
+  Botao,
+  Campo,
+  IconeAdicionar,
+  IconeEditar,
+  IconeExcluir,
+} from "@simpleclick/ui";
 
 import { Secao } from "./SecaoDaVitrine.tsx";
 
@@ -31,6 +37,20 @@ export function SecoesDeControles() {
           </Botao>
           <Botao carregando variante="perigo">
             Recusando
+          </Botao>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Botao forma="pilula" icone={<IconeAdicionar />} tamanho="grande">
+            Fazer pedido
+          </Botao>
+          <Botao forma="pilula" variante="secundaria">
+            Ver cardápio
+          </Botao>
+          <Botao icone={<IconeEditar />} soIcone variante="secundaria">
+            Editar produto
+          </Botao>
+          <Botao icone={<IconeExcluir />} soIcone variante="discreta">
+            Excluir produto
           </Botao>
         </div>
       </Secao>

@@ -9,7 +9,7 @@
  * é recusado — só a senha precisa ser trocada.
  */
 import { useState, type FormEvent } from "react";
-import { Aviso, Botao, Campo, Sucesso } from "@simpleclick/ui";
+import { Aviso, Botao, Campo, CampoDeSenha, Sucesso } from "@simpleclick/ui";
 
 export interface DadosDoCadastroNaTela {
   readonly nome: string;
@@ -95,7 +95,11 @@ export function CadastroForm({ aoCadastrar }: CadastroFormProps) {
       <Sucesso
         titulo="Conta criada. Falta confirmar o e-mail."
         descricao={`${confirmacao} Depois de confirmar, você já pode entrar.`}
-        acao={<a href="/entrar">Ir para o login</a>}
+        acao={
+          <a className="sc-conta__link" href="/entrar">
+            Ir para o login
+          </a>
+        }
       />
     );
   }
@@ -144,11 +148,11 @@ export function CadastroForm({ aoCadastrar }: CadastroFormProps) {
           erro={errosDosCampos["telefone"]}
           desabilitado={enviando}
         />
-        <Campo
+        <CampoDeSenha
           id="cadastro-senha"
           name="senha"
-          type="password"
           autoComplete="new-password"
+          mostrarForca
           rotulo="Senha"
           dica="Use 12 caracteres ou mais. Uma frase fácil de lembrar funciona bem."
           obrigatorio
@@ -161,6 +165,7 @@ export function CadastroForm({ aoCadastrar }: CadastroFormProps) {
       {erroGeral ? <Aviso tom="erro">{erroGeral}</Aviso> : null}
       <Botao
         className="sc-conta__botao"
+        tamanho="grande"
         type="submit"
         carregando={enviando}
         rotuloDeEspera="Criando conta…"

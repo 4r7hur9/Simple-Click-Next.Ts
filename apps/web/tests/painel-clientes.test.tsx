@@ -73,7 +73,8 @@ describe("a lista de clientes mostra o que importa e trata os estados (AC-700)",
     const tela = montar(<ListaClientes />);
     await esperar();
 
-    const joao = exigir(tela, `[data-cliente="${JOAO.id}"]`);
+    // A linha inteira da tabela, achada pelo nome do cliente.
+    const joao = exigir(tela, `[data-cliente="${JOAO.id}"]`).closest("tr")!;
     expect(joao.textContent).toContain("João Açaí");
     expect(joao.textContent).toContain("(11) 98888-7777");
     expect(joao.textContent).toContain("3");
@@ -83,7 +84,7 @@ describe("a lista de clientes mostra o que importa e trata os estados (AC-700)",
       exigir(joao, `a[href="/painel/clientes/${JOAO.id}"]`).textContent,
     ).toBe("João Açaí");
 
-    const ana = exigir(tela, `[data-cliente="${ANA.id}"]`);
+    const ana = exigir(tela, `[data-cliente="${ANA.id}"]`).closest("tr")!;
     expect(ana.textContent).toContain("Nunca pediu");
     expect(ana.textContent).toContain("Tem conta");
   });

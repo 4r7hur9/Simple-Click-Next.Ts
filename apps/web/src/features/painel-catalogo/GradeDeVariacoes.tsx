@@ -209,7 +209,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-5xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-5xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="grade-de-variacoes"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -228,7 +228,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
       </div>
 
       {eixos.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4 text-sm leading-6">
+        <p className="mt-6 rounded-[var(--raio-botao)] bg-[var(--cor-papel)] p-4 text-sm leading-6">
           Crie um grupo marcado como eixo de variação antes de cadastrar a
           grade.{" "}
           <Link href={`/painel/produtos/${produtoId}/opcoes`}>
@@ -242,7 +242,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
         {variacoes.map((variacao) => (
           <li
             key={variacao.id}
-            className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--cor-borda)] p-4"
+            className="flex flex-wrap items-center gap-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4"
           >
             <span className="min-w-48 flex-1">
               <strong>{variacao.nome}</strong>
@@ -262,14 +262,14 @@ export function GradeDeVariacoes({ produtoId }: Props) {
               {variacao.disponivel ? "Disponível" : "Esgotada"}
             </span>
             <button
-              className="sc-botao sc-botao--fantasma text-xs"
+              className="sc-botao sc-botao--secundaria text-xs"
               type="button"
               onClick={() => void alternarDisponibilidade(variacao)}
             >
               {variacao.disponivel ? "Esgotar" : "Reativar"}
             </button>
             <button
-              className="sc-botao sc-botao--fantasma text-xs"
+              className="sc-botao sc-botao--secundaria text-xs"
               type="button"
               onClick={() => void remover(variacao)}
             >
@@ -288,7 +288,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           <label>
             <span className="text-sm font-medium">Nome interno</span>
             <input
-              className="sc-campo mt-2 w-full"
+              className="sc-campo__controle mt-2 w-full"
               value={formulario.nome}
               onChange={(evento) =>
                 setFormulario((anterior) => ({
@@ -303,7 +303,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           <label>
             <span className="text-sm font-medium">SKU</span>
             <input
-              className="sc-campo mt-2 w-full"
+              className="sc-campo__controle mt-2 w-full"
               value={formulario.sku}
               onChange={(evento) =>
                 setFormulario((anterior) => ({
@@ -318,7 +318,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
             <label key={grupo.id}>
               <span className="text-sm font-medium">{grupo.nome}</span>
               <select
-                className="sc-campo mt-2 w-full"
+                className="sc-campo__controle mt-2 w-full"
                 value={formulario.escolhas[grupo.id] ?? ""}
                 onChange={(evento) =>
                   setFormulario((anterior) => ({
@@ -347,7 +347,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           <label>
             <span className="text-sm font-medium">Preço (R$)</span>
             <input
-              className="sc-campo mt-2 w-full"
+              className="sc-campo__controle mt-2 w-full"
               inputMode="decimal"
               value={formulario.preco}
               onChange={(evento) =>
@@ -365,7 +365,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
               <label>
                 <span className="text-sm font-medium">Estoque</span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   type="number"
                   name="estoque"
                   min={0}
@@ -384,7 +384,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                   Avisar quando chegar a
                 </span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   type="number"
                   name="minimo"
                   min={0}
@@ -415,7 +415,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
             Abrir como padrão
           </label>
           <button
-            className="sc-botao sc-botao--primario w-fit"
+            className="sc-botao sc-botao--primaria w-fit"
             type="submit"
             disabled={salvando}
           >

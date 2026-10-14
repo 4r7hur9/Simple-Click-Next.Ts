@@ -15,7 +15,7 @@ export default function PaginaDeLojas() {
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
             Administração da plataforma
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">

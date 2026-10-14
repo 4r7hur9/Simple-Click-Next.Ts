@@ -24,7 +24,9 @@ import {
   Botao,
   Campo,
   Carregando,
+  Cartao,
   Erro,
+  Selo,
   Sucesso,
   Vazio,
 } from "@simpleclick/ui";
@@ -298,7 +300,9 @@ function Secao({
       <h2 id={id} className="text-2xl font-semibold tracking-[-0.02em]">
         {titulo}
       </h2>
-      <div className="mt-4">{children}</div>
+      <div className="mt-4">
+        <Cartao>{children}</Cartao>
+      </div>
     </section>
   );
 }
@@ -352,8 +356,22 @@ export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
         >
           {ficha.nome}
         </h1>
-        <p className="mt-2 text-lg">
-          {ficha.tipoDeNegocio.nome} · {ROTULOS_DAS_SITUACOES[ficha.status]}
+        <p className="mt-2 flex flex-wrap items-center gap-3 text-lg">
+          {ficha.tipoDeNegocio.nome}
+          {" · "}
+          <Selo
+            tom={
+              ficha.status === "ACTIVE"
+                ? "sucesso"
+                : ficha.status === "PENDING"
+                  ? "atencao"
+                  : ficha.status === "SUSPENDED"
+                    ? "erro"
+                    : "neutro"
+            }
+          >
+            {ROTULOS_DAS_SITUACOES[ficha.status]}
+          </Selo>
         </p>
       </header>
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Carregando, Erro, Sucesso } from "./estados";
 import type { EstadoDaTela } from "./estados";
+import { IconeFechar } from "./icones";
 
 /**
  * Caixa de diálogo.
@@ -99,7 +100,7 @@ export function Dialogo({
               className="sc-dialogo__fechar"
               onClick={aoFechar}
             >
-              <span aria-hidden="true">×</span>
+              <IconeFechar />
               <span className="sc-so-leitor">{rotuloDoFechar}</span>
             </button>
           )}

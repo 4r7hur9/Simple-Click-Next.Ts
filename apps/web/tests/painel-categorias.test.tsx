@@ -110,6 +110,15 @@ function botao(dentro: HTMLElement, texto: string): HTMLButtonElement {
   return achado;
 }
 
+/** O item da lista com a categoria: as ações dela moram no menu da linha. */
+function itemDa(dentro: HTMLElement, nome: string): HTMLElement {
+  const achado = [...dentro.querySelectorAll<HTMLElement>("ol > li")].find(
+    (item) => item.querySelector("h3")?.textContent?.startsWith(nome),
+  );
+  if (!achado) throw new Error(`nenhuma categoria "${nome}"`);
+  return achado;
+}
+
 async function clicar(elemento: HTMLElement): Promise<void> {
   await act(async () => {
     elemento.click();
@@ -183,7 +192,7 @@ describe("os quatro estados da lista (AC-300, P-011)", () => {
   it("@spec:AC-300 @principle:P-012 a lista não tem violação crítica nem séria de acessibilidade", async () => {
     roteiro(async () => json({ categorias: [LANCHES, BEBIDAS] }));
     const tela = await montar();
-    await clicar(botao(tela, "Apagar Lanches"));
+    await clicar(botao(itemDa(tela, "Lanches"), "Apagar"));
 
     const resultado = await axe.run(tela, {
       rules: { region: { enabled: false } },
@@ -286,7 +295,7 @@ describe("apagar pergunta o destino dos produtos (AC-303)", () => {
     );
     const tela = await montar();
 
-    await clicar(botao(tela, "Apagar Lanches"));
+    await clicar(botao(itemDa(tela, "Lanches"), "Apagar"));
     const pergunta = tela.querySelector('[role="group"]');
     expect(pergunta?.textContent).toContain("Lanches tem 5 produtos");
     expect(pergunta?.textContent).toContain(
@@ -321,7 +330,7 @@ describe("apagar pergunta o destino dos produtos (AC-303)", () => {
     );
     const tela = await montar();
 
-    await clicar(botao(tela, "Apagar Lanches"));
+    await clicar(botao(itemDa(tela, "Lanches"), "Apagar"));
     const ocultar = tela.querySelector<HTMLInputElement>(
       'input[type="radio"][value="ocultar"]',
     );
@@ -341,7 +350,7 @@ describe("apagar pergunta o destino dos produtos (AC-303)", () => {
     );
     const tela = await montar();
 
-    await clicar(botao(tela, "Apagar Temporária"));
+    await clicar(botao(itemDa(tela, "Temporária"), "Apagar"));
     expect(tela.querySelector('[role="group"]')?.textContent).toContain(
       "não tem produtos",
     );

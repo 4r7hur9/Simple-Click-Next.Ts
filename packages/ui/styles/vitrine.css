@@ -1,5 +1,6 @@
 /*
- * A vitrine: destaques, abas de categoria e a grade de produtos (T-403).
+ * A vitrine: barra do topo, destaques, abas de categoria e a grade de produtos
+ * (T-403).
  *
  * SUPERFÍCIE DE QUEM ESTÁ COMPRANDO. A régua do projeto separa as telas pela
  * pressa de quem está nelas, e esta é a mais apressada de todas: alguém com
@@ -14,10 +15,102 @@
  * Depende de `theme.css`, que declara cor, espaço, raio e tipografia.
  */
 
+/*
+ * A altura da barra do topo é DECLARADA, e não medida: a faixa de categorias
+ * gruda logo abaixo dela, e um número só nos dois lugares é o que impede uma
+ * de passar por baixo da outra.
+ */
+.sc-pagina-da-loja {
+  --altura-da-barra: 4rem;
+}
+
+/* --- a barra do topo -------------------------------------------------------
+ *
+ * Marca, busca larga e carrinho numa linha só, mesmo no dobrável fechado: a
+ * busca fica com a largura que sobra. Ela gruda no topo e recolhe quando a
+ * pessoa rola para baixo (o script só marca `data-recolhida`); rolando para
+ * cima, volta. Sem script, só fica grudada.
+ */
+
+.sc-barra {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
+  padding-block-start: env(safe-area-inset-top);
+  border-block-end: 1px solid var(--cor-borda);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  transition: transform var(--transicao-media);
+}
+
+.sc-barra[data-recolhida] {
+  transform: translateY(-100%);
+}
+
+.sc-barra__conteudo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  block-size: var(--altura-da-barra);
+  inline-size: 100%;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+}
+
+.sc-barra__marca {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  border-radius: var(--raio-botao);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+}
+
+.sc-barra__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--raio-botao);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  object-fit: cover;
+}
+
+/* No celular a marca é só a logo: o nome continua no link para quem ouve. */
+.sc-barra__nome,
+.sc-barra__carrinho-texto {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sc-barra__vao {
+  flex: 1 1 auto;
+}
+
+.sc-barra__carrinho {
+  flex: 0 0 auto;
+  min-inline-size: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+}
+
+/* --- a página ------------------------------------------------------------- */
+
 .sc-vitrine {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-6);
+  gap: var(--espaco-5);
   min-block-size: 100svh;
   inline-size: 100%;
   max-inline-size: 72rem;
@@ -25,29 +118,26 @@
   /* Área segura: sem isto o conteúdo encosta na borda arredondada do aparelho. */
   padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
     max(var(--espaco-4), env(safe-area-inset-right));
+  padding-block-start: var(--espaco-5);
   padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
-  background: var(--cor-fundo);
   color: var(--cor-tinta);
 }
 
-/* --- o cabeçalho da loja --------------------------------------------------
- *
- * Curto de propósito. A apresentação da loja já aconteceu na página anterior;
- * repeti-la aqui empurraria o primeiro produto para fora da primeira tela, que
- * é o atrito exato que esta página existe para não ter.
+/*
+ * O fundo da página é a superfície, e o cartão é a superfície alta: é o
+ * contraste entre as duas que desenha o cartão, sem precisar de borda. Vai no
+ * `body` porque o contêiner do tema da loja é `display: contents` e não pinta
+ * fundo nenhum.
  */
-
-.sc-vitrine__cabecalho {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+body:has(.sc-pagina-da-loja > .sc-barra) {
+  background: var(--cor-superficie);
 }
 
 .sc-vitrine__voltar {
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-1);
+  min-block-size: var(--altura-toque);
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
   text-decoration: none;
@@ -68,29 +158,46 @@
 
 /* --- a busca ---------------------------------------------------------------
  *
- * O CAMPO E O BOTÃO NA MESMA LINHA, e o botão não some no celular: sem script,
- * ele é a única forma de enviar para quem não descobre que "enter" busca. Ele é
- * estreito, e o campo fica com a largura que sobra.
+ * O campo e a lupa formam uma pílula só, e a lupa não some no celular: sem
+ * script, ela é a única forma de enviar para quem não descobre que "enter"
+ * busca. O campo fica com a largura que sobra.
  */
 
 .sc-vitrine__busca {
   display: flex;
-  gap: var(--espaco-2);
+  flex: 1 1 auto;
+  align-items: center;
+  /* `min-inline-size: 0` porque item de flex não encolhe sozinho: sem ele a
+   * barra estoura a largura no dobrável fechado, de 344px. */
+  min-inline-size: 0;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+}
+
+.sc-vitrine__busca:focus-within {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .sc-vitrine__busca-campo {
-  /* `min-inline-size: 0` porque campo dentro de flex não encolhe sozinho: sem
-   * ele o par estoura a largura no dobrável fechado, de 344px. */
   flex: 1 1 auto;
   min-inline-size: 0;
+  min-block-size: var(--altura-toque);
   padding-block: var(--espaco-2);
-  padding-inline: var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-2);
-  background: var(--cor-superficie);
+  padding-inline: var(--espaco-3) 0;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: transparent;
   color: var(--cor-tinta);
   font-family: inherit;
+  /* 16px: abaixo disso o Safari do iPhone aproxima a página ao focar. */
   font-size: var(--texto-base);
+}
+
+/* O anel fica na pílula inteira (`:focus-within`), e não só no campo. */
+.sc-vitrine__busca-campo:focus-visible {
+  outline: none;
 }
 
 .sc-vitrine__busca-campo::placeholder {
@@ -98,18 +205,23 @@
 }
 
 .sc-vitrine__busca-botao {
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   min-block-size: 2.75rem;
-  padding-block: var(--espaco-2);
-  padding-inline: var(--espaco-4);
-  border: 1px solid var(--cor-primaria);
-  border-radius: var(--raio-2);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-family: inherit;
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-forte);
+  min-inline-size: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
   cursor: pointer;
+}
+
+.sc-vitrine__busca-botao:hover {
+  background: var(--cor-primaria-suave);
 }
 
 .sc-vitrine__sem-resultado {
@@ -117,8 +229,21 @@
   flex-direction: column;
   align-items: center;
   gap: var(--espaco-3);
-  padding-block: var(--espaco-7);
+  padding: var(--espaco-7) var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
   text-align: center;
+}
+
+.sc-vitrine__sem-resultado-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-tinta);
 }
 
 .sc-vitrine__sem-resultado-titulo {
@@ -134,22 +259,31 @@
 
 /* --- as abas de categoria -------------------------------------------------
  *
- * A faixa gruda no topo para o AC-405 valer depois da primeira rolagem: o
- * filtro em vigor continua visível, e voltar a "Todas" continua a um toque.
+ * A faixa gruda logo abaixo da barra do topo para o AC-405 valer depois da
+ * primeira rolagem: o filtro em vigor continua visível, e voltar a "Todas"
+ * continua a um toque. Quando a barra recolhe, a faixa sobe junto até o topo.
  * Grudar não é sequestrar — a página vai onde o dedo mandar.
  */
 
 .sc-vitrine__abas {
   position: sticky;
-  inset-block-start: 0;
-  z-index: 1;
+  inset-block-start: calc(var(--altura-da-barra) + env(safe-area-inset-top));
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: var(--espaco-2);
-  padding-block: var(--espaco-3);
+  /* A faixa encosta nas bordas da tela, como a barra; a lista é que tem
+   * respiro. Sem isso, os cartões apareceriam pelas laterais ao rolar. */
+  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
+  padding-block: var(--espaco-2);
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
   /* Fundo opaco: sem ele os cartões passam por baixo e o texto fica ilegível. */
-  background: var(--cor-fundo);
-  border-block-end: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  transition: inset-block-start var(--transicao-media);
+}
+
+.sc-pagina-da-loja:has(.sc-barra[data-recolhida]) .sc-vitrine__abas {
+  inset-block-start: 0;
 }
 
 .sc-vitrine__abas-lista {
@@ -168,22 +302,26 @@
 }
 
 .sc-vitrine__aba {
-  display: inline-block;
-  padding-block: var(--espaco-2);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
   padding-inline: var(--espaco-4);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-completo);
-  background: var(--cor-superficie);
+  background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font-size: var(--texto-sm);
   font-weight: var(--peso-medio);
   /* A aba não quebra em duas linhas: "Salgados fritos" viraria dois degraus. */
   white-space: nowrap;
   text-decoration: none;
-  transition: background var(--transicao-rapida);
+  transition:
+    background var(--transicao-rapida),
+    border-color var(--transicao-rapida);
 }
 
 .sc-vitrine__aba:hover {
+  border-color: var(--cor-borda-forte);
   background: var(--cor-primaria-suave);
 }
 
@@ -193,14 +331,15 @@
  * cobre quem ouve a página.
  */
 .sc-vitrine__aba--em-vigor {
-  border-color: var(--cor-primaria);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
+  border-color: var(--cor-tinta);
+  background: var(--cor-tinta);
+  color: var(--cor-fundo);
   font-weight: var(--peso-forte);
 }
 
 .sc-vitrine__aba--em-vigor:hover {
-  background: var(--cor-primaria);
+  border-color: var(--cor-tinta);
+  background: var(--cor-tinta);
 }
 
 .sc-vitrine__filtro-em-vigor {
@@ -208,6 +347,102 @@
   padding-inline: var(--espaco-1);
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
+}
+
+/* --- o filtro por especificação --------------------------------------------
+ *
+ * Fechado por padrão (`details`), para não empurrar o primeiro produto. Cada
+ * valor é um chip: a caixa de marcar continua lá dentro, e o chip marcado
+ * muda borda e fundo, além do tique.
+ */
+
+.sc-filtro {
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-1);
+}
+
+.sc-filtro__titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  font-weight: var(--peso-forte);
+  list-style: none;
+  cursor: pointer;
+}
+
+.sc-filtro__titulo::-webkit-details-marker {
+  display: none;
+}
+
+.sc-filtro__titulo:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-filtro__contagem {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-filtro__seta {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-filtro[open] .sc-filtro__seta {
+  transform: rotate(180deg);
+}
+
+.sc-filtro__formulario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-4);
+  padding: 0 var(--espaco-4) var(--espaco-4);
+}
+
+.sc-filtro__grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.sc-filtro__nome {
+  margin-block-end: var(--espaco-2);
+  padding: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.sc-filtro__opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-filtro__opcao:has(input:checked) {
+  border-color: var(--cor-tinta);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-filtro__opcao input {
+  margin: 0;
+  accent-color: var(--cor-tinta);
 }
 
 /* --- os destaques ---------------------------------------------------------
@@ -225,20 +460,28 @@
 .sc-vitrine__tira {
   display: flex;
   gap: var(--espaco-3);
-  /* O respiro embaixo é do anel de foco, que senão fica cortado pela rolagem. */
-  margin: 0;
-  padding: var(--espaco-1);
+  /* O respiro é do anel de foco e da sombra, que senão ficam cortados. */
+  margin: calc(-1 * var(--espaco-2));
+  padding: var(--espaco-2);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--espaco-2);
   list-style: none;
   overscroll-behavior-inline: contain;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-vitrine__tira:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .sc-vitrine__tira-item {
+  display: flex;
   flex: 0 0 auto;
   /* Cabe um cartão inteiro e a beirada do próximo — é a beirada que conta que
    * há mais coisa para o lado. Sem ela, a tira parece uma lista que acabou. */
-  inline-size: min(60%, 14rem);
+  inline-size: min(62%, 14rem);
   scroll-snap-align: start;
 }
 
@@ -254,6 +497,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
+  /* A âncora da seção não para debaixo da barra e da faixa grudadas. */
+  scroll-margin-block-start: calc(var(--altura-da-barra) + 4.5rem);
 }
 
 .sc-vitrine__secao-nome {
@@ -283,19 +528,27 @@
   display: flex;
 }
 
-/* --- o cartão do produto --------------------------------------------------- */
+/* --- o cartão do produto ---------------------------------------------------
+ *
+ * A foto dentro do cartão, com moldura própria, e o texto embaixo; o preço e o
+ * "+" fecham o pé. O cartão inteiro é UM link — o "+" é desenho, e não um
+ * segundo botão: dois alvos no mesmo cartão de 160px é o dedo errando um deles.
+ */
 
 .sc-vitrine__cartao {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-2);
+  gap: var(--espaco-3);
   inline-size: 100%;
+  padding: var(--espaco-2);
   padding-block-end: var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio-cartao);
   background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   text-decoration: none;
+  box-shadow: var(--sombra-1);
+  /* Nome comprido não empurra a coluna: o que passar do cartão é cortado. */
   overflow: clip;
   transition:
     border-color var(--transicao-rapida),
@@ -303,8 +556,13 @@
 }
 
 .sc-vitrine__cartao:hover {
-  border-color: var(--cor-borda-forte);
-  box-shadow: var(--sombra-2);
+  border-color: var(--cor-borda);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-vitrine__cartao:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .sc-vitrine__moldura {
@@ -313,7 +571,9 @@
   /* O espaço da foto já existe antes de ela chegar, e a página não pula. */
   aspect-ratio: 4 / 3;
   inline-size: 100%;
+  border-radius: calc(var(--raio-cartao) - var(--espaco-2));
   background: var(--cor-superficie);
+  overflow: clip;
 }
 
 .sc-vitrine__foto {
@@ -329,7 +589,8 @@
   justify-content: center;
   inline-size: 100%;
   block-size: 100%;
-  color: var(--cor-tinta-suave);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
   font-family: var(--fonte-titulo);
   font-size: var(--texto-2xl);
   font-weight: var(--peso-forte);
@@ -341,17 +602,17 @@
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--cor-sobreposicao);
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: var(--espaco-2);
 }
 
 .sc-vitrine__esgotado-selo {
   padding-block: var(--espaco-1);
   padding-inline: var(--espaco-3);
   border-radius: var(--raio-completo);
-  background: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
+  background: var(--cor-tinta);
+  color: var(--cor-fundo);
   font-size: var(--texto-xs);
   font-weight: var(--peso-forte);
   text-transform: uppercase;
@@ -366,21 +627,22 @@
 .sc-vitrine__cartao--esgotado .sc-vitrine__foto,
 .sc-vitrine__cartao--esgotado .sc-vitrine__sem-foto {
   filter: grayscale(1);
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 /* --- o texto do cartão ----------------------------------------------------- */
 
 .sc-vitrine__texto {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--espaco-1);
-  padding-inline: var(--espaco-3);
+  padding-inline: var(--espaco-1);
 }
 
 .sc-vitrine__nome {
   font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
+  font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
 }
 
@@ -396,17 +658,28 @@
   overflow: hidden;
 }
 
+/* O pé vai para o fim do cartão: preços na mesma linha em toda a grade. */
+.sc-vitrine__pe {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  margin-block-start: auto;
+  padding-block-start: var(--espaco-2);
+}
+
 .sc-vitrine__precos {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--espaco-2);
-  margin-block-start: var(--espaco-1);
+  column-gap: var(--espaco-2);
+  min-inline-size: 0;
 }
 
 .sc-vitrine__preco {
   font-size: var(--texto-base);
   font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
 }
 
 .sc-vitrine__preco--variavel {
@@ -420,11 +693,68 @@
   font-size: var(--texto-xs);
 }
 
+.sc-vitrine__mais {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-vitrine__cartao--esgotado .sc-vitrine__mais {
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+}
+
 /* --- telas maiores --------------------------------------------------------- */
 
+/* Dobrável aberto em diante: a marca ganha o nome, o carrinho ganha a palavra. */
+@media (min-width: 540px) {
+  .sc-barra__nome,
+  .sc-barra__carrinho-texto {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .sc-barra__conteudo {
+    gap: var(--espaco-4);
+  }
+
+  .sc-barra__nome {
+    max-inline-size: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sc-barra__carrinho {
+    padding-inline: var(--espaco-4);
+  }
+}
+
 @media (min-width: 768px) {
+  .sc-pagina-da-loja {
+    --altura-da-barra: 4.5rem;
+  }
+
+  .sc-barra__conteudo,
   .sc-vitrine {
-    gap: var(--espaco-7);
+    padding-inline: var(--espaco-6);
+  }
+
+  .sc-vitrine {
+    gap: var(--espaco-6);
+    padding-block-start: var(--espaco-6);
+  }
+
+  .sc-vitrine__abas {
+    margin-inline: calc(-1 * var(--espaco-6));
     padding-inline: var(--espaco-6);
   }
 
@@ -436,8 +766,14 @@
     font-size: var(--texto-xl);
   }
 
+  /* A busca é larga, mas não infinita: num monitor ela para em 36rem. */
+  .sc-barra .sc-vitrine__busca {
+    max-inline-size: 36rem;
+    margin-inline: auto;
+  }
+
   .sc-vitrine__grade {
-    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
     gap: var(--espaco-4);
   }
 
@@ -447,6 +783,15 @@
 
   .sc-vitrine__nome {
     font-size: var(--texto-base);
+  }
+
+  .sc-vitrine__preco {
+    font-size: var(--texto-lg);
+  }
+
+  .sc-vitrine__mais {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
   }
 }
 
@@ -463,9 +808,12 @@
 
 /*
  * Quem pediu menos movimento recebe o estado final, e não a ausência de
- * conteúdo: o que some é a transição, nunca o cartão.
+ * conteúdo: o que some é a transição, nunca o cartão. A barra nem recolhe —
+ * o script confere a mesma consulta e a deixa parada no topo.
  */
 @media (prefers-reduced-motion: reduce) {
+  .sc-barra,
+  .sc-vitrine__abas,
   .sc-vitrine__cartao,
   .sc-vitrine__aba {
     transition: none;

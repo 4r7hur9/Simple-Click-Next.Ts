@@ -33,7 +33,7 @@ export default async function PaginaDeMetricas({
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 min-[540px]:px-6 lg:px-8 lg:py-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
-          <h1 className="text-2xl font-semibold min-[540px]:text-3xl">
+          <h1 className="font-display text-2xl font-semibold min-[540px]:text-3xl">
             Métricas da loja
           </h1>
           <p className="mt-2 text-tinta-suave">
@@ -41,7 +41,10 @@ export default async function PaginaDeMetricas({
             recarregar ou mandar o link sem perder a escolha.
           </p>
         </div>
-        <Link className="sc-botao sc-botao--discreta" href="/painel">
+        <Link
+          className="sc-botao sc-botao--discreta sc-botao--pilula"
+          href="/painel"
+        >
           Voltar ao resumo de hoje
         </Link>
       </header>

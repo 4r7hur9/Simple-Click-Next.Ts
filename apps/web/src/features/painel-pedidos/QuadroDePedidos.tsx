@@ -13,7 +13,7 @@
  */
 import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import Link from "next/link";
-import { Aviso, Carregando, Erro, Vazio } from "@simpleclick/ui";
+import { Aviso, Carregando, Erro, Selo, Vazio } from "@simpleclick/ui";
 
 import {
   agruparPedidosDaFila,
@@ -30,6 +30,7 @@ import {
 } from "../../lib/fila-de-pedidos.ts";
 import { AvisoSonoro, tocarBipe, useSomSilenciado } from "./AvisoSonoro.tsx";
 import { SeloAguardando } from "./SeloAguardando.tsx";
+import { SeloDeStatus } from "./SeloDeStatus.tsx";
 import { useAtualizarPedidos } from "./useAtualizarPedidos.ts";
 
 export interface QuadroDePedidosProps {
@@ -58,27 +59,31 @@ function CartaoDoPedido({
       aria-label={`Pedido número ${pedido.numero}${novo ? ", novo" : ""}`}
       data-pedido={pedido.id}
       className={[
-        "rounded-[var(--raio-grande)] border bg-[var(--cor-superficie)] p-5 shadow-[var(--sombra-baixa)]",
+        "flex flex-col gap-4 rounded-[var(--raio-cartao)] border bg-[var(--cor-superficie-alta)] p-5 shadow-[var(--sombra-larga)]",
         novo
-          ? "border-[var(--cor-primaria)] ring-2 ring-[var(--cor-primaria)]"
+          ? "border-[var(--cor-tinta)] ring-2 ring-[var(--cor-primaria)]"
           : "border-[var(--cor-borda)]",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--cor-primaria)]">
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--cor-tinta-suave)]">
             <span>Pedido #{pedido.numero}</span>
-            {novo ? (
-              <span className="rounded-full bg-[var(--cor-primaria)] px-2 py-0.5 text-xs text-white">
-                Novo
-              </span>
-            ) : null}
+            {novo ? <Selo tom="info">Novo</Selo> : null}
           </p>
-          <h4 className="mt-1 text-xl font-semibold">{pedido.cliente}</h4>
+          <h4 className="mt-1 truncate text-xl font-semibold">
+            {pedido.cliente}
+          </h4>
         </div>
-        <strong>{escreverDinheiroDaFila(pedido.totalCentavos)}</strong>
+        <strong className="text-lg tabular-nums">
+          {escreverDinheiroDaFila(pedido.totalCentavos)}
+        </strong>
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm text-[var(--cor-tinta-suave)]">
+      <div className="flex flex-wrap gap-2">
+        <SeloDeStatus status={pedido.status} />
+        {pedido.aguardandoConfirmacaoWhatsapp ? <SeloAguardando /> : null}
+      </div>
+      <dl className="grid grid-cols-2 gap-3 text-sm text-[var(--cor-tinta-suave)]">
         <div>
           <dt>Horário</dt>
           <dd className="font-medium text-[var(--cor-tinta)]">
@@ -104,13 +109,15 @@ function CartaoDoPedido({
           </dd>
         </div>
       </dl>
-      {pedido.aguardandoConfirmacaoWhatsapp ? (
-        <div className="mt-4">
-          <SeloAguardando />
-        </div>
-      ) : null}
+      {/* O alvo grande da fila: com a cozinha cheia, o dono abre o pedido
+          com o polegar, sem mirar num link pequeno. */}
       <Link
-        className="mt-4 inline-flex text-sm font-medium text-[var(--cor-primaria)]"
+        className={[
+          "sc-botao sc-botao--grande w-full",
+          pedido.status === "PENDING"
+            ? "sc-botao--primaria"
+            : "sc-botao--secundaria",
+        ].join(" ")}
         href={`/painel/pedidos/${pedido.id}`}
       >
         Abrir pedido #{pedido.numero}
@@ -146,7 +153,7 @@ function Grupo({
       data-grupo={id}
       className={
         destaque
-          ? "rounded-[var(--raio-grande)] border-2 border-[var(--cor-primaria)] bg-[var(--cor-papel)] p-5"
+          ? "rounded-[var(--raio-janela)] border-2 border-[var(--cor-primaria)] bg-[var(--cor-primaria-suave)] p-5"
           : undefined
       }
     >
@@ -154,12 +161,12 @@ function Grupo({
         <h3 id={id} className="text-xl font-semibold">
           {titulo}
         </h3>
-        <span className="rounded-full bg-[var(--cor-superficie)] px-2.5 py-1 text-sm font-semibold">
+        <Selo semBolinha className="text-sm">
           <span data-contador={id}>{pedidos.length}</span>
           <span className="sc-so-leitor">
             {pedidos.length === 1 ? " pedido" : " pedidos"}
           </span>
-        </span>
+        </Selo>
       </div>
       {descricao ? (
         <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
@@ -169,7 +176,7 @@ function Grupo({
       {selo ? <div className="mt-3">{selo}</div> : null}
       <div className="mt-4 space-y-4">
         {pedidos.length === 0 ? (
-          <p className="rounded-[var(--raio-grande)] border border-dashed border-[var(--cor-borda)] p-5 text-sm text-[var(--cor-tinta-suave)]">
+          <p className="rounded-[var(--raio-cartao)] border border-dashed border-[var(--cor-borda-forte)] p-5 text-sm text-[var(--cor-tinta-suave)]">
             {vazio}
           </p>
         ) : (

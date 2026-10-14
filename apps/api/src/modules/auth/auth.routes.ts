@@ -220,6 +220,7 @@ function montarRotasDeEntrada(rotas: Router, s: ServicosDaIdentidade): void {
       const resultado = await s
         .naTransacao({}, (avisos) =>
           entrarComSenha(body, {
+            semSegundoFator: process.env["NODE_ENV"] === "development",
             identidades: {
               buscarPorEmail: async (email) =>
                 (lida.valor = await s.repos.login.buscarPorEmail(email)),

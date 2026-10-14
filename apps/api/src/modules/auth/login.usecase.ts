@@ -23,6 +23,8 @@ export interface RepositorioDeIdentidadesParaLogin {
 }
 
 export interface DependenciasDoLogin {
+  /** Só para desenvolvimento local: entra com e-mail e senha, sem segundo fator. */
+  readonly semSegundoFator?: boolean;
   readonly identidades: RepositorioDeIdentidadesParaLogin;
   readonly conferirSenha: (
     senhaInformada: string,
@@ -73,7 +75,7 @@ export async function entrarComSenha(
 
   if (!identidade.emailVerificado) return { status: "EMAIL_NAO_VERIFICADO" };
 
-  if (exigeSegundoFator(identidade)) {
+  if (!dependencias.semSegundoFator && exigeSegundoFator(identidade)) {
     const desafio = await dependencias.criarDesafioDeSegundoFator({
       identidadeId: identidade.id,
     });

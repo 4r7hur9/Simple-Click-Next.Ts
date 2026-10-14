@@ -8,7 +8,7 @@ export default function PaginaDeNovoProduto() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <Link
-        className="text-sm font-semibold text-[var(--cor-primaria)]"
+        className="text-sm font-semibold text-[var(--cor-primaria-texto)]"
         href="/painel/produtos"
       >
         ← Voltar aos produtos

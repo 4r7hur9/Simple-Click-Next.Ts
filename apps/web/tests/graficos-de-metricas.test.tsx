@@ -4,9 +4,11 @@
  *
  * As séries chegam PRONTAS da API — um ponto por dia, as 24 horas, zero onde
  * não houve venda. O que se prova aqui é a tela: que cada ponto vira uma
- * coluna (o zero inclusive, como traço, e não como buraco), que a lista dos
- * mais vendidos alterna entre quantidade e valor sem perder ninguém, e que
- * quem não vê o desenho recebe o mesmo resumo em texto e a tabela inteira.
+ * coluna (o zero inclusive, como traço, e não como buraco), com o valor
+ * ESCRITO em cima dela e não só desenhado, que a lista dos mais vendidos
+ * alterna entre quantidade e valor sem perder ninguém, e que quem não vê o
+ * desenho recebe o mesmo resumo em texto, cada coluna por extenso e a tabela
+ * inteira.
  */
 import axe from "axe-core";
 import { act } from "react";
@@ -78,10 +80,22 @@ function linhasDoRanking(tela: ParentNode): string[] {
   );
 }
 
-function colunas(tela: ParentNode, secao: string): SVGRectElement[] {
-  return [
-    ...tela.querySelectorAll<SVGRectElement>(`${secao} rect[data-ponto]`),
-  ];
+function colunas(tela: ParentNode, secao: string): HTMLElement[] {
+  return [...tela.querySelectorAll<HTMLElement>(`${secao} li[data-ponto]`)];
+}
+
+/** A altura da barra desenhada na coluna, em % da área do desenho. */
+function altura(coluna: HTMLElement): number {
+  return Number.parseFloat(
+    exigir<HTMLElement>(coluna, "[data-barra]").style.height,
+  );
+}
+
+/** O número escrito em cima de cada coluna, à vista. */
+function escritos(tela: ParentNode, secao: string): string[] {
+  return colunas(tela, secao).map(
+    (coluna) => exigir(coluna, "[data-valor-texto]").textContent ?? "",
+  );
 }
 
 function clicar(alvo: HTMLElement): void {
@@ -162,10 +176,30 @@ describe("a evolução por dia (AC-808)", () => {
       "2026-09-24",
       "2026-09-26",
     ]);
-    // O zero é um traço visível, e não uma coluna de altura nenhuma.
+    // O zero é um traço visível, e não uma coluna de altura nenhuma — mas é
+    // menor que a coluna de qualquer dia com venda.
+    const menorComVenda = Math.min(
+      ...desenho.filter((coluna) => !zerados.includes(coluna)).map(altura),
+    );
     for (const coluna of zerados) {
-      expect(Number(coluna.getAttribute("height"))).toBeGreaterThan(0);
+      expect(altura(coluna)).toBeGreaterThan(0);
+      expect(altura(coluna)).toBeLessThan(menorComVenda);
     }
+    // O maior dia enche a coluna; os outros, na proporção.
+    expect(desenho.map(altura)).toEqual([2, 2, 53.333333333333336, 2, 80, 2, 100]);
+    // O valor está escrito em cima de cada coluna, e não só no desenho.
+    expect(escritos(tela, "[data-evolucao-diaria]")).toEqual([
+      "0",
+      "0",
+      "80",
+      "0",
+      "120",
+      "0",
+      "150",
+    ]);
+    expect(
+      exigir(tela, '[data-ponto="2026-09-25"] .sc-so-leitor').textContent,
+    ).toBe("25/09/2026: R$ 120,00");
     expect(desenho.map((coluna) => coluna.getAttribute("data-valor"))).toEqual([
       "0",
       "0",
@@ -182,11 +216,25 @@ describe("a evolução por dia (AC-808)", () => {
         coluna.getAttribute("data-valor"),
       ),
     ).toEqual(["0", "0", "2", "0", "4", "0", "3"]);
+    expect(escritos(tela, "[data-evolucao-diaria]")).toEqual([
+      "0",
+      "0",
+      "2",
+      "0",
+      "4",
+      "0",
+      "3",
+    ]);
+    expect(
+      exigir(tela, '[data-ponto="2026-09-25"] .sc-so-leitor').textContent,
+    ).toBe("25/09/2026: 4 pedidos");
 
-    // Quem não vê o desenho: o resumo em texto e a tabela com os sete dias.
-    const svg = exigir(tela, "[data-evolucao-diaria] svg");
-    expect(svg.getAttribute("role")).toBe("img");
-    expect(svg.getAttribute("aria-label")).toContain("4 dias sem venda");
+    // Quem não vê o desenho: o resumo em texto, as colunas numa lista e a
+    // tabela com os sete dias.
+    const grafico = exigir(tela, "[data-evolucao-diaria] [data-grafico]");
+    expect(grafico.getAttribute("role")).toBe("group");
+    expect(grafico.getAttribute("aria-label")).toContain("4 dias sem venda");
+    expect(grafico.querySelectorAll("ol > li")).toHaveLength(7);
     expect(exigir(tela, "[data-resumo-do-grafico]").textContent).toBe(
       "De 21/09 a 27/09: R$ 350,00 em 9 pedidos; melhor dia 25/09, com 4 pedidos; 4 dias sem venda.",
     );
@@ -221,6 +269,20 @@ describe("a evolução por dia (AC-808)", () => {
     expect(ano[0]).toBe(0);
     expect(ano.at(-1)).toBe(365);
   });
+
+  it("@spec:AC-808 período longo demais para escrever número em cada coluna ainda desenha todas, e deixa os números na tabela", () => {
+    const trintaEUmDias = Array.from({ length: 31 }, (_, indice) => ({
+      dia: `2026-08-${String(indice + 1).padStart(2, "0")}`,
+      pedidos: indice % 3,
+      vendidoCentavos: (indice % 3) * 1_000,
+    }));
+    const tela = montar(<EvolucaoDiaria pontos={trintaEUmDias} />);
+    expect(colunas(tela, "[data-evolucao-diaria]")).toHaveLength(31);
+    expect(tela.querySelector("[data-valor-texto]")).toBeNull();
+    expect(
+      tela.querySelectorAll("[data-evolucao-diaria] tbody tr"),
+    ).toHaveLength(31);
+  });
 });
 
 describe("o movimento por hora (AC-809)", () => {
@@ -239,6 +301,14 @@ describe("o movimento por hora (AC-809)", () => {
         .filter((coluna) => coluna.hasAttribute("data-destaque"))
         .map((coluna) => coluna.getAttribute("data-ponto")),
     ).toEqual(["17", "18", "19"]);
+    // As 24 horas cabem com o número escrito em cima de cada coluna.
+    expect(escritos(tela, "[data-distribuicao-por-hora]")).toEqual(
+      MOVIMENTO_NO_FIM_DA_TARDE.map((ponto) => String(ponto.pedidos)),
+    );
+    expect(
+      exigir(tela, '[data-distribuicao-por-hora] [data-ponto="18"] .sc-so-leitor')
+        .textContent,
+    ).toBe("18h às 19h: 5 pedidos");
 
     expect(
       exigir(tela, "[data-distribuicao-por-hora] [data-resumo-do-grafico]")

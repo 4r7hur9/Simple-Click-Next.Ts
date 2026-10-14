@@ -11,7 +11,7 @@
  * O botão de menos vira "remover" quando a quantidade é 1. É o mesmo gesto que
  * o cliente já ia fazer, e evita a pergunta "clico em menos ou em remover?".
  */
-import { Botao } from "@simpleclick/ui";
+import { Botao, IconeAdicionar, IconeExcluir, IconeRemover } from "@simpleclick/ui";
 
 import type { ItemNaTela } from "./useCarrinho.ts";
 
@@ -61,7 +61,9 @@ export function LinhaCarrinho({
       <div className="sc-linha-carrinho__controles">
         <Botao
           variante="secundaria"
-          tamanho="pequeno"
+          forma="pilula"
+          soIcone
+          icone={vaiRemover ? <IconeExcluir /> : <IconeRemover />}
           desabilitado={ocupado}
           onClick={() => aoMudarQuantidade(item.id, item.quantidade - 1)}
           // O rótulo acessível diz DE QUAL item se trata: numa lista de cinco,
@@ -72,7 +74,7 @@ export function LinhaCarrinho({
               : `Diminuir quantidade de ${nomeCompleto}`
           }
         >
-          {vaiRemover ? "Remover" : "−"}
+          {vaiRemover ? "Remover" : "Diminuir"}
         </Botao>
 
         <span className="sc-linha-carrinho__quantidade" aria-live="polite">
@@ -81,12 +83,14 @@ export function LinhaCarrinho({
 
         <Botao
           variante="secundaria"
-          tamanho="pequeno"
+          forma="pilula"
+          soIcone
+          icone={<IconeAdicionar />}
           desabilitado={ocupado}
           onClick={() => aoMudarQuantidade(item.id, item.quantidade + 1)}
           aria-label={`Aumentar quantidade de ${nomeCompleto}`}
         >
-          +
+          Aumentar
         </Botao>
       </div>
 

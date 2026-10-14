@@ -2,6 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  Carregando,
+  IconeAdicionar,
+  IconeEditar,
+  IconeExcluir,
+  IconeMostrar,
+  IconeOcultar,
+  MenuSuspenso,
+  Selo,
+  Tabela,
+  Vazio,
+  type ColunaDaTabela,
+} from "@simpleclick/ui";
 
 interface Produto {
   readonly id: string;
@@ -129,6 +142,146 @@ export function ListaProdutos() {
     setMensagem("Produto removido. Pedidos antigos continuam preservados.");
   }
 
+  const colunas: readonly ColunaDaTabela<Produto>[] = [
+    {
+      chave: "produto",
+      titulo: "Produto",
+      valorParaOrdenar: (produto) => produto.nome,
+      celula: (produto) => (
+        <div className="min-w-0 max-w-md text-start">
+          <Link
+            className="font-semibold text-[var(--cor-tinta)] no-underline hover:underline"
+            href={`/painel/produtos/${produto.id}`}
+          >
+            {produto.nome}
+          </Link>
+          <p className="mt-0.5 line-clamp-1 text-[var(--cor-tinta-suave)]">
+            {produto.descricao ?? "Sem descrição"}
+          </p>
+          {produto.estoqueBaixo && produto.variacoesAcabando ? (
+            <p className="mt-1">
+              Acabando:{" "}
+              {produto.variacoesAcabando
+                .map(
+                  (v) =>
+                    `${v.nome} com ${v.quantidade} un. (aviso em ${v.minimoAlerta})`,
+                )
+                .join(" · ")}{" "}
+              <Link
+                className="font-semibold"
+                href={`/painel/produtos/${produto.id}/estoque`}
+              >
+                Repor estoque
+              </Link>
+            </p>
+          ) : null}
+          {removendoId === produto.id ? (
+            <div
+              role="group"
+              aria-label={`Confirmar a remoção de ${produto.nome}`}
+              className="mt-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] bg-[var(--cor-erro-suave)] p-3"
+            >
+              <p>
+                {produto.nome} sai do catálogo e da vitrine. Pedidos que já o
+                incluíram continuam como foram feitos.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  className="sc-botao sc-botao--perigo sc-botao--pequeno"
+                  type="button"
+                  onClick={() => void remover(produto)}
+                >
+                  Confirmar remoção
+                </button>
+                <button
+                  className="sc-botao sc-botao--secundaria sc-botao--pequeno"
+                  type="button"
+                  onClick={() => setRemovendoId(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      chave: "categoria",
+      titulo: "Categoria",
+      valorParaOrdenar: (produto) => produto.categoriaNome,
+      celula: (produto) => produto.categoriaNome ?? "Sem categoria",
+    },
+    {
+      chave: "preco",
+      titulo: "Preço",
+      alinhamento: "fim",
+      valorParaOrdenar: (produto) => produto.precoCentavos,
+      celula: (produto) => dinheiro(produto.precoCentavos),
+    },
+    {
+      chave: "situacao",
+      titulo: "Situação",
+      valorParaOrdenar: (produto) => produto.status,
+      celula: (produto) => (
+        <span className="inline-flex flex-wrap justify-end gap-1.5">
+          {produto.status === "PUBLISHED" ? (
+            <Selo tom="sucesso">Publicado</Selo>
+          ) : (
+            <Selo>Rascunho</Selo>
+          )}
+          {produto.estoqueBaixo ? (
+            <Selo tom="atencao">Estoque baixo</Selo>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      alinhamento: "fim",
+      celula: (produto) => {
+        const publicado = produto.status === "PUBLISHED";
+        return (
+          <MenuSuspenso
+            id={`acoes-do-produto-${produto.id}`}
+            rotulo="Ações"
+            titulo={produto.nome}
+            variante="discreta"
+            alinhamento="fim"
+            itens={[
+              {
+                id: "editar",
+                rotulo: "Editar",
+                icone: <IconeEditar />,
+                href: `/painel/produtos/${produto.id}`,
+              },
+              {
+                id: "publicacao",
+                rotulo: publicado ? "Tirar da vitrine" : "Publicar",
+                icone: publicado ? <IconeOcultar /> : <IconeMostrar />,
+                aoEscolher: () => void alternarPublicacao(produto),
+              },
+              {
+                id: "duplicar",
+                rotulo: "Duplicar",
+                icone: <IconeAdicionar />,
+                aoEscolher: () => void duplicar(produto),
+              },
+              {
+                id: "remover",
+                rotulo: "Remover",
+                icone: <IconeExcluir />,
+                perigo: true,
+                aoEscolher: () => setRemovendoId(produto.id),
+              },
+            ]}
+          />
+        );
+      },
+    },
+  ];
+
   return (
     <section aria-labelledby="lista-de-produtos" className="mt-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -147,7 +300,7 @@ export function ListaProdutos() {
 
       {acabando.length > 0 || soAcabando ? (
         <button
-          className="sc-botao sc-botao--fantasma mt-4"
+          className="sc-botao sc-botao--secundaria mt-4"
           type="button"
           aria-pressed={soAcabando}
           onClick={() => setSoAcabando((anterior) => !anterior)}
@@ -158,150 +311,48 @@ export function ListaProdutos() {
         </button>
       ) : null}
 
-      {carregando ? (
-        <p
-          className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
-          aria-busy="true"
-        >
-          Carregando produtos…
-        </p>
-      ) : falhou ? (
-        <div
-          role="alert"
-          className="mt-6 rounded-2xl border border-[var(--cor-borda)] p-6"
-        >
-          <p>Não conseguimos ler seus produtos agora. Nada foi alterado.</p>
-          <button
-            className="sc-botao sc-botao--fantasma mt-4"
-            type="button"
-            onClick={() => void carregar()}
-          >
-            Tentar de novo
-          </button>
-        </div>
-      ) : produtos.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-[var(--cor-borda)] p-8">
-          <p>Cadastre o primeiro produto para preencher sua vitrine.</p>
-          <Link
-            className="sc-botao sc-botao--primario mt-5"
-            href="/painel/produtos/novo"
-          >
-            Cadastrar produto
-          </Link>
-        </div>
-      ) : (
-        <ul className="mt-6 grid gap-4 lg:grid-cols-2">
-          {visiveis.map((produto) => {
-            const publicado = produto.status === "PUBLISHED";
-            return (
-              <li
-                key={produto.id}
-                className="rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-5"
+      <div className="mt-6">
+        {carregando ? (
+          <div aria-busy="true">
+            <Carregando rotulo="Carregando produtos…" />
+          </div>
+        ) : falhou ? (
+          <div role="alert" className="sc-cartao">
+            <p>Não conseguimos ler seus produtos agora. Nada foi alterado.</p>
+            <div>
+              <button
+                className="sc-botao sc-botao--secundaria"
+                type="button"
+                onClick={() => void carregar()}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h3 className="truncate text-xl font-semibold">
-                      {produto.nome}
-                    </h3>
-                    <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-                      {produto.categoriaNome ?? "Sem categoria"} ·{" "}
-                      {dinheiro(produto.precoCentavos)}
-                    </p>
-                  </div>
-                  <span className="flex flex-col items-end gap-2">
-                    <span className="rounded-full border border-[var(--cor-borda)] px-3 py-1 text-xs font-semibold">
-                      {publicado ? "Publicado" : "Rascunho"}
-                    </span>
-                    {produto.estoqueBaixo ? (
-                      <span className="rounded-full bg-[var(--cor-atencao-suave)] px-3 py-1 text-xs font-semibold text-[var(--cor-atencao)]">
-                        Estoque baixo
-                      </span>
-                    ) : null}
-                  </span>
-                </div>
-                {produto.estoqueBaixo && produto.variacoesAcabando ? (
-                  <p className="mt-3 text-sm">
-                    Acabando:{" "}
-                    {produto.variacoesAcabando
-                      .map(
-                        (v) =>
-                          `${v.nome} com ${v.quantidade} un. (aviso em ${v.minimoAlerta})`,
-                      )
-                      .join(" · ")}{" "}
-                    <Link
-                      className="font-semibold text-[var(--cor-primaria)]"
-                      href={`/painel/produtos/${produto.id}/estoque`}
-                    >
-                      Repor estoque
-                    </Link>
-                  </p>
-                ) : null}
-                <p className="mt-4 min-h-10 text-sm leading-6 text-[var(--cor-tinta-suave)]">
-                  {produto.descricao ?? "Sem descrição"}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Link
-                    className="sc-botao sc-botao--fantasma"
-                    href={`/painel/produtos/${produto.id}`}
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    className="sc-botao sc-botao--fantasma"
-                    type="button"
-                    onClick={() => void alternarPublicacao(produto)}
-                  >
-                    {publicado ? "Tirar da vitrine" : "Publicar"}
-                  </button>
-                  <button
-                    className="sc-botao sc-botao--fantasma"
-                    type="button"
-                    onClick={() => void duplicar(produto)}
-                  >
-                    Duplicar
-                  </button>
-                  <button
-                    className="sc-botao sc-botao--fantasma"
-                    type="button"
-                    onClick={() => setRemovendoId(produto.id)}
-                    aria-label={`Remover ${produto.nome}`}
-                  >
-                    Remover
-                  </button>
-                </div>
-                {removendoId === produto.id ? (
-                  <div
-                    role="group"
-                    aria-label={`Confirmar a remoção de ${produto.nome}`}
-                    className="mt-4 border-t border-[var(--cor-borda)] pt-4 text-sm"
-                  >
-                    <p>
-                      {produto.nome} sai do catálogo e da vitrine. Pedidos que
-                      já o incluíram continuam como foram feitos.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        className="sc-botao sc-botao--primario"
-                        type="button"
-                        onClick={() => void remover(produto)}
-                      >
-                        Confirmar remoção
-                      </button>
-                      <button
-                        className="sc-botao sc-botao--fantasma"
-                        type="button"
-                        onClick={() => setRemovendoId(null)}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                Tentar de novo
+              </button>
+            </div>
+          </div>
+        ) : produtos.length === 0 ? (
+          <Vazio
+            titulo="Nenhum produto ainda"
+            descricao="Cadastre o primeiro produto para preencher sua vitrine."
+            acao={
+              <Link
+                className="sc-botao sc-botao--primaria"
+                href="/painel/produtos/novo"
+              >
+                Cadastrar produto
+              </Link>
+            }
+          />
+        ) : (
+          <Tabela
+            legenda="Produtos do catálogo"
+            legendaEscondida
+            colunas={colunas}
+            linhas={visiveis}
+            chaveDaLinha={(produto) => produto.id}
+            noCelular="cartoes"
+          />
+        )}
+      </div>
     </section>
   );
 }

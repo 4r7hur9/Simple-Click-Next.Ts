@@ -27,7 +27,7 @@ function FormularioDoLink({
   return (
     <form action={acao} method="post" className="sc-conta__form">
       <input name="token" type="hidden" value={token} />
-      <Botao className="sc-conta__botao" type="submit">
+      <Botao className="sc-conta__botao" tamanho="grande" type="submit">
         {rotulo}
       </Botao>
     </form>
@@ -53,7 +53,11 @@ export default async function PaginaDeVerificacaoDeEmail({
       <Sucesso
         titulo="E-mail verificado."
         descricao="Seu e-mail foi confirmado. Agora você já pode entrar na sua conta."
-        acao={<a href="/entrar">Entrar</a>}
+        acao={
+          <a className="sc-conta__link" href="/entrar">
+            Entrar
+          </a>
+        }
       />
     );
   } else if (estado === "reenviado") {
@@ -116,7 +120,9 @@ export default async function PaginaDeVerificacaoDeEmail({
       descricao="A confirmação garante que ninguém use o seu endereço sem você saber."
       etiqueta="Conta"
     >
-      <div aria-live="polite">{conteudo}</div>
+      <div className="sc-conta__form" aria-live="polite">
+        {conteudo}
+      </div>
     </CascaDaConta>
   );
 }

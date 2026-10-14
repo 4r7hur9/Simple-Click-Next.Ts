@@ -115,7 +115,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-5xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-5xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="estoque-do-produto"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -134,7 +134,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
       </div>
 
       {variacoes.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4 text-sm leading-6">
+        <p className="mt-6 rounded-[var(--raio-botao)] bg-[var(--cor-papel)] p-4 text-sm leading-6">
           <Link href={`/painel/produtos/${produtoId}/variacoes`}>
             Cadastre uma variação
           </Link>{" "}
@@ -147,7 +147,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
               <li key={variacao.id}>
                 <button
                   type="button"
-                  className={`w-full rounded-xl border p-4 text-left transition ${
+                  className={`w-full rounded-[var(--raio-botao)] border p-4 text-left transition ${
                     selecionadaId === variacao.id
                       ? "border-[var(--cor-primaria)] bg-[var(--cor-papel)]"
                       : "border-[var(--cor-borda)]"
@@ -181,7 +181,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
               <label>
                 <span className="text-sm font-medium">Nova quantidade</span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   type="number"
                   min={0}
                   value={quantidadeAlvo}
@@ -192,7 +192,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
               <label>
                 <span className="text-sm font-medium">Motivo</span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   value={motivo}
                   onChange={(evento) => setMotivo(evento.target.value)}
                   placeholder="Ex.: contagem física"
@@ -200,7 +200,7 @@ export function AjusteDeEstoque({ produtoId }: Props) {
                 />
               </label>
               <button
-                className="sc-botao sc-botao--primario"
+                className="sc-botao sc-botao--primaria"
                 type="submit"
                 disabled={salvando}
               >

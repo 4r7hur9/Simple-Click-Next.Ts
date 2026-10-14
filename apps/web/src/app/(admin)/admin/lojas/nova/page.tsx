@@ -19,9 +19,14 @@ export default function PaginaDeNovaLoja() {
       >
         ← Voltar para as lojas
       </Link>
-      <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em]">
-        Cadastrar loja
-      </h1>
+      <header className="mt-6 max-w-3xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
+          Administração da plataforma
+        </p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
+          Cadastrar loja
+        </h1>
+      </header>
       <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--cor-tinta-suave)]">
         A loja nasce com um código de atendimento e o responsável recebe um
         convite por e-mail para definir a própria senha.

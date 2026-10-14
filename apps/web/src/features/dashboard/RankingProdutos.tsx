@@ -69,10 +69,10 @@ export function RankingProdutos({
       aria-labelledby={idDoTitulo}
       data-ranking-produtos
       data-ordem={medida}
-      className="rounded-lg border border-borda bg-superficie p-4"
+      className="sc-cartao min-w-0"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id={idDoTitulo} className="text-lg font-semibold">
+        <h2 id={idDoTitulo} className="sc-cartao__titulo">
           Mais vendidos
         </h2>
         {produtos.length > 1 ? (
@@ -85,12 +85,12 @@ export function RankingProdutos({
       </div>
 
       {produtos.length === 0 ? (
-        <p data-ranking-vazio className="mt-3 text-sm text-tinta-suave">
+        <p data-ranking-vazio className="text-sm text-tinta-suave">
           Nenhum produto vendido neste período ainda. Quando um pedido for
           aceito, os produtos dele aparecem aqui.
         </p>
       ) : (
-        <ol className="mt-4 space-y-3">
+        <ol className="space-y-4">
           {ordenados.map((produto, posicao) => {
             const medido =
               medida === "valor" ? produto.totalCentavos : produto.quantidade;
@@ -100,12 +100,20 @@ export function RankingProdutos({
                 data-produto={produto.nome}
                 className="min-w-0"
               >
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 font-medium [overflow-wrap:anywhere]">
-                    <span className="tabular-nums text-tinta-suave">
-                      {`${posicao + 1}. `}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-3 font-medium [overflow-wrap:anywhere]">
+                    <span
+                      className={[
+                        "inline-flex size-7 shrink-0 items-center justify-center rounded-[var(--raio-completo)] text-xs font-semibold tabular-nums",
+                        posicao === 0
+                          ? "bg-primaria text-em-primaria"
+                          : "bg-superficie text-tinta-suave",
+                      ].join(" ")}
+                    >
+                      {posicao + 1}
+                      <span className="sc-so-leitor">º</span>
                     </span>
-                    {produto.nome}
+                    <span className="min-w-0">{produto.nome}</span>
                   </span>
                   <span className="shrink-0 text-right text-sm tabular-nums">
                     <span data-quantidade>
@@ -119,11 +127,11 @@ export function RankingProdutos({
                 </div>
                 <div
                   aria-hidden="true"
-                  className="mt-1 h-2 w-full overflow-hidden rounded-[var(--raio-completo)] bg-superficie-alta"
+                  className="mt-2 h-2.5 w-full overflow-hidden rounded-[var(--raio-completo)] bg-superficie"
                 >
                   <span
                     data-barra
-                    className="block h-full bg-[var(--cor-serie-dois)]"
+                    className="block h-full rounded-[var(--raio-completo)] bg-[var(--cor-serie-dois)]"
                     style={{ width: `${(medido / maior) * 100}%` }}
                   />
                 </div>

@@ -12,6 +12,7 @@
 
 import { esquemaDasFuncionalidadesParaODono } from "@simpleclick/contracts";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { navegacaoVisivel, type ItemDaNavegacao } from "./secoes.ts";
@@ -24,25 +25,42 @@ export function NavegacaoDaConfiguracaoNaTela({
 }: {
   readonly itens: readonly ItemDaNavegacao[];
 }) {
+  const caminho = usePathname();
   return (
     <nav
-      className="mt-6 flex flex-wrap gap-2"
+      className="mt-6 -mx-1 overflow-x-auto px-1 pb-1"
       aria-label="Configurações da loja"
     >
-      {itens.map((item) => (
-        <Link
-          key={item.secao}
-          className="sc-botao sc-botao--fantasma"
-          href={item.href}
-        >
-          {item.rotulo}
-        </Link>
-      ))}
+      <ul className="flex w-max gap-2">
+        {itens.map((item) => {
+          const atual = caminho === item.href;
+          return (
+            <li key={item.secao}>
+              <Link
+                aria-current={atual ? "page" : undefined}
+                className={`inline-flex min-h-[var(--altura-toque)] items-center rounded-[var(--raio-completo)] border px-4 text-sm font-medium whitespace-nowrap outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cor-foco)] motion-safe:transition-colors motion-safe:duration-150 ${
+                  atual
+                    ? "border-[var(--cor-primaria)] bg-[var(--cor-primaria)] font-semibold text-[var(--cor-em-primaria)]"
+                    : "border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] text-[var(--cor-tinta-suave)] hover:border-[var(--cor-borda-forte)] hover:text-[var(--cor-tinta)]"
+                }`}
+                href={item.href}
+              >
+                {item.rotulo}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
 
-export function NavegacaoDaConfiguracao() {
+/**
+ * As seções que a loja pode configurar agora, sem as desligadas pela
+ * administração. Também alimenta os subitens de "Configurações" no menu
+ * lateral do painel.
+ */
+export function useNavegacaoDaConfiguracao(): readonly ItemDaNavegacao[] {
   const [desligadas, setDesligadas] =
     useState<ReadonlySet<string>>(SEM_RESPOSTA_AINDA);
 
@@ -75,5 +93,9 @@ export function NavegacaoDaConfiguracao() {
     };
   }, []);
 
-  return <NavegacaoDaConfiguracaoNaTela itens={navegacaoVisivel(desligadas)} />;
+  return navegacaoVisivel(desligadas);
+}
+
+export function NavegacaoDaConfiguracao() {
+  return <NavegacaoDaConfiguracaoNaTela itens={useNavegacaoDaConfiguracao()} />;
 }

@@ -11,8 +11,12 @@
  * o total acompanha cada marcação — que é o que o AC-411 quer dizer com "o total
  * exibido no botão passa a R$ 46,00 imediatamente".
  *
+ * NO DESKTOP, DUAS COLUNAS: a foto fica parada à esquerda enquanto as escolhas
+ * rolam à direita. É a mesma ordem do celular — foto, nome, preço, escolhas —
+ * só que lado a lado, porque a tela larga tem espaço para as duas coisas.
+ *
  * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
- * Depende de `theme.css`.
+ * Depende de `theme.css`, e de `vitrine.css` para a barra do topo.
  */
 
 .sc-produto {
@@ -27,46 +31,47 @@
     max(var(--espaco-4), env(safe-area-inset-right));
   /* O respiro do fim precisa caber o botão grudado, senão ele tampa a última
    * opção do último grupo — que costuma ser a observação. */
-  padding-block-end: calc(var(--espaco-8) + 4.5rem);
-  background: var(--cor-fundo);
+  padding-block-end: var(--espaco-6);
   color: var(--cor-tinta);
 }
 
 .sc-produto__caminho {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espaco-3);
-  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+  column-gap: var(--espaco-4);
+  padding-block-start: var(--espaco-2);
 }
 
 /* --- a foto ---------------------------------------------------------------- */
 
 .sc-produto__figura {
+  position: relative;
+  /* A proporção segura o espaço mesmo quando o catálogo não sabe a dimensão:
+   * a foto preenche a moldura, e a página não pula quando ela chega. */
+  aspect-ratio: 4 / 3;
   margin: 0;
-  border-radius: var(--raio-3);
-  background: var(--cor-superficie);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
   overflow: clip;
 }
 
 .sc-produto__foto {
-  display: block;
-  /* A proporção segura o espaço mesmo quando o catálogo não sabe a dimensão. */
-  aspect-ratio: 4 / 3;
-  inline-size: 100%;
-  block-size: auto;
   object-fit: cover;
 }
 
 .sc-produto__galeria-item {
   flex: 0 0 auto;
-  inline-size: min(50%, 10rem);
+  inline-size: min(40%, 8rem);
   scroll-snap-align: start;
 }
 
 .sc-produto__galeria-item img {
+  display: block;
   inline-size: 100%;
+  block-size: auto;
   aspect-ratio: 1 / 1;
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-cartao);
   object-fit: cover;
 }
 
@@ -101,7 +106,8 @@
 }
 
 .sc-produto__preco {
-  font-size: var(--texto-xl);
+  font-size: var(--texto-2xl);
+  font-variant-numeric: tabular-nums;
   font-weight: var(--peso-forte);
 }
 
@@ -154,9 +160,10 @@
   gap: var(--espaco-2);
   margin: 0;
   padding: var(--espaco-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio-cartao);
   background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-1);
 }
 
 /*
@@ -207,7 +214,7 @@
 .sc-produto__pendencia {
   margin: 0;
   padding: var(--espaco-2) var(--espaco-3);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio-botao);
   background: var(--cor-erro-suave);
   color: var(--cor-erro);
   font-size: var(--texto-sm);
@@ -217,7 +224,7 @@
 .sc-produto__escolhas {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-1);
+  gap: var(--espaco-2);
 }
 
 .sc-produto__escolha {
@@ -225,14 +232,32 @@
   align-items: center;
   gap: var(--espaco-3);
   /* Alvo de toque confortável: o dedo erra a linha de 32px no ônibus. */
-  min-block-size: 2.75rem;
-  padding-inline: var(--espaco-2);
-  border-radius: var(--raio-2);
+  min-block-size: var(--altura-toque-grande);
+  padding-inline: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
   cursor: pointer;
+  transition:
+    background var(--transicao-rapida),
+    border-color var(--transicao-rapida);
 }
 
 .sc-produto__escolha:hover {
   background: var(--cor-superficie);
+}
+
+/* Marcada muda a BORDA e o fundo, além do controle: cor sozinha não basta. */
+.sc-produto__escolha:has(input:checked) {
+  border-color: var(--cor-tinta);
+  background: var(--cor-primaria-suave);
+  box-shadow: inset 0 0 0 1px var(--cor-tinta);
+}
+
+.sc-produto__escolha input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--cor-tinta);
 }
 
 .sc-produto__escolha--indisponivel {
@@ -278,8 +303,8 @@
 .sc-produto__observacao textarea {
   inline-size: 100%;
   padding: var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-2);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-botao);
   background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
@@ -287,7 +312,12 @@
   resize: vertical;
 }
 
-/* --- a ação ---------------------------------------------------------------- */
+/* --- a ação ----------------------------------------------------------------
+ *
+ * Quantidade, o botão grande em pílula com o total, e o carrinho ao lado. No
+ * celular estreito, o botão principal ganha a linha de baixo inteira: com a
+ * quantidade e o carrinho ao lado, "Adicionar R$ 46,00" não cabe em 344px.
+ */
 
 .sc-produto__acao {
   position: sticky;
@@ -298,30 +328,41 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espaco-3);
+  gap: var(--espaco-2) var(--espaco-3);
+  /* A faixa encosta nas bordas da tela, e o fundo opaco não deixa as opções
+   * aparecerem por baixo do botão. */
+  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
   padding-block: var(--espaco-3);
   padding-block-end: max(var(--espaco-3), env(safe-area-inset-bottom));
-  background: var(--cor-fundo);
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
   border-block-start: 1px solid var(--cor-borda);
+  background: var(--cor-superficie-alta);
 }
 
 .sc-produto__quantidade {
   display: flex;
   align-items: center;
   gap: var(--espaco-1);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
 }
 
 .sc-produto__passo {
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
   border: none;
   border-radius: var(--raio-completo);
   background: transparent;
   color: var(--cor-tinta);
-  font-size: var(--texto-lg);
   cursor: pointer;
+}
+
+.sc-produto__passo:hover:not(:disabled) {
+  background: var(--cor-superficie);
 }
 
 .sc-produto__passo:disabled {
@@ -336,20 +377,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* O carrinho vai para a ponta direita da primeira linha. */
+.sc-produto__carrinho {
+  margin-inline-start: auto;
+}
+
 .sc-produto__adicionar {
   display: flex;
-  flex: 1 1 12rem;
+  flex: 1 1 100%;
+  order: 3;
   align-items: center;
   justify-content: space-between;
   gap: var(--espaco-3);
-  min-block-size: 3rem;
+  min-block-size: var(--altura-toque-grande);
   padding-inline: var(--espaco-5);
-  border: none;
+  border: 1px solid var(--cor-primaria);
   border-radius: var(--raio-completo);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font-family: var(--fonte-base);
-  font-size: var(--texto-base);
+  font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
   cursor: pointer;
   transition: filter var(--transicao-rapida);
@@ -359,7 +406,13 @@
   filter: brightness(0.94);
 }
 
+.sc-produto__adicionar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
 .sc-produto__adicionar:disabled {
+  border-color: var(--cor-borda);
   background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
   cursor: not-allowed;
@@ -371,12 +424,25 @@
 
 .sc-produto__indisponivel {
   flex: 1 1 100%;
+  order: 4;
   margin: 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
 }
 
 /* --- telas maiores --------------------------------------------------------- */
+
+/* Celular grande em diante: a quantidade, o botão e o carrinho numa linha só. */
+@media (min-width: 430px) {
+  .sc-produto__adicionar {
+    flex: 1 1 12rem;
+    order: 0;
+  }
+
+  .sc-produto__carrinho {
+    margin-inline-start: 0;
+  }
+}
 
 @media (min-width: 768px) {
   .sc-produto {
@@ -391,16 +457,51 @@
    */
   .sc-produto__acao {
     position: static;
+    margin-inline: 0;
+    padding-inline: 0;
     border-block-start: none;
+    background: transparent;
   }
 
   .sc-produto__adicionar {
-    flex: 0 1 20rem;
+    flex: 1 1 12rem;
+    max-inline-size: 22rem;
+  }
+}
+
+/*
+ * Tablet deitado em diante: a foto à esquerda, parada, e o resto à direita. A
+ * ordem da marcação continua a do celular; quem muda de lugar é só a foto.
+ */
+@media (min-width: 1024px) {
+  .sc-produto {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: start;
+    column-gap: var(--espaco-8);
+    max-inline-size: 72rem;
+  }
+
+  .sc-produto > * {
+    grid-column: 2;
+  }
+
+  .sc-produto > .sc-produto__caminho {
+    grid-column: 1 / -1;
+  }
+
+  .sc-produto > .sc-produto__figura {
+    position: sticky;
+    inset-block-start: calc(var(--altura-da-barra, 0px) + var(--espaco-6));
+    grid-column: 1;
+    grid-row: 2 / span 4;
+    align-self: start;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sc-produto__adicionar {
+  .sc-produto__adicionar,
+  .sc-produto__escolha {
     transition: none;
   }
 }
@@ -412,8 +513,8 @@
  */
 .sc-produto__recado {
   margin: 0;
-  padding: var(--espaco-3);
-  border-radius: var(--raio-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-botao);
   background: var(--cor-sucesso-suave);
   color: var(--cor-sucesso);
   font-size: var(--texto-sm);

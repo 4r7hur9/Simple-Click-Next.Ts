@@ -103,9 +103,9 @@ describe("estados reutilizáveis", () => {
 });
 
 describe("botão", () => {
-  it("@spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 6px", () => {
+  it("@spec:AC-943 @spec:AC-950 mantém toda variante opaca, com foco, alvo de toque e raio de 10px", () => {
     expect(CSS).toContain("border-radius: var(--raio-botao)");
-    expect(CSS).toContain("min-height: 2.75rem");
+    expect(CSS).toContain("min-height: var(--altura-toque)");
     expect(CSS).toContain("outline: 2px solid var(--cor-foco)");
     expect(CSS).toMatch(
       /\.sc-botao--discreta\s*\{[\s\S]*?background-color: var\(--cor-superficie-alta\)/,

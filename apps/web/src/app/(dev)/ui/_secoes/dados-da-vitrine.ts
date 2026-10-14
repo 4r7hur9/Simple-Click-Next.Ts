@@ -46,3 +46,20 @@ export const CORES_DE_EXEMPLO = [
       "Letra clara ficaria ilegível: o sistema troca a letra e escurece o tom usado como texto.",
   },
 ];
+
+export type PedidoDaTabela = {
+  numero: number;
+  cliente: string;
+  status: "Pago" | "Em preparo" | "Recusado" | "Novo";
+  centavos: number;
+};
+
+/** Linhas da tabela de exemplo: o bastante para o cabeçalho fixo aparecer. */
+export const PEDIDOS_DA_TABELA: readonly PedidoDaTabela[] = [
+  { numero: 1041, cliente: "Ana", status: "Pago", centavos: 4890 },
+  { numero: 1042, cliente: "Bruno", status: "Recusado", centavos: 11200 },
+  { numero: 1043, cliente: "Carla", status: "Em preparo", centavos: 2750 },
+  { numero: 1044, cliente: "Davi", status: "Novo", centavos: 6300 },
+  { numero: 1045, cliente: "Elisa", status: "Pago", centavos: 1990 },
+  { numero: 1046, cliente: "Fábio", status: "Em preparo", centavos: 8540 },
+];

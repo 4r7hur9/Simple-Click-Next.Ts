@@ -27,6 +27,9 @@
     "lint": "eslint .",
     "test:unit": "cd ../.. && vitest run --project unit packages/ui/"
   },
+  "dependencies": {
+    "lucide-react": "catalog:"
+  },
   "peerDependencies": {
     "react": "^19.0.0"
   },

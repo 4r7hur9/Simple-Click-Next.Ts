@@ -79,7 +79,7 @@ export function FichaCliente({ clienteId, buscar = fetch }: FichaClienteProps) {
 
   const voltar = (
     <Link
-      className="text-sm font-medium text-[var(--cor-primaria)]"
+      className="sc-botao sc-botao--discreta sc-botao--pequeno justify-self-start"
       href="/painel/clientes"
     >
       ← Voltar para os clientes
@@ -128,7 +128,7 @@ export function FichaCliente({ clienteId, buscar = fetch }: FichaClienteProps) {
       {voltar}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-tinta-suave)]">
             Ficha do cliente
           </p>
           <h1 className="mt-2 text-4xl font-semibold">{cliente.nome}</h1>

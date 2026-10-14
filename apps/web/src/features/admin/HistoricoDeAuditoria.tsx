@@ -19,7 +19,7 @@ import {
   type PaginaDaAuditoriaNoContrato,
   type RegistroDaAuditoriaNoContrato,
 } from "@simpleclick/contracts";
-import { Botao, Carregando, Erro, Vazio } from "@simpleclick/ui";
+import { Botao, Cartao, Carregando, Erro, Selo, Vazio } from "@simpleclick/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -102,86 +102,94 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
 
   return (
     <section aria-labelledby="historico-de-auditoria" className="mt-8">
-      <form
-        aria-label="Filtros do histórico"
-        onSubmit={props.aoFiltrar}
-        className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
-      >
-        <label className="grid gap-1 text-sm font-medium" htmlFor="filtro-ato">
-          Ato
-          <select
-            id="filtro-ato"
-            name="ato"
-            className="sc-campo__controle"
-            value={rascunho.ato}
-            onChange={(evento) =>
-              props.aoMudar({ ...rascunho, ato: evento.target.value })
-            }
+      <Cartao titulo="Filtrar histórico" nivelDoTitulo={2}>
+        <form
+          aria-label="Filtros do histórico"
+          onSubmit={props.aoFiltrar}
+          className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
+        >
+          <label
+            className="grid gap-1 text-sm font-medium"
+            htmlFor="filtro-ato"
           >
-            <option value="">Todos os atos</option>
-            {OPCOES_DE_ATO.map(([codigo, rotulo]) => (
-              <option key={codigo} value={codigo}>
-                {rotulo}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1 text-sm font-medium" htmlFor="filtro-de">
-          De
-          <input
-            id="filtro-de"
-            name="de"
-            type="date"
-            className="sc-campo__controle"
-            value={rascunho.de}
-            onChange={(evento) =>
-              props.aoMudar({ ...rascunho, de: evento.target.value })
-            }
-          />
-        </label>
-        <label className="grid gap-1 text-sm font-medium" htmlFor="filtro-ate">
-          Até
-          <input
-            id="filtro-ate"
-            name="ate"
-            type="date"
-            className="sc-campo__controle"
-            value={rascunho.ate}
-            aria-invalid={props.periodoInvalido || undefined}
-            aria-describedby={
-              props.periodoInvalido ? "filtro-periodo-erro" : undefined
-            }
-            onChange={(evento) =>
-              props.aoMudar({ ...rascunho, ate: evento.target.value })
-            }
-          />
-        </label>
-        <div className="flex gap-2">
-          <Botao type="submit" variante="secundaria">
-            Filtrar
-          </Botao>
-          {algumFiltro && (
-            <Botao type="button" variante="discreta" onClick={props.aoLimpar}>
-              Limpar
+            Ato
+            <select
+              id="filtro-ato"
+              name="ato"
+              className="sc-campo__controle"
+              value={rascunho.ato}
+              onChange={(evento) =>
+                props.aoMudar({ ...rascunho, ato: evento.target.value })
+              }
+            >
+              <option value="">Todos os atos</option>
+              {OPCOES_DE_ATO.map(([codigo, rotulo]) => (
+                <option key={codigo} value={codigo}>
+                  {rotulo}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-sm font-medium" htmlFor="filtro-de">
+            De
+            <input
+              id="filtro-de"
+              name="de"
+              type="date"
+              className="sc-campo__controle"
+              value={rascunho.de}
+              onChange={(evento) =>
+                props.aoMudar({ ...rascunho, de: evento.target.value })
+              }
+            />
+          </label>
+          <label
+            className="grid gap-1 text-sm font-medium"
+            htmlFor="filtro-ate"
+          >
+            Até
+            <input
+              id="filtro-ate"
+              name="ate"
+              type="date"
+              className="sc-campo__controle"
+              value={rascunho.ate}
+              aria-invalid={props.periodoInvalido || undefined}
+              aria-describedby={
+                props.periodoInvalido ? "filtro-periodo-erro" : undefined
+              }
+              onChange={(evento) =>
+                props.aoMudar({ ...rascunho, ate: evento.target.value })
+              }
+            />
+          </label>
+          <div className="flex gap-2">
+            <Botao type="submit" variante="secundaria">
+              Filtrar
             </Botao>
+            {algumFiltro && (
+              <Botao type="button" variante="discreta" onClick={props.aoLimpar}>
+                Limpar
+              </Botao>
+            )}
+          </div>
+          {props.periodoInvalido && (
+            <p
+              id="filtro-periodo-erro"
+              role="alert"
+              className="text-sm text-[var(--cor-erro)] sm:col-span-4"
+            >
+              {MENSAGEM_DE_PERIODO}
+            </p>
           )}
-        </div>
-        {props.periodoInvalido && (
-          <p
-            id="filtro-periodo-erro"
-            role="alert"
-            className="text-sm text-[var(--cor-erro)] sm:col-span-4"
-          >
-            {MENSAGEM_DE_PERIODO}
-          </p>
-        )}
-      </form>
+        </form>
+      </Cartao>
 
       {rascunho.loja !== "" && (
         <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full border border-[var(--cor-borda)] px-3 py-1">
+          <Selo semBolinha>
             Só a loja {props.nomeDaLojaFiltrada ?? "escolhida"}
-          </span>
+          </Selo>
           <Botao
             variante="discreta"
             tamanho="pequeno"

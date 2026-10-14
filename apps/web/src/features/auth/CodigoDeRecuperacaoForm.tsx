@@ -71,6 +71,7 @@ export function CodigoDeRecuperacaoForm({
       <div className="sc-conta__campos">
         <Campo
           id="codigo-de-recuperacao"
+          className="sc-conta__campo-codigo sc-conta__campo-codigo--longo"
           name="codigo"
           autoComplete="off"
           autoCapitalize="characters"
@@ -87,6 +88,7 @@ export function CodigoDeRecuperacaoForm({
       {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
       <Botao
         className="sc-conta__botao"
+        tamanho="grande"
         type="submit"
         carregando={enviando}
         rotuloDeEspera="Confirmando…"

@@ -7,7 +7,7 @@
  * framework mostra enquanto a página pede à API.
  */
 import Link from "next/link";
-import { Erro, Vazio } from "@simpleclick/ui";
+import { Erro, IconeLoja, Selo, Vazio, type TomDeSelo } from "@simpleclick/ui";
 import type { PedidoDaContaNoContrato } from "@simpleclick/contracts";
 
 import {
@@ -46,6 +46,20 @@ function itens(quantidade: number): string {
   return quantidade === 1 ? "1 item" : `${quantidade} itens`;
 }
 
+/** O tom do selo de status: o texto diz o status, a cor só reforça. */
+function tomDoStatus(status: string): TomDeSelo {
+  switch (status) {
+    case "COMPLETED":
+      return "sucesso";
+    case "CANCELLED":
+      return "erro";
+    case "PENDING":
+      return "atencao";
+    default:
+      return "info";
+  }
+}
+
 function CartaoDoPedido({
   pedido,
 }: {
@@ -53,27 +67,26 @@ function CartaoDoPedido({
 }) {
   return (
     <li
-      className="rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4"
+      className="sc-pedidos__pedido"
       data-pedido={pedido.id}
       data-status={pedido.status}
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="font-semibold">Pedido nº {pedido.numero}</p>
-        <p className="rounded-full bg-[var(--cor-primaria-suave)] px-3 py-1 text-sm font-semibold text-[var(--cor-primaria-texto)]">
+      <div className="sc-pedidos__topo">
+        <p className="sc-pedidos__numero">Pedido nº {pedido.numero}</p>
+        <Selo tom={tomDoStatus(pedido.status)}>
           {rotuloDoStatus(pedido.status)}
-        </p>
+        </Selo>
       </div>
-      <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+      <p className="sc-pedidos__resumo">
         <time dateTime={pedido.criadoEm}>{quando(pedido.criadoEm)}</time>
         {" · "}
         {itens(pedido.quantidadeDeItens)}
         {" · "}
-        <span data-total>{escreverDinheiro(pedido.totalCentavos)}</span>
+        <span className="sc-pedidos__total" data-total>
+          {escreverDinheiro(pedido.totalCentavos)}
+        </span>
       </p>
-      <Link
-        className="mt-3 inline-block font-medium text-[var(--cor-primaria-texto)] underline"
-        href={caminhoDoMeuPedido(pedido.id)}
-      >
+      <Link className="sc-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
         Ver o pedido nº {pedido.numero}
       </Link>
     </li>
@@ -88,7 +101,7 @@ export function MeusPedidos({ leitura }: MeusPedidosProps) {
         mensagem="Tente de novo em instantes. Seus pedidos continuam guardados."
         acao={
           <Link
-            className="sc-botao sc-botao--secundario"
+            className="sc-botao sc-botao--secundaria"
             href="/minha-conta/pedidos"
           >
             Tentar de novo
@@ -108,17 +121,20 @@ export function MeusPedidos({ leitura }: MeusPedidosProps) {
   }
 
   return (
-    <div className="space-y-10" data-meus-pedidos>
+    <div className="sc-pedidos" data-meus-pedidos>
       {agruparPedidosPorLoja(leitura.pedidos).map((grupo) => (
         <section
           key={grupo.apelido}
           aria-labelledby={`loja-${grupo.apelido}`}
           data-loja={grupo.apelido}
         >
-          <h2 id={`loja-${grupo.apelido}`} className="text-xl font-semibold">
+          <h2 id={`loja-${grupo.apelido}`} className="sc-pedidos__loja">
+            <span className="sc-pedidos__loja-icone" aria-hidden="true">
+              <IconeLoja />
+            </span>
             {grupo.nome}
           </h2>
-          <ol className="mt-4 space-y-3">
+          <ol className="sc-pedidos__lista">
             {grupo.pedidos.map((pedido) => (
               <CartaoDoPedido key={pedido.id} pedido={pedido} />
             ))}

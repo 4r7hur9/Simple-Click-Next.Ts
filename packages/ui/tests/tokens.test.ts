@@ -7,8 +7,10 @@ import {
   relacaoDeContraste,
 } from "../src/contraste";
 import {
+  MEDIDAS,
   NOME_NO_CSS,
   NOME_NO_CSS_DAS_EXTREMAS,
+  NOME_NO_CSS_DAS_MEDIDAS,
   PALETA_CLARA,
   PALETA_ESCURA,
   PALETA_OFICIAL,
@@ -118,6 +120,49 @@ describe("valores declarados do tema", () => {
     }
   });
 
+  it("o trecho claro dentro de página escura repete o tema claro inteiro", () => {
+    const trecho = valoresDoBloco('[data-tema="claro"] {');
+
+    for (const [chave, nome] of Object.entries(NOME_NO_CSS)) {
+      expect(trecho.get(nome), `${nome} não está no trecho claro`).toBe(
+        PALETA_CLARA[chave as keyof PaletaDeCores],
+      );
+    }
+    expect(CSS).toContain('[data-tema="escuro"],\n:root[data-tema="escuro"] {');
+  });
+
+  it("as medidas da linguagem visual repetem a folha de estilo", () => {
+    const noCss = valoresDoBloco(BLOCOS.claro);
+
+    for (const [chave, nome] of Object.entries(NOME_NO_CSS_DAS_MEDIDAS)) {
+      expect(noCss.get(nome), `${nome} não está declarado`).toBe(
+        MEDIDAS[chave as keyof typeof MEDIDAS],
+      );
+    }
+  });
+
+  it("todo nome antigo que as telas pedem aponta para um valor declarado", () => {
+    const noCss = valoresDoBloco(BLOCOS.claro);
+
+    // `--cor-papel` era pedido pelo layout do painel e nunca tinha existido: a
+    // tela inteira saía sem fundo, sem erro nenhum para avisar.
+    for (const nome of [
+      "--cor-papel",
+      "--cor-perigo",
+      "--raio",
+      "--raio-grande",
+      "--sombra-baixa",
+    ]) {
+      const valor = noCss.get(nome);
+      expect(valor, `${nome} não está declarado`).toMatch(/^var\(--[a-z-]+\)$/);
+      const alvo = valor?.slice(4, -1) ?? "";
+      expect(
+        noCss.has(alvo),
+        `${nome} aponta para ${alvo}, que não existe`,
+      ).toBe(true);
+    }
+  });
+
   it("@spec:AC-014 o tema declara também espaçamento, tipografia, raio e sombra", () => {
     const noCss = valoresDoBloco(BLOCOS.claro);
     const declarados = [...noCss.keys()];
@@ -195,6 +240,7 @@ const paresDeTexto = (p: PaletaDeCores): [string, string, string][] => [
   ["atenção sobre o aviso de atenção", p.atencao, p.atencaoSuave],
   ["tinta sobre o aviso de atenção", p.tinta, p.atencaoSuave],
   ["informação sobre o aviso informativo", p.info, p.infoSuave],
+  ["cabeçalho da tabela", p.tintaSuave, p.superficie],
   ["tinta sobre o aviso informativo", p.tinta, p.infoSuave],
 ];
 
@@ -203,6 +249,13 @@ const paresGraficos = (p: PaletaDeCores): [string, string, string][] => [
   ["contorno de campo sobre o fundo", p.bordaForte, p.fundo],
   ["contorno de campo sobre a superfície", p.bordaForte, p.superficie],
   ["anel de foco sobre o fundo", p.foco, p.fundo],
+  ["anel de foco sobre a superfície alta", p.foco, p.superficieAlta],
+  // A bolinha do selo é desenho: o texto ao lado é que carrega o sentido.
+  ["bolinha do selo de sucesso", p.sucesso, p.sucessoSuave],
+  ["bolinha do selo de atenção", p.atencao, p.atencaoSuave],
+  ["bolinha do selo de erro", p.erro, p.erroSuave],
+  ["bolinha do selo informativo", p.info, p.infoSuave],
+  ["bolinha do selo neutro", p.tintaSuave, p.superficie],
 ];
 
 describe("legibilidade da paleta", () => {

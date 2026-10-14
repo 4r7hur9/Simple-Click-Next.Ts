@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Aviso, Botao, Campo, Sucesso } from "@simpleclick/ui";
+import { Aviso, Botao, CampoDeSenha, Sucesso } from "@simpleclick/ui";
 
 import { CascaDaConta } from "../../../features/auth/CascaDaConta.tsx";
 
@@ -48,7 +48,11 @@ export default async function PaginaDeDefinicaoDeSenha({
               ? "Entre com o seu e-mail e a senha que você acabou de definir."
               : "Por segurança, encerramos as sessões abertas com a senha antiga."
           }
-          acao={<a href="/entrar">Ir para o login</a>}
+          acao={
+            <a className="sc-conta__link" href="/entrar">
+              Ir para o login
+            </a>
+          }
         />
       </CascaDaConta>
     );
@@ -68,49 +72,51 @@ export default async function PaginaDeDefinicaoDeSenha({
       }
       etiqueta={primeiroAcesso ? "Primeiro acesso" : "Recuperar acesso"}
     >
-      {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
-      {semLink ? (
-        <Aviso tom="atencao" acao={<a href="/recuperar-senha">Pedir link</a>}>
-          Abra esta tela pelo link que enviamos ao seu e-mail.
-        </Aviso>
-      ) : (
-        <form
-          action="/api/auth/definir-senha"
-          method="post"
-          className="sc-conta__form"
-        >
-          <input name="token" type="hidden" value={token} />
-          {primeiroAcesso ? (
-            <input name="convite" type="hidden" value="true" />
-          ) : null}
-          <div className="sc-conta__campos">
-            <Campo
-              id="senha"
-              name="senha"
-              type="password"
-              autoComplete="new-password"
-              rotulo="Nova senha"
-              dica="Use 12 caracteres ou mais."
-              obrigatorio
-              required
-              minLength={12}
-            />
-            <Campo
-              id="confirmacao"
-              name="confirmacao"
-              type="password"
-              autoComplete="new-password"
-              rotulo="Confirme a nova senha"
-              obrigatorio
-              required
-              minLength={12}
-            />
-          </div>
-          <Botao className="sc-conta__botao" type="submit">
-            Salvar nova senha
-          </Botao>
-        </form>
-      )}
+      <div className="sc-conta__form">
+        {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
+        {semLink ? (
+          <Aviso tom="atencao" acao={<a href="/recuperar-senha">Pedir link</a>}>
+            Abra esta tela pelo link que enviamos ao seu e-mail.
+          </Aviso>
+        ) : (
+          <form
+            action="/api/auth/definir-senha"
+            method="post"
+            className="sc-conta__form"
+          >
+            <input name="token" type="hidden" value={token} />
+            {primeiroAcesso ? (
+              <input name="convite" type="hidden" value="true" />
+            ) : null}
+            <div className="sc-conta__campos">
+              <CampoDeSenha
+                id="senha"
+                name="senha"
+                autoComplete="new-password"
+                mostrarForca
+                rotulo="Nova senha"
+                dica="Use 12 caracteres ou mais."
+                obrigatorio
+                required
+                minLength={12}
+              />
+              <CampoDeSenha
+                id="confirmacao"
+                name="confirmacao"
+                rotuloDoOlho="Mostrar confirmação"
+                autoComplete="new-password"
+                rotulo="Confirme a nova senha"
+                obrigatorio
+                required
+                minLength={12}
+              />
+            </div>
+            <Botao className="sc-conta__botao" tamanho="grande" type="submit">
+              Salvar nova senha
+            </Botao>
+          </form>
+        )}
+      </div>
     </CascaDaConta>
   );
 }

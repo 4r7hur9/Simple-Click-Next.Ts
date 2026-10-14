@@ -12,7 +12,7 @@
  * mascarado do servidor, e da loja só o nome e o contato que ela tornou público.
  */
 import { useEffect, useState } from "react";
-import { Aviso, Cartao, TemaDaLoja } from "@simpleclick/ui";
+import { Aviso, Cartao, IconePedido, TemaDaLoja } from "@simpleclick/ui";
 import type { AcompanhamentoNoContrato } from "@simpleclick/contracts";
 
 import {
@@ -110,150 +110,156 @@ export function AcompanhamentoDoPedido({
   const motivo = motivoDoCancelamento(pedido);
 
   return (
-    <TemaDaLoja corPrincipal={corPrincipal} className="min-h-screen">
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-14">
-        <header className="flex flex-wrap items-start justify-between gap-5">
-          <div>
-            <a
-              className="font-medium text-[var(--cor-primaria-texto)] underline"
-              href={voltar?.href ?? `/l/${apelidoDaLoja}`}
-            >
-              {voltar?.rotulo ?? "← Voltar para a loja"}
-            </a>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-              Acompanhamento · {pedido.loja.nome}
-            </p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
-              Pedido nº {pedido.numero}
-            </h1>
-            <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-              Código {pedido.codigo}
-            </p>
-          </div>
-          <div
-            className="rounded-full bg-[var(--cor-primaria-suave)] px-4 py-2 font-semibold text-[var(--cor-primaria-texto)]"
-            data-status-atual={pedido.status}
-            role="status"
-            aria-live="polite"
-          >
-            {rotuloDoStatus(pedido.status)}
-          </div>
-        </header>
-
-        <p className="mt-4 text-lg text-[var(--cor-tinta-suave)]">
-          {explicacaoDoStatus(pedido.status, pedido.entrega)}
-        </p>
-
-        {pedido.status === "CANCELLED" ? (
-          <Aviso className="mt-6" tom="erro" titulo="Pedido cancelado">
-            {motivo !== null
-              ? `A loja informou o motivo: ${motivo}`
-              : "A loja cancelou este pedido."}
-          </Aviso>
-        ) : null}
-
-        {erro ? (
-          <Aviso className="mt-6" tom="atencao">
-            {erro} O último status continua visível e a página tenta de novo
-            sozinha.
-          </Aviso>
-        ) : null}
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-6">
-            <Cartao titulo="Linha do tempo">
-              <LinhaDoTempo historico={pedido.historico} />
-            </Cartao>
-
-            <Cartao titulo="Itens do pedido">
-              <ul className="divide-y divide-[var(--cor-borda)]">
-                {pedido.itens.map((item, indice) => (
-                  <li
-                    key={`${item.nome}-${indice}`}
-                    className="py-4 first:pt-0 last:pb-0"
-                  >
-                    <div className="flex justify-between gap-4">
-                      <p>
-                        <strong>{item.quantidade}×</strong> {item.nome}
-                        {item.variacao ? ` · ${item.variacao}` : ""}
-                      </p>
-                      <strong>{escreverDinheiro(item.totalCentavos)}</strong>
-                    </div>
-                    {item.opcoes.length > 0 ? (
-                      <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-                        {item.opcoes
-                          .map((opcao) => `${opcao.grupo}: ${opcao.nome}`)
-                          .join(" · ")}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </Cartao>
-          </div>
-
-          <aside className="space-y-6">
-            <Cartao titulo="Resumo">
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt>Entrega</dt>
-                  <dd className="font-medium">{entrega(pedido.entrega)}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt>Pagamento</dt>
-                  <dd className="font-medium">
-                    {formaDePagamento(pedido.formaDePagamento)}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4 border-t border-[var(--cor-borda)] pt-3 text-base">
-                  <dt>Total</dt>
-                  <dd className="font-semibold" data-total>
-                    {escreverDinheiro(pedido.totalCentavos)}
-                  </dd>
-                </div>
-              </dl>
-            </Cartao>
-
-            <Cartao titulo="Seus dados">
-              <p className="font-medium">{pedido.cliente.nome}</p>
-              <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-                Telefone {pedido.cliente.telefoneMascarado}
+    <TemaDaLoja corPrincipal={corPrincipal} className="sc-pagina-da-loja">
+      {/* O fundo vai num bloco próprio: o contêiner do tema é `display:
+          contents` e não pinta nada. */}
+      <div className="min-h-screen bg-[var(--cor-superficie)] text-[var(--cor-tinta)]">
+        <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:py-12">
+          <header className="flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <a
+                className="inline-flex min-h-[var(--altura-toque)] items-center font-medium text-[var(--cor-primaria-texto)] underline"
+                href={voltar?.href ?? `/l/${apelidoDaLoja}`}
+              >
+                {voltar?.rotulo ?? "← Voltar para a loja"}
+              </a>
+              <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--cor-primaria-texto)]">
+                Acompanhamento · {pedido.loja.nome}
               </p>
-            </Cartao>
+              <h1 className="mt-1 font-[family-name:var(--fonte-titulo)] text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+                Pedido nº {pedido.numero}
+              </h1>
+              <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+                Código {pedido.codigo}
+              </p>
+            </div>
+            <div
+              className="inline-flex min-h-[var(--altura-toque)] items-center gap-2 rounded-full border border-[var(--cor-tinta)] bg-[var(--cor-primaria-suave)] px-4 font-semibold text-[var(--cor-tinta)]"
+              data-status-atual={pedido.status}
+              role="status"
+              aria-live="polite"
+            >
+              {rotuloDoStatus(pedido.status)}
+            </div>
+          </header>
 
-            {pedido.whatsappConfirmadoEm === null &&
-            pedido.status !== "CANCELLED" ? (
-              <Cartao titulo="Mensagem para a loja">
-                <p className="mb-4 text-sm text-[var(--cor-tinta-suave)]">
-                  Se você já enviou o pedido pelo WhatsApp, avise a loja para
-                  ele sair da fila de confirmações pendentes.
-                </p>
-                <BotaoJaEnviei
-                  apelidoDaLoja={apelidoDaLoja}
-                  tokenDoPedido={tokenDoPedido}
-                />
+          <p className="mt-4 max-w-[65ch] text-base text-[var(--cor-tinta-suave)] sm:text-lg">
+            {explicacaoDoStatus(pedido.status, pedido.entrega)}
+          </p>
+
+          {pedido.status === "CANCELLED" ? (
+            <Aviso className="mt-6" tom="erro" titulo="Pedido cancelado">
+              {motivo !== null
+                ? `A loja informou o motivo: ${motivo}`
+                : "A loja cancelou este pedido."}
+            </Aviso>
+          ) : null}
+
+          {erro ? (
+            <Aviso className="mt-6" tom="atencao">
+              {erro} O último status continua visível e a página tenta de novo
+              sozinha.
+            </Aviso>
+          ) : null}
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-6">
+              <Cartao titulo="Linha do tempo">
+                <LinhaDoTempo historico={pedido.historico} />
               </Cartao>
-            ) : null}
 
-            <Cartao titulo={`Contato da ${pedido.loja.nome}`}>
-              {pedido.loja.whatsappPublico ? (
-                <a
-                  className="font-medium text-[var(--cor-primaria-texto)] underline"
-                  href={`https://wa.me/${pedido.loja.whatsappPublico.replace(/\D/g, "")}`}
-                  data-contato-da-loja
-                >
-                  Falar com a loja pelo WhatsApp
-                </a>
-              ) : (
-                <p className="text-sm text-[var(--cor-tinta-suave)]">
-                  A loja não divulgou um contato público. Use a conversa em que
-                  você enviou o pedido.
+              <Cartao titulo="Itens do pedido">
+                <ul className="divide-y divide-[var(--cor-borda)]">
+                  {pedido.itens.map((item, indice) => (
+                    <li
+                      key={`${item.nome}-${indice}`}
+                      className="py-4 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex justify-between gap-4">
+                        <p>
+                          <strong>{item.quantidade}×</strong> {item.nome}
+                          {item.variacao ? ` · ${item.variacao}` : ""}
+                        </p>
+                        <strong className="tabular-nums">
+                          {escreverDinheiro(item.totalCentavos)}
+                        </strong>
+                      </div>
+                      {item.opcoes.length > 0 ? (
+                        <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+                          {item.opcoes
+                            .map((opcao) => `${opcao.grupo}: ${opcao.nome}`)
+                            .join(" · ")}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </Cartao>
+            </div>
+
+            <aside className="space-y-6">
+              <Cartao titulo="Resumo" icone={<IconePedido />}>
+                <dl className="space-y-3 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <dt>Entrega</dt>
+                    <dd className="font-medium">{entrega(pedido.entrega)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt>Pagamento</dt>
+                    <dd className="font-medium">
+                      {formaDePagamento(pedido.formaDePagamento)}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 border-t border-dashed border-[var(--cor-borda-forte)] pt-3 font-[family-name:var(--fonte-titulo)] text-xl font-semibold">
+                    <dt>Total</dt>
+                    <dd className="tabular-nums" data-total>
+                      {escreverDinheiro(pedido.totalCentavos)}
+                    </dd>
+                  </div>
+                </dl>
+              </Cartao>
+
+              <Cartao titulo="Seus dados">
+                <p className="font-medium">{pedido.cliente.nome}</p>
+                <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
+                  Telefone {pedido.cliente.telefoneMascarado}
                 </p>
-              )}
-            </Cartao>
-          </aside>
-        </div>
-      </main>
+              </Cartao>
+
+              {pedido.whatsappConfirmadoEm === null &&
+              pedido.status !== "CANCELLED" ? (
+                <Cartao titulo="Mensagem para a loja">
+                  <p className="mb-4 text-sm text-[var(--cor-tinta-suave)]">
+                    Se você já enviou o pedido pelo WhatsApp, avise a loja para
+                    ele sair da fila de confirmações pendentes.
+                  </p>
+                  <BotaoJaEnviei
+                    apelidoDaLoja={apelidoDaLoja}
+                    tokenDoPedido={tokenDoPedido}
+                  />
+                </Cartao>
+              ) : null}
+
+              <Cartao titulo={`Contato da ${pedido.loja.nome}`}>
+                {pedido.loja.whatsappPublico ? (
+                  <a
+                    className="sc-botao sc-botao--secundaria sc-botao--pilula"
+                    href={`https://wa.me/${pedido.loja.whatsappPublico.replace(/\D/g, "")}`}
+                    data-contato-da-loja
+                  >
+                    Falar com a loja pelo WhatsApp
+                  </a>
+                ) : (
+                  <p className="text-sm text-[var(--cor-tinta-suave)]">
+                    A loja não divulgou um contato público. Use a conversa em
+                    que você enviou o pedido.
+                  </p>
+                )}
+              </Cartao>
+            </aside>
+          </div>
+        </main>
+      </div>
     </TemaDaLoja>
   );
 }

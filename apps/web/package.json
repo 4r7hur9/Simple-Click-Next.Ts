@@ -16,6 +16,7 @@
     "@simpleclick/core": "workspace:*",
     "@simpleclick/ui": "workspace:*",
     "gsap": "catalog:",
+    "lucide-react": "catalog:",
     "next": "16.4.0",
     "react": "catalog:",
     "react-dom": "catalog:",

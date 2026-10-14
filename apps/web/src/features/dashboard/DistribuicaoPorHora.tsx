@@ -72,23 +72,26 @@ export function DistribuicaoPorHora({ pontos }: DistribuicaoPorHoraProps) {
     <section
       aria-labelledby={idDoTitulo}
       data-distribuicao-por-hora
-      className="rounded-lg border border-borda bg-superficie p-4"
+      className="sc-cartao min-w-0"
     >
-      <h2 id={idDoTitulo} className="text-lg font-semibold">
+      <h2 id={idDoTitulo} className="sc-cartao__titulo">
         Movimento por hora
       </h2>
-      <p data-resumo-do-grafico className="mt-2 text-sm text-tinta-suave">
+      <p data-resumo-do-grafico className="text-sm text-tinta-suave">
         {resumo}
       </p>
 
-      <div className="mt-3">
+      <div>
         <GraficoDeBarras
           descricao={`Pedidos por hora do dia. ${resumo}`}
           marcas={MARCAS_DAS_HORAS.filter((hora) => hora < pontos.length)}
           pontos={pontos.map((ponto) => ({
             chave: String(ponto.hora),
             rotulo: `${ponto.hora}h`,
+            nome: escreverFaixa(ponto.hora),
             valor: ponto.pedidos,
+            texto: escreverPedidos(ponto.pedidos),
+            textoCurto: String(ponto.pedidos),
             destaque: destaques.has(ponto.hora),
           }))}
           tabela={

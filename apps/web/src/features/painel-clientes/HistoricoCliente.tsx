@@ -12,7 +12,7 @@
  * Sem estado próprio: recebe o histórico pronto da ficha.
  */
 import Link from "next/link";
-import { Vazio } from "@simpleclick/ui";
+import { Selo, Vazio } from "@simpleclick/ui";
 
 import {
   escreverData,
@@ -20,6 +20,7 @@ import {
   type FichaComHistorico,
 } from "../../lib/clientes-do-painel.ts";
 import { escreverDinheiro } from "../../lib/dinheiro.ts";
+import { SeloDeStatus } from "../painel-pedidos/SeloDeStatus.tsx";
 
 type PedidoDoHistorico = FichaComHistorico["pedidos"][number];
 
@@ -38,7 +39,7 @@ function CartaoDoPedido({
   const saiuDoCatalogo = pedido.itens.some((item) => item.indisponivel);
   return (
     <li
-      className="rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4"
+      className="rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-4"
       data-pedido={pedido.id}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -51,11 +52,14 @@ function CartaoDoPedido({
               Pedido #{pedido.numero}
             </Link>
           </h4>
-          <p className="text-sm text-[var(--cor-tinta-suave)]">
-            {escreverData(pedido.criadoEm)} ·{" "}
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--cor-tinta-suave)]">
             <span data-status={pedido.status}>
-              {rotuloDoStatusDoPedido(pedido.status)}
+              <SeloDeStatus
+                status={pedido.status}
+                rotulo={rotuloDoStatusDoPedido(pedido.status)}
+              />
             </span>
+            {escreverData(pedido.criadoEm)}
             {pedido.canal === "MANUAL" ? " · Balcão" : " · Site"}
           </p>
         </div>
@@ -77,9 +81,9 @@ function CartaoDoPedido({
             </span>{" "}
             <span>{escreverDinheiro(item.totalCentavos)}</span>
             {item.indisponivel ? (
-              <span className="ml-2 rounded-full bg-[var(--cor-papel)] px-2 py-0.5 text-xs font-medium">
+              <Selo className="ml-2" semBolinha>
                 Não está mais à venda
-              </span>
+              </Selo>
             ) : null}
             {item.opcoes.length > 0 ? (
               <span className="block pl-5 text-[var(--cor-tinta-suave)]">

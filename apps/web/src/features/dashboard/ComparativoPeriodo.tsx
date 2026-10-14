@@ -60,11 +60,13 @@ function Variacao({
     <div
       data-variacao={nome}
       data-direcao={direcao}
-      className="min-w-0 rounded-lg border border-borda bg-superficie-alta p-4"
+      className="min-w-0 rounded-[var(--raio-cartao)] border border-borda bg-superficie-alta p-4 shadow-[var(--sombra-larga)] min-[540px]:p-5"
     >
-      <dt className="text-sm text-tinta-suave">{rotulo}</dt>
+      <dt className="text-xs font-semibold tracking-wide text-tinta-suave uppercase">
+        {rotulo}
+      </dt>
       <dd
-        className={`mt-1 flex items-baseline gap-2 text-lg font-semibold ${TOM[direcao]}`}
+        className={`mt-2 flex items-baseline gap-2 font-display text-2xl font-semibold ${TOM[direcao]}`}
       >
         <span aria-hidden="true">{SETA[direcao]}</span>
         <span data-texto className="[overflow-wrap:anywhere]">
@@ -87,7 +89,7 @@ export function ComparativoPeriodo({
 
   return (
     <section aria-labelledby={idDoTitulo} data-comparativo>
-      <h2 id={idDoTitulo} className="text-lg font-semibold">
+      <h2 id={idDoTitulo} className="font-display text-lg font-semibold">
         Comparado com {anterior}
       </h2>
       <dl className="mt-3 grid grid-cols-1 gap-3 min-[540px]:grid-cols-2">

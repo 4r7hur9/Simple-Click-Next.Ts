@@ -85,20 +85,20 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
 
   if (codigos !== undefined) {
     return (
-      <div className="mt-8 space-y-4">
+      <div className="sc-totp">
         <Sucesso
           titulo="Aplicativo autenticador ativado."
           descricao="A partir de agora o login pede o código do aplicativo, e não mais o do e-mail."
         />
-        <section aria-labelledby="codigos-titulo" className="space-y-2">
-          <h2 id="codigos-titulo" className="text-xl font-semibold">
+        <section aria-labelledby="codigos-titulo" className="sc-totp__codigos">
+          <h2 id="codigos-titulo" className="sc-totp__codigos-titulo">
             Guarde seus códigos de recuperação
           </h2>
           <p>
             Eles aparecem só agora. Cada um serve uma vez, se você perder o
             celular.
           </p>
-          <ul className="grid grid-cols-2 gap-2 font-mono" data-codigos>
+          <ul data-codigos>
             {codigos.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -117,9 +117,9 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
       <Erro
         mensagem={preparo.erro}
         acao={
-          <button type="button" onClick={preparar}>
+          <Botao variante="secundaria" onClick={preparar}>
             Tentar de novo
-          </button>
+          </Botao>
         }
       />
     );
@@ -128,10 +128,10 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
   return (
     <form
       onSubmit={(evento) => void confirmar(evento)}
-      className="mt-8 space-y-4"
+      className="sc-totp"
       noValidate
     >
-      <ol className="list-decimal space-y-2 pl-5">
+      <ol className="sc-totp__passos">
         <li>
           Abra o aplicativo autenticador no celular e escolha adicionar conta.
         </li>
@@ -141,14 +141,13 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
         </li>
         <li>Informe o código de seis dígitos que o aplicativo mostrar.</li>
       </ol>
-      <p>
-        <span className="block text-sm">Chave para digitar</span>
-        <code className="text-lg" data-chave>
-          {emGrupos(preparo.segredo)}
-        </code>
+      <p className="sc-totp__chave">
+        <span className="sc-totp__chave-rotulo">Chave para digitar</span>
+        <code data-chave>{emGrupos(preparo.segredo)}</code>
       </p>
       <Campo
         id="codigo-aplicativo"
+        className="sc-conta__campo-codigo"
         name="codigo"
         inputMode="numeric"
         autoComplete="one-time-code"
@@ -160,7 +159,13 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
         desabilitado={enviando}
       />
       {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
-      <Botao type="submit" carregando={enviando} rotuloDeEspera="Ativando…">
+      <Botao
+        className="sc-conta__botao"
+        tamanho="grande"
+        type="submit"
+        carregando={enviando}
+        rotuloDeEspera="Ativando…"
+      >
         Ativar aplicativo
       </Botao>
     </form>

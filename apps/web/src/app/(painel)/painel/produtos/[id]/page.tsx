@@ -61,7 +61,7 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <Link
-          className="text-sm font-semibold text-[var(--cor-primaria)]"
+          className="text-sm font-semibold text-[var(--cor-primaria-texto)]"
           href="/painel/produtos"
         >
           ← Voltar aos produtos
@@ -78,7 +78,7 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <Link
-        className="text-sm font-semibold text-[var(--cor-primaria)]"
+        className="text-sm font-semibold text-[var(--cor-primaria-texto)]"
         href="/painel/produtos"
       >
         ← Voltar aos produtos
@@ -90,19 +90,19 @@ export default function PaginaDeEdicaoDeProduto({ params }: Props) {
       <EnvioDeImagem produtoId={produto.id} />
       <LinhasDePreco produtoId={produto.id} />
       <Link
-        className="sc-botao sc-botao--primario mt-8"
+        className="sc-botao sc-botao--primaria mt-8"
         href={`/painel/produtos/${produto.id}/opcoes`}
       >
         Configurar escolhas e adicionais
       </Link>
       <Link
-        className="sc-botao sc-botao--fantasma ml-3 mt-8"
+        className="sc-botao sc-botao--secundaria ml-3 mt-8"
         href={`/painel/produtos/${produto.id}/variacoes`}
       >
         Configurar variações
       </Link>
       <Link
-        className="sc-botao sc-botao--fantasma ml-3 mt-8"
+        className="sc-botao sc-botao--secundaria ml-3 mt-8"
         href={`/painel/produtos/${produto.id}/estoque`}
       >
         Ajustar estoque

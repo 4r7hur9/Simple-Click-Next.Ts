@@ -10,7 +10,7 @@
  * contagem ("lista com 12 itens") antes de percorrer, e é essa contagem que diz
  * se vale a pena ouvir tudo ou pular para a próxima seção.
  */
-import { Vazio } from "@simpleclick/ui";
+import { IconeAdicionar, Vazio } from "@simpleclick/ui";
 import Image from "next/image";
 
 import type { ProdutoNaTela, SecaoNaTela } from "../../lib/catalogo.ts";
@@ -60,7 +60,7 @@ export function CartaoDeProduto({
             height={ALTURA_DA_IMAGEM}
             priority={prioridade}
             loading={prioridade ? undefined : "lazy"}
-            sizes="(max-width: 720px) calc(100vw - 2rem), 320px"
+            sizes="(max-width: 540px) 50vw, 320px"
           />
         ) : (
           // Loja nova costuma não ter foto, e cartão sem moldura desalinha a
@@ -79,31 +79,41 @@ export function CartaoDeProduto({
         {produto.chamada ? (
           <span className="sc-vitrine__chamada">{produto.chamada}</span>
         ) : null}
-        <span className="sc-vitrine__precos">
-          {produto.precoAnterior ? (
-            <span className="sc-vitrine__preco-anterior">
-              {/*
-                O riscado sozinho é só estilo, e estilo não chega a quem ouve a
-                página. `De` e `por` contam a promoção em palavras.
-              */}
-              <span className="sc-so-leitor">De </span>
-              <s>{produto.precoAnterior}</s>
-            </span>
-          ) : null}
-          {produto.preco ? (
-            <span className="sc-vitrine__preco">
-              {produto.precoAnterior ? (
-                <span className="sc-so-leitor">por </span>
-              ) : null}
-              {produto.preco}
-            </span>
-          ) : (
-            // Preço que depende de variação não vira "a partir de" inventado
-            // aqui: o servidor mandou nulo porque não há um preço só.
-            <span className="sc-vitrine__preco sc-vitrine__preco--variavel">
-              Ver opções
-            </span>
-          )}
+        {/*
+          O pé junta o preço e o "+". O "+" é desenho, e não botão: o cartão
+          inteiro já é o link para o produto, e um segundo alvo dentro dele
+          faria o dedo errar um dos dois.
+        */}
+        <span className="sc-vitrine__pe">
+          <span className="sc-vitrine__precos">
+            {produto.precoAnterior ? (
+              <span className="sc-vitrine__preco-anterior">
+                {/*
+                  O riscado sozinho é só estilo, e estilo não chega a quem ouve a
+                  página. `De` e `por` contam a promoção em palavras.
+                */}
+                <span className="sc-so-leitor">De </span>
+                <s>{produto.precoAnterior}</s>
+              </span>
+            ) : null}
+            {produto.preco ? (
+              <span className="sc-vitrine__preco">
+                {produto.precoAnterior ? (
+                  <span className="sc-so-leitor">por </span>
+                ) : null}
+                {produto.preco}
+              </span>
+            ) : (
+              // Preço que depende de variação não vira "a partir de" inventado
+              // aqui: o servidor mandou nulo porque não há um preço só.
+              <span className="sc-vitrine__preco sc-vitrine__preco--variavel">
+                Ver opções
+              </span>
+            )}
+          </span>
+          <span className="sc-vitrine__mais" aria-hidden="true">
+            <IconeAdicionar />
+          </span>
         </span>
       </span>
     </a>

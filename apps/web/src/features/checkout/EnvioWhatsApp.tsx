@@ -72,7 +72,11 @@ export function EnvioWhatsApp({
   const naoAbriu = envio === "bloqueado" || envio === "endereco-invalido";
 
   return (
-    <Cartao titulo={`Pedido ${codigoDoPedido} registrado`} nivelDoTitulo={2}>
+    <Cartao
+      className="sc-envio"
+      titulo={`Pedido ${codigoDoPedido} registrado`}
+      nivelDoTitulo={2}
+    >
       {/* Vem ANTES do botão de propósito: a primeira coisa que o cliente
           precisa saber é que o pedido existe, aconteça o que acontecer com a
           mensagem. */}
@@ -81,7 +85,9 @@ export function EnvioWhatsApp({
         confirmar mais rápido.
       </p>
 
-      <Botao onClick={enviar}>Enviar pelo WhatsApp</Botao>
+      <Botao tamanho="grande" forma="pilula" onClick={enviar}>
+        Enviar pelo WhatsApp
+      </Botao>
 
       {envio === "abriu" ? (
         <Aviso tom="sucesso" titulo="Conversa aberta">

@@ -93,10 +93,10 @@ export function AvisoSonoro({
     <div className="flex flex-wrap items-center gap-3">
       <div role="status" aria-live="polite" aria-atomic="true">
         {quantidadeDeNovos > 0 ? (
-          <strong className="inline-flex items-center gap-2 rounded-full bg-[var(--cor-primaria)] px-3 py-1 text-sm text-white">
+          <strong className="inline-flex min-h-[var(--altura-toque)] items-center gap-2 rounded-full bg-[var(--cor-primaria)] px-4 text-sm text-[var(--cor-em-primaria)]">
             <span
               aria-hidden="true"
-              className="h-2 w-2 animate-pulse rounded-full bg-white"
+              className="h-2.5 w-2.5 animate-pulse rounded-full bg-current motion-reduce:animate-none"
             />
             {quantidadeDeNovos === 1
               ? "1 pedido novo"
@@ -106,7 +106,7 @@ export function AvisoSonoro({
       </div>
       {quantidadeDeNovos > 0 ? (
         <button
-          className="sc-botao sc-botao--secundario"
+          className="sc-botao sc-botao--secundaria"
           type="button"
           onClick={aoMarcarComoVistos}
         >
@@ -116,7 +116,7 @@ export function AvisoSonoro({
       {/* Rótulo fixo com estado em `aria-pressed`: é assim que o leitor de
           tela entende um botão de ligar e desligar. */}
       <button
-        className="sc-botao sc-botao--fantasma"
+        className="sc-botao sc-botao--secundaria"
         type="button"
         aria-pressed={silenciado}
         onClick={aoAlternarSom}

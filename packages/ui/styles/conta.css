@@ -1,127 +1,66 @@
 /*
- * Telas de acesso do SimpleClick.
+ * Telas de acesso e da conta do SimpleClick.
  *
- * A composição toma como referência o login-18: uma área de promessa visual
- * e uma área de ação com um cartão único. A forma foi adaptada ao nosso tema,
- * aos componentes acessíveis e ao conteúdo de autenticação que já existe.
+ * Acesso (entrar, cadastrar, código, senha): um cartão único com o painel da
+ * marca ao lado do formulário, que empilha no celular — o painel vira uma
+ * faixa curta com a marca, e o formulário chega logo na primeira tela. Nada
+ * se move sozinho: o painel é cor chapada e um traço da marca, sem imagem.
+ *
+ * Conta (pedidos, endereços, segurança): uma coluna com a navegação entre as
+ * páginas no topo e os blocos em cartões.
+ *
+ * Mobile primeiro: as regras soltas valem para 344px; as de `min-width`
+ * abrem o espaço quando ele existe. Só tokens do tema — nenhuma cor escrita.
  */
+
+/* --- acesso: página e cartão --------------------------------------------- */
 
 .sc-conta {
   display: grid;
   min-block-size: 100dvh;
-  place-items: center;
-  padding: var(--espaco-5);
-  background:
-    radial-gradient(
-      circle at 12% 12%,
-      color-mix(in oklab, var(--cor-primaria-suave) 70%, transparent),
-      transparent 30rem
-    ),
-    var(--cor-fundo);
+  align-items: start;
+  justify-items: center;
+  padding: var(--espaco-3);
+  background-color: var(--cor-superficie);
 }
 
 .sc-conta__cartao {
   display: grid;
-  inline-size: min(100%, 68rem);
-  min-block-size: min(40rem, calc(100dvh - 3rem));
+  inline-size: min(100%, 64rem);
   overflow: hidden;
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-3);
-  background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-3);
+  border-radius: var(--raio-janela);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
 }
 
-.sc-conta__hero {
+/* --- acesso: painel da marca --------------------------------------------- */
+
+.sc-conta__painel {
   position: relative;
   display: flex;
-  min-block-size: 20rem;
   flex-direction: column;
-  justify-content: space-between;
+  gap: var(--espaco-5);
   overflow: hidden;
-  padding: clamp(var(--espaco-5), 5vw, var(--espaco-7));
+  padding: var(--espaco-4) var(--espaco-5);
   isolation: isolate;
-  background: var(--marca-grafite);
+  background-color: var(--marca-grafite);
   color: var(--marca-branco);
 }
 
-.sc-conta__hero::before,
-.sc-conta__hero::after {
+/* O traço da marca: um arco em verde-limão no canto. Estático e decorativo. */
+.sc-conta__painel::after {
   position: absolute;
   z-index: -1;
-  display: block;
+  inline-size: 14rem;
+  block-size: 14rem;
+  inset-block-start: -9rem;
+  inset-inline-end: -6rem;
+  border: 2.5rem solid var(--marca-verde-click);
   border-radius: var(--raio-completo);
   content: "";
+  opacity: 0.9;
   pointer-events: none;
-}
-
-.sc-conta__hero::before {
-  inline-size: 22rem;
-  block-size: 22rem;
-  inset-block-start: -9rem;
-  inset-inline-end: -8rem;
-  background: color-mix(in oklab, var(--marca-verde-click) 28%, transparent);
-  filter: blur(1px);
-  opacity: 0.8;
-}
-
-.sc-conta__hero::after {
-  inline-size: 18rem;
-  block-size: 18rem;
-  inset-block-end: -10rem;
-  inset-inline-start: -7rem;
-  background: color-mix(in oklab, var(--marca-verde-digital) 22%, transparent);
-}
-
-.sc-conta__decoracao {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.sc-conta__bolha {
-  position: absolute;
-  display: block;
-  border: 1px solid color-mix(in oklab, var(--marca-branco) 24%, transparent);
-  border-radius: 38% 62% 58% 42%;
-  transform: rotate(26deg);
-}
-
-.sc-conta__bolha--um {
-  inline-size: 9rem;
-  block-size: 9rem;
-  inset-block-start: 18%;
-  inset-inline-end: 13%;
-}
-
-.sc-conta__bolha--dois {
-  inline-size: 4rem;
-  block-size: 4rem;
-  inset-block-start: 38%;
-  inset-inline-end: 5%;
-  border-radius: 50%;
-}
-
-.sc-conta__bolha--tres {
-  inline-size: 5.5rem;
-  block-size: 5.5rem;
-  inset-block-end: 16%;
-  inset-inline-start: 18%;
-  border-radius: 62% 38% 40% 60%;
-}
-
-.sc-conta__brilho {
-  position: absolute;
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  inset-block-start: 30%;
-  inset-inline-end: 25%;
-  border-radius: var(--raio-completo);
-  background: var(--marca-verde-click);
-  box-shadow:
-    0 0 0 0.6rem color-mix(in oklab, var(--marca-verde-click) 14%, transparent),
-    0 0 2rem var(--marca-verde-click);
 }
 
 .sc-conta__marca {
@@ -129,34 +68,128 @@
   align-items: center;
   align-self: flex-start;
   gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
   color: var(--marca-branco);
   font-family: var(--fonte-titulo);
   font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   text-decoration: none;
+}
+
+.sc-conta__marca:focus-visible {
+  outline-color: var(--marca-verde-click);
 }
 
 .sc-conta__marca-simbolo {
   display: grid;
-  inline-size: 1.9rem;
-  block-size: 1.9rem;
+  inline-size: 2rem;
+  block-size: 2rem;
   place-items: center;
-  border-radius: 0.55rem;
-  background: var(--marca-verde-click);
+  border-radius: var(--raio-botao);
+  background-color: var(--marca-verde-click);
   color: var(--marca-preto-tecnologico);
   font-size: var(--texto-base);
   line-height: 1;
 }
 
-.sc-conta__hero-conteudo {
-  display: grid;
-  max-inline-size: 30rem;
-  gap: var(--espaco-3);
-  margin-block: var(--espaco-7);
+/* No celular a promessa sai: a pessoa veio entrar, e o formulário sobe. */
+.sc-conta__promessa,
+.sc-conta__painel-rodape {
+  display: none;
 }
 
-.sc-conta__hero-etiqueta,
+.sc-conta__promessa {
+  gap: var(--espaco-3);
+  max-inline-size: 26rem;
+}
+
+.sc-conta__promessa-etiqueta {
+  margin: 0;
+  color: var(--marca-verde-click);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sc-conta__promessa-titulo {
+  margin: 0;
+  color: var(--marca-branco);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.sc-conta__promessa-texto {
+  margin: 0;
+  color: var(--marca-nevoa);
+  font-size: var(--texto-base);
+}
+
+.sc-conta__beneficios {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: var(--espaco-2) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--marca-nevoa);
+  font-size: var(--texto-sm);
+}
+
+.sc-conta__beneficios li {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.sc-conta__beneficio-icone {
+  display: grid;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--raio-completo);
+  background-color: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+}
+
+.sc-conta__beneficio-icone .lucide {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.sc-conta__painel-rodape {
+  margin: 0;
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-xs);
+}
+
+/* --- acesso: formulário -------------------------------------------------- */
+
+.sc-conta__formulario {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--espaco-5) var(--espaco-4) var(--espaco-6);
+}
+
+.sc-conta__miolo {
+  display: grid;
+  inline-size: 100%;
+  max-inline-size: 26rem;
+  margin-inline: auto;
+}
+
+.sc-conta__cabecalho {
+  display: grid;
+  gap: var(--espaco-2);
+  margin-block-end: var(--espaco-5);
+}
+
 .sc-conta__etiqueta {
   margin: 0;
   color: var(--cor-primaria-texto);
@@ -166,73 +199,17 @@
   text-transform: uppercase;
 }
 
-.sc-conta__hero-etiqueta {
-  color: var(--marca-verde-click);
+.sc-conta__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  line-height: var(--altura-linha-apertada);
 }
 
-.sc-conta__hero h1 {
-  max-inline-size: 12ch;
-  color: var(--marca-branco);
-  font-size: clamp(2.2rem, 4vw, 4rem);
-  line-height: 1.02;
-}
-
-.sc-conta__hero-conteudo > p:not(.sc-conta__hero-etiqueta) {
-  max-inline-size: 32rem;
-  color: color-mix(in oklab, var(--marca-branco) 76%, transparent);
-  font-size: var(--texto-lg);
-}
-
-.sc-conta__beneficios {
-  display: grid;
-  gap: var(--espaco-2);
-  margin: var(--espaco-3) 0 0;
-  padding: 0;
-  list-style: none;
-  color: color-mix(in oklab, var(--marca-branco) 88%, transparent);
-  font-size: var(--texto-sm);
-}
-
-.sc-conta__beneficios li {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-2);
-}
-
-.sc-conta__beneficios li::before {
-  inline-size: 0.45rem;
-  block-size: 0.45rem;
-  flex: 0 0 auto;
-  border-radius: var(--raio-completo);
-  background: var(--marca-verde-click);
-  content: "";
-}
-
-.sc-conta__hero-rodape {
-  color: color-mix(in oklab, var(--marca-branco) 56%, transparent);
-  font-size: var(--texto-xs);
-}
-
-.sc-conta__formulario {
-  display: flex;
-  min-inline-size: 0;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(var(--espaco-5), 6vw, var(--espaco-8));
-}
-
-.sc-conta__cabecalho {
-  display: grid;
-  gap: var(--espaco-2);
-  margin-block-end: var(--espaco-6);
-}
-
-.sc-conta__cabecalho h2 {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-}
-
-.sc-conta__cabecalho > p:last-child {
-  max-inline-size: 31rem;
+.sc-conta__descricao {
+  margin: 0;
   color: var(--cor-tinta-suave);
 }
 
@@ -245,89 +222,570 @@
 .sc-conta__campos {
   display: grid;
   gap: var(--espaco-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .sc-conta__linha-de-apoio {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--espaco-3);
+  gap: var(--espaco-2) var(--espaco-3);
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
 }
 
-.sc-conta__linha-de-apoio a {
-  font-size: var(--texto-sm);
+.sc-conta__protegida {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.sc-conta__protegida .lucide {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.sc-conta__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
 }
 
 .sc-conta__botao {
   inline-size: 100%;
-  min-block-size: 3.25rem;
-  border-radius: var(--raio-2);
-  font-size: var(--texto-base);
+}
+
+/* O código de seis dígitos lido de relance: fonte de largura fixa e folga. */
+.sc-conta__campo-codigo .sc-campo__controle {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-xl);
+  letter-spacing: 0.3em;
+}
+
+.sc-conta__campo-codigo--longo .sc-campo__controle {
+  font-size: var(--texto-lg);
+  letter-spacing: 0.08em;
 }
 
 .sc-conta__rodape-formulario {
-  margin-block-start: var(--espaco-6);
+  margin: var(--espaco-5) 0 0;
+  padding-block-start: var(--espaco-4);
+  border-block-start: 1px solid var(--cor-borda);
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
   text-align: center;
 }
 
-@media (min-width: 700px) {
-  .sc-conta__cartao {
-    grid-template-columns: minmax(18rem, 0.92fr) minmax(22rem, 1.08fr);
-  }
-
-  .sc-conta__hero {
-    min-block-size: 100%;
-  }
+.sc-conta__rodape-formulario a,
+.sc-conta__link {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
-@media (max-width: 699px) {
+.sc-conta__rodape-formulario a {
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
+}
+
+/* Botão que se comporta como link: troca de caminho dentro da mesma tela. */
+.sc-conta__alternar {
+  min-block-size: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-botao);
+  background: none;
+  color: var(--cor-primaria-texto);
+  font: inherit;
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.sc-conta__alternar:hover {
+  background-color: var(--cor-superficie);
+}
+
+/* --- acesso: escolher a loja (cartões) ----------------------------------- */
+
+.sc-conta__lojas {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-conta__loja {
+  box-shadow: none;
+}
+
+.sc-conta__loja--atual {
+  border-color: var(--cor-primaria-texto);
+  box-shadow: inset 0 0 0 1px var(--cor-primaria-texto);
+}
+
+.sc-conta__loja .sc-cartao__icone {
+  background-color: var(--marca-grafite);
+  color: var(--marca-verde-click);
+}
+
+.sc-conta__loja-endereco {
+  font-family: var(--fonte-mono);
+  overflow-wrap: anywhere;
+}
+
+.sc-conta__loja-situacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-conta__espera {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+/* --- conta: página com navegação ----------------------------------------- */
+
+.sc-minha-conta {
+  min-block-size: 100dvh;
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-7);
+  background-color: var(--cor-superficie);
+}
+
+.sc-minha-conta__miolo {
+  display: grid;
+  gap: var(--espaco-5);
+  inline-size: min(100%, 48rem);
+  margin-inline: auto;
+}
+
+.sc-minha-conta__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background-color: var(--marca-grafite);
+}
+
+.sc-minha-conta__nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-minha-conta__nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-3);
+  border-radius: var(--raio-completo);
+  color: var(--marca-nevoa);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
+}
+
+.sc-minha-conta__nav a:hover {
+  color: var(--marca-branco);
+  text-decoration: underline;
+}
+
+.sc-minha-conta__nav a:focus-visible {
+  outline-color: var(--marca-verde-click);
+}
+
+.sc-minha-conta__nav a[aria-current="page"] {
+  background-color: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+}
+
+.sc-minha-conta__cabecalho {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.sc-minha-conta__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-minha-conta__descricao {
+  margin: 0;
+  max-inline-size: 40rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-minha-conta__blocos {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-minha-conta__acao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+/* Botão-link do sistema: o `<a>` com a cara do botão, sem sublinhado. */
+.sc-minha-conta__acao a.sc-botao {
+  text-decoration: none;
+}
+
+/* --- conta: pedidos ------------------------------------------------------ */
+
+.sc-pedidos {
+  display: grid;
+  gap: var(--espaco-6);
+}
+
+.sc-pedidos__loja {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-pedidos__loja-icone {
+  display: grid;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--raio-botao);
+  background-color: var(--marca-grafite);
+  color: var(--marca-verde-click);
+}
+
+.sc-pedidos__lista {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: var(--espaco-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-pedidos__pedido {
+  display: grid;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-pedidos__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.sc-pedidos__numero {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+.sc-pedidos__resumo {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-pedidos__total {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-pedidos__ver {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* --- conta: endereços ---------------------------------------------------- */
+
+.sc-enderecos {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-enderecos__lista {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-endereco {
+  display: grid;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-endereco--padrao {
+  border-color: var(--cor-primaria-texto);
+  box-shadow: inset 0 0 0 1px var(--cor-primaria-texto);
+}
+
+.sc-endereco__nome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+/* O selo do padrão tem uma frase inteira: no celular ele precisa quebrar. */
+.sc-endereco__nome .sc-selo {
+  font-family: var(--fonte-base);
+  white-space: normal;
+}
+
+.sc-endereco__linha {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-endereco__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-enderecos__novo {
+  display: grid;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-enderecos__grade {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-enderecos__marcar {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-block-size: var(--altura-toque-grande);
+  cursor: pointer;
+}
+
+.sc-enderecos__marcar input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: 0 0 auto;
+  accent-color: var(--cor-primaria-texto);
+}
+
+/* --- conta: aplicativo autenticador -------------------------------------- */
+
+.sc-totp {
+  display: grid;
+  gap: var(--espaco-5);
+}
+
+.sc-totp__passos {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.sc-totp__passos li {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  align-items: start;
+  gap: var(--espaco-3);
+  counter-increment: passo;
+}
+
+.sc-totp__passos li::before {
+  display: grid;
+  inline-size: 2rem;
+  block-size: 2rem;
+  place-items: center;
+  border-radius: var(--raio-completo);
+  background-color: var(--marca-grafite);
+  color: var(--marca-verde-click);
+  content: counter(passo);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+}
+
+.sc-totp__passos a {
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.sc-totp__chave {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding: var(--espaco-4);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie);
+}
+
+.sc-totp__chave-rotulo {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-totp__chave code {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.sc-totp__codigos {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.sc-totp__codigos-titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+}
+
+.sc-totp__codigos p {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-totp__codigos ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--fonte-mono);
+}
+
+.sc-totp__codigos li {
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-superficie);
+  text-align: center;
+}
+
+/* --- telas maiores ------------------------------------------------------- */
+
+@media (min-width: 30rem) {
   .sc-conta {
-    align-items: start;
-    padding: var(--espaco-2);
-  }
-
-  .sc-conta__cartao {
-    min-block-size: auto;
-  }
-
-  .sc-conta__hero {
-    min-block-size: 15rem;
     padding: var(--espaco-5);
-  }
-
-  .sc-conta__hero-conteudo {
-    margin-block: var(--espaco-6) var(--espaco-4);
-  }
-
-  .sc-conta__hero h1 {
-    max-inline-size: 16ch;
-    font-size: clamp(2rem, 10vw, 2.8rem);
-  }
-
-  .sc-conta__beneficios {
-    display: none;
   }
 
   .sc-conta__formulario {
     padding: var(--espaco-6) var(--espaco-5) var(--espaco-7);
   }
-}
 
-@media (max-width: 380px) {
-  .sc-conta__linha-de-apoio {
-    align-items: flex-start;
-    flex-direction: column;
+  .sc-minha-conta {
+    padding: var(--espaco-5) var(--espaco-5) var(--espaco-8);
+  }
+
+  .sc-enderecos__grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sc-minha-conta__titulo {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sc-conta__hero::before,
-  .sc-conta__hero::after,
-  .sc-conta__bolha {
-    transform: none;
+@media (min-width: 52rem) {
+  .sc-conta {
+    align-items: center;
+  }
+
+  .sc-conta__cartao {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    min-block-size: min(40rem, calc(100dvh - 3rem));
+  }
+
+  .sc-conta__painel {
+    justify-content: space-between;
+    padding: var(--espaco-6);
+  }
+
+  .sc-conta__painel::after {
+    inline-size: 22rem;
+    block-size: 22rem;
+    inset-block-start: auto;
+    inset-block-end: -11rem;
+    inset-inline-end: -9rem;
+    border-width: 3.5rem;
+  }
+
+  .sc-conta__promessa {
+    display: grid;
+  }
+
+  .sc-conta__painel-rodape {
+    display: block;
+  }
+
+  .sc-conta__formulario {
+    padding: var(--espaco-7) var(--espaco-6);
+  }
+
+  .sc-conta__titulo {
+    font-size: clamp(1.75rem, 2.6vw, 2.25rem);
   }
 }

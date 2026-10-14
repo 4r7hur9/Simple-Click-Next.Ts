@@ -243,7 +243,7 @@ export function CamposDeEspecificacao({
   const secaoDosGuardados =
     guardados.length === 0 ? null : (
       <section
-        className="rounded-xl border border-dashed border-[var(--cor-borda)] p-4 sm:col-span-2"
+        className="rounded-[var(--raio-botao)] border border-dashed border-[var(--cor-borda)] p-4 sm:col-span-2"
         aria-labelledby="valores-guardados"
       >
         <h3 id="valores-guardados" className="text-sm font-semibold">
@@ -269,7 +269,7 @@ export function CamposDeEspecificacao({
                   <span className="ml-2">{pendente.aviso}</span>
                   <button
                     type="button"
-                    className="sc-botao sc-botao--primario ml-2"
+                    className="sc-botao sc-botao--primaria ml-2"
                     onClick={() =>
                       void descartar(guardado.especificacaoId, true)
                     }
@@ -278,7 +278,7 @@ export function CamposDeEspecificacao({
                   </button>
                   <button
                     type="button"
-                    className="sc-botao sc-botao--fantasma ml-2"
+                    className="sc-botao sc-botao--secundaria ml-2"
                     onClick={() => setPendente(null)}
                   >
                     Manter
@@ -287,7 +287,7 @@ export function CamposDeEspecificacao({
               ) : (
                 <button
                   type="button"
-                  className="sc-botao sc-botao--fantasma ml-2"
+                  className="sc-botao sc-botao--secundaria ml-2"
                   aria-label={`Descartar ${guardado.nome}`}
                   onClick={() =>
                     void descartar(guardado.especificacaoId, false)
@@ -314,7 +314,7 @@ export function CamposDeEspecificacao({
   return (
     <>
       {aviso}
-      <fieldset className="grid gap-4 rounded-xl border border-[var(--cor-borda)] p-4 sm:col-span-2 sm:grid-cols-2">
+      <fieldset className="grid gap-4 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4 sm:col-span-2 sm:grid-cols-2">
         <legend className="px-1 text-sm font-semibold">
           Especificações da categoria
         </legend>
@@ -326,7 +326,7 @@ export function CamposDeEspecificacao({
           const rotulo = `${especificacao.nome}${especificacao.unidade ? ` (${especificacao.unidade})` : ""}${especificacao.obrigatoria ? " *" : ""}`;
           const comuns = {
             id: idDoCampo,
-            className: "sc-campo mt-2 w-full",
+            className: "sc-campo__controle mt-2 w-full",
             required: especificacao.obrigatoria,
             "aria-invalid": erro === undefined ? undefined : true,
             "aria-describedby": erro === undefined ? undefined : idDoErro,

@@ -32,7 +32,9 @@ import {
 } from "../../../tests/apoio-metricas.ts";
 import {
   enderecoDoPeriodo,
+  nomeDoAtalho,
   periodoDoEndereco,
+  type AtalhoDoPeriodo,
   type ConsultaDoPeriodo,
 } from "../../lib/metricas.ts";
 import { MetricasPorPeriodo } from "./MetricasPorPeriodo.tsx";
@@ -114,8 +116,38 @@ async function abrirPagina(): Promise<HTMLElement> {
   return tela;
 }
 
-function atalho(tela: HTMLElement, nome: string): HTMLButtonElement {
-  return exigir<HTMLButtonElement>(tela, `[data-atalho="${nome}"]`);
+/** O atalho dentro do menu de período, achado pelo nome que a tela escreve. */
+function atalho(tela: HTMLElement, nome: AtalhoDoPeriodo): HTMLButtonElement {
+  const itens = [
+    ...tela.querySelectorAll<HTMLButtonElement>(
+      "[data-seletor-de-periodo] [popover] button",
+    ),
+  ];
+  const item = itens.find((botao) =>
+    botao.textContent?.endsWith(nomeDoAtalho(nome)),
+  );
+  if (item === undefined) throw new Error(`o menu não tem o atalho ${nome}`);
+  return item;
+}
+
+/**
+ * O atalho em vigor, como a tela o mostra: o botão do menu diz o nome dele,
+ * e só ele, dentro do menu, leva a marca "em vigor" para o leitor de tela.
+ */
+function emVigor(tela: HTMLElement, nome: AtalhoDoPeriodo): void {
+  expect(
+    exigir(tela, "[data-seletor-de-periodo]").getAttribute("data-vigente"),
+  ).toBe(nome);
+  expect(
+    exigir(tela, "[data-seletor-de-periodo] button[popovertarget]")
+      .textContent,
+  ).toBe(`Período: ${nomeDoAtalho(nome)}`);
+  const marcados = [
+    ...tela.querySelectorAll("[data-seletor-de-periodo] [data-em-vigor]"),
+  ].map((marca) => marca.closest("button")?.textContent);
+  expect(marcados).toEqual(
+    nome === "personalizado" ? [] : [`Em vigor: ${nomeDoAtalho(nome)}`],
+  );
 }
 
 async function tocar(elemento: HTMLElement): Promise<void> {
@@ -175,6 +207,7 @@ describe("o período escolhido fica no endereço da página (AC-806)", () => {
     expect(window.location.search).toBe(
       "?periodo=personalizado&de=2026-08-01&ate=2026-08-15",
     );
+    emVigor(tela, "personalizado");
     expect(periodoNaTela(tela)).toBe(
       "Intervalo escolhido: 01/08/2026 a 15/08/2026",
     );
@@ -202,7 +235,7 @@ describe("o período escolhido fica no endereço da página (AC-806)", () => {
     const tela = await abrirPagina();
 
     expect(chamadas[0]?.consulta.get("periodo")).toBe("7d");
-    expect(atalho(tela, "7d").getAttribute("aria-pressed")).toBe("true");
+    emVigor(tela, "7d");
     expect(periodoNaTela(tela)).toBe("Últimos 7 dias: 21/09/2026 a 27/09/2026");
     expect(window.location.search).toBe("?periodo=7d");
   });
@@ -214,15 +247,14 @@ describe("os atalhos recalculam tudo e mostram o período (AC-803)", () => {
     const tela = await abrirPagina();
     expect(periodoNaTela(tela)).toBe("Hoje: 27/09/2026");
     expect(valorDaMetrica(tela, "vendido")).toBe("R$ 500,00");
-    expect(atalho(tela, "hoje").getAttribute("aria-pressed")).toBe("true");
+    emVigor(tela, "hoje");
 
     await tocar(atalho(tela, "3d"));
     expect(chamadas.at(-1)?.consulta.get("periodo")).toBe("3d");
     expect(periodoNaTela(tela)).toBe("Últimos 3 dias: 25/09/2026 a 27/09/2026");
     expect(valorDaMetrica(tela, "vendido")).toBe("R$ 1.500,00");
     expect(valorDaMetrica(tela, "pedidos")).toBe("24");
-    expect(atalho(tela, "3d").getAttribute("aria-pressed")).toBe("true");
-    expect(atalho(tela, "hoje").getAttribute("aria-pressed")).toBe("false");
+    emVigor(tela, "3d");
     expect(window.location.search).toBe("?periodo=3d");
 
     await tocar(atalho(tela, "7d"));
@@ -270,7 +302,7 @@ describe("os atalhos recalculam tudo e mostram o período (AC-803)", () => {
     await assentar();
 
     expect(periodoNaTela(tela)).toBe("Últimos 7 dias: 21/09/2026 a 27/09/2026");
-    expect(atalho(tela, "7d").getAttribute("aria-pressed")).toBe("true");
+    emVigor(tela, "7d");
     expect(window.location.search).toBe("?periodo=7d");
   });
 });
@@ -295,7 +327,7 @@ describe("intervalo inválido é recusado com explicação (AC-805)", () => {
 
     expect(periodoNaTela(tela)).toBe("Últimos 7 dias: 21/09/2026 a 27/09/2026");
     expect(valorDaMetrica(tela, "vendido")).toBe("R$ 3.500,00");
-    expect(atalho(tela, "7d").getAttribute("aria-pressed")).toBe("true");
+    emVigor(tela, "7d");
     expect(window.location.search).toBe("?periodo=7d");
     // O que foi digitado continua lá, para corrigir só o dia errado.
     expect(exigir<HTMLInputElement>(tela, 'input[name="de"]').value).toBe(

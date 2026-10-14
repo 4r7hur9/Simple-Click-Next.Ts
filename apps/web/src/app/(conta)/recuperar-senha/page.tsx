@@ -46,27 +46,29 @@ export default async function PaginaDeRecuperacaoDeSenha({
       descricao="Informe seu e-mail e enviaremos as instruções para continuar."
       etiqueta="Recuperar acesso"
     >
-      {aviso ? <Aviso tom={aviso.tom}>{aviso.texto}</Aviso> : null}
-      <form
-        action="/api/auth/recuperar-senha"
-        method="post"
-        className="sc-conta__form"
-      >
-        <div className="sc-conta__campos">
-          <Campo
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            rotulo="E-mail"
-            obrigatorio
-            required
-          />
-        </div>
-        <Botao className="sc-conta__botao" type="submit">
-          Enviar instruções
-        </Botao>
-      </form>
+      <div className="sc-conta__form">
+        {aviso ? <Aviso tom={aviso.tom}>{aviso.texto}</Aviso> : null}
+        <form
+          action="/api/auth/recuperar-senha"
+          method="post"
+          className="sc-conta__form"
+        >
+          <div className="sc-conta__campos">
+            <Campo
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              rotulo="E-mail"
+              obrigatorio
+              required
+            />
+          </div>
+          <Botao className="sc-conta__botao" tamanho="grande" type="submit">
+            Enviar instruções
+          </Botao>
+        </form>
+      </div>
       <p className="sc-conta__rodape-formulario">
         Lembrou a senha? <a href="/entrar">Entrar</a>
       </p>

@@ -20,7 +20,15 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { Botao, Carregando, Erro, Vazio } from "@simpleclick/ui";
+import {
+  Botao,
+  Carregando,
+  Erro,
+  Selo,
+  Tabela,
+  Vazio,
+  type ColunaDaTabela,
+} from "@simpleclick/ui";
 
 import {
   buscarClientes,
@@ -46,50 +54,62 @@ export interface ListaClientesProps {
   readonly aoCadastrar?: ((ficha: FichaDoCliente) => void) | undefined;
 }
 
-function LinhaDoCliente({ cliente }: { readonly cliente: ClienteDaLista }) {
-  return (
-    <li
-      className="rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4 shadow-[var(--sombra-baixa)]"
-      data-cliente={cliente.id}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link
-            className="text-lg font-semibold text-[var(--cor-primaria)] underline-offset-4 hover:underline"
-            href={`/painel/clientes/${cliente.id}`}
-          >
-            {cliente.nome}
-          </Link>
-          <p className="text-sm text-[var(--cor-tinta-suave)]">
-            {escreverTelefone(cliente.telefone)}
-            {cliente.temConta ? (
-              <span className="ml-2 rounded-full bg-[var(--cor-papel)] px-2 py-0.5 text-xs font-medium">
-                Tem conta
-              </span>
-            ) : null}
-          </p>
-        </div>
-        <strong aria-label="Total gasto">
-          {escreverDinheiro(cliente.totalGastoCentavos)}
-        </strong>
-      </div>
-      <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <dt className="text-[var(--cor-tinta-suave)]">Pedidos</dt>
-          <dd className="font-medium">{cliente.totalDePedidos}</dd>
-        </div>
-        <div>
-          <dt className="text-[var(--cor-tinta-suave)]">Último pedido</dt>
-          <dd className="font-medium">
-            {cliente.ultimoPedidoEm === null
-              ? "Nunca pediu"
-              : escreverData(cliente.ultimoPedidoEm)}
-          </dd>
-        </div>
-      </dl>
-    </li>
-  );
-}
+/** As colunas: o que o dono precisa para atender, na ordem em que lê. */
+const COLUNAS: readonly ColunaDaTabela<ClienteDaLista>[] = [
+  {
+    chave: "nome",
+    titulo: "Cliente",
+    valorParaOrdenar: (cliente) => cliente.nome,
+    celula: (cliente) => (
+      <span className="inline-flex flex-wrap items-center gap-2">
+        <Link
+          className="font-semibold text-[var(--cor-tinta)] no-underline hover:underline"
+          href={`/painel/clientes/${cliente.id}`}
+          data-cliente={cliente.id}
+        >
+          {cliente.nome}
+        </Link>
+        {cliente.temConta ? (
+          <Selo tom="info" semBolinha>
+            Tem conta
+          </Selo>
+        ) : null}
+      </span>
+    ),
+  },
+  {
+    chave: "telefone",
+    titulo: "Telefone",
+    celula: (cliente) => escreverTelefone(cliente.telefone),
+  },
+  {
+    chave: "pedidos",
+    titulo: "Pedidos",
+    alinhamento: "fim",
+    valorParaOrdenar: (cliente) => cliente.totalDePedidos,
+    celula: (cliente) => cliente.totalDePedidos,
+  },
+  {
+    chave: "total",
+    titulo: "Total gasto",
+    alinhamento: "fim",
+    valorParaOrdenar: (cliente) => cliente.totalGastoCentavos,
+    celula: (cliente) => (
+      <strong>{escreverDinheiro(cliente.totalGastoCentavos)}</strong>
+    ),
+  },
+  {
+    chave: "ultimo",
+    titulo: "Último pedido",
+    valorParaOrdenar: (cliente) => cliente.ultimoPedidoEm,
+    celula: (cliente) =>
+      cliente.ultimoPedidoEm === null ? (
+        <span className="text-[var(--cor-tinta-suave)]">Nunca pediu</span>
+      ) : (
+        escreverData(cliente.ultimoPedidoEm)
+      ),
+  },
+];
 
 export function ListaClientes({
   buscar = fetch,
@@ -211,11 +231,14 @@ export function ListaClientes({
             />
           )
         ) : (
-          <ul className="grid gap-3" aria-label="Clientes">
-            {estado.clientes.map((cliente) => (
-              <LinhaDoCliente key={cliente.id} cliente={cliente} />
-            ))}
-          </ul>
+          <Tabela
+            legenda="Clientes"
+            legendaEscondida
+            colunas={COLUNAS}
+            linhas={estado.clientes}
+            chaveDaLinha={(cliente) => cliente.id}
+            noCelular="cartoes"
+          />
         )}
       </div>
     </section>

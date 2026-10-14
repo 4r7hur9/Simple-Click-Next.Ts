@@ -214,7 +214,7 @@ function ItemEmMontagem({
   return (
     <section
       aria-label={`Montar ${produto.nome}`}
-      className="grid gap-4 rounded-[var(--raio-grande)] border-2 border-[var(--cor-primaria)] bg-[var(--cor-superficie)] p-4"
+      className="grid gap-4 rounded-[var(--raio-cartao)] border-2 border-[var(--cor-primaria)] bg-[var(--cor-superficie-alta)] p-4"
     >
       <h3 className="text-xl font-semibold">{produto.nome}</h3>
 

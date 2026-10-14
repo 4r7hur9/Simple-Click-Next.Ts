@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { IconeConfirmar } from "@simpleclick/ui";
 
 interface PropriedadesDaCasca {
   readonly children: ReactNode;
@@ -9,13 +10,19 @@ interface PropriedadesDaCasca {
   readonly etiqueta?: string;
 }
 
+const BENEFICIOS = [
+  "Catálogo pronto para compartilhar",
+  "Pedidos organizados em um só lugar",
+  "Mais tempo para o que importa",
+] as const;
+
 /**
  * Moldura compartilhada das telas de acesso.
  *
- * A referência visual escolhida pelo produto usa uma divisão forte entre
- * promessa e ação. Aqui ela é traduzida para a identidade do SimpleClick e
- * continua sendo HTML real: o painel decorativo não carrega informação que a
- * pessoa precise para entrar.
+ * Um cartão só, com o painel da marca ao lado do formulário; no celular os
+ * dois empilham e o painel encolhe para a faixa da marca, para o formulário
+ * aparecer sem rolar. O título da tela é o `h1`: é ele que diz onde a pessoa
+ * está. O painel não carrega informação que a pessoa precise para entrar.
  */
 export function CascaDaConta({
   children,
@@ -26,15 +33,8 @@ export function CascaDaConta({
 }: PropriedadesDaCasca) {
   return (
     <main className="sc-conta">
-      <section className="sc-conta__cartao">
-        <aside className="sc-conta__hero" aria-label="Sobre o SimpleClick">
-          <div className="sc-conta__decoracao" aria-hidden="true">
-            <span className="sc-conta__bolha sc-conta__bolha--um" />
-            <span className="sc-conta__bolha sc-conta__bolha--dois" />
-            <span className="sc-conta__bolha sc-conta__bolha--tres" />
-            <span className="sc-conta__brilho" />
-          </div>
-
+      <div className="sc-conta__cartao">
+        <aside className="sc-conta__painel" aria-label="Sobre o SimpleClick">
           <Link
             className="sc-conta__marca"
             href="/"
@@ -46,35 +46,50 @@ export function CascaDaConta({
             <span>simpleclick</span>
           </Link>
 
-          <div className="sc-conta__hero-conteudo">
-            <p className="sc-conta__hero-etiqueta">Seu negócio em movimento</p>
-            <h1>Venda com um link simples.</h1>
-            <p>
+          <div className="sc-conta__promessa">
+            <p className="sc-conta__promessa-etiqueta">
+              Seu negócio em movimento
+            </p>
+            <p className="sc-conta__promessa-titulo">
+              Venda com um link simples.
+            </p>
+            <p className="sc-conta__promessa-texto">
               Uma vitrine bonita para mostrar o que você faz e uma operação leve
               para cuidar de cada pedido.
             </p>
             <ul className="sc-conta__beneficios">
-              <li>Catálogo pronto para compartilhar</li>
-              <li>Pedidos organizados em um só lugar</li>
-              <li>Mais tempo para o que importa</li>
+              {BENEFICIOS.map((beneficio) => (
+                <li key={beneficio}>
+                  <span className="sc-conta__beneficio-icone">
+                    <IconeConfirmar />
+                  </span>
+                  {beneficio}
+                </li>
+              ))}
             </ul>
           </div>
 
-          <p className="sc-conta__hero-rodape">Feito para pequenos negócios.</p>
+          <p className="sc-conta__painel-rodape">
+            Feito para pequenos negócios.
+          </p>
         </aside>
 
         <section
           className="sc-conta__formulario"
           aria-labelledby={identificadorDoTitulo}
         >
-          <div className="sc-conta__cabecalho">
-            <p className="sc-conta__etiqueta">{etiqueta}</p>
-            <h2 id={identificadorDoTitulo}>{titulo}</h2>
-            <p>{descricao}</p>
+          <div className="sc-conta__miolo">
+            <header className="sc-conta__cabecalho">
+              <p className="sc-conta__etiqueta">{etiqueta}</p>
+              <h1 id={identificadorDoTitulo} className="sc-conta__titulo">
+                {titulo}
+              </h1>
+              <p className="sc-conta__descricao">{descricao}</p>
+            </header>
+            {children}
           </div>
-          {children}
         </section>
-      </section>
+      </div>
     </main>
   );
 }

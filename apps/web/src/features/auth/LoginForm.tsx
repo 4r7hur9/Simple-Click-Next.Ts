@@ -9,7 +9,13 @@
  * API sozinho.
  */
 import { useState, type FormEvent } from "react";
-import { Aviso, Botao, Campo } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  Campo,
+  CampoDeSenha,
+  IconeConfirmar,
+} from "@simpleclick/ui";
 
 export type RespostaDoLoginNaTela =
   | {
@@ -103,10 +109,9 @@ export function LoginForm({
           onChange={(evento) => setEmail(evento.target.value)}
           desabilitado={enviando}
         />
-        <Campo
+        <CampoDeSenha
           id="entrar-senha"
           name="senha"
-          type="password"
           autoComplete="current-password"
           rotulo="Senha"
           obrigatorio
@@ -116,12 +121,18 @@ export function LoginForm({
         />
       </div>
       <div className="sc-conta__linha-de-apoio">
-        <span>Área protegida</span>
-        <a href="/recuperar-senha">Esqueci minha senha</a>
+        <span className="sc-conta__protegida">
+          <IconeConfirmar />
+          Área protegida
+        </span>
+        <a className="sc-conta__link" href="/recuperar-senha">
+          Esqueci minha senha
+        </a>
       </div>
       {erro ? <Aviso tom="erro">{erro}</Aviso> : null}
       <Botao
         className="sc-conta__botao"
+        tamanho="grande"
         type="submit"
         carregando={enviando}
         rotuloDeEspera="Entrando…"

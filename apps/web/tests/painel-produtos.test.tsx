@@ -136,7 +136,7 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
     roteiro(async () => json({ produtos: [PUBLICADO, RASCUNHO] }));
     const tela = await montar();
 
-    const itens = [...tela.querySelectorAll("ul > li")].map(
+    const itens = [...tela.querySelectorAll("tbody tr")].map(
       (item) => item.textContent ?? "",
     );
     expect(itens[0]).toContain("Pastel de queijo");
@@ -168,7 +168,7 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
       url: "/api/catalogo/produtos/p-1/duplicar",
       metodo: "POST",
     });
-    const itens = [...tela.querySelectorAll("ul > li")].map(
+    const itens = [...tela.querySelectorAll("tbody tr")].map(
       (item) => item.textContent ?? "",
     );
     expect(itens[1]).toContain("Pastel de queijo (cópia)");
@@ -182,7 +182,12 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
     );
     const tela = await montar();
 
-    await clicar(botao(tela, "Remover Pastel de queijo"));
+    // A ação mora no menu da própria linha do produto.
+    const linha = [...tela.querySelectorAll<HTMLElement>("tbody tr")].find(
+      (candidata) => candidata.textContent?.includes("Pastel de queijo"),
+    );
+    if (!linha) throw new Error("linha do produto ausente");
+    await clicar(botao(linha, "Remover"));
     expect(chamadas).toHaveLength(1);
     expect(tela.querySelector('[role="group"]')?.textContent).toContain(
       "Pedidos que já o incluíram continuam como foram feitos",
@@ -193,7 +198,7 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
       url: "/api/catalogo/produtos/p-1",
       metodo: "DELETE",
     });
-    expect(tela.querySelector("ul")).toBeNull();
+    expect(tela.querySelector("table")).toBeNull();
   });
 });
 
@@ -213,7 +218,7 @@ describe("o que está acabando aparece para o dono repor (AC-336)", () => {
     roteiro(async () => json({ produtos: [EM_DIA, ACABANDO] }));
     const tela = await montar();
 
-    const itens = [...tela.querySelectorAll("ul > li")];
+    const itens = [...tela.querySelectorAll("tbody tr")];
     expect(itens[0]?.textContent).not.toContain("Estoque baixo");
     expect(itens[1]?.textContent).toContain("Estoque baixo");
     expect(itens[1]?.textContent).toContain("M com 3 un. (aviso em 5)");
@@ -228,13 +233,15 @@ describe("o que está acabando aparece para o dono repor (AC-336)", () => {
     const tela = await montar();
 
     await clicar(botao(tela, "Ver o que está acabando (1)"));
-    let nomes = [...tela.querySelectorAll("ul > li h3")].map(
-      (h) => h.textContent,
+    let nomes = [...tela.querySelectorAll("tbody tr")].map(
+      (linha) => linha.querySelector("a")?.textContent,
     );
     expect(nomes).toEqual(["Camiseta Básica"]);
 
     await clicar(botao(tela, "Mostrar todos os produtos"));
-    nomes = [...tela.querySelectorAll("ul > li h3")].map((h) => h.textContent);
+    nomes = [...tela.querySelectorAll("tbody tr")].map(
+      (linha) => linha.querySelector("a")?.textContent,
+    );
     expect(nomes).toEqual(["Pastel de queijo", "Camiseta Básica"]);
   });
 

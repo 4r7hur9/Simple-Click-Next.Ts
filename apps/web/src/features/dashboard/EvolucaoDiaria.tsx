@@ -17,7 +17,11 @@ import {
   type MetricasNoContrato,
 } from "../../lib/metricas.ts";
 import { AlternarMedida, type MedidaDoPainel } from "./AlternarMedida.tsx";
-import { GraficoDeBarras, marcasDoEixo } from "./GraficoDeBarras.tsx";
+import {
+  GraficoDeBarras,
+  escreverDinheiroCurto,
+  marcasDoEixo,
+} from "./GraficoDeBarras.tsx";
 
 type PontoDiario = MetricasNoContrato["porDia"][number];
 
@@ -92,10 +96,10 @@ export function EvolucaoDiaria({
       aria-labelledby={idDoTitulo}
       data-evolucao-diaria
       data-medida={medida}
-      className="rounded-lg border border-borda bg-superficie p-4"
+      className="sc-cartao min-w-0"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id={idDoTitulo} className="text-lg font-semibold">
+        <h2 id={idDoTitulo} className="sc-cartao__titulo">
           Evolução por dia
         </h2>
         <AlternarMedida
@@ -106,18 +110,27 @@ export function EvolucaoDiaria({
         />
       </div>
 
-      <p data-resumo-do-grafico className="mt-2 text-sm text-tinta-suave">
+      <p data-resumo-do-grafico className="text-sm text-tinta-suave">
         {resumo}
       </p>
 
-      <div className="mt-3">
+      <div>
         <GraficoDeBarras
           descricao={`Evolução por dia, em ${medida === "valor" ? "valor vendido" : "pedidos"}. ${resumo}`}
           marcas={marcasDoEixo(pontos.length)}
           pontos={pontos.map((ponto) => ({
             chave: ponto.dia,
             rotulo: diaCurto(ponto.dia),
+            nome: escreverDataCivil(ponto.dia),
             valor: medida === "valor" ? ponto.vendidoCentavos : ponto.pedidos,
+            texto:
+              medida === "valor"
+                ? escreverDinheiro(ponto.vendidoCentavos)
+                : escreverPedidos(ponto.pedidos),
+            textoCurto:
+              medida === "valor"
+                ? escreverDinheiroCurto(ponto.vendidoCentavos)
+                : String(ponto.pedidos),
           }))}
           tabela={
             <table className="w-full text-left tabular-nums">

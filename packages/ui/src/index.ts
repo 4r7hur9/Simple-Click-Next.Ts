@@ -10,10 +10,46 @@
  */
 
 export { Botao } from "./botao";
-export type { BotaoProps, VarianteDeBotao } from "./botao";
+export type {
+  BotaoProps,
+  FormaDeBotao,
+  TamanhoDeBotao,
+  VarianteDeBotao,
+} from "./botao";
 
 export { Campo } from "./campo";
 export type { CampoProps } from "./campo";
+
+export {
+  CampoDeSenha,
+  NIVEL_MAXIMO_DE_FORCA,
+  avaliarForcaDaSenha,
+} from "./campo-senha";
+export type {
+  CampoDeSenhaProps,
+  ForcaDaSenha,
+  NivelDeForca,
+} from "./campo-senha";
+
+export { Selo } from "./selo";
+export type { SeloProps, TomDeSelo } from "./selo";
+
+export { Sanfona } from "./sanfona";
+export type { SanfonaProps } from "./sanfona";
+
+export { MenuSuspenso } from "./menu-suspenso";
+export type { ItemDoMenu, MenuSuspensoProps } from "./menu-suspenso";
+
+export { Tabela, ordenarLinhas } from "./tabela";
+export type {
+  ColunaDaTabela,
+  DirecaoDaOrdem,
+  OrdemDaTabela,
+  TabelaProps,
+  ValorOrdenavel,
+} from "./tabela";
+
+export * from "./icones";
 
 export { Cartao } from "./cartao";
 export type { CartaoProps, NivelDeTitulo } from "./cartao";
@@ -66,8 +102,10 @@ export {
 export type { Ajuste, Cor, EscolhaDeTexto, Rgb } from "./contraste";
 
 export {
+  MEDIDAS,
   NOME_NO_CSS,
   NOME_NO_CSS_DAS_EXTREMAS,
+  NOME_NO_CSS_DAS_MEDIDAS,
   PALETAS,
   PALETA_CLARA,
   PALETA_ESCURA,

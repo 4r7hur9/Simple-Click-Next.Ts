@@ -187,7 +187,7 @@ describe("o criador de especificações da categoria (AC-325)", () => {
 
     const formulario = [...tela.querySelectorAll("form")].at(-1) ?? null;
     const [nome, unidade] = [
-      ...(formulario?.querySelectorAll<HTMLInputElement>("input.sc-campo") ??
+      ...(formulario?.querySelectorAll<HTMLInputElement>("input.sc-campo__controle") ??
         []),
     ];
     const tipo = formulario?.querySelector("select");

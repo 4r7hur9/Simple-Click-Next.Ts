@@ -30,6 +30,7 @@ import {
   Botao,
   Campo,
   Carregando,
+  Cartao,
   Erro,
   Sucesso,
   Vazio,
@@ -344,47 +345,49 @@ export function ListaDeDocumentos({
   return (
     <ul className="grid gap-3" aria-label="Documentos guardados">
       {documentos.map((documento) => (
-        <li
-          key={documento.id}
-          className="grid gap-2 rounded-lg border border-[var(--cor-borda)] p-4"
-        >
-          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <strong className="break-all">{documento.nomeDoArquivo}</strong>
-            <span className="text-sm text-[var(--cor-tinta-suave)]">
-              {ROTULOS_DOS_TIPOS_DE_DOCUMENTO[documento.tipo]}
-            </span>
-          </p>
-          <p className="text-sm">
-            {tamanhoNaTela(documento.tamanhoEmBytes)} · enviado em{" "}
-            <time dateTime={documento.enviadoEm}>
-              {momentoNaTela(documento.enviadoEm)}
-            </time>{" "}
-            por{" "}
-            {documento.enviadoPor?.nome ?? "pessoa que saiu da administração"}
-          </p>
-          <div>
-            <Botao
-              variante="secundaria"
-              tamanho="pequeno"
-              aria-label={`Abrir ${documento.nomeDoArquivo}`}
-              carregando={
-                abertura.estado === "abrindo" && abertura.id === documento.id
-              }
-              rotuloDeEspera="Gerando o link temporário…"
-              onClick={() => void abrir(documento)}
-            >
-              Abrir
-            </Botao>
-          </div>
-          {abertura.estado === "falhou" && abertura.id === documento.id && (
-            <Erro titulo="O documento não abriu" mensagem={abertura.mensagem} />
-          )}
-          {abertura.estado === "aberto" && abertura.id === documento.id && (
-            <p role="status" className="text-sm">
-              Documento entregue como download. O link usado só abre com a sua
-              sessão e vence em cinco minutos.
+        <li key={documento.id}>
+          <Cartao>
+            <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <strong className="break-all">{documento.nomeDoArquivo}</strong>
+              <span className="text-sm text-[var(--cor-tinta-suave)]">
+                {ROTULOS_DOS_TIPOS_DE_DOCUMENTO[documento.tipo]}
+              </span>
             </p>
-          )}
+            <p className="text-sm">
+              {tamanhoNaTela(documento.tamanhoEmBytes)} · enviado em{" "}
+              <time dateTime={documento.enviadoEm}>
+                {momentoNaTela(documento.enviadoEm)}
+              </time>{" "}
+              por{" "}
+              {documento.enviadoPor?.nome ?? "pessoa que saiu da administração"}
+            </p>
+            <div>
+              <Botao
+                variante="secundaria"
+                tamanho="pequeno"
+                aria-label={`Abrir ${documento.nomeDoArquivo}`}
+                carregando={
+                  abertura.estado === "abrindo" && abertura.id === documento.id
+                }
+                rotuloDeEspera="Gerando o link temporário…"
+                onClick={() => void abrir(documento)}
+              >
+                Abrir
+              </Botao>
+            </div>
+            {abertura.estado === "falhou" && abertura.id === documento.id && (
+              <Erro
+                titulo="O documento não abriu"
+                mensagem={abertura.mensagem}
+              />
+            )}
+            {abertura.estado === "aberto" && abertura.id === documento.id && (
+              <p role="status" className="text-sm">
+                Documento entregue como download. O link usado só abre com a sua
+                sessão e vence em cinco minutos.
+              </p>
+            )}
+          </Cartao>
         </li>
       ))}
     </ul>
@@ -465,13 +468,16 @@ export function DocumentosDaLojaNaTela(props: DocumentosDaLojaNaTelaProps) {
   return (
     <>
       <Secao id="documentos-envio" titulo="Enviar documento">
-        <EnvioDeDocumento lojaId={lojaId} aoEnviar={props.aoEnviar} />
+        <Cartao>
+          <EnvioDeDocumento lojaId={lojaId} aoEnviar={props.aoEnviar} />
+        </Cartao>
       </Secao>
       <Secao id="documentos-guardados" titulo="Documentos guardados">
         {estado.documentos.length === 0 ? (
-          <Vazio
-            titulo="Nenhum documento enviado ainda"
-            descricao="O contrato assinado e os documentos do responsável aparecem aqui depois do envio. Nenhum deles fica público: cada um abre por um link que vale cinco minutos."
+          <Cartao
+            estado="vazio"
+            tituloVazio="Nenhum documento enviado ainda"
+            descricaoVazio="O contrato assinado e os documentos do responsável aparecem aqui depois do envio. Nenhum deles fica público: cada um abre por um link que vale cinco minutos."
           />
         ) : (
           <ListaDeDocumentos lojaId={lojaId} documentos={estado.documentos} />

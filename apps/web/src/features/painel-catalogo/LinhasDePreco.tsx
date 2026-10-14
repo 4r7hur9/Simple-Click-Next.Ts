@@ -136,7 +136,7 @@ export function LinhasDePreco({ produtoId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-3xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-3xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="precos-do-produto"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -158,7 +158,7 @@ export function LinhasDePreco({ produtoId }: Props) {
         {precos.map((preco) => (
           <li
             key={preco.id}
-            className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--cor-borda)] p-4"
+            className="flex flex-wrap items-center gap-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4"
           >
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{preco.rotulo ?? preco.tipo}</p>
@@ -169,7 +169,7 @@ export function LinhasDePreco({ produtoId }: Props) {
               </p>
             </div>
             <button
-              className="sc-botao sc-botao--fantasma"
+              className="sc-botao sc-botao--secundaria"
               type="button"
               onClick={() => void alternar(preco)}
             >
@@ -177,7 +177,7 @@ export function LinhasDePreco({ produtoId }: Props) {
             </button>
             {preco.tipo !== "BASE" ? (
               <button
-                className="sc-botao sc-botao--fantasma"
+                className="sc-botao sc-botao--secundaria"
                 type="button"
                 onClick={() => void remover(preco)}
               >
@@ -195,7 +195,7 @@ export function LinhasDePreco({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Tipo</span>
           <select
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={formulario.tipo}
             onChange={(evento) =>
               setFormulario((anterior) => ({
@@ -213,7 +213,7 @@ export function LinhasDePreco({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Nome (opcional)</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={formulario.rotulo}
             onChange={(evento) =>
               setFormulario((anterior) => ({
@@ -228,7 +228,7 @@ export function LinhasDePreco({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Valor (R$)</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             inputMode="decimal"
             value={formulario.valor}
             onChange={(evento) =>
@@ -244,7 +244,7 @@ export function LinhasDePreco({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Quantidade mínima</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             type="number"
             min={1}
             value={formulario.quantidade}
@@ -272,7 +272,7 @@ export function LinhasDePreco({ produtoId }: Props) {
           Ativar este preço imediatamente
         </label>
         <button
-          className="sc-botao sc-botao--primario w-fit"
+          className="sc-botao sc-botao--primaria w-fit"
           type="submit"
           disabled={salvando}
         >

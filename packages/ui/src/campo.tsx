@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
+import { descritoresDoCampo } from "./campo-descritores";
 import { Girando } from "./estados";
 
 /**
@@ -57,12 +58,12 @@ export function Campo({
   const idSucesso = `${id}-sucesso`;
   const idEspera = `${id}-espera`;
 
-  const descritores = [
-    dica !== undefined && idDica,
-    erro !== undefined && idErro,
-    erro === undefined && sucesso !== undefined && idSucesso,
-    carregando && idEspera,
-  ].filter((valor): valor is string => typeof valor === "string");
+  const descritores = descritoresDoCampo(id, {
+    dica,
+    erro,
+    sucesso,
+    carregando,
+  });
 
   return (
     <div

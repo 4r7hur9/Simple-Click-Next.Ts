@@ -55,7 +55,7 @@ function ListaDePendentes({
   return (
     <section
       aria-labelledby="titulo-cupons-pendentes"
-      className="rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4 sm:p-5"
+      className="rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-4 sm:p-5"
     >
       <h2 id="titulo-cupons-pendentes" className="text-lg font-semibold">
         Cupons que ainda não saíram ({pendentes.length})
@@ -131,7 +131,7 @@ function AvisoDoAgente({
         titulo="Impressão automática indisponível"
         acao={
           <a
-            className="mt-2 inline-flex text-sm font-medium text-[var(--cor-primaria)]"
+            className="mt-2 inline-flex text-sm font-medium text-[var(--cor-primaria-texto)]"
             href="/painel/config/impressao"
           >
             Parear o agente de impressão

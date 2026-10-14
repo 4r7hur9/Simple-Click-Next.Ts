@@ -30,6 +30,9 @@ catalogs:
     gsap:
       specifier: 3.15.0
       version: 3.15.0
+    lucide-react:
+      specifier: 1.55.0
+      version: 1.55.0
     pg:
       specifier: 8.23.1
       version: 8.23.1
@@ -199,6 +202,9 @@ importers:
       gsap:
         specifier: 'catalog:'
         version: 3.15.0
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.55.0(@types/react@19.3.0)(react@19.3.0)
       next:
         specifier: 16.4.0
         version: 16.4.0(@playwright/test@1.64.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -383,6 +389,10 @@ importers:
         version: 5.0.4(@types/node@26.6.5)(jsdom@30.1.2(@noble/hashes@1.8.0))(vite@8.2.1(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/ui:
+    dependencies:
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.55.0(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
       '@simpleclick/config-ts':
         specifier: workspace:*
@@ -2496,6 +2506,15 @@ packages:
   lru.min@1.1.4:
     resolution: {integrity: sha512-DqC6n3QQ77zdFpCMASA1a3Jlb64Hv2N2DciFGkO/4L9+q/IpIAuRlKOvCXabtRW6cQf8usbmM6BE/TOPysCdIA==}
     engines: {bun: '>=1.0.0', deno: '>=1.30.0', node: '>=8.0.0'}
+
+  lucide-react@1.55.0:
+    resolution: {integrity: sha512-bSozQHiI3/8q7JvgoqVRGOYUi7fYT3siAZwmZsljjsOH2Husp/2ODdFf/leD+ZC/2yKfn7r8oh6yeoR3ITR5vA==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   luxon@3.7.2:
     resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
@@ -5229,6 +5248,12 @@ snapshots:
   lru-cache@11.5.3: {}
 
   lru.min@1.1.4: {}
+
+  lucide-react@1.55.0(@types/react@19.3.0)(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   luxon@3.7.2: {}
 

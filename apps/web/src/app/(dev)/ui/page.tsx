@@ -1,6 +1,8 @@
 import Image from "next/image";
 
+import { SecaoDosTemas } from "./_secoes/SecaoDosTemas.tsx";
 import { SecoesDaMarca } from "./_secoes/SecoesDaMarca.tsx";
+import { SecoesDasPecasNovas } from "./_secoes/SecoesDasPecasNovas.tsx";
 import { SecoesDeControles } from "./_secoes/SecoesDeControles.tsx";
 import { SecoesDeDados } from "./_secoes/SecoesDeDados.tsx";
 import { SecoesDeRetorno } from "./_secoes/SecoesDeRetorno.tsx";
@@ -14,8 +16,9 @@ import { SecoesDeRetorno } from "./_secoes/SecoesDeRetorno.tsx";
  * componente cujos outros estados ninguém nunca olhou, e é assim que "carregando"
  * vira tela branca em produção.
  *
- * A página é renderizada no servidor e não recebe nenhum manipulador de evento:
- * a interação de verdade mora nas telas do produto. Aqui o que importa é a
+ * A página é renderizada no servidor e não passa manipulador de evento a
+ * ninguém: as peças que têm estado próprio (senha, menu, tabela) já são
+ * componentes de navegador por dentro. Aqui o que importa é a
  * aparência e a árvore de acessibilidade de cada estado. As seções moram em
  * `_secoes/`, pasta privada que o Next não transforma em rota.
  */
@@ -48,7 +51,9 @@ export default function VitrineDoDesignSystem() {
       <SecoesDaMarca />
       <SecoesDeControles />
       <SecoesDeDados />
+      <SecoesDasPecasNovas />
       <SecoesDeRetorno />
+      <SecaoDosTemas />
     </main>
   );
 }

@@ -17,12 +17,14 @@
 import "@simpleclick/ui/styles/vitrine.css";
 import "@simpleclick/ui/styles/produto.css";
 
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 
 import { EscolhasDoProduto } from "../../../../../../features/produto/EscolhasDoProduto.tsx";
 import { SeloDePreco } from "../../../../../../features/produto/SeloDePreco.tsx";
+import { BarraDoTopo } from "../../../../../../features/vitrine/BarraDoTopo.tsx";
 import {
   DadosEstruturados,
   produtoParaBuscador,
@@ -130,6 +132,13 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
       corPrincipal={loja.cores?.["primaria"] ?? COR_DE_RESERVA}
       className="sc-pagina-da-loja"
     >
+      <BarraDoTopo
+        apelidoDaLoja={loja.apelido}
+        nomeDaLoja={loja.nome}
+        logo={loja.logo}
+        rotuloDoCatalogo={loja.rotulos.catalogo}
+      />
+
       <main className="sc-produto">
         <DadosEstruturados
           dados={produtoParaBuscador({
@@ -157,17 +166,19 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
 
         {capa ? (
           <figure className="sc-produto__figura">
-            <img
+            {/*
+              A moldura tem proporção fixa no estilo e a foto a preenche
+              (`fill`): o espaço existe antes de ela chegar, e a página não
+              pula quando a foto carrega (AC-416) — saiba o catálogo a
+              dimensão da foto ou não.
+            */}
+            <Image
               className="sc-produto__foto"
               src={capa.url}
               alt={capa.texto ?? ""}
-              // A dimensão vai na marcação quando o catálogo a conhece, para a
-              // página não pular quando a foto chegar (AC-416). Sem ela, a
-              // proporção do estilo segura o espaço.
-              {...(capa.largura !== null && capa.altura !== null
-                ? { width: capa.largura, height: capa.altura }
-                : {})}
-              loading="eager"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 36rem"
             />
           </figure>
         ) : null}
@@ -201,10 +212,13 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
             <ul className="sc-vitrine__tira" tabIndex={0}>
               {produto.imagens.slice(1).map((imagem) => (
                 <li className="sc-produto__galeria-item" key={imagem.url}>
-                  <img
+                  <Image
                     src={imagem.url}
                     alt={imagem.texto ?? ""}
+                    width={320}
+                    height={320}
                     loading="lazy"
+                    sizes="10rem"
                   />
                 </li>
               ))}

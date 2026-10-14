@@ -17,7 +17,14 @@ import {
   type ListaDeLojasNoContrato,
   type SituacaoDaLoja,
 } from "@simpleclick/contracts";
-import { Botao, Carregando, Erro, Vazio } from "@simpleclick/ui";
+import {
+  Botao,
+  Cartao,
+  Erro,
+  Selo,
+  Tabela,
+  type ColunaDaTabela,
+} from "@simpleclick/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -45,12 +52,13 @@ export function dataDeCadastro(iso: string): string {
   });
 }
 
-/** A cor da situação diz de longe o que a palavra diz de perto. */
-const CLASSE_DA_SITUACAO: Readonly<Record<SituacaoDaLoja, string>> = {
-  ACTIVE: "bg-[var(--cor-sucesso-suave)] text-[var(--cor-sucesso)]",
-  PENDING: "bg-[var(--cor-atencao-suave)] text-[var(--cor-atencao)]",
-  SUSPENDED: "bg-[var(--cor-erro-suave)] text-[var(--cor-erro)]",
-  DELETED: "bg-[var(--cor-superficie)] text-[var(--cor-tinta-suave)]",
+const TOM_DA_SITUACAO: Readonly<
+  Record<SituacaoDaLoja, "sucesso" | "atencao" | "erro" | "neutro">
+> = {
+  ACTIVE: "sucesso",
+  PENDING: "atencao",
+  SUSPENDED: "erro",
+  DELETED: "neutro",
 };
 
 export const MENSAGEM_DE_SESSAO =
@@ -63,40 +71,37 @@ export function TabelaDeLojas(props: TabelaDeLojasProps) {
   const { estado, termo } = props;
 
   return (
-    <section aria-labelledby="lista-de-lojas" className="mt-8">
-      <form
-        role="search"
-        onSubmit={props.aoBuscar}
-        className="flex flex-wrap items-end gap-3"
-      >
-        <label
-          className="grid flex-1 gap-1 text-sm font-medium"
-          htmlFor="busca-de-lojas"
-        >
-          Buscar por nome, CPF/CNPJ ou código
-          <input
-            id="busca-de-lojas"
-            name="busca"
-            type="search"
-            className="sc-campo__controle"
-            value={termo}
-            placeholder="Pastel da Joi, 11.222.333/0001-81 ou 0002"
-            autoComplete="off"
-            onChange={(evento) => props.aoMudarTermo(evento.target.value)}
-          />
-        </label>
-        <Botao type="submit" variante="secundaria">
-          Buscar
-        </Botao>
-      </form>
-
+    <section aria-labelledby="lista-de-lojas" className="mt-8 grid gap-5">
       <h2 id="lista-de-lojas" className="sc-so-leitor">
         Lojas cadastradas
       </h2>
-
-      {estado.fase === "carregando" && (
-        <Carregando rotulo="Carregando lojas…" className="mt-6" />
-      )}
+      <Cartao titulo="Buscar lojas" nivelDoTitulo={2}>
+        <form
+          role="search"
+          onSubmit={props.aoBuscar}
+          className="flex flex-wrap items-end gap-3"
+        >
+          <label
+            className="grid flex-1 gap-1 text-sm font-medium"
+            htmlFor="busca-de-lojas"
+          >
+            Buscar por nome, CPF/CNPJ ou código
+            <input
+              id="busca-de-lojas"
+              name="busca"
+              type="search"
+              className="sc-campo__controle"
+              value={termo}
+              placeholder="Pastel da Joi, 11.222.333/0001-81 ou 0002"
+              autoComplete="off"
+              onChange={(evento) => props.aoMudarTermo(evento.target.value)}
+            />
+          </label>
+          <Botao type="submit" variante="secundaria">
+            Buscar
+          </Botao>
+        </form>
+      </Cartao>
 
       {estado.fase === "erro" && (
         <Erro
@@ -111,16 +116,25 @@ export function TabelaDeLojas(props: TabelaDeLojasProps) {
         />
       )}
 
+      {estado.fase === "carregando" && (
+        <Cartao
+          titulo="Lojas cadastradas"
+          estado="carregando"
+          rotuloDeEspera="Carregando lojas…"
+        />
+      )}
+
       {estado.fase === "pronta" && estado.lista.lojas.length === 0 && (
-        <Vazio
-          titulo="Nenhuma loja encontrada"
-          descricao={
+        <Cartao
+          estado="vazio"
+          tituloVazio="Nenhuma loja encontrada"
+          descricaoVazio={
             termo.trim() === ""
               ? "Cadastre a primeira loja da plataforma."
               : "Confira o nome, o documento ou o código e busque de novo."
           }
           className="mt-6"
-          acao={
+          rodape={
             <Link
               className="sc-botao sc-botao--primaria"
               href="/admin/lojas/nova"
@@ -149,103 +163,107 @@ function ListaPronta({
   readonly aoIrParaPagina: (pagina: number) => void;
 }) {
   const totalDePaginas = Math.max(1, Math.ceil(lista.total / lista.porPagina));
+  const colunas: readonly ColunaDaTabela<
+    ListaDeLojasNoContrato["lojas"][number]
+  >[] = [
+    {
+      chave: "codigo",
+      titulo: "Código",
+      celula: (loja) => <span className="font-mono">{loja.codigo}</span>,
+    },
+    {
+      chave: "nome",
+      titulo: "Loja",
+      celula: (loja) => (
+        <>
+          <Link
+            className="font-medium text-[var(--cor-primaria-texto)] underline-offset-2 hover:underline"
+            href={`/admin/lojas/${loja.id}`}
+          >
+            {loja.nome}
+          </Link>
+          <span className="block text-xs text-[var(--cor-tinta-suave)]">
+            /l/{loja.apelido}
+            {loja.cidade !== null && loja.uf !== null
+              ? ` · ${loja.cidade}/${loja.uf}`
+              : ""}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "tipo",
+      titulo: "Tipo de negócio",
+      celula: (loja) => loja.tipoDeNegocio.nome,
+    },
+    {
+      chave: "status",
+      titulo: "Situação",
+      celula: (loja) => (
+        <Selo tom={TOM_DA_SITUACAO[loja.status]}>
+          {ROTULOS_DAS_SITUACOES[loja.status]}
+        </Selo>
+      ),
+    },
+    {
+      chave: "criadaEm",
+      titulo: "Cadastro",
+      celula: (loja) => (
+        <time dateTime={loja.criadaEm}>{dataDeCadastro(loja.criadaEm)}</time>
+      ),
+    },
+  ];
+
   return (
-    <>
-      <p role="status" className="mt-6 text-sm text-[var(--cor-tinta-suave)]">
+    <div className="mt-6">
+      <p role="status" className="sc-so-leitor">
         {lista.total === 1
           ? "1 loja encontrada."
           : `${lista.total} lojas encontradas.`}
       </p>
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <caption className="sc-so-leitor">
-            Lojas cadastradas, da mais recente para a mais antiga
-          </caption>
-          <thead>
-            <tr className="border-b border-[var(--cor-borda)] text-xs uppercase tracking-[0.12em] text-[var(--cor-tinta-suave)]">
-              <th scope="col" className="py-2 pr-4">
-                Código
-              </th>
-              <th scope="col" className="py-2 pr-4">
-                Loja
-              </th>
-              <th scope="col" className="py-2 pr-4">
-                Tipo de negócio
-              </th>
-              <th scope="col" className="py-2 pr-4">
-                Situação
-              </th>
-              <th scope="col" className="py-2">
-                Cadastro
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {lista.lojas.map((loja) => (
-              <tr
-                key={loja.id}
-                className="border-b border-[var(--cor-borda)] align-top"
-              >
-                <td className="py-3 pr-4 font-mono">{loja.codigo}</td>
-                <td className="py-3 pr-4">
-                  <Link
-                    className="font-medium text-[var(--cor-primaria)] underline-offset-2 hover:underline"
-                    href={`/admin/lojas/${loja.id}`}
-                  >
-                    {loja.nome}
-                  </Link>
-                  <span className="block text-xs text-[var(--cor-tinta-suave)]">
-                    /l/{loja.apelido}
-                    {loja.cidade !== null && loja.uf !== null
-                      ? ` · ${loja.cidade}/${loja.uf}`
-                      : ""}
-                  </span>
-                </td>
-                <td className="py-3 pr-4">{loja.tipoDeNegocio.nome}</td>
-                <td className="py-3 pr-4">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${CLASSE_DA_SITUACAO[loja.status]}`}
-                  >
-                    {ROTULOS_DAS_SITUACOES[loja.status]}
-                  </span>
-                </td>
-                <td className="py-3">
-                  <time dateTime={loja.criadaEm}>
-                    {dataDeCadastro(loja.criadaEm)}
-                  </time>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {totalDePaginas > 1 && (
-        <nav
-          aria-label="Páginas da lista"
-          className="mt-4 flex items-center gap-3 text-sm"
-        >
-          <Botao
-            variante="discreta"
-            tamanho="pequeno"
-            desabilitado={lista.pagina <= 1}
-            onClick={() => aoIrParaPagina(lista.pagina - 1)}
+      <Cartao
+        titulo="Lojas cadastradas"
+        descricao={
+          lista.total === 1
+            ? "1 loja encontrada."
+            : `${lista.total} lojas encontradas.`
+        }
+      >
+        <Tabela
+          legenda="Lojas cadastradas, da mais recente para a mais antiga"
+          colunas={colunas}
+          linhas={lista.lojas}
+          chaveDaLinha={(loja) => loja.id}
+          noCelular="rolar"
+        />
+        {totalDePaginas > 1 && (
+          <nav
+            aria-label="Páginas da lista"
+            className="mt-4 flex flex-wrap items-center gap-3 text-sm"
           >
-            Anterior
-          </Botao>
-          <span>
-            Página {lista.pagina} de {totalDePaginas}
-          </span>
-          <Botao
-            variante="discreta"
-            tamanho="pequeno"
-            desabilitado={lista.pagina >= totalDePaginas}
-            onClick={() => aoIrParaPagina(lista.pagina + 1)}
-          >
-            Próxima
-          </Botao>
-        </nav>
-      )}
-    </>
+            <Botao
+              variante="discreta"
+              tamanho="pequeno"
+              desabilitado={lista.pagina <= 1}
+              onClick={() => aoIrParaPagina(lista.pagina - 1)}
+            >
+              Anterior
+            </Botao>
+            <span>
+              Página {lista.pagina} de {totalDePaginas}
+            </span>
+            <Botao
+              variante="discreta"
+              tamanho="pequeno"
+              desabilitado={lista.pagina >= totalDePaginas}
+              onClick={() => aoIrParaPagina(lista.pagina + 1)}
+            >
+              Próxima
+            </Botao>
+          </nav>
+        )}
+      </Cartao>
+    </div>
   );
 }
 

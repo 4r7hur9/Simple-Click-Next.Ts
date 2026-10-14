@@ -278,7 +278,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-5xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-5xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="titulo-especificacoes"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -297,20 +297,20 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
 
       {carregando ? (
         <p
-          className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4"
+          className="mt-6 rounded-[var(--raio-botao)] bg-[var(--cor-papel)] p-4"
           aria-busy="true"
         >
           Carregando especificações…
         </p>
       ) : erro !== null ? (
         <div
-          className="mt-6 rounded-xl border border-[var(--cor-borda)] p-4"
+          className="mt-6 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4"
           role="alert"
         >
           <p>{erro}</p>
           <button
             type="button"
-            className="sc-botao sc-botao--fantasma mt-3"
+            className="sc-botao sc-botao--secundaria mt-3"
             onClick={() => void carregar()}
           >
             Tentar de novo
@@ -319,7 +319,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
       ) : (
         <>
           {especificacoes.length === 0 ? (
-            <p className="mt-6 rounded-xl bg-[var(--cor-papel)] p-4 text-sm leading-6">
+            <p className="mt-6 rounded-[var(--raio-botao)] bg-[var(--cor-papel)] p-4 text-sm leading-6">
               Nenhuma especificação criada ainda. Comece pelo primeiro campo
               próprio desta categoria.
             </p>
@@ -331,7 +331,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
               {especificacoes.map((especificacao, indice) => (
                 <li
                   key={especificacao.id}
-                  className="rounded-xl border border-[var(--cor-borda)] p-4"
+                  className="rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -361,7 +361,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         onClick={() => void reordenar(indice, -1)}
                         disabled={indice === 0 || salvando}
                         aria-label={`Subir ${especificacao.nome}`}
@@ -370,7 +370,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         onClick={() => void reordenar(indice, 1)}
                         disabled={
                           indice === especificacoes.length - 1 || salvando
@@ -381,7 +381,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         onClick={() => {
                           setEditandoId(especificacao.id);
                           setNomeEditado(especificacao.nome);
@@ -392,7 +392,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         onClick={() => void remover(especificacao, false)}
                         disabled={salvando}
                         aria-label={`Remover ${especificacao.nome}`}
@@ -412,7 +412,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       <div className="mt-3 flex flex-wrap gap-2">
                         <button
                           type="button"
-                          className="sc-botao sc-botao--primario"
+                          className="sc-botao sc-botao--primaria"
                           disabled={salvando}
                           onClick={() =>
                             void (pendencia.acao === "remover"
@@ -430,7 +430,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                         </button>
                         <button
                           type="button"
-                          className="sc-botao sc-botao--fantasma"
+                          className="sc-botao sc-botao--secundaria"
                           onClick={() => setPendencia(null)}
                         >
                           Desistir
@@ -454,7 +454,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                           Novo nome de {especificacao.nome}
                         </span>
                         <input
-                          className="sc-campo w-full"
+                          className="sc-campo__controle w-full"
                           value={nomeEditado}
                           onChange={(evento) =>
                             setNomeEditado(evento.target.value)
@@ -464,7 +464,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                         />
                       </label>
                       <button
-                        className="sc-botao sc-botao--primario"
+                        className="sc-botao sc-botao--primaria"
                         type="submit"
                         disabled={salvando}
                       >
@@ -486,7 +486,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                           Nova opção para {especificacao.nome}
                         </span>
                         <input
-                          className="sc-campo w-full"
+                          className="sc-campo__controle w-full"
                           value={novaOpcao[especificacao.id] ?? ""}
                           onChange={(evento) =>
                             setNovaOpcao((anterior) => ({
@@ -498,7 +498,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                         />
                       </label>
                       <button
-                        className="sc-botao sc-botao--fantasma"
+                        className="sc-botao sc-botao--secundaria"
                         type="submit"
                         disabled={salvando}
                       >
@@ -520,7 +520,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
               <label>
                 <span className="text-sm font-medium">Nome</span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   value={formulario.nome}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
@@ -536,7 +536,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
               <label>
                 <span className="text-sm font-medium">Tipo de valor</span>
                 <select
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   value={formulario.tipo}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
@@ -557,7 +557,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
               <label>
                 <span className="text-sm font-medium">Unidade (opcional)</span>
                 <input
-                  className="sc-campo mt-2 w-full"
+                  className="sc-campo__controle mt-2 w-full"
                   value={formulario.unidade}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
@@ -573,7 +573,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                 <label className="sm:col-span-2">
                   <span className="text-sm font-medium">Opções da lista</span>
                   <textarea
-                    className="sc-campo mt-2 min-h-24 w-full"
+                    className="sc-campo__controle mt-2 min-h-24 w-full"
                     value={formulario.opcoes}
                     onChange={(evento) =>
                       setFormulario((anterior) => ({
@@ -616,7 +616,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
               </label>
             </div>
             <button
-              className="sc-botao sc-botao--primario mt-6"
+              className="sc-botao sc-botao--primaria mt-6"
               type="submit"
               disabled={salvando}
             >

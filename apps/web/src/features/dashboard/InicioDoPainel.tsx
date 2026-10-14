@@ -86,7 +86,7 @@ export function InicioDoPainel({
           <div className="max-w-3xl">
             <h1
               id="painel-hoje"
-              className="text-2xl font-semibold min-[540px]:text-3xl"
+              className="font-display text-2xl font-semibold min-[540px]:text-3xl"
             >
               Hoje na sua loja
             </h1>
@@ -96,7 +96,7 @@ export function InicioDoPainel({
             </p>
           </div>
           <Link
-            className="sc-botao sc-botao--secundaria"
+            className="sc-botao sc-botao--secundaria sc-botao--pilula"
             href="/painel/metricas"
           >
             Ver outros períodos
@@ -106,14 +106,14 @@ export function InicioDoPainel({
       </section>
 
       <section aria-labelledby="painel-atalhos">
-        <h2 id="painel-atalhos" className="text-xl font-semibold">
+        <h2 id="painel-atalhos" className="font-display text-xl font-semibold">
           Atalhos da loja
         </h2>
-        <ul className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {atalhosDaLoja(apelidoDaLoja).map((atalho) => (
             <li
               key={atalho.href}
-              className="flex flex-col rounded-lg border border-borda bg-superficie p-4"
+              className="flex flex-col rounded-[var(--raio-cartao)] border border-borda bg-superficie-alta p-5 shadow-[var(--sombra-larga)]"
             >
               <h3 className="text-base font-semibold">{atalho.titulo}</h3>
               <p className="mt-1 flex-1 text-sm leading-6 text-tinta-suave">
@@ -132,9 +132,9 @@ export function InicioDoPainel({
 
       <aside
         aria-labelledby="painel-o-que-configura"
-        className="rounded-lg border border-borda bg-superficie p-4"
+        className="rounded-[var(--raio-cartao)] border border-borda bg-superficie p-5"
       >
-        <h2 id="painel-o-que-configura" className="text-xl font-semibold">
+        <h2 id="painel-o-que-configura" className="font-display text-xl font-semibold">
           O que você configura
         </h2>
         <p className="mt-2 text-sm leading-6 text-tinta-suave">

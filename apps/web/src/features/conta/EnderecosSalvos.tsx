@@ -11,7 +11,17 @@
  * a cadastrar, e a lista.
  */
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Aviso, Botao, Campo, Carregando, Erro, Vazio } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  Campo,
+  Carregando,
+  Erro,
+  IconeAdicionar,
+  IconeExcluir,
+  Selo,
+  Vazio,
+} from "@simpleclick/ui";
 
 import {
   apagarEnderecoDaConta,
@@ -82,7 +92,7 @@ function NovoEndereco({
   return (
     <form
       aria-label="Novo endereço"
-      className="grid gap-3 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] p-4"
+      className="sc-enderecos__novo"
       noValidate
       onSubmit={(evento) => void enviar(evento)}
     >
@@ -101,7 +111,7 @@ function NovoEndereco({
         onChange={(e) => setLogradouro(e.target.value)}
         erro={erro ?? undefined}
       />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="sc-enderecos__grade">
         <Campo
           id="endereco-numero"
           rotulo="Número"
@@ -141,7 +151,7 @@ function NovoEndereco({
           onChange={(e) => setCep(e.target.value)}
         />
       </div>
-      <label className="flex min-h-12 items-center gap-3">
+      <label className="sc-enderecos__marcar">
         <input
           type="checkbox"
           checked={padrao}
@@ -224,12 +234,14 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
     />
   ) : (
     <div>
-      <Botao onClick={() => setAdicionando(true)}>Cadastrar endereço</Botao>
+      <Botao icone={<IconeAdicionar />} onClick={() => setAdicionando(true)}>
+        Cadastrar endereço
+      </Botao>
     </div>
   );
 
   return (
-    <div className="grid gap-6">
+    <div className="sc-enderecos">
       {falhou ? (
         <Aviso tom="erro">
           Não foi possível concluir agora. Tente de novo.
@@ -241,23 +253,27 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
           descricao="Cadastre uma vez e ele vem preenchido no fechamento de qualquer loja."
         />
       ) : (
-        <ul className="grid gap-3" aria-label="Endereços salvos">
+        <ul className="sc-enderecos__lista" aria-label="Endereços salvos">
           {estado.enderecos.map((endereco) => (
             <li
               key={endereco.id}
-              className="grid gap-2 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] p-4"
+              className={
+                endereco.padrao
+                  ? "sc-endereco sc-endereco--padrao"
+                  : "sc-endereco"
+              }
               data-endereco={endereco.id}
             >
-              <p className="font-semibold">
+              <p className="sc-endereco__nome">
                 {endereco.rotulo ?? "Endereço"}
                 {endereco.padrao ? (
-                  <span className="ml-2 rounded-full bg-[var(--cor-papel)] px-2 py-0.5 text-xs font-medium">
-                    Padrão — vem preenchido nos pedidos
-                  </span>
+                  <Selo tom="sucesso">Padrão — vem preenchido nos pedidos</Selo>
                 ) : null}
               </p>
-              <p>{enderecoEmUmaLinha(endereco)}</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="sc-endereco__linha">
+                {enderecoEmUmaLinha(endereco)}
+              </p>
+              <div className="sc-endereco__acoes">
                 {endereco.padrao ? null : (
                   <Botao
                     variante="secundaria"
@@ -288,6 +304,7 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
                   <Botao
                     variante="discreta"
                     tamanho="pequeno"
+                    icone={<IconeExcluir />}
                     onClick={() => setApagando(endereco.id)}
                   >
                     Apagar

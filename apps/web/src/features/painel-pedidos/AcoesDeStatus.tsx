@@ -77,22 +77,22 @@ export function AcoesDeStatus({
   const motivoSuficiente = motivo.trim().length >= TAMANHO_MINIMO_DO_MOTIVO;
 
   return (
-    <section aria-labelledby="acoes-do-pedido" className="mt-8">
+    <section aria-labelledby="acoes-do-pedido" className="sc-cartao mt-6">
       <h2 id="acoes-do-pedido" className="text-xl font-semibold">
         Próxima ação
       </h2>
       {opcoes.length === 0 ? (
-        <p className="mt-3 text-[var(--cor-tinta-suave)]">
+        <p className="text-[var(--cor-tinta-suave)]">
           Este pedido chegou ao fim do caminho: não há próxima ação.
         </p>
       ) : null}
       {podeCancelar ? (
-        <label className="mt-4 block max-w-xl">
-          <span className="font-medium">
+        <label className="block max-w-xl">
+          <span className="text-sm font-medium">
             Motivo para recusar ou cancelar (o cliente vê este texto)
           </span>
           <textarea
-            className="sc-campo mt-2 min-h-24 w-full"
+            className="sc-campo__controle mt-2 min-h-24 w-full"
             value={motivo}
             onChange={(evento) => setMotivo(evento.target.value)}
             maxLength={500}
@@ -100,14 +100,17 @@ export function AcoesDeStatus({
           />
         </label>
       ) : null}
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3">
         {opcoes.map((opcao) => (
           <button
-            className={
+            // Botão grande, que o dedo acerta com pressa: no celular a ação
+            // ocupa a linha inteira.
+            className={[
+              "sc-botao sc-botao--grande min-w-0 flex-1 sm:flex-none",
               opcao.status === "CANCELLED"
-                ? "sc-botao sc-botao--perigo"
-                : "sc-botao sc-botao--primario"
-            }
+                ? "sc-botao--perigo"
+                : "sc-botao--primaria",
+            ].join(" ")}
             key={opcao.status}
             type="button"
             data-status={opcao.status}
@@ -121,12 +124,12 @@ export function AcoesDeStatus({
         ))}
       </div>
       {salvando ? (
-        <p className="mt-3 text-sm" role="status">
+        <p className="text-sm" role="status">
           Salvando…
         </p>
       ) : null}
       {erro ? (
-        <p className="mt-3 text-sm text-[var(--cor-perigo)]" role="alert">
+        <p className="text-sm font-medium text-[var(--cor-erro)]" role="alert">
           {erro}
         </p>
       ) : null}

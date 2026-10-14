@@ -41,7 +41,11 @@ export function BotaoJaEnviei({
 
   return (
     <div className="space-y-3">
-      <Botao onClick={() => void aoConfirmar()} carregando={enviando}>
+      <Botao
+        forma="pilula"
+        onClick={() => void aoConfirmar()}
+        carregando={enviando}
+      >
         Já enviei a mensagem
       </Botao>
       {estado === "erro" ? (

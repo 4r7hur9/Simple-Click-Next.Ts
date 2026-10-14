@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { MeusPedidos } from "../../../../features/conta/MeusPedidos.tsx";
+import { PaginaDaConta } from "../../../../features/conta/PaginaDaConta.tsx";
 import { buscarMeusPedidos } from "../../../../lib/meus-pedidos.ts";
 import { NOME_DO_COOKIE_DE_ACESSO } from "../../../../server/session-cookie.ts";
 
@@ -26,22 +27,12 @@ export default async function PaginaDeMeusPedidos() {
   if (leitura.estado === "nao-autenticado") redirect("/entrar");
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
-          Minha conta
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
-          Meus pedidos
-        </h1>
-        <p className="mt-2 text-[var(--cor-tinta-suave)]">
-          Tudo que você pediu, em todas as lojas, com o status de agora. Abra um
-          pedido para acompanhá-lo sem precisar do link.
-        </p>
-      </header>
-      <div className="mt-8">
-        <MeusPedidos leitura={leitura} />
-      </div>
-    </main>
+    <PaginaDaConta
+      atual="pedidos"
+      titulo="Meus pedidos"
+      descricao="Tudo que você pediu, em todas as lojas, com o status de agora. Abra um pedido para acompanhá-lo sem precisar do link."
+    >
+      <MeusPedidos leitura={leitura} />
+    </PaginaDaConta>
   );
 }

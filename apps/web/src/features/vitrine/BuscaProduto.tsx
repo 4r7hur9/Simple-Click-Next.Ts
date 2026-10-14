@@ -14,6 +14,8 @@
  * feita para rede ruim — ou obrigaria a baixar o catálogo inteiro para filtrar
  * no navegador, que é o mesmo peso que o AC-415 proíbe.
  */
+import { IconeBuscar } from "@simpleclick/ui";
+
 import { PARAMETRO_DA_BUSCA } from "../../lib/catalogo.ts";
 
 export interface BuscaProdutoProps {
@@ -46,14 +48,23 @@ export function BuscaProduto({
         type="search"
         name={PARAMETRO_DA_BUSCA}
         defaultValue={termo ?? ""}
-        placeholder={`Buscar no ${rotuloDoCatalogo.toLowerCase()}`}
+        // A dica é curta porque o campo divide a barra com a marca e o
+        // carrinho: no dobrável fechado, "Buscar no cardápio" sairia cortado.
+        // O nome completo, com a palavra do ramo, está no `label`.
+        placeholder="Buscar"
         // `search` no celular troca o "enter" por uma lupa: é o teclado dizendo
         // o que aquele botão faz, sem a pessoa ter de descobrir.
         enterKeyHint="search"
         autoComplete="off"
       />
+      {/*
+        O botão continua existindo, mesmo virando só a lupa: sem script, ele é
+        a única forma de enviar para quem não descobre que "enter" busca. O
+        nome "Buscar" fica para o leitor de tela.
+      */}
       <button className="sc-vitrine__busca-botao" type="submit">
-        Buscar
+        <IconeBuscar />
+        <span className="sc-so-leitor">Buscar</span>
       </button>
     </form>
   );
@@ -84,6 +95,9 @@ export function SemResultado({
 }: SemResultadoProps) {
   return (
     <div className="sc-vitrine__sem-resultado">
+      <span className="sc-vitrine__sem-resultado-icone" aria-hidden="true">
+        <IconeBuscar />
+      </span>
       <p className="sc-vitrine__sem-resultado-titulo">
         Nada encontrado para <strong>{termo}</strong>
       </p>

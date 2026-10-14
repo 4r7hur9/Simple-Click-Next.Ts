@@ -170,7 +170,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-3xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-3xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="imagens-do-produto"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -192,7 +192,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
         {imagens.map((imagem) => (
           <li
             key={imagem.id}
-            className="overflow-hidden rounded-xl border border-[var(--cor-borda)]"
+            className="overflow-hidden rounded-[var(--raio-botao)] border border-[var(--cor-borda)]"
           >
             <div className="aspect-[4/3] bg-[var(--cor-papel)]">
               <img
@@ -203,12 +203,12 @@ export function EnvioDeImagem({ produtoId }: Props) {
             </div>
             <div className="flex flex-wrap items-center gap-2 p-3">
               {imagem.principal ? (
-                <span className="text-xs font-semibold text-[var(--cor-primaria)]">
+                <span className="text-xs font-semibold text-[var(--cor-primaria-texto)]">
                   Principal
                 </span>
               ) : (
                 <button
-                  className="sc-botao sc-botao--fantasma text-xs"
+                  className="sc-botao sc-botao--secundaria text-xs"
                   type="button"
                   onClick={() => void tornarPrincipal(imagem)}
                 >
@@ -218,14 +218,14 @@ export function EnvioDeImagem({ produtoId }: Props) {
               {removendoId === imagem.id ? (
                 <>
                   <button
-                    className="sc-botao sc-botao--primario text-xs"
+                    className="sc-botao sc-botao--primaria text-xs"
                     type="button"
                     onClick={() => void remover(imagem)}
                   >
                     Confirmar remoção
                   </button>
                   <button
-                    className="sc-botao sc-botao--fantasma text-xs"
+                    className="sc-botao sc-botao--secundaria text-xs"
                     type="button"
                     onClick={() => setRemovendoId(null)}
                   >
@@ -234,7 +234,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
                 </>
               ) : (
                 <button
-                  className="sc-botao sc-botao--fantasma text-xs"
+                  className="sc-botao sc-botao--secundaria text-xs"
                   type="button"
                   onClick={() => setRemovendoId(imagem.id)}
                 >
@@ -251,7 +251,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
           <label>
             <span className="text-sm font-medium">Foto do produto</span>
             <input
-              className="sc-campo mt-2 w-full"
+              className="sc-campo__controle mt-2 w-full"
               type="file"
               accept="image/jpeg,image/png,image/gif,image/webp"
               onChange={(evento) =>
@@ -269,7 +269,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
             ) : null}
             {conferencia ? (
               <span
-                className="mt-2 block text-sm text-[var(--cor-primaria)]"
+                className="mt-2 block text-sm text-[var(--cor-primaria-texto)]"
                 role="status"
               >
                 Arquivo válido ({conferencia.formato},{" "}
@@ -285,7 +285,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
           <label>
             <span className="text-sm font-medium">Texto alternativo</span>
             <input
-              className="sc-campo mt-2 w-full"
+              className="sc-campo__controle mt-2 w-full"
               value={altText}
               onChange={(evento) => setAltText(evento.target.value)}
               maxLength={160}
@@ -302,7 +302,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
             Definir como imagem principal
           </label>
           <button
-            className="sc-botao sc-botao--primario w-fit"
+            className="sc-botao sc-botao--primaria w-fit"
             type="button"
             disabled={salvando || arquivo === null}
             onClick={() => void enviarArquivo()}
@@ -319,7 +319,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
                 Ou informe a URL HTTPS de uma foto já hospedada
               </span>
               <input
-                className="sc-campo mt-2 w-full"
+                className="sc-campo__controle mt-2 w-full"
                 type="url"
                 value={url}
                 onChange={(evento) => setUrl(evento.target.value)}
@@ -328,7 +328,7 @@ export function EnvioDeImagem({ produtoId }: Props) {
               />
             </label>
             <button
-              className="sc-botao sc-botao--fantasma w-fit"
+              className="sc-botao sc-botao--secundaria w-fit"
               type="submit"
               disabled={salvando}
             >

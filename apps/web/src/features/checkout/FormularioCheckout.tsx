@@ -236,7 +236,13 @@ export function FormularioCheckout({
         </Aviso>
       ) : null}
 
-      <Botao type="submit" carregando={enviando} rotuloDeEspera="Enviando…">
+      <Botao
+        type="submit"
+        tamanho="grande"
+        forma="pilula"
+        carregando={enviando}
+        rotuloDeEspera="Enviando…"
+      >
         Fechar pedido
       </Botao>
     </form>

@@ -184,7 +184,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
 
   return (
     <section
-      className="mt-8 max-w-4xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-4xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
       aria-labelledby="grupos-de-escolha"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -207,7 +207,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
           return (
             <article
               key={item.id}
-              className="rounded-xl border border-[var(--cor-borda)] p-5"
+              className="rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -221,7 +221,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                     {item.eixoDeVariacao ? " · eixo de variação" : ""}
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-[var(--cor-primaria)]">
+                <span className="text-xs font-semibold text-[var(--cor-primaria-texto)]">
                   {item.tipo}
                 </span>
               </div>
@@ -241,14 +241,14 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                       </span>
                     </span>
                     <button
-                      className="sc-botao sc-botao--fantasma text-xs"
+                      className="sc-botao sc-botao--secundaria text-xs"
                       type="button"
                       onClick={() => void alternarOpcao(item.id, opcao)}
                     >
                       {opcao.disponivel ? "Esgotar" : "Reativar"}
                     </button>
                     <button
-                      className="sc-botao sc-botao--fantasma text-xs"
+                      className="sc-botao sc-botao--secundaria text-xs"
                       type="button"
                       onClick={() => void removerOpcao(item.id, opcao)}
                     >
@@ -262,7 +262,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                 className="mt-4 grid gap-3 border-t border-[var(--cor-borda)] pt-4 sm:grid-cols-[1fr_10rem_auto]"
               >
                 <input
-                  className="sc-campo"
+                  className="sc-campo__controle"
                   value={formulario.nome}
                   onChange={(evento) =>
                     setOpcoes((anteriores) => ({
@@ -274,7 +274,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                   required
                 />
                 <input
-                  className="sc-campo"
+                  className="sc-campo__controle"
                   inputMode="decimal"
                   value={formulario.acrescimo}
                   onChange={(evento) =>
@@ -289,7 +289,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                   placeholder="Acréscimo R$"
                 />
                 <button
-                  className="sc-botao sc-botao--fantasma"
+                  className="sc-botao sc-botao--secundaria"
                   type="submit"
                   disabled={salvando}
                 >
@@ -308,7 +308,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Nome</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={grupo.nome}
             onChange={(evento) =>
               setGrupo((anterior) => ({
@@ -323,7 +323,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Tipo</span>
           <select
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={grupo.tipo}
             onChange={(evento) =>
               setGrupo((anterior) => ({
@@ -343,7 +343,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Mínimo</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             type="number"
             min={0}
             value={grupo.minimo}
@@ -358,7 +358,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
         <label>
           <span className="text-sm font-medium">Máximo (opcional)</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             type="number"
             min={1}
             value={grupo.maximo}
@@ -400,7 +400,7 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
           Usar este grupo como eixo da grade de variações
         </label>
         <button
-          className="sc-botao sc-botao--primario w-fit"
+          className="sc-botao sc-botao--primaria w-fit"
           type="submit"
           disabled={salvando}
         >

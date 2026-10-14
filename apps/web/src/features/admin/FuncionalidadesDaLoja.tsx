@@ -27,7 +27,9 @@ import {
   Botao,
   Campo,
   Carregando,
+  Cartao,
   Erro,
+  Selo,
   Sucesso,
   Vazio,
 } from "@simpleclick/ui";
@@ -90,7 +92,6 @@ export function CartaoDaFuncionalidade({
   const [erroDoMotivo, setErroDoMotivo] = useState<string | undefined>();
   const { chave, rotulo, ligada, excecao } = funcionalidade;
   const ato = ligada ? "Desligar" : "Religar";
-  const idDoTitulo = `funcionalidade-${chave}`;
 
   async function aoConfirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -135,83 +136,76 @@ export function CartaoDaFuncionalidade({
   }
 
   return (
-    <li
-      aria-labelledby={idDoTitulo}
-      className="rounded-lg border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4"
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 id={idDoTitulo} className="text-lg font-semibold">
-          {rotulo}
-        </h3>
-        <span
-          className={
-            ligada
-              ? "text-sm font-semibold text-[var(--cor-sucesso)]"
-              : "text-sm font-semibold text-[var(--cor-erro)]"
-          }
-        >
-          {ligada ? "Ligada" : "Desligada para esta loja"}
-        </span>
-      </div>
-      <p className="mt-1 text-sm">{funcionalidade.descricao}</p>
-      <p className="mt-1 text-sm">Sem custo e sem limite de uso.</p>
-      {excecao !== null && (
-        <p className="mt-2 text-sm">
-          Desligada em {momentoNaTela(excecao.definidaEm)}
-          {excecao.definidaPor !== null && ` por ${excecao.definidaPor.nome}`}.
-          Motivo: {excecao.motivo}
-        </p>
-      )}
-
-      {!funcionalidade.temEfeito ? (
-        <p className="mt-3 text-sm italic">Sempre ligada nesta versão.</p>
-      ) : passo.fase === "parado" ? (
-        <div className="mt-3">
-          <Botao
-            variante="secundaria"
-            onClick={() => setPasso({ fase: "confirmando" })}
-          >
-            {`${ato} ${rotulo.toLowerCase()}`}
-          </Botao>
-        </div>
-      ) : (
-        <form className="mt-4 grid gap-3" onSubmit={aoConfirmar} noValidate>
-          <p className="text-sm">
-            {ligada
-              ? "A área some do menu do dono e as rotas dela passam a responder indisponível, mesmo acessadas direto. Nada é apagado: religar devolve tudo como estava."
-              : "A área volta ao menu do dono e as rotas dela voltam a responder."}
+    <li>
+      <Cartao
+        titulo={rotulo}
+        nivelDoTitulo={3}
+        acoes={
+          <Selo tom={ligada ? "sucesso" : "erro"}>
+            {ligada ? "Ligada" : "Desligada para esta loja"}
+          </Selo>
+        }
+      >
+        <p className="mt-1 text-sm">{funcionalidade.descricao}</p>
+        <p className="mt-1 text-sm">Sem custo e sem limite de uso.</p>
+        {excecao !== null && (
+          <p className="mt-2 text-sm">
+            Desligada em {momentoNaTela(excecao.definidaEm)}
+            {excecao.definidaPor !== null && ` por ${excecao.definidaPor.nome}`}
+            . Motivo: {excecao.motivo}
           </p>
-          <Campo
-            id={`motivo-${chave}`}
-            rotulo="Motivo"
-            dica="Fica no histórico da loja, com o seu nome."
-            obrigatorio
-            value={motivo}
-            erro={erroDoMotivo}
-            onChange={(evento) => setMotivo(evento.target.value)}
-          />
-          {passo.fase === "falhou" && (
-            <Erro
-              titulo="A alteração não foi feita"
-              mensagem={passo.mensagem}
-            />
-          )}
-          <div className="flex flex-wrap gap-2">
-            <Botao type="submit" carregando={passo.fase === "enviando"}>
-              {`Confirmar: ${ato.toLowerCase()}`}
-            </Botao>
+        )}
+
+        {!funcionalidade.temEfeito ? (
+          <p className="mt-3 text-sm italic">Sempre ligada nesta versão.</p>
+        ) : passo.fase === "parado" ? (
+          <div className="mt-3">
             <Botao
-              variante="discreta"
-              onClick={() => {
-                setPasso({ fase: "parado" });
-                setErroDoMotivo(undefined);
-              }}
+              variante="secundaria"
+              onClick={() => setPasso({ fase: "confirmando" })}
             >
-              Cancelar
+              {`${ato} ${rotulo.toLowerCase()}`}
             </Botao>
           </div>
-        </form>
-      )}
+        ) : (
+          <form className="mt-4 grid gap-3" onSubmit={aoConfirmar} noValidate>
+            <p className="text-sm">
+              {ligada
+                ? "A área some do menu do dono e as rotas dela passam a responder indisponível, mesmo acessadas direto. Nada é apagado: religar devolve tudo como estava."
+                : "A área volta ao menu do dono e as rotas dela voltam a responder."}
+            </p>
+            <Campo
+              id={`motivo-${chave}`}
+              rotulo="Motivo"
+              dica="Fica no histórico da loja, com o seu nome."
+              obrigatorio
+              value={motivo}
+              erro={erroDoMotivo}
+              onChange={(evento) => setMotivo(evento.target.value)}
+            />
+            {passo.fase === "falhou" && (
+              <Erro
+                titulo="A alteração não foi feita"
+                mensagem={passo.mensagem}
+              />
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Botao type="submit" carregando={passo.fase === "enviando"}>
+                {`Confirmar: ${ato.toLowerCase()}`}
+              </Botao>
+              <Botao
+                variante="discreta"
+                onClick={() => {
+                  setPasso({ fase: "parado" });
+                  setErroDoMotivo(undefined);
+                }}
+              >
+                Cancelar
+              </Botao>
+            </div>
+          </form>
+        )}
+      </Cartao>
     </li>
   );
 }

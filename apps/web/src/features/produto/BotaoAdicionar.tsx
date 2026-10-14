@@ -15,7 +15,12 @@
  * ELE FICA DESABILITADO QUANDO O PRODUTO NÃO ESTÁ À VENDA (AC-413), porque aí
  * não há nada que a pessoa possa fazer na página para resolver — e a explicação
  * aparece ao lado, que é o que o critério exige.
+ *
+ * AO LADO DO BOTÃO, o carrinho. É um link, e não outro botão de ação: depois
+ * de adicionar, o próximo passo de quem terminou é conferir e fechar, e ele
+ * fica no mesmo lugar do polegar.
  */
+import { IconeAdicionar, IconePedido, IconeRemover } from "@simpleclick/ui";
 
 export interface BotaoAdicionarProps {
   /** O total do item, já escrito como dinheiro. */
@@ -29,6 +34,8 @@ export interface BotaoAdicionarProps {
   readonly enviando?: boolean | undefined;
   readonly aoMudarQuantidade: (quantidade: number) => void;
   readonly aoAdicionar: () => void;
+  /** Para onde vai quem quer ver o carrinho. Sem ele, o atalho não aparece. */
+  readonly linkDoCarrinho?: string | undefined;
 }
 
 /** O teto de unidades por item, para o dedo escorregado não pedir 200 coxinhas. */
@@ -42,6 +49,7 @@ export function BotaoAdicionar({
   enviando = false,
   aoMudarQuantidade,
   aoAdicionar,
+  linkDoCarrinho,
 }: BotaoAdicionarProps) {
   return (
     <div className="sc-produto__acao">
@@ -58,7 +66,7 @@ export function BotaoAdicionar({
             disabled={quantidade <= 1}
             aria-label="Diminuir a quantidade"
           >
-            −
+            <IconeRemover />
           </button>
           {/*
             O número é texto, e não campo de digitação. Campo numérico no
@@ -76,7 +84,7 @@ export function BotaoAdicionar({
             disabled={quantidade >= MAXIMO}
             aria-label="Aumentar a quantidade"
           >
-            +
+            <IconeAdicionar />
           </button>
         </div>
       ) : null}
@@ -102,6 +110,16 @@ export function BotaoAdicionar({
           <span>Indisponível</span>
         )}
       </button>
+
+      {linkDoCarrinho ? (
+        <a
+          className="sc-botao sc-botao--secundaria sc-botao--pilula sc-botao--grande sc-botao--so-icone sc-produto__carrinho"
+          href={linkDoCarrinho}
+        >
+          <IconePedido />
+          <span className="sc-so-leitor">Ver o carrinho</span>
+        </a>
+      ) : null}
 
       {explicacao ? (
         <p className="sc-produto__indisponivel">{explicacao}</p>

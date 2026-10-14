@@ -232,7 +232,7 @@ export function FormularioProduto({ produto }: Props) {
   return (
     <form
       onSubmit={(evento) => void salvar(evento)}
-      className="mt-8 max-w-3xl rounded-2xl border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 sm:p-8"
+      className="mt-8 max-w-3xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
     >
       <p role="status" className="text-sm text-[var(--cor-tinta-suave)]">
         {mensagem}
@@ -241,7 +241,7 @@ export function FormularioProduto({ produto }: Props) {
         <label className="sm:col-span-2">
           <span className="text-sm font-medium">Nome do produto</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={nome}
             onChange={(evento) => setNome(evento.target.value)}
             maxLength={160}
@@ -252,7 +252,7 @@ export function FormularioProduto({ produto }: Props) {
         <label className="sm:col-span-2">
           <span className="text-sm font-medium">Descrição (opcional)</span>
           <textarea
-            className="sc-campo mt-2 min-h-28 w-full"
+            className="sc-campo__controle mt-2 min-h-28 w-full"
             value={descricao}
             onChange={(evento) => setDescricao(evento.target.value)}
             maxLength={2_000}
@@ -262,7 +262,7 @@ export function FormularioProduto({ produto }: Props) {
         <label>
           <span className="text-sm font-medium">Categoria</span>
           <select
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={categoriaId}
             onChange={(evento) => setCategoriaId(evento.target.value)}
             required
@@ -278,7 +278,7 @@ export function FormularioProduto({ produto }: Props) {
         <label>
           <span className="text-sm font-medium">Preço (R$)</span>
           <input
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             inputMode="decimal"
             value={preco}
             onChange={(evento) => setPreco(evento.target.value)}
@@ -289,7 +289,7 @@ export function FormularioProduto({ produto }: Props) {
         <label>
           <span className="text-sm font-medium">Visibilidade</span>
           <select
-            className="sc-campo mt-2 w-full"
+            className="sc-campo__controle mt-2 w-full"
             value={status}
             onChange={(evento) => setStatus(evento.target.value)}
           >
@@ -318,7 +318,7 @@ export function FormularioProduto({ produto }: Props) {
           no horário da loja. Esgotado vence a janela: desmarcar acima tira o
           produto de venda mesmo dentro da faixa.
         */}
-        <fieldset className="rounded-xl border border-[var(--cor-borda)] p-4 sm:col-span-2">
+        <fieldset className="rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4 sm:col-span-2">
           <legend className="px-1 text-sm font-medium">Janela de venda</legend>
           <p className="text-sm text-[var(--cor-tinta-suave)]">
             Sem janela, o produto é vendido sempre que a loja está aberta. Com
@@ -337,7 +337,7 @@ export function FormularioProduto({ produto }: Props) {
                   <label>
                     <span className="text-xs font-medium">Dia</span>
                     <select
-                      className="sc-campo mt-1 w-full"
+                      className="sc-campo__controle mt-1 w-full"
                       aria-label={`Dia da janela ${indice + 1}`}
                       value={janela.diaDaSemana}
                       onChange={(evento) =>
@@ -356,7 +356,7 @@ export function FormularioProduto({ produto }: Props) {
                   <label>
                     <span className="text-xs font-medium">Abre</span>
                     <input
-                      className="sc-campo mt-1 w-full"
+                      className="sc-campo__controle mt-1 w-full"
                       type="time"
                       aria-label={`Abre na janela ${indice + 1}`}
                       value={janela.abre}
@@ -369,7 +369,7 @@ export function FormularioProduto({ produto }: Props) {
                   <label>
                     <span className="text-xs font-medium">Fecha</span>
                     <input
-                      className="sc-campo mt-1 w-full"
+                      className="sc-campo__controle mt-1 w-full"
                       type="time"
                       aria-label={`Fecha na janela ${indice + 1}`}
                       value={janela.fecha}
@@ -380,7 +380,7 @@ export function FormularioProduto({ produto }: Props) {
                     />
                   </label>
                   <button
-                    className="sc-botao sc-botao--fantasma"
+                    className="sc-botao sc-botao--secundaria"
                     type="button"
                     aria-label={`Remover janela ${indice + 1}`}
                     onClick={() =>
@@ -396,7 +396,7 @@ export function FormularioProduto({ produto }: Props) {
             </ul>
           )}
           <button
-            className="sc-botao sc-botao--fantasma mt-4"
+            className="sc-botao sc-botao--secundaria mt-4"
             type="button"
             onClick={() => setJanelas((atuais) => [...atuais, JANELA_NOVA])}
           >
@@ -415,7 +415,7 @@ export function FormularioProduto({ produto }: Props) {
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <button
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           type="submit"
           disabled={salvando || categorias.length === 0}
         >
@@ -426,7 +426,7 @@ export function FormularioProduto({ produto }: Props) {
               : "Cadastrar produto"}
         </button>
         <button
-          className="sc-botao sc-botao--fantasma"
+          className="sc-botao sc-botao--secundaria"
           type="button"
           onClick={() => router.back()}
         >

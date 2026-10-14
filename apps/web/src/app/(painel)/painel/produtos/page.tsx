@@ -9,7 +9,7 @@ export default function PaginaDeProdutos() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
             Catálogo da loja
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
@@ -21,7 +21,7 @@ export default function PaginaDeProdutos() {
           </p>
         </div>
         <Link
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           href="/painel/produtos/novo"
         >
           Novo produto

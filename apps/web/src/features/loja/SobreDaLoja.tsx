@@ -1,4 +1,18 @@
-import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
+/**
+ * A página Sobre da loja (AC-421, AC-422, AC-423).
+ *
+ * CONTEÚDO DE SERVIDOR, sem script. As informações práticas — onde retirar e
+ * como falar com a loja — ficam em sanfonas (`details`), que abrem e fecham
+ * pelo próprio navegador: funcionam com o script desligado, e o texto está no
+ * HTML mesmo fechado, para o buscador e para o Ctrl+F.
+ */
+import {
+  IconeInfo,
+  IconeLoja,
+  PALETA_CLARA,
+  Sanfona,
+  TemaDaLoja,
+} from "@simpleclick/ui";
 
 interface Endereco {
   readonly logradouro: string | null;
@@ -37,101 +51,106 @@ export function SobreDaLoja({ loja }: { readonly loja: DadosSobreDaLoja }) {
   return (
     <TemaDaLoja
       corPrincipal={loja.cores?.["primaria"] ?? PALETA_CLARA.primaria}
-      className="min-h-screen bg-[var(--cor-papel)] text-[var(--cor-tinta)]"
+      className="sc-pagina-da-loja"
     >
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <a
-            className="font-medium text-[var(--cor-primaria-texto)]"
-            href={`/l/${loja.apelido}`}
-          >
-            ← Voltar para {loja.nome}
-          </a>
-          <a
-            className="sc-botao sc-botao--fantasma"
-            href={`/l/${loja.apelido}/catalogo`}
-          >
-            Ver catálogo
-          </a>
-        </header>
+      {/* O fundo vai num bloco próprio: o contêiner do tema é `display:
+          contents` e não pinta nada. */}
+      <div className="min-h-screen bg-[var(--cor-superficie)] text-[var(--cor-tinta)]">
+        <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:py-12">
+          <header className="flex flex-wrap items-center justify-between gap-3">
+            <a
+              className="inline-flex min-h-[var(--altura-toque)] items-center font-medium text-[var(--cor-primaria-texto)]"
+              href={`/l/${loja.apelido}`}
+            >
+              ← Voltar para {loja.nome}
+            </a>
+            <a
+              className="sc-botao sc-botao--secundaria sc-botao--pilula"
+              href={`/l/${loja.apelido}/catalogo`}
+            >
+              Ver catálogo
+            </a>
+          </header>
 
-        {loja.capa ? (
-          <img
-            className="mt-8 h-56 w-full rounded-[var(--raio-grande)] object-cover sm:h-72"
-            src={loja.capa}
-            alt=""
-            width={1200}
-            height={420}
-            loading="eager"
-          />
-        ) : null}
-
-        <section
-          className="mt-8 rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-6 shadow-[var(--sombra-baixa)] sm:p-10"
-          aria-labelledby="sobre-titulo"
-        >
-          <div className="flex flex-wrap items-center gap-5">
-            {loja.logo ? (
+          <article
+            className="mt-6 overflow-hidden rounded-[var(--raio-janela)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)]"
+            aria-labelledby="sobre-titulo"
+          >
+            {loja.capa ? (
               <img
-                className="h-20 w-20 rounded-2xl object-cover"
-                src={loja.logo}
+                className="h-48 w-full object-cover sm:h-72"
+                src={loja.capa}
                 alt=""
-                width={80}
-                height={80}
+                width={1200}
+                height={420}
+                loading="eager"
               />
             ) : null}
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-                Sobre a loja
+
+            <div className="p-5 sm:p-8">
+              <div className="flex flex-wrap items-center gap-4">
+                {loja.logo ? (
+                  <img
+                    className="h-16 w-16 rounded-[var(--raio-cartao)] object-cover shadow-[var(--sombra-larga)]"
+                    src={loja.logo}
+                    alt=""
+                    width={64}
+                    height={64}
+                  />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--cor-primaria-texto)]">
+                    Sobre a loja
+                  </p>
+                  <h1
+                    id="sobre-titulo"
+                    className="mt-1 font-[family-name:var(--fonte-titulo)] text-3xl font-semibold sm:text-4xl"
+                  >
+                    {loja.nome}
+                  </h1>
+                </div>
+              </div>
+
+              <p className="mt-6 max-w-[65ch] whitespace-pre-line text-base leading-7 sm:text-lg sm:leading-8">
+                {loja.sobre ?? `Conheça a história da ${loja.nome}.`}
               </p>
-              <h1 id="sobre-titulo" className="mt-2 text-4xl font-semibold">
-                {loja.nome}
-              </h1>
             </div>
-          </div>
+          </article>
 
-          <p className="mt-8 max-w-3xl whitespace-pre-line text-lg leading-8">
-            {loja.sobre ?? `Conheça a história da ${loja.nome}.`}
-          </p>
-
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {loja.enderecoParaRetirada ? (
-              <section
-                className="rounded-2xl border border-[var(--cor-borda)] p-5"
-                aria-labelledby="retirada-titulo"
-              >
-                <h2 id="retirada-titulo" className="font-semibold">
-                  Retirada
-                </h2>
-                <address className="mt-3 not-italic leading-7">
-                  {enderecoEmLinhas(loja.enderecoParaRetirada).map((linha) => (
-                    <span className="block" key={linha}>
-                      {linha}
-                    </span>
-                  ))}
-                </address>
-              </section>
-            ) : null}
-
-            {loja.whatsappPublico ? (
-              <section
-                className="rounded-2xl border border-[var(--cor-borda)] p-5"
-                aria-labelledby="whatsapp-titulo"
-              >
-                <h2 id="whatsapp-titulo" className="font-semibold">
-                  Fale com a loja
-                </h2>
-                <a
-                  className="mt-3 inline-flex font-medium text-[var(--cor-primaria-texto)] underline"
-                  href={`https://wa.me/${numeroDoWhatsApp(loja.whatsappPublico)}`}
+          {loja.enderecoParaRetirada || loja.whatsappPublico ? (
+            <section className="mt-6" aria-label="Informações da loja">
+              {loja.enderecoParaRetirada ? (
+                <Sanfona
+                  titulo="Retirada"
+                  icone={<IconeLoja />}
+                  abertaInicialmente
                 >
-                  WhatsApp público
-                </a>
-              </section>
-            ) : null}
-          </div>
-        </section>
-      </main>
+                  <address className="not-italic leading-7">
+                    {enderecoEmLinhas(loja.enderecoParaRetirada).map(
+                      (linha) => (
+                        <span className="block" key={linha}>
+                          {linha}
+                        </span>
+                      ),
+                    )}
+                  </address>
+                </Sanfona>
+              ) : null}
+
+              {loja.whatsappPublico ? (
+                <Sanfona titulo="Fale com a loja" icone={<IconeInfo />}>
+                  <a
+                    className="sc-botao sc-botao--primaria sc-botao--pilula"
+                    href={`https://wa.me/${numeroDoWhatsApp(loja.whatsappPublico)}`}
+                  >
+                    WhatsApp público
+                  </a>
+                </Sanfona>
+              ) : null}
+            </section>
+          ) : null}
+        </main>
+      </div>
     </TemaDaLoja>
   );
 }

@@ -86,12 +86,12 @@ export function MetricasPorPeriodo({
       {uso.fase === "pronta" ? (
         <section
           aria-labelledby={idDaExportacao}
-          className="rounded-lg border border-borda bg-superficie p-4"
+          className="sc-cartao"
         >
-          <h2 id={idDaExportacao} className="text-base font-semibold">
+          <h2 id={idDaExportacao} className="sc-cartao__titulo">
             Levar os números para fora
           </h2>
-          <div className="mt-3">
+          <div>
             <BotaoExportar consulta={uso.vigente} periodo={periodo} />
           </div>
         </section>
