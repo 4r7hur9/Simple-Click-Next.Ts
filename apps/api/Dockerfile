@@ -21,12 +21,6 @@
 # 3. **Usuário sem privilégio.** O processo roda como `node`, e não como
 #    administrador. Uma falha que consiga executar comando encontra um usuário
 #    que não instala pacote nem escreve fora do que precisa.
-#
-# A imagem carrega TAMBÉM as ferramentas de migração (`infra/railway/`,
-# `infra/scripts/` e `packages/database/`). Isso é de propósito: o comando de
-# pré-publicação roda DENTRO desta imagem, antes de ela receber tráfego
-# (AC-029). Sem as migrações aqui, o passo que aplica o esquema não existiria
-# no lugar onde o provedor o executa.
 
 ARG VERSAO_DO_NODE=24.18.0
 
@@ -145,12 +139,6 @@ COPY --from=construcao --chown=node:node /app/packages/database ./packages/datab
 COPY --from=construcao --chown=node:node /app/apps/api/package.json ./apps/api/package.json
 COPY --from=construcao --chown=node:node /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=construcao --chown=node:node /app/apps/api/dist ./apps/api/dist
-
-# As ferramentas da publicação. O provedor executa `infra/railway/pre-deploy.sh`
-# DENTRO desta imagem, antes de mandar tráfego para ela (AC-029).
-COPY --chown=node:node infra/railway ./infra/railway
-COPY --chown=node:node infra/scripts/check-ambientes.sh ./infra/scripts/
-COPY --chown=node:node infra/scripts/check-migracao-compativel.mjs ./infra/scripts/
 
 # Daqui para baixo, nada roda como administrador.
 USER node

@@ -1,4 +1,12 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { configDefaults, defineConfig } from "vitest/config";
+
+// O ambiente local vem do `.env` da raiz (que nunca é versionado). Carregado
+// aqui, antes de os processos de teste nascerem, `pnpm test:unit` e
+// `pnpm test:int` funcionam sem exportar nada na sessão.
+const arquivoDeAmbiente = fileURLToPath(new URL(".env", import.meta.url));
+if (existsSync(arquivoDeAmbiente)) process.loadEnvFile(arquivoDeAmbiente);
 
 // O Next obriga `jsx: "preserve"` no tsconfig do site — ele reescreve a
 // opção sozinho a cada build. Com isso o transformador do Vitest recebe JSX
@@ -34,8 +42,7 @@ const esperaDeIntegracao = { testTimeout: 60_000, hookTimeout: 180_000 };
  * e numa máquina de quatro núcleos lógicos com Windows ele media a carga, não
  * o teste: com a suíte inteira em paralelo, ler os arquivos do site, importar
  * o `proxy.ts` do Next ou rodar um script de shell passava de 5 s sem nada
- * estar errado. Nenhum teste destes afirma tempo pela espera — quem cobra
- * tempo (AC-040) mede e afirma dentro do próprio teste.
+ * estar errado. Nenhum teste destes afirma tempo pela espera.
  */
 const esperaSemServico = { testTimeout: 60_000 };
 
@@ -73,12 +80,9 @@ export default defineConfig({
   oxc: conversaoDeJsx,
   test: {
     exclude: excluidos,
-    // O arquivo de comparação nasce AO LADO do teste, e não em `__snapshots__`.
-    // O motivo não é gosto: o Prettier normaliza markdown e reescreve
-    // `__snapshots__` como negrito (`**snapshots**`), o que quebrou em silêncio
-    // o caminho declarado na tarefa e fez a auditoria acusar o arquivo como
-    // código que nenhum requisito atende. Sem underscore duplo, o caminho
-    // sobrevive à formatação — e o mesmo vale para qualquer tarefa futura.
+    // O arquivo de comparação nasce AO LADO do teste, e não em `__snapshots__`:
+    // o Prettier reescreve `__snapshots__` como negrito (`**snapshots**`) em
+    // markdown, e sem underscore duplo o caminho sobrevive à formatação.
     resolveSnapshotPath: (caminhoDoTeste, extensao) =>
       caminhoDoTeste + extensao,
     projects: [
@@ -87,12 +91,6 @@ export default defineConfig({
         test: {
           name: "unit",
           ...esperaSemServico,
-          // Roda DEPOIS dos outros projetos quando a suíte vem inteira. A prova
-          // do gancho antes do registro (AC-040) mede o tempo do gancho de
-          // verdade, e medido ao lado do ESLint e do jsdom das provas do site o
-          // número dizia quanto a máquina estava ocupada, não quanto o gancho
-          // custa a quem registra. No portão (`--project unit`) nada muda.
-          sequence: { groupOrder: 1 },
           include: [
             "apps/api/src/**/*.test.ts",
             "packages/*/src/**/*.test.{ts,tsx}",
@@ -103,10 +101,6 @@ export default defineConfig({
             ...excluidos,
             ...provaDeCache,
             "apps/api/src/**/*.int.test.ts",
-            // A prova da publicação contra um PostgreSQL de verdade (T-018)
-            // mora em `db-rls`. Sem esta linha ela rodaria também aqui, onde
-            // não há banco nenhum — e falharia por um motivo que não é dela.
-            "infra/tests/**/*.int.test.ts",
             "packages/database/**",
             "packages/testing/**",
           ],
@@ -213,12 +207,6 @@ export default defineConfig({
             "packages/database/tests/**/*.test.ts",
             "packages/testing/src/**/*.test.ts",
             "packages/testing/tests/**/*.test.ts",
-            // A publicação aplica migração antes de trocar a versão (AC-029), e
-            // provar isso exige um banco vazio de verdade. Mora aqui, e não em
-            // `api-int`, pelo mesmo motivo que este projeto não corre em
-            // paralelo: aplicar a 0001 num banco novo cria PAPÉIS, que são
-            // objeto do agrupamento inteiro e não do banco.
-            "infra/tests/**/*.int.test.ts",
           ],
           exclude: excluidos,
           setupFiles: preparacaoDeBanco,

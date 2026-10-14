@@ -13,7 +13,7 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:int": "vitest run --root ../.. --project db-rls packages/testing/"
+    "test:int": "cd ../.. && vitest run --project db-rls packages/testing/"
   },
   "dependencies": {
     "@simpleclick/database": "workspace:*",

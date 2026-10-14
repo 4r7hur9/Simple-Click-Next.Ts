@@ -13,7 +13,7 @@
     "emulador": "node src/emulador.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:unit": "vitest run --root ../.. --project agente apps/agente-impressao/"
+    "test:unit": "cd ../.. && vitest run --project agente apps/agente-impressao/"
   },
   "dependencies": {
     "@simpleclick/contracts": "workspace:*",

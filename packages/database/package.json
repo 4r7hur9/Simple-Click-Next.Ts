@@ -16,7 +16,7 @@
     "seed": "node --env-file-if-exists=../../.env seed/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:int": "vitest run --root ../.. --project db-rls packages/database/"
+    "test:int": "cd ../.. && vitest run --project db-rls packages/database/"
   },
   "dependencies": {
     "@prisma/client": "catalog:",

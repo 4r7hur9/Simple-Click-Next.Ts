@@ -1,5 +1,4 @@
-# Saída de ferramenta não se formata: formatar o que a máquina gerou faz o
-# portão reescrever arquivo de build e acusar diferença que ninguém escreveu.
+# Saída de ferramenta não se formata: é a máquina que a gera.
 node_modules/
 dist/
 .next/
@@ -10,19 +9,20 @@ playwright-report/
 test-results/
 
 # Arquivos gerados
-# Documento de contrato: quem o escreve é `apps/api/src/contracts/gerar.ts`, e
-# o portão compara byte a byte com o que o gerador produz. Formatar aqui faria
-# as duas etapas brigarem para sempre pelo mesmo arquivo.
+# Documento de contrato: quem o escreve é `apps/api/src/contracts/gerar.ts`
+# (`pnpm --filter @simpleclick/api contrato:escrever`).
 contrato/openapi.json
 packages/database/gerado/
 pnpm-lock.yaml
 apps/web/next-env.d.ts
-.spec/.vitest-report.json
 
 # árvore de mentira montada pela prova de tipos do contrato: é cópia de código
 # que já é formatado no lugar de origem
 packages/contracts/.provas-de-tipo/
 
 # componente de mentira montado pela prova da regra de cor: nasce e morre dentro
-# de um teste, e o portão não pode acusar diferença num arquivo que já não existe
+# de um teste
 apps/web/src/features/__cores-temp/
+
+# especificação e planos antigos, guardados só para consulta
+arquivo/

@@ -71,8 +71,8 @@ const SECOES_DE_DEPENDENCIA = [
 /** Este arquivo cita as palavras proibidas: sem esta lista, ele se acusaria. */
 const DISPENSADOS = new Set([
   "infra/tests/sem-cobranca.test.ts",
-  ".spec/features/pedido-checkout/spec.md",
-  ".spec/features/pedido-checkout/tasks.md",
+  "arquivo/spec/features/pedido-checkout/spec.md",
+  "arquivo/spec/features/pedido-checkout/tasks.md",
 ]);
 
 function arquivosVersionados(): string[] {

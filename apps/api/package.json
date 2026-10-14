@@ -10,7 +10,8 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:unit": "vitest run --root ../.. --project unit apps/api/",
+    "test:unit": "cd ../.. && vitest run --project unit apps/api/",
+    "test:int": "cd ../.. && vitest run --project api-int --project filas --project cache-int apps/api/",
     "contrato:escrever": "node src/contracts/gerar.ts escrever",
     "contrato:verificar": "node src/contracts/gerar.ts verificar"
   },

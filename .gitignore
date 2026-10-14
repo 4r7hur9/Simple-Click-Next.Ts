@@ -44,10 +44,6 @@ infra/compose/.env.compose
 infra/traefik/certs/*
 !infra/traefik/certs/.gitkeep
 
-# relatórios do motor de especificação
-.spec/.vitest-report.json
-.spec/.jest-report.json
-
 # logs locais do servidor de desenvolvimento
 dev-server.*.log
 

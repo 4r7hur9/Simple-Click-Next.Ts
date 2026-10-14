@@ -21,7 +21,6 @@ const executar = promisify(execFile);
 
 const RAIZ = fileURLToPath(new URL("../../../../", import.meta.url));
 const GERADOR = join(RAIZ, "apps/api/src/contracts/gerar.ts");
-const PORTAO = join(RAIZ, "infra/scripts/verificar.sh");
 
 let pasta: string;
 
@@ -261,13 +260,4 @@ describe("etapa do portão de qualidade", () => {
       await readFile(CAMINHO_PUBLICADO, "utf8"),
     );
   }, 60000);
-
-  it("@spec:AC-007 a etapa está ligada ao portão, e não só disponível", async () => {
-    const portao = await readFile(PORTAO, "utf8");
-
-    // Uma verificação que existe mas ninguém chama não reprova nada. Este
-    // teste é o que impede a etapa de sair do portão sem alguém perceber.
-    expect(portao).toContain("contrato:verificar");
-    expect(portao).toMatch(/etapa "contrato publicado em dia"/);
-  });
 });

@@ -39,7 +39,6 @@ catalog:
 # execução precisa ser aprovado aqui, de propósito — é superfície de ataque de
 # cadeia de suprimentos, não detalhe de configuração.
 allowBuilds:
-  lefthook: true # instala os ganchos locais do portão de qualidade
   unrs-resolver: true # binário nativo que resolve importações em TypeScript
   # Recusa explícita, e não omissão. O Prisma 7 não tem mais motor em Rust: o
   # que estes scripts de instalação fariam é baixar os binários do motor de
@@ -54,3 +53,4 @@ allowBuilds:
   # compilação de C++ na máquina de quem clona, por um ganho que a fila de
   # e-mail deste projeto nunca vai sentir.
   msgpackr-extract: false
+  lefthook: set this to true or false

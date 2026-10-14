@@ -40,7 +40,7 @@ packages/database/gerado/
 # provas e especificação: não vão ao ar, e mudam a cada tarefa — deixá-las no
 # contexto invalidaria o cache da construção sem alterar uma linha do que roda
 e2e/
-.spec/
+arquivo/
 docs/
 playwright-report/
 test-results/

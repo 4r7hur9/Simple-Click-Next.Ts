@@ -25,7 +25,7 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test:unit": "vitest run --root ../.. --project unit packages/ui/"
+    "test:unit": "cd ../.. && vitest run --project unit packages/ui/"
   },
   "peerDependencies": {
     "react": "^19.0.0"
