@@ -1078,3 +1078,91 @@
     transform: none;
   }
 }
+
+/* --- marcador ------------------------------------------------------------
+ *
+ * Texto com o fundo destacado, como caneta marca-texto sobre a palavra. É a
+ * assinatura tipográfica da marca nas telas da loja: o título do cardápio, o
+ * nome da seção, o nome da loja. `box-decoration-break: clone` faz cada linha
+ * ganhar o próprio fundo quando o título quebra. O par de cores vem de valor
+ * declarado; sobre o painel grafite, o modificador troca para verde-click. */
+
+.sc-marcador {
+  --marcador-fundo: var(--cor-primaria-suave);
+  --marcador-tinta: var(--cor-tinta);
+  display: inline;
+  padding: 0.04em 0.3em;
+  border-radius: 0.28em;
+  background: var(--marcador-fundo);
+  color: var(--marcador-tinta);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.sc-marcador--marca {
+  --marcador-fundo: var(--marca-verde-click);
+  --marcador-tinta: var(--marca-grafite);
+}
+
+/* --- situação da loja ----------------------------------------------------
+ *
+ * "Aberta agora" como uma marca, e não como uma caixa de aviso: é um dado da
+ * loja, tão permanente quanto o endereço dela. O pulso diz "agora" sem
+ * animação; a cor sozinha não conta nada — o texto ao lado é que conta. */
+
+.sc-situacao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-base);
+}
+
+.sc-situacao__pulso {
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-borda-forte);
+}
+
+.sc-situacao--aberta {
+  border-color: color-mix(in oklab, var(--cor-sucesso) 45%, transparent);
+}
+
+.sc-situacao--aberta .sc-situacao__pulso {
+  background: var(--cor-sucesso);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--cor-sucesso) 22%, transparent);
+}
+
+.sc-situacao--fechada .sc-situacao__pulso {
+  background: var(--cor-atencao);
+}
+
+/* --- contador do carrinho ------------------------------------------------
+ *
+ * O número de itens ao lado do ícone do carrinho. Nasce vazio e só aparece
+ * quando há item; verde-click sobre grafite, que é a cor de "tem coisa aqui"
+ * da marca, e não a cor da loja — o contador é da plataforma. */
+
+.sc-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.375rem;
+  block-size: 1.375rem;
+  padding-inline: var(--espaco-1);
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  color: var(--marca-grafite);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

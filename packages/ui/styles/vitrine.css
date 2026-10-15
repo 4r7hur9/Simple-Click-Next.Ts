@@ -1,16 +1,23 @@
 /*
- * A vitrine: barra do topo, destaques, abas de categoria e a grade de produtos
- * (T-403).
+ * A vitrine: barra do topo, capa, abas de categoria, destaques, a grade de
+ * produtos e o carrinho flutuante.
  *
  * SUPERFÍCIE DE QUEM ESTÁ COMPRANDO. A régua do projeto separa as telas pela
  * pressa de quem está nelas, e esta é a mais apressada de todas: alguém com
  * fome, no celular, com uma barra de sinal. Aqui não entra narrativa por
  * rolagem, não entra 3D e não entra nada que segure o dedo — só transição
- * curta e micro-interação.
+ * curta e micro-interação, toda em CSS, e toda desligada para quem pediu
+ * menos movimento.
+ *
+ * A CARA É A DA SIMPLECLICK: painel grafite com o título em marcador
+ * verde-click, cartões de canto largo sobre a névoa, tipo da marca nos títulos
+ * e nos preços. A cor da LOJA entra no que é dela — o pulso, o "+" do cartão,
+ * o botão — pelos valores que `TemaDaLoja` redefine, com o contraste já
+ * ajustado (AC-015). Nenhuma cor é escrita aqui (AC-014).
  *
  * Escrito de baixo para cima: o estilo base atende o dobrável fechado de 344px,
  * e cada `min-width` acrescenta. O contrário obriga a desfazer regra em cada
- * quebra, que é onde nasce o estouro horizontal que o portão reprova.
+ * quebra, que é onde nasce o estouro horizontal.
  *
  * Depende de `theme.css`, que declara cor, espaço, raio e tipografia.
  */
@@ -18,18 +25,31 @@
 /*
  * A altura da barra do topo é DECLARADA, e não medida: a faixa de categorias
  * gruda logo abaixo dela, e um número só nos dois lugares é o que impede uma
- * de passar por baixo da outra.
+ * de passar por baixo da outra. O respiro lateral da página também é
+ * declarado, porque a capa e a faixa de abas o desfazem para encostar na borda.
  */
 .sc-pagina-da-loja {
   --altura-da-barra: 4rem;
+  --respiro-da-pagina: max(var(--espaco-4), env(safe-area-inset-left));
+}
+
+/*
+ * O fundo da página é a superfície, e o cartão é a superfície alta: é o
+ * contraste entre as duas que desenha o cartão, sem precisar de borda. Vai no
+ * `body` porque o contêiner do tema da loja é `display: contents` e não pinta
+ * fundo nenhum.
+ */
+body:has(.sc-pagina-da-loja > .sc-barra) {
+  background: var(--cor-superficie);
 }
 
 /* --- a barra do topo -------------------------------------------------------
  *
  * Marca, busca larga e carrinho numa linha só, mesmo no dobrável fechado: a
- * busca fica com a largura que sobra. Ela gruda no topo e recolhe quando a
- * pessoa rola para baixo (o script só marca `data-recolhida`); rolando para
- * cima, volta. Sem script, só fica grudada.
+ * busca fica com a largura que sobra. A barra é translúcida com desfoque, para
+ * o cardápio passar por baixo dela sem sumir; gruda no topo e recolhe quando a
+ * pessoa rola para baixo (o script só marca `data-recolhida`). Sem script, só
+ * fica grudada.
  */
 
 .sc-barra {
@@ -37,9 +57,11 @@
   inset-block-start: 0;
   z-index: 3;
   padding-block-start: env(safe-area-inset-top);
-  border-block-end: 1px solid var(--cor-borda);
-  background: var(--cor-superficie-alta);
+  background: color-mix(in oklab, var(--cor-superficie-alta) 84%, transparent);
   color: var(--cor-tinta);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--cor-tinta) 8%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition: transform var(--transicao-media);
 }
 
@@ -55,8 +77,7 @@
   inline-size: 100%;
   max-inline-size: 72rem;
   margin-inline: auto;
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
+  padding-inline: var(--respiro-da-pagina);
 }
 
 .sc-barra__marca {
@@ -69,6 +90,7 @@
   color: var(--cor-tinta);
   font-family: var(--fonte-titulo);
   font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 
@@ -76,12 +98,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: var(--raio-botao);
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--raio-3);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
   object-fit: cover;
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--cor-primaria) 25%, transparent);
 }
 
 /* No celular a marca é só a logo: o nome continua no link para quem ouve. */
@@ -99,10 +123,33 @@
   flex: 1 1 auto;
 }
 
+/*
+ * O carrinho é uma pílula grafite com o contador verde-click: é a peça da
+ * marca na barra, e por isso usa a tinta do tema, e não a cor da loja.
+ */
 .sc-barra__carrinho {
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
   min-inline-size: var(--altura-toque);
   padding-inline: var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background: var(--cor-tinta);
+  color: var(--cor-fundo);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-barra__carrinho:hover {
+  transform: translateY(-1px);
+}
+
+.sc-barra__carrinho:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 /* --- a página ------------------------------------------------------------- */
@@ -116,21 +163,13 @@
   max-inline-size: 72rem;
   margin-inline: auto;
   /* Área segura: sem isto o conteúdo encosta na borda arredondada do aparelho. */
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-  padding-block-start: var(--espaco-5);
-  padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
+  padding-inline: var(--respiro-da-pagina);
+  /* O respiro do fim cabe a barra flutuante do carrinho, que senão tampa o
+   * último produto da última seção. */
+  padding-block-end: calc(
+    var(--espaco-8) + 4.5rem + env(safe-area-inset-bottom)
+  );
   color: var(--cor-tinta);
-}
-
-/*
- * O fundo da página é a superfície, e o cartão é a superfície alta: é o
- * contraste entre as duas que desenha o cartão, sem precisar de borda. Vai no
- * `body` porque o contêiner do tema da loja é `display: contents` e não pinta
- * fundo nenhum.
- */
-body:has(.sc-pagina-da-loja > .sc-barra) {
-  background: var(--cor-superficie);
 }
 
 .sc-vitrine__voltar {
@@ -148,12 +187,109 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   text-decoration: underline;
 }
 
+/* --- a capa ----------------------------------------------------------------
+ *
+ * O painel grafite no topo do cardápio: o nome da loja em letra pequena, o
+ * título em marcador verde-click, a situação e a frase do dono. Encosta nas
+ * bordas da tela como a barra, e só os cantos de baixo são arredondados — é
+ * uma faixa que desce da barra, e não um cartão solto.
+ *
+ * O grafite é da MARCA e vale nos dois temas: é a assinatura da SimpleClick
+ * sobre a loja, e por isso usa os valores brutos da paleta, e não a tinta do
+ * tema. O texto sobre ele é sempre claro.
+ */
+
+.sc-capa {
+  position: relative;
+  margin-inline: calc(-1 * var(--respiro-da-pagina));
+  padding-inline: var(--respiro-da-pagina);
+  padding-block: var(--espaco-6) var(--espaco-6);
+  border-end-start-radius: var(--raio-janela);
+  border-end-end-radius: var(--raio-janela);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  overflow: clip;
+  isolation: isolate;
+}
+
+/* A trama: linhas finas em verde-click, quase invisíveis, que dão textura ao
+ * painel sem carregar imagem. Decoração pura, atrás do conteúdo. */
+.sc-capa::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--marca-verde-click) 10%, transparent) 0 1px,
+      transparent 1px 18px
+    ),
+    radial-gradient(
+      60% 80% at 100% 0%,
+      color-mix(in oklab, var(--marca-verde-digital) 28%, transparent),
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.sc-capa__conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  max-inline-size: 40rem;
+}
+
+.sc-capa__loja {
+  margin: 0;
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/*
+ * O tipo responde à LARGURA, com teto, e nunca à altura. O marcador verde-click
+ * atrás do título é a assinatura da marca nesta tela.
+ */
 .sc-vitrine__titulo {
   margin: 0;
+  color: var(--marca-branco);
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-xl);
+  font-size: clamp(2rem, 9vw, 3.25rem);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.sc-vitrine__titulo .sc-marcador {
+  --marcador-fundo: var(--marca-verde-click);
+  --marcador-tinta: var(--marca-grafite);
+}
+
+/* Sobre o grafite, a pílula de situação vira vidro escuro com texto claro. */
+.sc-capa .sc-situacao {
+  border-color: color-mix(in oklab, var(--marca-branco) 18%, transparent);
+  background: color-mix(in oklab, var(--marca-branco) 8%, transparent);
+  color: var(--marca-nevoa);
+}
+
+.sc-capa .sc-situacao--aberta .sc-situacao__pulso {
+  background: var(--marca-verde-click);
+  box-shadow: 0 0 0 4px
+    color-mix(in oklab, var(--marca-verde-click) 25%, transparent);
+}
+
+.sc-capa__frase {
+  margin: 0;
+  max-inline-size: 34ch;
+  color: var(--marca-nevoa);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha-base);
+  text-wrap: pretty;
 }
 
 /* --- a busca ---------------------------------------------------------------
@@ -170,12 +306,18 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   /* `min-inline-size: 0` porque item de flex não encolhe sozinho: sem ele a
    * barra estoura a largura no dobrável fechado, de 344px. */
   min-inline-size: 0;
-  border: 1px solid var(--cor-borda-forte);
+  border: 1px solid var(--cor-borda);
   border-radius: var(--raio-completo);
   background: var(--cor-superficie);
+  transition: border-color var(--transicao-rapida);
+}
+
+.sc-vitrine__busca:hover {
+  border-color: var(--cor-borda-forte);
 }
 
 .sc-vitrine__busca:focus-within {
+  border-color: var(--cor-tinta);
   outline: 2px solid var(--cor-foco);
   outline-offset: 2px;
 }
@@ -185,7 +327,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   min-inline-size: 0;
   min-block-size: var(--altura-toque);
   padding-block: var(--espaco-2);
-  padding-inline: var(--espaco-3) 0;
+  padding-inline: var(--espaco-4) 0;
   border: none;
   border-radius: var(--raio-completo);
   background: transparent;
@@ -230,7 +372,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   align-items: center;
   gap: var(--espaco-3);
   padding: var(--espaco-7) var(--espaco-4);
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
   background: var(--cor-superficie-alta);
   text-align: center;
 }
@@ -248,7 +390,9 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 
 .sc-vitrine__sem-resultado-titulo {
   margin: 0;
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
 }
 
 .sc-vitrine__sem-resultado-texto {
@@ -274,9 +418,9 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   gap: var(--espaco-2);
   /* A faixa encosta nas bordas da tela, como a barra; a lista é que tem
    * respiro. Sem isso, os cartões apareceriam pelas laterais ao rolar. */
-  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
+  margin-inline: calc(-1 * var(--respiro-da-pagina));
   padding-block: var(--espaco-2);
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
+  padding-inline: var(--respiro-da-pagina);
   /* Fundo opaco: sem ele os cartões passam por baixo e o texto fica ilegível. */
   background: var(--cor-superficie);
   transition: inset-block-start var(--transicao-media);
@@ -317,29 +461,33 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   text-decoration: none;
   transition:
     background var(--transicao-rapida),
-    border-color var(--transicao-rapida);
+    border-color var(--transicao-rapida),
+    transform var(--transicao-rapida);
 }
 
 .sc-vitrine__aba:hover {
   border-color: var(--cor-borda-forte);
   background: var(--cor-primaria-suave);
+  transform: translateY(-1px);
+}
+
+.sc-vitrine__aba:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 /*
- * A aba em vigor muda FORMA e não só cor: fundo cheio e peso mais forte. Cor
- * sozinha não chega a quem não a distingue (P-012), e `aria-current` no HTML
- * cobre quem ouve a página.
+ * A aba em vigor muda FORMA e não só cor: fundo cheio com a tinta do tema e
+ * peso mais forte — preta sobre o claro, branca sobre o escuro, legível nos
+ * dois. Cor sozinha não chega a quem não a distingue (P-012), e
+ * `aria-current` no HTML cobre quem ouve a página.
  */
-.sc-vitrine__aba--em-vigor {
+.sc-vitrine__aba--em-vigor,
+.sc-vitrine__aba--em-vigor:hover {
   border-color: var(--cor-tinta);
   background: var(--cor-tinta);
   color: var(--cor-fundo);
   font-weight: var(--peso-forte);
-}
-
-.sc-vitrine__aba--em-vigor:hover {
-  border-color: var(--cor-tinta);
-  background: var(--cor-tinta);
 }
 
 .sc-vitrine__filtro-em-vigor {
@@ -357,7 +505,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
  */
 
 .sc-filtro {
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
   background: var(--cor-superficie-alta);
   box-shadow: var(--sombra-1);
 }
@@ -369,7 +517,8 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   gap: var(--espaco-3);
   min-block-size: var(--altura-toque);
   padding-inline: var(--espaco-4);
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
+  font-family: var(--fonte-titulo);
   font-weight: var(--peso-forte);
   list-style: none;
   cursor: pointer;
@@ -390,6 +539,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 
 .sc-filtro__seta {
   color: var(--cor-tinta-suave);
+  transition: transform var(--transicao-rapida);
 }
 
 .sc-filtro[open] .sc-filtro__seta {
@@ -468,7 +618,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   scroll-padding-inline: var(--espaco-2);
   list-style: none;
   overscroll-behavior-inline: contain;
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
 }
 
 .sc-vitrine__tira:focus-visible {
@@ -481,7 +631,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   flex: 0 0 auto;
   /* Cabe um cartão inteiro e a beirada do próximo — é a beirada que conta que
    * há mais coisa para o lado. Sem ela, a tira parece uma lista que acabou. */
-  inline-size: min(62%, 14rem);
+  inline-size: min(68%, 15rem);
   scroll-snap-align: start;
 }
 
@@ -501,12 +651,27 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   scroll-margin-block-start: calc(var(--altura-da-barra) + 4.5rem);
 }
 
+.sc-vitrine__secao-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-3);
+}
+
 .sc-vitrine__secao-nome {
   margin: 0;
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
+  font-size: var(--texto-xl);
   font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
+  letter-spacing: -0.02em;
+}
+
+.sc-vitrine__secao-contagem {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 /*
@@ -533,6 +698,10 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
  * A foto dentro do cartão, com moldura própria, e o texto embaixo; o preço e o
  * "+" fecham o pé. O cartão inteiro é UM link — o "+" é desenho, e não um
  * segundo botão: dois alvos no mesmo cartão de 160px é o dedo errando um deles.
+ *
+ * A micro-interação é a foto crescendo um pouco dentro da moldura e o cartão
+ * subindo um pixel: curta, só com transformação (não recalcula o layout), e
+ * desligada para quem pediu menos movimento.
  */
 
 .sc-vitrine__cartao {
@@ -543,7 +712,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   padding: var(--espaco-2);
   padding-block-end: var(--espaco-3);
   border: 1px solid transparent;
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
   background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   text-decoration: none;
@@ -552,12 +721,14 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   overflow: clip;
   transition:
     border-color var(--transicao-rapida),
-    box-shadow var(--transicao-rapida);
+    box-shadow var(--transicao-media),
+    transform var(--transicao-media);
 }
 
 .sc-vitrine__cartao:hover {
-  border-color: var(--cor-borda);
-  box-shadow: var(--sombra-larga);
+  border-color: color-mix(in oklab, var(--cor-primaria) 35%, transparent);
+  box-shadow: var(--sombra-3);
+  transform: translateY(-2px);
 }
 
 .sc-vitrine__cartao:focus-visible {
@@ -571,7 +742,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   /* O espaço da foto já existe antes de ela chegar, e a página não pula. */
   aspect-ratio: 4 / 3;
   inline-size: 100%;
-  border-radius: calc(var(--raio-cartao) - var(--espaco-2));
+  border-radius: calc(var(--raio-janela) - var(--espaco-2));
   background: var(--cor-superficie);
   overflow: clip;
 }
@@ -581,6 +752,11 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
+  transition: transform var(--transicao-media);
+}
+
+.sc-vitrine__cartao:hover .sc-vitrine__foto {
+  transform: scale(1.04);
 }
 
 .sc-vitrine__sem-foto {
@@ -641,9 +817,11 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 }
 
 .sc-vitrine__nome {
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-sm);
   font-weight: var(--peso-forte);
   line-height: var(--altura-linha-apertada);
+  letter-spacing: -0.01em;
 }
 
 .sc-vitrine__chamada {
@@ -677,13 +855,16 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 }
 
 .sc-vitrine__preco {
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-base);
   font-weight: var(--peso-forte);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .sc-vitrine__preco--variavel {
   color: var(--cor-primaria-texto);
+  font-family: var(--fonte-base);
   font-size: var(--texto-sm);
   font-weight: var(--peso-medio);
 }
@@ -698,16 +879,250 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  inline-size: 2rem;
-  block-size: 2rem;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
   border-radius: var(--raio-completo);
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
+  box-shadow: 0 4px 12px
+    color-mix(in oklab, var(--cor-primaria) 35%, transparent);
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-vitrine__cartao:hover .sc-vitrine__mais {
+  transform: scale(1.08);
 }
 
 .sc-vitrine__cartao--esgotado .sc-vitrine__mais {
   background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
+  box-shadow: none;
+}
+
+/* --- o carrinho flutuante --------------------------------------------------
+ *
+ * Uma pílula grafite no pé da tela, com o contador verde-click, o total e o
+ * caminho para fechar. Fica em cima de tudo e só existe quando há item; a
+ * gaveta sobe por cima do cardápio quando a pessoa toca na pílula.
+ *
+ * Grafite e verde-click são da MARCA, iguais nos dois temas: o carrinho é a
+ * peça da plataforma na loja, como o contador da barra.
+ */
+
+.sc-flutuante__barra {
+  position: fixed;
+  inset-block-end: max(var(--espaco-4), env(safe-area-inset-bottom));
+  inset-inline: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  inline-size: calc(100% - 2 * var(--respiro-da-pagina));
+  max-inline-size: 36rem;
+  margin-inline: auto;
+  padding: var(--espaco-2);
+  padding-inline-start: var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  box-shadow:
+    0 12px 32px
+      color-mix(in oklab, var(--marca-preto-tecnologico) 35%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--marca-branco) 10%, transparent);
+  animation: sc-subir var(--transicao-media) both;
+}
+
+@keyframes sc-subir {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sc-flutuante__ver {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+  min-block-size: var(--altura-toque);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.sc-flutuante__ver:focus-visible {
+  outline: 2px solid var(--marca-verde-click);
+  outline-offset: 2px;
+  border-radius: var(--raio-completo);
+}
+
+.sc-flutuante__icone {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--marca-branco) 10%, transparent);
+}
+
+.sc-flutuante__contagem {
+  position: absolute;
+  inset-block-start: -0.25rem;
+  inset-inline-end: -0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.375rem;
+  block-size: 1.375rem;
+  padding-inline: var(--espaco-1);
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  color: var(--marca-grafite);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+}
+
+.sc-flutuante__texto {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-flutuante__rotulo {
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-xs);
+}
+
+.sc-flutuante__total {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-flutuante__fechar-pedido {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  color: var(--marca-grafite);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-flutuante__fechar-pedido:hover {
+  transform: translateY(-1px);
+}
+
+.sc-flutuante__fechar-pedido:focus-visible {
+  outline: 2px solid var(--marca-branco);
+  outline-offset: 2px;
+}
+
+/* O fundo escurecido atrás da gaveta: um botão sem borda, que também fecha. */
+.sc-flutuante__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--cor-sobreposicao);
+  cursor: pointer;
+}
+
+/*
+ * A gaveta sobe do pé da tela com os cantos de cima arredondados, e rola por
+ * dentro quando o carrinho é comprido. No computador vira um painel no canto.
+ */
+.sc-flutuante__gaveta {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  max-block-size: min(85svh, 44rem);
+  margin-inline: auto;
+  padding: var(--espaco-3) var(--respiro-da-pagina)
+    max(var(--espaco-4), env(safe-area-inset-bottom));
+  border-start-start-radius: var(--raio-janela);
+  border-start-end-radius: var(--raio-janela);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: sc-subir var(--transicao-media) both;
+}
+
+/* A alça diz "isto se arrasta": é desenho, e a gaveta fecha pelo botão. */
+.sc-flutuante__alca {
+  inline-size: 2.5rem;
+  block-size: 0.25rem;
+  margin-inline: auto;
+  border-radius: var(--raio-completo);
+  background: var(--cor-borda);
+}
+
+.sc-flutuante__fechar {
+  position: absolute;
+  inset-block-start: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-flutuante__fechar:hover {
+  background: var(--cor-primaria-suave);
+}
+
+/* Dentro da gaveta o cartão do carrinho perde a moldura: a gaveta já é uma. */
+.sc-flutuante__gaveta .sc-carrinho {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.sc-flutuante__ir {
+  justify-content: space-between;
+  inline-size: 100%;
+}
+
+.sc-flutuante__ir-total {
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- telas maiores --------------------------------------------------------- */
@@ -741,29 +1156,27 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 @media (min-width: 768px) {
   .sc-pagina-da-loja {
     --altura-da-barra: 4.5rem;
-  }
-
-  .sc-barra__conteudo,
-  .sc-vitrine {
-    padding-inline: var(--espaco-6);
+    --respiro-da-pagina: var(--espaco-6);
   }
 
   .sc-vitrine {
     gap: var(--espaco-6);
-    padding-block-start: var(--espaco-6);
   }
 
-  .sc-vitrine__abas {
-    margin-inline: calc(-1 * var(--espaco-6));
-    padding-inline: var(--espaco-6);
+  .sc-capa {
+    padding-block: var(--espaco-7) var(--espaco-7);
+  }
+
+  .sc-capa__conteudo {
+    gap: var(--espaco-4);
   }
 
   .sc-vitrine__titulo {
-    font-size: var(--texto-2xl);
+    font-size: clamp(2.5rem, 5vw, 3.75rem);
   }
 
   .sc-vitrine__secao-nome {
-    font-size: var(--texto-xl);
+    font-size: var(--texto-2xl);
   }
 
   /* A busca é larga, mas não infinita: num monitor ela para em 36rem. */
@@ -778,7 +1191,7 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   }
 
   .sc-vitrine__tira-item {
-    inline-size: 16rem;
+    inline-size: 17rem;
   }
 
   .sc-vitrine__nome {
@@ -792,6 +1205,19 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   .sc-vitrine__mais {
     inline-size: 2.5rem;
     block-size: 2.5rem;
+  }
+
+  /* No computador a gaveta vira um painel no canto, por cima do cardápio. */
+  .sc-flutuante__gaveta {
+    inset-inline: auto var(--espaco-6);
+    inset-block-end: var(--espaco-6);
+    inline-size: 28rem;
+    padding-inline: var(--espaco-5);
+    border-radius: var(--raio-janela);
+  }
+
+  .sc-flutuante__alca {
+    display: none;
   }
 }
 
@@ -813,10 +1239,33 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
  */
 @media (prefers-reduced-motion: reduce) {
   .sc-barra,
+  .sc-barra__carrinho,
   .sc-vitrine__abas,
+  .sc-vitrine__aba,
+  .sc-vitrine__busca,
   .sc-vitrine__cartao,
-  .sc-vitrine__aba {
+  .sc-vitrine__foto,
+  .sc-vitrine__mais,
+  .sc-filtro__seta,
+  .sc-flutuante__fechar-pedido {
     transition: none;
+  }
+
+  .sc-vitrine__cartao:hover,
+  .sc-vitrine__aba:hover,
+  .sc-barra__carrinho:hover,
+  .sc-flutuante__fechar-pedido:hover {
+    transform: none;
+  }
+
+  .sc-vitrine__cartao:hover .sc-vitrine__foto,
+  .sc-vitrine__cartao:hover .sc-vitrine__mais {
+    transform: none;
+  }
+
+  .sc-flutuante__barra,
+  .sc-flutuante__gaveta {
+    animation: none;
   }
 
   .sc-vitrine__tira {

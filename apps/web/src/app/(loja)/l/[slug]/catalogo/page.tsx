@@ -15,14 +15,18 @@
  * tempo que o AC-415 mede.
  */
 import "@simpleclick/ui/styles/vitrine.css";
+/* A gaveta do carrinho flutuante usa as linhas do carrinho do fechamento. */
+import "@simpleclick/ui/styles/fechamento.css";
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PALETA_CLARA, TemaDaLoja, Vazio } from "@simpleclick/ui";
 
+import { CarrinhoFlutuante } from "../../../../../features/carrinho/CarrinhoFlutuante.tsx";
 import { AbasDeCategoria } from "../../../../../features/vitrine/AbasDeCategoria.tsx";
 import { BarraDoTopo } from "../../../../../features/vitrine/BarraDoTopo.tsx";
 import { SemResultado } from "../../../../../features/vitrine/BuscaProduto.tsx";
+import { CapaDaVitrine } from "../../../../../features/vitrine/CapaDaVitrine.tsx";
 import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
 import { FiltroEspecificacao } from "../../../../../features/vitrine/FiltroEspecificacao.tsx";
@@ -137,7 +141,7 @@ export default async function PaginaDoCatalogo({
     throw new Error(`catálogo indisponível: ${catalogo.motivo}`);
   }
 
-  const { loja } = vitrine.vitrine;
+  const { loja, abertura } = vitrine.vitrine;
   const naTela = prepararCatalogo(catalogo.catalogo, {
     apelidoDaLoja: loja.apelido,
     categoriaEscolhida: primeiro(consulta[PARAMETRO_DA_CATEGORIA]),
@@ -165,7 +169,16 @@ export default async function PaginaDoCatalogo({
       />
 
       <main className="sc-vitrine">
-        <h1 className="sc-vitrine__titulo">{loja.rotulos.catalogo}</h1>
+        {/*
+          A capa é o painel grafite com o título: é onde mora o `h1` e onde a
+          pessoa que chegou por link direto descobre se a loja está aberta.
+        */}
+        <CapaDaVitrine
+          nomeDaLoja={loja.nome}
+          rotuloDoCatalogo={loja.rotulos.catalogo}
+          abertura={abertura}
+          boasVindas={loja.boasVindas}
+        />
 
         {/*
           O bloco descreve o CATÁLOGO INTEIRO, e por isso sai só quando não há
@@ -251,6 +264,17 @@ export default async function PaginaDoCatalogo({
           </>
         )}
       </main>
+
+      {/*
+        O carrinho flutuante fica FORA do `main` e DEPOIS dele: é uma ilha de
+        navegador que nasce vazia e só aparece quando há item. Sem script, o
+        carrinho continua no link da barra do topo.
+      */}
+      <CarrinhoFlutuante
+        apelidoDaLoja={loja.apelido}
+        linkDoFechamento={`/l/${loja.apelido}/checkout`}
+        linkDaVitrine={`/l/${loja.apelido}/catalogo`}
+      />
     </TemaDaLoja>
   );
 }

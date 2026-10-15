@@ -11,6 +11,8 @@
  */
 import { IconeLoja, IconePedido } from "@simpleclick/ui";
 
+import { ContadorDoCarrinho } from "../carrinho/ContadorDoCarrinho.tsx";
+
 import { BuscaProduto } from "./BuscaProduto.tsx";
 import { RecolherAoRolar } from "./RecolherAoRolar.tsx";
 
@@ -71,12 +73,15 @@ export function BarraDoTopo({
           <span className="sc-barra__vao" />
         )}
 
-        <a
-          className="sc-botao sc-botao--secundaria sc-botao--pilula sc-barra__carrinho"
-          href={`/l/${apelidoDaLoja}/checkout`}
-        >
+        {/*
+          O carrinho é um link para o fechamento, e a contagem ao lado dele é
+          uma ilha de navegador que nasce vazia: sem script, o link continua
+          inteiro, só sem o número.
+        */}
+        <a className="sc-barra__carrinho" href={`/l/${apelidoDaLoja}/checkout`}>
           <IconePedido />
           <span className="sc-barra__carrinho-texto">Carrinho</span>
+          <ContadorDoCarrinho apelidoDaLoja={apelidoDaLoja} />
         </a>
       </div>
 

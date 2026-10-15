@@ -18,9 +18,12 @@
  * pessoa acabou de abrir a acusa de um erro que ela ainda não teve chance de
  * cometer.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
-import { adicionarAoCarrinho } from "../../lib/carrinho-do-navegador.ts";
+import {
+  adicionarAoCarrinho,
+  avisarQueOCarrinhoMudou,
+} from "../../lib/carrinho-do-navegador.ts";
 import {
   ancoraDoGrupo,
   calcularItem,
@@ -68,6 +71,12 @@ export interface EscolhasDoProdutoProps {
    * própria máquina.
    */
   readonly aoAdicionar?: ((item: ItemEscolhido) => Promise<void>) | undefined;
+  /**
+   * A contagem de itens para o atalho do carrinho na barra de ação. Vem de
+   * fora porque é uma ilha que fala com a rede, e a prova deste formulário
+   * não tem rede.
+   */
+  readonly contadorDoCarrinho?: ReactNode | undefined;
 }
 
 export function EscolhasDoProduto({
@@ -75,6 +84,7 @@ export function EscolhasDoProduto({
   apelidoDaLoja,
   rotulos,
   aoAdicionar,
+  contadorDoCarrinho,
 }: EscolhasDoProdutoProps) {
   const eixos = useMemo(
     () => produto.grupos.filter((grupo) => grupo.eixoDeVariacao),
@@ -303,6 +313,9 @@ export function EscolhasDoProduto({
 
       if (resultado.estado === "adicionado") {
         setRecado("Adicionado ao carrinho.");
+        // O contador da barra e o carrinho flutuante são ilhas separadas: o
+        // aviso é o que faz o número deles mudar sem recarregar a página.
+        avisarQueOCarrinhoMudou();
         return;
       }
 
@@ -375,6 +388,7 @@ export function EscolhasDoProduto({
         aoMudarQuantidade={setQuantidade}
         aoAdicionar={() => void adicionar()}
         linkDoCarrinho={`/l/${apelidoDaLoja}/checkout`}
+        contador={contadorDoCarrinho}
       />
     </div>
   );

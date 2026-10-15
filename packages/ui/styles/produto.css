@@ -1,78 +1,203 @@
 /*
- * A página de um produto (T-405).
+ * A página de um produto.
  *
- * MESMA SUPERFÍCIE DA VITRINE, mesma régua: quem está aqui já decidiu olhar o
- * item e quer saber o preço e apertar o botão. Nada que segure a rolagem, nada
- * de 3D, só transição curta.
+ * NO CELULAR, A FOTO É A PÁGINA. Ela ocupa o topo de ponta a ponta, encaixa de
+ * foto em foto ao arrastar (`scroll-snap`, sem script), e o caminho de volta
+ * flutua sobre ela. A FOLHA com nome, preço e escolhas sobe por cima da foto
+ * com os cantos arredondados — o gesto de quem olha a foto e desce para
+ * decidir. Cada grupo de escolha é um cartão; cada opção, uma linha larga que
+ * o dedo acerta.
  *
  * O BOTÃO GRUDA NO PÉ DA TELA no celular. É a decisão de desenho que mais pesa
  * nesta página: com quatro grupos de escolha, o botão fica a três rolagens do
  * polegar, e a pessoa perde de vista quanto vai pagar enquanto escolhe. Grudado,
- * o total acompanha cada marcação — que é o que o AC-411 quer dizer com "o total
- * exibido no botão passa a R$ 46,00 imediatamente".
+ * o total acompanha cada marcação (AC-411).
  *
- * NO DESKTOP, DUAS COLUNAS: a foto fica parada à esquerda enquanto as escolhas
- * rolam à direita. É a mesma ordem do celular — foto, nome, preço, escolhas —
- * só que lado a lado, porque a tela larga tem espaço para as duas coisas.
+ * NO COMPUTADOR, DUAS COLUNAS: a foto fica parada à esquerda enquanto a folha
+ * rola à direita. A ordem da marcação é a mesma do celular.
+ *
+ * MESMA SUPERFÍCIE DA VITRINE, mesma régua: nada que segure a rolagem, nada de
+ * 3D, só transição curta — e nenhuma para quem pediu menos movimento.
  *
  * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
- * Depende de `theme.css`, e de `vitrine.css` para a barra do topo.
+ * Depende de `theme.css`, e de `vitrine.css` para a barra do topo e o respiro.
  */
 
 .sc-produto {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-5);
   min-block-size: 100svh;
   inline-size: 100%;
-  max-inline-size: 48rem;
-  margin-inline: auto;
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-  /* O respiro do fim precisa caber o botão grudado, senão ele tampa a última
-   * opção do último grupo — que costuma ser a observação. */
-  padding-block-end: var(--espaco-6);
   color: var(--cor-tinta);
 }
 
-.sc-produto__caminho {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: var(--espaco-4);
-  padding-block-start: var(--espaco-2);
+/* --- as fotos --------------------------------------------------------------
+ *
+ * Uma tira que rola na horizontal com encaixe, cada foto do tamanho da tela.
+ * Sem script: o dedo arrasta, a foto para no lugar, e o teclado percorre porque
+ * a tira recebe foco. A contagem diz que há mais fotos, porque uma tira que
+ * para na primeira foto parece uma foto só.
+ */
+
+.sc-produto__galeria {
+  position: relative;
+  isolation: isolate;
 }
 
-/* --- a foto ---------------------------------------------------------------- */
-
-.sc-produto__figura {
-  position: relative;
-  /* A proporção segura o espaço mesmo quando o catálogo não sabe a dimensão:
-   * a foto preenche a moldura, e a página não pula quando ela chega. */
-  aspect-ratio: 4 / 3;
+.sc-produto__fotos {
+  display: flex;
   margin: 0;
-  border-radius: var(--raio-janela);
+  padding: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+  overscroll-behavior-inline: contain;
   background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-larga);
-  overflow: clip;
+}
+
+.sc-produto__fotos::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-produto__fotos:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
+}
+
+.sc-produto__foto-item {
+  position: relative;
+  flex: 0 0 100%;
+  /* O espaço da foto já existe antes de ela chegar: a página não pula, e a
+   * folha sobe sempre do mesmo lugar (AC-416). Quadrada no celular, porque é
+   * a proporção que mostra mais produto na largura que há. */
+  aspect-ratio: 1 / 1;
+  scroll-snap-align: start;
+  background: var(--cor-superficie);
 }
 
 .sc-produto__foto {
   object-fit: cover;
 }
 
-.sc-produto__galeria-item {
-  flex: 0 0 auto;
-  inline-size: min(40%, 8rem);
-  scroll-snap-align: start;
+/* Produto sem foto: a inicial no lugar, com a mesma moldura. */
+.sc-produto__fotos--vazia {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  background: var(--cor-primaria-suave);
 }
 
-.sc-produto__galeria-item img {
-  display: block;
-  inline-size: 100%;
-  block-size: auto;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--raio-cartao);
-  object-fit: cover;
+.sc-produto__sem-foto {
+  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(4rem, 30vw, 8rem);
+  font-weight: var(--peso-forte);
+}
+
+/*
+ * O caminho de volta flutua sobre a foto: um círculo de vidro no canto, no
+ * alcance do polegar esquerdo. A barra do topo recolhe ao rolar, e este fica.
+ */
+.sc-produto__voltar {
+  position: absolute;
+  inset-block-start: max(var(--espaco-4), env(safe-area-inset-top));
+  inset-inline-start: max(var(--espaco-4), env(safe-area-inset-left));
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--cor-superficie-alta) 86%, transparent);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-decoration: none;
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-produto__voltar:hover {
+  transform: translateX(-2px);
+}
+
+.sc-produto__voltar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* O ícone é a seta para baixo do sistema, virada para a esquerda. */
+.sc-produto__voltar-seta {
+  transform: rotate(90deg);
+}
+
+.sc-produto__fotos-contagem {
+  position: absolute;
+  /* Acima da folha, que sobe por cima da foto. */
+  inset-block-end: calc(var(--raio-janela) + var(--espaco-3));
+  inset-inline-end: max(var(--espaco-4), env(safe-area-inset-right));
+  z-index: 2;
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  pointer-events: none;
+}
+
+/* --- a folha ---------------------------------------------------------------
+ *
+ * Sobe por cima da foto com os cantos de cima arredondados, e é onde tudo o
+ * mais acontece. O respiro lateral é o da página; a barra de ação o desfaz
+ * para encostar nas bordas.
+ */
+
+.sc-produto__folha {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  margin-block-start: calc(-1 * var(--raio-janela));
+  padding-inline: var(--respiro-da-pagina);
+  padding-block-start: var(--espaco-5);
+  /* O respiro do fim precisa caber o botão grudado, senão ele tampa a última
+   * opção do último grupo — que costuma ser a observação. */
+  padding-block-end: var(--espaco-6);
+  border-start-start-radius: var(--raio-janela);
+  border-start-end-radius: var(--raio-janela);
+  background: var(--cor-superficie);
+}
+
+.sc-produto__caminho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-produto__chip {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
+  transition: border-color var(--transicao-rapida);
+}
+
+.sc-produto__chip:hover {
+  border-color: var(--cor-tinta);
+  color: var(--cor-tinta);
 }
 
 /* --- o cabeçalho ----------------------------------------------------------- */
@@ -80,21 +205,26 @@
 .sc-produto__cabecalho {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-2);
+  align-items: flex-start;
+  gap: var(--espaco-3);
 }
 
 .sc-produto__nome {
   margin: 0;
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-2xl);
+  font-size: clamp(1.75rem, 7vw, 2.5rem);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .sc-produto__chamada {
   margin: 0;
+  max-inline-size: 40ch;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-base);
+  line-height: var(--altura-linha-base);
 }
 
 .sc-produto__precos {
@@ -106,9 +236,11 @@
 }
 
 .sc-produto__preco {
+  font-family: var(--fonte-titulo);
   font-size: var(--texto-2xl);
   font-variant-numeric: tabular-nums;
   font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
 }
 
 .sc-produto__preco-anterior {
@@ -146,24 +278,46 @@
   font-weight: var(--peso-forte);
 }
 
-/* --- os grupos de escolha -------------------------------------------------- */
+/* --- os grupos de escolha --------------------------------------------------
+ *
+ * Cada grupo é um cartão de canto largo sobre a névoa; cada opção, uma linha
+ * com alvo de toque confortável. A marcada muda borda e fundo, além do
+ * controle — cor sozinha não basta (P-012).
+ */
 
 .sc-produto__formulario {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-5);
+  gap: var(--espaco-4);
 }
 
 .sc-produto__grupo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+  display: block;
   margin: 0;
   padding: var(--espaco-4);
   border: 1px solid transparent;
-  border-radius: var(--raio-cartao);
+  border-radius: var(--raio-janela);
   background: var(--cor-superficie-alta);
   box-shadow: var(--sombra-1);
+}
+
+/*
+ * A legenda de um `fieldset` nasce montada na borda, metade para fora do
+ * cartão. Flutuá-la a tira da borda e a põe dentro do cartão, como um título
+ * comum; o que vem depois limpa a flutuação e desce para a linha seguinte.
+ */
+.sc-produto__grupo > .sc-produto__grupo-nome {
+  float: inline-start;
+  inline-size: 100%;
+  margin-block-end: var(--espaco-3);
+}
+
+.sc-produto__grupo > :not(legend) {
+  clear: both;
+}
+
+.sc-produto__grupo > :not(legend) + :not(legend) {
+  margin-block-start: var(--espaco-3);
 }
 
 /*
@@ -189,8 +343,9 @@
   gap: var(--espaco-2);
   padding: 0;
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-base);
+  font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
 }
 
 .sc-produto__grupo-regra {
@@ -198,10 +353,14 @@
   font-family: var(--fonte-base);
   font-size: var(--texto-xs);
   font-weight: var(--peso-normal);
+  letter-spacing: 0;
 }
 
 .sc-produto__grupo-regra--exigida {
-  color: var(--cor-primaria-texto);
+  padding-inline: var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-tinta);
   font-weight: var(--peso-medio);
 }
 
@@ -235,7 +394,7 @@
   min-block-size: var(--altura-toque-grande);
   padding-inline: var(--espaco-3);
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-botao);
+  border-radius: var(--raio-cartao);
   cursor: pointer;
   transition:
     background var(--transicao-rapida),
@@ -243,14 +402,19 @@
 }
 
 .sc-produto__escolha:hover {
+  border-color: var(--cor-borda-forte);
   background: var(--cor-superficie);
 }
 
-/* Marcada muda a BORDA e o fundo, além do controle: cor sozinha não basta. */
 .sc-produto__escolha:has(input:checked) {
   border-color: var(--cor-tinta);
   background: var(--cor-primaria-suave);
   box-shadow: inset 0 0 0 1px var(--cor-tinta);
+}
+
+.sc-produto__escolha:has(input:focus-visible) {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .sc-produto__escolha input {
@@ -267,7 +431,7 @@
 
 .sc-produto__escolha-nome {
   flex: 1 1 auto;
-  font-size: var(--texto-sm);
+  font-size: var(--texto-base);
 }
 
 .sc-produto__escolha-valor {
@@ -298,18 +462,35 @@
   flex-direction: column;
   gap: var(--espaco-2);
   margin: 0;
+  font-weight: var(--peso-medio);
 }
 
 .sc-produto__observacao textarea {
   inline-size: 100%;
   padding: var(--espaco-3);
   border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-botao);
+  border-radius: var(--raio-cartao);
   background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
   font-size: var(--texto-base);
+  font-weight: var(--peso-normal);
   resize: vertical;
+}
+
+/*
+ * O recado depois de adicionar. Fica ACIMA do botão grudado, e não dentro dele:
+ * dentro, ele empurraria o total para fora da vista justamente quando a pessoa
+ * quer conferir o que acabou de acontecer.
+ */
+.sc-produto__recado {
+  margin: 0;
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-sucesso-suave);
+  color: var(--cor-sucesso);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
 }
 
 /* --- a ação ----------------------------------------------------------------
@@ -324,19 +505,21 @@
   /* Grudado no PÉ, e com a área segura somada: em aparelho com barra de gestos,
    * o botão ficaria por baixo dela. */
   inset-block-end: 0;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--espaco-2) var(--espaco-3);
-  /* A faixa encosta nas bordas da tela, e o fundo opaco não deixa as opções
-   * aparecerem por baixo do botão. */
-  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
+  /* A faixa encosta nas bordas da tela, e o fundo translúcido com desfoque não
+   * deixa as opções aparecerem por baixo do botão. */
+  margin-inline: calc(-1 * var(--respiro-da-pagina));
   padding-block: var(--espaco-3);
   padding-block-end: max(var(--espaco-3), env(safe-area-inset-bottom));
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
-  border-block-start: 1px solid var(--cor-borda);
-  background: var(--cor-superficie-alta);
+  padding-inline: var(--respiro-da-pagina);
+  background: color-mix(in oklab, var(--cor-superficie-alta) 88%, transparent);
+  box-shadow: 0 -1px 0 color-mix(in oklab, var(--cor-tinta) 8%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .sc-produto__quantidade {
@@ -377,9 +560,31 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* O carrinho vai para a ponta direita da primeira linha. */
+/* O carrinho vai para a ponta direita da primeira linha: um círculo grafite com
+ * o contador verde-click em cima. */
 .sc-produto__carrinho {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--altura-toque-grande);
+  block-size: var(--altura-toque-grande);
   margin-inline-start: auto;
+  border-radius: var(--raio-completo);
+  background: var(--cor-tinta);
+  color: var(--cor-fundo);
+  text-decoration: none;
+}
+
+.sc-produto__carrinho:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-produto__carrinho .sc-contador {
+  position: absolute;
+  inset-block-start: -0.3rem;
+  inset-inline-end: -0.3rem;
 }
 
 .sc-produto__adicionar {
@@ -389,7 +594,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--espaco-3);
-  min-block-size: var(--altura-toque-grande);
+  min-block-size: 3.25rem;
   padding-inline: var(--espaco-5);
   border: 1px solid var(--cor-primaria);
   border-radius: var(--raio-completo);
@@ -398,12 +603,17 @@
   font-family: var(--fonte-base);
   font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
+  box-shadow: 0 8px 20px
+    color-mix(in oklab, var(--cor-primaria) 30%, transparent);
   cursor: pointer;
-  transition: filter var(--transicao-rapida);
+  transition:
+    filter var(--transicao-rapida),
+    transform var(--transicao-rapida);
 }
 
 .sc-produto__adicionar:hover:not(:disabled) {
-  filter: brightness(0.94);
+  filter: brightness(0.96);
+  transform: translateY(-1px);
 }
 
 .sc-produto__adicionar:focus-visible {
@@ -415,10 +625,12 @@
   border-color: var(--cor-borda);
   background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 .sc-produto__total {
+  font-family: var(--fonte-titulo);
   font-variant-numeric: tabular-nums;
 }
 
@@ -444,23 +656,33 @@
   }
 }
 
+/* Dobrável aberto em diante: a foto deixa de ser quadrada. */
+@media (min-width: 540px) {
+  .sc-produto__foto-item,
+  .sc-produto__fotos--vazia {
+    aspect-ratio: 4 / 3;
+  }
+}
+
 @media (min-width: 768px) {
-  .sc-produto {
+  .sc-produto__folha {
     gap: var(--espaco-6);
-    padding-inline: var(--espaco-6);
+    padding-block-start: var(--espaco-6);
     padding-block-end: var(--espaco-8);
   }
 
   /*
-   * No desktop o botão DESGRUDA: a tela inteira cabe sem rolagem longa, e uma
+   * No tablet o botão DESGRUDA: a tela inteira cabe sem rolagem longa, e uma
    * barra fixa no pé de um monitor de 27 polegadas é peso sem motivo.
    */
   .sc-produto__acao {
     position: static;
     margin-inline: 0;
     padding-inline: 0;
-    border-block-start: none;
     background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .sc-produto__adicionar {
@@ -470,53 +692,68 @@
 }
 
 /*
- * Tablet deitado em diante: a foto à esquerda, parada, e o resto à direita. A
+ * Tablet deitado em diante: a foto à esquerda, parada, e a folha à direita. A
  * ordem da marcação continua a do celular; quem muda de lugar é só a foto.
  */
 @media (min-width: 1024px) {
   .sc-produto {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-content: start;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
     column-gap: var(--espaco-8);
     max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--respiro-da-pagina);
+    padding-block-start: var(--espaco-6);
   }
 
-  .sc-produto > * {
-    grid-column: 2;
-  }
-
-  .sc-produto > .sc-produto__caminho {
-    grid-column: 1 / -1;
-  }
-
-  .sc-produto > .sc-produto__figura {
+  .sc-produto__galeria {
     position: sticky;
     inset-block-start: calc(var(--altura-da-barra, 0px) + var(--espaco-6));
-    grid-column: 1;
-    grid-row: 2 / span 4;
-    align-self: start;
+    border-radius: var(--raio-janela);
+    overflow: clip;
+    box-shadow: var(--sombra-larga);
+  }
+
+  .sc-produto__foto-item,
+  .sc-produto__fotos--vazia {
+    aspect-ratio: 4 / 5;
+  }
+
+  .sc-produto__voltar {
+    inset-block-start: var(--espaco-4);
+    inset-inline-start: var(--espaco-4);
+  }
+
+  .sc-produto__fotos-contagem {
+    inset-block-end: var(--espaco-4);
+    inset-inline-end: var(--espaco-4);
+  }
+
+  /* A folha deixa de subir por cima da foto: elas são vizinhas, não camadas. */
+  .sc-produto__folha {
+    margin-block-start: 0;
+    padding-inline: 0;
+    padding-block-start: 0;
+    border-radius: 0;
+    background: transparent;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sc-produto__adicionar,
-  .sc-produto__escolha {
+  .sc-produto__escolha,
+  .sc-produto__chip,
+  .sc-produto__voltar {
     transition: none;
   }
-}
 
-/*
- * O recado depois de adicionar. Fica ACIMA do botão grudado, e não dentro dele:
- * dentro, ele empurraria o total para fora da vista justamente quando a pessoa
- * quer conferir o que acabou de acontecer.
- */
-.sc-produto__recado {
-  margin: 0;
-  padding: var(--espaco-3) var(--espaco-4);
-  border-radius: var(--raio-botao);
-  background: var(--cor-sucesso-suave);
-  color: var(--cor-sucesso);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
+  .sc-produto__adicionar:hover:not(:disabled),
+  .sc-produto__voltar:hover {
+    transform: none;
+  }
+
+  .sc-produto__fotos {
+    scroll-behavior: auto;
+  }
 }
