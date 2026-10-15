@@ -29,7 +29,7 @@ export function Destaques({ destaques }: DestaquesProps) {
   return (
     <section className="sc-vitrine__destaques" aria-labelledby="destaques">
       <h2 className="sc-vitrine__secao-nome" id="destaques">
-        <span className="sc-marcador">Destaques</span>
+        Destaques
       </h2>
 
       {/*

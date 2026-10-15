@@ -5,11 +5,11 @@
  * Esta página é uma porta, não um destino — e porta com três telas de rolagem
  * até a maçaneta é atrito no mesmo lugar em que a skill manda não ter nenhum.
  *
- * A SEGUNDA DECISÃO: a página tem a cara da SIMPLECLICK e a assinatura da LOJA.
- * O painel é grafite, com a trama e o tipo da marca; a cor que o dono escolheu
- * pinta o que é dele — o anel da marca, o pulso, o botão e os brilhos do fundo
- * — com o contraste ajustado pelo próprio design system (AC-015). Sem isso a
- * pastelaria e a loja de roupa teriam exatamente a mesma tela.
+ * A SEGUNDA DECISÃO: a página tem de parecer COM A LOJA, e não com um modelo.
+ * A cor que o dono escolheu já estava no banco e não estava sendo usada — o
+ * resultado era uma tela correta e genérica, igual para a pastelaria e para a
+ * loja de roupa. Aqui essa cor pinta o fundo, o anel da marca e o botão, com o
+ * contraste ajustado pelo próprio design system (AC-015).
  *
  * ESTE COMPONENTE NÃO ANIMA NADA. Ele desenha a página inteira, legível, com
  * JavaScript desligado — que é o que o AC-415 exige e o que a torna encontrável.
@@ -17,10 +17,6 @@
 import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 
 import { iniciaisDe } from "../../lib/iniciais.ts";
-import {
-  fraseDaSituacao,
-  type AberturaDaLoja,
-} from "../../lib/situacao-da-loja.ts";
 import { MundoDaLoja } from "./MundoDaLoja.tsx";
 
 /** A loja, como o contrato da API a descreve. */
@@ -43,7 +39,12 @@ export interface LojaNaTela {
 }
 
 /** Se está aberta agora, e quando volta a abrir. */
-export type AberturaNaTela = AberturaDaLoja;
+export interface AberturaNaTela {
+  readonly aberta: boolean;
+  readonly proximaAbertura: string | null;
+  readonly motivo: string;
+  readonly explicacaoDaExcecao?: string | null | undefined;
+}
 
 export interface ApresentacaoDaLojaProps {
   readonly loja: LojaNaTela;
@@ -68,7 +69,8 @@ const NOME_DA_ENTREGA: Record<string, string> = {
  * A cor de reserva quando a loja não escolheu nenhuma.
  *
  * Vem do valor declarado do design system, e não escrita aqui: cor literal em
- * componente é reprovada pelo ESLint (AC-014).
+ * componente é reprovada pelo ESLint (AC-014), e por bom motivo — duas cópias
+ * do mesmo azul divergem no dia em que alguém muda uma delas.
  */
 const COR_DE_RESERVA = PALETA_CLARA.primaria;
 
@@ -91,16 +93,28 @@ function enderecoEmUmaLinha(
  * tela parecer que algo deu errado.
  */
 function SituacaoDaLoja({ abertura }: { readonly abertura: AberturaNaTela }) {
+  const explicacao =
+    abertura.motivo === "EXCECAO" && abertura.explicacaoDaExcecao
+      ? abertura.explicacaoDaExcecao
+      : null;
+
   return (
     <p
-      className={`sc-situacao sc-loja__situacao sc-situacao--${
+      className={`sc-loja__situacao sc-loja__situacao--${
         abertura.aberta ? "aberta" : "fechada"
       }`}
     >
       {/* O ponto é decoração: quem ouve a página recebe o texto ao lado. */}
-      <span className="sc-situacao__pulso" aria-hidden="true" />
+      <span className="sc-loja__pulso" aria-hidden="true" />
       <span className="sc-loja__situacao-texto">
-        {fraseDaSituacao(abertura)}
+        {abertura.aberta ? (
+          "Aberta agora"
+        ) : (
+          <>
+            {explicacao ? `${explicacao} · ` : "Fechada agora · "}
+            {abertura.proximaAbertura ?? "horário não informado"}
+          </>
+        )}
       </span>
     </p>
   );
@@ -122,13 +136,12 @@ export function ApresentacaoDaLoja({
     >
       <div data-narrativa="apresentacao">
         {/*
-          O fundo é decoração pura: a trama da marca e dois lavados da cor da
-          loja, para a tela ter profundidade sem carregar imagem. Fica fora do
-          fluxo e some para o leitor de tela.
+          O fundo é decoração pura: um lavado da cor da loja, em camadas, para a
+          tela ter profundidade sem carregar imagem. Fica fora do fluxo e some
+          para o leitor de tela.
         */}
         <div className="sc-loja__fundo" aria-hidden="true">
           <MundoDaLoja />
-          <span className="sc-loja__trama" />
           <span className="sc-loja__brilho sc-loja__brilho--um" />
           <span className="sc-loja__brilho sc-loja__brilho--dois" />
         </div>
@@ -154,11 +167,7 @@ export function ApresentacaoDaLoja({
               )}
             </span>
 
-            <h1 className="sc-loja__nome">
-              <span className="sc-marcador sc-marcador--marca">
-                {loja.nome}
-              </span>
-            </h1>
+            <h1 className="sc-loja__nome">{loja.nome}</h1>
 
             <SituacaoDaLoja abertura={abertura} />
 

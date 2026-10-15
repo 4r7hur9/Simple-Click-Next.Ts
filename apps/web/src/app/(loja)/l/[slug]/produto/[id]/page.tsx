@@ -1,19 +1,13 @@
 /**
  * A página de um produto (AC-410, AC-413, AC-414).
  *
- * COMPONENTE DE SERVIDOR. As fotos, a descrição e o preço de abertura chegam
+ * COMPONENTE DE SERVIDOR. As imagens, a descrição e o preço de abertura chegam
  * prontos ao navegador — só o formulário de escolhas é de navegador, e ele é
  * quem precisa ser, porque o AC-411 exige o total mudando na hora.
  *
- * NO CELULAR, A FOTO É A PÁGINA. Ela ocupa o topo de ponta a ponta, encaixa de
- * foto em foto ao arrastar (`scroll-snap`, sem script), e o caminho de volta
- * flutua sobre ela. A FOLHA com nome, preço e escolhas sobe por cima da foto
- * com os cantos arredondados — o gesto de quem olha a foto e desce para
- * decidir. No computador, a foto fica parada à esquerda e a folha rola à
- * direita. A ordem da marcação é a mesma nos dois.
- *
  * AS DUAS BUSCAS SAEM JUNTAS, como no catálogo: a apresentação diz o nome, a
- * cor e se a loja está ABERTA; a rota do produto diz o resto.
+ * cor e se a loja está ABERTA; a rota do produto diz o resto. Em série, o tempo
+ * até a primeira imagem seria a soma das duas idas.
  *
  * O ENDEREÇO É COMPARTILHÁVEL (AC-414): tudo que a página precisa está no
  * caminho — o apelido da loja e o identificador do produto. Não há estado
@@ -26,9 +20,8 @@ import "@simpleclick/ui/styles/produto.css";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { IconeSeta, PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
+import { PALETA_CLARA, TemaDaLoja } from "@simpleclick/ui";
 
-import { ContadorDoCarrinho } from "../../../../../../features/carrinho/ContadorDoCarrinho.tsx";
 import { EscolhasDoProduto } from "../../../../../../features/produto/EscolhasDoProduto.tsx";
 import { SeloDePreco } from "../../../../../../features/produto/SeloDePreco.tsx";
 import { BarraDoTopo } from "../../../../../../features/vitrine/BarraDoTopo.tsx";
@@ -36,7 +29,6 @@ import {
   DadosEstruturados,
   produtoParaBuscador,
 } from "../../../../../../lib/dados-estruturados.tsx";
-import { fraseDaSituacao } from "../../../../../../lib/situacao-da-loja.ts";
 import {
   enderecoDoProduto,
   enderecoDoSite,
@@ -62,7 +54,8 @@ interface ParametrosDaPagina {
  *
  * O PREÇO ENTRA NA DESCRIÇÃO porque é o que a pessoa que recebe o link quer
  * saber antes de abrir. A IMAGEM do compartilhamento é a foto principal do
- * produto.
+ * produto — a imagem desenhada com nome e preço é da T-406, e apontar para ela
+ * antes de ela existir daria uma prévia quebrada em toda rede social.
  */
 export async function generateMetadata({
   params,
@@ -132,7 +125,7 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
   }
 
   const produto = resultado.produto;
-  const rotulo = loja.rotulos.catalogo;
+  const capa = produto.imagens[0];
 
   return (
     <TemaDaLoja
@@ -143,7 +136,7 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
         apelidoDaLoja={loja.apelido}
         nomeDaLoja={loja.nome}
         logo={loja.logo}
-        rotuloDoCatalogo={rotulo}
+        rotuloDoCatalogo={loja.rotulos.catalogo}
       />
 
       <main className="sc-produto">
@@ -160,117 +153,84 @@ export default async function PaginaDoProduto({ params }: ParametrosDaPagina) {
           })}
         />
 
-        {/* --- as fotos ------------------------------------------------- */}
-        <section
-          className="sc-produto__galeria"
-          aria-label={`Fotos de ${produto.nome}`}
-        >
-          {/*
-            O caminho de volta flutua sobre a foto: no celular a barra do topo
-            recolhe ao rolar, e o polegar precisa de um "voltar" que não suma.
-          */}
-          <a
-            className="sc-produto__voltar"
-            href={produto.linkDoCatalogo}
-            aria-label={`Voltar ao ${rotulo.toLowerCase()}`}
-          >
-            <IconeSeta className="sc-produto__voltar-seta" />
+        <nav className="sc-produto__caminho" aria-label="Você está em">
+          <a className="sc-vitrine__voltar" href={produto.linkDoCatalogo}>
+            ← {loja.rotulos.catalogo}
           </a>
+          {produto.linkDaSecao && produto.nomeDaSecao ? (
+            <a className="sc-vitrine__voltar" href={produto.linkDaSecao}>
+              {produto.nomeDaSecao}
+            </a>
+          ) : null}
+        </nav>
 
-          {produto.imagens.length > 0 ? (
-            // `tabindex` na tira: um contêiner que rola precisa ser alcançável
-            // pelo teclado (regra `scrollable-region-focusable` do axe).
-            <ul className="sc-produto__fotos" tabIndex={0}>
-              {produto.imagens.map((imagem, indice) => (
-                <li className="sc-produto__foto-item" key={imagem.url}>
-                  {/*
-                    A moldura tem proporção fixa no estilo e a foto a preenche
-                    (`fill`): o espaço existe antes de ela chegar, e a página
-                    não pula quando a foto carrega (AC-416).
-                  */}
+        {capa ? (
+          <figure className="sc-produto__figura">
+            {/*
+              A moldura tem proporção fixa no estilo e a foto a preenche
+              (`fill`): o espaço existe antes de ela chegar, e a página não
+              pula quando a foto carrega (AC-416) — saiba o catálogo a
+              dimensão da foto ou não.
+            */}
+            <Image
+              className="sc-produto__foto"
+              src={capa.url}
+              alt={capa.texto ?? ""}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 36rem"
+            />
+          </figure>
+        ) : null}
+
+        <header className="sc-produto__cabecalho">
+          <h1 className="sc-produto__nome">{produto.nome}</h1>
+          {produto.chamada ? (
+            <p className="sc-produto__chamada">{produto.chamada}</p>
+          ) : null}
+          <SeloDePreco
+            preco={produto.preco}
+            precoAnterior={produto.precoAnterior}
+          />
+        </header>
+
+        {produto.descricao ? (
+          <section className="sc-produto__descricao" aria-labelledby="sobre">
+            <h2 className="sc-produto__secao-nome" id="sobre">
+              Sobre o item
+            </h2>
+            <p>{produto.descricao}</p>
+          </section>
+        ) : null}
+
+        {/*
+          As imagens seguintes vêm DEPOIS da descrição e do preço: quem abriu o
+          produto quer decidir, e a segunda foto ajuda menos que o preço.
+        */}
+        {produto.imagens.length > 1 ? (
+          <section className="sc-produto__galeria" aria-label="Mais imagens">
+            <ul className="sc-vitrine__tira" tabIndex={0}>
+              {produto.imagens.slice(1).map((imagem) => (
+                <li className="sc-produto__galeria-item" key={imagem.url}>
                   <Image
-                    className="sc-produto__foto"
                     src={imagem.url}
                     alt={imagem.texto ?? ""}
-                    fill
-                    priority={indice === 0}
-                    loading={indice === 0 ? undefined : "lazy"}
-                    sizes="(min-width: 1024px) 40rem, 100vw"
+                    width={320}
+                    height={320}
+                    loading="lazy"
+                    sizes="10rem"
                   />
                 </li>
               ))}
             </ul>
-          ) : (
-            // Produto sem foto não perde a moldura: a inicial ocupa o lugar e
-            // a folha continua subindo por cima de alguma coisa.
-            <div className="sc-produto__fotos sc-produto__fotos--vazia">
-              <span className="sc-produto__sem-foto" aria-hidden="true">
-                {produto.nome.slice(0, 1).toUpperCase()}
-              </span>
-            </div>
-          )}
+          </section>
+        ) : null}
 
-          {produto.imagens.length > 1 ? (
-            <p className="sc-produto__fotos-contagem">
-              {produto.imagens.length} fotos
-              <span className="sc-so-leitor">, arraste para ver</span>
-            </p>
-          ) : null}
-        </section>
-
-        {/* --- a folha -------------------------------------------------- */}
-        <div className="sc-produto__folha">
-          <nav className="sc-produto__caminho" aria-label="Você está em">
-            <a className="sc-produto__chip" href={produto.linkDoCatalogo}>
-              {rotulo}
-            </a>
-            {produto.linkDaSecao && produto.nomeDaSecao ? (
-              <a className="sc-produto__chip" href={produto.linkDaSecao}>
-                {produto.nomeDaSecao}
-              </a>
-            ) : null}
-          </nav>
-
-          <header className="sc-produto__cabecalho">
-            <h1 className="sc-produto__nome">{produto.nome}</h1>
-            {produto.chamada ? (
-              <p className="sc-produto__chamada">{produto.chamada}</p>
-            ) : null}
-            <SeloDePreco
-              preco={produto.preco}
-              precoAnterior={produto.precoAnterior}
-            />
-            {/*
-              Loja fechada é dito AQUI, antes das escolhas, e não só no botão
-              desabilitado lá embaixo: quem vai montar o pedido merece saber
-              antes de escolher o ponto da carne.
-            */}
-            {abertura.aberta ? null : (
-              <p className="sc-situacao sc-situacao--fechada">
-                <span className="sc-situacao__pulso" aria-hidden="true" />
-                <span>{fraseDaSituacao(abertura)}</span>
-              </p>
-            )}
-          </header>
-
-          {produto.descricao ? (
-            <section className="sc-produto__descricao" aria-labelledby="sobre">
-              <h2 className="sc-produto__secao-nome" id="sobre">
-                Sobre o item
-              </h2>
-              <p>{produto.descricao}</p>
-            </section>
-          ) : null}
-
-          <EscolhasDoProduto
-            produto={produto}
-            apelidoDaLoja={loja.apelido}
-            rotulos={loja.rotulos}
-            contadorDoCarrinho={
-              <ContadorDoCarrinho apelidoDaLoja={loja.apelido} />
-            }
-          />
-        </div>
+        <EscolhasDoProduto
+          produto={produto}
+          apelidoDaLoja={loja.apelido}
+          rotulos={loja.rotulos}
+        />
       </main>
     </TemaDaLoja>
   );

@@ -136,18 +136,18 @@
 }
 
 /*
- * A página pública de uma loja: UMA TELA, com a cara da SimpleClick e a
- * assinatura da loja.
+ * A página pública de uma loja: UMA TELA, com a cara da loja.
  *
- * Caber sem rolar continua sendo a primeira regra: quem abre o endereço de uma
- * loja quer o cardápio; esta página é uma porta, e porta com três telas de
- * rolagem até a maçaneta é atrito no pior lugar possível.
+ * Duas decisões governam este bloco.
  *
- * O PAINEL É GRAFITE, com a trama e o tipo da marca, nos dois temas: é a
- * assinatura da plataforma. A cor que o dono escolheu chega pelos valores que
- * `TemaDaLoja` redefine, com o contraste já ajustado (AC-015), e pinta o que é
- * da loja: o anel da marca, o pulso, o botão e os brilhos do fundo. Sem isso a
- * pastelaria e a loja de roupa teriam exatamente a mesma tela.
+ * A primeira é caber sem rolar. Quem abre o endereço de uma loja quer o
+ * cardápio; esta página é uma porta, e porta com três telas de rolagem até a
+ * maçaneta é atrito no pior lugar possível.
+ *
+ * A segunda é PARECER COM A LOJA. A cor que o dono escolheu chega aqui pelos
+ * valores que `TemaDaLoja` redefine, com o contraste já ajustado (AC-015): o
+ * fundo, o anel da marca e o botão saem dela. Sem isso, a pastelaria e a loja de
+ * roupa teriam exatamente a mesma tela — correta e genérica.
  *
  * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado, e o ESLint
  * reprova quem escrever direto (AC-014).
@@ -163,16 +163,14 @@
   min-block-size: 100svh;
   overflow: clip;
   isolation: isolate;
-  background: var(--marca-grafite);
-  color: var(--marca-branco);
 }
 
 /* --- o fundo em camadas ---------------------------------------------------
  *
- * A trama da marca, o mundo 3D (quando o aparelho aguenta) e dois lavados da
- * cor da loja, grandes e desfocados: profundidade sem carregar imagem nenhuma,
- * o que importa numa página que precisa abrir em rede ruim. `color-mix` tira a
- * cor do valor declarado, então ela acompanha a loja sem uma linha a mais.
+ * Dois lavados da cor da loja, grandes e desfocados, dão profundidade sem
+ * carregar imagem nenhuma — o que importa numa página que precisa abrir em rede
+ * ruim. `color-mix` tira a cor do valor declarado, então ela acompanha a loja e
+ * os dois temas sem uma linha a mais.
  */
 .sc-loja__fundo {
   position: absolute;
@@ -186,7 +184,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.7;
+  opacity: 0.82;
   pointer-events: none;
 }
 
@@ -196,31 +194,12 @@
   block-size: 100%;
 }
 
-/* Linhas finas em verde-click, quase invisíveis, com um vinhete que escurece
- * as bordas e deixa o centro — onde está o conteúdo — mais claro. */
-.sc-loja__trama {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-image:
-    repeating-linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--marca-verde-click) 9%, transparent) 0 1px,
-      transparent 1px 22px
-    ),
-    radial-gradient(
-      70% 60% at 50% 45%,
-      transparent,
-      color-mix(in oklab, var(--marca-preto-tecnologico) 55%, transparent)
-    );
-}
-
 .sc-loja__brilho {
   position: absolute;
   z-index: 1;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.55;
+  filter: blur(80px);
+  opacity: 0.5;
 }
 
 .sc-loja__brilho--um {
@@ -228,7 +207,7 @@
   block-size: min(70vw, 30rem);
   inset-block-start: -12%;
   inset-inline-end: -18%;
-  background: color-mix(in oklab, var(--cor-primaria) 50%, transparent);
+  background: color-mix(in oklab, var(--cor-primaria) 45%, transparent);
 }
 
 .sc-loja__brilho--dois {
@@ -236,7 +215,7 @@
   block-size: min(85vw, 34rem);
   inset-block-end: -22%;
   inset-inline-start: -22%;
-  background: color-mix(in oklab, var(--marca-verde-digital) 28%, transparent);
+  background: color-mix(in oklab, var(--cor-primaria) 26%, transparent);
 }
 
 /* --- a tela ---------------------------------------------------------------
@@ -256,7 +235,7 @@
   gap: var(--espaco-6);
   min-block-size: 100svh;
   inline-size: 100%;
-  max-inline-size: 34rem;
+  max-inline-size: 32rem;
   margin-inline: auto;
   padding-inline: var(--espaco-5);
   /* Recorte de área segura: sem ele o conteúdo encosta na borda arredondada. */
@@ -275,9 +254,9 @@
 }
 
 /*
- * O anel em volta da marca faz a logo pertencer à composição em vez de flutuar,
- * e o anel é da cor da loja. Quem não subiu logo recebe as iniciais no mesmo
- * anel: a tela não desmonta, e a marca continua sendo a da loja.
+ * O anel em volta da marca faz a logo pertencer à composição em vez de flutuar.
+ * Quem não subiu logo recebe as iniciais no mesmo anel: a tela não desmonta, e
+ * a marca continua sendo a da loja.
  */
 .sc-loja__marca {
   display: grid;
@@ -285,12 +264,11 @@
   inline-size: 6.5rem;
   block-size: 6.5rem;
   border-radius: 50%;
-  background: color-mix(in oklab, var(--marca-branco) 8%, transparent);
-  border: 1px solid color-mix(in oklab, var(--cor-primaria) 60%, transparent);
+  background: var(--cor-superficie-alta);
+  border: 1px solid color-mix(in oklab, var(--cor-primaria) 30%, transparent);
   box-shadow:
-    0 0 0 8px color-mix(in oklab, var(--cor-primaria) 14%, transparent),
-    0 20px 40px
-      color-mix(in oklab, var(--marca-preto-tecnologico) 45%, transparent);
+    0 0 0 6px color-mix(in oklab, var(--cor-primaria) 8%, transparent),
+    var(--sombra-2);
 }
 
 .sc-loja__logo {
@@ -301,25 +279,22 @@
 }
 
 .sc-loja__iniciais {
-  font-family: var(--fonte-titulo);
   font-size: 2rem;
-  font-weight: var(--peso-forte);
+  font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--marca-verde-click);
+  color: var(--cor-primaria-texto);
 }
 
 /*
  * O tipo responde à LARGURA, com teto, e nunca à altura. Numa tela comprida a
- * altura sobrando vira respiro — não letra maior. O marcador verde-click atrás
- * do nome é a assinatura da marca.
+ * altura sobrando vira respiro — não letra maior.
  */
 .sc-loja__nome {
   margin: 0;
-  color: var(--marca-branco);
   font-family: var(--fonte-titulo);
   font-weight: 700;
-  font-size: clamp(1.875rem, 8vw, 3rem);
-  line-height: 1.1;
+  font-size: clamp(1.75rem, 7vw, 2.75rem);
+  line-height: 1.05;
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
@@ -329,25 +304,50 @@
   max-inline-size: 34ch;
   font-size: clamp(0.9375rem, 3.6vw, 1.0625rem);
   line-height: 1.55;
-  color: var(--marca-nevoa);
+  color: var(--cor-tinta-suave);
   text-wrap: pretty;
 }
 
 /* --- a situação ----------------------------------------------------------
  *
- * Sobre o grafite, a pílula vira vidro escuro com texto claro; o pulso da loja
- * aberta é verde-click.
+ * Marca, e não caixa de aviso: "aberta agora" é um dado da loja, tão permanente
+ * quanto o endereço dela. Emoldurar faria a tela parecer que algo deu errado.
  */
 .sc-loja__situacao {
-  border-color: color-mix(in oklab, var(--marca-branco) 18%, transparent);
-  background: color-mix(in oklab, var(--marca-branco) 8%, transparent);
-  color: var(--marca-nevoa);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: 999px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--cor-tinta-suave);
 }
 
-.sc-loja__situacao.sc-situacao--aberta .sc-situacao__pulso {
-  background: var(--marca-verde-click);
-  box-shadow: 0 0 0 4px
-    color-mix(in oklab, var(--marca-verde-click) 25%, transparent);
+.sc-loja__pulso {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--cor-borda-forte);
+  flex: none;
+}
+
+.sc-loja__situacao--aberta {
+  border-color: color-mix(in oklab, var(--cor-sucesso) 45%, transparent);
+  color: var(--cor-tinta);
+}
+
+.sc-loja__situacao--aberta .sc-loja__pulso {
+  background: var(--cor-sucesso);
+  /* O halo diz "agora" sem precisar de animação. */
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--cor-sucesso) 22%, transparent);
+}
+
+.sc-loja__situacao--fechada .sc-loja__pulso {
+  background: var(--cor-atencao);
 }
 
 /* --- o caminho de saída --------------------------------------------------- */
@@ -362,24 +362,23 @@
 
 /*
  * O botão é o motivo de a página existir. Ele tem alvo de toque generoso, peso
- * visual acima de tudo o mais na tela, a cor da loja e a seta que diz para onde
- * leva.
+ * visual acima de tudo o mais na tela, e a seta que diz para onde leva.
  */
 .sc-loja__entrar {
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-2);
-  min-block-size: 3.5rem;
+  min-block-size: 3.25rem;
   padding-inline: var(--espaco-7);
   border-radius: 999px;
   background: var(--cor-primaria);
   color: var(--cor-em-primaria);
-  font-size: 1.125rem;
-  font-weight: var(--peso-forte);
+  font-size: 1.0625rem;
+  font-weight: 550;
   text-decoration: none;
   box-shadow:
     0 1px 2px color-mix(in oklab, var(--cor-primaria) 30%, transparent),
-    0 12px 28px color-mix(in oklab, var(--cor-primaria) 32%, transparent);
+    0 10px 24px color-mix(in oklab, var(--cor-primaria) 26%, transparent);
   transition:
     transform var(--transicao-rapida),
     box-shadow var(--transicao-rapida);
@@ -389,18 +388,16 @@
   transform: translateY(-1px);
   box-shadow:
     0 1px 2px color-mix(in oklab, var(--cor-primaria) 34%, transparent),
-    0 16px 34px color-mix(in oklab, var(--cor-primaria) 40%, transparent);
+    0 14px 30px color-mix(in oklab, var(--cor-primaria) 32%, transparent);
 }
 
 .sc-loja__entrar:active {
   transform: translateY(0);
 }
 
-/* O anel de foco é branco: sobre o grafite ele aparece em volta de qualquer
- * cor de botão, inclusive do verde-click. */
 .sc-loja__entrar:focus-visible {
-  outline: 3px solid var(--marca-branco);
-  outline-offset: 4px;
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
 }
 
 .sc-loja__seta {
@@ -414,7 +411,7 @@
 
 .sc-loja__nota {
   font-size: 0.8125rem;
-  color: var(--marca-cinza-ui);
+  color: var(--cor-tinta-suave);
 }
 
 /* --- os detalhes ---------------------------------------------------------- */
@@ -437,19 +434,19 @@
 }
 
 .sc-loja__formas li {
-  border: 1px solid color-mix(in oklab, var(--marca-branco) 18%, transparent);
+  border: 1px solid var(--cor-borda);
   border-radius: 999px;
   padding: var(--espaco-1) var(--espaco-3);
   font-size: 0.8125rem;
-  color: var(--marca-nevoa);
-  background: color-mix(in oklab, var(--marca-branco) 8%, transparent);
+  color: var(--cor-tinta);
+  background: var(--cor-superficie);
 }
 
 .sc-loja__endereco {
   font-style: normal;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--marca-nevoa);
+  color: var(--cor-tinta);
   max-inline-size: 32ch;
 }
 

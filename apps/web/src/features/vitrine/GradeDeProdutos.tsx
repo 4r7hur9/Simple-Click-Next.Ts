@@ -136,22 +136,9 @@ export function GradeDeProdutos({
       className="sc-vitrine__secao"
       aria-labelledby={`secao-${secao.id}`}
     >
-      <div className="sc-vitrine__secao-topo">
-        <h2 className="sc-vitrine__secao-nome" id={`secao-${secao.id}`}>
-          <span className="sc-marcador">{secao.nome}</span>
-        </h2>
-        {/*
-          A contagem fica FORA do título: dentro dele, quem navega por títulos
-          ouviria "Salgados 12 itens" como se fosse o nome da seção.
-        */}
-        {secao.produtos.length > 0 ? (
-          <span className="sc-vitrine__secao-contagem">
-            {secao.produtos.length === 1
-              ? "1 item"
-              : `${secao.produtos.length} itens`}
-          </span>
-        ) : null}
-      </div>
+      <h2 className="sc-vitrine__secao-nome" id={`secao-${secao.id}`}>
+        {secao.nome}
+      </h2>
 
       {secao.produtos.length === 0 ? (
         // Seção vazia acontece quando o dono criou a categoria e ainda não

@@ -20,7 +20,6 @@
  * de adicionar, o próximo passo de quem terminou é conferir e fechar, e ele
  * fica no mesmo lugar do polegar.
  */
-import type { ReactNode } from "react";
 import { IconeAdicionar, IconePedido, IconeRemover } from "@simpleclick/ui";
 
 export interface BotaoAdicionarProps {
@@ -37,8 +36,6 @@ export interface BotaoAdicionarProps {
   readonly aoAdicionar: () => void;
   /** Para onde vai quem quer ver o carrinho. Sem ele, o atalho não aparece. */
   readonly linkDoCarrinho?: string | undefined;
-  /** A contagem de itens, desenhada dentro do atalho do carrinho. */
-  readonly contador?: ReactNode | undefined;
 }
 
 /** O teto de unidades por item, para o dedo escorregado não pedir 200 coxinhas. */
@@ -53,7 +50,6 @@ export function BotaoAdicionar({
   aoMudarQuantidade,
   aoAdicionar,
   linkDoCarrinho,
-  contador,
 }: BotaoAdicionarProps) {
   return (
     <div className="sc-produto__acao">
@@ -116,10 +112,12 @@ export function BotaoAdicionar({
       </button>
 
       {linkDoCarrinho ? (
-        <a className="sc-produto__carrinho" href={linkDoCarrinho}>
+        <a
+          className="sc-botao sc-botao--secundaria sc-botao--pilula sc-botao--grande sc-botao--so-icone sc-produto__carrinho"
+          href={linkDoCarrinho}
+        >
           <IconePedido />
           <span className="sc-so-leitor">Ver o carrinho</span>
-          {contador}
         </a>
       ) : null}
 
