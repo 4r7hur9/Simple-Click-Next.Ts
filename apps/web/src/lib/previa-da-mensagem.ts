@@ -49,7 +49,7 @@ export function pedidoDeExemplo(apelidoDaLoja: string): PedidoParaTexto {
     pagamento: { forma: "CASH", trocoParaEmCentavos: 5_000 },
     subtotalEmCentavos: 2_500,
     totalEmCentavos: 3_000,
-    linkDeAcompanhamento: `https://…/l/${apelidoDaLoja}/pedido/exemplo`,
+    linkDeAcompanhamento: `https://…/loja/${apelidoDaLoja}/pedido/exemplo`,
   };
 }
 

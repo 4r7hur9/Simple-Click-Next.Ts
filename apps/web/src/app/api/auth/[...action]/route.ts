@@ -34,7 +34,9 @@ function cookiesParaOAmbiente(resposta: Response): Response {
   cabecalhos.delete("set-cookie");
   for (const linha of linhas) {
     const nome = (linha.split(";")[0] ?? "").split("=")[0]?.trim();
-    if (nome !== "sc_access" && nome !== "sc_refresh") continue;
+    if (nome !== "sc_access" && nome !== "sc_refresh" && nome !== "sc_loja") {
+      continue;
+    }
     cabecalhos.append(
       "set-cookie",
       linha

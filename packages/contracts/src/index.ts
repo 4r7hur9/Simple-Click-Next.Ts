@@ -69,16 +69,29 @@ export type { CarrinhoNoContrato } from "./carrinho.ts";
 export {
   esquemaDaVitrine,
   esquemaDeAbertura,
+  esquemaDoHorarioPublico,
+  esquemaDoBannerPublico,
   esquemaDeEnderecoDaLoja,
   esquemaDeLojaPublica,
   esquemaDeRotulosDoRamo,
   esquemaDoApelido,
   rotaDaVitrine,
   esquemaDaBuscaDoCatalogo,
+  atacadoLigado,
   esquemaDoCatalogo,
   esquemaDeProdutoNaVitrine,
   esquemaDeSecaoDaVitrine,
   rotaDoCatalogo,
+  esquemaDaOrdemDoCatalogo,
+  esquemaDaConsultaDoResumo,
+  esquemaDaSecaoNoResumo,
+  esquemaDoResumoDoCatalogo,
+  esquemaDaConsultaDaPagina,
+  esquemaDaPaginaDoCatalogo,
+  rotaDoResumoDoCatalogo,
+  rotaDaPaginaDoCatalogo,
+  MAXIMO_DA_PAGINA_DO_CATALOGO,
+  PAGINA_PADRAO_DO_CATALOGO,
   esquemaDeGrupoDeEscolha,
   esquemaDeImagemDoProduto,
   esquemaDeIndisponibilidade,
@@ -97,9 +110,14 @@ export { esquemaDoAcompanhamento } from "./acompanhamento.ts";
 export type { AcompanhamentoNoContrato } from "./acompanhamento.ts";
 export type {
   CatalogoDaVitrineNoContrato,
+  OrdemDoCatalogoNoContrato,
+  ResumoDoCatalogoNoContrato,
+  PaginaDoCatalogoNoContrato,
   LojaPublicaNoContrato,
   ProdutoNaVitrineNoContrato,
   FechamentoNoContrato,
+  HorarioPublicoNoContrato,
+  BannerPublicoNoContrato,
   ProdutoNoContrato,
   Vitrine,
 } from "./vitrine.ts";
@@ -192,6 +210,16 @@ export {
   MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
 } from "./admin.ts";
 export type { SituacaoParaODonoNoContrato } from "./admin.ts";
+// Aprovação da loja (card #25): aprovar, recusar, ativar e desativar.
+export {
+  ATOS_DA_APROVACAO,
+  esquemaDaDesativacaoDaLoja,
+  esquemaDaRecusaDaLoja,
+  esquemaDaTransicaoInvalida,
+  esquemaDoAtoSemCorpo,
+  TRANSICOES_DA_LOJA,
+} from "./admin.ts";
+export type { AtoDaAprovacao } from "./admin.ts";
 export {
   CONFIGURACOES_DA_PLATAFORMA,
   esquemaDaChavePixDaLoja,
@@ -310,6 +338,7 @@ export {
 } from "./metricas.ts";
 export type {
   ComparacaoDeMetricasNoContrato,
+  DetalhesDeMetricasNoContrato,
   MetricasNoContrato,
   ParcelaDeMetricaNoContrato,
   PeriodoDeMetricasNoContrato,
@@ -348,3 +377,36 @@ export type {
 export * from "./auth.ts";
 export * from "./auth-rotas.ts";
 export * from "./eu.ts";
+// Fundação do card #25: permissões por papel, limites, feed, equipe, tema e
+// etapas do pedido.
+export * from "./permissoes.ts";
+export * from "./limites.ts";
+export * from "./feed.ts";
+export * from "./equipe.ts";
+export * from "./tema.ts";
+export * from "./endereco-de-imagem.ts";
+export * from "./etapas-do-pedido.ts";
+// Gestão de lojas e contas pela administração (card #29).
+export * from "./admin-gestao.ts";
+
+export {
+  esquemaDaConsultaDeMetricasDoAdmin,
+  esquemaDasMetricasDoAdmin,
+  MAXIMO_DE_DIAS_DO_PAINEL_DO_ADMIN,
+} from "./admin-metricas.ts";
+export type {
+  ConsultaDeMetricasDoAdmin,
+  MetricasDoAdminNoContrato,
+} from "./admin-metricas.ts";
+export * from "./conta-metricas.ts";
+// Vídeo do produto e Stories de 24 horas (card #46).
+export * from "./midia.ts";
+export * from "./stories.ts";
+// Curtidas e comentários com aprovação da loja (card #47).
+export * from "./social.ts";
+// Atacado e varejo: faixas de desconto por quantidade (card #53).
+export * from "./atacado.ts";
+// Importador de clientes da loja: CSV, TSV, JSON, JSON Lines e XLSX (card #60).
+export * from "./importacao-clientes.ts";
+// LGPD funcional: aceite versionado dos documentos e direitos do titular (card #79).
+export * from "./legal.ts";

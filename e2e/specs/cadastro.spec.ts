@@ -71,7 +71,7 @@ test("@spec:AC-100 @spec:AC-103 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente
   // AC-108: cliente sem segundo fator entra direto na conta dele. A tela de
   // pedidos só abre com sessão aceita pela API — sem ela, volta ao login.
   await enviarLogin(page, email, FRASE_FORTE_DE_PROVA);
-  await expect(page).toHaveURL(/\/minha-conta\/pedidos$/);
+  await expect(page).toHaveURL(/\/conta\/pedidos$/);
   await expect(
     page.getByRole("heading", { name: "Meus pedidos" }),
   ).toBeVisible();
@@ -93,7 +93,7 @@ test("@spec:AC-100 @spec:AC-103 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente
 
   // AC-112: sair apaga os cookies E revoga o token no servidor.
   const tokenAnterior = decodeURIComponent(renovacao?.value ?? "");
-  await page.goto("/minha-conta/seguranca");
+  await page.goto("/conta/seguranca");
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(page).toHaveURL(/\/entrar$/);
   const depois = await cookiesDaSessao(context);
@@ -102,6 +102,6 @@ test("@spec:AC-100 @spec:AC-103 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente
   expect(
     await renovarDireto(ENDERECO_DA_API, ENDERECO_DO_SITE, tokenAnterior),
   ).toBe(401);
-  await page.goto("/minha-conta/pedidos");
+  await page.goto("/conta/pedidos");
   await expect(page).toHaveURL(/\/entrar$/);
 });

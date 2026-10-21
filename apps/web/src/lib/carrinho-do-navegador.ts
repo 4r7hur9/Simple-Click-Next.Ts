@@ -22,6 +22,7 @@
  */
 import {
   esquemaDoCarrinho,
+  type AtacadoNoItemNoContrato,
   type CarrinhoNoContrato,
 } from "@simpleclick/contracts";
 
@@ -117,6 +118,100 @@ export async function adicionarAoCarrinho(
   return { estado: "adicionado", carrinho: conferido.data };
 }
 
+/**
+ * O nome do aviso que a página dispara quando o carrinho muda.
+ *
+ * O carrinho flutuante e o formulário do produto são ilhas separadas na mesma
+ * página, e nenhuma das duas manda na outra. Um evento na janela é o fio mais
+ * curto entre elas: quem adiciona avisa, quem mostra a contagem escuta.
+ */
+export const AVISO_DE_CARRINHO_MUDOU = "sc:carrinho-mudou";
+
+/** Avisa a página de que o carrinho mudou. */
+export function avisarQueOCarrinhoMudou(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(AVISO_DE_CARRINHO_MUDOU));
+}
+
+/** Quantos itens o carrinho da sessão tem. Nulo quando a API não respondeu. */
+export async function contarItensDoCarrinho(
+  apelidoDaLoja: string,
+  buscar: typeof fetch = fetch,
+): Promise<number | null> {
+  try {
+    const resposta = await buscar(
+      `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(apelidoDaLoja)}/carrinho`,
+      {
+        credentials: "include",
+        headers: { accept: "application/json" },
+        cache: "no-store",
+      },
+    );
+    if (!resposta.ok) return null;
+    const conferido = esquemaDoCarrinho.safeParse(await resposta.json());
+    return conferido.success ? conferido.data.totalDeItens : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Os itens do carrinho como a sessão os guarda: variação, opções escolhidas e
+ * observação. Nome e preço NÃO vêm daqui — vêm da conferência, que é quem sabe
+ * os valores de agora. Nulo quando a API não respondeu.
+ */
+export async function verItensDoCarrinho(
+  apelidoDaLoja: string,
+  buscar: typeof fetch = fetch,
+): Promise<CarrinhoNoContrato["itens"] | null> {
+  try {
+    const resposta = await buscar(
+      `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(apelidoDaLoja)}/carrinho`,
+      {
+        credentials: "include",
+        headers: { accept: "application/json" },
+        cache: "no-store",
+      },
+    );
+    if (!resposta.ok) return null;
+    const conferido = esquemaDoCarrinho.safeParse(await resposta.json());
+    return conferido.success ? conferido.data.itens : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Muda a quantidade de um item. Zero remove — é a API quem decide isso.
+ *
+ * Devolve falso em qualquer falha: quem chama recarrega o carrinho e mostra o
+ * que o servidor tem, que é a única versão que vale.
+ */
+export async function mudarQuantidadeNoCarrinho(
+  apelidoDaLoja: string,
+  itemId: string,
+  quantidade: number,
+  buscar: typeof fetch = fetch,
+): Promise<boolean> {
+  try {
+    const resposta = await buscar(
+      `${enderecoDaApiNoNavegador()}/v1/vitrine/${encodeURIComponent(apelidoDaLoja)}/carrinho/itens/${encodeURIComponent(itemId)}`,
+      {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({ quantidade }),
+      },
+    );
+    return resposta.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** O que a conferência devolve, já com os valores do servidor. */
 export interface ConferenciaNaTela {
   readonly mudancas: readonly {
@@ -140,6 +235,12 @@ export interface ConferenciaNaTela {
       readonly rotulo: string;
       readonly motivo: string;
     } | null;
+    /** `BASE`, `PROMO` ou `WHOLESALE` (card #57). */
+    readonly tipoDePreco?: string;
+    /** O varejo por unidade, riscado ao lado, quando o cobrado é menor. */
+    readonly varejoUnitarioCentavos?: number | null;
+    /** A faixa de atacado aplicada, a próxima e quantas peças faltam. */
+    readonly atacado?: AtacadoNoItemNoContrato | null;
   }[];
   readonly subtotalCentavos: number;
 }
@@ -172,6 +273,9 @@ export async function conferirCarrinho(
     // rede do ponto de vista desta tela — ela não tem o que fazer com isso.
     return { estado: "falhou", motivo: "a API recusou a conferência" };
   }
+  if (resposta.estado === "recusado") {
+    return { estado: "falhou", motivo: `a API respondeu ${resposta.status}` };
+  }
   if (resposta.estado !== "ok") return resposta;
   return {
     estado: "conferido",
@@ -179,9 +283,28 @@ export async function conferirCarrinho(
   };
 }
 
-/** O que a tela envia para fechar o pedido. */
+/** Um endereço novo de entrega, que a API guarda na conta de quem pede. */
+export interface EnderecoNovoParaEnviar {
+  readonly logradouro: string;
+  readonly numero?: string | null;
+  readonly complemento?: string | null;
+  readonly bairro?: string | null;
+  readonly cidade?: string | null;
+  readonly estado?: string | null;
+  readonly cep?: string | null;
+  readonly pontoDeReferencia?: string | null;
+}
+
+/**
+ * O que a tela envia para fechar o pedido.
+ *
+ * QUEM PEDE É A CONTA LOGADA: nome, e-mail e telefone saem dela, no servidor.
+ * O corpo só traz o telefone quando a conta ainda não tem, e na entrega um
+ * endereço salvo (`enderecoId`) ou um novo (`endereco`). O `contato` é o
+ * formato antigo, que a API ainda aceita.
+ */
 export interface PedidoParaEnviar {
-  readonly contato: {
+  readonly contato?: {
     readonly nome: string;
     readonly telefone: string;
     readonly logradouro?: string | null;
@@ -192,12 +315,20 @@ export interface PedidoParaEnviar {
     readonly estado?: string | null;
     readonly cep?: string | null;
   };
+  readonly telefone?: string;
+  readonly enderecoId?: string;
+  readonly endereco?: EnderecoNovoParaEnviar;
   readonly entrega: "DELIVERY" | "PICKUP";
   readonly formaDePagamento: string | null;
   readonly trocoParaCentavos: number | null;
   readonly observacao: string | null;
   readonly chaveDeIdempotencia: string;
   readonly totalVistoCentavos: number;
+  /**
+   * O subtotal dos itens que a conferência mostrou. A API recalcula com a
+   * faixa de atacado de agora e recusa (409) quando não bate (card #57).
+   */
+  readonly subtotalVistoCentavos?: number;
 }
 
 /** O pedido criado, como a tela o mostra. */
@@ -225,6 +356,17 @@ export type ResultadoDoFechamento =
   | { readonly estado: "criado"; readonly pedido: PedidoNaTela }
   /** A loja fechou, o carrinho esvaziou, ou o mínimo não foi alcançado. */
   | { readonly estado: "nao-pode"; readonly motivo: string }
+  /** Sem sessão (401 `conta_obrigatoria`): a pessoa entra e tenta de novo. */
+  | { readonly estado: "sem-conta" }
+  /**
+   * A API recusou um dado que a pessoa corrige na tela (422): telefone,
+   * endereço. `codigo` é o da API (`telefone_invalido`, `endereco_obrigatorio`…).
+   */
+  | {
+      readonly estado: "recusado";
+      readonly codigo: string;
+      readonly motivo: string;
+    }
   | { readonly estado: "falhou"; readonly motivo: string };
 
 /** Fecha o pedido. */
@@ -247,6 +389,18 @@ export async function criarPedido(
       motivo:
         fechada ??
         "Não foi possível fechar o pedido agora. Confira o carrinho e tente de novo.",
+    };
+  }
+  if (resposta.estado === "recusado") {
+    if (resposta.status === 401) return { estado: "sem-conta" };
+    const corpo = resposta.corpo as { erro?: unknown; mensagem?: unknown };
+    return {
+      estado: "recusado",
+      codigo: typeof corpo.erro === "string" ? corpo.erro : "recusado",
+      motivo:
+        typeof corpo.mensagem === "string" && corpo.mensagem !== ""
+          ? corpo.mensagem
+          : "Confira os dados do pedido e tente de novo.",
     };
   }
   if (resposta.estado !== "ok") {
@@ -340,6 +494,12 @@ async function registrarAcaoDoWhatsApp(
 type Resposta =
   | { readonly estado: "ok"; readonly corpo: unknown }
   | { readonly estado: "conflito" }
+  /** 401 e 422: recusas com corpo `{ erro, mensagem }` que a tela resolve. */
+  | {
+      readonly estado: "recusado";
+      readonly status: number;
+      readonly corpo: unknown;
+    }
   | { readonly estado: "falhou"; readonly motivo: string };
 
 /**
@@ -378,6 +538,15 @@ async function chamar(
   }
 
   if (resposta.status === 409) return { estado: "conflito" };
+  if (resposta.status === 401 || resposta.status === 422) {
+    let corpo: unknown = {};
+    try {
+      corpo = await resposta.json();
+    } catch {
+      // Sem corpo legível, a recusa vale do mesmo jeito, com o texto padrão.
+    }
+    return { estado: "recusado", status: resposta.status, corpo };
+  }
   if (!resposta.ok) {
     return { estado: "falhou", motivo: `a API respondeu ${resposta.status}` };
   }

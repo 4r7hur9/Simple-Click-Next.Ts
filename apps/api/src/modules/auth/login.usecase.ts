@@ -73,7 +73,11 @@ export async function entrarComSenha(
   );
   if (!senhaConfere) return { status: "CREDENCIAIS_INVALIDAS" };
 
-  if (!identidade.emailVerificado) return { status: "EMAIL_NAO_VERIFICADO" };
+  // Cliente entra mesmo sem e-mail verificado: a marca é organização, não
+  // segurança. Dono e administração continuam precisando dela.
+  if (!identidade.emailVerificado && identidade.papel !== "CLIENTE") {
+    return { status: "EMAIL_NAO_VERIFICADO" };
+  }
 
   if (!dependencias.semSegundoFator && exigeSegundoFator(identidade)) {
     const desafio = await dependencias.criarDesafioDeSegundoFator({

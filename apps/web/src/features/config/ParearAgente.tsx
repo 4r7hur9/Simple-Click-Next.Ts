@@ -19,6 +19,7 @@ import {
   pedirCodigoDePareamento,
   type CodigoDePareamento,
 } from "../../lib/impressao-automatica.ts";
+import { InfoDoPainel } from "./RotuloComInfo.tsx";
 
 type Fase =
   | { readonly tipo: "inicio" }
@@ -47,9 +48,15 @@ export function ParearAgente({
       aria-labelledby="titulo-parear-agente"
       className="mt-10 max-w-2xl space-y-4 border-t border-[var(--cor-borda)] pt-8"
     >
-      <h2 id="titulo-parear-agente" className="text-2xl font-semibold">
-        Parear o agente de impressão
-      </h2>
+      <div className="flex items-center gap-2">
+        <h2 id="titulo-parear-agente" className="text-2xl font-semibold">
+          Parear o agente de impressão
+        </h2>
+        <InfoDoPainel
+          explicacao="agenteDeImpressao"
+          nome="Agente de impressão"
+        />
+      </div>
       <ol className="list-decimal space-y-1 pl-5 text-[var(--cor-tinta-suave)]">
         <li>
           Instale o agente de impressão no computador ligado à impressora.
@@ -66,8 +73,12 @@ export function ParearAgente({
           className="rounded-[var(--raio-grande)] border border-[var(--cor-borda)] bg-[var(--cor-superficie)] p-4"
           data-codigo-de-pareamento=""
         >
-          <p className="text-sm text-[var(--cor-tinta-suave)]">
+          <p className="flex items-center gap-1.5 text-sm text-[var(--cor-tinta-suave)]">
             Código de pareamento
+            <InfoDoPainel
+              explicacao="codigoDePareamento"
+              nome="Código de pareamento"
+            />
           </p>
           <output
             aria-live="polite"

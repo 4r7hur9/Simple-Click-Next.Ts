@@ -1,0 +1,895 @@
+/*
+ * "Sobre a loja": a JANELA por cima da página da loja.
+ *
+ * Mesma família da apresentação (narrativa.css): grafite no cabeçalho, nome
+ * sobre a faixa verde-click, pílulas, cantos de 16px nos cartões e 24px na
+ * janela. No celular a janela é uma gaveta que sobe da base, quase tela cheia;
+ * do tablet em diante, um painel centrado com rolagem própria.
+ *
+ * Sem `backdrop-filter` (proibido no projeto): o fundo escurece só com cor.
+ * Nenhuma cor é escrita aqui — toda cor vem de valor declarado (AC-014).
+ */
+
+/* --- a janela ------------------------------------------------------------- */
+
+.sc-sobre-janela {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: min(94dvh, 100%);
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-janela) var(--raio-janela) 0 0;
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 -24px 60px -24px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent);
+}
+
+.sc-sobre-janela[open] {
+  animation: sc-sobre-subir 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sc-sobre-janela::backdrop {
+  background: color-mix(in srgb, var(--marca-preto-tecnologico) 68%, transparent);
+  animation: sc-sobre-escurecer 200ms ease-out;
+}
+
+/*
+ * Aberta pelo servidor, sem script: o `dialog` não é modal e não tem
+ * `::backdrop`. Fica fixa por cima, e a sombra enorme faz o papel do fundo.
+ */
+.sc-sobre-janela[open]:not(:modal) {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 50;
+  box-shadow: 0 0 0 100vmax
+    color-mix(in srgb, var(--marca-preto-tecnologico) 68%, transparent);
+}
+
+/* Com a janela aberta, a página de baixo não rola junto. */
+html:has(.sc-sobre-janela[open]) {
+  overflow: hidden;
+}
+
+@keyframes sc-sobre-subir {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+@keyframes sc-sobre-escurecer {
+  from {
+    opacity: 0;
+  }
+}
+
+.sc-sobre-janela__moldura {
+  position: relative;
+  padding-block-end: max(var(--espaco-7), env(safe-area-inset-bottom));
+}
+
+/*
+ * O FECHAR fica preso no alto enquanto o conteúdo rola por baixo dele: no
+ * celular, a pessoa não precisa voltar ao topo para sair. 44px de alvo.
+ */
+.sc-sobre-janela__fechar {
+  position: sticky;
+  inset-block-start: var(--espaco-4);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  margin: var(--espaco-4) var(--espaco-4)
+    calc(-1 * (var(--altura-toque) + var(--espaco-4))) auto;
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 24%, transparent);
+  border-radius: var(--raio-completo);
+  background: color-mix(in srgb, var(--marca-grafite) 88%, transparent);
+  color: var(--marca-branco);
+  transition: background var(--transicao-rapida);
+}
+
+.sc-sobre-janela__fechar:hover {
+  background: var(--marca-preto-tecnologico);
+}
+
+.sc-sobre-janela__fechar:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
+  outline-offset: 2px;
+}
+
+/* --- o cabeçalho grafite -------------------------------------------------- */
+
+.sc-sobre__hero {
+  position: relative;
+  display: grid;
+  gap: var(--espaco-4);
+  padding: calc(var(--altura-toque) + var(--espaco-4)) var(--espaco-5)
+    var(--espaco-6);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  overflow: clip;
+  isolation: isolate;
+}
+
+/* O brilho verde da plataforma, como no painel da apresentação. */
+.sc-sobre__hero::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset-block-start: -60%;
+  inset-inline-end: -20%;
+  inline-size: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-marca) 26%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.sc-sobre__hero--com-capa::before {
+  content: none;
+}
+
+.sc-sobre__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.sc-sobre__veu {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--marca-grafite) 78%, transparent),
+    color-mix(in srgb, var(--marca-grafite) 55%, transparent) 45%,
+    color-mix(in srgb, var(--marca-grafite) 94%, transparent)
+  );
+  pointer-events: none;
+}
+
+/* A capa padrão do ramo: os ícones do negócio, discretos, à direita. */
+.sc-sobre__padrao {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  --capa-tamanho: 280px;
+  --capa-posicao: top right;
+  opacity: 0.24;
+  -webkit-mask-image: linear-gradient(to left, black 25%, transparent 85%);
+  mask-image: linear-gradient(to left, black 25%, transparent 85%);
+  pointer-events: none;
+}
+
+.sc-sobre__identidade,
+.sc-sobre__boas-vindas,
+.sc-sobre__acoes {
+  position: relative;
+  z-index: 1;
+}
+
+.sc-sobre__identidade {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.sc-sobre__marca {
+  inline-size: 3.5rem;
+}
+
+.sc-sobre__nome-bloco {
+  display: grid;
+  gap: var(--espaco-2);
+  min-inline-size: 0;
+}
+
+.sc-sobre__sobrelinha {
+  margin: 0;
+  color: color-mix(in srgb, var(--marca-branco) 78%, transparent);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sc-sobre__nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.sc-sobre__boas-vindas {
+  max-inline-size: 48ch;
+  margin: 0;
+  color: color-mix(in srgb, var(--marca-branco) 90%, transparent);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha-base);
+}
+
+.sc-sobre__hero--com-capa .sc-sobre__boas-vindas {
+  text-shadow: 0 1px 12px var(--marca-preto-tecnologico);
+}
+
+.sc-sobre__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+/* A chamada do cardápio: a mesma pílula verde da apresentação, menor. */
+.sc-sobre__cardapio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque-grande, 48px);
+  padding-inline: 1.25rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform var(--transicao-media);
+}
+
+.sc-sobre__cardapio:hover {
+  transform: translateY(-1px);
+}
+
+.sc-sobre__cardapio:focus-visible {
+  outline: 3px solid var(--marca-branco);
+  outline-offset: 3px;
+}
+
+/* --- a grade de cartões --------------------------------------------------- */
+
+.sc-sobre__grade {
+  display: grid;
+  gap: var(--espaco-4);
+  padding: var(--espaco-5) var(--espaco-4);
+}
+
+.sc-sobre__cartao {
+  display: grid;
+  align-content: start;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-1);
+  scroll-margin-block-start: calc(var(--altura-toque) + var(--espaco-4));
+}
+
+.sc-sobre__cartao-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.sc-sobre__icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.5rem;
+  aspect-ratio: 1;
+  border-radius: var(--raio-botao);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+}
+
+.sc-sobre__cartao-titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.sc-sobre__nota {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-base);
+}
+
+.sc-sobre__sem-historia {
+  margin: 0;
+  padding: var(--espaco-4) var(--espaco-5);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-cartao);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-base);
+}
+
+/* Nossa história: a abertura com o filete verde, o resto em texto corrido. */
+.sc-sobre__abertura {
+  max-inline-size: 60ch;
+  margin: 0;
+  padding-inline-start: var(--espaco-4);
+  border-inline-start: 4px solid var(--cor-marca-texto);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.125rem, 2.2vw, 1.375rem);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.sc-sobre__texto {
+  max-inline-size: 65ch;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-base);
+  line-height: 1.7;
+}
+
+.sc-sobre__texto p {
+  margin: 0 0 var(--espaco-3);
+  text-wrap: pretty;
+}
+
+.sc-sobre__texto p:last-child {
+  margin-block-end: 0;
+}
+
+/* Horários */
+.sc-sobre__situacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) var(--espaco-3);
+}
+
+.sc-sobre__proxima {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-sobre__semana {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  font-size: var(--texto-sm);
+}
+
+.sc-sobre__semana th,
+.sc-sobre__semana td {
+  padding: 0.55rem 0.75rem;
+  line-height: 1.4;
+}
+
+.sc-sobre__semana th {
+  font-weight: var(--peso-medio);
+  text-align: start;
+}
+
+.sc-sobre__semana td {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-sobre__semana th {
+  border-start-start-radius: var(--raio-botao);
+  border-end-start-radius: var(--raio-botao);
+}
+
+.sc-sobre__semana td {
+  border-start-end-radius: var(--raio-botao);
+  border-end-end-radius: var(--raio-botao);
+}
+
+.sc-sobre__semana tr:nth-child(even) :is(th, td) {
+  background: var(--cor-superficie);
+}
+
+/*
+ * Hoje: fundo verde-click claro, o filete verde à esquerda e a etiqueta
+ * "Hoje". Funciona no tema claro e no escuro, onde grafite sumiria no cartão.
+ */
+.sc-sobre__semana .sc-sobre__hoje :is(th, td) {
+  background: color-mix(in srgb, var(--cor-marca) 18%, transparent);
+  font-weight: var(--peso-forte);
+}
+
+.sc-sobre__semana .sc-sobre__hoje th {
+  box-shadow: inset 4px 0 0 var(--cor-marca);
+}
+
+.sc-sobre__marca-hoje {
+  display: inline-block;
+  margin-inline-start: var(--espaco-2);
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+}
+
+.sc-sobre__fechado {
+  color: var(--cor-tinta-suave);
+}
+
+/* Como receber */
+.sc-sobre__modos {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-sobre__modo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border-radius: var(--raio-botao);
+  background: var(--cor-superficie);
+}
+
+.sc-sobre__modo-icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.25rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--marca-grafite);
+  color: var(--cor-marca-texto);
+}
+
+.sc-sobre__modo-texto {
+  display: grid;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
+}
+
+.sc-sobre__modo-nome {
+  margin: 0;
+  font-weight: var(--peso-forte);
+}
+
+.sc-sobre__fatos {
+  margin: 0;
+  padding: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.6;
+  list-style: none;
+}
+
+.sc-sobre__gratis {
+  justify-self: start;
+  margin: var(--espaco-1) 0 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+}
+
+/* O valor em dinheiro não quebra entre o "R$" e o número. */
+.sc-sobre__valor {
+  white-space: nowrap;
+}
+
+/* Formas de pagamento */
+.sc-sobre__pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-sobre__pilula {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  padding-inline: 1rem;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+/* Onde estamos */
+.sc-sobre__endereco {
+  display: grid;
+  font-style: normal;
+  line-height: 1.6;
+}
+
+.sc-sobre__acao {
+  justify-self: start;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+}
+
+/* Fale com a gente: o botão grande, grafite com o ícone verde. */
+.sc-sobre__whatsapp {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-block-size: 3.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  transition:
+    transform var(--transicao-media),
+    background var(--transicao-rapida);
+}
+
+.sc-sobre__whatsapp svg {
+  flex: none;
+  color: var(--cor-marca-texto);
+}
+
+.sc-sobre__whatsapp:hover {
+  background: var(--marca-preto-tecnologico);
+  transform: translateY(-1px);
+}
+
+.sc-sobre__whatsapp:focus-visible,
+.sc-sobre__acao:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-sobre__whatsapp-numero {
+  display: block;
+  color: color-mix(in srgb, var(--marca-branco) 78%, transparent);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-normal);
+}
+
+/* O fecho: a última chamada, para quem leu tudo e decidiu pedir. */
+.sc-sobre__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-inline: var(--espaco-4);
+  padding: var(--espaco-4) var(--espaco-5);
+  border-radius: var(--raio-cartao);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+}
+
+.sc-sobre__rodape p {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+}
+
+/*
+ * --- do tablet em diante: a janela CABE NA TELA, sem rolagem --------------
+ *
+ * Abaixo de 768px a janela é gaveta e rola. Daqui para cima ela é um painel
+ * que cabe inteiro na viewport: os cartões se distribuem em grade, o
+ * cabeçalho vira uma linha só e as medidas encolhem com a ALTURA da tela
+ * (`vh` dentro de `clamp()`), que é o que acaba primeiro num notebook. O texto
+ * longo do Sobre é cortado por linhas — inteiro no HTML, para o leitor de tela
+ * e o buscador; o corte é só visual.
+ */
+@media (min-width: 47.5rem) {
+  .sc-sobre-janela {
+    --sobre-respiro: clamp(0.625rem, 1.3vh, 1.25rem);
+    --sobre-texto: clamp(0.8125rem, 0.55rem + 0.5vh, 0.9375rem);
+
+    inline-size: min(84rem, 100% - 2 * var(--espaco-6));
+    max-block-size: calc(100dvh - 2rem);
+    margin: auto;
+    border-radius: var(--raio-janela);
+    box-shadow: var(--sombra-larga);
+  }
+
+  .sc-sobre-janela[open]:not(:modal) {
+    inset: 0;
+  }
+
+  .sc-sobre-janela__moldura {
+    padding-block-end: 0;
+  }
+
+  .sc-sobre-janela__fechar {
+    position: absolute;
+    inset-block-start: var(--espaco-4);
+    inset-inline-end: var(--espaco-4);
+    margin: 0;
+  }
+
+  /* O cabeçalho em uma linha: identidade à esquerda, situação e chamada à direita. */
+  .sc-sobre__hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--sobre-respiro) var(--espaco-5);
+    padding: var(--sobre-respiro) calc(var(--altura-toque) + var(--espaco-5))
+      var(--sobre-respiro) var(--espaco-6);
+  }
+
+  .sc-sobre__identidade {
+    grid-column: 1;
+    flex-wrap: nowrap;
+  }
+
+  .sc-sobre__boas-vindas {
+    grid-column: 1;
+    font-size: var(--sobre-texto);
+  }
+
+  .sc-sobre__acoes {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .sc-sobre__marca {
+    inline-size: clamp(3rem, 7vh, 4rem);
+  }
+
+  .sc-sobre__nome {
+    font-size: clamp(1.5rem, min(1rem + 2.6vh, 3.2vw), 2.5rem);
+  }
+
+  .sc-sobre__padrao {
+    --capa-tamanho: 300px;
+    opacity: 0.3;
+  }
+
+  .sc-sobre__grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "historia historia"
+      "horarios receber"
+      "pagamento contato"
+      "endereco endereco";
+    gap: var(--sobre-respiro);
+    padding: var(--sobre-respiro) var(--espaco-5) var(--espaco-5);
+  }
+
+  #sobre-historia,
+  .sc-sobre__sem-historia {
+    grid-area: historia;
+  }
+
+  #sobre-horarios {
+    grid-area: horarios;
+  }
+
+  #sobre-receber {
+    grid-area: receber;
+  }
+
+  #sobre-pagamento {
+    grid-area: pagamento;
+  }
+
+  #sobre-endereco {
+    grid-area: endereco;
+  }
+
+  #sobre-contato {
+    grid-area: contato;
+  }
+
+  .sc-sobre__cartao {
+    gap: var(--sobre-respiro);
+    padding: var(--sobre-respiro) calc(var(--sobre-respiro) * 1.25);
+    box-shadow: none;
+  }
+
+  .sc-sobre__icone {
+    inline-size: clamp(2rem, 3.6vh, 2.5rem);
+  }
+
+  .sc-sobre__cartao-titulo {
+    font-size: clamp(1rem, 0.7rem + 0.8vh, 1.125rem);
+  }
+
+  .sc-sobre__nota,
+  .sc-sobre__fatos,
+  .sc-sobre__semana,
+  .sc-sobre__pilula,
+  .sc-sobre__endereco,
+  .sc-sobre__proxima {
+    font-size: var(--sobre-texto);
+  }
+
+  /* A história, cortada com reticências quando não cabe. */
+  .sc-sobre__abertura {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: clamp(1rem, 0.6rem + 1.1vh, 1.25rem);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .sc-sobre__texto {
+    display: -webkit-box;
+    max-inline-size: none;
+    overflow: hidden;
+    font-size: var(--sobre-texto);
+    line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .sc-sobre__texto p {
+    display: inline;
+    margin: 0;
+  }
+
+  .sc-sobre__texto p + p::before {
+    content: " ";
+  }
+
+  .sc-sobre__semana th,
+  .sc-sobre__semana td {
+    padding: clamp(0.2rem, 0.45vh, 0.45rem) 0.5rem;
+  }
+
+  .sc-sobre__semana td {
+    white-space: nowrap;
+  }
+
+  /*
+   * As frases de apoio saem: o botão do WhatsApp já diz o que faz, e a forma
+   * de pagamento se escolhe no fechamento de qualquer jeito.
+   */
+  #sobre-contato .sc-sobre__nota,
+  #sobre-pagamento .sc-sobre__nota {
+    display: none;
+  }
+
+  .sc-sobre__whatsapp {
+    padding-inline: 1rem;
+    font-size: var(--sobre-texto);
+  }
+
+  /* Como receber, sem as caixas de dentro: cabe numa coluna estreita. */
+  .sc-sobre__modos {
+    gap: var(--sobre-respiro);
+  }
+
+  .sc-sobre__modo {
+    padding: 0;
+    background: none;
+  }
+
+  .sc-sobre__modo + .sc-sobre__modo {
+    padding-block-start: var(--sobre-respiro);
+    border-block-start: 1px solid var(--cor-borda);
+  }
+
+  .sc-sobre__modo-icone {
+    inline-size: 2rem;
+  }
+
+  /* As pílulas de pagamento não são botões: não precisam da altura de toque. */
+  .sc-sobre__pilula {
+    min-block-size: 2.25rem;
+    padding-inline: 0.75rem;
+  }
+
+  .sc-sobre__whatsapp {
+    min-block-size: 3rem;
+  }
+
+  /* A chamada final já está no cabeçalho, sempre à vista. */
+  .sc-sobre__rodape {
+    display: none;
+  }
+}
+
+/*
+ * Tablet em pé: "Onde estamos" ocupa a largura toda, com o endereço numa
+ * coluna e o botão do mapa na outra — duas linhas a menos de altura.
+ */
+@media (min-width: 47.5rem) and (max-width: 63.99rem) {
+  #sobre-endereco {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  #sobre-endereco .sc-sobre__cartao-topo {
+    grid-column: 1 / -1;
+  }
+
+  /* Com a largura toda, o endereço cabe numa linha só. */
+  #sobre-endereco .sc-sobre__endereco {
+    display: block;
+  }
+
+  #sobre-endereco .sc-sobre__endereco span + span::before {
+    content: " · ";
+  }
+}
+
+/*
+ * Tela larga (tablet deitado, notebook, monitor): quatro colunas e duas
+ * linhas. Horários fica alto na ponta direita, porque a semana é uma lista.
+ */
+@media (min-width: 64rem) {
+  .sc-sobre__grade {
+    grid-template-columns: 1fr 1fr 1.15fr 1.1fr;
+    grid-template-areas:
+      "historia historia receber horarios"
+      "pagamento endereco contato horarios";
+  }
+
+  .sc-sobre__texto {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+}
+
+@media (min-width: 64rem) and (min-height: 56rem) {
+  .sc-sobre__texto {
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+  }
+}
+
+/* Movimento reduzido: a janela aparece no lugar, sem subir nem deslizar. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-sobre-janela[open],
+  .sc-sobre-janela::backdrop {
+    animation: none;
+  }
+
+  .sc-sobre__cardapio,
+  .sc-sobre__whatsapp,
+  .sc-sobre__cardapio:hover,
+  .sc-sobre__whatsapp:hover {
+    transform: none;
+    transition: none;
+  }
+}

@@ -17,7 +17,10 @@
 import { Router } from "express";
 import type { HorarioDaLoja } from "@simpleclick/core";
 import {
+  atacadoLigado,
   esquemaDaBuscaDoCatalogo,
+  esquemaDaConsultaDaPagina,
+  esquemaDaConsultaDoResumo,
   esquemaDoApelido,
   esquemaDoApelidoEProduto,
 } from "@simpleclick/contracts";
@@ -27,14 +30,31 @@ import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
 import { catalogoDaVitrine } from "./catalogo.usecase.ts";
-import { prepararTermo, produtosQueCasam } from "./busca.usecase.ts";
+import {
+  paginaDoCatalogo,
+  resumoDoCatalogo,
+} from "./catalogo-paginado.usecase.ts";
+import {
+  cruzarAcertos,
+  prepararTermo,
+  produtosQueCasam,
+} from "./busca.usecase.ts";
 import { fechamentoDaLoja } from "./fechamento.usecase.ts";
+import { horarioPublico } from "./horario-publico.ts";
 import { produtoDaVitrine } from "./produto.usecase.ts";
 import {
+  atacadoDentroDoPedidoMinimo,
+  facetaDeAtacado,
   filtrosDaVitrine,
+  produtosComAtacado,
   produtosQueCasamComEspecificacoes,
 } from "./filtros.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
+import {
+  resumoOuZero,
+  socialDasLojas,
+  socialDosProdutos,
+} from "../../core/resumo-social.ts";
 
 /**
  * O que a rota precisa de fora.
@@ -51,6 +71,77 @@ export interface OpcoesDaVitrine {
   readonly agora?: () => Date;
   /** Como obter o horário da loja que já está no contexto. */
   readonly lerHorario: (agora: Date) => Promise<HorarioDaLoja>;
+}
+
+/** Os filtros do catálogo, como chegam na consulta. */
+interface FiltrosDaConsulta {
+  readonly busca?: string | undefined;
+  readonly categoria?: string | undefined;
+  readonly filtro?: string | string[] | undefined;
+  readonly atacado?: string | undefined;
+  readonly pedidoMinimo?: number | undefined;
+}
+
+/**
+ * Busca, especificações e atacado viram UMA lista de produtos (ou `undefined`,
+ * sem filtro), mais o que a tela mostra ao lado: os filtros oferecidos e a
+ * faceta de atacado. Corre na transação da loja. É a mesma conta para o
+ * catálogo inteiro, o resumo e a página — e por isso mora num lugar só.
+ */
+async function aplicarFiltros(
+  query: FiltrosDaConsulta,
+  agora: Date,
+): Promise<{
+  acertos: readonly string[] | undefined;
+  pelaBusca: boolean;
+  filtros: Awaited<ReturnType<typeof filtrosDaVitrine>>;
+  atacado: ReturnType<typeof facetaDeAtacado>;
+}> {
+  const { acertos, pelaBusca, semAtacado, comAtacado } =
+    await acertosDosFiltros(query, agora);
+  const filtros = await filtrosDaVitrine({ categoria: query.categoria });
+  return {
+    acertos,
+    pelaBusca,
+    filtros,
+    atacado: facetaDeAtacado(await comAtacado(), semAtacado),
+  };
+}
+
+/**
+ * Só a lista de produtos que passa nos filtros, sem as facetas — é o que a
+ * página precisa. A lista de atacado só é lida quando o filtro está ligado
+ * ou quando alguém pede a faceta.
+ */
+async function acertosDosFiltros(query: FiltrosDaConsulta, agora: Date) {
+  const termo = prepararTermo(query.busca ?? "");
+  const filtrosSelecionados =
+    query.filtro === undefined
+      ? []
+      : Array.isArray(query.filtro)
+        ? query.filtro
+        : [query.filtro];
+  const porTexto = termo === null ? undefined : await produtosQueCasam(termo);
+  const porEspecificacao = await produtosQueCasamComEspecificacoes({
+    categoria: query.categoria,
+    filtros: filtrosSelecionados,
+  });
+  const semAtacado = cruzarAcertos(porTexto, porEspecificacao);
+  // Atacado (card #59): a faceta conta sobre o resultado SEM o próprio filtro,
+  // para o número não sumir ao ligar o chip.
+  let lidos: Awaited<ReturnType<typeof produtosComAtacado>> | undefined;
+  const comAtacado = async () => (lidos ??= await produtosComAtacado(agora));
+  const porAtacado = atacadoLigado(query.atacado)
+    ? atacadoDentroDoPedidoMinimo(await comAtacado(), query.pedidoMinimo)
+    : undefined;
+  return {
+    acertos: cruzarAcertos(semAtacado, porAtacado),
+    // Com busca, os acertos já vêm na ordem de relevância (card #75): a
+    // ordem "relevancia" da página e do resumo passa a ser essa.
+    pelaBusca: porTexto !== undefined,
+    semAtacado,
+    comAtacado,
+  };
 }
 
 export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
@@ -83,9 +174,19 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
       const vitrine = await executarComoRequisicao(
         { papel: "PUBLIC", lojaId: identificacao.id },
         () =>
-          acesso.emTransacao(async () =>
-            lojaDaVitrine(agora, await opcoes.lerHorario(agora)),
-          ),
+          acesso.emTransacao(async () => {
+            const horario = await opcoes.lerHorario(agora);
+            const doBanco = await lojaDaVitrine(agora, horario);
+            if (doBanco === null) return null;
+            // Curtidas e comentários na loja (card #47), sem o "curtiu": a
+            // vitrine é pública.
+            const chave = params.apelido.toLowerCase();
+            const { curtidas, comentarios } = resumoOuZero(
+              await socialDasLojas([chave]),
+              chave,
+            );
+            return { ...doBanco, horario, curtidas, comentarios };
+          }),
       );
 
       if (vitrine === null) {
@@ -95,9 +196,17 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
       }
 
       res.json({
-        loja: vitrine.publica,
+        loja: {
+          ...vitrine.publica,
+          curtidas: vitrine.curtidas,
+          comentarios: vitrine.comentarios,
+        },
         abertura: vitrine.abertura,
-        redirecionarPara: identificacao.redirecionarPara,
+        horario: horarioPublico(vitrine.horario),
+        // O cadastro dos banners ainda não existe: a lista sai vazia, e a
+        // vitrine esconde a seção. O campo já está no contrato para o cliente
+        // nativo e o site não precisarem mudar quando ele chegar.
+        banners: [],
       });
     } catch (erro) {
       proximo(erro);
@@ -129,14 +238,6 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
         const { params, query } = bordaDoCatalogo.dados(req);
         const acesso = opcoes.acesso ?? banco();
         const agora = opcoes.agora?.() ?? new Date();
-        const termo = prepararTermo(query.busca ?? "");
-        const filtrosSelecionados =
-          query.filtro === undefined
-            ? []
-            : Array.isArray(query.filtro)
-              ? query.filtro
-              : [query.filtro];
-
         // PASSO 1 — sem loja no contexto, porque ainda não se sabe qual é.
         const identificacao = await executarComoRequisicao(
           { papel: "PUBLIC" },
@@ -152,30 +253,130 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
           { papel: "PUBLIC", lojaId: identificacao.id },
           () =>
             acesso.emTransacao(async () => {
-              const porTexto =
-                termo === null ? undefined : await produtosQueCasam(termo);
-              const porEspecificacao = await produtosQueCasamComEspecificacoes({
-                categoria: query.categoria,
-                filtros: filtrosSelecionados,
-              });
-              const acertos =
-                porTexto === undefined
-                  ? porEspecificacao
-                  : porEspecificacao === undefined
-                    ? porTexto
-                    : porTexto.filter((id) => porEspecificacao.includes(id));
-              const filtros = await filtrosDaVitrine({
-                categoria: query.categoria,
-              });
-              return catalogoDaVitrine(
+              const { acertos, filtros, atacado } = await aplicarFiltros(
+                query,
+                agora,
+              );
+              const resultado = await catalogoDaVitrine(
                 identificacao.versaoDoCatalogo,
                 { apenasProdutos: acertos },
                 agora,
-              ).then((resultado) => ({ ...resultado, filtros }));
+              );
+              return { ...resultado, filtros, atacado };
             }),
         );
 
         res.json(catalogo);
+      } catch (erro) {
+        proximo(erro);
+      }
+    },
+  );
+
+  /*
+   * O CATÁLOGO EM PEDAÇOS (card #74). O catálogo inteiro acima continua para
+   * quem precisa dele todo (cardápio na TV, mapa do site); a vitrine pede o
+   * resumo e as páginas. Loja de dez mil produtos responde em quilobytes.
+   */
+  const bordaDoResumo = validar({
+    params: esquemaDoApelido,
+    query: esquemaDaConsultaDoResumo,
+  });
+
+  rotas.get(
+    "/:apelido/catalogo/resumo",
+    bordaDoResumo,
+    async (req, res, proximo) => {
+      try {
+        const { params, query } = bordaDoResumo.dados(req);
+        const acesso = opcoes.acesso ?? banco();
+        const agora = opcoes.agora?.() ?? new Date();
+
+        const identificacao = await executarComoRequisicao(
+          { papel: "PUBLIC" },
+          () => acesso.emTransacao(() => identificarLoja(params)),
+        );
+        if (!identificacao.encontrada) {
+          throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+        }
+
+        const resumo = await executarComoRequisicao(
+          { papel: "PUBLIC", lojaId: identificacao.id },
+          () =>
+            acesso.emTransacao(async () => {
+              const { acertos, pelaBusca, filtros, atacado } =
+                await aplicarFiltros(query, agora);
+              const lido = await resumoDoCatalogo(
+                {
+                  apenasProdutos: acertos,
+                  ordenarPelosAcertos: pelaBusca,
+                  porSecao: query.porSecao,
+                  totalMaximo: query.totalMaximo,
+                },
+                agora,
+              );
+              return {
+                versao: identificacao.versaoDoCatalogo,
+                ...lido,
+                filtros,
+                atacado,
+              };
+            }),
+        );
+
+        res.json(resumo);
+      } catch (erro) {
+        proximo(erro);
+      }
+    },
+  );
+
+  const bordaDaPagina = validar({
+    params: esquemaDoApelido,
+    query: esquemaDaConsultaDaPagina,
+  });
+
+  rotas.get(
+    "/:apelido/catalogo/produtos",
+    bordaDaPagina,
+    async (req, res, proximo) => {
+      try {
+        const { params, query } = bordaDaPagina.dados(req);
+        const acesso = opcoes.acesso ?? banco();
+        const agora = opcoes.agora?.() ?? new Date();
+
+        const identificacao = await executarComoRequisicao(
+          { papel: "PUBLIC" },
+          () => acesso.emTransacao(() => identificarLoja(params)),
+        );
+        if (!identificacao.encontrada) {
+          throw erroDeDominio("nao_encontrado", { recurso: "loja" });
+        }
+
+        const pagina = await executarComoRequisicao(
+          { papel: "PUBLIC", lojaId: identificacao.id },
+          () =>
+            acesso.emTransacao(async () => {
+              const { acertos, pelaBusca } = await acertosDosFiltros(
+                query,
+                agora,
+              );
+              const lida = await paginaDoCatalogo(
+                {
+                  apenasProdutos: acertos,
+                  ordenarPelosAcertos: pelaBusca,
+                  categoria: query.categoria,
+                  ordem: query.ordem,
+                  cursor: query.cursor,
+                  limite: query.limite,
+                },
+                agora,
+              );
+              return { versao: identificacao.versaoDoCatalogo, ...lida };
+            }),
+        );
+
+        res.json(pagina);
       } catch (erro) {
         proximo(erro);
       }
@@ -216,7 +417,16 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
         const produto = await executarComoRequisicao(
           { papel: "PUBLIC", lojaId: identificacao.id },
           () =>
-            acesso.emTransacao(() => produtoDaVitrine(params.produtoId, agora)),
+            acesso.emTransacao(async () => {
+              const lido = await produtoDaVitrine(params.produtoId, agora);
+              if (lido === null) return null;
+              // Curtidas e comentários aprovados (card #47), sem o "curtiu".
+              const { curtidas, comentarios } = resumoOuZero(
+                await socialDosProdutos([lido.id]),
+                lido.id,
+              );
+              return { ...lido, curtidas, comentarios };
+            }),
         );
 
         if (produto === null) {

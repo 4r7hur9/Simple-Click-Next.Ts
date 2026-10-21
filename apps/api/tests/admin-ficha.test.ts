@@ -141,7 +141,7 @@ describe("a ficha da loja (AC-207, AC-118)", () => {
         razaoSocial: "Joice Almeida Pastelaria ME",
         documento: { numero: "11222333000181", tipo: "CNPJ" },
         apelido: "pastel-da-joi",
-        status: "ACTIVE",
+        status: "PENDING_APPROVAL",
         tipoDeNegocio: {
           codigo: "FOOD_SNACK",
           nome: "Lanchonete",

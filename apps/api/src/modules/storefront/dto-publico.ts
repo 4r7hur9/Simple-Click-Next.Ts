@@ -18,6 +18,7 @@
  * e nunca em registro de sistema (AC-904).
  */
 
+import { temaDaLoja, type TemaDaLoja } from "@simpleclick/contracts";
 import { composicaoDoRamo, type ComposicaoDoRamo } from "@simpleclick/core";
 
 /**
@@ -78,6 +79,8 @@ export interface LojaPublica {
   readonly logo: string | null;
   readonly capa: string | null;
   readonly cores: Readonly<Record<string, string>> | null;
+  /** Cor de destaque, fundo da vitrine e topo do cardápio (card #25). */
+  readonly tema: TemaDaLoja;
   /** Só existe quando o dono marcou explicitamente o número como público. */
   readonly whatsappPublico: string | null;
   /** Endereço da loja, para quem vai retirar. Sem coordenadas nem documento. */
@@ -255,6 +258,15 @@ export function lojaParaVitrine(
     logo: texto(landing["logo"]),
     capa: texto(landing["capa"]),
     cores: coresPermitidas(configuracao.theme),
+    tema: temaDaLoja({
+      corDestaque: objeto(configuracao.theme)["destaque"],
+      fundoVitrine: landing["fundoVitrine"],
+      topoCardapio: landing["topoCardapio"],
+      fundoVitrineCelular: landing["fundoVitrineCelular"],
+      topoCardapioCelular: landing["topoCardapioCelular"],
+      seloDeStatus: objeto(configuracao.theme)["seloDeStatus"],
+      coresDasImagens: objeto(configuracao.theme)["coresDasImagens"],
+    }),
     whatsappPublico: publico ? texto(whatsapp.numero) : null,
     enderecoParaRetirada: enderecoDeRetirada(loja),
   };

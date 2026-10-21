@@ -4,7 +4,7 @@
  * O QUE SÓ ESTE CENÁRIO PROVA. O componente tem prova de unidade
  * (`apps/web/tests/sobre-da-loja.test.tsx`) e a API tem prova contra o banco
  * (`apps/api/tests/vitrine-sem-dado-sensivel.test.ts`). O que nenhuma das duas
- * alcança é o caminho inteiro: a rota `/l/{apelido}/sobre` existe no
+ * alcança é o caminho inteiro: a rota `/loja/{apelido}/sobre` existe no
  * framework, o servidor busca a loja na API de verdade, desenha a página, e o
  * que chega ao navegador — HTML e resposta da API — não carrega nada do
  * cadastro do dono.
@@ -21,7 +21,7 @@ import {
   LOJA_COM_SOBRE,
 } from "../fixtures/loja-com-sobre.ts";
 
-const PAGINA_SOBRE = `/l/${LOJA_COM_SOBRE.apelido}/sobre`;
+const PAGINA_SOBRE = `/loja/${LOJA_COM_SOBRE.apelido}/sobre`;
 
 let imagens: { readonly logo: string; readonly capa: string };
 
@@ -80,7 +80,7 @@ test("@spec:AC-421 o caminho de volta leva à vitrine da loja", async ({
     .click();
 
   await expect(page).toHaveURL(
-    `${ENDERECO_DO_SITE}/l/${LOJA_COM_SOBRE.apelido}`,
+    `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}`,
   );
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     LOJA_COM_SOBRE.nome,
@@ -158,7 +158,7 @@ test("@spec:AC-423 sem JavaScript a página continua legível e navegável", asy
   // à vitrine — e à lista de produtos.
   await pagina.getByRole("link", { name: "Ver catálogo" }).click();
   await expect(pagina).toHaveURL(
-    `${ENDERECO_DO_SITE}/l/${LOJA_COM_SOBRE.apelido}/catalogo`,
+    `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}/cardapio`,
   );
 
   await pagina.goto(PAGINA_SOBRE);
@@ -166,7 +166,7 @@ test("@spec:AC-423 sem JavaScript a página continua legível e navegável", asy
     .getByRole("link", { name: `Voltar para ${LOJA_COM_SOBRE.nome}` })
     .click();
   await expect(pagina).toHaveURL(
-    `${ENDERECO_DO_SITE}/l/${LOJA_COM_SOBRE.apelido}`,
+    `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}`,
   );
 
   await contexto.close();

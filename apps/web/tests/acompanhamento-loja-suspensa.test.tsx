@@ -25,7 +25,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-import PaginaDeAcompanhamento from "../src/app/(loja)/l/[slug]/pedido/[token]/page.tsx";
+import PaginaDeAcompanhamento from "../src/app/(loja)/loja/[slug]/pedido/[token]/page.tsx";
 
 const PEDIDO = { numero: 12, status: "ACCEPTED" };
 
@@ -76,7 +76,14 @@ describe("o pedido da loja suspensa continua acompanhável (AC-209, Q-203)", () 
     vitrine.buscarVitrine.mockResolvedValue({
       estado: "encontrada",
       vitrine: {
-        loja: { nome: "Pastel da Joi", cores: { primaria: "#aa3300" } },
+        loja: {
+          nome: "Pastel da Joi",
+          tema: {
+            corDestaque: "#aa3300",
+            fundoVitrine: null,
+            topoCardapio: null,
+          },
+        },
       },
     });
     acompanhamento.buscarAcompanhamento.mockResolvedValue({

@@ -1,42 +1,112 @@
 // @vitest-environment jsdom
 /**
- * Prova da tela de apresentação (T-905: AC-916, AC-917, AC-918).
+ * Prova da tela de Aparência (US-904: AC-916, AC-917, AC-918).
  *
- * A prévia é desenhada com o mesmo tema da vitrine, antes de publicar; a cor
- * clara demais é consertada na letra e avisada ao dono; e a imagem fora do
- * padrão é recusada com orientação sem sair do navegador.
+ * A prévia da vitrine é desenhada com o mesmo envelope de tema da loja, ao
+ * vivo e antes de publicar; a cor ruim é consertada na letra e avisada ao dono;
+ * a foto fora do padrão é recusada com orientação sem sair do navegador; e
+ * salvar grava contato, apresentação e tema — só o que mudou.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act } from "react";
-import {
-  calcularTemaDaLoja,
-  PALETA_CLARA,
-  relacaoDeContraste,
-} from "@simpleclick/ui";
+import { marcaDaLoja, relacaoDeContraste } from "@simpleclick/ui";
 
 import {
   conferirArquivo,
   FormularioAparencia,
 } from "../src/features/config/FormularioAparencia.tsx";
+import { lerRascunho } from "../src/lib/rascunho-da-vitrine.ts";
 import {
+  confirmarRecorte,
+  janelaDeRecorte,
+  prepararRecorte,
+} from "./apoio-recorte.ts";
+import {
+  botao,
+  clicar,
   desmontar,
   digitar,
   esperar,
   exigir,
   montar,
   simularApi,
+  type ChamadaDaApi,
+  type RespostaSimulada,
 } from "./apoio-config.tsx";
 
-afterEach(desmontar);
+// A prévia é a loja de verdade (card #36): o formulário deixa o rascunho num
+// cookie e abre as rotas reais da loja em molduras. Aqui o cookie é capturado.
+let cookieDaPrevia = "";
+const rascunho = () => {
+  const lido = lerRascunho(cookieDaPrevia, "pastelaria");
+  if (lido === null) throw new Error("a prévia ainda não deixou o rascunho");
+  return lido;
+};
+/** Espera a pausa de 300 ms que a prévia faz antes de gravar o rascunho. */
+async function esperarPrevia() {
+  await act(async () => {
+    await new Promise((resolver) => setTimeout(resolver, 380));
+  });
+}
 
-const PUBLICADA = {
+afterEach(() => {
+  desmontar();
+  cookieDaPrevia = "";
+  Reflect.deleteProperty(document, "cookie");
+  Reflect.deleteProperty(HTMLElement.prototype, "clientWidth");
+});
+// A logo e as fotos passam pela janela de recorte (card #82).
+beforeEach(() => {
+  prepararRecorte();
+  Object.defineProperty(document, "cookie", {
+    configurable: true,
+    get: () => "",
+    set: (valor: string) => {
+      if (valor.startsWith("sc_previa=")) {
+        cookieDaPrevia = valor.slice("sc_previa=".length).split(";")[0] ?? "";
+      }
+    },
+  });
+  // O jsdom não mede nada: a coluna da prévia "tem" 544 px.
+  Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+    configurable: true,
+    get: () => 544,
+  });
+});
+
+const APARENCIA = {
   nome: "Pastelaria da Zica",
   boasVindas: "O pastel mais crocante do bairro.",
   sobre: null,
   logo: null,
   capa: null,
-  corPrimaria: "#8a3b12",
+  corPrimaria: null,
 };
+
+const CONTATO = { numero: "11912345678", saudacao: null, publico: true };
+
+const TEMA = {
+  corDestaque: "#b7ff00",
+  corDeFundo: "#000000",
+  fundoVitrine: null,
+  topoCardapio: null,
+};
+
+/** A API como o painel a vê: uma resposta por endereço. */
+function respostaPadrao(chamada: ChamadaDaApi): RespostaSimulada {
+  const escrevendo = chamada.metodo === "PUT";
+  if (chamada.url.endsWith("/api/loja/tema")) {
+    return {
+      status: 200,
+      corpo: escrevendo ? { ...TEMA, ...(chamada.corpo as object) } : TEMA,
+    };
+  }
+  if (escrevendo) return { status: 204 };
+  if (chamada.url.endsWith("/api/loja/contato")) {
+    return { status: 200, corpo: CONTATO };
+  }
+  return { status: 200, corpo: APARENCIA };
+}
 
 /** Escolhe o arquivo no campo, como a pessoa faria. */
 async function escolherArquivo(campo: HTMLInputElement, arquivo: File) {
@@ -50,138 +120,295 @@ async function escolherArquivo(campo: HTMLInputElement, arquivo: File) {
   await esperar();
 }
 
-describe("a apresentação aparece na prévia antes de publicar (AC-916)", () => {
-  it("@spec:AC-916 nome, boas-vindas, sobre, logo e capa digitados aparecem na prévia, sem nada publicado ainda", async () => {
-    const chamadas = simularApi(() => ({ status: 200, corpo: PUBLICADA }));
-    const tela = montar(<FormularioAparencia />);
-    await esperar();
+async function abrir() {
+  const chamadas = simularApi(respostaPadrao);
+  const tela = montar(<FormularioAparencia apelido="pastelaria" />);
+  await esperar();
+  return { chamadas, tela };
+}
+
+async function salvar(tela: HTMLElement) {
+  act(() => {
+    exigir<HTMLFormElement>(tela, "form").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true }),
+    );
+  });
+  await esperar();
+}
+
+describe("a prévia é a loja de verdade, com o rascunho, antes de publicar (AC-916)", () => {
+  it("@spec:AC-916 nome, descrição, logo e as duas fotos digitados chegam à prévia, sem nada gravado", async () => {
+    const { chamadas, tela } = await abrir();
 
     digitar(exigir(tela, 'input[name="nome"]'), "Pastel & Cia");
     digitar(exigir(tela, 'textarea[name="boasVindas"]'), "Feito na hora!");
-    digitar(exigir(tela, 'textarea[name="sobre"]'), "Desde 1998.");
     digitar(
       exigir(tela, 'input[name="logo"]'),
       "https://imagens.exemplo.test/logo.png",
     );
     digitar(
-      exigir(tela, 'input[name="capa"]'),
-      "https://imagens.exemplo.test/capa.jpg",
+      exigir(tela, 'input[name="endereco-fundo"]'),
+      "https://imagens.exemplo.test/fundo.jpg",
     );
+    digitar(
+      exigir(tela, 'input[name="endereco-topo"]'),
+      "https://imagens.exemplo.test/topo.jpg",
+    );
+    digitar(
+      exigir(tela, 'input[name="endereco-fundo-celular"]'),
+      "https://imagens.exemplo.test/fundo-celular.jpg",
+    );
+    await esperarPrevia();
 
-    const previa = exigir(tela, '[data-previa="apresentacao"]');
-    expect(exigir(previa, "[data-previa-nome]").textContent).toBe(
-      "Pastel & Cia",
-    );
-    expect(exigir(previa, "[data-previa-boas-vindas]").textContent).toBe(
-      "Feito na hora!",
-    );
-    expect(exigir(previa, "[data-previa-sobre]").textContent).toBe(
-      "Desde 1998.",
-    );
-    expect(
-      exigir<HTMLImageElement>(previa, "[data-previa-logo]").getAttribute(
-        "src",
-      ),
-    ).toBe("https://imagens.exemplo.test/logo.png");
-    expect(
-      exigir<HTMLImageElement>(previa, "[data-previa-capa]").getAttribute(
-        "src",
-      ),
-    ).toBe("https://imagens.exemplo.test/capa.jpg");
+    expect(rascunho()).toMatchObject({
+      apelido: "pastelaria",
+      nome: "Pastel & Cia",
+      boasVindas: "Feito na hora!",
+      logo: "https://imagens.exemplo.test/logo.png",
+      fundoVitrine: "https://imagens.exemplo.test/fundo.jpg",
+      fundoVitrineCelular: "https://imagens.exemplo.test/fundo-celular.jpg",
+      topoCardapio: "https://imagens.exemplo.test/topo.jpg",
+    });
     // Prévia é prévia: nada foi enviado à API.
     expect(chamadas.every((chamada) => chamada.metodo === "GET")).toBe(true);
   });
 
-  it("@spec:AC-916 publicar envia exatamente o que a prévia mostra", async () => {
-    const chamadas = simularApi((chamada) =>
-      chamada.metodo === "PUT"
-        ? { status: 204 }
-        : { status: 200, corpo: PUBLICADA },
-    );
-    const tela = montar(<FormularioAparencia />);
-    await esperar();
+  it("@spec:AC-916 as molduras abrem as telas REAIS da loja (vitrine e topo do cardápio) na largura do aparelho", async () => {
+    const { tela } = await abrir();
+    await esperarPrevia();
 
-    digitar(exigir(tela, 'input[name="nome"]'), "Pastel & Cia");
-    act(() => {
-      exigir<HTMLFormElement>(tela, "form").dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-    });
-    await esperar();
+    const molduras = [
+      ...tela.querySelectorAll<HTMLIFrameElement>("[data-previa-iframe]"),
+    ];
+    expect(molduras.map((moldura) => moldura.getAttribute("src"))).toEqual([
+      expect.stringMatching(/^\/loja\/pastelaria\/previa\/vitrine\?v=\d+$/),
+      expect.stringMatching(/^\/loja\/pastelaria\/previa\/cardapio\?v=\d+$/),
+    ]);
+    // No computador a moldura tem 1280 px, encolhida para a coluna de 544 px.
+    expect(molduras[0]?.style.width).toBe("1280px");
+    expect(molduras[0]?.style.transform).toBe(`scale(${String(544 / 1280)})`);
 
-    expect(chamadas.find((chamada) => chamada.metodo === "PUT")?.corpo).toEqual(
-      { ...PUBLICADA, nome: "Pastel & Cia" },
+    clicar(botao(tela, "Celular"));
+    await esperarPrevia();
+    const celular = tela.querySelector<HTMLIFrameElement>(
+      "[data-previa-iframe]",
     );
+    // No celular a moldura tem 390 px, sem encolher (cabe na coluna).
+    expect(celular?.style.width).toBe("390px");
+    expect(celular?.style.transform).toBe("scale(1)");
+  });
+
+  it("@spec:AC-916 'remover' tira a foto do rascunho e a loja volta à capa padrão", async () => {
+    const { tela } = await abrir();
+    digitar(
+      exigir(tela, 'input[name="endereco-fundo"]'),
+      "https://imagens.exemplo.test/fundo.jpg",
+    );
+    await esperarPrevia();
+    expect(rascunho().fundoVitrine).toBe(
+      "https://imagens.exemplo.test/fundo.jpg",
+    );
+
+    clicar(botao(tela, "Remover e voltar à capa padrão"));
+    await esperarPrevia();
+    expect(rascunho().fundoVitrine).toBe("");
   });
 });
 
-describe("cor clara não deixa texto ilegível (AC-917)", () => {
-  function corDaLetraSobreAPrimaria(tela: HTMLElement) {
-    const tema = exigir<HTMLElement>(tela, ".sc-tema-loja");
-    return {
-      primaria: tema.style.getPropertyValue("--cor-primaria"),
-      letra: tema.style.getPropertyValue("--cor-em-primaria"),
-    };
+describe("a cor de destaque tem seletor e a leitura é protegida (AC-917)", () => {
+  /** A cor que a loja de verdade vai receber (a do rascunho) e as derivadas dela. */
+  async function corDaPrevia() {
+    await esperarPrevia();
+    const cor = rascunho().corDestaque;
+    return { cor, marca: marcaDaLoja(cor) };
   }
 
-  it("@spec:AC-917 cor principal muito clara ganha letra escura por cima, com contraste acessível, e o dono é avisado", async () => {
-    simularApi(() => ({ status: 200, corpo: PUBLICADA }));
-    const tela = montar(<FormularioAparencia />);
-    await esperar();
+  it("@spec:AC-917 escolher uma amostra pinta a loja da prévia e calcula a letra por cima", async () => {
+    const { tela } = await abrir();
+    expect((await corDaPrevia()).cor).toBe("#b7ff00");
 
-    digitar(exigir(tela, 'input[name="corPrimaria"]'), "#fff59d");
+    clicar(exigir(tela, 'button[aria-label^="Azul"]'));
 
-    const { primaria, letra } = corDaLetraSobreAPrimaria(tela);
-    // O preenchimento continua sendo a cor que o dono escolheu…
-    expect(primaria).toBe("#fff59d");
-    // …e a letra por cima dela passa a ser legível (WCAG AA, 4,5:1).
-    expect(relacaoDeContraste(letra, primaria)).toBeGreaterThanOrEqual(4.5);
+    const { cor, marca } = await corDaPrevia();
+    expect(cor).toBe("#4da3ff");
+    expect(relacaoDeContraste(marca.corSobreMarca, cor)).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(exigir(tela, "[data-letra-sobre-cor]").textContent).toContain(
+      "A letra por cima da cor é",
+    );
+  });
+
+  it("@spec:AC-917 digitar o código hexadecimal troca a cor, e código incompleto só avisa", async () => {
+    const { tela } = await abrir();
+    const campo = exigir<HTMLInputElement>(
+      tela,
+      "[data-seletor-de-cor] input.sc-campo",
+    );
+
+    digitar(campo, "#ff4d4d");
+    expect((await corDaPrevia()).cor).toBe("#ff4d4d");
+
+    digitar(campo, "#ff4");
+    expect((await corDaPrevia()).cor).toBe("#ffff44");
+
+    digitar(campo, "#zz");
+    expect((await corDaPrevia()).cor).toBe("#ffff44");
+    expect(tela.textContent).toContain("Use o código com 6 letras e números");
+  });
+
+  it("@spec:AC-917 cor escura demais para o preto é avisada, com sugestão de um clique", async () => {
+    const { tela } = await abrir();
+    expect(tela.textContent).not.toContain("compromete a leitura");
+
+    digitar(
+      exigir<HTMLInputElement>(tela, "[data-seletor-de-cor] input.sc-campo"),
+      "#1a237e",
+    );
+
     expect(tela.textContent).toContain("Esta cor compromete a leitura");
     expect(
       tela.querySelectorAll('[data-avisos="contraste"] li').length,
     ).toBeGreaterThan(0);
-  });
+    // O preenchimento continua sendo a cor do dono; o texto ganha versão clara.
+    const escura = await corDaPrevia();
+    expect(escura.cor).toBe("#1a237e");
+    expect(
+      relacaoDeContraste(escura.marca.corComoTexto, "#000000"),
+    ).toBeGreaterThanOrEqual(4.5);
 
-  it("@spec:AC-917 toda cor clara recebe letra legível por cima, e vira legível onde é texto, sem trocar o preenchimento", () => {
-    const claras = [
-      "#ffffff",
-      "#fff59d",
-      "#ffe0e0",
-      "#e0ffe0",
-      "#ccccff",
-      "#ffff00",
-      "#b7ff00",
-    ];
-    for (const cor of claras) {
-      const tema = calcularTemaDaLoja(cor);
-      // A identidade não é sequestrada: o preenchimento é a cor do dono.
-      expect(tema.corPrincipal).toBe(cor);
-      // A letra sobre ela alcança o mínimo do WCAG AA para texto (4,5:1)…
-      expect(
-        relacaoDeContraste(tema.corDoTexto, tema.corPrincipal),
-      ).toBeGreaterThanOrEqual(4.5);
-      // …e a cor, onde vira texto sobre o fundo da página, também.
-      expect(
-        relacaoDeContraste(tema.corPrincipalComoTexto, PALETA_CLARA.fundo),
-      ).toBeGreaterThanOrEqual(4.5);
-      expect(tema.avisos.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("@spec:AC-917 cor escura o bastante não gera aviso", async () => {
-    simularApi(() => ({ status: 200, corpo: PUBLICADA }));
-    const tela = montar(<FormularioAparencia />);
-    await esperar();
-
-    digitar(exigir(tela, 'input[name="corPrimaria"]'), "#1b3a5c");
+    clicar(botao(tela, "Usar a cor sugerida"));
+    const { cor } = await corDaPrevia();
+    expect(cor).not.toBe("#1a237e");
+    expect(relacaoDeContraste(cor, "#000000")).toBeGreaterThanOrEqual(3);
     expect(tela.textContent).not.toContain("Esta cor compromete a leitura");
+  });
+
+  it("@spec:AC-917 'Voltar ao verde SimpleClick' restaura a cor padrão", async () => {
+    const { tela } = await abrir();
+    clicar(exigir(tela, 'button[aria-label^="Roxo"]'));
+    expect((await corDaPrevia()).cor).toBe("#a78bfa");
+
+    clicar(botao(tela, "Voltar ao verde SimpleClick"));
+    expect((await corDaPrevia()).cor).toBe("#b7ff00");
+  });
+
+  it("@spec:AC-917 o quadro de saturação e brilho responde às setas do teclado", async () => {
+    const { tela } = await abrir();
+    const quadro = exigir<HTMLElement>(tela, "[data-quadro-de-cor]");
+    const antes = (await corDaPrevia()).cor;
+
+    act(() => {
+      quadro.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+      );
+    });
+
+    expect((await corDaPrevia()).cor).not.toBe(antes);
+  });
+});
+
+describe("salvar grava só o que mudou (AC-916)", () => {
+  it("@spec:AC-916 publicar envia apresentação e tema; contato intacto não é enviado", async () => {
+    const { chamadas, tela } = await abrir();
+
+    digitar(exigir(tela, 'input[name="nome"]'), "Pastel & Cia");
+    clicar(exigir(tela, 'button[aria-label^="Laranja"]'));
+    digitar(
+      exigir(tela, 'input[name="endereco-fundo"]'),
+      "https://imagens.exemplo.test/fundo.jpg",
+    );
+    await salvar(tela);
+
+    const gravacoes = chamadas.filter((chamada) => chamada.metodo === "PUT");
+    expect(gravacoes.map((chamada) => chamada.url)).toEqual([
+      "/api/loja/aparencia",
+      "/api/loja/tema",
+    ]);
+    expect(gravacoes[0]?.corpo).toEqual({
+      ...APARENCIA,
+      nome: "Pastel & Cia",
+      // A capa antiga acompanha a foto de fundo; a cor antiga, a de destaque.
+      capa: "https://imagens.exemplo.test/fundo.jpg",
+      corPrimaria: "#ff8a00",
+    });
+    expect(gravacoes[1]?.corpo).toEqual({
+      corDestaque: "#ff8a00",
+      fundoVitrine: "https://imagens.exemplo.test/fundo.jpg",
+      topoCardapio: null,
+      fundoVitrineCelular: null,
+      topoCardapioCelular: null,
+      ajustesDasFotos: {},
+      seloDeStatus: "AUTOMATICO",
+      coresDasImagens: {},
+    });
+    expect(tela.textContent).toContain("Aparência publicada");
+  });
+
+  it("@spec:AC-916 mudar o WhatsApp também grava o contato, e remover a foto grava nulo", async () => {
+    const { chamadas, tela } = await abrir();
+
+    digitar(exigir(tela, 'input[name="numero"]'), "11999998888");
+    await salvar(tela);
+
+    const gravacoes = chamadas.filter((chamada) => chamada.metodo === "PUT");
+    expect(gravacoes[0]?.url).toBe("/api/loja/contato");
+    expect(gravacoes[0]?.corpo).toEqual({
+      numero: "11999998888",
+      saudacao: null,
+      publico: true,
+    });
+    expect(gravacoes.at(-1)?.corpo).toEqual({
+      corDestaque: "#b7ff00",
+      fundoVitrine: null,
+      topoCardapio: null,
+      fundoVitrineCelular: null,
+      topoCardapioCelular: null,
+      ajustesDasFotos: {},
+      seloDeStatus: "AUTOMATICO",
+      coresDasImagens: {},
+    });
+  });
+
+  it("@spec:AC-916 recusa da API no tema aparece e diz o que foi salvo", async () => {
+    simularApi((chamada) =>
+      chamada.metodo === "PUT" && chamada.url.endsWith("/api/loja/tema")
+        ? {
+            status: 400,
+            corpo: {
+              erro: "entrada_invalida",
+              campos: [
+                {
+                  onde: "body",
+                  caminho: "fundoVitrine",
+                  mensagem:
+                    "Fundo da vitrine: o endereço precisa começar por https://.",
+                },
+              ],
+            },
+          }
+        : respostaPadrao(chamada),
+    );
+    const tela = montar(<FormularioAparencia apelido="pastelaria" />);
+    await esperar();
+    digitar(
+      exigir(tela, 'input[name="endereco-fundo"]'),
+      "http://exemplo.test/fundo.jpg",
+    );
+    await salvar(tela);
+
+    expect(tela.textContent).toContain("Salvei os textos");
+    expect(tela.textContent).toContain("a cor e as fotos");
+    expect(
+      exigir(tela, '[data-foto="fundo"] [role="alert"]').textContent,
+    ).toContain("precisa começar por https://");
   });
 });
 
 describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
   it("@spec:AC-918 arquivo que não é imagem é recusado na hora, com formato, tamanho e proporção, sem envio", async () => {
-    const chamadas = simularApi(() => ({ status: 200, corpo: PUBLICADA }));
-    const tela = montar(<FormularioAparencia />);
+    const chamadas = simularApi(respostaPadrao);
+    const tela = montar(<FormularioAparencia apelido="pastelaria" />);
     await esperar();
 
     await escolherArquivo(
@@ -190,11 +417,15 @@ describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
     );
 
     const recusa = exigir(tela, "#recusa-logo").textContent ?? "";
-    expect(recusa).toContain("JPEG, PNG, WebP");
-    expect(recusa).toContain("1 MB");
-    expect(recusa).toContain("1:1");
+    expect(recusa).toContain("JPG, PNG, WebP");
     expect(recusa).toContain("anterior continua no ar");
     expect(chamadas.some((chamada) => chamada.metodo === "PUT")).toBe(false);
+    // A janela de recorte nem abre para o que não é foto.
+    expect(janelaDeRecorte()).toBeNull();
+    // A orientação (medidas e peso) fica sempre à vista, ao lado do campo.
+    expect(exigir(tela, '[data-recomendado="logo"]').textContent).toContain(
+      "Recomendado: 512 × 512 px, JPG/PNG/WebP até 1 MB",
+    );
   });
 
   it("@spec:AC-918 capa acima do tamanho é recusada antes do envio", () => {
@@ -221,16 +452,93 @@ describe("imagem fora do padrão é recusada com orientação (AC-918)", () => {
             status: 400,
             corpo: { erro: "imagem_invalida", mensagem, orientacao: {} },
           }
-        : { status: 200, corpo: PUBLICADA },
+        : respostaPadrao(chamada),
     );
-    const tela = montar(<FormularioAparencia />);
+    const tela = montar(<FormularioAparencia apelido="pastelaria" />);
     await esperar();
 
     await escolherArquivo(
       exigir(tela, 'input[name="arquivo-logo"]'),
       new File(["não sou png"], "logo.png", { type: "image/png" }),
     );
+    // A foto abre, a pessoa confirma o recorte e a API (que confere os bytes) recusa.
+    await confirmarRecorte();
+    await esperar();
 
     expect(exigir(tela, "#recusa-logo").textContent).toBe(mensagem);
+  });
+});
+
+describe("o selo de status sobre as fotos (card #64)", () => {
+  const FOTO = "https://imagens.exemplo.test/capa-vinho.jpg";
+  const TEMA_COM_FOTO = {
+    ...TEMA,
+    fundoVitrine: FOTO,
+    seloDeStatus: "ESCURO",
+    // A foto é vinho-escura: a pílula preta se mistura com ela.
+    coresDasImagens: { [FOTO]: "#2a0a0a" },
+  };
+
+  async function abrirComFoto() {
+    const chamadas = simularApi((chamada) =>
+      chamada.url.endsWith("/api/loja/tema") && chamada.metodo === "GET"
+        ? { status: 200, corpo: TEMA_COM_FOTO }
+        : respostaPadrao(chamada),
+    );
+    const tela = montar(<FormularioAparencia apelido="pastelaria" />);
+    await esperar();
+    return { chamadas, tela };
+  }
+
+  it("oferece Automático, Claro e Escuro, com o automático como padrão", async () => {
+    const { tela } = await abrir();
+    const opcoes = [
+      ...tela.querySelectorAll<HTMLInputElement>('input[name="seloDeStatus"]'),
+    ];
+    expect(opcoes.map((opcao) => opcao.value)).toEqual([
+      "AUTOMATICO",
+      "CLARO",
+      "ESCURO",
+    ]);
+    expect(opcoes.find((opcao) => opcao.checked)?.value).toBe("AUTOMATICO");
+    expect(tela.querySelector('[data-avisos="selo-de-status"]')).toBeNull();
+  });
+
+  it("escolher a pílula vai para a loja da prévia, e salvar grava a escolha", async () => {
+    const { chamadas, tela } = await abrir();
+    clicar(exigir(tela, 'input[name="seloDeStatus"][value="CLARO"]'));
+    await esperarPrevia();
+    // A loja de verdade desenha o selo (`SeloDeStatus`); aqui chega a escolha.
+    expect(rascunho().seloDeStatus).toBe("CLARO");
+
+    await salvar(tela);
+    const tema = chamadas.filter(
+      (chamada) =>
+        chamada.metodo === "PUT" && chamada.url.endsWith("/api/loja/tema"),
+    );
+    expect(tema.at(-1)?.corpo).toMatchObject({ seloDeStatus: "CLARO" });
+  });
+
+  it("no manual, avisa quando a pílula se mistura com a foto; o automático resolve", async () => {
+    const { chamadas, tela } = await abrirComFoto();
+    const aviso = exigir(tela, '[data-avisos="selo-de-status"]');
+    expect(aviso.textContent).toContain("abaixo do mínimo de 3:1");
+    expect(aviso.textContent).toContain("na página da loja");
+
+    clicar(botao(tela, "Usar o automático"));
+    expect(tela.querySelector('[data-avisos="selo-de-status"]')).toBeNull();
+    await esperarPrevia();
+    expect(rascunho().seloDeStatus).toBe("AUTOMATICO");
+
+    await salvar(tela);
+    const tema = chamadas.filter(
+      (chamada) =>
+        chamada.metodo === "PUT" && chamada.url.endsWith("/api/loja/tema"),
+    );
+    // A cor medida da foto em uso vai junto, para a vitrine decidir igual.
+    expect(tema.at(-1)?.corpo).toMatchObject({
+      seloDeStatus: "AUTOMATICO",
+      coresDasImagens: { [FOTO]: "#2a0a0a" },
+    });
   });
 });

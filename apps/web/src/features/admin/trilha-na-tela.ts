@@ -14,14 +14,104 @@ import {
   type SituacaoDaLoja,
 } from "@simpleclick/contracts";
 
-/** O nome do ato na língua de quem administra; o código, se for novo. */
-export function rotuloDoAto(acao: string): string {
-  return ROTULOS_DOS_ATOS[acao] ?? acao;
+/**
+ * Atos que a API já grava e o contrato ainda não nomeia. Ficam aqui para a
+ * tela nunca mostrar o código cru (LIMITE_DO_DONO_ALTERADO) a quem administra.
+ */
+const ATOS_SEM_NOME_NO_CONTRATO: Readonly<Record<string, string>> = {
+  LIMITES_PADRAO_ALTERADOS: "Limites padrão da plataforma alterados",
+  LIMITE_DO_DONO_ALTERADO: "Limite de lojas do dono alterado",
+  CONVITE_REENVIADO: "Convite de acesso reenviado",
+  CLIENTES_IMPORTADOS: "Clientes importados de arquivo",
+  COMENTARIO_APROVADO: "Comentário aprovado",
+  COMENTARIO_RECUSADO: "Comentário recusado",
+  COMENTARIO_APAGADO: "Comentário apagado",
+  COMENTARIOS_CONFIGURADOS: "Regras de comentários alteradas",
+  COMENTARIOS_AUTOR_BLOQUEADO: "Autor bloqueado nos comentários",
+  COMENTARIOS_AUTOR_DESBLOQUEADO: "Autor desbloqueado nos comentários",
+  ESPECIFICACAO_CRIADA: "Opção de produto criada",
+  ESPECIFICACAO_RENOMEADA: "Opção de produto renomeada",
+  ESPECIFICACAO_REMOVIDA: "Opção de produto removida",
+  ESPECIFICACAO_OPCAO_ACRESCENTADA: "Valor acrescentado a uma opção",
+  ESPECIFICACAO_VALOR_DESCARTADO: "Valor de uma opção descartado",
+  PASSWORD_CHANGED: "Senha trocada",
+  LOGOUT: "Saída da conta",
+  LOGOUT_ALL: "Saída de todos os aparelhos",
+};
+
+/** Todos os atos com nome em português, para a tela e para o filtro. */
+export const NOMES_DOS_ATOS: Readonly<Record<string, string>> = {
+  ...ATOS_SEM_NOME_NO_CONTRATO,
+  ...ROTULOS_DOS_ATOS,
+};
+
+/** `LIMITE_DO_DONO_ALTERADO` → "Limite do dono alterado", para ato novo. */
+function codigoLegivel(codigo: string): string {
+  const texto = codigo.toLowerCase().replace(/_+/g, " ").trim();
+  return texto === "" ? codigo : texto[0]!.toUpperCase() + texto.slice(1);
 }
 
-/** O nome do campo; o próprio caminho, se a tela não o conhece. */
+/** O nome do ato na língua de quem administra, mesmo quando o ato é novo. */
+export function rotuloDoAto(acao: string): string {
+  return NOMES_DOS_ATOS[acao] ?? codigoLegivel(acao);
+}
+
+/** Quem fez o ato, pelo papel gravado na trilha (ADMIN, OWNER…). */
+const NOMES_DOS_PAPEIS: Readonly<Record<string, string>> = {
+  ADMIN: "administração",
+  OWNER: "dono da loja",
+  STAFF: "equipe da loja",
+  SYSTEM: "sistema",
+  CUSTOMER: "cliente",
+  PRINT_AGENT: "impressora da loja",
+};
+
+export function rotuloDoPapel(papel: string): string {
+  return NOMES_DOS_PAPEIS[papel] ?? codigoLegivel(papel).toLowerCase();
+}
+
+/** Os limites da loja na trilha: `null` quer dizer "volta ao padrão". */
+const CAMPOS_DE_LIMITE: Readonly<Record<string, string>> = {
+  staff: "Máximo de pessoas na equipe",
+  produtos: "Máximo de produtos",
+  categorias: "Máximo de categorias",
+  clientes: "Máximo de clientes",
+  lojas: "Máximo de lojas do dono",
+};
+
+/** Campos de atos que o contrato ainda não nomeia (importação de clientes…). */
+const CAMPOS_SEM_NOME_NO_CONTRATO: Readonly<Record<string, string>> = {
+  total: "Linhas lidas",
+  criados: "Clientes criados",
+  atualizados: "Clientes completados",
+  repetidos: "Repetidos",
+  invalidos: "Linhas com erro",
+  foraDoLimite: "Fora do limite de clientes",
+  formato: "Formato do arquivo",
+  repetidosComo: "O que fazer com repetidos",
+  arquivo: "Arquivo",
+  papel: "Papel",
+  email: "E-mail",
+};
+
+/** `foraDoLimite` → "fora do limite", para campo novo sem nome. */
+function caminhoLegivel(caminho: string): string {
+  const texto = caminho
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[._]+/g, " ")
+    .toLowerCase()
+    .trim();
+  return texto === "" ? caminho : texto[0]!.toUpperCase() + texto.slice(1);
+}
+
+/** O nome do campo, em português mesmo quando a tela não o conhece. */
 export function rotuloDoCampo(campo: string): string {
-  return ROTULOS_DOS_CAMPOS_DA_LOJA[campo] ?? campo;
+  return (
+    CAMPOS_DE_LIMITE[campo] ??
+    ROTULOS_DOS_CAMPOS_DA_LOJA[campo] ??
+    CAMPOS_SEM_NOME_NO_CONTRATO[campo] ??
+    caminhoLegivel(campo)
+  );
 }
 
 /** Instante gravado pela API (ISO 8601 com hora), como a trilha o guarda. */
@@ -34,6 +124,13 @@ const FORMATO_DE_INSTANTE =
  * se lê — e a situação da loja, o nome que a administração usa.
  */
 export function valorNaTela(valor: unknown, campo?: string): string {
+  if (
+    (valor === null || valor === undefined) &&
+    campo !== undefined &&
+    campo in CAMPOS_DE_LIMITE
+  ) {
+    return "padrão da plataforma";
+  }
   if (valor === null || valor === undefined || valor === "") return "—";
   if (
     campo === "status" &&

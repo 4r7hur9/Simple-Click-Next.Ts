@@ -34,6 +34,29 @@ import {
 } from "./auth.ts";
 import { ROTAS_DA_IDENTIDADE } from "./auth-rotas.ts";
 import { esquemaDaLojaDaSessao, esquemaDoEu, rotaDoEu } from "./eu.ts";
+import {
+  esquemaDaLojaDoFeed,
+  esquemaDasLojasDoFeed,
+  esquemaDoProdutoDoFeed,
+  esquemaDosProdutosDoFeed,
+  ROTAS_DO_FEED,
+} from "./feed.ts";
+import { esquemaDoTemaDaLoja } from "./tema.ts";
+import { esquemaDaMidiaPublica, ROTAS_DA_MIDIA } from "./midia.ts";
+import {
+  esquemaDaLojaComStories,
+  esquemaDoPerfilDaLoja,
+  esquemaDoStoryPublico,
+  ROTAS_DOS_STORIES,
+} from "./stories.ts";
+import {
+  esquemaDaCurtida,
+  esquemaDoComentarioDaLoja,
+  esquemaDoComentarioPublico,
+  esquemaDoResumoSocial,
+  ROTAS_DO_SOCIAL,
+} from "./social.ts";
+import { rotaDaLojaSolicitada } from "./equipe.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
 import {
   esquemaDaVitrine,
@@ -48,6 +71,8 @@ import {
   esquemaDoProduto,
   rotaDaVitrine,
   rotaDoCatalogo,
+  rotaDoResumoDoCatalogo,
+  rotaDaPaginaDoCatalogo,
   rotaDoProduto,
   esquemaDaChavePix,
   esquemaDaEntregaDaLoja,
@@ -59,6 +84,8 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeIdentificacao,
   rotaDaVitrine,
   rotaDoCatalogo,
+  rotaDoResumoDoCatalogo,
+  rotaDaPaginaDoCatalogo,
   rotaDoProduto,
   rotaDeVerCarrinho,
   rotaDeAcrescentarItem,
@@ -69,6 +96,11 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeCriarPedido,
   ...ROTAS_DA_IDENTIDADE,
   rotaDoEu,
+  ...ROTAS_DO_FEED,
+  rotaDaLojaSolicitada,
+  ...ROTAS_DA_MIDIA,
+  ...ROTAS_DOS_STORIES,
+  ...ROTAS_DO_SOCIAL,
 ]);
 
 /**
@@ -111,6 +143,19 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     ResultadoDoSegundoFator: esquemaDoResultadoDoSegundoFator,
     Eu: esquemaDoEu,
     LojaDaSessao: esquemaDaLojaDaSessao,
+    TemaDaLoja: esquemaDoTemaDaLoja,
+    ProdutoDoFeed: esquemaDoProdutoDoFeed,
+    ProdutosDoFeed: esquemaDosProdutosDoFeed,
+    LojaDoFeed: esquemaDaLojaDoFeed,
+    LojasDoFeed: esquemaDasLojasDoFeed,
+    MidiaPublica: esquemaDaMidiaPublica,
+    PerfilDaLoja: esquemaDoPerfilDaLoja,
+    StoryPublico: esquemaDoStoryPublico,
+    LojaComStories: esquemaDaLojaComStories,
+    ResumoSocial: esquemaDoResumoSocial,
+    Curtida: esquemaDaCurtida,
+    ComentarioPublico: esquemaDoComentarioPublico,
+    ComentarioDaLoja: esquemaDoComentarioDaLoja,
   });
 
 /**
@@ -130,6 +175,14 @@ export const ETIQUETAS_DO_CONTRATO: Readonly<Record<string, string>> =
       "O que o público vê de uma loja. Nunca devolve chave PIX, documento, telefone do dono nem configuração interna.",
     carrinho:
       "O carrinho do visitante, identificado por um token de sessão que a API emite como cookie. Comprar não exige cadastro.",
+    feed:
+      "O feed do SimpleClick (/explorar): produtos e lojas de várias lojas, tipos de negócio, e as lojas favoritas e recentes da conta. Só aparece loja ativa que aceita o feed e produto marcado 'publicar no feed'.",
+    midia:
+      "Fotos e vídeos do produto (o post da loja): envio do vídeo pelo arquivo cru, capa, ordem da galeria e os limites de envio.",
+    stories:
+      "Stories da loja: foto ou vídeo que fica no ar 24 horas e depois é apagado. O painel posta, lista e apaga; o público vê os ativos agrupados por loja, com a foto de perfil, e marca como visto.",
+    social:
+      "Curtidas e comentários em produtos e lojas. Curtir e comentar exigem conta; o comentário nasce pendente e só aparece depois que a loja aprova (ou já nasce aprovado, se a loja ligou a aprovação automática). O painel modera, bloqueia e vê as denúncias.",
     identidade:
       "Cadastro, verificação de e-mail, login com segundo fator, sessão, recuperação de senha, aplicativo autenticador e convite do dono. Respostas neutras: nada revela se um e-mail tem conta.",
   });

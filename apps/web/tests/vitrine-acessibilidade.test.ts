@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+// O cartão saiu da grade para o próprio arquivo (card #74): o "Ver mais"
+// desenha no navegador os cartões das páginas seguintes.
 const gradeDeProdutos = readFileSync(
-  new URL("../src/features/vitrine/GradeDeProdutos.tsx", import.meta.url),
+  new URL("../src/features/vitrine/CartaoDeProduto.tsx", import.meta.url),
   "utf8",
 );
 const focoDaVitrine = readFileSync(
@@ -40,8 +42,7 @@ describe("contratos declarativos da vitrine pública", () => {
 
   it("@spec:AC-419 mantém a decoração fora da camada de conteúdo", () => {
     expect(narrativaDaLoja).toMatch(/\.sc-loja\s*\{[^}]*isolation:\s*isolate/s);
-    expect(narrativaDaLoja).toMatch(/\.sc-loja__fundo\s*\{[^}]*z-index:\s*0/s);
-    expect(narrativaDaLoja).toMatch(/\.sc-loja__mundo\s*\{[^}]*z-index:\s*0/s);
+    expect(narrativaDaLoja).toMatch(/\.sc-loja__trama\s*\{[^}]*z-index:\s*0/s);
     expect(narrativaDaLoja).toMatch(/\.sc-loja__tela\s*\{[^}]*z-index:\s*2/s);
   });
 

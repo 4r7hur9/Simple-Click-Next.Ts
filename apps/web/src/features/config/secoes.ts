@@ -19,7 +19,7 @@ export const CAMINHO_DA_SECAO: Readonly<Record<SecaoDoDono, string>> = {
   entrega: "/painel/config/entrega",
   horario: "/painel/config/horarios",
   contato: "/painel/config/contato",
-  aparencia: "/painel/config/aparencia",
+  aparencia: "/painel/aparencia",
   impressao: "/painel/config/impressao",
 };
 

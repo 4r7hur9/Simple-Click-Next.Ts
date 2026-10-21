@@ -71,7 +71,7 @@ const NADA: CatalogoDaVitrineNoContrato = {
 function desenharBusca(termo: string | null): string {
   return renderToStaticMarkup(
     <BuscaProduto
-      acao={`/l/${LOJA}/catalogo`}
+      acao={`/loja/${LOJA}/cardapio`}
       termo={termo}
       rotuloDoCatalogo={ROTULO}
     />,
@@ -99,7 +99,7 @@ describe("a busca funciona sem script (AC-408, AC-415)", () => {
     // sozinho. Sem eles, o campo é um enfeite até o script chegar — e o AC-415
     // proíbe exatamente isso na vitrine.
     expect(html).toContain('method="get"');
-    expect(html).toContain(`action="/l/${LOJA}/catalogo"`);
+    expect(html).toContain(`action="/loja/${LOJA}/cardapio"`);
     expect(html).toContain('name="busca"');
   });
 
@@ -136,7 +136,7 @@ describe("a busca funciona sem script (AC-408, AC-415)", () => {
     // Loja de roupa não tem cardápio. O rótulo vem da loja, e não do código.
     const html = renderToStaticMarkup(
       <BuscaProduto
-        acao={`/l/${LOJA}/catalogo`}
+        acao={`/loja/${LOJA}/cardapio`}
         termo={null}
         rotuloDoCatalogo="Catálogo"
       />,
@@ -209,7 +209,7 @@ describe("o resultado vem agrupado por categoria (AC-408)", () => {
   it("@spec:AC-408 sem busca, as abas não carregam parâmetro nenhum", () => {
     const naTela = prepararCatalogo(SO_SALGADOS, { apelidoDaLoja: LOJA });
 
-    expect(naTela.abas[0]?.link).toBe(`/l/${LOJA}/catalogo`);
+    expect(naTela.abas[0]?.link).toBe(`/loja/${LOJA}/cardapio`);
   });
 
   it("@spec:AC-408 o termo é escapado antes de entrar no endereço", () => {
@@ -228,7 +228,7 @@ describe("nada encontrado diz o termo e oferece a saída (AC-409)", () => {
   const html = renderToStaticMarkup(
     <SemResultado
       termo="bicicleta"
-      linkDeTodos={`/l/${LOJA}/catalogo`}
+      linkDeTodos={`/loja/${LOJA}/cardapio`}
       rotuloDoCatalogo={ROTULO}
     />,
   );
@@ -242,7 +242,7 @@ describe("nada encontrado diz o termo e oferece a saída (AC-409)", () => {
   it("@spec:AC-409 oferece um link de verdade para limpar a busca", () => {
     // Link, e não botão: sem script, um `<button>` aqui não leva a lugar
     // nenhum, e vazio sem caminho de volta é beco sem saída.
-    expect(html).toContain(`href="/l/${LOJA}/catalogo"`);
+    expect(html).toContain(`href="/loja/${LOJA}/cardapio"`);
     expect(comoSeLe(html)).toContain("Limpar a busca");
   });
 
@@ -254,7 +254,7 @@ describe("nada encontrado diz o termo e oferece a saída (AC-409)", () => {
 
     // `linkDeTodas` mantém a busca e troca a categoria; `linkSemBusca` desfaz
     // tudo. Trocar os dois aqui devolveria a pessoa à mesma tela vazia.
-    expect(naTela.linkSemBusca).toBe(`/l/${LOJA}/catalogo`);
+    expect(naTela.linkSemBusca).toBe(`/loja/${LOJA}/cardapio`);
     expect(naTela.linkDeTodas).toContain("busca=bicicleta");
   });
 });
@@ -270,7 +270,7 @@ describe("acessibilidade da busca (AC-408, P-012)", () => {
     )}${renderToStaticMarkup(
       <SemResultado
         termo="coxinha"
-        linkDeTodos={`/l/${LOJA}/catalogo`}
+        linkDeTodos={`/loja/${LOJA}/cardapio`}
         rotuloDoCatalogo={ROTULO}
       />,
     )}</main>`;

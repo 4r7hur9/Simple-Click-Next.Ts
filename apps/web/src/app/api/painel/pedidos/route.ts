@@ -7,7 +7,7 @@ export async function GET(requisicao: Request): Promise<Response> {
   const { token } = sessao;
 
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/pedidos`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/pedidos${new URL(requisicao.url).search}`,
     {
       cache: "no-store",
       headers: {

@@ -18,7 +18,6 @@ import {
   botao,
   clicar,
   desmontar,
-  digitar,
   exigir,
   montar,
 } from "./apoio-config.tsx";
@@ -28,6 +27,7 @@ import {
   adiada,
   assentar,
   conferirNoContrato,
+  escolherNoCalendario,
   metricasDe,
   simularMetricas,
   valorDaMetrica,
@@ -208,13 +208,7 @@ describe("o pedido novo aparece com o painel aberto (AC-814)", () => {
 
     // Meio minuto depois, o dono tenta um intervalo impossível.
     await avancar(30_000);
-    digitar(exigir<HTMLInputElement>(tela, 'input[name="de"]'), "2026-09-20");
-    digitar(exigir<HTMLInputElement>(tela, 'input[name="ate"]'), "2026-09-10");
-    act(() => {
-      exigir<HTMLFormElement>(tela, "form[data-intervalo]").dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-    });
+    await escolherNoCalendario(tela, "Ontem", () => avancar(0));
     await avancar(0);
     expect(exigir(tela, "[data-recusa]").textContent).toContain("data final");
     expect(chamadas).toHaveLength(2);

@@ -18,6 +18,7 @@ import type {
   ConteudoDoCupom,
   FormaDeEntrega,
   FormaDePagamento,
+  ItemDoPedido,
   LarguraDoPapel,
   ModoDaTaxaDeEntrega,
   PedidoParaCupom,
@@ -55,6 +56,14 @@ export interface ItemGuardadoParaCupom {
   readonly lineTotalCents: CentavosGuardados;
   readonly note: string | null;
   readonly opcoes: readonly OpcaoGuardadaParaCupom[];
+  /**
+   * O preço congelado e a faixa de atacado (card #58). Opcionais: o cupom de
+   * um trabalho gravado antes da 0068 chega sem eles e sai sem a marca.
+   */
+  readonly unitPriceCents?: CentavosGuardados;
+  readonly priceKindSnapshot?: string | null;
+  readonly wholesaleMinQuantity?: number | null;
+  readonly wholesaleLabel?: string | null;
 }
 
 /** O contato do pedido: a única parte com dado pessoal. */
@@ -131,6 +140,25 @@ export function centavos(valor: CentavosGuardados): number {
   return numero;
 }
 
+/** A marca de atacado do item: só quando o preço congelado foi o de atacado. */
+function atacadoDoItem(
+  item: ItemGuardadoParaCupom,
+): NonNullable<ItemDoPedido["atacado"]> | null {
+  if (
+    item.priceKindSnapshot !== "WHOLESALE" ||
+    item.unitPriceCents === undefined ||
+    item.wholesaleMinQuantity === undefined ||
+    item.wholesaleMinQuantity === null
+  ) {
+    return null;
+  }
+  return {
+    quantidadeMinima: item.wholesaleMinQuantity,
+    unitarioEmCentavos: centavos(item.unitPriceCents),
+    rotulo: item.wholesaleLabel ?? null,
+  };
+}
+
 /** O instante da compra em ISO 8601, venha ele como `Date` ou como texto. */
 function instante(valor: Date | string): string {
   return (valor instanceof Date ? valor : new Date(valor)).toISOString();
@@ -177,6 +205,7 @@ export function montarPedidoParaCupom(
       quantidade: item.quantity,
       totalDaLinhaEmCentavos: centavos(item.lineTotalCents),
       observacao: item.note,
+      atacado: atacadoDoItem(item),
       opcoes: item.opcoes.map((opcao) => ({
         grupo: opcao.groupNameSnapshot,
         opcao: opcao.optionNameSnapshot,

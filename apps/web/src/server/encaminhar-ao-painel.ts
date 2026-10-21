@@ -10,6 +10,7 @@
  */
 import { enderecoDaApi } from "./api-client.ts";
 import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
+import { renovarAposGravar } from "./renovar-vitrine.ts";
 
 /** Métodos que levam corpo JSON até a API. */
 const COM_CORPO = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -45,6 +46,7 @@ export async function encaminharAoPainel(
   );
 
   const devolvido = await resposta.text();
+  renovarAposGravar(sessao.apelido, requisicao.method, resposta.status);
   const tipo = resposta.headers.get("content-type");
   return new Response(devolvido === "" ? null : devolvido, {
     status: resposta.status,

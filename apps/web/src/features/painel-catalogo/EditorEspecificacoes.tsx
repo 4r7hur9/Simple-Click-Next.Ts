@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
+import { Seletor } from "@simpleclick/ui";
+
+import { EXPLICACOES } from "./explicacoes.ts";
+import {
+  CampoComRotulo,
+  RotuloComInfo,
+  descritoDoInfo,
+} from "./RotuloComInfo.tsx";
 
 /**
  * O criador de especificações da categoria (T-301).
@@ -66,7 +74,7 @@ const ROTULOS_DOS_TIPOS: Record<TipoDeValor, string> = {
   texto: "Texto",
   numero: "Número",
   lista: "Lista de opções",
-  booleano: "Verdadeiro ou falso",
+  booleano: "Sim ou não",
 };
 
 async function avisoDaResposta(resposta: Response): Promise<string> {
@@ -77,6 +85,7 @@ async function avisoDaResposta(resposta: Response): Promise<string> {
 }
 
 export function EditorEspecificacoes({ categoriaId }: Props) {
+  const base = useId();
   const [especificacoes, setEspecificacoes] = useState<Especificacao[]>([]);
   const [formulario, setFormulario] = useState<Formulario>(FORMULARIO_VAZIO);
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -481,11 +490,12 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                         void adicionarOpcao(especificacao);
                       }}
                     >
-                      <label className="min-w-56 flex-1">
-                        <span className="sr-only">
-                          Nova opção para {especificacao.nome}
+                      <label className="grid min-w-56 flex-1 gap-1">
+                        <span className="text-xs font-medium">
+                          Nova opção da lista
                         </span>
                         <input
+                          aria-label={`Nova opção para ${especificacao.nome}`}
                           className="sc-campo__controle w-full"
                           value={novaOpcao[especificacao.id] ?? ""}
                           onChange={(evento) =>
@@ -494,7 +504,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                               [especificacao.id]: evento.target.value,
                             }))
                           }
-                          placeholder="Acrescentar valor"
+                          placeholder="Ex.: 16"
                         />
                       </label>
                       <button
@@ -518,7 +528,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
             <h3 className="text-xl font-semibold">Criar especificação</h3>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <label>
-                <span className="text-sm font-medium">Nome</span>
+                <span className="text-sm font-medium">Nome do campo</span>
                 <input
                   className="sc-campo__controle mt-2 w-full"
                   value={formulario.nome}
@@ -533,17 +543,24 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                   placeholder="Ex.: Aro"
                 />
               </label>
-              <label>
-                <span className="text-sm font-medium">Tipo de valor</span>
-                <select
-                  className="sc-campo__controle mt-2 w-full"
+              <CampoComRotulo
+                id={`${base}-tipo`}
+                rotulo="Tipo de valor"
+                info={EXPLICACOES.tipoDeValor}
+              >
+                <Seletor
+                  id={`${base}-tipo`}
+                  className="w-full"
+                  aria-describedby={descritoDoInfo(
+                    `${base}-tipo`,
+                    EXPLICACOES.tipoDeValor,
+                  )}
                   value={formulario.tipo}
-                  onChange={(evento) =>
+                  onChange={(valor) =>
                     setFormulario((anterior) => ({
                       ...anterior,
-                      tipo: evento.target.value as TipoDeValor,
-                      opcoes:
-                        evento.target.value === "lista" ? anterior.opcoes : "",
+                      tipo: valor as TipoDeValor,
+                      opcoes: valor === "lista" ? anterior.opcoes : "",
                     }))
                   }
                 >
@@ -552,12 +569,20 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                       {rotulo}
                     </option>
                   ))}
-                </select>
-              </label>
-              <label>
-                <span className="text-sm font-medium">Unidade (opcional)</span>
+                </Seletor>
+              </CampoComRotulo>
+              <CampoComRotulo
+                id={`${base}-unidade`}
+                rotulo="Unidade (opcional)"
+                info={EXPLICACOES.unidadeDaEspecificacao}
+              >
                 <input
-                  className="sc-campo__controle mt-2 w-full"
+                  id={`${base}-unidade`}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-unidade`,
+                    EXPLICACOES.unidadeDaEspecificacao,
+                  )}
+                  className="sc-campo__controle w-full"
                   value={formulario.unidade}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
@@ -568,7 +593,7 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                   maxLength={30}
                   placeholder="Ex.: mm, kg, pol"
                 />
-              </label>
+              </CampoComRotulo>
               {formulario.tipo === "lista" ? (
                 <label className="sm:col-span-2">
                   <span className="text-sm font-medium">Opções da lista</span>
@@ -586,8 +611,13 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                   />
                 </label>
               ) : null}
-              <label className="flex items-center gap-3 text-sm">
+              <span className="flex items-center gap-3 text-sm">
                 <input
+                  id={`${base}-obrigatoria`}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-obrigatoria`,
+                    EXPLICACOES.especificacaoObrigatoria,
+                  )}
                   className="h-5 w-5"
                   type="checkbox"
                   checked={formulario.obrigatoria}
@@ -598,10 +628,21 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                     }))
                   }
                 />
-                Obrigatória no cadastro do produto
-              </label>
-              <label className="flex items-center gap-3 text-sm">
+                <RotuloComInfo
+                  htmlFor={`${base}-obrigatoria`}
+                  nome="Obrigatória"
+                  info={EXPLICACOES.especificacaoObrigatoria}
+                >
+                  Obrigatória no cadastro do produto
+                </RotuloComInfo>
+              </span>
+              <span className="flex items-center gap-3 text-sm">
                 <input
+                  id={`${base}-filtravel`}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-filtravel`,
+                    EXPLICACOES.especificacaoFiltro,
+                  )}
                   className="h-5 w-5"
                   type="checkbox"
                   checked={formulario.filtravel}
@@ -612,8 +653,14 @@ export function EditorEspecificacoes({ categoriaId }: Props) {
                     }))
                   }
                 />
-                Usar como filtro na vitrine
-              </label>
+                <RotuloComInfo
+                  htmlFor={`${base}-filtravel`}
+                  nome="Filtro na vitrine"
+                  info={EXPLICACOES.especificacaoFiltro}
+                >
+                  Usar como filtro na vitrine
+                </RotuloComInfo>
+              </span>
             </div>
             <button
               className="sc-botao sc-botao--primaria mt-6"

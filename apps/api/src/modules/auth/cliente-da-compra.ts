@@ -1,5 +1,5 @@
 /**
- * Quem está comprando, quando a sessão é de CLIENTE (AC-616).
+ * Quem está comprando: a conta logada, de qualquer papel (AC-616).
  *
  * O fechamento do pedido sai do NAVEGADOR direto para a API (o carrinho é do
  * cookie `sc_carrinho`, que só a API lê). A página não alcança o token de
@@ -9,9 +9,9 @@
  * "Meus pedidos" ficaria vazio para quem comprou logado.
  *
  * O cabeçalho Bearer continua valendo e vem primeiro (cliente nativo). O
- * cookie só serve para LIGAR o pedido à conta de quem já está comprando: não
- * abre leitura nem escrita nenhuma, e a rota segue atrás da lista fechada de
- * origens (`core/cors.ts`) e do `SameSite=Lax` do próprio cookie.
+ * pedido EXIGE conta: sem nenhum dos dois, o fechamento responde 401
+ * `conta_obrigatoria`. A rota segue atrás da lista fechada de origens
+ * (`core/cors.ts`) e do `SameSite=Lax` do próprio cookie.
  */
 import type { Request } from "express";
 
@@ -24,7 +24,7 @@ import {
 /** O mesmo nome que o site usa (`apps/web/src/server/session-cookie.ts`). */
 export const NOME_DO_COOKIE_DE_ACESSO = "sc_access";
 
-/** A identidade do cliente logado, ou `null` (convidado, dono, token ruim). */
+/** A identidade da conta logada, ou `null` (sem sessão ou token ruim). */
 export function clienteDaCompra(
   requisicao: Request,
   segredo: string | undefined,
@@ -38,8 +38,7 @@ export function clienteDaCompra(
       lerCookies(requisicao.headers.cookie).get(NOME_DO_COOKIE_DE_ACESSO);
     if (token === undefined || token === "") return null;
     const alegacoes = verificarTokenDeAcesso(token, segredo);
-    // Dono e administração não compram "como conta" (ASM-103).
-    if (alegacoes.papel !== "CUSTOMER") return null;
+    // A mesma conta serve a todos: dono e administração também compram.
     return { identidadeId: alegacoes.identidadeId };
   } catch {
     return null;

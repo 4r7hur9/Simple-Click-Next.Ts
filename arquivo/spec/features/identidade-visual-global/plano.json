@@ -11,13 +11,13 @@
   "baseDir": ".spec/features/identidade-visual-global",
   "specDir": ".spec",
   "repoName": "Simple-Click-Next.Ts",
-  "logsDir": "../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-logs",
+  "logsDir": "worktrees/Simple-Click-Next.Ts-identidade-visual-global-logs",
   "ondas": [["faixa-1", "faixa-2"]],
   "faixas": [
     {
       "id": "faixa-1",
       "branch": "spec/identidade-visual-global-faixa-1",
-      "worktree": "../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-1",
+      "worktree": "worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-1",
       "tarefas": [
         {
           "id": "T-965",
@@ -43,7 +43,7 @@
     {
       "id": "faixa-2",
       "branch": "spec/identidade-visual-global-faixa-2",
-      "worktree": "../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-2",
+      "worktree": "worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-2",
       "tarefas": [
         {
           "id": "T-966",

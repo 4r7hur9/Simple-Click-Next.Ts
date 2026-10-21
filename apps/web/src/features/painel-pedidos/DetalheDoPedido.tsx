@@ -10,10 +10,12 @@
  */
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Aviso, Carregando, Erro } from "@simpleclick/ui";
+import { Aviso, Carregando, Erro, Info, Selo } from "@simpleclick/ui";
 
 import { AcoesDeStatus, type OpcaoDeStatusNaTela } from "./AcoesDeStatus.tsx";
 import { SeloDeStatus, rotuloDoStatus } from "./SeloDeStatus.tsx";
+import { rotuloDaEntrega, rotuloDoCanal } from "../../lib/fila-de-pedidos.ts";
+import { rotuloDoPagamento } from "../../lib/quadro-de-pedidos.ts";
 
 export interface PedidoDetalhado {
   readonly id: string;
@@ -24,6 +26,9 @@ export interface PedidoDetalhado {
   readonly entrega: string;
   readonly totalCentavos: number;
   readonly criadoEm: string;
+  /** Como o cliente vai pagar (`PIX`, `CASH`, `CARD_ON_DELIVERY`). */
+  readonly pagamento?: string | null | undefined;
+  readonly trocoParaCentavos?: number | null | undefined;
   readonly observacao: string | null;
   readonly motivoCancelamento: string | null;
   readonly contato: {
@@ -37,6 +42,14 @@ export interface PedidoDetalhado {
     readonly variacao: string | null;
     readonly quantidade: number;
     readonly totalCentavos: number;
+    /** Preço de uma unidade, congelado na compra (antes das opções). */
+    readonly precoUnitarioCentavos?: number;
+    /** A faixa de atacado que valeu; nula ou ausente no varejo (card #58). */
+    readonly atacado?: {
+      readonly quantidadeMinima: number;
+      readonly rotulo: string | null;
+      readonly varejoUnitarioCentavos: number | null;
+    } | null;
     readonly observacao: string | null;
     readonly opcoes: readonly {
       readonly grupo: string;
@@ -69,6 +82,7 @@ const AUTORES: Readonly<Record<string, string>> = {
   STAFF: "Equipe da loja",
   CUSTOMER: "Cliente",
   PUBLIC: "Cliente",
+  ADMIN: "Administração do SimpleClick",
 };
 
 /** Quem deu o passo, em linguagem de balcão. Sem papel, foi o sistema. */
@@ -106,10 +120,19 @@ function enderecoEmUmaLinha(endereco: Record<string, string | null>): string {
 export function DetalheDoPedido({
   pedidoId,
   buscar = fetch,
+  embutido = false,
+  aoMudar,
 }: {
   readonly pedidoId: string;
   /** A rede. A prova troca por uma que responde sem servidor. */
   readonly buscar?: typeof fetch | undefined;
+  /**
+   * Dentro da janela do quadro: sem o "voltar" nem o título grande, e em
+   * coluna única — a janela é estreita e já tem o próprio cabeçalho.
+   */
+  readonly embutido?: boolean | undefined;
+  /** O pedido mudou de status aqui dentro: o quadro precisa reler. */
+  readonly aoMudar?: (() => void) | undefined;
 }) {
   const [pedido, setPedido] = useState<PedidoDetalhado | null>(null);
   const [falhou, setFalhou] = useState(false);
@@ -154,34 +177,75 @@ export function DetalheDoPedido({
   }
 
   return (
-    <>
-      <Link
-        className="sc-botao sc-botao--discreta sc-botao--pequeno"
-        href="/painel/pedidos"
-      >
-        ← Voltar para a fila
-      </Link>
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
+    <div
+      className={`sc-detalhe-pedido${embutido ? "" : " sc-detalhe-pedido--larga"}`}
+    >
+      {embutido ? null : (
+        <Link
+          className="sc-botao sc-botao--discreta sc-botao--pequeno justify-self-start"
+          href="/painel/pedidos"
+        >
+          ← Voltar para o quadro
+        </Link>
+      )}
+      <div className="sc-detalhe-pedido__cabeca">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-tinta-suave)]">
-            Pedido {pedido.codigo}
-          </p>
-          <h1 className="mt-2 text-4xl font-semibold">#{pedido.numero}</h1>
+          <p className="sc-detalhe-pedido__codigo">Pedido {pedido.codigo}</p>
+          <p className="sc-detalhe-pedido__numero">#{pedido.numero}</p>
         </div>
         <span data-status-atual={pedido.status}>
           <SeloDeStatus status={pedido.status} grande />
         </span>
       </div>
 
+      <dl className="sc-detalhe-pedido__chips" data-resumo-do-pedido>
+        <div>
+          <dt>Como recebe</dt>
+          <dd>{rotuloDaEntrega(pedido.entrega)}</dd>
+        </div>
+        <div>
+          <dt>Pagamento</dt>
+          <dd>
+            {rotuloDoPagamento(pedido.pagamento ?? null)}
+            {pedido.trocoParaCentavos
+              ? ` · troco para ${dinheiro(pedido.trocoParaCentavos)}`
+              : ""}
+          </dd>
+        </div>
+        <div>
+          <dt className="inline-flex items-center gap-1">
+            Origem do pedido
+            <Info
+              rotulo="a origem do pedido"
+              conteudo={{
+                texto:
+                  "Balcão: você ou a equipe lançou o pedido aqui no painel (telefone, WhatsApp, loja física). Site da loja: o cliente fez o pedido sozinho pela sua vitrine.",
+              }}
+            />
+          </dt>
+          <dd>
+            {pedido.canal === "MANUAL"
+              ? "Balcão (lançado no painel)"
+              : pedido.canal === "ONLINE"
+                ? "Site da loja"
+                : rotuloDoCanal(pedido.canal)}
+          </dd>
+        </div>
+        <div>
+          <dt>Feito em</dt>
+          <dd>{horarioExato(pedido.criadoEm)}</dd>
+        </div>
+      </dl>
+
       {falhou ? (
-        <Aviso className="mt-4" tom="atencao">
+        <Aviso tom="atencao">
           Não foi possível atualizar agora. O que aparece é a última versão
           carregada.
         </Aviso>
       ) : null}
 
       {pedido.status === "CANCELLED" && pedido.motivoCancelamento ? (
-        <Aviso className="mt-4" tom="erro" titulo="Pedido cancelado">
+        <Aviso tom="erro" titulo="Pedido cancelado">
           Motivo informado ao cliente: {pedido.motivoCancelamento}
         </Aviso>
       ) : null}
@@ -191,57 +255,76 @@ export function DetalheDoPedido({
       <AcoesDeStatus
         pedidoId={pedido.id}
         opcoes={pedido.proximosStatus}
-        aoAtualizar={() => void carregar()}
+        aoAtualizar={() => {
+          void carregar();
+          aoMudar?.();
+        }}
         buscar={buscar}
       />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+      <div className="sc-detalhe-pedido__grade">
         <section aria-labelledby="itens-do-pedido">
-          <h2 id="itens-do-pedido" className="text-xl font-semibold">
+          <h2 id="itens-do-pedido" className="sc-detalhe-pedido__secao-titulo">
             Itens
           </h2>
-          <ul className="mt-4 divide-y divide-[var(--cor-borda)] rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)]">
+          <ul className="sc-detalhe-pedido__lista">
             {pedido.itens.map((item) => (
-              <li className="p-5" key={item.id}>
-                <div className="flex justify-between gap-4">
+              <li key={item.id}>
+                <div className="sc-detalhe-pedido__linha">
                   <p className="font-medium">
                     {item.quantidade}× {item.nome}
                     {item.variacao ? ` (${item.variacao})` : ""}
                   </p>
                   <strong>{dinheiro(item.totalCentavos)}</strong>
                 </div>
+                {item.atacado && item.precoUnitarioCentavos !== undefined ? (
+                  <p className="sc-detalhe-pedido__apoio">
+                    <Selo tom="info" semBolinha>
+                      Atacado
+                    </Selo>{" "}
+                    {dinheiro(item.precoUnitarioCentavos)} por unidade, a partir
+                    de {item.atacado.quantidadeMinima} un.
+                    {item.atacado.varejoUnitarioCentavos !== null
+                      ? ` (varejo: ${dinheiro(item.atacado.varejoUnitarioCentavos)})`
+                      : ""}
+                    {item.atacado.rotulo ? ` · ${item.atacado.rotulo}` : ""}
+                  </p>
+                ) : null}
                 {item.opcoes.length > 0 ? (
-                  <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+                  <p className="sc-detalhe-pedido__apoio">
                     {item.opcoes
                       .map((opcao) => `${opcao.grupo}: ${opcao.nome}`)
                       .join(" · ")}
                   </p>
                 ) : null}
                 {item.observacao ? (
-                  <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+                  <p className="sc-detalhe-pedido__apoio">
                     Obs.: {item.observacao}
                   </p>
                 ) : null}
               </li>
             ))}
-            <li className="flex justify-between p-5 text-lg font-semibold">
+            <li className="sc-detalhe-pedido__linha text-lg font-semibold">
               <span>Total</span>
               <span>{dinheiro(pedido.totalCentavos)}</span>
             </li>
           </ul>
           {pedido.observacao ? (
-            <p className="mt-4 rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-atencao-suave)] p-4">
+            <p className="sc-detalhe-pedido__caixa sc-detalhe-pedido__caixa--aviso mt-4">
               <strong>Observação do cliente:</strong> {pedido.observacao}
             </p>
           ) : null}
         </section>
 
-        <aside className="space-y-6">
+        <aside className="grid content-start gap-5">
           <section aria-labelledby="dados-do-cliente">
-            <h2 id="dados-do-cliente" className="text-xl font-semibold">
+            <h2
+              id="dados-do-cliente"
+              className="sc-detalhe-pedido__secao-titulo"
+            >
               Cliente
             </h2>
-            <div className="mt-4 rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] p-5 leading-7 shadow-[var(--sombra-larga)]">
+            <div className="sc-detalhe-pedido__caixa">
               <p className="font-medium">
                 {pedido.contato?.nome ?? "Sem nome"}
               </p>
@@ -255,16 +338,15 @@ export function DetalheDoPedido({
           </section>
 
           <section aria-labelledby="historico-do-pedido">
-            <h2 id="historico-do-pedido" className="text-xl font-semibold">
+            <h2
+              id="historico-do-pedido"
+              className="sc-detalhe-pedido__secao-titulo"
+            >
               Linha do tempo
             </h2>
-            <ol className="mt-4 space-y-3" data-linha-do-tempo>
+            <ol className="sc-linha-do-tempo" data-linha-do-tempo>
               {pedido.historico.map((entrada) => (
-                <li
-                  className="border-l-2 border-[var(--cor-borda-forte)] pl-4"
-                  key={entrada.id}
-                  data-passo={entrada.para}
-                >
+                <li key={entrada.id} data-passo={entrada.para}>
                   <p className="font-medium">{rotuloDoStatus(entrada.para)}</p>
                   <p className="text-sm text-[var(--cor-tinta-suave)]">
                     <time dateTime={entrada.ocorridoEm}>
@@ -280,7 +362,6 @@ export function DetalheDoPedido({
           </section>
         </aside>
       </div>
-
-    </>
+    </div>
   );
 }

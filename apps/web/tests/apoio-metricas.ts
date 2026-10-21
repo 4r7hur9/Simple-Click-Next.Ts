@@ -260,3 +260,43 @@ export async function assentar(): Promise<void> {
     }
   });
 }
+
+/**
+ * Escolhe um atalho no calendário do seletor de período ("Ontem", "Este
+ * mês"...) e aplica. Como no uso real: abre a janela, toca o atalho e Aplicar.
+ */
+export async function escolherNoCalendario(
+  tela: ParentNode,
+  atalho: string,
+  esperar: () => Promise<void> = assentar,
+): Promise<void> {
+  // O jsdom não traz ResizeObserver, que a janela do calendário usa.
+  if (typeof ResizeObserver === "undefined") {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe(): void {}
+        unobserve(): void {}
+        disconnect(): void {}
+      },
+    );
+  }
+  const abrir = tela.querySelector<HTMLButtonElement>(
+    'button[aria-haspopup="dialog"]',
+  );
+  if (abrir === null) throw new Error("a tela não tem o calendário de período");
+  act(() => abrir.click());
+  const janela = document.querySelector('[role="dialog"]');
+  if (janela === null) throw new Error("o calendário não abriu");
+  const escolhido = [...janela.querySelectorAll("button")].find(
+    (b) => (b.textContent ?? "").trim() === atalho,
+  );
+  if (escolhido === undefined) throw new Error(`sem o atalho ${atalho}`);
+  act(() => escolhido.click());
+  const aplicar = [...janela.querySelectorAll("button")].find(
+    (b) => (b.textContent ?? "").trim() === "Aplicar",
+  );
+  if (aplicar === undefined) throw new Error("sem o botão Aplicar");
+  act(() => aplicar.click());
+  await esperar();
+}

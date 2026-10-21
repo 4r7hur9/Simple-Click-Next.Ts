@@ -319,7 +319,7 @@ function ler(codigo: CodigoDeLeitura): string {
 // As provas
 // ---------------------------------------------------------------------------
 
-const VITRINE = "https://simpleclick.app/l/sabor-e-cia/catalogo";
+const VITRINE = "https://simpleclick.app/loja/sabor-e-cia/cardapio";
 
 describe("o código leva ao endereço da vitrine (AC-931)", () => {
   it("@spec:AC-931 um leitor independente decodifica o endereço da vitrine", () => {
@@ -343,7 +343,7 @@ describe("o código leva ao endereço da vitrine (AC-931)", () => {
   });
 
   it("@spec:AC-931 acentos sobrevivem: o texto vai em UTF-8", () => {
-    const texto = "https://simpleclick.app/l/pão-de-açúcar?origem=tv";
+    const texto = "https://simpleclick.app/loja/pão-de-açúcar?origem=tv";
     expect(ler(gerarCodigo(texto))).toBe(texto);
   });
 
@@ -400,7 +400,7 @@ describe("o endereço que o código carrega", () => {
 
   it("@spec:AC-931 o endereço curto é o que se digita: sem esquema, sem www, sem marca de origem", () => {
     expect(
-      enderecoCurto("https://www.simpleclick.app/l/sabor-e-cia/catalogo/"),
-    ).toBe("simpleclick.app/l/sabor-e-cia/catalogo");
+      enderecoCurto("https://www.simpleclick.app/loja/sabor-e-cia/cardapio/"),
+    ).toBe("simpleclick.app/loja/sabor-e-cia/cardapio");
   });
 });

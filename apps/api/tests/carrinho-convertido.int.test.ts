@@ -29,6 +29,7 @@ import {
   comoRequisicao,
   ESPERA_LONGA,
 } from "./apoio-de-isolamento.ts";
+import { autorizacaoDoComprador } from "./apoio-de-pedidos.ts";
 import { criarApp } from "../src/app.ts";
 import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
@@ -114,11 +115,12 @@ async function carrinhoComUmLanche(): Promise<string> {
   return sessaoDe(resposta);
 }
 
-function fechar(sessao: string, chave: string) {
+async function fechar(sessao: string, chave: string) {
   return request(app)
     .post(`/v1/vitrine/${loja.apelido}/pedidos`)
     .set("Origin", ORIGEM)
     .set("Cookie", `${COOKIE_DA_SESSAO}=${sessao}`)
+    .set("Authorization", await autorizacaoDoComprador())
     .send({
       contato: { nome: "Ana Paula", telefone: "11988887777" },
       entrega: "PICKUP",

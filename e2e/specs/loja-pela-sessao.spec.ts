@@ -164,7 +164,7 @@ test("@spec:AC-135 dois donos de lojas diferentes, cada um vê só a própria lo
     await expect(pagina.getByText(alheia.secao)).toHaveCount(0);
     await expect(
       pagina.getByRole("link", { name: "Ver minha loja" }),
-    ).toHaveAttribute("href", `/l/${propria.apelido}`);
+    ).toHaveAttribute("href", `/loja/${propria.apelido}`);
     // Uma loja só: não há o que trocar.
     await expect(
       pagina.getByRole("link", { name: "Trocar de loja" }),

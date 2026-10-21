@@ -3,38 +3,32 @@ import { describe, expect, it } from "vitest";
 
 import { InicioDoPainel } from "../src/features/dashboard/InicioDoPainel.tsx";
 
-describe("painel inicial do ambiente de demonstração", () => {
-  it("leva a cada etapa funcional do MVP sem criar atalhos para telas ausentes", () => {
+describe("painel inicial: as métricas da loja", () => {
+  it("abre como painel de métricas, com o seletor de período e o atalho para a visão detalhada", () => {
     const html = renderToStaticMarkup(
-      <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+      <InicioDoPainel consultaInicial={{ periodo: "hoje" }} />,
     );
 
-    expect(html).toContain('href="/l/pastelaria-da-vila"');
-    expect(html).toContain('href="/l/pastelaria-da-vila/catalogo"');
-    expect(html).toContain('href="/l/pastelaria-da-vila/checkout"');
-    expect(html).toContain('href="/minha-conta/seguranca"');
-    expect(html).toContain('href="/painel/config/aparencia"');
-    // O painel do dia (T-803) entrou em cima, e os atalhos de cuidar da loja
-    // continuam alcançáveis daqui.
-    expect(html).toContain('href="/painel/categorias"');
-    expect(html).toContain('href="/painel/produtos"');
-    expect(html).toContain('href="/painel/metricas"');
+    expect(html).toContain("Resumo da loja");
+    expect(html).toContain('href="/painel/metricas?periodo=hoje"');
+    expect(html).toContain("data-seletor-de-periodo");
+    expect(html).toContain("Hoje");
+    expect(html).toContain("7 dias");
   });
 
-  it("os atalhos da vitrine levam à loja da sessão, e não à de demonstração", () => {
+  it("leva o período do endereço para a visão detalhada", () => {
     const html = renderToStaticMarkup(
-      <InicioDoPainel apelidoDaLoja="mercado-do-bairro" />,
+      <InicioDoPainel
+        consultaInicial={{ periodo: "personalizado", de: "2026-09-01", ate: "2026-09-15" }}
+      />,
     );
 
-    expect(html).toContain('href="/l/mercado-do-bairro"');
-    expect(html).toContain('href="/l/mercado-do-bairro/catalogo"');
-    expect(html).toContain('href="/l/mercado-do-bairro/checkout"');
-    expect(html).not.toContain("pastelaria-da-vila");
+    expect(html).toContain("/painel/metricas?periodo=personalizado&amp;de=2026-09-01&amp;ate=2026-09-15");
   });
 
-  it("chega ao servidor sem número: o resumo do dia nasce no estado de carregamento", () => {
+  it("chega ao servidor sem número: o resumo nasce no estado de carregamento", () => {
     const html = renderToStaticMarkup(
-      <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+      <InicioDoPainel consultaInicial={{ periodo: "hoje" }} />,
     );
 
     expect(html).toContain('data-estado="carregando"');

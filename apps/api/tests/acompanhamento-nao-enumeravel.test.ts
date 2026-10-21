@@ -27,6 +27,7 @@ import type { LojaDeTeste, ProdutoDeTeste } from "@simpleclick/testing";
 import { abrirAcessoDaAplicacao } from "./apoio-de-isolamento.ts";
 import {
   aplicacaoDaOperacao,
+  autorizacaoDoComprador,
   ESPERA_DA_OPERACAO,
   ORIGEM_DO_PAINEL,
 } from "./apoio-de-pedidos.ts";
@@ -123,6 +124,7 @@ async function fecharPeloSite(
     .post(`/v1/vitrine/${alvo.apelido}/pedidos`)
     .set("Origin", ORIGEM_DO_PAINEL)
     .set("Cookie", `${COOKIE_DA_SESSAO}=${sessao}`)
+    .set("Authorization", await autorizacaoDoComprador())
     .send({
       contato: { nome: "Ana Paula", telefone: "11988887777" },
       entrega: "PICKUP",

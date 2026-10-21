@@ -23,7 +23,11 @@
  * acontece com a loja E a sessão declaradas, numa transação nova.
  */
 import { Router } from "express";
-import { calcularItem, type EscolhaFeita } from "@simpleclick/core";
+import {
+  calcularItem,
+  type EscolhaFeita,
+  type FaixaCalculada,
+} from "@simpleclick/core";
 import {
   esquemaDaDeclaracao,
   esquemaDeItemParaAcrescentar,
@@ -45,7 +49,10 @@ import {
   verCarrinho,
   type CarrinhoAtual,
 } from "./carrinho.usecase.ts";
-import { conferirAntesDeFechar } from "./conferir-preco.usecase.ts";
+import {
+  conferirAntesDeFechar,
+  type PrecoDoItemConferido,
+} from "./conferir-preco.usecase.ts";
 
 /**
  * O que a rota precisa saber do catálogo para recalcular um item.
@@ -306,6 +313,7 @@ export function criarRotasDoCarrinho(opcoes: OpcoesDoCarrinho): Router {
             // Qual preço foi usado e por quê — o atacado que entrou sozinho
             // precisa se explicar na tela (AC-310). Nulo no preço normal.
             precoAplicado: item.precoAplicado,
+            ...precoParaFora(conferencia.precosDosItens.get(item.itemId)),
           })),
           subtotalCentavos: conferencia.subtotalEmCentavos,
         });
@@ -316,6 +324,43 @@ export function criarRotasDoCarrinho(opcoes: OpcoesDoCarrinho): Router {
   );
 
   return rotas;
+}
+
+/** Uma faixa calculada, nos nomes do contrato. */
+function faixaParaFora(faixa: FaixaCalculada | null) {
+  return faixa === null
+    ? null
+    : {
+        quantidadeMinima: faixa.quantidadeMinima,
+        tipoDeDesconto: faixa.tipoDeDesconto,
+        desconto: faixa.desconto,
+        rotulo: faixa.rotulo,
+        unitarioCentavos: faixa.unitarioEmCentavos,
+        descontoPorUnidadeCentavos: faixa.descontoPorUnidadeEmCentavos,
+      };
+}
+
+/**
+ * O preço explicado do item (card #57): o tipo, o varejo riscado e o atacado —
+ * a faixa que valeu, a próxima e quantas peças faltam.
+ */
+function precoParaFora(preco: PrecoDoItemConferido | undefined) {
+  if (preco === undefined) return {};
+  const { atacado } = preco;
+  return {
+    tipoDePreco: preco.tipo,
+    varejoUnitarioCentavos: preco.varejoUnitarioEmCentavos,
+    atacado:
+      atacado === null
+        ? null
+        : {
+            pedidoMinimo: atacado.pedidoMinimo,
+            faixaAplicada: faixaParaFora(atacado.faixaAplicada),
+            proximaFaixa: faixaParaFora(atacado.proximaFaixa),
+            faltamParaProxima: atacado.faltamParaProxima,
+            economiaCentavos: atacado.economiaEmCentavos,
+          },
+  };
 }
 
 /** O carrinho como o contrato o publica. */

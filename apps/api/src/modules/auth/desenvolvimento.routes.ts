@@ -18,6 +18,8 @@
  * de assinatura vêm do ambiente (P-002).
  */
 import { randomUUID } from "node:crypto";
+
+import { VERSAO_DOS_DOCUMENTOS_LEGAIS } from "@simpleclick/contracts";
 import { Router } from "express";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
@@ -97,6 +99,13 @@ async function garantirDonoLocal(
   if (identidade === undefined) {
     throw new Error("a identidade do usuário de teste local não foi criada");
   }
+  // O dono local entra sem passar pelo cadastro: já tem o aceite vigente
+  // (card #79), senão o freio de aceite barraria as ações de criação dele.
+  await tx.$executeRaw`
+    INSERT INTO app.legal_acceptances (identity_id, document, version, origin)
+    SELECT ${identidade.id}::uuid, d, ${VERSAO_DOS_DOCUMENTOS_LEGAIS.TERMS_OF_USE}, 'SIGNUP'
+      FROM unnest(ARRAY['TERMS_OF_USE', 'PRIVACY_POLICY', 'MERCHANT_TERMS']) AS d
+    ON CONFLICT (identity_id, document, version) DO NOTHING`;
 
   const [loja] = await tx.$queryRaw<{ id: string }[]>`
     SELECT id FROM app.stores

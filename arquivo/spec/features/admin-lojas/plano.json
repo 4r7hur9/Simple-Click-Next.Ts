@@ -11,7 +11,7 @@
   "baseDir": ".spec/features/admin-lojas",
   "specDir": ".spec",
   "repoName": "SimpleClick-identidade-acesso-run",
-  "logsDir": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs",
+  "logsDir": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs",
   "ondas": [
     ["faixa-1", "faixa-2", "faixa-3"],
     ["faixa-4", "faixa-5", "faixa-6"],
@@ -22,7 +22,7 @@
     {
       "id": "faixa-1",
       "branch": "spec/admin-lojas-faixa-1",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-1",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-1",
       "tarefas": [
         {
           "id": "T-200",
@@ -45,7 +45,7 @@
     {
       "id": "faixa-2",
       "branch": "spec/admin-lojas-faixa-2",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-2",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-2",
       "tarefas": [
         {
           "id": "T-201",
@@ -65,7 +65,7 @@
     {
       "id": "faixa-3",
       "branch": "spec/admin-lojas-faixa-3",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-3",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-3",
       "tarefas": [
         {
           "id": "T-202",
@@ -85,7 +85,7 @@
     {
       "id": "faixa-4",
       "branch": "spec/admin-lojas-faixa-4",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-4",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-4",
       "tarefas": [
         {
           "id": "T-203",
@@ -105,7 +105,7 @@
     {
       "id": "faixa-5",
       "branch": "spec/admin-lojas-faixa-5",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-5",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-5",
       "tarefas": [
         {
           "id": "T-204",
@@ -124,7 +124,7 @@
     {
       "id": "faixa-6",
       "branch": "spec/admin-lojas-faixa-6",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-6",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-6",
       "tarefas": [
         {
           "id": "T-205",
@@ -146,7 +146,7 @@
     {
       "id": "faixa-7",
       "branch": "spec/admin-lojas-faixa-7",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-7",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-7",
       "tarefas": [
         {
           "id": "T-206",
@@ -166,7 +166,7 @@
     {
       "id": "faixa-8",
       "branch": "spec/admin-lojas-faixa-8",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-8",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-8",
       "tarefas": [
         {
           "id": "T-207",
@@ -186,7 +186,7 @@
     {
       "id": "faixa-9",
       "branch": "spec/admin-lojas-faixa-9",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-9",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-9",
       "tarefas": [
         {
           "id": "T-208",
@@ -205,7 +205,7 @@
     {
       "id": "faixa-10",
       "branch": "spec/admin-lojas-faixa-10",
-      "worktree": "../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-10",
+      "worktree": "worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-10",
       "tarefas": [
         {
           "id": "T-209",

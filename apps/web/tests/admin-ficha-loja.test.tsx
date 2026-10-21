@@ -10,15 +10,13 @@
  */
 import axe from "axe-core";
 import type { FichaDaLojaNoContrato } from "@simpleclick/contracts";
-import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  FichaDaLojaNaTela,
-  FichaLoja,
-  MENSAGEM_DE_SESSAO_DA_FICHA,
-  type FichaDaLojaNaTelaProps,
-} from "../src/features/admin/FichaLoja.tsx";
+import { CabecalhoDaFicha } from "../src/features/admin/CabecalhoDaFicha.tsx";
+import { DadosDaLoja } from "../src/features/admin/DadosDaLoja.tsx";
+import { MENSAGEM_DE_SESSAO_DA_FICHA } from "../src/features/admin/FichaLoja.tsx";
+import { HistoricoDaLoja } from "../src/features/admin/HistoricoDaLoja.tsx";
+import { ProvedorDaFicha } from "../src/features/admin/ProvedorDaFicha.tsx";
 import {
   botao,
   desmontar,
@@ -31,6 +29,12 @@ import {
   type ChamadaDaApi,
   type RespostaSimulada,
 } from "./apoio-config.tsx";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+  usePathname: () =>
+    "/admin/lojas/3a3c3d4e-0000-4000-8000-000000000001/cadastro",
+}));
 
 const LOJA_ID = "3a3c3d4e-0000-4000-8000-000000000001";
 
@@ -74,17 +78,15 @@ const FICHA: FichaDaLojaNoContrato = {
   ],
 };
 
-function desenhar(sobrescrita: Partial<FichaDaLojaNaTelaProps> = {}): Document {
-  const props: FichaDaLojaNaTelaProps = {
-    estado: { fase: "pronta", ficha: FICHA },
-    aoTentarDeNovo: () => undefined,
-    aoAtualizar: () => undefined,
-    ...sobrescrita,
-  };
-  document.body.innerHTML = renderToStaticMarkup(
-    <FichaDaLojaNaTela {...props} />,
+/** A ficha como as abas a montam: um provedor, o cabeçalho e as abas de dados. */
+function FichaLoja({ lojaId }: { readonly lojaId: string }) {
+  return (
+    <ProvedorDaFicha lojaId={lojaId}>
+      <CabecalhoDaFicha />
+      <DadosDaLoja />
+      <HistoricoDaLoja />
+    </ProvedorDaFicha>
   );
-  return document;
 }
 
 /**
@@ -126,29 +128,88 @@ afterEach(() => {
 });
 
 describe("a ficha da loja na tela (AC-207)", () => {
-  it("@spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo", () => {
-    const carregando = desenhar({ estado: { fase: "carregando" } });
-    expect(carregando.querySelector('[role="status"]')?.textContent).toContain(
+  it("@spec:AC-207 @principle:P-011 cobre carregando, não encontrada, erro e sucesso, cada um com o papel de acessibilidade certo", async () => {
+    simularApi(respostasDaFicha());
+    const tela = montar(<FichaLoja lojaId={LOJA_ID} />);
+    expect(tela.querySelector('[role="status"]')?.textContent).toContain(
       "Carregando a ficha",
     );
+    await esperar();
+    expect(tela.querySelector("h1")?.textContent).toBe("Pastel da Joi");
+    expect(tela.textContent).toContain("Código 0001");
+    expect(tela.textContent).toContain("Ativa");
+    expect(tela.textContent).toContain("Lanchonete");
+    desmontar();
 
-    const vazio = desenhar({ estado: { fase: "nao-encontrada" } });
-    expect(vazio.body.textContent).toContain("Loja não encontrada");
+    simularApi(() => ({ status: 404, corpo: { erro: "nao_encontrado" } }));
+    const vazio = montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
+    expect(vazio.textContent).toContain("Loja não encontrada");
     expect(vazio.querySelector('a[href="/admin/lojas"]')).not.toBeNull();
+    desmontar();
 
-    const erro = desenhar({
-      estado: { fase: "erro", mensagem: MENSAGEM_DE_SESSAO_DA_FICHA },
-    });
+    simularApi(() => ({ status: 403, corpo: { erro: "acesso_negado" } }));
+    const erro = montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
     const alerta = erro.querySelector('[role="alert"]');
     expect(alerta?.textContent).toContain("A ficha não carregou");
+    expect(alerta?.textContent).toContain(MENSAGEM_DE_SESSAO_DA_FICHA);
     expect(alerta?.querySelector("button")?.textContent).toContain(
       "Tentar de novo",
     );
+  });
 
-    const sucesso = desenhar();
-    expect(sucesso.querySelector("h1")?.textContent).toBe("Pastel da Joi");
-    expect(sucesso.body.textContent).toContain("Código 0001");
-    expect(sucesso.body.textContent).toContain("Lanchonete · Ativa");
+  it("card #29 a ficha é buscada uma vez só, mesmo com cabeçalho e abas: abrir a ficha deixa um registro na trilha", async () => {
+    const chamadas = simularApi(respostasDaFicha());
+    montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
+    expect(
+      chamadas.filter(
+        (chamada) =>
+          chamada.metodo === "GET" &&
+          chamada.url === `/api/admin/lojas/${LOJA_ID}`,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("card #29 a ficha pendente tem Aprovar e Recusar no cabeçalho; a recusada mostra o motivo; a ativa oferece Desativar", async () => {
+    simularApi(() => ({
+      status: 200,
+      corpo: { ...FICHA, status: "PENDING_APPROVAL" },
+    }));
+    const pendente = montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
+    const botoes = [...pendente.querySelectorAll("header button")].map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(botoes).toEqual(["Aprovar", "Recusar"]);
+    expect(pendente.textContent).toContain("Esta loja espera a sua aprovação");
+    desmontar();
+
+    simularApi(() => ({
+      status: 200,
+      corpo: {
+        ...FICHA,
+        status: "REJECTED",
+        recusa: {
+          desde: "2026-10-01T12:00:00.000Z",
+          motivo: "Documento ilegível",
+        },
+      },
+    }));
+    const recusada = montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
+    expect(recusada.textContent).toContain("Motivo: Documento ilegível");
+    expect(botao(recusada, "Aprovar mesmo assim")).toBeDefined();
+    desmontar();
+
+    simularApi(respostasDaFicha());
+    const ativa = montar(<FichaLoja lojaId={LOJA_ID} />);
+    await esperar();
+    expect(botao(ativa, "Desativar loja")).toBeDefined();
+    expect(
+      ativa.querySelector(`a[href="/loja/pastel-da-joi"]`)?.textContent,
+    ).toContain("Ver vitrine");
   });
 
   it("@spec:AC-207 @principle:P-012 a ficha pronta não tem violação crítica nem séria de acessibilidade", async () => {
@@ -183,7 +244,7 @@ describe("a ficha da loja na tela (AC-207)", () => {
 
     const historico = exigir<HTMLElement>(tela, "ol");
     expect(historico.textContent).toContain("Loja cadastrada");
-    expect(historico.textContent).toContain("Por Administradora geral (ADMIN)");
+    expect(historico.textContent).toContain("Por Administradora geral (administração)");
     expect(camposDo(historico)).toEqual(["Código: — → 0001"]);
     expect(historico.querySelector("time")?.getAttribute("dateTime")).toBe(
       "2026-09-01T12:00:00.000Z",
@@ -265,20 +326,5 @@ describe("a ficha da loja na tela (AC-207)", () => {
     );
     expect(tela.textContent).toContain("Nada mudou");
     expect(botao(tela, "Salvar cadastro")).toBeDefined();
-  });
-
-  it("@spec:AC-207 ficha inexistente e sessão sem acesso viram estados próprios, e não uma ficha vazia", async () => {
-    simularApi(() => ({ status: 404, corpo: { erro: "nao_encontrado" } }));
-    const inexistente = montar(<FichaLoja lojaId={LOJA_ID} />);
-    await esperar();
-    expect(inexistente.textContent).toContain("Loja não encontrada");
-    desmontar();
-
-    simularApi(() => ({ status: 403, corpo: { erro: "acesso_negado" } }));
-    const semAcesso = montar(<FichaLoja lojaId={LOJA_ID} />);
-    await esperar();
-    expect(semAcesso.querySelector('[role="alert"]')?.textContent).toContain(
-      MENSAGEM_DE_SESSAO_DA_FICHA,
-    );
   });
 });

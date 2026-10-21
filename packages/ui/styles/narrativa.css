@@ -136,25 +136,61 @@
 }
 
 /*
- * A página pública de uma loja: UMA TELA, com a cara da loja.
+ * A página pública de uma loja: UMA TELA, com a cara da SimpleClick e a
+ * assinatura da loja.
  *
- * Duas decisões governam este bloco.
+ * Caber sem rolar continua sendo a primeira regra: quem abre o endereço de uma
+ * loja quer o cardápio, e esta página é uma porta.
  *
- * A primeira é caber sem rolar. Quem abre o endereço de uma loja quer o
- * cardápio; esta página é uma porta, e porta com três telas de rolagem até a
- * maçaneta é atrito no pior lugar possível.
+ * A PALETA É DA PLATAFORMA. Grafite no painel, verde-click no marcador do nome e
+ * na chamada, mint nas etiquetas — a mesma jornada do primeiro toque ao
+ * WhatsApp. A cor do dono entra onde ela assina: o anel da marca e o brilho do
+ * fundo, com o contraste já ajustado por `TemaDaLoja` (AC-015).
  *
- * A segunda é PARECER COM A LOJA. A cor que o dono escolheu chega aqui pelos
- * valores que `TemaDaLoja` redefine, com o contraste já ajustado (AC-015): o
- * fundo, o anel da marca e o botão saem dela. Sem isso, a pastelaria e a loja de
- * roupa teriam exatamente a mesma tela — correta e genérica.
- *
- * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado, e o ESLint
- * reprova quem escrever direto (AC-014).
+ * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado (AC-014).
  */
 .sc-pagina-da-loja {
   background: var(--cor-fundo);
   color: var(--cor-tinta);
+}
+
+/*
+ * O envelope da marca (`.sc-tema-loja`) é `display: contents` e não pinta
+ * fundo: sem isto, quem usa o sistema no modo claro via o cardápio e a TV
+ * sobre a página branca, com o nome dos produtos (branco) sumindo. A loja é
+ * sempre escura, então a página inteira também é. Esta folha entra no layout
+ * de toda página de loja.
+ */
+html:has(.sc-tema-loja),
+html:has(.sc-tema-loja) body {
+  background-color: var(--marca-preto-tecnologico);
+  color-scheme: dark;
+}
+
+/*
+ * O MARCADOR: a letra sobre uma faixa verde-click, como caneta de destaque.
+ * `box-decoration-break` repete a faixa em cada linha quando o nome quebra —
+ * sem ele, a segunda linha ficaria sem fundo e com a letra escura no grafite.
+ *
+ * A FAIXA COMEÇA ACIMA DO ACENTO. Ela é pintada sobre a caixa da fonte, e o
+ * corte de cima era 10% dela — em Space Grotesk, a 0,85em da linha de base,
+ * enquanto o acento do "Á" maiúsculo sobe até 0,89em: o acento saía da faixa.
+ * O corte agora é medido em `em` (0,04em do topo da caixa, o acento fica
+ * inteiro dentro) e o de baixo continua onde estava, então a palavra sem acento
+ * só ganha um fio de verde em cima.
+ */
+.sc-marcador {
+  padding-inline: 0.16em;
+  border-radius: 0.14em;
+  background: linear-gradient(
+    transparent 0.04em,
+    var(--cor-marca) 0.04em,
+    var(--cor-marca) 94%,
+    transparent 94%
+  );
+  color: var(--cor-sobre-marca);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 .sc-loja {
@@ -163,346 +199,618 @@
   min-block-size: 100svh;
   overflow: clip;
   isolation: isolate;
+  background: var(--cor-fundo);
 }
 
-/* --- o fundo em camadas ---------------------------------------------------
- *
- * Dois lavados da cor da loja, grandes e desfocados, dão profundidade sem
- * carregar imagem nenhuma — o que importa numa página que precisa abrir em rede
- * ruim. `color-mix` tira a cor do valor declarado, então ela acompanha a loja e
- * os dois temas sem uma linha a mais.
+.sc-loja__tela {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: 1fr;
+  min-block-size: 100svh;
+  max-inline-size: 76rem;
+  margin-inline: auto;
+  padding: max(var(--espaco-6), env(safe-area-inset-top))
+    max(var(--espaco-4), env(safe-area-inset-right))
+    max(var(--espaco-4), env(safe-area-inset-bottom))
+    max(var(--espaco-4), env(safe-area-inset-left));
+}
+
+/* --- o painel grafite ----------------------------------------------------- */
+
+.sc-loja__painel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--espaco-7);
+  padding: var(--espaco-5);
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 8%, transparent);
+  border-radius: 2rem;
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  overflow: clip;
+  isolation: isolate;
+  box-shadow: 0 40px 60px -32px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 55%, transparent);
+}
+
+/* Dois brilhos: o verde da plataforma no alto, a cor da loja embaixo. */
+.sc-loja__painel::before,
+.sc-loja__painel::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inline-size: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.sc-loja__painel::before {
+  inset-block-start: -35%;
+  inset-inline-end: -30%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-marca) 30%, transparent),
+    transparent
+  );
+}
+
+.sc-loja__painel::after {
+  inset-block-end: -45%;
+  inset-inline-start: -35%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-primaria) 45%, transparent),
+    transparent
+  );
+}
+
+/* A trama de pontos: decoração, fora da camada do conteúdo (AC-419). */
+.sc-loja__trama {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--marca-branco) 16%, transparent) 1px,
+    transparent 1.6px
+  );
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 75%);
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+  pointer-events: none;
+}
+
+/*
+ * A CAPA PADRÃO DO RAMO, para quando o dono não enviou a dele: um ladrilho SVG
+ * de ícones do negócio (o endereço vem de `capa-padrao.ts`, no site), em traço
+ * da cor de destaque (tingido por máscara) de baixa opacidade sobre o grafite. Mais forte no alto e à
+ * direita, longe do título, e sumindo para a base, onde ficam o botão e as
+ * fichas — a letra continua sobre grafite quase liso.
+ */
+.sc-loja__padrao {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  --capa-tamanho: 300px;
+  --capa-posicao: top right;
+  /* No celular o texto ocupa a largura toda: o desenho fica mais discreto. */
+  opacity: 0.22;
+  -webkit-mask-image:
+    linear-gradient(to bottom, black 15%, transparent 80%),
+    linear-gradient(
+      to left,
+      black 30%,
+      color-mix(in srgb, black 12%, transparent) 62%
+    );
+  mask-image:
+    linear-gradient(to bottom, black 15%, transparent 80%),
+    linear-gradient(
+      to left,
+      black 30%,
+      color-mix(in srgb, black 12%, transparent) 62%
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+@media (min-width: 48rem) {
+  .sc-loja__padrao {
+    --capa-tamanho: 360px;
+    opacity: 0.34;
+  }
+}
+
+/*
+ * Com a capa padrão, a letra secundária sobe de cinza para quase branco e o
+ * selo ganha fundo grafite: os ícones passam por trás e não podem disputar com
+ * o texto pequeno. O título e os botões já têm fundo próprio.
+ */
+.sc-loja__painel--padrao .sc-loja__boas-vindas,
+.sc-loja__painel--padrao .sc-loja__nota {
+  color: color-mix(in srgb, var(--marca-branco) 88%, transparent);
+}
+
+.sc-loja__painel--padrao .sc-loja__ficha-titulo {
+  color: color-mix(in srgb, var(--marca-branco) 72%, transparent);
+}
+
+.sc-loja__painel--padrao .sc-loja__situacao {
+  background: color-mix(in srgb, var(--marca-grafite) 82%, transparent);
+}
+
+/*
+ * A CAPA DO DONO É O FUNDO DO PAINEL. Ela ocupa o painel inteiro, sob um véu
+ * grafite: mais leve no meio, onde a foto aparece, e mais denso no alto e na
+ * base, onde estão a letra pequena, o botão e as fichas. Sem desfoque — o
+ * `backdrop-filter` é proibido no projeto, e o véu sozinho já basta.
  */
 .sc-loja__fundo {
   position: absolute;
   inset: 0;
   z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
   pointer-events: none;
-  overflow: clip;
 }
 
-.sc-loja__mundo {
+.sc-loja__veu {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.82;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--marca-grafite) 82%, transparent),
+      color-mix(in srgb, var(--marca-grafite) 40%, transparent) 38%,
+      color-mix(in srgb, var(--marca-grafite) 66%, transparent) 62%,
+      color-mix(in srgb, var(--marca-grafite) 94%, transparent)
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--marca-preto-tecnologico) 45%, transparent),
+      transparent 70%
+    );
   pointer-events: none;
 }
 
-.sc-loja__mundo-canvas {
-  display: block;
-  inline-size: 100%;
-  block-size: 100%;
+/* Com capa, os brilhos sairiam tingindo a foto: ficam só no fundo grafite. */
+.sc-loja__painel--com-capa::before,
+.sc-loja__painel--com-capa::after {
+  content: none;
 }
 
-.sc-loja__brilho {
-  position: absolute;
-  z-index: 1;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
+.sc-loja__painel--com-capa .sc-loja__ler-mais {
+  text-shadow: 0 1px 12px var(--marca-preto-tecnologico);
 }
 
-.sc-loja__brilho--um {
-  inline-size: min(70vw, 30rem);
-  block-size: min(70vw, 30rem);
-  inset-block-start: -12%;
-  inset-inline-end: -18%;
-  background: color-mix(in oklab, var(--cor-primaria) 45%, transparent);
+.sc-loja__painel--com-capa .sc-loja__boas-vindas,
+.sc-loja__painel--com-capa .sc-loja__nota {
+  color: var(--marca-branco);
+  text-shadow: 0 1px 12px var(--marca-preto-tecnologico);
 }
 
-.sc-loja__brilho--dois {
-  inline-size: min(85vw, 34rem);
-  block-size: min(85vw, 34rem);
-  inset-block-end: -22%;
-  inset-inline-start: -22%;
-  background: color-mix(in oklab, var(--cor-primaria) 26%, transparent);
+.sc-loja__painel--com-capa .sc-loja__situacao {
+  background: color-mix(in srgb, var(--marca-grafite) 72%, transparent);
 }
 
-/* --- a tela ---------------------------------------------------------------
- *
- * `min-block-size`, e não `block-size`. A diferença é o que acontece quando o
- * conteúdo não cabe: com altura fixa ele seria cortado, e o botão do cardápio
- * sairia da vista num celular deitado de 360px de altura. Com altura mínima, a
- * tela cresce e a pessoa rola o pouco que precisar.
- */
-.sc-loja__tela {
+.sc-loja__identidade,
+.sc-loja__base {
   position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--espaco-6);
-  min-block-size: 100svh;
-  inline-size: 100%;
-  max-inline-size: 32rem;
-  margin-inline: auto;
-  padding-inline: var(--espaco-5);
-  /* Recorte de área segura: sem ele o conteúdo encosta na borda arredondada. */
-  padding-block: max(var(--espaco-6), env(safe-area-inset-top))
-    max(var(--espaco-6), env(safe-area-inset-bottom));
-  text-align: center;
+  z-index: 1;
 }
-
-/* --- a marca --------------------------------------------------------------- */
 
 .sc-loja__identidade {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
   gap: var(--espaco-4);
 }
 
-/*
- * O anel em volta da marca faz a logo pertencer à composição em vez de flutuar.
- * Quem não subiu logo recebe as iniciais no mesmo anel: a tela não desmonta, e
- * a marca continua sendo a da loja.
- */
+.sc-loja__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+}
+
+/* A marca da loja: o anel tem a cor do dono. */
 .sc-loja__marca {
   display: grid;
   place-items: center;
-  inline-size: 6.5rem;
-  block-size: 6.5rem;
-  border-radius: 50%;
-  background: var(--cor-superficie-alta);
-  border: 1px solid color-mix(in oklab, var(--cor-primaria) 30%, transparent);
+  inline-size: 4rem;
+  aspect-ratio: 1;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: var(--marca-branco);
   box-shadow:
-    0 0 0 6px color-mix(in oklab, var(--cor-primaria) 8%, transparent),
-    var(--sombra-2);
+    0 0 0 3px var(--cor-primaria),
+    0 0 0 8px color-mix(in srgb, var(--cor-primaria) 28%, transparent);
+}
+
+.sc-loja__marca:has(.sc-loja__iniciais) {
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
 }
 
 .sc-loja__logo {
-  inline-size: 88px;
-  block-size: 88px;
-  object-fit: contain;
-  border-radius: 50%;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
 }
 
 .sc-loja__iniciais {
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-/*
- * O tipo responde à LARGURA, com teto, e nunca à altura. Numa tela comprida a
- * altura sobrando vira respiro — não letra maior.
- */
 .sc-loja__nome {
-  margin: 0;
+  margin: var(--espaco-4) 0 0;
   font-family: var(--fonte-titulo);
+  font-size: clamp(2.25rem, 9vw, 4.25rem);
   font-weight: 700;
-  font-size: clamp(1.75rem, 7vw, 2.75rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .sc-loja__boas-vindas {
+  max-inline-size: 38ch;
   margin: 0;
-  max-inline-size: 34ch;
-  font-size: clamp(0.9375rem, 3.6vw, 1.0625rem);
-  line-height: 1.55;
-  color: var(--cor-tinta-suave);
-  text-wrap: pretty;
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha-base);
 }
 
-/* --- a situação ----------------------------------------------------------
- *
- * Marca, e não caixa de aviso: "aberta agora" é um dado da loja, tão permanente
- * quanto o endereço dela. Emoldurar faria a tela parecer que algo deu errado.
+/*
+ * O "Sobre" entra resumido, no mesmo formato das fichas da base: três linhas e
+ * o caminho para o texto inteiro. A porta continua sendo porta.
  */
+.sc-loja__sobre {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-3);
+  max-inline-size: 60ch;
+  margin-block-start: var(--espaco-1);
+}
+
+.sc-loja__sobre-texto {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--marca-branco);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-base);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* A situação é uma etiqueta do painel, e não uma caixa de aviso. */
 .sc-loja__situacao {
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-2);
   margin: 0;
-  padding: var(--espaco-1) var(--espaco-3);
-  border-radius: 999px;
-  border: 1px solid var(--cor-borda);
-  background: var(--cor-superficie);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--cor-tinta-suave);
+  padding: 0.45rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 18%, transparent);
+  border-radius: var(--raio-completo);
+  background: color-mix(in srgb, var(--marca-branco) 8%, transparent);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .sc-loja__pulso {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  border-radius: 50%;
-  background: var(--cor-borda-forte);
   flex: none;
-}
-
-.sc-loja__situacao--aberta {
-  border-color: color-mix(in oklab, var(--cor-sucesso) 45%, transparent);
-  color: var(--cor-tinta);
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--marca-cinza-ui);
 }
 
 .sc-loja__situacao--aberta .sc-loja__pulso {
-  background: var(--cor-sucesso);
-  /* O halo diz "agora" sem precisar de animação. */
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--cor-sucesso) 22%, transparent);
+  background: var(--cor-marca);
+  animation: sc-loja-pulso 2s ease-out infinite;
 }
 
-.sc-loja__situacao--fechada .sc-loja__pulso {
-  background: var(--cor-atencao);
+@keyframes sc-loja-pulso {
+  0% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--cor-marca) 60%, transparent);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
 }
 
-/* --- o caminho de saída --------------------------------------------------- */
+/* --- a chamada ------------------------------------------------------------ */
 
 .sc-loja__chamada {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--espaco-2);
+  display: grid;
+  gap: var(--espaco-3);
   margin: 0;
 }
 
-/*
- * O botão é o motivo de a página existir. Ele tem alvo de toque generoso, peso
- * visual acima de tudo o mais na tela, e a seta que diz para onde leva.
- */
 .sc-loja__entrar {
   display: inline-flex;
   align-items: center;
-  gap: var(--espaco-2);
+  justify-content: space-between;
+  gap: var(--espaco-4);
   min-block-size: 3.25rem;
-  padding-inline: var(--espaco-7);
-  border-radius: 999px;
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-size: 1.0625rem;
-  font-weight: 550;
+  padding: 0.375rem 0.375rem 0.375rem 1.25rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-decoration: none;
-  box-shadow:
-    0 1px 2px color-mix(in oklab, var(--cor-primaria) 30%, transparent),
-    0 10px 24px color-mix(in oklab, var(--cor-primaria) 26%, transparent);
+  text-transform: uppercase;
+  box-shadow: 0 18px 40px -18px
+    color-mix(in srgb, var(--cor-marca) 85%, transparent);
   transition:
-    transform var(--transicao-rapida),
-    box-shadow var(--transicao-rapida);
+    transform var(--transicao-media),
+    box-shadow var(--transicao-media);
 }
 
 .sc-loja__entrar:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 1px 2px color-mix(in oklab, var(--cor-primaria) 34%, transparent),
-    0 14px 30px color-mix(in oklab, var(--cor-primaria) 32%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 48px -18px
+    color-mix(in srgb, var(--cor-marca) 95%, transparent);
 }
 
 .sc-loja__entrar:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .sc-loja__entrar:focus-visible {
-  outline: 3px solid var(--cor-foco);
-  outline-offset: 3px;
+  outline: 3px solid var(--marca-branco);
+  outline-offset: 4px;
+}
+
+.sc-loja__seta-caixa {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.5rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--marca-preto-tecnologico);
+  color: var(--cor-marca-texto);
 }
 
 .sc-loja__seta {
-  flex: none;
-  transition: transform var(--transicao-rapida);
+  transition: transform var(--transicao-media);
 }
 
 .sc-loja__entrar:hover .sc-loja__seta {
   transform: translateX(3px);
 }
 
-.sc-loja__nota {
-  font-size: 0.8125rem;
-  color: var(--cor-tinta-suave);
+/*
+ * "Ler mais sobre a loja": link de texto na última linha do Sobre, dentro do
+ * filete. O preenchimento vertical com margem negativa dá ao dedo a altura de
+ * toque sem afastar o link do texto.
+ */
+.sc-loja__ler-mais {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  justify-self: start;
+  min-block-size: var(--altura-toque);
+  margin-block: -0.5rem -0.75rem;
+  color: var(--cor-marca-texto);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--cor-marca-texto) 45%,
+    transparent
+  );
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 160ms ease;
 }
 
-/* --- os detalhes ---------------------------------------------------------- */
+.sc-loja__ler-mais:hover {
+  text-decoration-color: currentColor;
+}
+
+.sc-loja__ler-mais .sc-loja__seta {
+  transition: transform 160ms ease;
+}
+
+.sc-loja__ler-mais:hover .sc-loja__seta {
+  transform: translateX(3px);
+}
+
+.sc-loja__ler-mais:focus-visible {
+  outline: 2px solid var(--cor-marca-texto);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sc-loja__nota {
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-sm);
+}
+
+/* --- a base do painel: chamada e fichas ----------------------------------- */
+
+.sc-loja__base {
+  display: grid;
+  gap: var(--espaco-5);
+}
 
 .sc-loja__detalhes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--espaco-3);
+  display: grid;
+  align-items: start;
+  gap: var(--espaco-5) var(--espaco-4);
+}
+
+/*
+ * As fichas são texto, e não caixas: um filete verde-click marca cada uma, e o
+ * resto é tipografia. Caixa dentro de caixa pesava a base do painel.
+ */
+.sc-loja__ficha {
+  display: grid;
+  align-content: start;
+  gap: var(--espaco-1);
+  padding-inline-start: var(--espaco-3);
+  border-inline-start: 4px solid var(--cor-marca-texto);
+}
+
+.sc-loja__ficha-titulo {
+  margin: 0;
+  color: var(--marca-cinza-ui);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .sc-loja__formas {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--espaco-2);
+  gap: var(--espaco-1) var(--espaco-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
+/* O ponto verde é o "sim, tem": a palavra ao lado diz o quê. */
 .sc-loja__formas li {
-  border: 1px solid var(--cor-borda);
-  border-radius: 999px;
-  padding: var(--espaco-1) var(--espaco-3);
-  font-size: 0.8125rem;
-  color: var(--cor-tinta);
-  background: var(--cor-superficie);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  color: var(--marca-branco);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-linha-base);
+}
+
+.sc-loja__formas li::before {
+  content: "";
+  flex: none;
+  inline-size: 0.4rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cor-marca);
 }
 
 .sc-loja__endereco {
+  color: var(--marca-branco);
+  font-size: var(--texto-sm);
   font-style: normal;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--cor-tinta);
-  max-inline-size: 32ch;
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-linha-base);
 }
 
-/* --- telas baixas ---------------------------------------------------------
- *
- * Celular deitado e Nest Hub: não há altura para respiro, e o conteúdo encolhe
- * para o botão continuar alcançável sem rolar.
+@media (min-width: 390px) {
+  .sc-loja__painel {
+    padding: var(--espaco-6);
+  }
+}
+
+@media (min-width: 540px) {
+  .sc-loja__detalhes {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+
+  .sc-loja__chamada {
+    justify-items: start;
+  }
+}
+
+/* Desktop: o botão à esquerda e as fichas à direita, na mesma linha de base. */
+@media (min-width: 1024px) {
+  .sc-loja__tela {
+    padding: var(--espaco-6);
+  }
+
+  .sc-loja__painel {
+    padding: var(--espaco-8);
+    border-radius: 2.5rem;
+  }
+
+  .sc-loja__base {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: var(--espaco-6);
+  }
+
+  .sc-loja__detalhes {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, max-content));
+    justify-content: end;
+    column-gap: var(--espaco-8);
+  }
+}
+
+/*
+ * Desktop largo: a escala sobe um degrau, para o conteúdo não ficar miúdo num
+ * painel de 1200px ou mais. Celular e tablet não mudam.
  */
+@media (min-width: 1280px) {
+  .sc-loja__marca {
+    inline-size: 4.5rem;
+  }
+
+  .sc-loja__situacao {
+    padding: 0.55rem 1.05rem;
+    font-size: 0.8125rem;
+  }
+
+  .sc-loja__nome {
+    font-size: clamp(4.5rem, 2.5vw + 2.5rem, 5rem);
+  }
+
+  .sc-loja__boas-vindas {
+    font-size: var(--texto-lg);
+  }
+
+  .sc-loja__ficha-titulo {
+    font-size: 0.8125rem;
+  }
+
+  .sc-loja__sobre-texto,
+  .sc-loja__formas li,
+  .sc-loja__endereco {
+    font-size: var(--texto-base);
+  }
+
+  .sc-loja__entrar {
+    min-block-size: 3.5rem;
+    font-size: var(--texto-lg);
+  }
+
+  .sc-loja__ler-mais {
+    font-size: var(--texto-base);
+  }
+}
+
+/* Tela baixa e deitada: a tela cresce com o conteúdo em vez de espremê-lo. */
 @media (max-height: 600px) {
   .sc-loja__tela {
-    gap: var(--espaco-4);
-    padding-block: var(--espaco-4);
+    min-block-size: auto;
   }
 
-  .sc-loja__marca {
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
-    box-shadow: none;
-  }
-
-  .sc-loja__logo {
-    inline-size: 44px;
-    block-size: 44px;
-  }
-
-  .sc-loja__iniciais {
-    font-size: 1.125rem;
-  }
-
-  /* O nome e o botão vencem a apresentação quando falta espaço. */
-  .sc-loja__boas-vindas {
-    display: none;
+  .sc-loja__painel {
+    gap: var(--espaco-5);
   }
 }
 
-/* --- telas altas ----------------------------------------------------------
- *
- * Tablet em pé, dobrável aberto, TV. Aqui sobra altura, e ela vira RESPIRO: o
- * bloco tem teto e fica centrado, com a sobra dividida nas pontas. Esticar o
- * conteúdo até 2160px não ficaria imponente, ficaria quebrado.
- */
-@media (min-height: 1100px) {
-  .sc-loja__tela {
-    gap: var(--espaco-7);
-    max-block-size: 900px;
-    margin-block: auto;
-  }
-
-  .sc-loja__marca {
-    inline-size: 8rem;
-    block-size: 8rem;
-  }
-}
-
-/* --- movimento reduzido ---------------------------------------------------
- *
+/*
  * Recebe o ESTADO FINAL, e não a ausência. O erro comum é esconder o elemento e
  * animar a entrada: quem pediu para parar de mexer fica sem o conteúdo, não sem
  * a animação.
@@ -518,11 +826,14 @@
     animation: none;
   }
 
-  .sc-loja__entrar:hover {
-    transform: none;
+  .sc-loja__situacao--aberta .sc-loja__pulso {
+    animation: none;
   }
 
+  .sc-loja__entrar,
+  .sc-loja__entrar:hover,
   .sc-loja__entrar:hover .sc-loja__seta {
     transform: none;
+    transition: none;
   }
 }

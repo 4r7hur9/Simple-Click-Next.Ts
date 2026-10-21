@@ -15,15 +15,26 @@
 
 import {
   esquemaDaPaginaDaAuditoria,
-  ROTULOS_DOS_ATOS,
   type PaginaDaAuditoriaNoContrato,
   type RegistroDaAuditoriaNoContrato,
 } from "@simpleclick/contracts";
-import { Botao, Cartao, Carregando, Erro, Selo, Vazio } from "@simpleclick/ui";
+import {
+  Botao,
+  Campo,
+  Carregando,
+  Cartao,
+  descritoresDoCampo,
+  Erro,
+  Seletor,
+  Selo,
+  Vazio,
+} from "@simpleclick/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { ListaDaTrilha } from "./ListaDaTrilha.tsx";
+import { INFO_DO_TIPO_DE_ATO } from "./explicacoes.ts";
+import { NOMES_DOS_ATOS } from "./trilha-na-tela.ts";
 
 /** Os filtros como a tela os guarda: texto vazio é "sem filtro". */
 export interface FiltrosDaAuditoria {
@@ -71,7 +82,7 @@ export function periodoValido(filtros: FiltrosDaAuditoria): boolean {
 }
 
 /** Os atos que o filtro oferece, pelo nome que a administração usa. */
-const OPCOES_DE_ATO = Object.entries(ROTULOS_DOS_ATOS).sort(([, a], [, b]) =>
+const OPCOES_DE_ATO = Object.entries(NOMES_DOS_ATOS).sort(([, a], [, b]) =>
   a.localeCompare(b, "pt-BR"),
 );
 
@@ -106,32 +117,35 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
         <form
           aria-label="Filtros do histórico"
           onSubmit={props.aoFiltrar}
-          className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
+          className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
         >
-          <label
-            className="grid gap-1 text-sm font-medium"
-            htmlFor="filtro-ato"
-          >
-            Ato
-            <select
-              id="filtro-ato"
-              name="ato"
-              className="sc-campo__controle"
-              value={rascunho.ato}
-              onChange={(evento) =>
-                props.aoMudar({ ...rascunho, ato: evento.target.value })
-              }
-            >
-              <option value="">Todos os atos</option>
-              {OPCOES_DE_ATO.map(([codigo, rotulo]) => (
-                <option key={codigo} value={codigo}>
-                  {rotulo}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Campo
+            id="filtro-ato"
+            rotulo="Tipo de ato"
+            info={INFO_DO_TIPO_DE_ATO}
+            controle={
+              <Seletor
+                id="filtro-ato"
+                name="ato"
+                value={rascunho.ato}
+                aria-describedby={descritoresDoCampo("filtro-ato", {
+                  info: true,
+                }).join(" ")}
+                onChange={(valor) =>
+                  props.aoMudar({ ...rascunho, ato: valor })
+                }
+              >
+                <option value="">Todos os atos</option>
+                {OPCOES_DE_ATO.map(([codigo, rotulo]) => (
+                  <option key={codigo} value={codigo}>
+                    {rotulo}
+                  </option>
+                ))}
+              </Seletor>
+            }
+          />
           <label className="grid gap-1 text-sm font-medium" htmlFor="filtro-de">
-            De
+            Data inicial
             <input
               id="filtro-de"
               name="de"
@@ -147,7 +161,7 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
             className="grid gap-1 text-sm font-medium"
             htmlFor="filtro-ate"
           >
-            Até
+            Data final
             <input
               id="filtro-ate"
               name="ate"
@@ -163,7 +177,7 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
               }
             />
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Botao type="submit" variante="secundaria">
               Filtrar
             </Botao>

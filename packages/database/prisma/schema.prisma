@@ -115,7 +115,8 @@ model Store {
   docNumber              String?   @map("doc_number")
   docType                String?   @map("doc_type")
   slug                   String
-  status                 String    @default("PENDING")
+  // PENDING_APPROVAL, ACTIVE, REJECTED, INACTIVE ou DELETED (0049).
+  status                 String    @default("PENDING_APPROVAL")
   verticalCode           String    @map("vertical_code")
   verticalSchemaVersion  Int       @default(1) @map("vertical_schema_version")
   timezone               String    @default("America/Sao_Paulo")
@@ -137,6 +138,14 @@ model Store {
   lat                    Decimal?  @db.Decimal(9, 6)
   lng                    Decimal?  @db.Decimal(9, 6)
   catalogVersion         BigInt    @default(1) @map("catalog_version")
+  // Quando entrou no ar pela primeira vez (0049) — "lojas novas" no feed.
+  approvedAt             DateTime? @map("approved_at") @db.Timestamptz(6)
+  // Configuração do feed (0050): aparecer no feed e publicar produto novo.
+  feedVisible            Boolean   @default(true) @map("feed_visible")
+  feedAutoPublishNew     Boolean   @default(false) @map("feed_auto_publish_new")
+  // Comentário já nasce aprovado (0062); o padrão é a loja moderar.
+  commentsAutoApprove    Boolean   @default(false) @map("comments_auto_approve")
+  slugsAntigos           String[]  @default([]) @map("slugs_antigos")
   deletedAt              DateTime? @map("deleted_at") @db.Timestamptz(6)
   purgeAfter             DateTime? @map("purge_after") @db.Timestamptz(6)
   createdBy              String?   @map("created_by") @db.Uuid
@@ -146,7 +155,6 @@ model Store {
   ramo                VerticalPreset       @relation(fields: [verticalCode], references: [code])
   quemCriou           Identity?            @relation("QuemCriouALoja", fields: [createdBy], references: [id])
   configuracao        StoreSettings?
-  enderecos           StoreDomain[]
   membros             StoreMember[]
   produtos            Product[]
   clientes            StoreCustomer[]
@@ -190,23 +198,6 @@ model StoreSettings {
   @@schema("app")
 }
 
-/// Endereços que resolvem para a loja, incluindo o histórico de apelidos.
-model StoreDomain {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId             String    @map("store_id") @db.Uuid
-  host                String
-  kind                String
-  isCanonical         Boolean   @default(false) @map("is_canonical")
-  verifiedAt          DateTime? @map("verified_at") @db.Timestamptz(6)
-  redirectToCanonical Boolean   @default(false) @map("redirect_to_canonical")
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  loja Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  @@map("store_domains")
-  @@schema("app")
-}
-
 /// Vínculo entre identidade e loja, com papel. Separa "quem sou" de "o que
 /// posso naquela loja".
 model StoreMember {
@@ -223,6 +214,8 @@ model StoreMember {
   inviteExpiresAt  DateTime? @map("invite_expires_at") @db.Timestamptz(6)
   revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  // A conta foi criada pela loja: só então o dono troca a senha (0052).
+  accountManaged   Boolean   @default(false) @map("account_managed")
 
   loja         Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade   Identity  @relation("VinculoDaIdentidade", fields: [identityId], references: [id])
@@ -253,6 +246,8 @@ model Product {
   trackStock            Boolean                  @default(false) @map("track_stock")
   sortOrder             Int                      @default(0) @map("sort_order")
   isFeatured            Boolean                  @default(false) @map("is_featured")
+  // A marca "publicar no feed" (0050). Marcar gera a linha de `feed_posts`.
+  publishToFeed         Boolean                  @default(false) @map("publish_to_feed")
   attributes            Json                     @default("{}") @db.JsonB
   // Centavos inteiros, sempre. R$ 19,99 vezes 3 tem de dar exatamente
   // R$ 59,97 na vitrine, no fechamento, no WhatsApp e no cupom impresso.
@@ -402,6 +397,8 @@ model StoreCustomer {
   removedAt       DateTime? @map("removed_at") @db.Timestamptz(6)
   /// Endereço anotado na ficha do cliente sem conta (0035, AC-703).
   address         Json?
+  /// De onde veio a ficha: 'IMPORT' (planilha); nulo = site ou cadastro manual (0072).
+  origin          String?
 
   loja       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   identidade Identity? @relation(fields: [identityId], references: [id])
@@ -584,26 +581,31 @@ model OrderContact {
 /// existe para relatório, e nunca para ler preço. A tabela não tem política de
 /// alteração nem de remoção: a imutabilidade é imposta pelo banco.
 model OrderItem {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId            String   @map("store_id") @db.Uuid
-  orderId            String   @map("order_id") @db.Uuid
-  productId          String?  @map("product_id") @db.Uuid
-  variantId          String?  @map("variant_id") @db.Uuid
-  productName        String   @map("product_name")
-  variantName        String?  @map("variant_name")
-  skuSnapshot        String?  @map("sku_snapshot")
-  quantity           Int
-  unitPriceCents     BigInt   @map("unit_price_cents")
-  compareAtCents     BigInt?  @map("compare_at_cents")
-  unitCostCents      BigInt?  @map("unit_cost_cents")
-  priceKindSnapshot  String?  @map("price_kind_snapshot")
-  attributesSnapshot Json     @default("{}") @map("attributes_snapshot")
-  optionsTotalCents  BigInt   @default(0) @map("options_total_cents")
-  lineTotalCents     BigInt   @map("line_total_cents")
-  note               String?
-  fractionIndex      Int?     @map("fraction_index") @db.SmallInt
-  sortOrder          Int      @default(0) @map("sort_order")
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId                String   @map("store_id") @db.Uuid
+  orderId                String   @map("order_id") @db.Uuid
+  productId              String?  @map("product_id") @db.Uuid
+  variantId              String?  @map("variant_id") @db.Uuid
+  productName            String   @map("product_name")
+  variantName            String?  @map("variant_name")
+  skuSnapshot            String?  @map("sku_snapshot")
+  quantity               Int
+  unitPriceCents         BigInt   @map("unit_price_cents")
+  compareAtCents         BigInt?  @map("compare_at_cents")
+  unitCostCents          BigInt?  @map("unit_cost_cents")
+  priceKindSnapshot      String?  @map("price_kind_snapshot")
+  /// A faixa de atacado que valeu na compra (0066); nulos = varejo.
+  wholesaleMinQuantity   Int?     @map("wholesale_min_quantity")
+  wholesaleDiscountKind  String?  @map("wholesale_discount_kind")
+  wholesaleDiscountValue BigInt?  @map("wholesale_discount_value")
+  wholesaleLabel         String?  @map("wholesale_label")
+  attributesSnapshot     Json     @default("{}") @map("attributes_snapshot")
+  optionsTotalCents      BigInt   @default(0) @map("options_total_cents")
+  lineTotalCents         BigInt   @map("line_total_cents")
+  note                   String?
+  fractionIndex          Int?     @map("fraction_index") @db.SmallInt
+  sortOrder              Int      @default(0) @map("sort_order")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   pedido  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   loja    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -793,23 +795,27 @@ model ProductVariant {
 /// mesmo produto. O rótulo é do dono — "Balcão", "Terça do pastel", "Dúzia" —
 /// porque lista fixa obrigaria o negócio dele a caber no nosso vocabulário.
 model ProductPrice {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storeId     String    @map("store_id") @db.Uuid
-  productId   String    @map("product_id") @db.Uuid
-  variantId   String?   @map("variant_id") @db.Uuid
-  kind        String    @default("BASE")
-  label       String?
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId       String    @map("store_id") @db.Uuid
+  productId     String    @map("product_id") @db.Uuid
+  variantId     String?   @map("variant_id") @db.Uuid
+  kind          String    @default("BASE")
+  label         String?
   /// Centavos inteiros, sempre (P-005).
-  amountCents BigInt    @map("amount_cents")
+  amountCents   BigInt    @map("amount_cents")
   /// Preço de atacado que vale a partir de N unidades.
-  minQuantity Int       @default(1) @map("min_quantity")
-  currency    String    @default("BRL") @db.Char(3)
-  sortOrder   Int       @default(0) @map("sort_order")
-  startsAt    DateTime? @map("starts_at") @db.Timestamptz(6)
-  endsAt      DateTime? @map("ends_at") @db.Timestamptz(6)
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  minQuantity   Int       @default(1) @map("min_quantity")
+  /// Faixa de atacado com desconto (0064): 'PERCENT' ou 'AMOUNT'. Nulo = preço fixo.
+  discountKind  String?   @map("discount_kind")
+  /// Percentual inteiro (1 a 99) ou centavos por unidade.
+  discountValue BigInt?   @map("discount_value")
+  currency      String    @default("BRL") @db.Char(3)
+  sortOrder     Int       @default(0) @map("sort_order")
+  startsAt      DateTime? @map("starts_at") @db.Timestamptz(6)
+  endsAt        DateTime? @map("ends_at") @db.Timestamptz(6)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
   variante ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
@@ -1194,5 +1200,282 @@ model PrintPairingCode {
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("print_pairing_codes")
+  @@schema("app")
+}
+
+// ---------------------------------------------------------------------------
+// Card #25 — limites, trilha da plataforma, feed, favoritos e recentes.
+// Modelos só com colunas (sem relação): a leitura cruzada vai pelas funções
+// do banco, e nenhuma rota navega por relação nestas tabelas.
+// ---------------------------------------------------------------------------
+
+/// Os padrões de limite da plataforma: UMA linha (0051).
+model PlatformLimitDefaults {
+  id                    Int      @id @default(1) @db.SmallInt
+  maxStoresPerOwner     Int      @default(2) @map("max_stores_per_owner")
+  maxStaffPerStore      Int      @default(1) @map("max_staff_per_store")
+  maxProductsPerStore   Int      @default(500) @map("max_products_per_store")
+  maxCategoriesPerStore Int      @default(50) @map("max_categories_per_store")
+  maxCustomersPerStore  Int      @default(5000) @map("max_customers_per_store")
+  updatedAt             DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?  @map("updated_by") @db.Uuid
+
+  @@map("platform_limit_defaults")
+  @@schema("app")
+}
+
+/// O ajuste de limite de uma loja; coluna nula = vale o padrão (0051).
+model StoreLimits {
+  storeId       String   @id @map("store_id") @db.Uuid
+  maxStaff      Int?     @map("max_staff")
+  maxProducts   Int?     @map("max_products")
+  maxCategories Int?     @map("max_categories")
+  maxCustomers  Int?     @map("max_customers")
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+
+  @@map("store_limits")
+  @@schema("app")
+}
+
+/// O ajuste de quantas lojas um dono abre (0051).
+model OwnerLimits {
+  identityId String   @id @map("identity_id") @db.Uuid
+  maxStores  Int?     @map("max_stores")
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?  @map("updated_by") @db.Uuid
+
+  @@map("owner_limits")
+  @@schema("app")
+}
+
+/// Trilha imutável do que não é de loja nenhuma (0051).
+model AuditPlatform {
+  id         BigInt   @id @default(autoincrement())
+  actorId    String?  @map("actor_id") @db.Uuid
+  actorRole  String   @map("actor_role")
+  action     String
+  entity     String
+  entityId   String?  @map("entity_id")
+  beforeData Json?    @map("before_data") @db.JsonB
+  afterData  Json?    @map("after_data") @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("audit_platform")
+  @@schema("app")
+}
+
+/// O que foi publicado no feed: uma linha por produto (0050).
+model FeedPost {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId     String   @map("store_id") @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  // PRODUTO_NOVO ou PRODUTO_PUBLICADO.
+  kind        String
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("feed_posts")
+  @@schema("app")
+}
+
+/// Lojas favoritas de uma pessoa (0050).
+model FavoriteStore {
+  identityId String   @map("identity_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([identityId, storeId])
+  @@map("favorite_stores")
+  @@schema("app")
+}
+
+/// Visitas de uma pessoa às lojas — os "recentes" (0050).
+model StoreVisit {
+  identityId     String   @map("identity_id") @db.Uuid
+  storeId        String   @map("store_id") @db.Uuid
+  firstVisitedAt DateTime @default(now()) @map("first_visited_at") @db.Timestamptz(6)
+  lastVisitedAt  DateTime @default(now()) @map("last_visited_at") @db.Timestamptz(6)
+  visitCount     Int      @default(1) @map("visit_count")
+
+  @@id([identityId, storeId])
+  @@map("store_visits")
+  @@schema("app")
+}
+
+/// Produtos favoritos de uma pessoa (0061). Não expiram.
+model FavoriteProduct {
+  identityId String   @map("identity_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  productId  String   @map("product_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([identityId, productId])
+  @@index([identityId, createdAt(sort: Desc)], map: "favorite_products_recentes_ix")
+  @@index([storeId], map: "favorite_products_loja_ix")
+  @@map("favorite_products")
+  @@schema("app")
+}
+
+/// Vídeos do produto (0060). A ordem divide o `sort_order` das fotos.
+model ProductVideo {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId     String   @map("store_id") @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  url         String
+  // Chave no serviço de mídia: é com ela que o arquivo é apagado.
+  storageKey  String   @map("storage_key")
+  posterUrl   String?  @map("poster_url")
+  posterKey   String?  @map("poster_key")
+  // video/mp4 ou video/webm, conferido pelos bytes.
+  contentType String   @map("content_type")
+  sizeBytes   BigInt   @map("size_bytes")
+  durationMs  Int?     @map("duration_ms")
+  width       Int?
+  height      Int?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([storeId, productId, sortOrder], map: "product_videos_produto_ix")
+  @@map("product_videos")
+  @@schema("app")
+}
+
+/// Story da loja (0060): foto ou vídeo que dura 24 horas.
+model Story {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId     String   @map("store_id") @db.Uuid
+  // IMAGEM ou VIDEO.
+  kind        String
+  mediaUrl    String   @map("media_url")
+  storageKey  String   @map("storage_key")
+  posterUrl   String?  @map("poster_url")
+  contentType String   @map("content_type")
+  sizeBytes   BigInt   @map("size_bytes")
+  durationMs  Int?     @map("duration_ms")
+  width       Int?
+  height      Int?
+  caption     String?
+  // Caminho do próprio site (começa com "/").
+  link        String?
+  viewsCount  Int      @default(0) @map("views_count")
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt   DateTime @default(dbgenerated("(now() + '24:00:00'::interval)")) @map("expires_at") @db.Timestamptz(6)
+
+  @@index([storeId, expiresAt(sort: Desc)], map: "stories_ativos_ix")
+  @@index([expiresAt], map: "stories_vencimento_ix")
+  @@map("stories")
+  @@schema("app")
+}
+
+/// Quem viu cada story (0060): uma linha por pessoa.
+model StoryView {
+  storyId    String   @map("story_id") @db.Uuid
+  identityId String   @map("identity_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  viewedAt   DateTime @default(now()) @map("viewed_at") @db.Timestamptz(6)
+
+  @@id([storyId, identityId])
+  @@index([identityId, storyId], map: "story_views_pessoa_ix")
+  @@index([storeId, storyId], map: "story_views_loja_ix")
+  @@map("story_views")
+  @@schema("app")
+}
+
+/// Curtida de uma pessoa num produto (0062). Uma por pessoa e produto.
+model ProductLike {
+  identityId String   @map("identity_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  productId  String   @map("product_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([identityId, productId])
+  @@index([productId], map: "product_likes_produto_ix")
+  @@index([storeId], map: "product_likes_loja_ix")
+  @@map("product_likes")
+  @@schema("app")
+}
+
+/// Curtida de uma pessoa numa loja (0062).
+model StoreLike {
+  identityId String   @map("identity_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([identityId, storeId])
+  @@index([storeId], map: "store_likes_loja_ix")
+  @@map("store_likes")
+  @@schema("app")
+}
+
+/// Comentário num produto (ou na loja, sem produto), moderado pela loja (0062).
+model Comment {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId         String    @map("store_id") @db.Uuid
+  productId       String?   @map("product_id") @db.Uuid
+  identityId      String    @map("identity_id") @db.Uuid
+  // Nome curto do autor ("Ana R."), decidido pelo gatilho.
+  authorName      String    @map("author_name")
+  body            String
+  // PENDENTE, APROVADO ou RECUSADO.
+  status          String    @default("PENDENTE")
+  rejectionReason String?   @map("rejection_reason")
+  moderatedBy     String?   @map("moderated_by") @db.Uuid
+  moderatedAt     DateTime? @map("moderated_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([storeId, status, createdAt(sort: Desc)], map: "comments_loja_situacao_ix")
+  @@index([storeId, productId, status, createdAt(sort: Desc)], map: "comments_alvo_ix")
+  @@index([identityId, createdAt(sort: Desc)], map: "comments_autor_ix")
+  @@map("comments")
+  @@schema("app")
+}
+
+/// Pessoa que a loja bloqueou de comentar (0062).
+model CommentBlock {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  identityId String   @map("identity_id") @db.Uuid
+  authorName String   @map("author_name")
+  reason     String?
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([storeId, identityId], map: "comment_blocks_pessoa_uk")
+  @@map("comment_blocks")
+  @@schema("app")
+}
+
+/// Denúncia de um comentário (0062). Uma por pessoa e comentário.
+model CommentReport {
+  commentId  String   @map("comment_id") @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  identityId String   @map("identity_id") @db.Uuid
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([commentId, identityId])
+  @@index([storeId, commentId], map: "comment_reports_loja_ix")
+  @@map("comment_reports")
+  @@schema("app")
+}
+
+/// Aceite de documento legal numa versão, com IP e navegador (0073, card #79).
+/// Só acrescenta: serve de prova de consentimento e sobrevive à anonimização.
+model LegalAcceptance {
+  id         BigInt   @id @default(autoincrement())
+  identityId String   @map("identity_id") @db.Uuid
+  document   String
+  version    String
+  acceptedAt DateTime @default(now()) @map("accepted_at") @db.Timestamptz(6)
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  origin     String   @default("SIGNUP")
+
+  @@unique([identityId, document, version], map: "legal_acceptances_identity_doc_version_uk")
+  @@map("legal_acceptances")
   @@schema("app")
 }

@@ -1,0 +1,736 @@
+/*
+ * O convite final (ConviteFinal.tsx): a página fecha como a primeira tela
+ * abria — fundo preto com a luz verde-limão, o ✦ grande em 3D atrás dos
+ * aparelhos (MacBook, iPad e iPhone) e os balões de pedido flutuando.
+ *
+ * Só CSS: gradientes, máscaras e 3D (`preserve-3d`), sem canvas. Cor só de
+ * theme.css; espaços em múltiplos de 8.
+ *
+ * O PALCO é um contêiner (`container-type: inline-size`): cada peça tem
+ * posição e largura em `cqi` (1% da largura do palco), então a composição
+ * escala inteira, do celular ao monitor, sem cortar nada.
+ *
+ * TRÊS CAMADAS DE MOVIMENTO, cada uma numa propriedade, para não brigarem:
+ * - `translate` nas vagas: o parallax (mouse e rolagem), com as variáveis
+ *   que MovimentoDoConvite escreve; o ✦ GIRA com a rolagem (`transform`);
+ * - `transform` e `opacity` nas vagas: a entrada, quando a seção chega;
+ * - `animation` nos filhos: flutuar, cintilar a poeira.
+ * O que anda com o tempo só existe com `prefers-reduced-motion:
+ * no-preference`. Sem script, a seção não é armada e chega no estado final.
+ *
+ * Do menor para o maior: a base é o celular (texto em cima, palco embaixo); o
+ * computador põe o texto à esquerda e o palco à direita.
+ */
+
+.sc-lp-convite {
+  --convite-limao: var(--marca-verde-click);
+  --convite-preto: var(--lp-preto, var(--marca-preto-tecnologico));
+  --convite-curva: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* O formato do ✦, para recortar as camadas da estrela. */
+  --convite-forma: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 0C53 35 65 47 100 50C65 53 53 65 50 100C47 65 35 53 0 50C35 47 47 35 50 0Z'/%3E%3C/svg%3E");
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding-block: clamp(5rem, 10vw, 7rem) clamp(4rem, 8vw, 6rem);
+  background: var(--convite-preto);
+  color: var(--cor-tinta);
+  text-align: center;
+}
+
+/* --- o fundo: luz verde, pontos e poeira -------------------------------------- */
+
+.sc-lp-convite__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.sc-lp-convite__fundo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--lp-grao);
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+/* A luz: forte embaixo, atrás do palco, apagando para o preto em cima. */
+.sc-lp-convite__luz {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 46% at 50% 78%, color-mix(in oklab, var(--convite-limao) 30%, transparent), transparent 72%),
+    radial-gradient(60% 30% at 50% 100%, color-mix(in oklab, var(--convite-limao) 22%, transparent), transparent 80%),
+    linear-gradient(180deg, transparent 30%, color-mix(in oklab, var(--convite-limao) 8%, transparent));
+}
+
+.sc-lp-convite__pontos {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--cor-tinta) 16%, transparent) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 60%, black, transparent 78%);
+}
+
+.sc-lp-convite__poeira {
+  position: absolute;
+  inset-block-start: var(--y);
+  inset-inline-start: var(--x);
+  inline-size: 3px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--convite-limao);
+  box-shadow: 0 0 8px var(--convite-limao);
+  opacity: 0.55;
+}
+
+/* --- a grade da seção ---------------------------------------------------------- */
+
+.sc-lp-convite__dentro {
+  display: grid;
+  justify-items: center;
+  max-inline-size: var(--lp-largura, 74rem);
+  margin-inline: auto;
+  padding-inline: var(--lp-respiro, 1rem);
+}
+
+/* --- o texto ------------------------------------------------------------------------ */
+
+.sc-lp-convite__texto {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+}
+
+.sc-lp-convite__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(2.75rem, 1.4rem + 5.6vw, 5.25rem);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+/* "hoje" num bloco verde, texto escuro: o destaque de mais contraste. */
+.sc-lp-convite__hoje {
+  padding: 0 0.12em 0.04em;
+  border-radius: 0.16em;
+  background: var(--convite-limao);
+  color: var(--convite-preto);
+  box-shadow: 0 0 48px color-mix(in oklab, var(--convite-limao) 40%, transparent);
+  box-decoration-break: clone;
+}
+
+.sc-lp-convite__apoio {
+  max-inline-size: 34rem;
+  margin: 24px 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.sc-lp-convite__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-block-start: 40px;
+}
+
+.sc-lp-convite__acoes .sc-lp-botao {
+  min-block-size: 3.25rem;
+}
+
+.sc-lp-convite__garantias {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cor-tinta-suave);
+  font-size: 0.9375rem;
+}
+
+.sc-lp-convite__garantias li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sc-lp-convite__garantias svg {
+  color: var(--cor-primaria-texto);
+}
+
+/* --- o palco ------------------------------------------------------------------------- */
+
+/*
+ * Cada vaga tem `--x`, `--y` e `--w` (em cqi). No celular o palco é quase
+ * quadrado; no computador, mais largo que alto.
+ */
+.sc-lp-convite__palco {
+  position: relative;
+  container-type: inline-size;
+  inline-size: min(100%, 36rem);
+  aspect-ratio: 100 / 118;
+  margin-block-start: 56px;
+}
+
+.sc-lp-convite__camada {
+  position: absolute;
+  inset-block-start: calc(var(--y) * 1cqi);
+  inset-inline-start: calc(var(--x) * 1cqi);
+  inline-size: calc(var(--w, 0) * 1cqi);
+}
+
+.sc-lp-convite__vaga-estrela {
+  --x: 0;
+  --y: -4;
+  --w: 100;
+  z-index: 0;
+  perspective: 1200px;
+}
+
+.sc-lp-convite__vaga-estrelinha {
+  --x: 52;
+  --y: 100;
+  --w: 13;
+  z-index: 4;
+  perspective: 600px;
+}
+
+.sc-lp-convite__vaga-notebook {
+  --x: 4;
+  --y: 26;
+  --w: 92;
+  z-index: 1;
+}
+
+.sc-lp-convite__notebook {
+  inline-size: 100%;
+}
+
+.sc-lp-convite__vaga-ipad {
+  --x: 0;
+  --y: 72;
+  --w: 50;
+  z-index: 2;
+}
+
+.sc-lp-convite__vaga-celular {
+  --x: 69;
+  --y: 56;
+  --w: 28;
+  --largura-do-celular: 28cqi;
+  z-index: 3;
+}
+
+/* Os balões: largura do conteúdo, por cima de tudo. */
+.sc-lp-convite__balao-vaga {
+  z-index: 5;
+  inline-size: max-content;
+  perspective: 700px;
+}
+
+.sc-lp-convite__balao--confirmado {
+  --x: 44;
+  --y: 4;
+}
+
+.sc-lp-convite__balao--novo {
+  --x: 2;
+  --y: 18;
+}
+
+.sc-lp-convite__balao--produto,
+.sc-lp-convite__balao--entrega {
+  display: none;
+}
+
+/* --- o ✦ em 3D ------------------------------------------------------------------------ */
+
+/*
+ * Camadas iguais, recortadas no formato do ✦, empilhadas para trás
+ * (`translateZ`), cada uma um pouco mais escura: a espessura. A face vai na
+ * frente, com luz de estúdio. Gira com a rolagem e com o mouse.
+ */
+.sc-lp-convite__estrela {
+  --passo: 0.36cqi;
+  position: relative;
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(16deg - var(--convite-y, 0) * 10deg))
+    rotateY(calc(-16deg + var(--convite-rolagem, 0) * 64deg + var(--convite-x, 0) * 14deg))
+    rotateZ(calc(-6deg + var(--convite-rolagem, 0) * -16deg));
+}
+
+.sc-lp-convite__estrela--pequena {
+  --passo: 0.12cqi;
+  transform:
+    rotateX(calc(20deg - var(--convite-y, 0) * 14deg))
+    rotateY(calc(32deg - var(--convite-rolagem, 0) * 80deg + var(--convite-x, 0) * 20deg))
+    rotateZ(calc(12deg + var(--convite-rolagem, 0) * 24deg));
+}
+
+.sc-lp-convite__estrela-camada,
+.sc-lp-convite__estrela-face {
+  position: absolute;
+  inset: 0;
+  mask: var(--convite-forma) center / 100% 100% no-repeat;
+}
+
+.sc-lp-convite__estrela-camada {
+  background: color-mix(in oklab, var(--convite-limao) calc(74% - var(--i) * 2.5%), black);
+  transform: translateZ(calc(var(--i) * var(--passo) * -1));
+}
+
+.sc-lp-convite__estrela-face {
+  background:
+    radial-gradient(42% 34% at 36% 30%, color-mix(in oklab, var(--marca-branco) 70%, transparent), transparent 70%),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--convite-limao) 55%, var(--marca-branco)) 0%,
+      var(--convite-limao) 36%,
+      color-mix(in oklab, var(--convite-limao) 82%, black) 68%,
+      color-mix(in oklab, var(--convite-limao) 60%, black) 100%
+    );
+}
+
+/* A luz que o ✦ joga no fundo. */
+.sc-lp-convite__vaga-estrela::before,
+.sc-lp-convite__vaga-estrelinha::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--convite-limao) 34%, transparent), transparent);
+  filter: blur(24px);
+}
+
+/* --- o iPad ------------------------------------------------------------------------------ */
+
+.sc-lp-convite__ipad {
+  --ipad-claro: color-mix(in oklab, var(--marca-cinza-ui) 72%, var(--marca-branco));
+  --ipad-medio: color-mix(in oklab, var(--marca-cinza-ui) 48%, var(--marca-grafite));
+  --ipad-escuro: color-mix(in oklab, var(--marca-cinza-ui) 14%, var(--marca-grafite));
+  padding: 1.1%;
+  border-radius: 5% / 6.6%;
+  background: linear-gradient(160deg, var(--ipad-claro), var(--ipad-medio) 30%, var(--ipad-escuro) 70%, var(--ipad-medio));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--marca-branco) 30%, transparent),
+    0 0 0 1px color-mix(in oklab, black 60%, transparent),
+    0 2.4cqi 5cqi -1cqi color-mix(in oklab, black 80%, transparent);
+}
+
+.sc-lp-convite__ipad-vidro {
+  position: relative;
+  padding: 3.4%;
+  border-radius: 4.2% / 5.6%;
+  background: color-mix(in oklab, var(--marca-preto-tecnologico) 70%, black);
+}
+
+.sc-lp-convite__ipad-camera {
+  position: absolute;
+  inset-block-start: 1.4%;
+  inset-inline-start: 50%;
+  inline-size: 1.2%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--marca-grafite) 70%, black);
+  transform: translateX(-50%);
+}
+
+.sc-lp-convite__ipad-tela {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 2% / 2.7%;
+  background: var(--marca-grafite);
+}
+
+/* A tela do painel é 16:10; no iPad (4:3) fica o lado esquerdo, com o menu. */
+.sc-lp-convite__ipad-tela img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: left top;
+}
+
+/* O reflexo do vidro. */
+.sc-lp-convite__ipad-tela::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, color-mix(in oklab, var(--marca-branco) 9%, transparent) 0%, transparent 32%);
+  pointer-events: none;
+}
+
+/* --- os balões de pedido ------------------------------------------------------------------ */
+
+.sc-lp-convite__balao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.7em 1.2em 0.7em 0.7em;
+  border: 2px solid color-mix(in oklab, var(--convite-limao) 80%, transparent);
+  border-radius: 1.1em;
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--convite-limao) 16%, var(--convite-preto)),
+    color-mix(in oklab, var(--convite-preto) 92%, transparent)
+  );
+  box-shadow:
+    0 1.4em 2.4em -0.8em color-mix(in oklab, black 85%, transparent),
+    0 0 2.4em -0.4em color-mix(in oklab, var(--convite-limao) 40%, transparent);
+  font-size: clamp(11px, 3.2cqi, 15px);
+  line-height: 1.2;
+  text-align: start;
+  white-space: nowrap;
+  transform: rotateY(-20deg) rotateX(10deg) rotateZ(-4deg);
+}
+
+.sc-lp-convite__balao--entrega .sc-lp-convite__balao,
+.sc-lp-convite__balao--produto .sc-lp-convite__balao {
+  transform: rotateY(18deg) rotateX(8deg) rotateZ(3deg);
+}
+
+.sc-lp-convite__icone {
+  display: grid;
+  place-items: center;
+  inline-size: 2.4em;
+  aspect-ratio: 1;
+  border-radius: 0.6em;
+  background: var(--convite-limao);
+  box-shadow: inset 0 -0.15em 0 color-mix(in oklab, black 22%, transparent);
+}
+
+.sc-lp-convite__icone svg {
+  inline-size: 1.25em;
+  block-size: 1.25em;
+  fill: var(--convite-preto);
+}
+
+.sc-lp-convite__balao-texto {
+  display: grid;
+  gap: 0.15em;
+}
+
+.sc-lp-convite__balao-texto strong {
+  color: var(--marca-branco);
+  font-family: var(--fonte-titulo);
+  font-size: 1.2em;
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+}
+
+.sc-lp-convite__balao-texto span {
+  color: var(--cor-primaria-texto);
+  font-weight: 600;
+}
+
+/* "Novo pedido": a pílula verde cheia, a notificação que acabou de chegar. */
+.sc-lp-convite__pilula {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 1.1em;
+  border-radius: 999px;
+  background: var(--convite-limao);
+  color: var(--convite-preto);
+  box-shadow:
+    0 0.8em 1.8em -0.6em color-mix(in oklab, black 80%, transparent),
+    0 0 2em -0.2em color-mix(in oklab, var(--convite-limao) 55%, transparent);
+  font-size: clamp(11px, 3cqi, 15px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* --- tablet: palco maior, todos os balões ------------------------------------------- */
+
+@media (min-width: 600px) {
+  .sc-lp-convite__palco {
+    inline-size: min(100%, 40rem);
+    aspect-ratio: 100 / 112;
+  }
+
+  .sc-lp-convite__balao--entrega {
+    --x: 40;
+    --y: 100;
+    display: block;
+  }
+
+  .sc-lp-convite__vaga-estrelinha {
+    --x: 30;
+    --y: 96;
+  }
+}
+
+/* --- computador: texto à esquerda, palco à direita ---------------------------------- */
+
+@media (min-width: 1024px) {
+  .sc-lp-convite {
+    padding-block: clamp(5rem, 7vw, 7rem);
+    text-align: start;
+  }
+
+  .sc-lp-convite__luz {
+    background:
+      radial-gradient(52% 64% at 74% 58%, color-mix(in oklab, var(--convite-limao) 28%, transparent), transparent 72%),
+      radial-gradient(40% 40% at 90% 100%, color-mix(in oklab, var(--convite-limao) 20%, transparent), transparent 80%),
+      linear-gradient(120deg, transparent 40%, color-mix(in oklab, var(--convite-limao) 8%, transparent));
+  }
+
+  .sc-lp-convite__pontos {
+    mask-image: radial-gradient(ellipse 60% 80% at 70% 50%, black, transparent 78%);
+  }
+
+  .sc-lp-convite__dentro {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: center;
+    justify-items: start;
+    column-gap: 40px;
+  }
+
+  .sc-lp-convite__texto {
+    justify-items: start;
+  }
+
+  .sc-lp-convite__acoes,
+  .sc-lp-convite__garantias {
+    justify-content: flex-start;
+  }
+
+  .sc-lp-convite__palco {
+    justify-self: stretch;
+    inline-size: 100%;
+    aspect-ratio: 100 / 86;
+    margin-block-start: 0;
+  }
+
+  .sc-lp-convite__vaga-estrela {
+    --x: 4;
+    --y: -14;
+    --w: 100;
+  }
+
+  .sc-lp-convite__vaga-notebook {
+    --x: 12;
+    --y: 15;
+    --w: 76;
+  }
+
+  .sc-lp-convite__vaga-ipad {
+    --x: 0;
+    --y: 50;
+    --w: 40;
+  }
+
+  .sc-lp-convite__vaga-celular {
+    --x: 71;
+    --y: 37;
+    --w: 20;
+    --largura-do-celular: 20cqi;
+  }
+
+  .sc-lp-convite__vaga-estrelinha {
+    --x: 45;
+    --y: 70;
+    --w: 10;
+  }
+
+  .sc-lp-convite__balao-vaga .sc-lp-convite__balao {
+    font-size: clamp(12px, 2cqi, 16px);
+  }
+
+  .sc-lp-convite__pilula {
+    font-size: clamp(12px, 1.8cqi, 15px);
+  }
+
+  .sc-lp-convite__balao--produto {
+    --x: 0;
+    --y: 4;
+    display: block;
+  }
+
+  .sc-lp-convite__balao--confirmado {
+    --x: 62;
+    --y: 0;
+  }
+
+  .sc-lp-convite__balao--novo {
+    --x: 50;
+    --y: 12;
+  }
+
+  .sc-lp-convite__balao--entrega {
+    --x: 48;
+    --y: 77;
+  }
+}
+
+/* --- movimento (só para quem aceita) ---------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-lp-convite__camada {
+    --p: 1;
+    translate:
+      calc(var(--convite-x, 0) * var(--p) * 10px)
+      calc(var(--convite-y, 0) * var(--p) * 8px + var(--convite-rolagem, 0) * var(--p) * 28px);
+    transition:
+      translate 900ms var(--convite-curva),
+      transform 1100ms var(--convite-curva) var(--atraso-da-entrada, 0ms),
+      opacity 900ms ease-out var(--atraso-da-entrada, 0ms);
+  }
+
+  .sc-lp-convite__camada[data-profundidade="2"] {
+    --p: 2;
+  }
+
+  .sc-lp-convite__camada[data-profundidade="3"] {
+    --p: 3;
+  }
+
+  /* O ✦ segue a rolagem e o mouse com um atraso macio. */
+  .sc-lp-convite__estrela {
+    transition: transform 1000ms var(--convite-curva);
+  }
+
+  .sc-lp-convite__flutua {
+    animation: sc-lp-convite-flutua 7s ease-in-out infinite alternate;
+  }
+
+  .sc-lp-convite__flutua--meio {
+    animation-duration: 8s;
+    animation-delay: -2s;
+  }
+
+  .sc-lp-convite__flutua--devagar {
+    animation-duration: 9s;
+    animation-delay: -4s;
+  }
+
+  .sc-lp-convite__flutua--balao {
+    animation-duration: 5.5s;
+  }
+
+  .sc-lp-convite__balao--confirmado .sc-lp-convite__flutua {
+    animation-delay: -1.5s;
+  }
+
+  .sc-lp-convite__balao--entrega .sc-lp-convite__flutua {
+    animation-delay: -3s;
+  }
+
+  .sc-lp-convite__poeira {
+    animation: sc-lp-convite-poeira 9s ease-in-out var(--atraso) infinite;
+  }
+
+  /* A entrada: armada pelo script, disparada quando a seção aparece. */
+  .sc-lp-convite[data-convite="armado"] .sc-lp-convite__camada {
+    opacity: 0;
+    transform: translateY(64px) scale(0.94);
+  }
+
+  .sc-lp-convite[data-convite="armado"] .sc-lp-convite__vaga-estrela,
+  .sc-lp-convite[data-convite="armado"] .sc-lp-convite__vaga-estrelinha {
+    transform: scale(0.4) rotate(-40deg);
+  }
+
+  .sc-lp-convite[data-convite="armado"] .sc-lp-convite__balao-vaga {
+    transform: translateY(24px) scale(0.7);
+  }
+
+  .sc-lp-convite[data-convite="armado"] .sc-lp-convite__texto > * {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .sc-lp-convite__texto > * {
+    transition:
+      transform 800ms var(--convite-curva) var(--atraso-da-entrada, 0ms),
+      opacity 700ms ease-out var(--atraso-da-entrada, 0ms);
+  }
+
+  .sc-lp-convite__apoio {
+    --atraso-da-entrada: 100ms;
+  }
+
+  .sc-lp-convite__acoes {
+    --atraso-da-entrada: 200ms;
+  }
+
+  .sc-lp-convite__garantias {
+    --atraso-da-entrada: 280ms;
+  }
+
+  .sc-lp-convite__vaga-estrela {
+    transition-duration: 900ms, 1600ms, 1200ms;
+  }
+
+  .sc-lp-convite__vaga-notebook {
+    --atraso-da-entrada: 150ms;
+  }
+
+  .sc-lp-convite__vaga-ipad {
+    --atraso-da-entrada: 280ms;
+  }
+
+  .sc-lp-convite__vaga-celular {
+    --atraso-da-entrada: 380ms;
+  }
+
+  .sc-lp-convite__vaga-estrelinha {
+    --atraso-da-entrada: 500ms;
+  }
+
+  .sc-lp-convite__balao--novo {
+    --atraso-da-entrada: 650ms;
+  }
+
+  .sc-lp-convite__balao--confirmado {
+    --atraso-da-entrada: 780ms;
+  }
+
+  .sc-lp-convite__balao--produto {
+    --atraso-da-entrada: 900ms;
+  }
+
+  .sc-lp-convite__balao--entrega {
+    --atraso-da-entrada: 1020ms;
+  }
+}
+
+@keyframes sc-lp-convite-flutua {
+  from {
+    transform: translateY(-8px);
+  }
+
+  to {
+    transform: translateY(10px);
+  }
+}
+
+@keyframes sc-lp-convite-poeira {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  90% {
+    opacity: 0;
+    transform: translateY(-48px);
+  }
+}

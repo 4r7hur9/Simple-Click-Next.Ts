@@ -18,6 +18,8 @@ import {
 import { Botao, Campo, Erro, Sucesso } from "@simpleclick/ui";
 import { useState, type FormEvent } from "react";
 
+import { INFO_DO_NOVO_APELIDO } from "./explicacoes.ts";
+
 type EstadoDaTroca =
   | { readonly estado: "parado" }
   | { readonly estado: "trocando" }
@@ -101,12 +103,12 @@ export function EnderecoDaLoja({
     <div className="grid gap-4">
       <p>
         Endereço atual:{" "}
-        <strong className="font-mono">/l/{ficha.apelido}</strong>
+        <strong className="font-mono">/loja/{ficha.apelido}</strong>
       </p>
       {troca.estado === "trocado" && (
         <Sucesso
-          titulo={`Endereço trocado para /l/${ficha.apelido}`}
-          descricao={`Quem abrir o link antigo, /l/${troca.antigo}, é levado ao endereço novo.`}
+          titulo={`Endereço trocado para /loja/${ficha.apelido}`}
+          descricao={`Quem abrir o link antigo, /loja/${troca.antigo}, é levado ao endereço novo.`}
         />
       )}
       {troca.estado === "falhou" && (
@@ -116,15 +118,16 @@ export function EnderecoDaLoja({
         noValidate
         onSubmit={aoEnviar}
         aria-label="Troca do endereço da loja"
-        className="grid gap-3"
+        className="grid gap-4"
       >
         <Campo
           id="ficha-apelido"
           name="apelido"
           rotulo="Novo endereço na web"
+          info={INFO_DO_NOVO_APELIDO}
           value={apelido}
           erro={erro}
-          dica="O endereço antigo continua funcionando: quem abrir o link que o lojista já divulgou é levado ao novo."
+          dica="Só letras minúsculas, números e hífen. Ex.: pastel-da-joi vira /loja/pastel-da-joi. O endereço antigo continua funcionando e leva ao novo."
           autoComplete="off"
           onChange={(evento) => {
             setApelido(evento.target.value);

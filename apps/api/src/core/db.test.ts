@@ -470,7 +470,6 @@ describe("consulta pelo caminho único sem contexto de loja", () => {
         configuracoes: await tx.storeSettings.count(),
         vinculos: await tx.storeMember.count(),
         clientes: await tx.storeCustomer.count(),
-        dominios: await tx.storeDomain.count(),
       }));
 
       expect(vistos).toEqual({
@@ -479,7 +478,6 @@ describe("consulta pelo caminho único sem contexto de loja", () => {
         configuracoes: 0,
         vinculos: 0,
         clientes: 0,
-        dominios: 0,
       });
     },
     ESPERA_LONGA,

@@ -140,7 +140,6 @@ exceções são fechadas, revisadas e justificadas uma a uma:
 | ----------------------- | ----------------------------------------------------------------- |
 | `stores_slug_uk`        | apelido é chave de roteamento público                             |
 | `stores_code_uk`        | código é a busca da administração                                 |
-| `store_domains_host_uk` | endereço é chave de roteamento, resolvida antes de haver contexto |
 | `identities_email_uk`   | única chave única global de dado pessoal, enumerável por desenho  |
 
 A guarda `g3_unica_por_loja.sql` carrega esta lista, e mais

@@ -152,3 +152,114 @@ describe("o total do item é inteiro (AC-311)", () => {
     expect(precoAplicavel([preco({ ativo: false })], AGORA, 1)).toBeNull();
   });
 });
+
+describe("faixas de atacado com desconto (card #53)", () => {
+  const faixa = (
+    quantidadeMinima: number,
+    tipoDeDesconto: "PERCENTUAL" | "VALOR",
+    desconto: number,
+    extra: Partial<PrecoCadastrado> = {},
+  ) =>
+    preco({
+      tipo: "WHOLESALE",
+      valorEmCentavos: 0,
+      quantidadeMinima,
+      tipoDeDesconto,
+      desconto,
+      ...extra,
+    });
+
+  const crescente = [
+    preco(),
+    faixa(10, "PERCENTUAL", 5),
+    faixa(50, "PERCENTUAL", 10),
+    faixa(100, "PERCENTUAL", 15),
+  ];
+
+  it("sem faixa, o item não traz atacado", () => {
+    expect(precoAplicavel([preco()], AGORA, 30)?.atacado).toBeNull();
+  });
+
+  it("abaixo da menor faixa vale o varejo, e o item diz o pedido mínimo e quanto falta", () => {
+    const cobrado = precoAplicavel(crescente, AGORA, 7);
+    expect(cobrado?.tipo).toBe("BASE");
+    expect(cobrado?.unitarioEmCentavos).toBe(2000);
+    expect(cobrado?.atacado?.pedidoMinimo).toBe(10);
+    expect(cobrado?.atacado?.faixaAplicada).toBeNull();
+    expect(cobrado?.atacado?.faltamParaProxima).toBe(3);
+  });
+
+  it("a faixa de valor zero no banco nunca vira preço de graça", () => {
+    const cobrado = precoAplicavel(crescente, AGORA, 50);
+    expect(cobrado?.unitarioEmCentavos).toBe(1800);
+    expect(cobrado?.totalEmCentavos).toBe(90_000);
+    expect(cobrado?.tipo).toBe("WHOLESALE");
+    expect(cobrado?.anteriorEmCentavos).toBe(2000);
+    expect(cobrado?.motivo).toBe(
+      "Atacado: 10% de desconto a partir de 50 unidades, e você está levando 50.",
+    );
+    expect(cobrado?.atacado?.proximaFaixa?.quantidadeMinima).toBe(100);
+    expect(cobrado?.atacado?.faltamParaProxima).toBe(50);
+    expect(cobrado?.atacado?.economiaEmCentavos).toBe(10_000);
+  });
+
+  it("o desconto incide sobre a promoção que vale agora", () => {
+    const comPromo = [
+      ...crescente,
+      preco({ tipo: "PROMO", valorEmCentavos: 1600 }),
+    ];
+    const cobrado = precoAplicavel(comPromo, AGORA, 10);
+    // 1600 − 5% = 1520.
+    expect(cobrado?.unitarioEmCentavos).toBe(1520);
+    expect(cobrado?.anteriorEmCentavos).toBe(1600);
+  });
+
+  it("desconto em reais com o nome do dono", () => {
+    const cobrado = precoAplicavel(
+      [preco(), faixa(12, "VALOR", 250, { rotulo: "Caixa fechada" })],
+      AGORA,
+      12,
+    );
+    expect(cobrado?.unitarioEmCentavos).toBe(1750);
+    expect(cobrado?.rotulo).toBe("Caixa fechada");
+    expect(cobrado?.motivo).toContain("R$ 2,50 de desconto a partir de 12");
+  });
+
+  it("desconto em reais maior que a promoção é ignorado: vale a promoção", () => {
+    const cobrado = precoAplicavel(
+      [
+        preco(),
+        preco({ tipo: "PROMO", valorEmCentavos: 400 }),
+        faixa(10, "VALOR", 500),
+      ],
+      AGORA,
+      20,
+    );
+    expect(cobrado?.tipo).toBe("PROMO");
+    expect(cobrado?.unitarioEmCentavos).toBe(400);
+    expect(cobrado?.atacado).toBeNull();
+  });
+
+  it("faixa desligada ou fora da janela não vale", () => {
+    const desligada = [preco(), faixa(10, "PERCENTUAL", 5, { ativo: false })];
+    expect(precoAplicavel(desligada, AGORA, 10)?.unitarioEmCentavos).toBe(2000);
+    const vencida = [
+      preco(),
+      faixa(10, "PERCENTUAL", 5, {
+        terminaEm: new Date("2026-09-26T14:00:00Z"),
+      }),
+    ];
+    expect(precoAplicavel(vencida, AGORA, 10)?.atacado).toBeNull();
+  });
+
+  it("entre o atacado antigo de preço fixo e a faixa, vale o mais barato", () => {
+    const misto = [
+      preco(),
+      preco({ tipo: "WHOLESALE", valorEmCentavos: 1700, quantidadeMinima: 6 }),
+      faixa(10, "PERCENTUAL", 10),
+    ];
+    expect(precoAplicavel(misto, AGORA, 8)?.unitarioEmCentavos).toBe(1700);
+    expect(precoAplicavel(misto, AGORA, 10)?.unitarioEmCentavos).toBe(1700);
+    expect(precoAplicavel(misto, AGORA, 6)?.atacado?.faltamParaProxima).toBe(4);
+  });
+});

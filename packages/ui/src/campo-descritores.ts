@@ -7,11 +7,14 @@
 export function descritoresDoCampo(
   id: string,
   {
+    info = false,
     dica,
     erro,
     sucesso,
     carregando = false,
   }: {
+    /** Há um "i" (Info) com o mesmo `id` do campo. */
+    info?: boolean | undefined;
     dica?: string | undefined;
     erro?: string | undefined;
     sucesso?: string | undefined;
@@ -19,6 +22,7 @@ export function descritoresDoCampo(
   },
 ): string[] {
   return [
+    info && `${id}-info`,
     dica !== undefined && `${id}-dica`,
     erro !== undefined && `${id}-erro`,
     erro === undefined && sucesso !== undefined && `${id}-sucesso`,

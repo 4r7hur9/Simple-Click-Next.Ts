@@ -43,7 +43,7 @@ export default async function PaginaDeRecuperacaoDeSenha({
     <CascaDaConta
       identificadorDoTitulo="recuperar-titulo"
       titulo="Esqueceu sua senha?"
-      descricao="Informe seu e-mail e enviaremos as instruções para continuar."
+      descricao="Informe o e-mail da sua conta e enviaremos um link para criar uma senha nova."
       etiqueta="Recuperar acesso"
     >
       <div className="sc-conta__form">
@@ -70,7 +70,8 @@ export default async function PaginaDeRecuperacaoDeSenha({
         </form>
       </div>
       <p className="sc-conta__rodape-formulario">
-        Lembrou a senha? <a href="/entrar">Entrar</a>
+        Lembrou a senha? <a href="/entrar">Entrar</a> · Não tem conta?{" "}
+        <a href="/cadastrar">Criar conta</a>
       </p>
     </CascaDaConta>
   );

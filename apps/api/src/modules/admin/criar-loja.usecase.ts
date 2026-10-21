@@ -31,7 +31,7 @@ export interface LojaGravada {
   readonly id: string;
   readonly codigo: string;
   readonly apelido: string;
-  readonly status: "PENDING" | "ACTIVE" | "SUSPENDED" | "DELETED";
+  readonly status: "PENDING_APPROVAL" | "ACTIVE" | "REJECTED" | "INACTIVE" | "DELETED";
 }
 
 /** O que a gravação recebe: o cadastro, o convite e quem cadastrou. */

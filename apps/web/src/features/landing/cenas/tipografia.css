@@ -1,0 +1,493 @@
+/*
+ * A linguagem tipográfica das cenas (cenas/TextoDaCena.tsx). Carregada depois
+ * de cenas.css, que cuida do palco e dos aparelhos; aqui só texto e cor.
+ *
+ * HIERARQUIA, de cima para baixo:
+ * 1. etiqueta: número grande em contorno, na cor da cena, + rótulo em pílula;
+ * 2. título: peso médio, com a PALAVRA-CHAVE em peso forte e na cor da cena;
+ * 3. apoio: claro e legível (AA com folga), o benefício em negrito branco;
+ * 4. detalhe: checks, trilha ou etapas, pequenos e na cor da cena.
+ *
+ * O ACENTO: cada cena diz a sua cor em `data-acento` (limão, âmbar, brasa,
+ * aço). Dentro da cena ela vira `--lp-acento`; a narrativa inteira acompanha a
+ * cena ativa (`data-atual`, posto por cenas-em-slide.ts) em
+ * `--lp-acento-da-vez`, que tinge a luz do fundo, o brilho atrás do aparelho e
+ * o indicador. Contraste: todas as cores do acento passam de 6:1 sobre o fundo
+ * escuro da landing.
+ *
+ * MOVIMENTO: o estado parado é o final (destaque aceso). A animação só existe
+ * com `prefers-reduced-motion: no-preference` e começa quando a cena ganha
+ * `data-atual` (o herói, ao carregar). Sem script, nada se mexe e tudo está lá.
+ */
+
+@property --lp-acento-da-vez {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #b7ff00;
+}
+
+.sc-lp-narrativa {
+  --lp-limao: var(--marca-verde-click);
+  --lp-ambar: var(--cor-atencao);
+  --lp-brasa: #ff7a33;
+  --lp-aco: #8fb9e3;
+  --lp-acento-da-vez: var(--lp-limao);
+  transition: --lp-acento-da-vez 900ms var(--lp-curva);
+}
+
+/* O acento de cada cena: a cor e o degradê que acende a palavra. */
+.sc-lp-momento,
+.sc-lp-momento[data-acento="limao"] {
+  --lp-acento: var(--lp-limao);
+  --lp-acento-gradiente: linear-gradient(100deg, var(--marca-verde-click) 20%, #dcff8a 60%, var(--marca-verde-click) 95%);
+}
+
+.sc-lp-momento[data-acento="ambar"] {
+  --lp-acento: var(--lp-ambar);
+  --lp-acento-gradiente: linear-gradient(100deg, #f2b33d 10%, #ffd88f 55%, #f2be5c 95%);
+}
+
+.sc-lp-momento[data-acento="brasa"] {
+  --lp-acento: var(--lp-brasa);
+  --lp-acento-gradiente: linear-gradient(100deg, #ff5a1f 0%, #ff8a33 40%, #ffc15c 100%);
+}
+
+.sc-lp-momento[data-acento="aco"] {
+  --lp-acento: var(--lp-aco);
+  --lp-acento-gradiente: linear-gradient(100deg, #7ea9d6 0%, #e6eef7 42%, #a9c7e6 58%, #6f9cc8 100%);
+}
+
+/* A narrativa acompanha a cena ativa. */
+.sc-lp-narrativa:has(.sc-lp-momento[data-atual][data-acento="ambar"]) {
+  --lp-acento-da-vez: var(--lp-ambar);
+}
+
+.sc-lp-narrativa:has(.sc-lp-momento[data-atual][data-acento="brasa"]) {
+  --lp-acento-da-vez: var(--lp-brasa);
+}
+
+.sc-lp-narrativa:has(.sc-lp-momento[data-atual][data-acento="aco"]) {
+  --lp-acento-da-vez: var(--lp-aco);
+}
+
+/* --- escala ------------------------------------------------------------------ */
+
+/* Título em peso médio: a palavra-chave, em peso forte, é o que salta. */
+.sc-lp-heroi__titulo,
+.sc-lp-momento__titulo {
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+/* Cenas do notebook: a coluna do texto é estreita; o título desce um degrau
+   para não virar uma palavra por linha. */
+@media (min-width: 900px) {
+  .sc-lp-narrativa .sc-lp-momento--largo .sc-lp-momento__titulo {
+    font-size: clamp(2rem, 0.9rem + 2.6vw, 3.25rem);
+    line-height: 1.02;
+  }
+}
+
+/* O apoio: mais claro que o cinza da base, ainda abaixo do título. */
+.sc-lp-heroi__texto,
+.sc-lp-momento__texto-corrido {
+  color: color-mix(in oklab, var(--cor-tinta) 76%, var(--cor-fundo));
+  font-size: clamp(1rem, 0.94rem + 0.3vw, 1.1875rem);
+  line-height: 1.55;
+}
+
+.sc-lp-apoio__forte {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+/* --- etiqueta: número em contorno + rótulo em pílula -------------------------- */
+
+.sc-lp-etiqueta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0 0 clamp(16px, 2.6svh, 28px);
+}
+
+.sc-lp-etiqueta__numero {
+  display: inline-block;
+  overflow: clip;
+  /* A máscara do número que sobe; o respiro não corta o contorno. */
+  padding: 0.04em 0.02em;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 3rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+
+.sc-lp-etiqueta__numero > span {
+  display: block;
+  color: transparent;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--lp-acento) 34%, transparent), transparent 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1.25px var(--lp-acento);
+}
+
+.sc-lp-etiqueta__rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 2rem;
+  padding: 4px 14px 4px 12px;
+  border: 1px solid color-mix(in oklab, var(--lp-acento) 42%, transparent);
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--lp-acento) 9%, transparent);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* O traço antes do rótulo; no herói (sem número), um ponto aceso. */
+.sc-lp-etiqueta__rotulo::before {
+  content: "";
+  flex: none;
+  inline-size: 16px;
+  block-size: 2px;
+  border-radius: 1px;
+  background: var(--lp-acento);
+}
+
+.sc-lp-etiqueta__rotulo:only-child::before {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--lp-acento) 24%, transparent);
+}
+
+.sc-lp-etiqueta__rotulo .sc-lp-destaque {
+  font-weight: 700;
+}
+
+/* --- destaque: a palavra-chave ----------------------------------------------- */
+
+/* A palavra-chave e a pontuação logo depois dela nunca se separam. */
+.sc-lp-junto {
+  white-space: nowrap;
+}
+
+.sc-lp-destaque {
+  color: var(--lp-acento);
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* "acende": o degradê da cena pinta a palavra, com um brilho leve. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .sc-lp-destaque[data-efeito="acende"] {
+    color: transparent;
+    background-image: var(--lp-acento-gradiente), linear-gradient(var(--cor-tinta), var(--cor-tinta));
+    background-repeat: no-repeat;
+    background-size:
+      100% 100%,
+      100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
+/* "sublinhado": um traço de pincel embaixo da palavra. */
+.sc-lp-destaque[data-efeito="sublinhado"] {
+  position: relative;
+  z-index: 0;
+}
+
+.sc-lp-destaque[data-efeito="sublinhado"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: -0.04em;
+  inset-block-end: 0.02em;
+  z-index: -1;
+  block-size: 0.13em;
+  background: var(--lp-acento);
+  opacity: 0.55;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'%3E%3Cpath d='M3 11C46 5 118 3 197 7' stroke='%23000' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'%3E%3Cpath d='M3 11C46 5 118 3 197 7' stroke='%23000' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
+
+/* "marcador": marca-texto na cor da cena, letra escura por cima. */
+.sc-lp-destaque[data-efeito="marcador"] {
+  padding: 0 0.12em;
+  margin-inline: -0.04em;
+  border-radius: 0.14em;
+  background: linear-gradient(var(--lp-acento), var(--lp-acento)) no-repeat 0 0 / 100% 100%;
+  color: var(--marca-preto-tecnologico);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* --- detalhes: checks, trilha e etapas ---------------------------------------- */
+
+.sc-lp-beneficios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(16px, 2.6svh, 32px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-lp-beneficios li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 2rem;
+  padding: 4px 12px 4px 10px;
+  border: 1px solid color-mix(in oklab, var(--cor-tinta) 14%, transparent);
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--cor-tinta) 4%, transparent);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: 1.2;
+}
+
+.sc-lp-beneficios svg,
+.sc-lp-heroi__garantias svg {
+  flex: none;
+  color: var(--lp-acento);
+}
+
+.sc-lp-heroi__garantias {
+  color: color-mix(in oklab, var(--cor-tinta) 82%, var(--cor-fundo));
+}
+
+/* A trilha do painel: o pedido anda de etapa em etapa até sair para entrega. */
+.sc-lp-trilha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: clamp(16px, 2.6svh, 32px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-lp-trilha li {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 2rem;
+  padding: 4px 12px;
+  border: 1px solid color-mix(in oklab, var(--cor-tinta) 14%, transparent);
+  border-radius: var(--raio-completo);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.sc-lp-trilha li::before {
+  content: "";
+  flex: none;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--lp-acento) 70%, transparent);
+}
+
+/* A seta entre as etapas, no vão (quando a trilha quebra, fica no fim da linha). */
+.sc-lp-trilha li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -16px;
+  inset-block-start: 50%;
+  inline-size: 7px;
+  block-size: 7px;
+  border-block-start: 1.5px solid var(--lp-acento);
+  border-inline-end: 1.5px solid var(--lp-acento);
+  translate: 0 -50%;
+  rotate: 45deg;
+}
+
+.sc-lp-trilha li:last-child {
+  border-color: color-mix(in oklab, var(--lp-acento) 60%, transparent);
+  background: color-mix(in oklab, var(--lp-acento) 12%, transparent);
+}
+
+.sc-lp-trilha li:last-child::before {
+  background: var(--lp-acento);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--lp-acento) 26%, transparent);
+}
+
+/* As etapas do pedido (a narrativa marca a ativa): número em bolinha. */
+.sc-lp-etapas li {
+  min-block-size: 2.5rem;
+  padding-inline: 8px 16px;
+  color: var(--cor-tinta);
+}
+
+.sc-lp-etapas li::before {
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--cor-tinta) 10%, transparent);
+  font-size: var(--texto-xs);
+  transition:
+    background-color 240ms ease,
+    color 240ms ease;
+}
+
+.sc-lp-etapas li[data-ativa] {
+  border-color: color-mix(in oklab, var(--lp-acento) 65%, transparent);
+  background: color-mix(in oklab, var(--lp-acento) 10%, transparent);
+}
+
+.sc-lp-etapas li[data-ativa]::before {
+  background: var(--lp-acento);
+  color: var(--marca-preto-tecnologico);
+}
+
+/* --- a cor da cena no palco: luz, brilho atrás do aparelho, indicador --------- */
+
+.sc-lp-narrativa__luz:not(.sc-lp-narrativa__luz--fria) {
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lp-acento-da-vez) 13%, transparent), transparent);
+}
+
+/* Modo comum: cada figura tem o brilho da sua cena. */
+.sc-lp-momento__figura {
+  position: relative;
+  isolation: isolate;
+}
+
+.sc-lp-momento__figura::before,
+.sc-lp-narrativa__aparelhos::before {
+  content: "";
+  position: absolute;
+  inset: 4% 6%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lp-acento) 20%, transparent), transparent);
+  pointer-events: none;
+}
+
+/* Modo slide: um brilho só, atrás do aparelho, na cor da cena ativa. */
+.sc-lp-narrativa__aparelhos::before {
+  inset: -4% 0 auto;
+  block-size: 80%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lp-acento-da-vez) 22%, transparent), transparent);
+}
+
+@media (min-width: 900px) {
+  /* A caixa já é a do notebook (larga); com o celular ela encolhe para a
+     direita. Só transform anima: mexer em `inset` refazia o layout a cada
+     quadro e contava como deslocamento de layout (CLS). */
+  .sc-lp-narrativa__aparelhos::before {
+    inset: 8% -6% 8% 30%;
+    block-size: auto;
+    transform: scaleX(0.737);
+    transform-origin: 100% 50%;
+    transition: transform 900ms var(--lp-curva);
+  }
+
+  /* O notebook é largo: o brilho abre para a esquerda junto com ele. */
+  .sc-lp-narrativa:has(.sc-lp-momento--largo[data-atual]) .sc-lp-narrativa__aparelhos::before {
+    transform: none;
+  }
+}
+
+.sc-lp-indicador__progresso {
+  background: var(--lp-acento-da-vez);
+}
+
+.sc-lp-indicador__ponto[aria-current]::before {
+  background: var(--lp-acento-da-vez);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--lp-acento-da-vez) 22%, transparent),
+    0 0 16px color-mix(in oklab, var(--lp-acento-da-vez) 55%, transparent);
+}
+
+.sc-lp-indicador__contagem [data-contagem] {
+  color: var(--lp-acento-da-vez);
+}
+
+/* --- entrada dos destaques ----------------------------------------------------- */
+
+@keyframes sc-lp-numero-sobe {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+@keyframes sc-lp-acende {
+  from {
+    background-size:
+      0% 100%,
+      100% 100%;
+  }
+}
+
+@keyframes sc-lp-cor-acende {
+  from {
+    color: var(--cor-tinta);
+  }
+}
+
+@keyframes sc-lp-traco-desenha {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes sc-lp-marca-passa {
+  from {
+    background-size: 0% 100%;
+    color: var(--cor-tinta);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* O herói acende ao carregar, depois das linhas do título (cenas.css). */
+  .sc-lp-momento[data-cena="0"] .sc-lp-destaque,
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-destaque {
+    --lp-atraso: 0.95s;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-etiqueta .sc-lp-destaque {
+    --lp-atraso: 0.6s;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-destaque[data-efeito="acende"],
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-destaque[data-efeito="acende"] {
+    animation: sc-lp-acende 1s var(--lp-atraso) cubic-bezier(0.3, 0.6, 0.2, 1) both;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-destaque[data-efeito="sublinhado"],
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-destaque[data-efeito="sublinhado"] {
+    animation: sc-lp-cor-acende 600ms var(--lp-atraso) ease-out both;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-destaque[data-efeito="sublinhado"]::after,
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-destaque[data-efeito="sublinhado"]::after {
+    animation: sc-lp-traco-desenha 750ms calc(var(--lp-atraso) + 0.15s) cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-destaque[data-efeito="marcador"] {
+    animation: sc-lp-marca-passa 700ms var(--lp-atraso) cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+
+  .sc-lp-momento[data-atual]:not([data-cena="0"]) .sc-lp-etiqueta__numero > span {
+    animation: sc-lp-numero-sobe 800ms 0.6s cubic-bezier(0.2, 0.75, 0.15, 1) both;
+  }
+}

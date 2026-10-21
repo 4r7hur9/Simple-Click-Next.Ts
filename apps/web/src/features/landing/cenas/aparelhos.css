@@ -1,0 +1,460 @@
+/*
+ * Os aparelhos da landing (Aparelhos.tsx): um iPhone da linha Pro Max mais
+ * recente e um notebook de alumínio, em CSS puro, com as telas reais dentro.
+ *
+ * Por cima de cenas.css: as classes de lá (`sc-lp-celular`, `sc-lp-tela`,
+ * `sc-lp-notebook__tampa`) continuam, porque a narrativa (GSAP) e os tamanhos
+ * das cenas dependem delas. Aqui, cada regra leva DUAS classes
+ * (`.sc-lp-celular.sc-lp-iphone`, `.sc-lp-mac …`) para valer qualquer que
+ * seja a ordem em que as folhas chegam.
+ *
+ * Medidas reais do Pro Max: tela de 440×956 pt, 3% da largura de borda em
+ * volta (moldura de titânio + vidro preto), cantos da tela de 62 pt. Tudo é
+ * fração de `--l` (a largura do aparelho) — ou de `--pt`, um ponto da tela.
+ * Cor só de theme.css.
+ */
+
+.sc-lp-celular.sc-lp-iphone,
+.sc-lp-notebook.sc-lp-mac {
+  --ap-titanio-claro: color-mix(in oklab, var(--marca-cinza-ui) 72%, var(--marca-branco));
+  --ap-titanio: color-mix(in oklab, var(--marca-cinza-ui) 48%, var(--marca-grafite));
+  --ap-titanio-escuro: color-mix(in oklab, var(--marca-cinza-ui) 14%, var(--marca-grafite));
+  --ap-vidro: color-mix(in oklab, var(--marca-preto-tecnologico) 70%, black);
+  --ap-brilho: color-mix(in oklab, var(--marca-branco) 55%, transparent);
+  --ap-sombra: color-mix(in oklab, var(--marca-preto-tecnologico) 88%, black);
+}
+
+/* --- o iPhone ---------------------------------------------------------------- */
+
+.sc-lp-celular.sc-lp-iphone {
+  --l: var(--largura-do-celular, min(64vw, 18.75rem));
+  /* Um ponto da tela: a tela tem 94% da largura do aparelho e 440 pt. */
+  --pt: calc(var(--l) * 0.94 / 440);
+  position: relative;
+  inline-size: var(--l);
+  padding: 0;
+  border-radius: calc(var(--l) * 0.1625);
+  background: none;
+  box-shadow: none;
+}
+
+/* Sombra de contato: a mesa embaixo do aparelho. */
+.sc-lp-celular.sc-lp-iphone::after {
+  content: "";
+  position: absolute;
+  inset: auto 14% calc(var(--l) * -0.07) 14%;
+  z-index: -1;
+  block-size: calc(var(--l) * 0.12);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--ap-sombra) 80%, transparent), transparent);
+  filter: blur(calc(var(--l) * 0.03));
+}
+
+.sc-lp-iphone__corpo {
+  position: relative;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+}
+
+/* A moldura: uma fita de titânio escovado, com a luz do estúdio nos cantos. */
+.sc-lp-iphone__moldura {
+  position: relative;
+  padding: calc(var(--l) * 0.0105);
+  border-radius: calc(var(--l) * 0.1625);
+  background:
+    linear-gradient(180deg, var(--ap-brilho) 0, transparent 1.6%, transparent 98.4%, color-mix(in oklab, black 45%, transparent) 100%),
+    conic-gradient(
+      from 215deg,
+      var(--ap-titanio-claro),
+      var(--ap-titanio) 10%,
+      var(--ap-titanio-escuro) 24%,
+      var(--ap-titanio) 38%,
+      var(--ap-titanio-claro) 50%,
+      var(--ap-titanio) 60%,
+      var(--ap-titanio-escuro) 74%,
+      var(--ap-titanio) 88%,
+      var(--ap-titanio-claro)
+    );
+  box-shadow:
+    inset 0 0 0 calc(var(--l) * 0.0016) color-mix(in oklab, var(--marca-branco) 38%, transparent),
+    inset 0 0 0 calc(var(--l) * 0.0042) color-mix(in oklab, black 22%, transparent),
+    0 0 0 calc(var(--l) * 0.0014) color-mix(in oklab, var(--ap-sombra) 85%, transparent),
+    0 calc(var(--l) * 0.03) calc(var(--l) * 0.06) color-mix(in oklab, var(--ap-sombra) 45%, transparent),
+    0 calc(var(--l) * 0.16) calc(var(--l) * 0.3) calc(var(--l) * -0.08) color-mix(in oklab, var(--ap-sombra) 85%, transparent),
+    0 calc(var(--l) * 0.08) calc(var(--l) * 0.5) calc(var(--l) * -0.1) color-mix(in oklab, var(--marca-verde-click) 9%, transparent);
+}
+
+/* As faixas de antena: quatro cortes finos na moldura. */
+.sc-lp-iphone__moldura::before,
+.sc-lp-iphone__moldura::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  block-size: calc(var(--l) * 0.006);
+  background:
+    linear-gradient(90deg, var(--ap-titanio-escuro) 0 calc(var(--l) * 0.0105), transparent 0) left / 50% 100% no-repeat,
+    linear-gradient(270deg, var(--ap-titanio-escuro) 0 calc(var(--l) * 0.0105), transparent 0) right / 50% 100% no-repeat;
+  pointer-events: none;
+}
+
+.sc-lp-iphone__moldura::before {
+  inset-block-start: 9%;
+}
+
+.sc-lp-iphone__moldura::after {
+  inset-block-end: 9%;
+}
+
+/* O vidro preto em volta da tela: borda mínima, igual nos quatro lados. */
+.sc-lp-iphone__vidro {
+  padding: calc(var(--l) * 0.0195);
+  border-radius: calc(var(--l) * 0.152);
+  background: var(--ap-vidro);
+  box-shadow:
+    inset 0 0 0 calc(var(--l) * 0.0012) color-mix(in oklab, var(--marca-branco) 9%, transparent),
+    inset 0 calc(var(--l) * 0.004) calc(var(--l) * 0.01) color-mix(in oklab, var(--marca-branco) 5%, transparent);
+}
+
+.sc-lp-iphone .sc-lp-tela {
+  aspect-ratio: 440 / 956;
+  border-radius: calc(var(--pt) * 62);
+  background: var(--marca-preto-tecnologico);
+  /* A tela recorta tudo, inclusive as camadas que a narrativa desliza. */
+  isolation: isolate;
+}
+
+/* <picture> não ocupa lugar: a imagem se posiciona pela tela. */
+.sc-lp-tela__quadro {
+  display: contents;
+}
+
+/* Barra de status: hora à esquerda da ilha, sinal, wi-fi e bateria à direita. */
+.sc-lp-iphone__status {
+  position: absolute;
+  inset-block-start: calc(var(--pt) * 11);
+  inset-inline: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr calc(var(--pt) * 126) 1fr;
+  align-items: center;
+  block-size: calc(var(--pt) * 37);
+  padding-inline: calc(var(--pt) * 14) calc(var(--pt) * 12);
+  color: var(--marca-branco);
+  pointer-events: none;
+}
+
+.sc-lp-iphone__hora {
+  grid-column: 1;
+  justify-self: center;
+  font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  font-size: calc(var(--pt) * 17);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.sc-lp-iphone__icones {
+  grid-column: 3;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--pt) * 6);
+}
+
+.sc-lp-iphone__icones svg {
+  display: block;
+  fill: currentColor;
+}
+
+.sc-lp-iphone__sinal {
+  inline-size: calc(var(--pt) * 18);
+}
+
+.sc-lp-iphone__wifi {
+  inline-size: calc(var(--pt) * 16);
+}
+
+.sc-lp-iphone__bateria {
+  inline-size: calc(var(--pt) * 27.5);
+}
+
+/* A ilha dinâmica: 126×37 pt, a 11 pt do topo, com a lente à direita. */
+.sc-lp-iphone__ilha {
+  position: absolute;
+  inset-block-start: calc(var(--pt) * 11);
+  inset-inline-start: 50%;
+  z-index: 5;
+  inline-size: calc(var(--pt) * 126);
+  block-size: calc(var(--pt) * 37);
+  border-radius: calc(var(--pt) * 20);
+  background: black;
+  box-shadow: 0 0 0 calc(var(--pt) * 0.6) color-mix(in oklab, var(--marca-branco) 4%, transparent);
+  transform: translateX(-50%);
+}
+
+.sc-lp-iphone__lente {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: calc(var(--pt) * 12);
+  inline-size: calc(var(--pt) * 12);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 32%, color-mix(in oklab, #4a6cff 55%, transparent) 0 14%, transparent 30%),
+    radial-gradient(circle, color-mix(in oklab, #1a2240 80%, black) 0 38%, color-mix(in oklab, var(--marca-grafite) 60%, black) 60%, black 72%);
+  transform: translateY(-50%);
+}
+
+/* O indicador de início: a barrinha clara do pé da tela. */
+.sc-lp-iphone__indicador {
+  position: absolute;
+  inset-block-end: calc(var(--pt) * 8);
+  inset-inline-start: 50%;
+  z-index: 4;
+  inline-size: calc(var(--pt) * 144);
+  block-size: calc(var(--pt) * 5);
+  border-radius: calc(var(--pt) * 3);
+  background: color-mix(in oklab, var(--marca-branco) 88%, transparent);
+  box-shadow: 0 0 calc(var(--pt) * 2) color-mix(in oklab, black 30%, transparent);
+  transform: translateX(-50%);
+}
+
+/* O vidro: luz de janela na diagonal e um brilho fino na borda de cima. */
+.sc-lp-aparelho__reflexo {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      116deg,
+      color-mix(in oklab, var(--marca-branco) 10%, transparent) 0%,
+      color-mix(in oklab, var(--marca-branco) 3%, transparent) 26%,
+      transparent 26.4%,
+      transparent 100%
+    ),
+    radial-gradient(120% 22% at 30% 0%, color-mix(in oklab, var(--marca-branco) 7%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+/* Botões: ação e volume à esquerda; lateral e controle da câmera à direita. */
+.sc-lp-iphone__botao {
+  position: absolute;
+  z-index: -1;
+  inline-size: calc(var(--l) * 0.0085);
+  border-radius: calc(var(--l) * 0.004);
+  background: linear-gradient(
+    90deg,
+    var(--ap-titanio-escuro),
+    var(--ap-titanio-claro) 45%,
+    var(--ap-titanio) 75%,
+    var(--ap-titanio-escuro)
+  );
+  box-shadow: 0 0 0 calc(var(--l) * 0.001) color-mix(in oklab, var(--ap-sombra) 70%, transparent);
+}
+
+.sc-lp-iphone__botao--acao,
+.sc-lp-iphone__botao--volume-mais,
+.sc-lp-iphone__botao--volume-menos {
+  inset-inline-start: calc(var(--l) * -0.0068);
+}
+
+.sc-lp-iphone__botao--lateral,
+.sc-lp-iphone__botao--camera {
+  inset-inline-end: calc(var(--l) * -0.0068);
+}
+
+.sc-lp-iphone__botao--acao {
+  inset-block-start: 17.5%;
+  block-size: 3.9%;
+}
+
+.sc-lp-iphone__botao--volume-mais {
+  inset-block-start: 24.6%;
+  block-size: 7%;
+}
+
+.sc-lp-iphone__botao--volume-menos {
+  inset-block-start: 33.4%;
+  block-size: 7%;
+}
+
+.sc-lp-iphone__botao--lateral {
+  inset-block-start: 27%;
+  block-size: 10.6%;
+}
+
+/* O controle da câmera é de safira, rente à moldura: mais escuro e mais baixo. */
+.sc-lp-iphone__botao--camera {
+  inset-block-start: 56%;
+  inline-size: calc(var(--l) * 0.0072);
+  block-size: 6%;
+  background: linear-gradient(90deg, var(--ap-titanio), color-mix(in oklab, var(--ap-vidro) 70%, var(--ap-titanio)) 40%, var(--ap-titanio-escuro));
+}
+
+/* --- inclinado: o corpo gira em 3D e a espessura da moldura aparece ---------- */
+
+.sc-lp-iphone--esquerda .sc-lp-iphone__corpo,
+.sc-lp-iphone--direita .sc-lp-iphone__corpo {
+  --ap-espessura: calc(var(--l) * 0.028);
+}
+
+.sc-lp-iphone--direita .sc-lp-iphone__corpo {
+  transform: perspective(calc(var(--l) * 6)) rotateY(16deg) rotateX(5deg) rotateZ(-3deg);
+}
+
+.sc-lp-iphone--esquerda .sc-lp-iphone__corpo {
+  transform: perspective(calc(var(--l) * 6)) rotateY(-16deg) rotateX(5deg) rotateZ(3deg);
+}
+
+/* A borda lateral: cópias da moldura empurradas para o lado que aparece. */
+.sc-lp-iphone--direita .sc-lp-iphone__moldura,
+.sc-lp-iphone--esquerda .sc-lp-iphone__moldura {
+  --ap-lado: -1;
+  box-shadow:
+    inset 0 0 0 calc(var(--l) * 0.0016) color-mix(in oklab, var(--marca-branco) 38%, transparent),
+    inset 0 0 0 calc(var(--l) * 0.0042) color-mix(in oklab, black 22%, transparent),
+    calc(var(--ap-lado) * var(--ap-espessura) * 0.25) 0 0 0 var(--ap-titanio-claro),
+    calc(var(--ap-lado) * var(--ap-espessura) * 0.5) 0 0 0 var(--ap-titanio),
+    calc(var(--ap-lado) * var(--ap-espessura) * 0.75) 0 0 0 var(--ap-titanio-escuro),
+    calc(var(--ap-lado) * var(--ap-espessura)) 0 0 0 color-mix(in oklab, var(--ap-titanio-escuro) 70%, black),
+    calc(var(--ap-lado) * var(--l) * 0.08) calc(var(--l) * 0.16) calc(var(--l) * 0.3) calc(var(--l) * -0.06) color-mix(in oklab, var(--ap-sombra) 85%, transparent);
+}
+
+.sc-lp-iphone--esquerda .sc-lp-iphone__moldura {
+  --ap-lado: 1;
+}
+
+.sc-lp-iphone--direita .sc-lp-iphone__botao--acao,
+.sc-lp-iphone--direita .sc-lp-iphone__botao--volume-mais,
+.sc-lp-iphone--direita .sc-lp-iphone__botao--volume-menos {
+  inset-inline-start: calc(var(--ap-espessura) * -1 - var(--l) * 0.0045);
+}
+
+.sc-lp-iphone--esquerda .sc-lp-iphone__botao--lateral,
+.sc-lp-iphone--esquerda .sc-lp-iphone__botao--camera {
+  inset-inline-end: calc(var(--ap-espessura) * -1 - var(--l) * 0.0045);
+}
+
+/* A luz muda de lado com o giro. */
+.sc-lp-iphone--esquerda .sc-lp-aparelho__reflexo {
+  transform: scaleX(-1);
+}
+
+/* --- o notebook --------------------------------------------------------------- */
+
+/* A tampa: uma borda de alumínio fina em volta do vidro preto. */
+.sc-lp-mac .sc-lp-notebook__tampa {
+  position: relative;
+  padding: 0.32%;
+  border-radius: 2.4% 2.4% 0.7% 0.7% / 3.6% 3.6% 1% 1%;
+  background: linear-gradient(
+    180deg,
+    var(--ap-titanio-claro) 0%,
+    var(--ap-titanio) 30%,
+    var(--ap-titanio-escuro) 100%
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ap-sombra) 70%, transparent),
+    0 2.6vw 5vw -1.6vw color-mix(in oklab, var(--ap-sombra) 70%, transparent);
+  transform-origin: 50% 100%;
+}
+
+.sc-lp-mac__moldura {
+  position: relative;
+  padding: 2.3% 1.8% 2.6%;
+  border-radius: 2.1% 2.1% 0.5% 0.5% / 3.2% 3.2% 0.8% 0.8%;
+  background: var(--ap-vidro);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--marca-branco) 7%, transparent),
+    inset 0 2px 6px color-mix(in oklab, var(--marca-branco) 4%, transparent);
+}
+
+.sc-lp-mac__camera {
+  position: absolute;
+  inset-block-start: 1.05%;
+  inset-inline-start: 50%;
+  inline-size: 0.62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, color-mix(in oklab, #4a6cff 45%, transparent) 0 18%, color-mix(in oklab, var(--marca-grafite) 70%, black) 40%, black 70%);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--marca-branco) 5%, transparent);
+  transform: translateX(-50%);
+}
+
+.sc-lp-mac .sc-lp-tela--larga {
+  aspect-ratio: 1440 / 900;
+  /* A tela do notebook tem os cantos de cima arredondados. */
+  border-radius: 1.1% 1.1% 0 0 / 1.8% 1.8% 0 0;
+  background: var(--marca-grafite);
+}
+
+.sc-lp-mac .sc-lp-aparelho__reflexo {
+  background: linear-gradient(
+    112deg,
+    color-mix(in oklab, var(--marca-branco) 7%, transparent) 0%,
+    color-mix(in oklab, var(--marca-branco) 2%, transparent) 30%,
+    transparent 30.3%
+  );
+}
+
+/* A base: uma lâmina de alumínio, mais larga que a tampa, com o vão do dedo. */
+.sc-lp-mac .sc-lp-notebook__base {
+  position: relative;
+  block-size: 0;
+  margin-inline: -7.5%;
+  padding-block-end: 2.6%;
+  border-radius: 0.5% 0.5% 46% 46% / 8% 8% 100% 100%;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, black 30%, transparent), transparent 4%, transparent 96%, color-mix(in oklab, black 30%, transparent)),
+    linear-gradient(
+      180deg,
+      var(--ap-titanio-claro) 0%,
+      color-mix(in oklab, var(--ap-titanio-claro) 70%, var(--marca-branco)) 9%,
+      var(--ap-titanio) 22%,
+      var(--ap-titanio-escuro) 70%,
+      color-mix(in oklab, var(--ap-titanio-escuro) 55%, black) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--marca-branco) 40%, transparent),
+    0 1px 0 color-mix(in oklab, var(--ap-sombra) 60%, transparent);
+}
+
+/* O vão para abrir a tampa com o dedo. */
+.sc-lp-mac .sc-lp-notebook__base::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  inline-size: 13%;
+  block-size: 42%;
+  border-radius: 0 0 40% 40% / 0 0 100% 100%;
+  z-index: 1;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--ap-titanio-escuro) 70%, black), var(--ap-titanio) 90%);
+  box-shadow: inset 0 1px 2px color-mix(in oklab, black 40%, transparent);
+  transform: translateX(-50%);
+}
+
+/* Sombra na mesa. */
+.sc-lp-mac .sc-lp-notebook__base::after {
+  content: "";
+  position: absolute;
+  inset: auto 4% -160% 4%;
+  z-index: -1;
+  block-size: 220%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--ap-sombra) 92%, transparent), transparent);
+  filter: blur(10px);
+}
+
+/* A dobradiça: a faixa escura entre a tampa e a base. */
+.sc-lp-mac__dobradica {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 14%;
+  block-size: 18%;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, black, color-mix(in oklab, var(--ap-titanio-escuro) 60%, black));
+  opacity: 0.85;
+}

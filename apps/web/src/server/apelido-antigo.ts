@@ -3,8 +3,8 @@
  *
  * O proxy chama `redirecionarApelidoAntigo` antes de reescrever qualquer
  * caminho: se o apelido do endereço é o ANTIGO de uma loja no ar, a pessoa é
- * mandada ao mesmo lugar no endereço novo — `/l/pastel-da-joi/produto/1`
- * vira `/l/pastelaria-joi/produto/1`, com a mesma consulta.
+ * mandada ao mesmo lugar no endereço novo — `/loja/pastel-da-joi/produto/1`
+ * vira `/loja/pastelaria-joi/produto/1`, com a mesma consulta.
  *
  * REDIRECIONAMENTO TEMPORÁRIO (307), e não permanente, de propósito: o
  * navegador guarda o permanente para sempre, e se a administração um dia
@@ -21,10 +21,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   apelidoDoCaminho,
   caminhoComApelidoNovo,
-  hostComApelidoNovo,
   LembrancaDeApelidos,
 } from "../lib/apelido-antigo.ts";
-import { apelidoDaLoja } from "../lib/host-loja.ts";
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
 
 /** Pergunta à API qual é o apelido atual da loja que usava este. */
@@ -76,10 +74,7 @@ export async function redirecionarApelidoAntigo(
   const destino = requisicao.nextUrl.clone();
   if (destino.pathname.startsWith("/api/")) return null;
 
-  const peloCaminho = apelidoDoCaminho(destino.pathname);
-  const peloHost =
-    peloCaminho === null ? apelidoDaLoja(requisicao.headers.get("host")) : null;
-  const apelido = peloCaminho ?? peloHost;
+  const apelido = apelidoDoCaminho(destino.pathname);
   if (apelido === null) return null;
 
   let atual = lembranca.consultar(apelido, agora());
@@ -90,10 +85,6 @@ export async function redirecionarApelidoAntigo(
   }
   if (atual === null || atual === apelido) return null;
 
-  if (peloCaminho !== null) {
-    destino.pathname = caminhoComApelidoNovo(destino.pathname, apelido, atual);
-  } else {
-    destino.hostname = hostComApelidoNovo(destino.hostname, apelido, atual);
-  }
+  destino.pathname = caminhoComApelidoNovo(destino.pathname, apelido, atual);
   return NextResponse.redirect(destino, 307);
 }

@@ -7,7 +7,6 @@
  */
 import {
   esquemaDaAtivacaoPreparada,
-  esquemaDaConfirmacaoDeCadastro,
   esquemaDaConfirmacaoDeRecuperacao,
   esquemaDaNovaSenha,
   esquemaDaSaida,
@@ -17,6 +16,7 @@ import {
   esquemaDaVerificacaoDeEmail,
   esquemaDoAplicativoAtivado,
   esquemaDoCadastro,
+  esquemaDoCadastroComSessao,
   esquemaDoCodigoDeRecuperacao,
   esquemaDoCodigoDoAplicativo,
   esquemaDoCodigoDoDesafio,
@@ -39,13 +39,13 @@ export const rotaDeCadastro = definirRota({
   metodo: "post",
   caminho: "/v1/auth/cadastro",
   etiqueta,
-  resumo: "Cria a conta de cliente final",
+  resumo: "Cria a conta de cliente final e já abre a sessão",
   descricao:
-    "Mesma confirmação para e-mail novo e já cadastrado (AC-101). Senha fraca volta 422 com o motivo; sem provedor de e-mail volta 503.",
+    "Sem confirmação de e-mail: a conta nasce verificada e a resposta já é a sessão aberta (navegador recebe o token de renovação no cookie). Telefone é opcional. E-mail que já tem conta volta 409 `email_em_uso`; senha fraca volta 422 `senha_fraca`.",
   corpo: esquemaDoCadastro,
-  resposta: esquemaDaConfirmacaoDeCadastro,
+  resposta: esquemaDoCadastroComSessao,
   status: 201,
-  errosPossiveis: [400, 422, 503],
+  errosPossiveis: [400, 409, 422],
 });
 
 export const rotaDeVerificarEmail = definirRota({

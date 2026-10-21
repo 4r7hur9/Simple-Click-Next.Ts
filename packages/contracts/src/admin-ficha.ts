@@ -77,6 +77,20 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   LOJA_REMOVIDA: "Dados da loja removidos em definitivo",
   FUNCIONALIDADE_DESLIGADA: "Funcionalidade desligada",
   FUNCIONALIDADE_RELIGADA: "Funcionalidade religada",
+  // Card #25: aprovação, limites, equipe, tema e feed.
+  LOJA_SOLICITADA: "Loja aberta pelo lojista",
+  LOJA_APROVADA: "Loja aprovada",
+  LOJA_RECUSADA: "Loja recusada",
+  LOJA_ATIVADA: "Loja ativada",
+  LOJA_DESATIVADA: "Loja desativada",
+  LIMITES_ALTERADOS: "Limites da loja alterados",
+  EQUIPE_ADICIONADA: "Pessoa adicionada à equipe",
+  EQUIPE_DESATIVADA: "Pessoa da equipe desativada",
+  EQUIPE_REATIVADA: "Pessoa da equipe reativada",
+  EQUIPE_REMOVIDA: "Pessoa removida da equipe",
+  EQUIPE_SENHA_TROCADA: "Senha da equipe trocada",
+  TEMA_ALTERADO: "Tema da vitrine alterado",
+  FEED_CONFIGURADO: "Feed configurado",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
@@ -150,8 +164,26 @@ export const esquemaDaFichaDaLoja = z.strictObject({
   }),
   criadaEm: z.string(),
   atualizadaEm: z.string(),
-  /** A suspensão em curso, quando a loja está suspensa (AC-209). */
+  /** A desativação em curso, quando a loja está desativada (AC-209). */
   suspensao: esquemaDaSuspensaoEmCurso.nullable(),
+  /** A recusa, quando a loja foi recusada (card #25). */
+  recusa: esquemaDaSuspensaoEmCurso.nullable().optional(),
+  /** Quando a loja entrou no ar pela primeira vez; nulo se nunca foi aprovada. */
+  aprovadaEm: z.string().nullable().optional(),
+  /**
+   * Os donos da loja (card #25). O identificador é o que o limite de lojas
+   * por dono usa (`/v1/admin/donos/:identidadeId/limites`).
+   */
+  donos: z
+    .array(
+      z.strictObject({
+        identidadeId: z.string(),
+        nome: z.string().nullable(),
+        email: z.string(),
+        conviteAceito: z.boolean(),
+      }),
+    )
+    .optional(),
   /** A retenção, quando a loja foi excluída (AC-211). */
   retencao: esquemaDaRetencaoDaLoja.nullable(),
   /** As últimas alterações desta loja, da mais nova para a mais antiga. */

@@ -41,6 +41,12 @@ export interface DonoDaProva {
   readonly identidadeId: string;
 }
 
+/** O que a prova pode trocar no painel: a hospedagem e a limpeza do arquivo. */
+export interface PedidoExtraDoPainel {
+  readonly hospedarImagem?: HospedarImagem;
+  readonly apagarArquivo?: (lojaId: string, url: string) => Promise<void>;
+}
+
 /**
  * A aplicação da prova: painel do dono em `/v1/lojas` e vitrine pública.
  *
@@ -50,7 +56,7 @@ export interface DonoDaProva {
 export function montarPainelDaProva(
   acesso: AcessoAoBanco,
   dono: DonoDaProva | null,
-  extras: { readonly hospedarImagem?: HospedarImagem } = {},
+  extras: PedidoExtraDoPainel = {},
 ): Express {
   const app = express();
   app.use(express.json({ limit: "1mb" }));
@@ -93,6 +99,9 @@ export function montarPainelDaProva(
       ...(extras.hospedarImagem === undefined
         ? {}
         : { hospedar: extras.hospedarImagem }),
+      ...(extras.apagarArquivo === undefined
+        ? {}
+        : { apagarArquivo: extras.apagarArquivo }),
     }),
   );
   app.use(
@@ -110,7 +119,7 @@ export function montarPainelDaProva(
 /** Uma loja nova, com o dono membro dela e logado no painel. */
 export async function lojaComDonoNoPainel(
   acesso: AcessoAoBanco,
-  extras: { readonly hospedarImagem?: HospedarImagem } = {},
+  extras: PedidoExtraDoPainel = {},
 ) {
   const loja = await criarLoja();
   const identidade = await criarIdentidade();

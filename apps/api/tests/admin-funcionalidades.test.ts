@@ -381,7 +381,7 @@ describe("funcionalidades por loja", () => {
 
       // Chave que nada consulta nesta versão não é desligável; chave
       // inventada não existe; loja inexistente não existe.
-      expect((await alterar(loja.id, "custom_domain", false)).status).toBe(422);
+      expect((await alterar(loja.id, "multi_store", false)).status).toBe(422);
       expect((await alterar(loja.id, "inventada", false)).status).toBe(404);
       expect((await lerNaAdministracao(randomUUID())).status).toBe(404);
     },

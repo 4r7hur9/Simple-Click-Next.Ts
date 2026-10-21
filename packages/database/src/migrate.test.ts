@@ -349,7 +349,6 @@ describe("aplicador de migrações", () => {
           "vertical_presets",
           "stores",
           "store_settings",
-          "store_domains",
           "store_members",
           "products",
           "store_customers",
@@ -369,7 +368,7 @@ describe("aplicador de migrações", () => {
         // Função de contexto, e função com direitos de quem definiu.
         expect(tem("funcao: current_store_id() definidor=false")).toBe(true);
         expect(
-          tem("funcao: resolve_store(p_host text, p_slug text) definidor=true"),
+          tem("funcao: resolve_store(p_slug text) definidor=true"),
         ).toBe(true);
         expect(tem("funcao: my_store_customer_ids() definidor=true")).toBe(
           true,
@@ -401,7 +400,8 @@ describe("aplicador de migrações", () => {
         const ramos = await cliente.query(
           "SELECT count(*)::int AS total FROM app.vertical_presets",
         );
-        expect((ramos.rows[0] as { total: number }).total).toBe(8);
+        // 8 da 0003 e 14 da 0063.
+        expect((ramos.rows[0] as { total: number }).total).toBe(22);
       } finally {
         await cliente.end();
         await apagarBancoDeProva(vazio);
@@ -662,7 +662,6 @@ describe("consulta da aplicação sem contexto de loja", () => {
         "store_settings",
         "store_members",
         "store_customers",
-        "store_domains",
         "audit_log",
       ]) {
         expect(

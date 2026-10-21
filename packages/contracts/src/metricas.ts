@@ -112,6 +112,52 @@ export const esquemaDoPontoHorario = z.strictObject({
   vendidoCentavos: centavos,
 });
 
+/** Vendas de uma forma de pagamento (nulo: o pedido não registrou). */
+export const esquemaDaVendaPorPagamento = z.strictObject({
+  forma: z.string().nullable(),
+  pedidos: inteiro.nonnegative(),
+  vendidoCentavos: centavos,
+});
+
+/** Vendas por entrega ou retirada. */
+export const esquemaDaVendaPorEntrega = z.strictObject({
+  tipo: z.enum(["DELIVERY", "PICKUP"]),
+  pedidos: inteiro.nonnegative(),
+  vendidoCentavos: centavos,
+});
+
+/** Vendas de uma categoria (a principal do produto). */
+export const esquemaDaVendaPorCategoria = z.strictObject({
+  nome: z.string(),
+  quantidade: inteiro.nonnegative(),
+  totalCentavos: centavos,
+});
+
+/** Quantos pedidos estão agora numa etapa do quadro (qualquer data). */
+export const esquemaDoPedidoEmEtapa = z.strictObject({
+  status: z.string(),
+  quantidade: inteiro.nonnegative(),
+});
+
+/**
+ * O que o painel inicial acrescenta ao resumo: comparativos de ticket, itens,
+ * cancelamentos e clientes, mais as divisões por pagamento, entrega e
+ * categoria, e os pedidos por etapa agora. Opcional na resposta: valor
+ * guardado antes desta versão não o tem, e a tela some com o bloco.
+ */
+export const esquemaDosDetalhesDeMetricas = z.strictObject({
+  itensVendidos: esquemaDeVariacaoDeMetrica,
+  ticketMedioCentavos: esquemaDeVariacaoDeMetrica,
+  cancelados: esquemaDeVariacaoDeMetrica,
+  /** Clientes da loja com venda no período; novo = primeira compra nele. */
+  clientesNovos: esquemaDeVariacaoDeMetrica,
+  clientesRecorrentes: esquemaDeVariacaoDeMetrica,
+  porPagamento: z.array(esquemaDaVendaPorPagamento),
+  porEntrega: z.array(esquemaDaVendaPorEntrega),
+  porCategoria: z.array(esquemaDaVendaPorCategoria),
+  etapasAgora: z.array(esquemaDoPedidoEmEtapa),
+});
+
 /** `GET /v1/lojas/:apelido/metricas` — o painel inteiro de um período. */
 export const esquemaDasMetricas = z.strictObject({
   loja: z.strictObject({ apelido: z.string() }),
@@ -121,6 +167,7 @@ export const esquemaDasMetricas = z.strictObject({
   maisVendidos: z.array(esquemaDoProdutoMaisVendido),
   porDia: z.array(esquemaDoPontoDiario),
   porHora: z.array(esquemaDoPontoHorario),
+  detalhes: esquemaDosDetalhesDeMetricas.optional(),
   /** A régua do que conta como venda, escrita para o dono ler (AC-812). */
   regraDeVenda: z.string(),
   /** A que instante os números se referem (AC-814). */
@@ -155,3 +202,6 @@ export type ProdutoMaisVendidoNoContrato = z.infer<
 export type PontoDiarioNoContrato = z.infer<typeof esquemaDoPontoDiario>;
 export type PontoHorarioNoContrato = z.infer<typeof esquemaDoPontoHorario>;
 export type MetricasNoContrato = z.infer<typeof esquemaDasMetricas>;
+export type DetalhesDeMetricasNoContrato = z.infer<
+  typeof esquemaDosDetalhesDeMetricas
+>;

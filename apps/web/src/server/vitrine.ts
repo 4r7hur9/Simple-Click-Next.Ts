@@ -13,9 +13,14 @@
  * apareceria como texto sumido em vez de falha de contrato.
  */
 import {
+  esquemaDaPaginaDoCatalogo,
   esquemaDaVitrine,
   esquemaDoCatalogo,
+  esquemaDoResumoDoCatalogo,
   type CatalogoDaVitrineNoContrato,
+  type OrdemDoCatalogoNoContrato,
+  type PaginaDoCatalogoNoContrato,
+  type ResumoDoCatalogoNoContrato,
   type Vitrine,
 } from "@simpleclick/contracts";
 
@@ -118,6 +123,8 @@ export interface OpcoesDaBusca {
   readonly busca?: string | null | undefined;
   readonly categoria?: string | null | undefined;
   readonly filtros?: readonly string[] | undefined;
+  /** Só produtos com preço de atacado (card #59). */
+  readonly atacado?: boolean | undefined;
 }
 
 /**
@@ -147,6 +154,7 @@ export async function buscarCatalogo(
   if (opcoes.categoria) parametros.set("categoria", opcoes.categoria);
   for (const filtro of opcoes.filtros ?? [])
     parametros.append("filtro", filtro);
+  if (opcoes.atacado === true) parametros.set("atacado", "1");
   const consulta =
     parametros.toString() === "" ? "" : `?${parametros.toString()}`;
   const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}/catalogo${consulta}`;
@@ -196,4 +204,143 @@ export async function buscarCatalogo(
   }
 
   return { estado: "encontrado", catalogo: conferido.data };
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo em pedaços (card #74)
+// ---------------------------------------------------------------------------
+
+/** O que vem da API, conferido, ou o motivo de não ter vindo. */
+export type ResultadoDaLeitura<T> =
+  | { readonly estado: "encontrado"; readonly dados: T }
+  | { readonly estado: "nao-encontrada" }
+  | { readonly estado: "indisponivel"; readonly motivo: string };
+
+/** Busca, filtros e atacado no endereço da API, como o catálogo inteiro faz. */
+function parametrosDosFiltros(opcoes: OpcoesDaBusca): URLSearchParams {
+  const parametros = new URLSearchParams();
+  const termo = opcoes.busca?.trim() ?? "";
+  if (termo !== "") parametros.set(PARAMETRO_DA_BUSCA, termo);
+  if (opcoes.categoria) parametros.set("categoria", opcoes.categoria);
+  for (const filtro of opcoes.filtros ?? []) parametros.append("filtro", filtro);
+  if (opcoes.atacado === true) parametros.set("atacado", "1");
+  return parametros;
+}
+
+/** De onde uma leitura da vitrine vem: a loja, o caminho e a consulta. */
+interface EnderecoDaLeitura {
+  readonly apelido: string;
+  readonly caminho: string;
+  readonly parametros: URLSearchParams;
+}
+
+/**
+ * Uma leitura pública da vitrine, com a mesma janela de cache e a mesma
+ * etiqueta da apresentação: quando o dono mexe no catálogo, a etiqueta vence
+ * e a visita seguinte já lê de novo.
+ */
+async function lerDaVitrine<T>(
+  { apelido, caminho, parametros }: EnderecoDaLeitura,
+  esquema: { safeParse(valor: unknown): { success: true; data: T } | { success: false } },
+  buscar: typeof fetch,
+): Promise<ResultadoDaLeitura<T>> {
+  const consulta =
+    parametros.toString() === "" ? "" : `?${parametros.toString()}`;
+  const endereco = `${enderecoDaApi()}/v1/vitrine/${encodeURIComponent(apelido)}${caminho}${consulta}`;
+
+  let resposta: Response;
+  try {
+    resposta = await buscar(endereco, {
+      next: {
+        revalidate: SEGUNDOS_DE_CACHE,
+        tags: etiquetasDaVitrine(apelido),
+      },
+      signal: AbortSignal.timeout(ESPERA_MAXIMA_EM_MS),
+      headers: { accept: "application/json" },
+    } as RequestInit);
+  } catch (erro) {
+    const motivo = erro instanceof Error ? erro.message : "falha de rede";
+    return { estado: "indisponivel", motivo };
+  }
+
+  if (resposta.status === 404) return { estado: "nao-encontrada" };
+  if (!resposta.ok) {
+    return {
+      estado: "indisponivel",
+      motivo: `a API respondeu ${resposta.status}`,
+    };
+  }
+
+  let corpo: unknown;
+  try {
+    corpo = await resposta.json();
+  } catch {
+    return {
+      estado: "indisponivel",
+      motivo: "a API respondeu algo que não é JSON",
+    };
+  }
+
+  const conferido = esquema.safeParse(corpo);
+  if (!conferido.success) {
+    return {
+      estado: "indisponivel",
+      motivo: "a resposta da API não bate com o contrato publicado",
+    };
+  }
+  return { estado: "encontrado", dados: conferido.data };
+}
+
+/** O que muda o resumo: os filtros e quantos produtos de cada seção vêm. */
+export interface OpcoesDoResumo extends OpcoesDaBusca {
+  readonly porSecao?: number | undefined;
+  readonly totalMaximo?: number | undefined;
+}
+
+/** As seções com contagem (e, se pedido, os primeiros produtos de cada uma). */
+export async function buscarResumoDoCatalogo(
+  apelido: string,
+  opcoes: OpcoesDoResumo = {},
+  buscar: typeof fetch = fetch,
+): Promise<ResultadoDaLeitura<ResumoDoCatalogoNoContrato>> {
+  const parametros = parametrosDosFiltros(opcoes);
+  if (opcoes.porSecao !== undefined) {
+    parametros.set("porSecao", String(opcoes.porSecao));
+  }
+  if (opcoes.totalMaximo !== undefined) {
+    parametros.set("totalMaximo", String(opcoes.totalMaximo));
+  }
+  return lerDaVitrine(
+    { apelido, caminho: "/catalogo/resumo", parametros },
+    esquemaDoResumoDoCatalogo,
+    buscar,
+  );
+}
+
+/** O que muda a página: os filtros, a ordem, o cursor e o tamanho. */
+export interface OpcoesDaPagina extends OpcoesDaBusca {
+  readonly ordem?: OrdemDoCatalogoNoContrato | undefined;
+  readonly cursor?: string | null | undefined;
+  readonly limite?: number | undefined;
+}
+
+/** Uma página de produtos, filtrada e ordenada pela API. */
+export async function buscarPaginaDoCatalogo(
+  apelido: string,
+  opcoes: OpcoesDaPagina = {},
+  buscar: typeof fetch = fetch,
+): Promise<ResultadoDaLeitura<PaginaDoCatalogoNoContrato>> {
+  const parametros = parametrosDosFiltros(opcoes);
+  if (opcoes.ordem !== undefined && opcoes.ordem !== "relevancia") {
+    parametros.set("ordem", opcoes.ordem);
+  }
+  if (opcoes.cursor) parametros.set("cursor", opcoes.cursor);
+  if (opcoes.limite !== undefined) {
+    parametros.set("limite", String(opcoes.limite));
+  }
+  return lerDaVitrine(
+    { apelido, caminho: "/catalogo/produtos", parametros },
+    esquemaDaPaginaDoCatalogo,
+    buscar,
+  );
 }

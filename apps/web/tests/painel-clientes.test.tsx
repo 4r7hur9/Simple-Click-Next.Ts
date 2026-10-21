@@ -8,6 +8,7 @@
  * VÊ: os quatro estados e a busca.
  */
 import axe from "axe-core";
+import { act } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { ListaClientes } from "../src/features/painel-clientes/ListaClientes.tsx";
@@ -17,7 +18,6 @@ import {
   clicar,
   desmontar,
   digitar,
-  enviar,
   esperar,
   exigir,
   montar,
@@ -26,7 +26,11 @@ import {
   type RespostaSimulada,
 } from "./apoio-config.tsx";
 
-afterEach(desmontar);
+afterEach(() => {
+  desmontar();
+  // A consulta mora no endereço: um teste não pode herdar o filtro do outro.
+  window.history.replaceState(null, "", "/");
+});
 
 const JOAO: ClienteDaLista = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -63,8 +67,39 @@ function apiDaLista(
         c.nome.toLowerCase().includes(busca) ||
         (c.telefone ?? "").includes(busca.replace(/\D/g, "") || "¬"),
     );
-    return { status: 200, corpo: { clientes: achados } };
+    // A ordem é do servidor (card #77): aqui só a que o teste confere.
+    const ordem = url.searchParams.get("ordem") ?? "recentes";
+    const ordenados = [...achados].sort((a, b) =>
+      ordem === "nome"
+        ? a.nome.localeCompare(b.nome, "pt-BR")
+        : ordem === "gasto"
+          ? b.totalGastoCentavos - a.totalGastoCentavos
+          : (b.ultimoPedidoEm ?? "").localeCompare(a.ultimoPedidoEm ?? ""),
+    );
+    return {
+      status: 200,
+      corpo: {
+        clientes: ordenados,
+        total: ordenados.length,
+        todos: clientes.length,
+        pagina: 1,
+        porPagina: 50,
+        totalDePaginas: 1,
+      },
+    };
   };
+}
+
+/** Digita na busca do painel e aperta Enter (a busca espera, mas Enter é na hora). */
+async function buscarPorEnter(tela: HTMLElement, texto: string): Promise<void> {
+  const campo = exigir<HTMLInputElement>(tela, 'input[type="search"]');
+  digitar(campo, texto);
+  act(() => {
+    campo.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+  });
+  await esperar();
 }
 
 describe("a lista de clientes mostra o que importa e trata os estados (AC-700)", () => {
@@ -87,6 +122,30 @@ describe("a lista de clientes mostra o que importa e trata os estados (AC-700)",
     const ana = exigir(tela, `[data-cliente="${ANA.id}"]`).closest("tr")!;
     expect(ana.textContent).toContain("Nunca pediu");
     expect(ana.textContent).toContain("Tem conta");
+  });
+
+  it("a ordenação vai ao servidor e troca a ordem da lista: comprou por último, quem mais gastou, nome", async () => {
+    const chamadas = simularApi(apiDaLista([ANA, JOAO]));
+    const tela = montar(<ListaClientes />);
+    await esperar();
+
+    const nomes = () =>
+      [...tela.querySelectorAll("[data-cliente]")].map((n) => n.textContent);
+    // Padrão: quem comprou por último primeiro; quem nunca pediu, no fim.
+    expect(nomes()).toEqual(["João Açaí", "Ana Paula"]);
+
+    const ordem = exigir<HTMLButtonElement>(
+      tela,
+      'button[role="combobox"][id$="-ordem"]',
+    );
+    digitar(ordem, "nome");
+    await esperar();
+    expect(chamadas.at(-1)?.url).toContain("ordem=nome");
+    expect(nomes()).toEqual(["Ana Paula", "João Açaí"]);
+    digitar(ordem, "gasto");
+    await esperar();
+    expect(chamadas.at(-1)?.url).toContain("ordem=gasto");
+    expect(nomes()).toEqual(["João Açaí", "Ana Paula"]);
   });
 
   it("@spec:AC-700 enquanto carrega, avisa que está carregando", () => {
@@ -140,10 +199,9 @@ describe("a busca pede ao servidor e mostra só quem corresponde (AC-701)", () =
     const tela = montar(<ListaClientes />);
     await esperar();
 
-    digitar(exigir<HTMLInputElement>(tela, "#busca-de-clientes"), "ana");
-    await enviar(exigir<HTMLFormElement>(tela, 'form[role="search"]'));
+    await buscarPorEnter(tela, "ana");
 
-    expect(chamadas.at(-1)?.url).toBe("/api/painel/clientes?busca=ana");
+    expect(chamadas.at(-1)?.url).toBe("/api/painel/clientes?busca=ana&pagina=1");
     expect(tela.querySelector(`[data-cliente="${ANA.id}"]`)).not.toBeNull();
     expect(tela.querySelector(`[data-cliente="${JOAO.id}"]`)).toBeNull();
   });
@@ -153,8 +211,7 @@ describe("a busca pede ao servidor e mostra só quem corresponde (AC-701)", () =
     const tela = montar(<ListaClientes />);
     await esperar();
 
-    digitar(exigir<HTMLInputElement>(tela, "#busca-de-clientes"), "(11) 98888");
-    await enviar(exigir<HTMLFormElement>(tela, 'form[role="search"]'));
+    await buscarPorEnter(tela, "(11) 98888");
 
     expect(
       new URL(chamadas.at(-1)?.url ?? "", "https://x.test").searchParams.get(
@@ -169,10 +226,9 @@ describe("a busca pede ao servidor e mostra só quem corresponde (AC-701)", () =
     const tela = montar(<ListaClientes />);
     await esperar();
 
-    digitar(exigir<HTMLInputElement>(tela, "#busca-de-clientes"), "zzz");
-    await enviar(exigir<HTMLFormElement>(tela, 'form[role="search"]'));
+    await buscarPorEnter(tela, "zzz");
 
-    expect(tela.textContent).toContain('Nenhum cliente encontrado para "zzz"');
+    expect(tela.textContent).toContain("Nada encontrado");
     expect(tela.textContent).not.toContain("Nenhum cliente ainda");
   });
 });

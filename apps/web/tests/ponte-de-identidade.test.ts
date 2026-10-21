@@ -94,6 +94,38 @@ describe("ponte de sessão com a API real", () => {
     expect(api.chamadas[0]?.url).toMatch(/\/v1\/auth\/segundo-fator$/);
   });
 
+  it("o cadastro de cliente já abre a sessão: cookies gravados e o 201 mantido", async () => {
+    const api = apiQueResponde(
+      201,
+      {
+        ...SESSAO_DA_API,
+        papel: "CUSTOMER",
+        cadastrado: true,
+        mensagem: "Conta criada. Você já está conectado.",
+      },
+      "sc_refresh=refresh-do-cadastro; Max-Age=60; Path=/v1/auth; HttpOnly; Secure; SameSite=Strict",
+    );
+    const resposta = await responderAcaoDeSessao(
+      pedidoJson("cadastro", { nome: "Ana", email: "ana@exemplo.test" }),
+      "cadastro",
+      api.buscar,
+      { NODE_ENV: "development" },
+    );
+
+    expect(resposta.status).toBe(201);
+    const cookies = resposta.headers.getSetCookie().join("\n");
+    expect(cookies).toContain("sc_access=");
+    expect(cookies).toContain("sc_refresh=refresh-do-cadastro");
+    const corpo = (await resposta.json()) as Record<string, unknown>;
+    expect(corpo).toMatchObject({
+      status: "SESSAO_CRIADA",
+      papel: "CUSTOMER",
+      cadastrado: true,
+      redirecionarPara: "/explorar/produtos",
+    });
+    expect(JSON.stringify(corpo)).not.toContain("acesso.que.nao-chega");
+  });
+
   it("@spec:AC-105 o desafio do segundo fator passa para a página, sem cookie nenhum", async () => {
     const desafio = {
       status: "DESAFIO_DE_SEGUNDO_FATOR",

@@ -32,10 +32,10 @@ test.afterAll(async () => {
 
 /** Põe um item no carrinho e vai para o fechamento. */
 async function comCarrinhoCheio(pagina: Page) {
-  await pagina.goto(`/l/${loja.apelido}/produto/${loja.produtoId}`);
+  await pagina.goto(`/loja/${loja.apelido}/produto/${loja.produtoId}`);
   await pagina.getByRole("button", { name: /Adicionar/ }).click();
   await expect(pagina.getByText("Adicionado ao carrinho")).toBeVisible();
-  await pagina.goto(`/l/${loja.apelido}/checkout`);
+  await pagina.goto(`/loja/${loja.apelido}/checkout`);
 }
 
 test("@spec:AC-514 o pedido é criado e ganha código, do carrinho ao fim", async ({

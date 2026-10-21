@@ -1,136 +1,128 @@
 "use client";
 
 /**
- * O menu do painel do dono: os itens do `MenuLateral` para uma loja.
+ * O menu do painel da loja: junta o que a sessão sabe (loja, papel, quem está
+ * logado) com a lista de seções (`secoes-do-painel.ts`) e entrega ao
+ * `MenuLateral`.
  *
  * Mora no cliente porque os ícones são componentes, e componente não atravessa
- * a fronteira servidor → cliente como propriedade. O layout manda só o que é
- * dado: o nome e o apelido da loja e se a pessoa tem mais de uma.
+ * a fronteira servidor → cliente como propriedade. O layout manda só dados: a
+ * loja, o papel nela, as permissões e a pessoa. O menu mostra só o que o papel
+ * pode usar; quem barra de verdade é a API, e as páginas têm a própria guarda.
  *
- * Os subitens de "Configurações" são os mesmos da navegação das
- * configurações, sem a seção que a administração desligou (AC-212).
+ * Duas coisas vêm do navegador depois que a tela abre: a impressão
+ * automática, que a administração pode desligar para a loja, e o número de
+ * pedidos novos no selo de "Pedidos".
  */
 
-import {
-  IconeAbrirFora,
-  IconeCategoria,
-  IconeClientes,
-  IconeConfiguracoes,
-  IconeInicio,
-  IconeMetricas,
-  IconePedido,
-  IconeProduto,
-  IconeSeguranca,
-  IconeTrocar,
-} from "@simpleclick/ui";
+import { SECOES_DO_DONO, type SecaoDoDono } from "@simpleclick/contracts";
 import Link from "next/link";
+import { useMemo, type ReactNode } from "react";
 
+import { pode, type PermissaoDaLoja } from "../../lib/permissoes.ts";
 import { useNavegacaoDaConfiguracao } from "../config/NavegacaoDaConfiguracao.tsx";
-import { MenuLateral, type ItemDoMenu } from "./MenuLateral.tsx";
+import {
+  CabecalhoCompactoDaLoja,
+  CabecalhoDaLoja,
+} from "./CabecalhoDaLoja.tsx";
+import { MenuLateral } from "./MenuLateral.tsx";
+import { PessoaDoMenu } from "./PessoaDoMenu.tsx";
+import { SairDoMenu } from "./SairDoMenu.tsx";
+import { useComentariosPendentes } from "../comentarios/useComentariosPendentes.ts";
+import { atalhosDoPainel, secoesDoPainel } from "./secoes-do-painel.ts";
+import { usePedidosNovos } from "./usePedidosNovos.ts";
+
+export interface PessoaLogada {
+  readonly nome: string;
+  readonly email: string;
+  readonly iniciais: string;
+}
 
 export function MenuDoPainel({
   nomeDaLoja,
   apelidoDaLoja,
+  papel,
+  permissoes,
   temOutrasLojas,
+  pessoa,
+  sair,
 }: {
   readonly nomeDaLoja: string;
   readonly apelidoDaLoja: string;
+  /** O papel da pessoa nesta loja: `OWNER` ou `STAFF`. */
+  readonly papel: string;
+  /** O que a pessoa pode nesta loja (de `GET /v1/eu`). */
+  readonly permissoes: readonly PermissaoDaLoja[];
   readonly temOutrasLojas: boolean;
+  /** Quem está logado; sem isso a seção Conta não mostra o nome. */
+  readonly pessoa?: PessoaLogada | undefined;
+  /** A ação de encerrar a sessão, montada pelo layout. */
+  readonly sair: (caminho: string) => Promise<void>;
 }) {
-  const secoes = useNavegacaoDaConfiguracao();
+  const configuracoesVisiveis = useNavegacaoDaConfiguracao();
+  const conjunto = useMemo(() => new Set(permissoes), [permissoes]);
+  const pedidosNovos = usePedidosNovos(pode(conjunto, "pedidos.operar"));
+  const comentariosPendentes = useComentariosPendentes(
+    pode(conjunto, "moderar_comentarios"),
+  );
 
-  const inicio: ItemDoMenu = {
-    rotulo: "Início",
-    href: "/painel",
-    icone: IconeInicio,
-    exato: true,
-  };
-  const pedidos: ItemDoMenu = {
-    rotulo: "Pedidos",
-    href: "/painel/pedidos",
-    icone: IconePedido,
-  };
-  const produtos: ItemDoMenu = {
-    rotulo: "Produtos",
-    href: "/painel/produtos",
-    icone: IconeProduto,
-  };
-  const clientes: ItemDoMenu = {
-    rotulo: "Clientes",
-    href: "/painel/clientes",
-    icone: IconeClientes,
-  };
-  const configuracoes: ItemDoMenu = {
-    rotulo: "Configurações",
-    href: secoes[0]?.href ?? "/painel/config/aparencia",
-    icone: IconeConfiguracoes,
-    subitens: secoes.map((secao) => ({
-      rotulo: secao.rotulo,
-      href: secao.href,
-    })),
-  };
+  const secoesDesligadas = useMemo(() => {
+    const visiveis = new Set(configuracoesVisiveis.map((item) => item.secao));
+    return new Set<SecaoDoDono>(
+      SECOES_DO_DONO.filter((secao) => !visiveis.has(secao)),
+    );
+  }, [configuracoesVisiveis]);
 
-  const itens: readonly ItemDoMenu[] = [
-    inicio,
-    pedidos,
-    produtos,
-    {
-      rotulo: "Categorias",
-      href: "/painel/categorias",
-      icone: IconeCategoria,
-    },
-    clientes,
-    { rotulo: "Métricas", href: "/painel/metricas", icone: IconeMetricas },
-    configuracoes,
-  ];
+  const secoes = useMemo(
+    () =>
+      secoesDoPainel({
+        apelidoDaLoja,
+        permissoes: conjunto,
+        temOutrasLojas,
+        secoesDesligadas,
+        pedidosNovos,
+        comentariosPendentes,
+        pessoa: pessoa === undefined ? undefined : <PessoaDoMenu {...pessoa} />,
+        sair: <SairDoMenu sair={sair} />,
+      }),
+    [
+      apelidoDaLoja,
+      conjunto,
+      temOutrasLojas,
+      secoesDesligadas,
+      pedidosNovos,
+      comentariosPendentes,
+      pessoa,
+      sair,
+    ],
+  );
 
-  const itensDoRodape: readonly ItemDoMenu[] = [
-    {
-      rotulo: "Ver minha loja",
-      href: `/l/${encodeURIComponent(apelidoDaLoja)}`,
-      icone: IconeAbrirFora,
-    },
-    ...(temOutrasLojas
-      ? [
-          {
-            rotulo: "Trocar de loja",
-            href: "/escolher-loja",
-            icone: IconeTrocar,
-          },
-        ]
-      : []),
-    {
-      rotulo: "Segurança",
-      href: "/minha-conta/seguranca",
-      icone: IconeSeguranca,
-    },
-  ];
+  const marca: ReactNode = (
+    <Link
+      href="/painel"
+      className="font-[family-name:var(--fonte-titulo)] text-xl font-semibold tracking-[-0.04em] text-[var(--cor-tinta)]"
+    >
+      simpleclick
+    </Link>
+  );
 
   return (
     <MenuLateral
       rotulo="Navegação do painel"
-      marca={
-        <Link
-          href="/painel"
-          className="font-[family-name:var(--fonte-titulo)] text-xl font-semibold tracking-[-0.04em] text-[var(--cor-tinta)]"
-        >
-          simpleclick
-        </Link>
-      }
+      marca={marca}
       contexto={
-        <p className="truncate text-sm text-[var(--cor-tinta-suave)]">
-          Loja: <strong className="font-semibold">{nomeDaLoja}</strong>
-        </p>
+        <CabecalhoDaLoja
+          nomeDaLoja={nomeDaLoja}
+          papel={papel}
+          temOutrasLojas={temOutrasLojas}
+        />
       }
-      itens={itens}
-      itensDoRodape={itensDoRodape}
-      atalhos={[
-        pedidos,
-        produtos,
-        inicio,
-        clientes,
-        { ...configuracoes, rotulo: "Config" },
-      ]}
+      contextoDoTopo={
+        <CabecalhoCompactoDaLoja nomeDaLoja={nomeDaLoja} papel={papel} />
+      }
+      secoes={secoes}
+      atalhos={atalhosDoPainel(secoes)}
+      botaoDoMenuNosAtalhos
     />
   );
 }

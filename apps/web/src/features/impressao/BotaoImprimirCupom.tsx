@@ -13,7 +13,7 @@ export function BotaoImprimirCupom({
 }) {
   return (
     <a
-      className="sc-botao sc-botao--primario"
+      className="sc-botao sc-botao--primaria"
       href={`/imprimir/${encodeURIComponent(pedidoId)}`}
       target="_blank"
       rel="noopener"

@@ -9,6 +9,7 @@ import {
 } from "../../../../../features/painel-catalogo/FormularioProduto.tsx";
 import { EnvioDeImagem } from "../../../../../features/painel-catalogo/EnvioDeImagem.tsx";
 import { LinhasDePreco } from "../../../../../features/painel-catalogo/LinhasDePreco.tsx";
+import type { FaixaGravada } from "../../../../../features/painel-catalogo/atacado/faixas-na-tela.ts";
 
 interface Props {
   readonly params: Promise<{ id: string }>;
@@ -24,6 +25,8 @@ interface Produto {
   readonly disponivel: boolean;
   /** A janela semanal de venda gravada (AC-322); ausente em produto antigo. */
   readonly janelas?: readonly JanelaDeVenda[] | undefined;
+  /** As faixas de atacado gravadas (card #54); ausente = só varejo. */
+  readonly faixasDeAtacado?: readonly FaixaGravada[] | undefined;
 }
 
 export default function PaginaDeEdicaoDeProduto({ params }: Props) {

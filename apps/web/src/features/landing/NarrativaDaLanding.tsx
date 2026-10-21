@@ -1,168 +1,145 @@
 "use client";
 
 /**
- * A narrativa por rolagem da landing (AC-936, AC-937, AC-938).
+ * A narrativa da landing, com GSAP (ScrollTrigger e SplitText), carregado sob
+ * demanda.
  *
- * ESTE COMPONENTE NÃO DESENHA CONTEÚDO. Ele acha os capítulos que a página já
- * colocou e os anima. Se nunca rodar — script bloqueado, erro de carregamento,
- * rede que caiu no meio — a página continua inteira e legível (AC-934).
+ * NÃO DESENHA NADA: acha na página o que o servidor já entregou e anima. Sem
+ * script a página está inteira (as cenas viram blocos comuns); com movimento
+ * reduzido, este componente não faz nada e a rolagem é a do navegador.
  *
- * É ele também quem decide se o mundo em três dimensões chega a ser BAIXADO. A
- * decisão vem antes da importação: num celular, num aparelho sem aceleração de
- * vídeo ou para quem pediu menos movimento, o pacote nem sai do servidor.
+ * - as cenas (cenas-em-slide.ts): uma rolada leva à cena seguinte, como um
+ *   slide, com a troca animada; depois da última, a rolagem volta a ser livre;
+ * - o resto da página: cabeçalhos e cartões sobem, números contam, a barra de
+ *   progresso anda (scaleX, nunca width).
+ *
+ * Tudo é desfeito ao sair da página (`gsap.context` e a limpeza das cenas).
  */
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect } from "react";
 
-import {
-  ancoraDaVaga,
-  passoDaSequencia,
-  querMovimentoReduzido,
-} from "../../lib/narrativa.ts";
-import { lerAparelho, podeRodar3D } from "./podeRodar3D.ts";
+import { montarCenasEmSlide } from "./cenas-em-slide.ts";
 
-/**
- * O registro do plugin acontece UMA VEZ, e dentro do efeito.
- *
- * "Uma vez" porque registrar a cada montagem acumula instâncias e deixa a página
- * lenta depois de alguns minutos, sem erro nenhum aparecer. E "dentro do efeito"
- * porque o registro toca o navegador: no escopo do módulo ele rodaria na
- * importação, antes de haver janela — o que estoura na renderização do servidor.
- */
-let jaRegistrou = false;
+const formatar = (valor: number, casas: number) =>
+  valor.toLocaleString("pt-BR", {
+    minimumFractionDigits: casas,
+    maximumFractionDigits: casas,
+  });
 
-/** Registra o ScrollTrigger no gsap na primeira chamada; as seguintes não fazem nada. */
-function registrarUmaVez(): void {
-  if (jaRegistrou) return;
-  gsap.registerPlugin(ScrollTrigger);
-  jaRegistrou = true;
-}
-
-export interface NarrativaDaLandingProps {
-  readonly raiz?: string;
-}
-
-/** Anima a entrada dos capítulos que a página já desenhou e libera o mundo 3D se o aparelho aguentar. */
-export function NarrativaDaLanding({
-  raiz = '[data-narrativa="landing"]',
-}: NarrativaDaLandingProps) {
-  const jaRodou = useRef(false);
-  const [mundoLiberado, setMundoLiberado] = useState(false);
-
+export function NarrativaDaLanding() {
   useEffect(() => {
-    const elemento = document.querySelector<HTMLElement>(raiz);
-    if (elemento === null || jaRodou.current) return;
-    jaRodou.current = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // QUEM PEDIU PARA PARAR DE MEXER recebe o estado final, e não a ausência
-    // (AC-936). Como nada é escondido em CSS, sair agora deixa a página inteira
-    // visível — que é o comportamento certo, e não um efeito colateral.
-    if (querMovimentoReduzido()) return;
-
-    registrarUmaVez();
-
-    // A decisão sobre o mundo vem ANTES de qualquer importação dele.
-    if (podeRodar3D(lerAparelho())) setMundoLiberado(true);
-
-    const contexto = gsap.context(() => {
-      const capitulos = gsap.utils.toArray<HTMLElement>("[data-capitulo]");
-      if (capitulos.length === 0) return;
-
-      // A ÂNCORA É A VAGA, e não a janela. Numa tela comprida com duas ou três
-      // seções visíveis, as de baixo já estão na tela desde o começo: com a
-      // âncora da janela elas disparam junto com a primeira, tudo anima de uma
-      // vez, e o efeito de revelação some (AC-938).
-      const ancora = ancoraDaVaga();
-
-      for (const capitulo of capitulos) {
-        const conteudo = capitulo.querySelector(".sc-lp__conteudo");
-        if (conteudo === null) continue;
-
-        gsap.from(conteudo, {
-          opacity: 0,
-          y: 36,
-          duration: 0.7,
-          ease: "power2.out",
-          scrollTrigger: {
-            // A âncora é o próprio capítulo, que sempre tem altura: gatilho de
-            // altura zero nunca dispara, e aparece como narrativa que trava.
-            trigger: capitulo,
-            start: ancora,
-            // Uma vez só. Reanimar a cada passagem transforma a rolagem de volta
-            // num piscar de conteúdo.
-            once: true,
-          },
-        });
-
-        const pontos =
-          capitulo.querySelectorAll<HTMLElement>(".sc-lp__pontos li");
-        if (pontos.length > 1) {
-          gsap.from(pontos, {
-            opacity: 0,
-            x: -12,
-            duration: 0.4,
-            stagger: passoDaSequencia(pontos.length),
-            scrollTrigger: { trigger: capitulo, start: ancora, once: true },
-          });
-        }
-      }
-
-      // As medidas são tiradas na montagem. Fonte ou imagem que carregue depois
-      // desloca tudo, e o pedido de recálculo é o que impede a narrativa de
-      // disparar no lugar errado.
-      ScrollTrigger.refresh();
-    }, elemento);
-
-    // A limpeza é obrigatória, e não higiene: no App Router o componente monta e
-    // desmonta a cada navegação, e um ScrollTrigger não destruído continua
-    // escutando a rolagem de uma página que já não existe.
-    return () => {
-      contexto.revert();
-      jaRodou.current = false;
-    };
-  }, [raiz]);
-
-  // O mundo é montado só depois de liberado, e ele mesmo importa o pacote sob
-  // demanda. Enquanto não for, este componente não devolve nada.
-  if (!mundoLiberado) return null;
-  return <MundoSobDemanda />;
-}
-
-/**
- * O mundo, carregado sob demanda.
- *
- * A importação acontece aqui dentro, e não no topo do arquivo: no topo, o pacote
- * entraria no primeiro carregamento de TODO mundo — inclusive de quem a decisão
- * acabou de recusar.
- */
-function MundoSobDemanda() {
-  const alvo = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const elemento = alvo.current;
-    if (elemento === null) return;
-
-    let desmontar: (() => void) | undefined;
+    let desfazer: (() => void) | undefined;
     let cancelado = false;
 
     void (async () => {
-      try {
-        const { montarMundo } = await import("./mundo.ts");
-        if (cancelado) return;
-        desmontar = montarMundo(elemento);
-      } catch {
-        // Mundo que não carregou é um enfeite a menos, e não uma página a
-        // menos. A história continua inteira sem ele.
+      const [{ default: gsap }, { ScrollTrigger }, { SplitText }] = await Promise.all([
+        import("gsap"),
+        import("gsap/ScrollTrigger"),
+        import("gsap/SplitText"),
+      ]);
+      if (cancelado) return;
+      gsap.registerPlugin(ScrollTrigger, SplitText);
+      const raiz = document.querySelector<HTMLElement>(".sc-lp");
+      if (!raiz) return;
+
+      const narrativa = raiz.querySelector<HTMLElement>(".sc-lp-narrativa");
+      const desfazerCenas = narrativa ? montarCenasEmSlide({ gsap, SplitText, narrativa }) : undefined;
+
+      // As cenas (o que está na tela) primeiro; as entradas das seções de
+      // baixo numa tarefa separada, para o celular não travar num bloco só.
+      await new Promise<void>((pronto) => {
+        setTimeout(pronto, 0);
+      });
+      if (cancelado) {
+        desfazerCenas?.();
+        return;
       }
+
+      const contexto = gsap.context(() => {
+        // --- entrada das seções comuns ------------------------------------------
+        for (const cabecalho of gsap.utils.toArray<HTMLElement>(".sc-lp-secao .sc-lp-cabecalho")) {
+          gsap.from(cabecalho.children, {
+            opacity: 0,
+            y: 28,
+            duration: 0.7,
+            stagger: 0.08,
+            ease: "power3.out",
+            scrollTrigger: { trigger: cabecalho, start: "top 85%", once: true },
+          });
+        }
+
+        for (const grupo of gsap.utils.toArray<HTMLElement>("[data-revelar]")) {
+          gsap.from(grupo.children, {
+            opacity: 0,
+            y: 36,
+            duration: 0.6,
+            stagger: 0.07,
+            ease: "power2.out",
+            scrollTrigger: { trigger: grupo, start: "top 85%", once: true },
+          });
+        }
+
+        // --- contadores ---------------------------------------------------------
+        for (const numero of gsap.utils.toArray<HTMLElement>("[data-contador]")) {
+          const alvo = Number(numero.dataset["contador"]);
+          const casas = Number(numero.dataset["casas"] ?? 0);
+          const antes = numero.dataset["antes"] ?? "";
+          const depois = numero.dataset["depois"] ?? "";
+          const estado = { valor: 0 };
+          gsap.to(estado, {
+            valor: alvo,
+            duration: 1.4,
+            ease: "power2.out",
+            scrollTrigger: { trigger: numero, start: "top 90%", once: true },
+            onUpdate: () => {
+              numero.textContent = `${antes}${formatar(estado.valor, casas)}${depois}`;
+            },
+          });
+        }
+
+        // --- barra de progresso -------------------------------------------------
+        const barra = raiz.querySelector(".sc-lp-progresso");
+        if (barra) {
+          gsap.to(barra, {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: { trigger: raiz, start: "top top", end: "bottom bottom", scrub: 0.3 },
+          });
+        }
+      }, raiz);
+
+      // Fontes e imagens mudam alturas depois da montagem.
+      const recalcular = () => ScrollTrigger.refresh();
+      window.addEventListener("load", recalcular);
+      void document.fonts?.ready.then(recalcular);
+
+      // Foco do teclado num bloco que ainda não entrou: ele chega pronto na
+      // hora (quem navega por Tab não fica com um link invisível em foco).
+      // Vale para as entradas daqui e as de secoes/ (o ScrollTrigger é um só).
+      const aoFocar = (evento: FocusEvent) => {
+        const alvo = evento.target;
+        if (!(alvo instanceof Element)) return;
+        for (const gatilho of ScrollTrigger.getAll()) {
+          const elemento = gatilho.trigger;
+          if (elemento instanceof Element && elemento.contains(alvo)) gatilho.animation?.progress(1);
+        }
+      };
+      raiz.addEventListener("focusin", aoFocar);
+
+      desfazer = () => {
+        raiz.removeEventListener("focusin", aoFocar);
+        window.removeEventListener("load", recalcular);
+        desfazerCenas?.();
+        contexto.revert();
+      };
     })();
 
     return () => {
       cancelado = true;
-      desmontar?.();
+      desfazer?.();
     };
   }, []);
 
-  // Decoração para quem ouve a página: a história é contada pelo texto.
-  return <div className="sc-lp__mundo" aria-hidden="true" ref={alvo} />;
+  return null;
 }

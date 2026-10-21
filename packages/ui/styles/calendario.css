@@ -1,0 +1,381 @@
+/*
+ * Seletor de período (calendário de intervalo).
+ *
+ * Só tokens do tema. Janela flutuante embaixo do botão em telas largas; abaixo
+ * de 40rem vira gaveta de baixo, com fundo escurecido (sem desfoque).
+ */
+
+.sc-periodo {
+  position: relative;
+  display: inline-block;
+  font-family: var(--fonte-base);
+}
+
+.sc-periodo__gatilho {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+  transition:
+    border-color var(--transicao-rapida),
+    background-color var(--transicao-rapida);
+}
+
+.sc-periodo__gatilho:hover,
+.sc-periodo__gatilho[aria-expanded="true"] {
+  border-color: var(--cor-primaria);
+}
+
+.sc-periodo__texto {
+  white-space: nowrap;
+}
+
+.sc-periodo__selo {
+  padding: 0 var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-em-primaria);
+  font-size: var(--texto-xs);
+}
+
+.sc-periodo__fundo {
+  display: none;
+}
+
+/* --- janela ------------------------------------------------------------- */
+
+.sc-periodo__janela {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  inline-size: max-content;
+  max-inline-size: calc(100vw - var(--espaco-4) * 2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-periodo__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4) var(--espaco-5) 0;
+}
+
+.sc-periodo__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+.sc-periodo__fechar,
+.sc-periodo__seta {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sc-periodo__fechar:hover,
+.sc-periodo__seta:not([disabled]):hover {
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-periodo__seta[disabled] {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sc-periodo__seta-vazia {
+  inline-size: var(--altura-toque);
+}
+
+.sc-periodo__corpo {
+  display: flex;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-5);
+}
+
+/* --- atalhos ------------------------------------------------------------ */
+
+.sc-periodo__atalhos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  flex-shrink: 0;
+  min-inline-size: 9.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-periodo__atalho {
+  inline-size: 100%;
+  min-block-size: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio-3);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--texto-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.sc-periodo__atalho:hover {
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-periodo__atalho[aria-pressed="true"] {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+}
+
+/* --- calendário --------------------------------------------------------- */
+
+.sc-periodo__calendario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+}
+
+.sc-periodo__meses {
+  display: flex;
+  gap: var(--espaco-5);
+}
+
+.sc-periodo__navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sc-periodo__mes-nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-periodo__grade {
+  border-collapse: collapse;
+  table-layout: fixed;
+  inline-size: calc(var(--altura-toque) * 7);
+}
+
+.sc-periodo__dia-semana {
+  block-size: 2rem;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+}
+
+.sc-periodo__celula {
+  padding: 0;
+  text-align: center;
+}
+
+/* Faixa contínua do intervalo, atrás dos números. */
+.sc-periodo__celula--no-intervalo {
+  background-color: var(--cor-primaria-suave);
+}
+
+.sc-periodo__celula--inicio {
+  border-start-start-radius: var(--raio-completo);
+  border-end-start-radius: var(--raio-completo);
+}
+
+.sc-periodo__celula--fim {
+  border-start-end-radius: var(--raio-completo);
+  border-end-end-radius: var(--raio-completo);
+}
+
+.sc-periodo__celula--previa {
+  opacity: 0.7;
+}
+
+.sc-periodo__dia {
+  inline-size: 100%;
+  block-size: var(--altura-toque);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--raio-completo);
+  background: none;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-periodo__celula--no-intervalo .sc-periodo__dia {
+  color: var(--cor-tinta);
+}
+
+.sc-periodo__dia:not([disabled]):hover {
+  border-color: var(--cor-primaria);
+}
+
+.sc-periodo__dia[disabled] {
+  color: var(--cor-tinta-suave);
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Hoje: aro, mesmo fora do intervalo. */
+.sc-periodo__dia--hoje {
+  border-color: var(--cor-borda-forte);
+  font-weight: var(--peso-forte);
+}
+
+.sc-periodo__dia--ponta {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+}
+
+.sc-periodo__gatilho:focus-visible,
+.sc-periodo__fechar:focus-visible,
+.sc-periodo__seta:focus-visible,
+.sc-periodo__atalho:focus-visible,
+.sc-periodo__dia:focus-visible,
+.sc-periodo__comparar input:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-periodo__resumo {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-periodo__comparar {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-periodo__comparar input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: calc((var(--altura-toque) - 1.25rem) / 2) 0 0;
+  accent-color: var(--cor-primaria);
+}
+
+.sc-periodo__comparar span {
+  padding-block: calc((var(--altura-toque) - 1.25rem) / 2);
+}
+
+.sc-periodo__comparar .sc-periodo__comparar-detalhe {
+  display: block;
+  padding: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-periodo__rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-5) var(--espaco-4);
+  border-block-start: 1px solid var(--cor-borda);
+}
+
+/* --- celular: gaveta de baixo ------------------------------------------- */
+
+@media (max-width: 899px) {
+  .sc-periodo__grade {
+    inline-size: calc(var(--altura-toque) * 7);
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .sc-periodo__fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    display: block;
+    background-color: var(--cor-sobreposicao);
+  }
+
+  .sc-periodo__janela {
+    position: fixed;
+    inset-block: auto 0;
+    inset-inline: 0;
+    z-index: 60;
+    inline-size: auto;
+    max-inline-size: none;
+    max-block-size: 92dvh;
+    overflow-y: auto;
+    border-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    padding-block-end: env(safe-area-inset-bottom);
+  }
+
+  .sc-periodo__corpo {
+    flex-direction: column;
+    padding-inline: var(--espaco-4);
+  }
+
+  .sc-periodo__cabecalho {
+    padding-inline: var(--espaco-4);
+  }
+
+  .sc-periodo__rodape {
+    padding-inline: var(--espaco-4);
+  }
+
+  .sc-periodo__atalhos {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    min-inline-size: 0;
+  }
+
+  .sc-periodo__atalho {
+    inline-size: auto;
+    white-space: nowrap;
+    border-color: var(--cor-borda);
+    border-radius: var(--raio-completo);
+  }
+
+  .sc-periodo__grade {
+    inline-size: 100%;
+  }
+
+  .sc-periodo__rodape .sc-botao {
+    flex: 1;
+  }
+}

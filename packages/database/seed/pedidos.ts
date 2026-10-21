@@ -51,8 +51,12 @@ import { type ClienteDeExemplo, type LojaDeExemplo, LOJAS } from "./lojas.ts";
 // ---------------------------------------------------------------------------
 
 /**
- * Todos os status que um pedido pode ter. É a lista do modelo de dados, e é a
- * fonte da cobertura: o cenário planta um pedido para cada um.
+ * Os cenários de pedido: um por status, mais a RECUSA (`REJECTED`), que é o
+ * pedido cancelado na chegada, antes de o dono aceitar.
+ *
+ * Desde o card #25 (migração 0053) a recusa não é status do banco: o pedido
+ * recusado fica CANCELADO, e o que o distingue do cancelamento depois do aceite
+ * é o histórico (sem ACCEPTED). `STATUS_NO_BANCO` é o que o banco guarda.
  */
 export const STATUS_DE_PEDIDO = [
   "PENDING",
@@ -66,6 +70,24 @@ export const STATUS_DE_PEDIDO = [
 ] as const;
 
 export type StatusDePedido = (typeof STATUS_DE_PEDIDO)[number];
+
+/** Os status que o banco aceita: os seis do quadro e o cancelado. */
+export const STATUS_NO_BANCO = [
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "OUT_FOR_DELIVERY",
+  "READY_FOR_PICKUP",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+/** O status que o banco guarda para o cenário: a recusa vira cancelado. */
+export function statusNoBanco(
+  cenario: StatusDePedido,
+): (typeof STATUS_NO_BANCO)[number] {
+  return cenario === "REJECTED" ? "CANCELLED" : cenario;
+}
 
 /**
  * O caminho que o pedido percorreu até o status atual.
@@ -94,9 +116,10 @@ function caminhoAte(status: StatusDePedido): readonly StatusDePedido[] {
         "OUT_FOR_DELIVERY",
         "COMPLETED",
       ];
-    // Recusa acontece na entrada: o dono nunca aceitou.
+    // Recusa acontece na entrada: o dono nunca aceitou, e o pedido fica
+    // cancelado (a recusa não é status desde a migração 0053).
     case "REJECTED":
-      return ["PENDING", "REJECTED"];
+      return ["PENDING", "CANCELLED"];
     // Cancelamento acontece DEPOIS do aceite — é o que o distingue da recusa.
     case "CANCELLED":
       return ["PENDING", "ACCEPTED", "CANCELLED"];
@@ -376,7 +399,7 @@ function linhaDoPedido(
     number: Number(pedido.codigo.replace(/\D/g, "")),
     public_token: tokenDeExemplo(pedido.chave),
     channel: "ONLINE",
-    status: pedido.status,
+    status: statusNoBanco(pedido.status),
     fulfillment: pedido.entrega,
     store_customer_id: pedido.cliente?.id ?? null,
     subtotal_cents: subtotal(pedido),
@@ -537,11 +560,11 @@ function linhasDoHistorico(
     changed_by_identity_id: passo === 0 ? null : pedido.loja.dona.id,
     actor_role: passo === 0 ? "CUSTOMER" : "OWNER",
     reason:
-      estado === "REJECTED"
-        ? "Endereço fora da área de entrega."
-        : estado === "CANCELLED"
-          ? "Cliente desistiu depois do aceite."
-          : null,
+      estado === "CANCELLED"
+        ? pedido.status === "REJECTED"
+          ? "Endereço fora da área de entrega."
+          : "Cliente desistiu depois do aceite."
+        : null,
     occurred_at: instanteDeExemplo(referencia, pedido.minutosAntes + passo * 5),
   }));
 }

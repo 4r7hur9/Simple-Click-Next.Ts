@@ -17,8 +17,10 @@ import {
   Campo,
   Carregando,
   Erro,
+  Info,
   Sucesso,
 } from "@simpleclick/ui";
+import { EXPLICACOES_PARA_CLIENTES } from "../loja/explicacoes-para-clientes.ts";
 
 export type PreparoDoAplicativo =
   | { readonly segredo: string; readonly uriDoAplicativo: string }
@@ -142,7 +144,14 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
         <li>Informe o código de seis dígitos que o aplicativo mostrar.</li>
       </ol>
       <p className="sc-totp__chave">
-        <span className="sc-totp__chave-rotulo">Chave para digitar</span>
+        <span className="sc-campo__cabeca">
+          <span className="sc-totp__chave-rotulo">Chave para digitar</span>
+          <Info
+            id="chave-do-aplicativo"
+            rotulo="Chave para digitar"
+            conteudo={EXPLICACOES_PARA_CLIENTES.chaveDoAutenticador}
+          />
+        </span>
         <code data-chave>{emGrupos(preparo.segredo)}</code>
       </p>
       <Campo
@@ -152,7 +161,8 @@ export function TotpForm({ aoPreparar, aoConfirmar }: TotpFormProps) {
         inputMode="numeric"
         autoComplete="one-time-code"
         maxLength={6}
-        rotulo="Código de seis dígitos"
+        rotulo="Código do aplicativo (6 dígitos)"
+        placeholder="000000"
         obrigatorio
         value={codigo}
         onChange={(evento) => setCodigo(evento.target.value.replace(/\D/g, ""))}

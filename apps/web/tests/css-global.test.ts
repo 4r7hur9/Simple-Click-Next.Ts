@@ -32,4 +32,14 @@ describe("base global da interface", () => {
     expect(CSS).not.toContain("--raio-completo");
     expect(CSS).not.toMatch(/border-radius:\s*999/);
   });
+
+  it("controles nativos na paleta: verde da marca, nada do azul do sistema", () => {
+    expect(CSS).toMatch(/:root\s*\{[^}]*accent-color: var\(--cor-primaria\)/);
+    expect(CSS).toMatch(/\[data-tema="escuro"\]\s*\{\s*color-scheme: dark/);
+    expect(CSS).toMatch(
+      /:-webkit-autofill[\s\S]*?-webkit-text-fill-color: var\(--cor-tinta\)/,
+    );
+    expect(CSS).toContain("::file-selector-button");
+    expect(CSS).toMatch(/dialog::backdrop\s*\{[^}]*var\(--cor-sobreposicao\)/);
+  });
 });

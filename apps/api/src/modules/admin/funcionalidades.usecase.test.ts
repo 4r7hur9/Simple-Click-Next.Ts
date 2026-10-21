@@ -133,7 +133,7 @@ describe("funcionalidades por loja na administração", () => {
     ).toEqual({ ok: false, motivo: "CHAVE_DESCONHECIDA" });
     expect(
       await alterarFuncionalidade(
-        { ...pedido, chave: "custom_domain" },
+        { ...pedido, chave: "multi_store" },
         repositorioFalso(NO_AR).repositorio,
       ),
     ).toEqual({ ok: false, motivo: "SEM_EFEITO" });

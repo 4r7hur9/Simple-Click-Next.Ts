@@ -12,6 +12,7 @@
  * um, porque é esse texto que o cliente lê na página de acompanhamento.
  */
 import { useState } from "react";
+import { Info } from "@simpleclick/ui";
 
 export interface OpcaoDeStatusNaTela {
   readonly status: string;
@@ -77,8 +78,8 @@ export function AcoesDeStatus({
   const motivoSuficiente = motivo.trim().length >= TAMANHO_MINIMO_DO_MOTIVO;
 
   return (
-    <section aria-labelledby="acoes-do-pedido" className="sc-cartao mt-6">
-      <h2 id="acoes-do-pedido" className="text-xl font-semibold">
+    <section aria-labelledby="acoes-do-pedido" className="sc-acoes-status">
+      <h2 id="acoes-do-pedido" className="sc-acoes-status__titulo">
         Próxima ação
       </h2>
       {opcoes.length === 0 ? (
@@ -87,20 +88,43 @@ export function AcoesDeStatus({
         </p>
       ) : null}
       {podeCancelar ? (
-        <label className="block max-w-xl">
-          <span className="text-sm font-medium">
-            Motivo para recusar ou cancelar (o cliente vê este texto)
+        <div className="block max-w-xl">
+          <span className="inline-flex items-center gap-1">
+            <label
+              className="text-sm font-medium"
+              htmlFor={`motivo-${pedidoId}`}
+            >
+              Motivo para recusar ou cancelar (o cliente vê este texto)
+            </label>
+            <Info
+              id={`motivo-${pedidoId}`}
+              rotulo="o motivo"
+              conteudo={{
+                texto:
+                  "Explique em uma frase por que o pedido não vai sair. O cliente lê este texto na página de acompanhamento do pedido.",
+                exemplo: "acabou o queijo do pastel de queijo.",
+              }}
+            />
           </span>
           <textarea
+            id={`motivo-${pedidoId}`}
             className="sc-campo__controle mt-2 min-h-24 w-full"
+            aria-describedby={`motivo-${pedidoId}-dica motivo-${pedidoId}-info`}
             value={motivo}
             onChange={(evento) => setMotivo(evento.target.value)}
             maxLength={500}
-            placeholder="Ex.: acabou o produto"
+            placeholder="Ex.: acabou o queijo; não entregamos no seu bairro"
           />
-        </label>
+          <span
+            id={`motivo-${pedidoId}-dica`}
+            className="mt-1 block text-sm text-[var(--cor-tinta-suave)]"
+          >
+            Só para recusar ou cancelar: de 3 a 500 letras. Os botões de
+            avançar não precisam de motivo.
+          </span>
+        </div>
       ) : null}
-      <div className="flex flex-wrap gap-3">
+      <div className="sc-acoes-status__botoes">
         {opcoes.map((opcao) => (
           <button
             // Botão grande, que o dedo acerta com pressa: no celular a ação

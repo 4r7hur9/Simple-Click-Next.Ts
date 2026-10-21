@@ -102,6 +102,21 @@ export const RAMOS_DE_TESTE = {
   autopeças: "AUTO_PARTS",
   eletrônicos: "ELECTRONICS",
   bebidas: "BEVERAGES",
+  // Migração 0063 (card #50).
+  pizzaria: "FOOD_PIZZA",
+  marmitaria: "FOOD_MARMITA",
+  padaria: "FOOD_BAKERY",
+  mercadinho: "GROCERY",
+  calçados: "SHOES",
+  cosméticos: "COSMETICS",
+  farmácia: "PHARMACY",
+  "pet shop": "PET_SHOP",
+  floricultura: "FLORIST",
+  papelaria: "STATIONERY",
+  livraria: "BOOKSTORE",
+  brinquedos: "TOYS",
+  "material de construção": "HARDWARE",
+  tabacaria: "TOBACCO",
 } as const;
 
 /** Apelido do ramo, do jeito que o teste escreve. */
@@ -428,7 +443,7 @@ export interface SobrescritaDeLoja {
   readonly nome?: string;
   readonly apelido?: string;
   readonly ramo?: RamoDeTeste;
-  readonly status?: "PENDING" | "ACTIVE" | "SUSPENDED" | "DELETED";
+  readonly status?: "PENDING_APPROVAL" | "ACTIVE" | "REJECTED" | "INACTIVE" | "DELETED";
   readonly fusoHorario?: string;
   /** Uma identidade já existente como dona — a mesma pessoa com duas lojas. */
   readonly dono?: IdentidadeDeTeste;

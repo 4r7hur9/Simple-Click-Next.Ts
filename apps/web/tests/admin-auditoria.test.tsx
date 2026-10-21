@@ -138,7 +138,7 @@ describe("o histórico de auditoria na tela", () => {
     expect(pix?.getAttribute("data-sensivel")).toBe("true");
     expect(pix?.textContent).toContain("Dado sensível alterado");
     expect(pix?.textContent).toContain("Alteração sensível");
-    expect(pix?.textContent).toContain("Por Joi (OWNER)");
+    expect(pix?.textContent).toContain("Por Joi (dono da loja)");
     expect(pix?.textContent).toContain("01/10/2026");
     expect(pix?.textContent).toContain("…8909 → …1234");
     expect(pix?.textContent).toContain("0001 · Pastel da Joi");

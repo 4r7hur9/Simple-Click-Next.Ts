@@ -11,6 +11,7 @@
  * que a tela sabe mostrar. É o que deixa cada componente cuidar só de desenho.
  */
 import {
+  rotuloDaEtapa,
   esquemaDaFichaComHistorico,
   esquemaDaFichaDoCliente,
   esquemaDaListaDeClientes,
@@ -84,27 +85,44 @@ export type LeituraDaLista =
   | {
       readonly estado: "ok";
       readonly clientes: readonly ClienteDaLojaNoContrato[];
+      /** Só com lista paginada (`pagina`): quantos casam e quantos a loja tem. */
+      readonly total?: number | undefined;
+      readonly todos?: number | undefined;
+      readonly pagina?: number | undefined;
+      readonly porPagina?: number | undefined;
+      readonly totalDePaginas?: number | undefined;
     }
   | { readonly estado: "erro"; readonly motivo: string };
 
-/** Lê a lista de clientes, com a busca quando houver (AC-700, AC-701). */
+/**
+ * Lê a lista de clientes (AC-700, AC-701). Com texto, é só a busca; com um
+ * objeto, vão a busca, os filtros, a ordem e a página (o que estiver vazio
+ * fica de fora).
+ */
 export async function buscarClientes(
-  busca: string = "",
+  consulta: string | Readonly<Record<string, string>> = "",
   buscar: Buscar = fetch,
 ): Promise<LeituraDaLista> {
-  const termo = busca.trim();
-  const endereco =
-    termo === ""
-      ? ENDERECO_DOS_CLIENTES
-      : `${ENDERECO_DOS_CLIENTES}?${new URLSearchParams({ busca: termo }).toString()}`;
-  const resposta = await pedir(buscar, endereco);
+  const parametros = new URLSearchParams();
+  if (typeof consulta === "string") {
+    if (consulta.trim() !== "") parametros.set("busca", consulta.trim());
+  } else {
+    for (const [chave, valor] of Object.entries(consulta)) {
+      if (valor.trim() !== "") parametros.set(chave, valor.trim());
+    }
+  }
+  const texto = parametros.toString();
+  const resposta = await pedir(
+    buscar,
+    texto === "" ? ENDERECO_DOS_CLIENTES : `${ENDERECO_DOS_CLIENTES}?${texto}`,
+  );
   if (resposta === null) return { estado: "erro", motivo: "falha de rede" };
   if (!resposta.ok) {
     return { estado: "erro", motivo: `a lista respondeu ${resposta.status}` };
   }
   const lido = esquemaDaListaDeClientes.safeParse(await lerJson(resposta));
   return lido.success
-    ? { estado: "ok", clientes: lido.data.clientes }
+    ? { estado: "ok", ...lido.data }
     : { estado: "erro", motivo: "a lista veio num formato inesperado" };
 }
 
@@ -344,17 +362,8 @@ export function escreverTelefone(e164: string | null): string {
   return e164;
 }
 
-const ROTULOS_DE_STATUS: Readonly<Record<string, string>> = {
-  PENDING: "Aguardando confirmação",
-  ACCEPTED: "Aceito",
-  PREPARING: "Em preparo",
-  READY_FOR_PICKUP: "Pronto para retirada",
-  OUT_FOR_DELIVERY: "Saiu para entrega",
-  COMPLETED: "Concluído",
-  CANCELLED: "Cancelado",
-};
-
 /** O status do pedido em linguagem de balcão. */
 export function rotuloDoStatusDoPedido(status: string): string {
-  return ROTULOS_DE_STATUS[status] ?? status;
+  // Os mesmos nomes das colunas do quadro de pedidos.
+  return rotuloDaEtapa(status);
 }

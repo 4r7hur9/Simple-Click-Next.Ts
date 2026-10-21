@@ -24,7 +24,7 @@ afterEach(() => {
 
 const ENDERECO = "https://wa.me/5511988887777?text=Pedido%20A-1042";
 const TEXTO = "*Pedido A-1042*\n1x Marmita — R$ 20,00";
-const ACOMPANHAR = "https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b";
+const ACOMPANHAR = "https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b";
 
 function montar(
   sobrescrita: Partial<Parameters<typeof EnvioWhatsApp>[0]> = {},

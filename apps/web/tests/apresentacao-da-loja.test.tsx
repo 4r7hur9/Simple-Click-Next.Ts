@@ -20,7 +20,7 @@ import {
 const LOJA: LojaNaTela = {
   apelido: "sabor-e-cia",
   nome: "Sabor & Cia",
-  cores: { primaria: "#0f6e5c" },
+  tema: { corDestaque: "#0f6e5c", fundoVitrine: null, topoCardapio: null },
   boasVindas: "Comida caseira todo dia",
   logo: "https://exemplo.test/logo.png",
   capa: null,
@@ -48,7 +48,7 @@ function desenhar(
     <ApresentacaoDaLoja
       loja={LOJA}
       abertura={ABERTA}
-      linkDoCardapio="/l/sabor-e-cia/catalogo"
+      linkDoCardapio="/loja/sabor-e-cia/cardapio"
       rotuloDoCatalogo="Cardápio"
       {...sobrescrita}
     />,
@@ -83,7 +83,7 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
     // buscador o segue. Botão com onClick não faz nenhuma das três.
     const html = desenhar();
 
-    expect(html).toContain('href="/l/sabor-e-cia/catalogo"');
+    expect(html).toContain('href="/loja/sabor-e-cia/cardapio"');
     expect(html).not.toContain("onclick");
   });
 
@@ -123,7 +123,7 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
     // A página é uma porta, não um destino: quem chega quer o cardápio. Com uma
     // tela só, repetir o botão seria ruído — ele já está à vista o tempo todo.
     const html = desenhar();
-    const quantos = html.split('href="/l/sabor-e-cia/catalogo"').length - 1;
+    const quantos = html.split('href="/loja/sabor-e-cia/cardapio"').length - 1;
 
     expect(quantos).toBe(1);
   });
@@ -135,12 +135,101 @@ describe("a página mostra a loja sem depender de script (AC-400)", () => {
 
     expect(html).toContain("--cor-primaria");
     expect(html).toContain("#0f6e5c");
+    // A cor de destaque e a letra por cima dela saem no envelope, no servidor.
+    expect(html).toContain("--cor-marca:#0f6e5c");
+    expect(html).toContain("--cor-sobre-marca:#ffffff");
+  });
+
+  it("a foto de fundo da vitrine manda sobre a capa antiga", () => {
+    const caixa = document.createElement("div");
+    caixa.innerHTML = desenhar({
+      loja: {
+        ...LOJA,
+        capa: "https://exemplo.test/capa-antiga.jpg",
+        tema: {
+          corDestaque: "#0f6e5c",
+          fundoVitrine: "https://exemplo.test/fundo.jpg",
+          topoCardapio: null,
+        },
+      },
+    });
+    expect(caixa.querySelector(".sc-loja__fundo")?.getAttribute("src")).toBe(
+      "https://exemplo.test/fundo.jpg",
+    );
   });
 
   it("@spec:AC-015 loja sem cor escolhida ainda recebe um tema, e não um branco", () => {
-    const semCor = { ...LOJA, cores: null };
+    const semCor = { ...LOJA, tema: null };
 
     expect(desenhar({ loja: semCor })).toContain("--cor-primaria");
+  });
+
+  it("@spec:AC-400 a capa é o fundo do painel, e entrega e endereço moram nele", () => {
+    const comCapa = { ...LOJA, capa: "https://exemplo.test/capa.png" };
+    const caixa = document.createElement("div");
+    caixa.innerHTML = desenhar({ loja: comCapa });
+    const painel = caixa.querySelector(".sc-loja__painel");
+
+    expect(painel?.classList.contains("sc-loja__painel--com-capa")).toBe(true);
+    expect(
+      painel?.querySelector("img.sc-loja__fundo")?.getAttribute("alt"),
+    ).toBe("");
+    expect(painel?.querySelector(".sc-loja__veu")).not.toBeNull();
+    expect(painel?.querySelector(".sc-loja__detalhes")?.textContent).toContain(
+      "Como receber",
+    );
+    expect(painel?.querySelector("address")?.textContent).toContain(
+      "Rua das Flores",
+    );
+  });
+
+  it("@spec:AC-400 sem capa, o painel fica no grafite com a trama", () => {
+    const html = desenhar();
+
+    expect(html).toContain("sc-loja__trama");
+    expect(html).not.toContain("sc-loja__fundo");
+    expect(html).not.toContain("sc-loja__painel--com-capa");
+  });
+
+  it("@spec:AC-400 o texto Sobre aparece resumido, com o caminho para o texto inteiro", () => {
+    const comSobre = { ...LOJA, sobre: "Desde 2009 no bairro." };
+    const html = desenhar({ loja: comSobre });
+
+    expect(comoSeLe(html)).toContain("Desde 2009 no bairro.");
+    expect(html).toContain('href="/loja/sabor-e-cia/sobre"');
+  });
+
+  it("@spec:AC-400 o caminho para o Sobre é um link de texto dentro do filete, e não outro botão", () => {
+    const caixa = document.createElement("div");
+    caixa.innerHTML = desenhar({ loja: { ...LOJA, sobre: "Desde 2009." } });
+    const link = caixa.querySelector('a[href="/loja/sabor-e-cia/sobre"]');
+
+    expect(link?.textContent).toBe("Ler mais sobre a loja");
+    expect(link?.closest(".sc-loja__ficha")).not.toBeNull();
+    expect(link?.classList.contains("sc-loja__entrar")).toBe(false);
+  });
+
+  it("@spec:AC-400 loja sem Sobre não mostra bloco vazio nem o 'Ler mais'", () => {
+    const html = desenhar({ loja: { ...LOJA, sobre: null } });
+
+    expect(html).not.toContain("sc-loja__sobre");
+    expect(html).not.toContain("Ler mais sobre a loja");
+  });
+
+  it("@spec:AC-400 os caminhos para o Sobre abrem a janela, e sem script são links comuns", () => {
+    const caixa = document.createElement("div");
+    caixa.innerHTML = desenhar({ loja: { ...LOJA, sobre: "Desde 2009." } });
+    const portas = [...caixa.querySelectorAll("a[data-abre-sobre]")];
+
+    // "Ler mais" e "Horários, pagamento e contato": as duas abrem a janela, e
+    // as duas têm endereço de verdade para quem está sem script.
+    expect(portas.map((porta) => porta.textContent?.trim())).toEqual([
+      "Ler mais sobre a loja",
+      "Horários, pagamento e contato",
+    ]);
+    for (const porta of portas) {
+      expect(porta.getAttribute("href")).toBe("/loja/sabor-e-cia/sobre");
+    }
   });
 
   it("@spec:AC-400 loja sem logo mostra as iniciais, e não um buraco na composição", () => {
@@ -179,7 +268,7 @@ describe("loja fechada avisa e deixa navegar (AC-401)", () => {
       },
     });
 
-    expect(html).toContain('href="/l/sabor-e-cia/catalogo"');
+    expect(html).toContain('href="/loja/sabor-e-cia/cardapio"');
     expect(comoSeLe(html)).toContain("ver o cardápio e voltar depois");
   });
 

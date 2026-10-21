@@ -16,7 +16,12 @@
  */
 import { IconeBuscar } from "@simpleclick/ui";
 
-import { PARAMETRO_DA_BUSCA } from "../../lib/catalogo.ts";
+import {
+  PARAMETRO_DA_BUSCA,
+  PARAMETRO_DA_ORDEM,
+  PARAMETRO_DO_ATACADO,
+  type OrdemDoCatalogo,
+} from "../../lib/catalogo.ts";
 
 export interface BuscaProdutoProps {
   /** Para onde o formulário envia — o próprio catálogo da loja. */
@@ -25,12 +30,21 @@ export interface BuscaProdutoProps {
   readonly termo: string | null;
   /** Como a loja chama o catálogo: "cardápio" ou "catálogo". */
   readonly rotuloDoCatalogo: string;
+  /** A ordem em vigor atravessa a busca, como atravessa as abas. */
+  readonly ordem?: OrdemDoCatalogo | undefined;
+  /** O filtro de atacado ligado atravessa a busca também (card #59). */
+  readonly atacado?: boolean | undefined;
+  /** O `id` do campo. Duas buscas na mesma página precisam de ids diferentes. */
+  readonly id?: string | undefined;
 }
 
 export function BuscaProduto({
   acao,
   termo,
   rotuloDoCatalogo,
+  ordem = "relevancia",
+  atacado = false,
+  id = "busca-na-vitrine",
 }: BuscaProdutoProps) {
   return (
     <form
@@ -39,18 +53,24 @@ export function BuscaProduto({
       method="get"
       role="search"
     >
-      <label className="sc-so-leitor" htmlFor="busca-na-vitrine">
+      {ordem === "relevancia" ? null : (
+        <input type="hidden" name={PARAMETRO_DA_ORDEM} value={ordem} />
+      )}
+      {atacado ? (
+        <input type="hidden" name={PARAMETRO_DO_ATACADO} value="1" />
+      ) : null}
+      <label className="sc-so-leitor" htmlFor={id}>
         Buscar no {rotuloDoCatalogo.toLowerCase()}
       </label>
       <input
         className="sc-vitrine__busca-campo"
-        id="busca-na-vitrine"
+        id={id}
         type="search"
         name={PARAMETRO_DA_BUSCA}
         defaultValue={termo ?? ""}
-        // A dica é curta porque o campo divide a barra com a marca e o
-        // carrinho: no dobrável fechado, "Buscar no cardápio" sairia cortado.
-        // O nome completo, com a palavra do ramo, está no `label`.
+        // A dica é curta porque o campo divide a barra com as categorias, o
+        // filtro e a ordem. O nome completo, com a palavra do ramo, está no
+        // `label`.
         placeholder="Buscar"
         // `search` no celular troca o "enter" por uma lupa: é o teclado dizendo
         // o que aquele botão faz, sem a pessoa ter de descobrir.

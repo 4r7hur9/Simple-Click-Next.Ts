@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+
+import { EXPLICACOES } from "./explicacoes.ts";
+import { CampoComRotulo, descritoDoInfo } from "./RotuloComInfo.tsx";
 
 interface Movimento {
   readonly id: string;
@@ -37,6 +40,7 @@ function dataHora(valor: string) {
 }
 
 export function AjusteDeEstoque({ produtoId }: Props) {
+  const base = useId();
   const [variacoes, setVariacoes] = useState<Variacao[]>([]);
   const [selecionadaId, setSelecionadaId] = useState("");
   const [quantidadeAlvo, setQuantidadeAlvo] = useState("");
@@ -167,6 +171,9 @@ export function AjusteDeEstoque({ produtoId }: Props) {
                       : variacao.estoqueBaixo
                         ? "estoque baixo"
                         : "unidades disponíveis"}
+                    {variacao.minimoAlerta === null
+                      ? ""
+                      : ` · alerta com ${variacao.minimoAlerta} ou menos`}
                   </span>
                 </button>
               </li>
@@ -176,29 +183,39 @@ export function AjusteDeEstoque({ produtoId }: Props) {
           {selecionada?.quantidade !== null && selecionada !== null ? (
             <form
               onSubmit={(evento) => void ajustar(evento)}
-              className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-[12rem_1fr_auto] sm:items-end"
+              className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-[15rem_1fr_auto] sm:items-end"
             >
-              <label>
-                <span className="text-sm font-medium">Nova quantidade</span>
+              <CampoComRotulo
+                id={`${base}-quantidade`}
+                rotulo="Nova quantidade (unidades)"
+                info={EXPLICACOES.novaQuantidade}
+              >
                 <input
-                  className="sc-campo__controle mt-2 w-full"
+                  id={`${base}-quantidade`}
+                  className="sc-campo__controle w-full"
                   type="number"
+                  inputMode="numeric"
                   min={0}
                   value={quantidadeAlvo}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-quantidade`,
+                    EXPLICACOES.novaQuantidade,
+                  )}
                   onChange={(evento) => setQuantidadeAlvo(evento.target.value)}
                   required
                 />
-              </label>
-              <label>
-                <span className="text-sm font-medium">Motivo</span>
+              </CampoComRotulo>
+              <CampoComRotulo id={`${base}-motivo`} rotulo="Motivo do ajuste">
                 <input
-                  className="sc-campo__controle mt-2 w-full"
+                  id={`${base}-motivo`}
+                  className="sc-campo__controle w-full"
                   value={motivo}
                   onChange={(evento) => setMotivo(evento.target.value)}
                   placeholder="Ex.: contagem física"
+                  maxLength={500}
                   required
                 />
-              </label>
+              </CampoComRotulo>
               <button
                 className="sc-botao sc-botao--primaria"
                 type="submit"

@@ -30,6 +30,8 @@
 .sc-dialogo__fechar:focus-visible,
 .sc-sanfona__titulo:focus-visible,
 .sc-menu__item:focus-visible,
+.sc-seletor__gatilho:focus-visible,
+.sc-seletor__busca input:focus-visible,
 .sc-tabela:focus-visible,
 .sc-tabela__ordenar:focus-visible {
   outline: 2px solid var(--cor-foco);
@@ -555,6 +557,11 @@
   color: var(--cor-tinta);
 }
 
+/* A ação (botão ou link) vem depois do texto: respiro para não encostar. */
+.sc-aviso > div + * {
+  margin-block-start: var(--espaco-2);
+}
+
 .sc-aviso__titulo {
   margin: 0;
   font-size: var(--texto-base);
@@ -913,6 +920,198 @@
   cursor: not-allowed;
 }
 
+/* --- seletor ------------------------------------------------------------- */
+
+/* O `<select>` do SimpleClick (seletor.tsx): botão com a moldura do campo e
+   uma lista própria, na paleta, no lugar da lista azul do sistema. */
+.sc-seletor {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.sc-seletor__gatilho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  text-align: start;
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-linha-apertada);
+  cursor: pointer;
+}
+
+.sc-seletor__gatilho[aria-expanded="true"] {
+  border-color: var(--cor-primaria-texto);
+}
+
+.sc-seletor__valor {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-seletor__valor--vazio {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-seletor__seta {
+  flex-shrink: 0;
+  color: var(--cor-tinta-suave);
+  transition: transform var(--transicao-media);
+}
+
+.sc-seletor__gatilho[aria-expanded="true"] .sc-seletor__seta {
+  transform: rotate(180deg);
+  color: var(--cor-primaria-texto);
+}
+
+/* O campo que leva o valor no envio quando é obrigatório: invisível, mas no
+   lugar do botão, para o aviso do navegador apontar para ele. */
+.sc-seletor__nativo {
+  position: absolute;
+  bottom: 0;
+  left: var(--espaco-4);
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* `popover` nasce centralizado e com as cores do sistema: aqui ele fica onde
+   o script manda, com as cores da paleta. */
+.sc-seletor__painel {
+  position: fixed;
+  inset: auto;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--espaco-1);
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-base);
+}
+
+.sc-seletor__painel[hidden] {
+  display: none;
+}
+
+.sc-seletor__painel:not([hidden]) {
+  animation: sc-surgir var(--transicao-rapida) both;
+}
+
+.sc-seletor__busca {
+  position: relative;
+  flex-shrink: 0;
+  padding: var(--espaco-1) var(--espaco-1) var(--espaco-2);
+}
+
+.sc-seletor__lupa {
+  position: absolute;
+  top: calc(var(--espaco-1) + var(--altura-toque) / 2);
+  left: var(--espaco-4);
+  translate: 0 -50%;
+  color: var(--cor-tinta-suave);
+  pointer-events: none;
+}
+
+.sc-seletor__busca input {
+  width: 100%;
+  min-height: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-3) var(--espaco-2) 2.75rem;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font: inherit;
+}
+
+.sc-seletor__busca input::placeholder {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-seletor__lista,
+.sc-seletor__grupo > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-seletor__lista {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  --barra-rolagem-largura: 6px;
+}
+
+.sc-seletor__opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-botao);
+  color: var(--cor-tinta);
+  line-height: var(--altura-linha-apertada);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sc-seletor__rotulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.sc-seletor__opcao[data-ativa] {
+  background-color: var(--cor-primaria-suave);
+}
+
+.sc-seletor__opcao[aria-selected="true"] {
+  font-weight: var(--peso-forte);
+}
+
+.sc-seletor__check {
+  flex-shrink: 0;
+  color: var(--cor-primaria-texto);
+}
+
+.sc-seletor__opcao[aria-disabled="true"] {
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.sc-seletor__opcao[aria-disabled="true"][data-ativa] {
+  background-color: transparent;
+}
+
+.sc-seletor__titulo-do-grupo {
+  display: block;
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-1);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  color: var(--cor-tinta-suave);
+  letter-spacing: 0.02em;
+}
+
+.sc-seletor__nada {
+  padding: var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
 /* --- tabela -------------------------------------------------------------- */
 
 .sc-tabela {
@@ -1018,7 +1217,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--espaco-2);
-    margin-block-end: var(--espaco-3);
+    margin-block-end: var(--espaco-4);
   }
 
   .sc-tabela--cartoes thead th {
@@ -1033,8 +1232,8 @@
   }
 
   .sc-tabela--cartoes tbody tr {
-    margin-block-end: var(--espaco-3);
-    padding: var(--espaco-1) var(--espaco-4);
+    margin-block-end: var(--espaco-4);
+    padding: var(--espaco-2) var(--espaco-4);
     border: 1px solid var(--cor-borda);
     border-radius: var(--raio-cartao);
     background-color: var(--cor-superficie-alta);
@@ -1070,8 +1269,13 @@
 @media (prefers-reduced-motion: reduce) {
   .sc-dialogo,
   .sc-dialogo::backdrop,
-  .sc-menu__painel:popover-open {
+  .sc-menu__painel:popover-open,
+  .sc-seletor__painel:not([hidden]) {
     animation: none;
+  }
+
+  .sc-seletor__seta {
+    transition: none;
   }
 
   .sc-botao:not([disabled]):active {

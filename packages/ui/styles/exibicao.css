@@ -56,6 +56,12 @@
   font-family: var(--fonte-base);
 }
 
+/* A tela da TV é o próprio envelope da marca, que por padrão não tem caixa
+   (`display: contents`): aqui ela precisa da caixa fixa, do fundo e do corte. */
+.sc-tema-loja.sc-exibicao {
+  display: block;
+}
+
 .sc-exibicao__tela {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--faixa-do-codigo);

@@ -2,15 +2,15 @@
  * Troca do apelido da loja pela administração, preservando o endereço antigo
  * (AC-208).
  *
- * O apelido é o endereço da loja na web (`/l/pastel-da-joi`), e ele já está
+ * O apelido é o endereço da loja na web (`/loja/pastel-da-joi`), e ele já está
  * em todo lugar que o dono o divulgou: no WhatsApp, no Instagram, no cartaz do
  * balcão. Trocar sem guardar o antigo quebraria cada um desses links — e o
  * cliente que clicasse veria "loja não disponível" numa loja que está no ar.
  *
- * Por isso a troca GUARDA o apelido antigo como endereço da loja
- * (`store_domains`, tipo `LEGACY_SLUG`, como o modelo de dados previu), e o
+ * Por isso a troca GUARDA o apelido antigo como apelido antigo da
+ * loja (`stores.slugs_antigos`), e o
  * site redireciona quem chega por ele (`app.resolve_legacy_slug`, migração
- * 0032). O antigo continua ocupado: entregá-lo a outra loja faria o link que o
+ * 0048). O antigo continua ocupado: entregá-lo a outra loja faria o link que o
  * cliente já tinha abrir a loja errada.
  *
  * Voltar a um apelido que a PRÓPRIA loja já usou é permitido: o endereço

@@ -1,0 +1,265 @@
+/*
+ * Barra de filtros das listas do painel (card #77): a mesma em Produtos,
+ * Pedidos e Clientes. Busca com ícone e "limpar", filtros em linha no
+ * computador e numa gaveta de baixo no celular, ordenar, contador e
+ * "Limpar filtros". Só usa os tokens do tema; sem sombra de vidro nem
+ * animação de entrada além de uma subida curta da gaveta.
+ */
+
+.sc-filtros {
+  display: grid;
+  gap: var(--espaco-3);
+  margin-block: var(--espaco-4);
+}
+
+.sc-filtros__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espaco-3);
+}
+
+.sc-filtros__busca {
+  position: relative;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.sc-filtros__busca-icone {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--espaco-3);
+  display: flex;
+  align-items: center;
+  color: var(--cor-tinta-suave);
+  pointer-events: none;
+}
+
+.sc-filtros__busca input {
+  padding-inline: 2.5rem 2.5rem;
+  min-height: var(--altura-toque-grande);
+  border-radius: var(--raio-cartao);
+}
+
+/* O "x" nativo do type=search some: o nosso é o único. */
+.sc-filtros__busca input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.sc-filtros__limpar-busca {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--espaco-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--altura-toque);
+  border: 0;
+  background: transparent;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-filtros__limpar-busca:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-filtros__limpar-busca:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
+
+/* Os campos de filtro (selects e faixas), em linha no computador. */
+.sc-filtros__campos {
+  display: none;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espaco-3);
+}
+
+.sc-filtros__campo {
+  display: grid;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.sc-filtros__campo > span {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+}
+
+.sc-filtros__campos .sc-filtros__campo {
+  width: 11.5rem;
+}
+
+.sc-filtros__faixa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-2);
+}
+
+.sc-filtros__campos .sc-filtros__campo--faixa {
+  width: 15rem;
+}
+
+.sc-filtros__ordem {
+  display: none;
+}
+
+.sc-filtros__botao-filtros {
+  display: inline-flex;
+}
+
+.sc-filtros__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-filtros__contagem {
+  margin: 0;
+}
+
+.sc-filtros__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-filtros__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-height: 2rem;
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-filtros__chip:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-filtros__chip[aria-pressed="true"] {
+  background-color: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: 600;
+}
+
+.sc-filtros__chip:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@media (min-width: 48rem) {
+  .sc-filtros__campos,
+  .sc-filtros__ordem {
+    display: flex;
+  }
+
+  .sc-filtros__ordem {
+    flex-direction: column;
+    gap: var(--espaco-1);
+    width: 12.5rem;
+  }
+
+  .sc-filtros__ordem > span {
+    font-size: var(--texto-sm);
+    font-weight: 500;
+  }
+
+  .sc-filtros__botao-filtros {
+    display: none;
+  }
+}
+
+/* A gaveta de baixo (celular). */
+.sc-gaveta {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 85dvh;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--cor-borda);
+  border-bottom: 0;
+  border-radius: var(--raio-janela) var(--raio-janela) 0 0;
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  overflow: hidden;
+  animation: sc-gaveta-subir var(--transicao-media) both;
+}
+
+.sc-gaveta::backdrop {
+  background-color: var(--cor-sobreposicao);
+}
+
+.sc-gaveta__miolo {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: 85dvh;
+}
+
+.sc-gaveta__cabeca,
+.sc-gaveta__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+}
+
+.sc-gaveta__cabeca {
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.sc-gaveta__cabeca h2 {
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.sc-gaveta__rodape {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.sc-gaveta__corpo {
+  display: grid;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  overflow-y: auto;
+}
+
+@keyframes sc-gaveta-subir {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (min-width: 48rem) {
+  .sc-gaveta {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-gaveta {
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { descritoresDoCampo } from "./campo-descritores";
 import { Girando } from "./estados";
+import { Info, type ConteudoDoInfo } from "./info";
 
 /**
  * Campo de formulário com rótulo, dica e retorno.
@@ -14,6 +15,11 @@ import { Girando } from "./estados";
  * é o que funciona igual em todo leitor de tela. A mensagem de erro entra em
  * `aria-describedby` **e** em `role="alert"`: a primeira faz o leitor ler o erro
  * ao chegar no campo, a segunda faz ele avisar na hora em que o erro aparece.
+ *
+ * `dica` é o texto curto que precisa estar SEMPRE à vista, embaixo do campo.
+ * `info` é a explicação mais longa, que fica atrás do botão "i" na linha do
+ * rótulo (veja a regra "Campos explicados" em `apps/web/AGENTS.md`); o texto
+ * dela também entra no `aria-describedby` do controle.
  */
 
 export type CampoProps = Omit<
@@ -24,6 +30,8 @@ export type CampoProps = Omit<
   id: string;
   rotulo: string;
   dica?: string | undefined;
+  /** Explicação atrás do "i" ao lado do rótulo: o que é, quando usar, exemplo. */
+  info?: ConteudoDoInfo | undefined;
   /** Mensagem de recusa. Presente significa campo inválido. */
   erro?: string | undefined;
   /** Confirmação curta de que o valor serve. */
@@ -43,6 +51,7 @@ export function Campo({
   id,
   rotulo,
   dica,
+  info,
   erro,
   sucesso,
   carregando = false,
@@ -59,11 +68,23 @@ export function Campo({
   const idEspera = `${id}-espera`;
 
   const descritores = descritoresDoCampo(id, {
+    info: info !== undefined,
     dica,
     erro,
     sucesso,
     carregando,
   });
+
+  const rotuloDoCampo = (
+    <label className="sc-campo__rotulo" htmlFor={id}>
+      {rotulo}
+      {obrigatorio && (
+        <span aria-hidden="true" className="sc-campo__obrigatorio">
+          *
+        </span>
+      )}
+    </label>
+  );
 
   return (
     <div
@@ -75,14 +96,16 @@ export function Campo({
         .filter(Boolean)
         .join(" ")}
     >
-      <label className="sc-campo__rotulo" htmlFor={id}>
-        {rotulo}
-        {obrigatorio && (
-          <span aria-hidden="true" className="sc-campo__obrigatorio">
-            *
-          </span>
-        )}
-      </label>
+      {info === undefined ? (
+        rotuloDoCampo
+      ) : (
+        // O "i" fica FORA do `<label>`: dentro, o nome do botão entraria no
+        // nome do controle.
+        <div className="sc-campo__cabeca">
+          {rotuloDoCampo}
+          <Info id={id} rotulo={rotulo} conteudo={info} />
+        </div>
+      )}
 
       {controle ?? (
         <input

@@ -3,7 +3,7 @@
  *
  * O QUE SÓ ESTE CENÁRIO PROVA. Os ganchos e a tela têm prova de unidade com
  * relógio de mentira (`apps/web/tests/cardapio-na-tv.test.tsx`). O que nenhuma
- * delas alcança: a rota `/l/{apelido}/tv` existe no framework, o servidor a
+ * delas alcança: a rota `/loja/{apelido}/tv` existe no framework, o servidor a
  * desenha com o catálogo de verdade, a página não tem barra de rolagem numa
  * janela de televisão, o rodízio avança no relógio de verdade — e, com a rede
  * cortada pelo navegador, a exibição continua de pé e volta a atualizar quando
@@ -29,7 +29,7 @@ const TELEVISAO = { width: 1920, height: 1080 };
 const TELEVISAO_EM_PE = { width: 1080, height: 1920 };
 
 /** O endereço da exibição, com o ritmo mais curto que a página aceita. */
-const EXIBICAO = `/l/${APELIDO_DA_LOJA}/tv?segundos=5&atualizar=2`;
+const EXIBICAO = `/loja/${APELIDO_DA_LOJA}/tv?segundos=5&atualizar=2`;
 
 test.beforeAll(async () => {
   await garantirLojaDeTeste();
@@ -145,7 +145,7 @@ test("@spec:AC-925 o código para o celular está na tela, grande, e leva à vit
   // 44% do lado menor de 1080 px: cerca de 475 px. Elemento grande, e não
   // selo de canto.
   expect(caixa?.width ?? 0).toBeGreaterThan(400);
-  await expect(page.getByText(`/l/${APELIDO_DA_LOJA}/catalogo`)).toBeVisible();
+  await expect(page.getByText(`/loja/${APELIDO_DA_LOJA}/cardapio`)).toBeVisible();
 });
 
 test("@spec:AC-929 com a rede cortada, a exibição continua de pé e volta a atualizar quando a rede retorna", async ({
@@ -187,7 +187,7 @@ test("@spec:AC-925 loja inexistente responde a página de indisponível, e não 
   page,
 }) => {
   await page.setViewportSize(TELEVISAO);
-  await page.goto("/l/loja-que-nunca-existiu/tv");
+  await page.goto("/loja/loja-que-nunca-existiu/tv");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "não está disponível",

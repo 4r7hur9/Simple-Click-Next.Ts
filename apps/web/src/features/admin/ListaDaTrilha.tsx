@@ -15,6 +15,7 @@ import {
   momentoNaTela,
   rotuloDoAto,
   rotuloDoCampo,
+  rotuloDoPapel,
   valorNaTela,
 } from "./trilha-na-tela.ts";
 
@@ -26,7 +27,7 @@ export interface ListaDaTrilhaProps {
 
 export function ListaDaTrilha({ registros, complemento }: ListaDaTrilhaProps) {
   return (
-    <ol className="grid gap-3">
+    <ol className="grid gap-4">
       {registros.map((registro) => (
         <li key={registro.id} data-sensivel={registro.sensivel || undefined}>
           <Cartao
@@ -50,8 +51,8 @@ export function ListaDaTrilha({ registros, complemento }: ListaDaTrilhaProps) {
               {momentoNaTela(registro.quando)}
             </time>
             <p className="mt-1 text-sm">
-              Por {registro.quem?.nome ?? "tarefa do sistema"} ({registro.papel}
-              )
+              Por {registro.quem?.nome ?? "tarefa do sistema"} (
+              {rotuloDoPapel(registro.papel)})
             </p>
             {complemento?.(registro)}
             {registro.campos.length > 0 && (

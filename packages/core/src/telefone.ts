@@ -209,9 +209,13 @@ function conferirBrasil(resto: string): ResultadoDoNumero {
   const assinante = semZero.slice(2);
 
   if (!DDDS_DO_BRASIL.has(ddd)) {
+    // Nenhum DDD começa com 0: se sobrou um zero depois de tirar o da
+    // discagem, quem digitou pôs um DDD começando com 0 ("(00) 9..."), e a
+    // frase cita esses dois dígitos, não os que sobraram do corte.
+    const dddDigitado = ddd.startsWith("0") ? resto.slice(0, 2) : ddd;
     return recusar(
       "DDD_DESCONHECIDO",
-      `O código de área ${ddd} não existe no Brasil. Confira os dois primeiros dígitos.`,
+      `O código de área ${dddDigitado} não existe no Brasil. Confira os dois primeiros dígitos.`,
     );
   }
 

@@ -61,7 +61,7 @@ describe("aplicativo autenticador", () => {
   it("@spec:AC-122 administrador sem aplicativo só pode ir para a configuração", () => {
     expect(decidirSegundoFatorObrigatorio("ADMINISTRADOR", false)).toEqual({
       status: "CONFIGURACAO_OBRIGATORIA",
-      caminho: "/minha-conta/seguranca/aplicativo",
+      caminho: "/conta/seguranca/aplicativo",
     });
     expect(decidirSegundoFatorObrigatorio("ADMINISTRADOR", true)).toEqual({
       status: "PODE_CONTINUAR",

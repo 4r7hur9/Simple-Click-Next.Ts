@@ -11,7 +11,7 @@
   "baseDir": ".spec/features/landing-plataforma",
   "specDir": ".spec",
   "repoName": "Simple-Click-Next.Ts",
-  "logsDir": "../onp-worktrees/Simple-Click-Next.Ts-landing-plataforma-logs",
+  "logsDir": "worktrees/Simple-Click-Next.Ts-landing-plataforma-logs",
   "ondas": [],
   "faixas": [],
   "sequenciais": [

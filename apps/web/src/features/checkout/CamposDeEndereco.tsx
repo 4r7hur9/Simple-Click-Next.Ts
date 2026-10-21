@@ -53,7 +53,13 @@ export function CamposDeEndereco({
   function campo(
     nome: keyof EnderecoNaTela,
     rotulo: string,
-    extras: { obrigatorio?: boolean; dica?: string; modo?: string } = {},
+    extras: {
+      obrigatorio?: boolean;
+      dica?: string;
+      modo?: string;
+      exemplo?: string;
+      preenchimento?: string;
+    } = {},
   ) {
     return (
       <Campo
@@ -67,6 +73,8 @@ export function CamposDeEndereco({
         {...(erros?.[nome] ? { erro: erros[nome] } : {})}
         {...(extras.dica ? { dica: extras.dica } : {})}
         {...(extras.modo ? { inputMode: extras.modo as "numeric" } : {})}
+        {...(extras.exemplo ? { placeholder: extras.exemplo } : {})}
+        {...(extras.preenchimento ? { autoComplete: extras.preenchimento } : {})}
       />
     );
   }
@@ -75,22 +83,33 @@ export function CamposDeEndereco({
     <fieldset className="sc-endereco">
       <legend className="sc-endereco__titulo">Endereço de entrega</legend>
 
-      {campo("logradouro", "Rua ou avenida", { obrigatorio: true })}
+      {campo("logradouro", "Rua ou avenida", {
+        obrigatorio: true,
+        exemplo: "Ex.: Rua das Flores",
+        preenchimento: "address-line1",
+      })}
       {campo("numero", "Número", {
         obrigatorio: true,
         dica: "Se não tiver, escreva 'sem número'.",
+        exemplo: "Ex.: 123",
       })}
-      {campo("complemento", "Complemento", {
-        dica: "Apartamento, bloco, casa dos fundos.",
+      {campo("complemento", "Complemento (opcional)", {
+        dica: "Apartamento, bloco ou casa. Ex.: apto 302, bloco B.",
+        preenchimento: "address-line2",
       })}
       {campo("bairro", "Bairro", {
         obrigatorio: true,
         dica: "É o bairro que define a taxa de entrega.",
+        exemplo: "Ex.: Centro",
       })}
-      {campo("cidade", "Cidade")}
-      {campo("cep", "CEP", { modo: "numeric" })}
-      {campo("pontoDeReferencia", "Ponto de referência", {
-        dica: "Ajuda quem entrega a achar mais rápido.",
+      {campo("cidade", "Cidade (opcional)", { preenchimento: "address-level2" })}
+      {campo("cep", "CEP (opcional)", {
+        modo: "numeric",
+        exemplo: "Ex.: 60000-000",
+        preenchimento: "postal-code",
+      })}
+      {campo("pontoDeReferencia", "Ponto de referência (opcional)", {
+        dica: "Algo perto que ajude quem entrega a achar. Ex.: em frente à padaria, portão azul.",
       })}
     </fieldset>
   );

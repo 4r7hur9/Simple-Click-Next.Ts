@@ -22,18 +22,22 @@ import { Botao, Erro, Esqueleto } from "@simpleclick/ui";
 import {
   PERIODO_DE_HOJE,
   descreverPeriodo,
+  escreverPedidos,
+  nomeDaFormaDePagamento,
   nomeDoAtalho,
   periodoSemPedido,
   type BuscarMetricas,
   type ConsultaDoPeriodo,
   type PeriodoDeMetricasNoContrato,
 } from "../../lib/metricas.ts";
-import { CartoesDeMetrica } from "./CartoesDeMetrica.tsx";
-import { ComparativoPeriodo } from "./ComparativoPeriodo.tsx";
+import { CartoesDoPainel } from "./CartoesDoPainel.tsx";
+import { ComposicaoDasVendas } from "./ComposicaoDasVendas.tsx";
 import { DistribuicaoPorHora } from "./DistribuicaoPorHora.tsx";
 import { EvolucaoDiaria } from "./EvolucaoDiaria.tsx";
 import { HorarioDeReferencia } from "./HorarioDeReferencia.tsx";
+import { DivisaoDasVendas } from "./DivisaoDasVendas.tsx";
 import { PainelVazio } from "./PainelVazio.tsx";
+import { PedidosAgora } from "./PedidosAgora.tsx";
 import { RankingProdutos } from "./RankingProdutos.tsx";
 import { useMetricas, type UsoDasMetricas } from "./useMetricas.ts";
 
@@ -70,17 +74,40 @@ function PeriodoEmVigor({
 
 export interface CorpoDasMetricasProps {
   readonly uso: UsoDasMetricas;
+  /** Mostra as setas de comparação com o período anterior (padrão: sim). */
+  readonly comparar?: boolean | undefined;
 }
 
-export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
+/** O desenho de espera: a forma do painel, sem nenhum número. */
+function EsperaDoPainel({ rotulo }: { readonly rotulo: string }) {
+  return (
+    <div data-estado="carregando" className="space-y-4">
+      <Esqueleto linhas={2} rotulo={rotulo} />
+      <div className="grid grid-cols-2 gap-4 min-[900px]:grid-cols-4" aria-hidden="true">
+        {Array.from({ length: 7 }, (_, i) => (
+          <div
+            key={i}
+            className={[
+              "h-28 animate-pulse rounded-[var(--raio-cartao)] bg-superficie-alta",
+              i === 0 ? "col-span-2" : "",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+      <div className="h-64 animate-pulse rounded-[var(--raio-cartao)] bg-superficie-alta" aria-hidden="true" />
+    </div>
+  );
+}
+
+export function CorpoDasMetricas({
+  uso,
+  comparar = true,
+}: CorpoDasMetricasProps) {
   if (uso.fase === "carregando") {
     return (
-      <div data-estado="carregando">
-        <Esqueleto
-          linhas={5}
-          rotulo={`Calculando os números ${oQueCarrega(uso.pedida)}…`}
-        />
-      </div>
+      <EsperaDoPainel
+        rotulo={`Calculando os números ${oQueCarrega(uso.pedida)}…`}
+      />
     );
   }
 
@@ -126,18 +153,13 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
           aoAtualizar={uso.atualizarAgora}
         />
       </div>
+      {metricas.detalhes !== undefined ? (
+        <PedidosAgora etapas={metricas.detalhes.etapasAgora} />
+      ) : null}
+      <CartoesDoPainel metricas={metricas} comparar={comparar} />
       {vazio ? (
         <PainelVazio apelido={metricas.loja.apelido} hoje={hoje} />
       ) : null}
-      <CartoesDeMetrica
-        resumo={metricas.resumo}
-        regraDeVenda={metricas.regraDeVenda}
-        rotuloDoPeriodo={hoje ? "hoje" : "no período"}
-      />
-      <ComparativoPeriodo
-        comparacao={metricas.comparacao}
-        periodo={metricas.periodo}
-      />
       {/* Um dia só não tem evolução: a coluna única não diz nada que os
           cartões já não digam. */}
       {metricas.porDia.length > 1 ? (
@@ -149,6 +171,44 @@ export function CorpoDasMetricas({ uso }: CorpoDasMetricasProps) {
         <RankingProdutos produtos={metricas.maisVendidos} />
         <DistribuicaoPorHora pontos={metricas.porHora} />
       </div>
+      {metricas.detalhes !== undefined ? (
+        <div className="grid grid-cols-1 gap-6 min-[900px]:grid-cols-3">
+          <DivisaoDasVendas
+            nome="pagamento"
+            titulo="Vendas por forma de pagamento"
+            linhas={metricas.detalhes.porPagamento.map((p) => ({
+              chave: p.forma ?? "nenhuma",
+              rotulo: nomeDaFormaDePagamento(p.forma),
+              valorCentavos: p.vendidoCentavos,
+              quantidade: escreverPedidos(p.pedidos),
+            }))}
+          />
+          <DivisaoDasVendas
+            nome="entrega"
+            titulo="Entrega e retirada"
+            linhas={metricas.detalhes.porEntrega.map((e) => ({
+              chave: e.tipo,
+              rotulo: e.tipo === "DELIVERY" ? "Entrega" : "Retirada",
+              valorCentavos: e.vendidoCentavos,
+              quantidade: escreverPedidos(e.pedidos),
+            }))}
+          />
+          <DivisaoDasVendas
+            nome="categoria"
+            titulo="Vendas por categoria"
+            linhas={metricas.detalhes.porCategoria.map((c) => ({
+              chave: c.nome,
+              rotulo: c.nome,
+              valorCentavos: c.totalCentavos,
+              quantidade: `${c.quantidade} ${c.quantidade === 1 ? "item" : "itens"}`,
+            }))}
+          />
+        </div>
+      ) : null}
+      <ComposicaoDasVendas
+        resumo={metricas.resumo}
+        regraDeVenda={metricas.regraDeVenda}
+      />
     </div>
   );
 }

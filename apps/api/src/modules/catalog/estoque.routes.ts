@@ -26,6 +26,12 @@ const esquemaDoAjuste = z.strictObject({
   motivo: z.string().trim().min(1).max(500),
 });
 
+// "Avisar abaixo de" do produto inteiro (card #52): grava o mesmo mínimo em
+// todas as variações que controlam estoque. Nulo desliga o aviso.
+const esquemaDoAlerta = z.strictObject({
+  minimoAlerta: z.number().int().min(0).max(2_147_483_647).nullable(),
+});
+
 const selecaoDoMovimento = {
   id: true,
   quantityBefore: true,
@@ -217,6 +223,60 @@ export function criarRotasDoEstoque(opcoes: OpcoesDoEstoque): Router {
             }
             resposta.json({
               variacoes: variacoes.map(respostaDaVariacao),
+            });
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.put(
+    "/:apelido/catalogo/produtos/:produtoId/estoque/alerta",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const entrada = esquemaDoAlerta.safeParse(requisicao.body);
+        if (!entrada.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const atualizadas = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const produto = await produtoDaLoja(
+                    tx,
+                    lojaId,
+                    requisicao.params.produtoId,
+                  );
+                  if (produto === null) return null;
+                  const { count } = await tx.productVariant.updateMany({
+                    where: {
+                      storeId: lojaId,
+                      productId: produto.id,
+                      deletedAt: null,
+                      stockQuantity: { not: null },
+                    },
+                    data: {
+                      stockMinAlert: entrada.data.minimoAlerta,
+                      updatedAt: new Date(),
+                    },
+                  });
+                  return count;
+                }),
+            );
+            if (atualizadas === null) {
+              erro(resposta, 404, "nao_encontrado");
+              return;
+            }
+            resposta.json({
+              minimoAlerta: entrada.data.minimoAlerta,
+              variacoesAtualizadas: atualizadas,
             });
           },
         );

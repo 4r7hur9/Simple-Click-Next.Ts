@@ -24,7 +24,7 @@ function desenhar(selecionados: readonly string[] = []) {
     <FiltroEspecificacao
       filtros={FILTROS}
       selecionados={selecionados}
-      acao="/l/autopecas/catalogo"
+      acao="/loja/autopecas/cardapio"
       categoria="pneus"
       busca={null}
     />,
@@ -38,7 +38,7 @@ describe("o filtro por especificação na vitrine (AC-328)", () => {
 
     const formulario = pagina.querySelector("form");
     expect(formulario?.getAttribute("method")).toBe("get");
-    expect(formulario?.getAttribute("action")).toBe("/l/autopecas/catalogo");
+    expect(formulario?.getAttribute("action")).toBe("/loja/autopecas/cardapio");
     // A categoria vai junto, para o filtro valer dentro de Pneus.
     expect(
       pagina.querySelector<HTMLInputElement>('input[name="categoria"]')?.value,
@@ -78,7 +78,7 @@ describe("o filtro por especificação na vitrine (AC-328)", () => {
         <FiltroEspecificacao
           filtros={[]}
           selecionados={[]}
-          acao="/l/autopecas/catalogo"
+          acao="/loja/autopecas/cardapio"
           categoria="pneus"
           busca={null}
         />,

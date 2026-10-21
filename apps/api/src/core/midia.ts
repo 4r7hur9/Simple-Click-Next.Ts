@@ -15,7 +15,7 @@
  * A CREDENCIAL VEM DO AMBIENTE (P-002), no formato que o próprio serviço
  * publica: `CLOUDINARY_URL=cloudinary://<chave>:<segredo>@<nuvem>`.
  */
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 /** A imagem, já conferida, pronta para ser guardada. */
 export interface ImagemParaGuardar {
@@ -30,6 +30,11 @@ export interface ImagemParaGuardar {
 /** Onde guardar. Devolve o endereço público, sempre https. */
 export interface ArmazenamentoDeImagens {
   guardar(imagem: ImagemParaGuardar): Promise<{ readonly url: string }>;
+  /**
+   * Apaga a imagem que o endereço aponta, quando é desta loja e foi enviada
+   * por nós (melhor esforço; nunca lança). Opcional: a prova pode omitir.
+   */
+  apagar?(url: string, lojaId: string): Promise<void>;
 }
 
 /** Não há serviço de mídia configurado neste ambiente. */
@@ -108,7 +113,9 @@ export function armazenamentoNoCloudinary(
       const carimbo = String(Math.floor(agora().getTime() / 1_000));
       const parametros = {
         folder: `lojas/${imagem.lojaId}`,
-        public_id: `${imagem.nome}-${carimbo}`,
+        // Nome único por envio: o mesmo nome no mesmo segundo reaproveitaria o
+        // endereço, e o CDN entregaria a imagem de antes.
+        public_id: `${imagem.nome}-${carimbo}-${randomUUID().slice(0, 8)}`,
         timestamp: carimbo,
       };
       const corpo = new URLSearchParams({

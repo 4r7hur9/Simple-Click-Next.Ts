@@ -9,6 +9,7 @@
  * A loja vem da sessão (T-115, `loja-do-painel.ts`); a conta não tem loja.
  */
 import { enderecoDaApi } from "./api-client.ts";
+import { cabecalhosDaPonte } from "./chamada-de-identidade.ts";
 import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
 
@@ -31,6 +32,8 @@ async function encaminhar(
       accept: "application/json",
       authorization: `Bearer ${token}`,
       origin: new URL(requisicao.url).origin,
+      // IP e navegador de quem pede (o aceite e os pedidos do titular gravam).
+      ...cabecalhosDaPonte(requisicao),
       ...(leva ? { "content-type": "application/json" } : {}),
     },
     ...(leva ? { body: corpo === "" ? "{}" : corpo } : {}),

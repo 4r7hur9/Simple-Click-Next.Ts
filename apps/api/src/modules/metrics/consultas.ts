@@ -201,6 +201,164 @@ export async function produtosMaisVendidos(
   }));
 }
 
+/** Total de itens (unidades) vendidos no período. */
+export async function itensVendidos(
+  lojaId: string,
+  periodo: PeriodoResolvido,
+): Promise<number> {
+  const linhas = await transacaoAtual().$queryRaw<{ total: bigint | number }[]>`
+    SELECT coalesce(sum(i.quantity), 0)::bigint AS total
+      FROM app.order_items i
+      JOIN app.orders o ON o.id = i.order_id AND o.store_id = i.store_id
+     WHERE o.store_id = ${lojaId}::uuid
+       AND i.store_id = ${lojaId}::uuid
+       AND o.placed_at >= ${periodo.inicio}
+       AND o.placed_at < ${periodo.fim}
+       AND o.status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])`;
+  return Number(linhas[0]?.total ?? 0);
+}
+
+/**
+ * Clientes com venda no período: novos (a primeira venda deles é no período)
+ * e recorrentes (já tinham venda antes).
+ */
+export async function clientesDoPeriodo(
+  lojaId: string,
+  periodo: PeriodoResolvido,
+): Promise<{ novos: number; recorrentes: number }> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { novos: number; recorrentes: number }[]
+  >`
+    WITH do_periodo AS (
+      SELECT DISTINCT store_customer_id AS cliente
+        FROM app.orders
+       WHERE store_id = ${lojaId}::uuid
+         AND store_customer_id IS NOT NULL
+         AND placed_at >= ${periodo.inicio}
+         AND placed_at < ${periodo.fim}
+         AND status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])
+    )
+    SELECT count(*) FILTER (WHERE NOT EXISTS (
+             SELECT 1 FROM app.orders a
+              WHERE a.store_id = ${lojaId}::uuid
+                AND a.store_customer_id = d.cliente
+                AND a.placed_at < ${periodo.inicio}
+                AND a.status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])))::int AS novos,
+           count(*) FILTER (WHERE EXISTS (
+             SELECT 1 FROM app.orders a
+              WHERE a.store_id = ${lojaId}::uuid
+                AND a.store_customer_id = d.cliente
+                AND a.placed_at < ${periodo.inicio}
+                AND a.status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])))::int AS recorrentes
+      FROM do_periodo d`;
+  return {
+    novos: Number(linhas[0]?.novos ?? 0),
+    recorrentes: Number(linhas[0]?.recorrentes ?? 0),
+  };
+}
+
+/** Vendas por forma de pagamento. */
+export async function vendasPorPagamento(
+  lojaId: string,
+  periodo: PeriodoResolvido,
+): Promise<{ forma: string | null; pedidos: number; vendidoCentavos: number }[]> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { forma: string | null; pedidos: number; total: bigint | number }[]
+  >`
+    SELECT payment_method AS forma,
+           count(*)::int AS pedidos,
+           coalesce(sum(total_cents), 0)::bigint AS total
+      FROM app.orders
+     WHERE store_id = ${lojaId}::uuid
+       AND placed_at >= ${periodo.inicio}
+       AND placed_at < ${periodo.fim}
+       AND status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])
+     GROUP BY 1
+     ORDER BY 3 DESC`;
+  return linhas.map((l) => ({
+    forma: l.forma,
+    pedidos: Number(l.pedidos),
+    vendidoCentavos: Number(l.total),
+  }));
+}
+
+/** Vendas por entrega ou retirada. */
+export async function vendasPorEntrega(
+  lojaId: string,
+  periodo: PeriodoResolvido,
+): Promise<{ tipo: string; pedidos: number; vendidoCentavos: number }[]> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { tipo: string; pedidos: number; total: bigint | number }[]
+  >`
+    SELECT fulfillment AS tipo,
+           count(*)::int AS pedidos,
+           coalesce(sum(total_cents), 0)::bigint AS total
+      FROM app.orders
+     WHERE store_id = ${lojaId}::uuid
+       AND placed_at >= ${periodo.inicio}
+       AND placed_at < ${periodo.fim}
+       AND status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])
+     GROUP BY 1
+     ORDER BY 3 DESC`;
+  return linhas.map((l) => ({
+    tipo: l.tipo,
+    pedidos: Number(l.pedidos),
+    vendidoCentavos: Number(l.total),
+  }));
+}
+
+/** Vendas por categoria (a principal do produto, ou "Sem categoria"). */
+export async function vendasPorCategoria(
+  lojaId: string,
+  periodo: PeriodoResolvido,
+): Promise<{ nome: string; quantidade: number; totalCentavos: number }[]> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { nome: string; quantidade: number; total: bigint | number }[]
+  >`
+    SELECT coalesce(c.name, 'Sem categoria') AS nome,
+           sum(i.quantity)::int AS quantidade,
+           coalesce(sum(i.line_total_cents), 0)::bigint AS total
+      FROM app.order_items i
+      JOIN app.orders o ON o.id = i.order_id AND o.store_id = i.store_id
+      LEFT JOIN app.product_categories pc
+             ON pc.product_id = i.product_id AND pc.store_id = i.store_id
+            AND pc.is_primary
+      LEFT JOIN app.categories c ON c.id = pc.category_id AND c.store_id = pc.store_id
+     WHERE o.store_id = ${lojaId}::uuid
+       AND i.store_id = ${lojaId}::uuid
+       AND o.placed_at >= ${periodo.inicio}
+       AND o.placed_at < ${periodo.fim}
+       AND o.status = ANY(${LISTA_DE_STATUS_DE_VENDA}::text[])
+     GROUP BY 1
+     ORDER BY 3 DESC, 1 ASC
+     LIMIT ${TAMANHO_DO_RANKING}`;
+  return linhas.map((l) => ({
+    nome: l.nome,
+    quantidade: Number(l.quantidade),
+    totalCentavos: Number(l.total),
+  }));
+}
+
+/** Pedidos agora em cada etapa do quadro (as que ainda não terminaram). */
+export async function pedidosPorEtapaAgora(
+  lojaId: string,
+  etapas: readonly string[],
+): Promise<{ status: string; quantidade: number }[]> {
+  const lista = [...etapas];
+  const linhas = await transacaoAtual().$queryRaw<
+    { status: string; quantidade: number }[]
+  >`
+    SELECT status, count(*)::int AS quantidade
+      FROM app.orders
+     WHERE store_id = ${lojaId}::uuid
+       AND status = ANY(${lista}::text[])
+     GROUP BY 1`;
+  return linhas.map((l) => ({
+    status: l.status,
+    quantidade: Number(l.quantidade),
+  }));
+}
+
 /** Um pedido do período, como a exportação o escreve (AC-815). */
 export interface PedidoParaExportar {
   readonly id: string;

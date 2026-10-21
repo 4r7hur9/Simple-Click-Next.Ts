@@ -1,25 +1,29 @@
+import "@simpleclick/ui/styles/pedidos.css";
+
+import Link from "next/link";
+
 import { ListaClientes } from "../../../../features/painel-clientes/ListaClientes.tsx";
 
 export const metadata = { title: "Clientes | SimpleClick" };
 
 export default function PaginaDeClientes() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <header className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-          Clientes da loja
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-          Quem compra com você
-        </h1>
-        <p className="mt-4 text-lg leading-8 text-[var(--cor-tinta-suave)]">
+    <div className="sc-pedidos sc-pedidos--respiro">
+      <header className="sc-pedidos__cabeca">
+        <p className="sc-pedidos__sobretitulo">Clientes da loja</p>
+        <h1 className="sc-pedidos__titulo">Quem compra com você</h1>
+        <p className="sc-pedidos__descricao">
           Veja quem já comprou, quanto e quando foi a última vez — e cadastre
           quem pede pelo telefone ou no balcão.
         </p>
+        <Link
+          className="sc-botao sc-botao--secundaria justify-self-start"
+          href="/painel/clientes/importar"
+        >
+          Importar clientes
+        </Link>
       </header>
-      <div className="mt-10">
-        <ListaClientes />
-      </div>
-    </main>
+      <ListaClientes />
+    </div>
   );
 }

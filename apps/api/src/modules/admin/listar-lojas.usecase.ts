@@ -16,6 +16,7 @@ import {
   type ConsultaDeLojasNoContrato,
   type ListaDeLojasNoContrato,
   type LojaNaListaNoContrato,
+  type OrdemDaListaDeLojas,
   type SituacaoDaLoja,
 } from "@simpleclick/contracts";
 
@@ -27,6 +28,9 @@ export interface BuscaDeLojas {
   readonly digitos: string;
   /** `null` é "tudo que não foi excluído". */
   readonly situacao: SituacaoDaLoja | null;
+  /** Código do tipo de negócio; `null` é "todos". */
+  readonly tipo: string | null;
+  readonly ordem: OrdemDaListaDeLojas;
   readonly limite: number;
   readonly deslocamento: number;
 }
@@ -36,6 +40,7 @@ export interface RepositorioDaListagem {
   buscarLojas(busca: BuscaDeLojas): Promise<{
     readonly lojas: readonly LojaNaListaNoContrato[];
     readonly total: number;
+    readonly contagens: ListaDeLojasNoContrato["contagens"];
   }>;
 }
 
@@ -58,6 +63,11 @@ export function prepararBuscaDeLojas(
     texto,
     digitos: digitosDeDocumento(texto),
     situacao: consulta.situacao ?? null,
+    tipo:
+      consulta.tipo === undefined || consulta.tipo === ""
+        ? null
+        : consulta.tipo,
+    ordem: consulta.ordem,
     limite: consulta.porPagina,
     deslocamento: (consulta.pagina - 1) * consulta.porPagina,
   };
@@ -74,6 +84,7 @@ export async function listarLojas(
   return {
     lojas: [...encontradas.lojas],
     total: encontradas.total,
+    contagens: encontradas.contagens,
     pagina: consulta.pagina,
     porPagina: consulta.porPagina,
   };

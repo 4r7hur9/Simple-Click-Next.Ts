@@ -72,7 +72,7 @@ const FICHA: FichaDaLojaNoContrato = {
 
 const SUSPENSA: FichaDaLojaNoContrato = {
   ...FICHA,
-  status: "SUSPENDED",
+  status: "INACTIVE",
   suspensao: {
     desde: "2026-10-01T12:30:00.000Z",
     motivo: "Mensalidade em atraso",
@@ -221,7 +221,7 @@ describe("reativar devolve a loja ao ar (AC-210)", () => {
       quem: { id: "a", nome: "Administradora geral" },
       papel: "ADMIN",
       campos: [
-        { campo: "status", antes: "SUSPENDED", depois: "ACTIVE" },
+        { campo: "status", antes: "INACTIVE", depois: "ACTIVE" },
         {
           campo: "suspensaDesde",
           antes: null,
@@ -247,7 +247,7 @@ describe("reativar devolve a loja ao ar (AC-210)", () => {
 
     expect(doc.body.textContent).toContain("Loja reativada");
     expect(linhas).toEqual([
-      "Situação: Suspensa → Ativa",
+      "Situação: Desativada → Ativa",
       "Suspensa desde: — → 01/10/2026, 09:30",
       "Suspensa até: — → 03/10/2026, 12:00",
       "Motivo: — → Mensalidade em atraso",

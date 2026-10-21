@@ -25,8 +25,8 @@ import { SECOES_DO_DONO, type SecaoDoDono } from "@simpleclick/contracts";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
+import { imagensDaLojaDoAmbiente } from "../../core/armazenamento-de-midia.ts";
 import {
-  armazenamentoDoAmbiente,
   ErroDeArmazenamentoIndisponivel,
   type ArmazenamentoDeImagens,
 } from "../../core/midia.ts";
@@ -52,6 +52,10 @@ import {
   orientacaoDaImagem,
   TIPO_DE_CONTEUDO,
 } from "./imagem-da-loja.ts";
+import {
+  apagarImagensSubstituidas,
+  imagensEmUsoDaLoja,
+} from "./limpeza-de-imagens.ts";
 import { pendenciasDaLoja } from "./pendencias.usecase.ts";
 
 export interface ChegadaNaLoja {
@@ -65,7 +69,7 @@ export type IdentificacaoDaLoja =
 
 export interface UsuarioAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 /**
@@ -111,7 +115,7 @@ export function criarRotasDasConfiguracoes(
   const acesso = opcoes.acesso ?? banco();
   const { autenticar, resolverLoja } = opcoes;
   const registrar = opcoes.registrarNaTrilha ?? registrarNaTrilha;
-  const armazenamento = opcoes.armazenamento ?? armazenamentoDoAmbiente();
+  const armazenamento = opcoes.armazenamento ?? imagensDaLojaDoAmbiente();
 
   rotas.use((requisicao, resposta, proximo) => {
     const usuario = autenticar(requisicao);
@@ -240,15 +244,30 @@ export function criarRotasDasConfiguracoes(
           return;
         }
 
-        await naTransacaoDaLoja(lojaId, resposta, async (usuario) => {
-          const atual = await lerConfiguracao("aparencia", lojaId);
-          await salvarConfiguracao(
-            "aparencia",
-            { ...atual, [params.tipo]: url },
-            { lojaId, autor: autorDe(usuario) },
-            registrar,
+        // Fundo e topo (e as versões de celular) só guardam o arquivo: quem os publica é o tema
+        // (`PUT /tema`), e assim o dono vê a prévia antes de salvar.
+        if (params.tipo === "logo" || params.tipo === "capa") {
+          const tipoPublicado = params.tipo;
+          const { anterior, emUso } = await naTransacaoDaLoja(
+            lojaId,
+            resposta,
+            async (usuario) => {
+              const atual = await lerConfiguracao("aparencia", lojaId);
+              await salvarConfiguracao(
+                "aparencia",
+                { ...atual, [tipoPublicado]: url },
+                { lojaId, autor: autorDe(usuario) },
+                registrar,
+              );
+              return {
+                anterior: atual[tipoPublicado],
+                emUso: (await imagensEmUsoDaLoja()).enderecos,
+              };
+            },
           );
-        });
+          // A troca já está gravada: a imagem antiga sai do armazenamento.
+          await apagarImagensSubstituidas(armazenamento, lojaId, [anterior], emUso);
+        }
         resposta.status(200).json({ url });
       } catch (causa) {
         proximo(causa);
@@ -305,15 +324,38 @@ export function criarRotasDasConfiguracoes(
           const gravado = await naLoja(
             params.apelido,
             resposta,
-            (lojaId, usuario) =>
-              salvarConfiguracao(
+            async (lojaId, usuario) => {
+              // Trocar ou tirar a logo/capa: guarda o que estava, para apagar
+              // o arquivo antigo depois de gravar.
+              const anterior =
+                secao === "aparencia"
+                  ? await lerConfiguracao("aparencia", lojaId)
+                  : null;
+              await salvarConfiguracao(
                 secao,
                 body as ValorDaSecao<S>,
                 { lojaId, autor: autorDe(usuario) },
                 registrar,
-              ),
+              );
+              return {
+                lojaId,
+                anterior,
+                emUso:
+                  anterior === null
+                    ? []
+                    : (await imagensEmUsoDaLoja()).enderecos,
+              };
+            },
           );
           if (gravado === null) return;
+          if (gravado.valor.anterior !== null) {
+            await apagarImagensSubstituidas(
+              armazenamento,
+              gravado.valor.lojaId,
+              [gravado.valor.anterior.logo, gravado.valor.anterior.capa],
+              gravado.valor.emUso,
+            );
+          }
           resposta.status(204).end();
         } catch (causa) {
           proximo(causa);
@@ -364,10 +406,19 @@ export function criarRotasDasConfiguracoes(
         (falha as { type?: unknown }).type === "entity.too.large";
       // No tratamento de falha do roteador os parâmetros da rota já não estão
       // montados; o tipo sai do próprio caminho.
-      const tipo = /\/configuracao\/aparencia\/imagem\/(logo|capa)\/?$/.exec(
+      const tipo = /\/configuracao\/aparencia\/imagem\/(logo|capa|fundo|fundoCelular|topo|topoCelular|original)\/?$/.exec(
         requisicao.path,
       )?.[1];
-      if (!grandeDemais || (tipo !== "logo" && tipo !== "capa")) {
+      if (
+        !grandeDemais ||
+        (tipo !== "logo" &&
+          tipo !== "capa" &&
+          tipo !== "fundo" &&
+          tipo !== "fundoCelular" &&
+          tipo !== "topo" &&
+          tipo !== "topoCelular" &&
+          tipo !== "original")
+      ) {
         proximo(falha);
         return;
       }

@@ -36,6 +36,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { INFO_DO_MOTIVO_DA_FUNCIONALIDADE } from "./explicacoes.ts";
 import { momentoNaTela } from "./trilha-na-tela.ts";
 
 export type EstadoDasFuncionalidades =
@@ -168,7 +169,7 @@ export function CartaoDaFuncionalidade({
             </Botao>
           </div>
         ) : (
-          <form className="mt-4 grid gap-3" onSubmit={aoConfirmar} noValidate>
+          <form className="mt-4 grid gap-4" onSubmit={aoConfirmar} noValidate>
             <p className="text-sm">
               {ligada
                 ? "A área some do menu do dono e as rotas dela passam a responder indisponível, mesmo acessadas direto. Nada é apagado: religar devolve tudo como estava."
@@ -176,8 +177,9 @@ export function CartaoDaFuncionalidade({
             </p>
             <Campo
               id={`motivo-${chave}`}
-              rotulo="Motivo"
-              dica="Fica no histórico da loja, com o seu nome."
+              rotulo="Motivo da alteração"
+              info={INFO_DO_MOTIVO_DA_FUNCIONALIDADE}
+              dica="De 3 a 500 caracteres. Fica no histórico da loja, com o seu nome. Ex.: pedido do dono por telefone."
               obrigatorio
               value={motivo}
               erro={erroDoMotivo}
@@ -189,7 +191,7 @@ export function CartaoDaFuncionalidade({
                 mensagem={passo.mensagem}
               />
             )}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               <Botao type="submit" carregando={passo.fase === "enviando"}>
                 {`Confirmar: ${ato.toLowerCase()}`}
               </Botao>

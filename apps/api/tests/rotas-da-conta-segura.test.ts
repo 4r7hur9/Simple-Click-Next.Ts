@@ -293,7 +293,7 @@ describe("aplicativo autenticador e códigos de recuperação", () => {
       });
       expect(entrada.body).toMatchObject({
         status: "SESSAO_CRIADA",
-        orientarPara: "/minha-conta/seguranca/aplicativo",
+        orientarPara: "/conta/seguranca/aplicativo",
       });
       expect(caixa.para(email).at(-1)?.assunto).toBe(
         ASSUNTOS_DE_ACESSO.codigoDeRecuperacaoUsado,
@@ -326,7 +326,7 @@ describe("aplicativo autenticador e códigos de recuperação", () => {
       const login = await entrar(app, administracao.email);
       expect(login.body).toEqual({
         status: "CONFIGURACAO_DO_APLICATIVO_OBRIGATORIA",
-        caminho: "/minha-conta/seguranca/aplicativo",
+        caminho: "/conta/seguranca/aplicativo",
       });
       expect(await sessoesDe(migrador, administracao.id)).toHaveLength(0);
       expect(caixa.para(administracao.email)).toEqual([]);

@@ -30,7 +30,7 @@ export function AcoesDaImpressao({
       </p>
       <div className="sc-cupom-acoes__botoes">
         <a
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           href={`/imprimir/${doPedido}`}
         >
           Imprimir outra via

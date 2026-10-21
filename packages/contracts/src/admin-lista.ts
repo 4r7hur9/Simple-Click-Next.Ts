@@ -6,6 +6,7 @@
 import { z } from "zod";
 
 import { esquemaDaSituacaoDaLoja } from "./admin-cadastro.ts";
+import { ORDENS_DA_LISTA_DE_LOJAS } from "./admin-gestao.ts";
 
 /**
  * `GET /v1/admin/lojas?busca=&situacao=&pagina=&porPagina=`
@@ -19,6 +20,9 @@ export const esquemaDaConsultaDeLojas = z.object({
   busca: z.string().trim().max(80).optional(),
   /** Sem filtro, a lista traz tudo que não foi excluído (AC-211). */
   situacao: esquemaDaSituacaoDaLoja.optional(),
+  /** Código do tipo de negócio (`FOOD_SNACK`…). Sem ele, todos os tipos. */
+  tipo: z.string().trim().max(60).optional(),
+  ordem: z.enum(ORDENS_DA_LISTA_DE_LOJAS).default("recentes"),
   pagina: z.coerce.number().int().min(1).default(1),
   porPagina: z.coerce.number().int().min(1).max(100).default(25),
 });
@@ -39,6 +43,20 @@ export const esquemaDaLojaNaLista = z.strictObject({
   uf: z.string().nullable(),
   /** Instante do cadastro, em ISO 8601. */
   criadaEm: z.string(),
+  /**
+   * O primeiro dono com acesso; nulo se a loja ficou sem dono. Só o nome: o
+   * e-mail e o telefone moram na conta (`/admin/contas`), não numa lista (P-009).
+   */
+  dono: z
+    .strictObject({
+      identidadeId: z.string(),
+      nome: z.string().nullable(),
+    })
+    .nullable(),
+  /** Pedidos feitos, sem contar os cancelados. */
+  pedidos: z.number().int().min(0),
+  /** Soma dos pedidos que viraram venda, em centavos. */
+  faturamentoCentavos: z.number().int().min(0),
 });
 
 export const esquemaDaListaDeLojas = z.strictObject({
@@ -47,6 +65,17 @@ export const esquemaDaListaDeLojas = z.strictObject({
   total: z.number().int().min(0),
   pagina: z.number().int().min(1),
   porPagina: z.number().int().min(1),
+  /**
+   * Quantas lojas há em cada situação, com a mesma busca e o mesmo tipo (e
+   * sem o filtro de situação), para os filtros mostrarem os contadores.
+   */
+  contagens: z.strictObject({
+    todas: z.number().int().min(0),
+    PENDING_APPROVAL: z.number().int().min(0),
+    ACTIVE: z.number().int().min(0),
+    INACTIVE: z.number().int().min(0),
+    REJECTED: z.number().int().min(0),
+  }),
 });
 
 export type LojaNaListaNoContrato = z.infer<typeof esquemaDaLojaNaLista>;

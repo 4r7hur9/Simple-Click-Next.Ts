@@ -20,6 +20,10 @@ import { useCallback, useEffect, useState } from "react";
 export interface OpcaoNaTela {
   readonly grupoNome: string;
   readonly opcaoNome: string;
+  /** O acréscimo já escrito ("+ R$ 3,00"); ausente quando não muda o preço. */
+  readonly acrescimo?: string | null;
+  /** Quantas vezes, quando o grupo deixa repetir. */
+  readonly quantidade?: number;
 }
 
 /** Um item como a gaveta o mostra, já com os valores do servidor. */
@@ -32,6 +36,17 @@ export interface ItemNaTela {
   readonly totalDaLinha: string;
   readonly observacao?: string | null;
   readonly opcoes?: readonly OpcaoNaTela[];
+  /** A descrição curta do produto, do catálogo; ausente quando não há. */
+  readonly descricao?: string | null;
+  /**
+   * O preço de varejo por unidade, já escrito, quando o cobrado saiu menor
+   * (faixa de atacado ou promoção): vai riscado ao lado (card #57).
+   */
+  readonly precoDeVarejo?: string | null;
+  /** O aviso do atacado: "Faltam 4 peças para o próximo desconto". */
+  readonly avisoDoAtacado?: string | null;
+  /** A faixa que já valeu: "Atacado: 5% de desconto a partir de 10 peças". */
+  readonly faixaDoAtacado?: string | null;
 }
 
 /** O carrinho inteiro, já formatado pelo servidor. */

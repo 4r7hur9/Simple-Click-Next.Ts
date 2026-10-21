@@ -16,7 +16,7 @@
  */
 import { randomUUID } from "node:crypto";
 
-import type { LojaDeTeste } from "@simpleclick/testing";
+import { criarIdentidade, type LojaDeTeste } from "@simpleclick/testing";
 
 import { comoRequisicao, exigirVariavel } from "./apoio-de-isolamento.ts";
 import { criarApp } from "../src/app.ts";
@@ -77,6 +77,20 @@ export function tokenDeAcesso(
 /** Cabeçalho de autorização pronto para o supertest. */
 export function comoPortador(token: string): string {
   return `Bearer ${token}`;
+}
+
+let compradorDaProva: Promise<string> | undefined;
+
+/**
+ * O `Authorization` de uma conta que compra: o pedido do site exige conta
+ * logada (sem ela, 401 `conta_obrigatoria`). Uma conta por arquivo de prova,
+ * criada sem telefone — o primeiro pedido grava o do contato nela.
+ */
+export function autorizacaoDoComprador(): Promise<string> {
+  compradorDaProva ??= criarIdentidade({ nome: "Ana Paula" }).then(
+    (identidade) => comoPortador(tokenDeAcesso(identidade.id, "CUSTOMER")),
+  );
+  return compradorDaProva;
 }
 
 /**

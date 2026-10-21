@@ -81,6 +81,8 @@ import { repositorioDaAuditoria } from "./auditoria-consulta.repo.ts";
 import { consultarAuditoria, lojasDaPagina } from "./auditoria.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
 import { montarRotasDasFuncionalidades } from "./funcionalidades.routes.ts";
+import { montarRotasDaAprovacao } from "./aprovacao.routes.ts";
+import { montarRotasDaGestao } from "./gestao.routes.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
 import { repositorioDaSituacao } from "./situacao.repo.ts";
 import {
@@ -135,7 +137,26 @@ export interface OpcoesDaAdministracao {
    * na hora, como a autenticação o lê. Padrão: `JWT_SECRET` do ambiente.
    */
   readonly segredoDasSessoes?: () => string;
+  /**
+   * Rotas de outros módulos que moram sob `/v1/admin` (o painel de
+   * crescimento, do módulo de métricas). Módulo não importa módulo: quem monta
+   * o roteador (`app.ts`) entrega a função, e ela recebe as mesmas duas
+   * travas que as rotas daqui usam.
+   */
+  readonly rotasDeOutrosModulos?: readonly RotasDeOutroModulo[];
 }
+
+/** Como um módulo de fora acrescenta rotas ao roteador da administração. */
+export type RotasDeOutroModulo = (
+  rotas: Router,
+  dependencias: {
+    readonly acesso: () => AcessoAoBanco;
+    readonly comoAdministrador: (
+      resposta: Response,
+      trabalho: (administradorId: string) => Promise<void>,
+    ) => Promise<void>;
+  },
+) => void;
 
 function recusar(resposta: Response): void {
   resposta.status(403).json(RECUSA_DA_ADMINISTRACAO);
@@ -998,6 +1019,13 @@ export function criarRotasDaAdministracao(
 
   // ── Funcionalidades liberadas por loja (AC-212, AC-213) ─────────────────
   montarRotasDasFuncionalidades(rotas, { acesso, comoAdministrador });
+  // Aprovação de loja e limites (card #25).
+  montarRotasDaAprovacao(rotas, { acesso, agora, comoAdministrador });
+  // Métricas e equipe por loja, e as contas (card #29).
+  montarRotasDaGestao(rotas, { acesso, agora, comoAdministrador });
+  for (const montar of opcoes.rotasDeOutrosModulos ?? []) {
+    montar(rotas, { acesso, comoAdministrador });
+  }
 
   return rotas;
 }

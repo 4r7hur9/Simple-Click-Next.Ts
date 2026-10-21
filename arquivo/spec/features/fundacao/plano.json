@@ -11,7 +11,7 @@
   "baseDir": ".spec/features/fundacao",
   "specDir": ".spec",
   "repoName": "SC",
-  "logsDir": "../onp-worktrees/SC-fundacao-logs",
+  "logsDir": "worktrees/SC-fundacao-logs",
   "ondas": [
     ["faixa-1", "faixa-2", "faixa-3"],
     ["faixa-4", "faixa-5", "faixa-6"],
@@ -25,7 +25,7 @@
     {
       "id": "faixa-1",
       "branch": "spec/fundacao-faixa-1",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-1",
+      "worktree": "worktrees/SC-fundacao-faixa-1",
       "tarefas": [
         {
           "id": "T-002",
@@ -49,7 +49,7 @@
     {
       "id": "faixa-2",
       "branch": "spec/fundacao-faixa-2",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-2",
+      "worktree": "worktrees/SC-fundacao-faixa-2",
       "tarefas": [
         {
           "id": "T-003",
@@ -69,7 +69,7 @@
     {
       "id": "faixa-3",
       "branch": "spec/fundacao-faixa-3",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-3",
+      "worktree": "worktrees/SC-fundacao-faixa-3",
       "tarefas": [
         {
           "id": "T-004",
@@ -103,7 +103,7 @@
     {
       "id": "faixa-4",
       "branch": "spec/fundacao-faixa-4",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-4",
+      "worktree": "worktrees/SC-fundacao-faixa-4",
       "tarefas": [
         {
           "id": "T-005",
@@ -130,7 +130,7 @@
     {
       "id": "faixa-5",
       "branch": "spec/fundacao-faixa-5",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-5",
+      "worktree": "worktrees/SC-fundacao-faixa-5",
       "tarefas": [
         {
           "id": "T-006",
@@ -150,7 +150,7 @@
     {
       "id": "faixa-6",
       "branch": "spec/fundacao-faixa-6",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-6",
+      "worktree": "worktrees/SC-fundacao-faixa-6",
       "tarefas": [
         {
           "id": "T-007",
@@ -170,7 +170,7 @@
     {
       "id": "faixa-7",
       "branch": "spec/fundacao-faixa-7",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-7",
+      "worktree": "worktrees/SC-fundacao-faixa-7",
       "tarefas": [
         {
           "id": "T-008",
@@ -191,7 +191,7 @@
     {
       "id": "faixa-8",
       "branch": "spec/fundacao-faixa-8",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-8",
+      "worktree": "worktrees/SC-fundacao-faixa-8",
       "tarefas": [
         {
           "id": "T-009",
@@ -210,7 +210,7 @@
     {
       "id": "faixa-9",
       "branch": "spec/fundacao-faixa-9",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-9",
+      "worktree": "worktrees/SC-fundacao-faixa-9",
       "tarefas": [
         {
           "id": "T-010",
@@ -228,7 +228,7 @@
     {
       "id": "faixa-10",
       "branch": "spec/fundacao-faixa-10",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-10",
+      "worktree": "worktrees/SC-fundacao-faixa-10",
       "tarefas": [
         {
           "id": "T-011",
@@ -251,7 +251,7 @@
     {
       "id": "faixa-11",
       "branch": "spec/fundacao-faixa-11",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-11",
+      "worktree": "worktrees/SC-fundacao-faixa-11",
       "tarefas": [
         {
           "id": "T-012",
@@ -273,7 +273,7 @@
     {
       "id": "faixa-12",
       "branch": "spec/fundacao-faixa-12",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-12",
+      "worktree": "worktrees/SC-fundacao-faixa-12",
       "tarefas": [
         {
           "id": "T-013",
@@ -296,7 +296,7 @@
     {
       "id": "faixa-13",
       "branch": "spec/fundacao-faixa-13",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-13",
+      "worktree": "worktrees/SC-fundacao-faixa-13",
       "tarefas": [
         {
           "id": "T-014",
@@ -316,7 +316,7 @@
     {
       "id": "faixa-14",
       "branch": "spec/fundacao-faixa-14",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-14",
+      "worktree": "worktrees/SC-fundacao-faixa-14",
       "tarefas": [
         {
           "id": "T-015",
@@ -336,7 +336,7 @@
     {
       "id": "faixa-15",
       "branch": "spec/fundacao-faixa-15",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-15",
+      "worktree": "worktrees/SC-fundacao-faixa-15",
       "tarefas": [
         {
           "id": "T-016",
@@ -364,7 +364,7 @@
     {
       "id": "faixa-16",
       "branch": "spec/fundacao-faixa-16",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-16",
+      "worktree": "worktrees/SC-fundacao-faixa-16",
       "tarefas": [
         {
           "id": "T-017",
@@ -396,7 +396,7 @@
     {
       "id": "faixa-17",
       "branch": "spec/fundacao-faixa-17",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-17",
+      "worktree": "worktrees/SC-fundacao-faixa-17",
       "tarefas": [
         {
           "id": "T-018",
@@ -417,7 +417,7 @@
     {
       "id": "faixa-18",
       "branch": "spec/fundacao-faixa-18",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-18",
+      "worktree": "worktrees/SC-fundacao-faixa-18",
       "tarefas": [
         {
           "id": "T-019",
@@ -443,7 +443,7 @@
     {
       "id": "faixa-19",
       "branch": "spec/fundacao-faixa-19",
-      "worktree": "../onp-worktrees/SC-fundacao-faixa-19",
+      "worktree": "worktrees/SC-fundacao-faixa-19",
       "tarefas": [
         {
           "id": "T-020",

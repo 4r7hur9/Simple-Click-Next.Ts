@@ -7,15 +7,7 @@
  */
 import { Selo, type TomDeSelo } from "@simpleclick/ui";
 
-const ROTULOS_DE_STATUS: Readonly<Record<string, string>> = {
-  PENDING: "Aguardando confirmação",
-  ACCEPTED: "Aceito",
-  PREPARING: "Em preparo",
-  READY_FOR_PICKUP: "Pronto para retirada",
-  OUT_FOR_DELIVERY: "Saiu para entrega",
-  COMPLETED: "Concluído",
-  CANCELLED: "Cancelado",
-};
+import { rotuloDaEtapa } from "../../lib/quadro-de-pedidos.ts";
 
 const TONS_DE_STATUS: Readonly<Record<string, TomDeSelo>> = {
   PENDING: "atencao",
@@ -28,7 +20,8 @@ const TONS_DE_STATUS: Readonly<Record<string, TomDeSelo>> = {
 };
 
 export function rotuloDoStatus(status: string): string {
-  return ROTULOS_DE_STATUS[status] ?? status;
+  // Os nomes das seis etapas do quadro (card #33), os mesmos da coluna.
+  return rotuloDaEtapa(status);
 }
 
 export function tomDoStatus(status: string): TomDeSelo {

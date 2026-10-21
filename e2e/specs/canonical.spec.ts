@@ -5,7 +5,7 @@
  * têm teste de unidade, e ele prova o CONTEÚDO. O que ele não alcança é se o
  * Next entrega esse conteúdo: se `alternates.canonical` vira mesmo uma etiqueta
  * `<link rel="canonical">`, se `sitemap.ts` dentro de um segmento dinâmico
- * responde de verdade em `/l/{apelido}/sitemap.xml`, e se o bloco chega ao HTML
+ * responde de verdade em `/loja/{apelido}/sitemap.xml`, e se o bloco chega ao HTML
  * antes de qualquer script.
  *
  * SEM JAVASCRIPT, DE PROPÓSITO. Buscador e robô de rede social leem o HTML
@@ -48,13 +48,13 @@ async function blocosDaPagina(
 test("@spec:AC-403 a apresentação declara um canônico só", async ({
   browser,
 }) => {
-  const { contexto, pagina } = await comoRobo(browser, `/l/${LOJA}`);
+  const { contexto, pagina } = await comoRobo(browser, `/loja/${LOJA}`);
 
   const canonicos = pagina.locator('link[rel="canonical"]');
   await expect(canonicos).toHaveCount(1);
   await expect(canonicos).toHaveAttribute(
     "href",
-    `${ENDERECO_DO_SITE}/l/${LOJA}`,
+    `${ENDERECO_DO_SITE}/loja/${LOJA}`,
   );
 
   await contexto.close();
@@ -63,7 +63,7 @@ test("@spec:AC-403 a apresentação declara um canônico só", async ({
 test("@spec:AC-403 o negócio chega ao HTML como dado estruturado", async ({
   browser,
 }) => {
-  const { contexto, pagina } = await comoRobo(browser, `/l/${LOJA}`);
+  const { contexto, pagina } = await comoRobo(browser, `/loja/${LOJA}`);
 
   const blocos = await blocosDaPagina(pagina);
   expect(blocos).toHaveLength(1);
@@ -73,7 +73,7 @@ test("@spec:AC-403 o negócio chega ao HTML como dado estruturado", async ({
   // A pastelaria da carga é do ramo de alimentação: `Restaurant`, com cardápio.
   expect(negocio["@type"]).toBe("Restaurant");
   expect(negocio["name"]).toBe("Pastelaria da Vila");
-  expect(negocio["hasMenu"]).toBe(`${ENDERECO_DO_SITE}/l/${LOJA}/catalogo`);
+  expect(negocio["hasMenu"]).toBe(`${ENDERECO_DO_SITE}/loja/${LOJA}/cardapio`);
 
   await contexto.close();
 });
@@ -81,7 +81,7 @@ test("@spec:AC-403 o negócio chega ao HTML como dado estruturado", async ({
 test("@spec:AC-403 o catálogo chega como cardápio, com seção e preço", async ({
   browser,
 }) => {
-  const { contexto, pagina } = await comoRobo(browser, `/l/${LOJA}/catalogo`);
+  const { contexto, pagina } = await comoRobo(browser, `/loja/${LOJA}/cardapio`);
 
   const blocos = await blocosDaPagina(pagina);
   const cardapio = blocos.find((bloco) => bloco["@type"] === "Menu");
@@ -110,14 +110,14 @@ test("@spec:AC-403 o canônico do catálogo não carrega o filtro", async ({
 }) => {
   const { contexto, pagina } = await comoRobo(
     browser,
-    `/l/${LOJA}/catalogo?categoria=bebidas`,
+    `/loja/${LOJA}/cardapio?categoria=bebidas`,
   );
 
   // Filtro e busca são a MESMA página vista por um recorte. Indexá-los como
   // endereços distintos espalharia a loja por dezenas de páginas quase iguais.
   await expect(pagina.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
-    `${ENDERECO_DO_SITE}/l/${LOJA}/catalogo`,
+    `${ENDERECO_DO_SITE}/loja/${LOJA}/cardapio`,
   );
 
   // E o recorte NÃO publica o cardápio: ele descreveria a loja pelo pedaço que
@@ -135,7 +135,7 @@ test("@spec:AC-414 o produto declara canônico e sai com preço para quem compar
   // depende de um UUID escrito à mão, que muda a cada recarga da carga.
   const { contexto: contextoDoCatalogo, pagina: catalogo } = await comoRobo(
     browser,
-    `/l/${LOJA}/catalogo`,
+    `/loja/${LOJA}/cardapio`,
   );
   const link = await catalogo
     .getByRole("link", { name: /Pastel de Carne/ })
@@ -175,20 +175,20 @@ test("@spec:AC-403 o mapa do site lista a loja, o catálogo e os produtos", asyn
 }) => {
   // Requisição CRUA, e não navegador: é assim que o robô do buscador pede o
   // arquivo — e um mapa que só funcionasse dentro de uma aba não serviria.
-  const resposta = await request.get(`/l/${LOJA}/sitemap.xml`);
+  const resposta = await request.get(`/loja/${LOJA}/sitemap.xml`);
 
   expect(resposta.status()).toBe(200);
   const xml = await resposta.text();
 
-  expect(xml).toContain(`${ENDERECO_DO_SITE}/l/${LOJA}</loc>`);
-  expect(xml).toContain(`${ENDERECO_DO_SITE}/l/${LOJA}/catalogo</loc>`);
-  expect(xml).toContain(`${ENDERECO_DO_SITE}/l/${LOJA}/produto/`);
+  expect(xml).toContain(`${ENDERECO_DO_SITE}/loja/${LOJA}</loc>`);
+  expect(xml).toContain(`${ENDERECO_DO_SITE}/loja/${LOJA}/cardapio</loc>`);
+  expect(xml).toContain(`${ENDERECO_DO_SITE}/loja/${LOJA}/produto/`);
 });
 
 test("@spec:AC-402 o mapa de loja inexistente não conta que ela não existe", async ({
   request,
 }) => {
-  const resposta = await request.get("/l/loja-que-nunca-existiu/sitemap.xml");
+  const resposta = await request.get("/loja/loja-que-nunca-existiu/sitemap.xml");
 
   // 200 COM MAPA VAZIO. Um 500 aqui separaria "loja que não existe" de "loja
   // suspensa" pela diferença de resposta — que é o que o AC-402 proíbe.
@@ -205,7 +205,7 @@ test("@spec:AC-403 a imagem de compartilhamento da loja é desenhada de verdade"
   // estilo e com um subconjunto do flexbox. Uma propriedade que ele não
   // entenda derruba a rota — e o sintoma é o link voltando a aparecer cinza no
   // WhatsApp, meses depois, sem ninguém ligar uma coisa à outra.
-  const { contexto, pagina } = await comoRobo(browser, `/l/${LOJA}`);
+  const { contexto, pagina } = await comoRobo(browser, `/loja/${LOJA}`);
   const endereco = await pagina
     .locator('meta[property="og:image"]')
     .getAttribute("content");
@@ -231,7 +231,7 @@ test("@spec:AC-414 a imagem do produto é desenhada, com o preço nela", async (
 }) => {
   const { contexto: contextoDoCatalogo, pagina: catalogo } = await comoRobo(
     browser,
-    `/l/${LOJA}/catalogo`,
+    `/loja/${LOJA}/cardapio`,
   );
   const link = await catalogo
     .getByRole("link", { name: /Pastel de Carne/ })

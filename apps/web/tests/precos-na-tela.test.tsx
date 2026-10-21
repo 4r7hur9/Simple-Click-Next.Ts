@@ -154,8 +154,9 @@ async function montarFechamento(conferencia: ConferenciaNaTela) {
           gratisAcimaDeCentavos: null,
           minimoParaEntregaCentavos: null,
         }}
-        linkDoCatalogo={`/l/${LOJA}/catalogo`}
+        linkDoCatalogo={`/loja/${LOJA}/cardapio`}
         rotuloDoCatalogo="Cardápio"
+        conta={{ nome: "Ana Paula", email: "ana@cliente.test", telefone: "+5511988887777" }}
         conferir={
           vi
             .fn()

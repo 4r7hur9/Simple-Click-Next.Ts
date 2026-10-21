@@ -119,7 +119,7 @@ test("@spec:AC-209 @spec:AC-210 suspender tira a vitrine do ar com o motivo, e r
   const fora = await api.get(`/v1/vitrine/${loja.apelido}`);
   expect(fora.ok()).toBe(false);
   const vitrine = await page.context().newPage();
-  await vitrine.goto(`/l/${loja.apelido}`);
+  await vitrine.goto(`/loja/${loja.apelido}`);
   await expect(
     vitrine.getByRole("heading", { name: "Esta loja não está disponível" }),
   ).toBeVisible();

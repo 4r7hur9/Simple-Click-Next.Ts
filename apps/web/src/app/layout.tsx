@@ -3,6 +3,9 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 
+import { BannerDeCookies } from "../features/legal/BannerDeCookies.tsx";
+import { JanelaDeNovoAceite } from "../features/legal/JanelaDeNovoAceite.tsx";
+
 /**
  * A TIPOGRAFIA É O QUE SEPARA "desenhado" de "modelo pronto".
  *
@@ -59,7 +62,12 @@ export default function LayoutRaiz({ children }: { children: ReactNode }) {
     >
       {/* `sc-raiz` liga o corpo aos valores declarados do design system: fundo,
           tinta, fonte e o desenho único do anel de foco. */}
-      <body className="sc-raiz min-h-dvh antialiased">{children}</body>
+      <body className="sc-raiz min-h-dvh antialiased">{children}
+        {/* Aviso de cookies (card #78): sem aceite, nada não essencial carrega. */}
+        <BannerDeCookies />
+        {/* Novo aceite dos termos (card #79): só aparece para quem está logado e tem versão pendente. */}
+        <JanelaDeNovoAceite />
+      </body>
     </html>
   );
 }

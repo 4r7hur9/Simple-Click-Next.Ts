@@ -2,7 +2,7 @@
  * O apelido antigo de uma loja leva ao atual (AC-208).
  *
  * Quando a administração troca o apelido, o antigo fica guardado como
- * endereço da loja (`store_domains`, `LEGACY_SLUG`). Esta rota responde, para
+ * apelido antigo da loja (`stores.slugs_antigos`). Esta rota responde, para
  * um apelido que NÃO é o atual de loja nenhuma, qual é o apelido atual da loja
  * que o usava — e o site redireciona quem chegou pelo link antigo, para que o
  * link já compartilhado com os clientes não quebre.

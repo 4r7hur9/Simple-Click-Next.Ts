@@ -130,7 +130,7 @@ describe("o que nunca sai, não sai (AC-904, P-009)", () => {
   });
 
   it("@spec:AC-402 o estado administrativo da loja não aparece", () => {
-    // Devolver "SUSPENDED" contaria a quem perguntar que aquele endereço existe
+    // Devolver "INACTIVE" contaria a quem perguntar que aquele endereço existe
     // e foi suspenso — que é justamente o que AC-402 manda não revelar.
     expect(comoTexto).not.toContain("ACTIVE");
     expect(comoTexto).not.toContain("status");
@@ -186,6 +186,30 @@ describe("a lista é de permitidos, e não de proibidos (AC-904)", () => {
     });
 
     expect(publica.cores).toEqual({ primaria: "#0f6e5c" });
+  });
+
+  it("card #64: o selo de status e a cor da capa chegam ao tema, validados", () => {
+    const publica = lojaParaVitrine(LOJA_COMPLETA as LojaDoBanco, {
+      theme: {
+        seloDeStatus: "CLARO",
+        coresDasImagens: { "https://img.test/capa.webp": "#6B1414" },
+      },
+    });
+    expect(publica.tema).toMatchObject({
+      seloDeStatus: "CLARO",
+      coresDasImagens: { "https://img.test/capa.webp": "#6b1414" },
+    });
+
+    const invalida = lojaParaVitrine(LOJA_COMPLETA as LojaDoBanco, {
+      theme: {
+        seloDeStatus: "<script>",
+        coresDasImagens: { "https://img.test/capa.webp": "red; x: y" },
+      },
+    });
+    expect(invalida.tema).toMatchObject({
+      seloDeStatus: "AUTOMATICO",
+      coresDasImagens: {},
+    });
   });
 
   it("@spec:AC-904 tema sem nenhuma cor válida devolve nulo, e não um objeto vazio", () => {

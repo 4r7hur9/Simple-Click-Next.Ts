@@ -42,6 +42,8 @@ let container: HTMLDivElement | null = null;
 
 afterEach(() => {
   if (raiz) act(() => raiz?.unmount());
+  // A consulta da lista mora no endereço: cada teste começa do zero.
+  window.history.replaceState(null, "", "/");
   container?.remove();
   raiz = null;
   container = null;
@@ -52,6 +54,38 @@ function json(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), {
     status,
     headers: { "content-type": "application/json" },
+  });
+}
+
+/**
+ * A página que a API devolve (card #76): a lista já filtrada e os atalhos
+ * contados na loja toda (`daLoja`, quando o filtro deixou só parte).
+ */
+function pagina(
+  produtos: readonly Record<string, unknown>[],
+  daLoja: readonly Record<string, unknown>[] = produtos,
+) {
+  return {
+    produtos,
+    pagina: 1,
+    porPagina: 50,
+    total: produtos.length,
+    totalDePaginas: 1,
+    resumo: {
+      todos: daLoja.length,
+      estoqueBaixo: daLoja.filter((p) => p.estoqueBaixo === true).length,
+      comAtacado: daLoja.filter(
+        (p) => typeof p.pedidoMinimoDeAtacado === "number",
+      ).length,
+    },
+    categorias: [],
+    marcas: [],
+  };
+}
+
+async function assentar(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolver) => setTimeout(resolver, 0));
   });
 }
 
@@ -76,6 +110,7 @@ async function montar(): Promise<HTMLElement> {
   await act(async () => {
     raiz?.render(<ListaProdutos />);
   });
+  await assentar();
   return container;
 }
 
@@ -118,7 +153,7 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
   it("@spec:AC-308 @principle:P-011 erro de leitura não se disfarça de lista vazia", async () => {
     const chamadas = roteiro(
       async () => json({ erro: "falhou" }, 500),
-      async () => json({ produtos: [] }),
+      async () => json(pagina([])),
     );
     const tela = await montar();
 
@@ -133,7 +168,7 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
   });
 
   it("@spec:AC-308 o rascunho aparece na gestão marcado como rascunho, ao lado do publicado", async () => {
-    roteiro(async () => json({ produtos: [PUBLICADO, RASCUNHO] }));
+    const chamadas = roteiro(async () => json(pagina([PUBLICADO, RASCUNHO])));
     const tela = await montar();
 
     const itens = [...tela.querySelectorAll("tbody tr")].map(
@@ -145,6 +180,8 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
     expect(itens[0]).toMatch(/R\$\s19,90/);
     expect(itens[1]).toContain("Pastel de camarão");
     expect(itens[1]).toContain("Rascunho");
+    // A lista pede UMA página ao servidor (card #76), nunca a loja inteira.
+    expect(chamadas[0]?.url).toBe("/api/catalogo/produtos?pagina=1");
   });
 
   it("@spec:AC-307 duplicar chama a rota e a cópia volta como rascunho", async () => {
@@ -156,9 +193,9 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
       disponivel: false,
     };
     const chamadas = roteiro(
-      async () => json({ produtos: [PUBLICADO] }),
+      async () => json(pagina([PUBLICADO])),
       async () => json(copia, 201),
-      async () => json({ produtos: [PUBLICADO, copia] }),
+      async () => json(pagina([PUBLICADO, copia])),
     );
     const tela = await montar();
 
@@ -177,8 +214,10 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
 
   it("@spec:AC-307 remover pede confirmação na própria linha e só então apaga", async () => {
     const chamadas = roteiro(
-      async () => json({ produtos: [PUBLICADO] }),
+      async () => json(pagina([PUBLICADO])),
       async () => new Response(null, { status: 204 }),
+      // Depois de remover, a página é relida (o próximo sobe para o lugar).
+      async () => json(pagina([])),
     );
     const tela = await montar();
 
@@ -215,7 +254,7 @@ describe("o que está acabando aparece para o dono repor (AC-336)", () => {
   const EM_DIA = { ...PUBLICADO, estoqueBaixo: false, variacoesAcabando: [] };
 
   it("@spec:AC-336 o produto com variação no aviso vem sinalizado, dizendo qual e quanto resta", async () => {
-    roteiro(async () => json({ produtos: [EM_DIA, ACABANDO] }));
+    roteiro(async () => json(pagina([EM_DIA, ACABANDO])));
     const tela = await montar();
 
     const itens = [...tela.querySelectorAll("tbody tr")];
@@ -229,16 +268,27 @@ describe("o que está acabando aparece para o dono repor (AC-336)", () => {
   });
 
   it("@spec:AC-336 a visão do que está acabando mostra só o que precisa de reposição", async () => {
-    roteiro(async () => json({ produtos: [EM_DIA, ACABANDO] }));
+    const chamadas = roteiro(
+      async () => json(pagina([EM_DIA, ACABANDO])),
+      async () => json(pagina([ACABANDO], [EM_DIA, ACABANDO])),
+      async () => json(pagina([EM_DIA, ACABANDO])),
+    );
     const tela = await montar();
 
-    await clicar(botao(tela, "Ver o que está acabando (1)"));
+    await clicar(botao(tela, "Acabando (1)"));
+    await assentar();
+    // O recorte é feito no servidor e fica no endereço da página.
+    expect(chamadas[1]?.url).toBe(
+      "/api/catalogo/produtos?estoque=baixo&pagina=1",
+    );
+    expect(window.location.search).toBe("?estoque=baixo");
     let nomes = [...tela.querySelectorAll("tbody tr")].map(
       (linha) => linha.querySelector("a")?.textContent,
     );
     expect(nomes).toEqual(["Camiseta Básica"]);
 
-    await clicar(botao(tela, "Mostrar todos os produtos"));
+    await clicar(botao(tela, "Acabando (1)"));
+    await assentar();
     nomes = [...tela.querySelectorAll("tbody tr")].map(
       (linha) => linha.querySelector("a")?.textContent,
     );
@@ -246,12 +296,12 @@ describe("o que está acabando aparece para o dono repor (AC-336)", () => {
   });
 
   it("@spec:AC-336 sem nada acabando, a lista não oferece o recorte", async () => {
-    roteiro(async () => json({ produtos: [EM_DIA] }));
+    roteiro(async () => json(pagina([EM_DIA])));
     const tela = await montar();
 
     expect(
       [...tela.querySelectorAll("button")].some((b) =>
-        (b.textContent ?? "").includes("está acabando"),
+        (b.textContent ?? "").includes("Acabando"),
       ),
     ).toBe(false);
   });
@@ -289,7 +339,7 @@ describe("o cartão da vitrine mostra a foto sem distorcer (AC-304)", () => {
           imagem:
             "https://res.cloudinary.com/simpleclick/image/upload/v1/pastel.jpg",
           disponivel: true,
-          link: "/l/loja/produto/pastel-de-queijo",
+          link: "/loja/loja/produto/pastel-de-queijo",
         }}
       />,
     );
@@ -305,7 +355,12 @@ describe("o cartão da vitrine mostra a foto sem distorcer (AC-304)", () => {
     const foto = regra(".sc-vitrine__foto");
     const cartao = regra(".sc-vitrine__cartao");
 
-    expect(moldura).toContain("aspect-ratio: 4 / 3");
+    // Quadrada no celular (duas colunas), 4:3 a partir do dobrável aberto:
+    // a proporção é sempre fixa, que é o que reserva o espaço.
+    expect(moldura).toContain("aspect-ratio: 1");
+    expect(CSS).toMatch(
+      /@media \(min-width: 540px\)[\s\S]*\.sc-vitrine__moldura\s*\{[^}]*aspect-ratio: 4 \/ 3/,
+    );
     expect(moldura).toContain("inline-size: 100%");
     // Cortar em vez de esticar: é isso que impede a distorção.
     expect(foto).toContain("object-fit: cover");
@@ -313,9 +368,8 @@ describe("o cartão da vitrine mostra a foto sem distorcer (AC-304)", () => {
     expect(foto).toContain("block-size: 100%");
     expect(cartao).toContain("inline-size: 100%");
     expect(cartao).toContain("overflow: clip");
-    // Duas colunas de 9rem cabem no menor celular suportado (344px).
-    expect(regra(".sc-vitrine__grade")).toContain(
-      "repeat(auto-fill, minmax(9rem, 1fr))",
-    );
+    // No menor celular suportado (344px) as colunas encolhem até zero em vez
+    // de empurrar a página para o lado.
+    expect(regra(".sc-vitrine__grade")).toContain("minmax(0, 1fr)");
   });
 });

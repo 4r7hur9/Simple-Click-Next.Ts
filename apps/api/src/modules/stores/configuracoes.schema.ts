@@ -37,8 +37,16 @@ export const esquemaDosParametrosDaSecao = esquemaDoApelido;
 /** Os parâmetros do envio de imagem: a loja e qual das duas imagens. */
 export const esquemaDosParametrosDaImagem = esquemaDoApelido.extend({
   tipo: z.enum(
-    Object.keys(REGRAS_DAS_IMAGENS_DA_LOJA) as ["logo", "capa"],
-    "Imagem desconhecida: use logo ou capa.",
+    Object.keys(REGRAS_DAS_IMAGENS_DA_LOJA) as [
+      "logo",
+      "capa",
+      "fundo",
+      "fundoCelular",
+      "topo",
+      "topoCelular",
+      "original",
+    ],
+    "Imagem desconhecida: use logo, capa, fundo, fundoCelular, topo, topoCelular ou original.",
   ),
 });
 

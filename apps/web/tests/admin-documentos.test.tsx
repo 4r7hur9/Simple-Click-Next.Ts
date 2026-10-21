@@ -13,10 +13,7 @@
  * repassa estes caminhos, devolvendo o arquivo como anexo.
  */
 import axe from "axe-core";
-import type {
-  DocumentoDaLojaNoContrato,
-  FichaDaLojaNoContrato,
-} from "@simpleclick/contracts";
+import type { DocumentoDaLojaNoContrato } from "@simpleclick/contracts";
 import { act } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -32,7 +29,12 @@ import {
   recusaAntesDeEnviar,
   tamanhoNaTela,
 } from "../src/features/admin/documentos-da-loja.ts";
-import { FichaDaLojaNaTela } from "../src/features/admin/FichaLoja.tsx";
+// As abas leem o caminho para marcar a atual.
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/admin/lojas/documentos",
+}));
+
+import { AbasDaLoja } from "../src/features/admin/AbasDaLoja.tsx";
 import {
   caminhoPermitido,
   encaminharParaAdministracao,
@@ -59,36 +61,6 @@ const CONTRATO: DocumentoDaLojaNoContrato = {
   tipoDeConteudo: "application/pdf",
   enviadoEm: "2026-09-27T12:00:00.000Z",
   enviadoPor: { id: "admin-1", nome: "Administradora geral" },
-};
-
-const FICHA: FichaDaLojaNoContrato = {
-  id: LOJA_ID,
-  codigo: "0001",
-  nome: "Pastel da Joi",
-  razaoSocial: null,
-  documento: { numero: "11222333000181", tipo: "CNPJ" },
-  apelido: "pastel-da-joi",
-  status: "ACTIVE",
-  tipoDeNegocio: {
-    codigo: "FOOD_SNACK",
-    nome: "Lanchonete",
-    controlaEstoque: false,
-  },
-  contato: { email: null, telefone: null },
-  endereco: {
-    cep: null,
-    logradouro: null,
-    numero: null,
-    complemento: null,
-    bairro: null,
-    cidade: null,
-    uf: null,
-  },
-  criadaEm: "2026-09-01T12:00:00.000Z",
-  atualizadaEm: "2026-09-01T12:00:00.000Z",
-  suspensao: null,
-  retencao: null,
-  historico: [],
 };
 
 /** Uma chamada que a tela fez, com cabeçalhos e corpo como saíram. */
@@ -209,16 +181,12 @@ function registrarDownloads(): void {
 
 describe("o contrato aparece na ficha (AC-203)", () => {
   it("@spec:AC-203 o contrato enviado aparece a partir da ficha com nome, tamanho, data de envio e quem enviou", async () => {
-    // A ficha leva aos documentos da loja…
+    // A ficha leva aos documentos da loja, por uma das abas…
     document.body.innerHTML = renderToStaticMarkup(
-      <FichaDaLojaNaTela
-        estado={{ fase: "pronta", ficha: FICHA }}
-        aoTentarDeNovo={() => undefined}
-        aoAtualizar={() => undefined}
-      />,
+      <AbasDaLoja lojaId={LOJA_ID} />,
     );
     const entrada = [...document.querySelectorAll("a")].find((link) =>
-      (link.textContent ?? "").includes("Ver contrato e documentos"),
+      (link.textContent ?? "").includes("Contrato e documentos"),
     );
     expect(entrada?.getAttribute("href")).toBe(
       `/admin/lojas/${LOJA_ID}/documentos`,

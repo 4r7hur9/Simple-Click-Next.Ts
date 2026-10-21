@@ -24,13 +24,25 @@
  */
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Aviso, Botao, Campo, Sucesso } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  Campo,
+  Info,
+  Seletor,
+  Sucesso,
+  descritoresDoCampo,
+} from "@simpleclick/ui";
+
+import { centavosDoTexto } from "../../lib/dinheiro.ts";
 
 import {
   buscarFicha,
+  cadastrarCliente,
   lancarPedidoManual,
   pedirRepeticao,
   type Buscar,
+  type ClienteDaLista,
   type PedidoManualCriado,
   type PedidoManualParaCriar,
   type RepeticaoDoPedido,
@@ -43,6 +55,7 @@ import {
   type GrupoNaTela,
   type VariacaoNaTela,
 } from "../../lib/produto.ts";
+import { EscolherCliente } from "./EscolherCliente.tsx";
 
 /** O produto como a montagem precisa dele: o da página do produto. */
 export interface ProdutoParaMontar {
@@ -88,11 +101,14 @@ export interface MontarPedidoProps {
 }
 
 const FORMAS_DE_PAGAMENTO = [
-  ["PIX", "PIX"],
+  ["PIX", "Pix"],
   ["CASH", "Dinheiro"],
   ["CARD_ON_DELIVERY", "Cartão na entrega"],
-  ["OTHER", "Outro"],
+  ["OTHER", "A combinar com o cliente"],
 ] as const;
+
+/** Observação do pedido: o mesmo limite do contrato. */
+const MAXIMO_DA_OBSERVACAO = 500;
 
 type FormaDePagamento = (typeof FORMAS_DE_PAGAMENTO)[number][0];
 
@@ -214,17 +230,17 @@ function ItemEmMontagem({
   return (
     <section
       aria-label={`Montar ${produto.nome}`}
-      className="grid gap-4 rounded-[var(--raio-cartao)] border-2 border-[var(--cor-primaria)] bg-[var(--cor-superficie-alta)] p-4"
+      className="sc-manual__montagem"
     >
       <h3 className="text-xl font-semibold">{produto.nome}</h3>
 
       {produto.variacoes.length > 0 ? (
         <label className="grid gap-1">
-          <span className="font-medium">Variação</span>
-          <select
-            className="sc-campo__controle min-h-12"
+          <span className="font-medium">Variação (tamanho, sabor…)</span>
+          <Seletor
+            className="min-h-12"
             value={variacaoId ?? ""}
-            onChange={(evento) => setVariacaoId(evento.target.value || null)}
+            onChange={(valor) => setVariacaoId(valor || null)}
           >
             {produto.variacoes.map((variacao) => (
               <option
@@ -237,7 +253,7 @@ function ItemEmMontagem({
                 {variacao.disponivel ? "" : " (esgotado)"}
               </option>
             ))}
-          </select>
+          </Seletor>
         </label>
       ) : null}
 
@@ -261,10 +277,7 @@ function ItemEmMontagem({
                   (e) => e.grupoId === grupo.id && e.opcaoId === opcao.id,
                 );
                 return (
-                  <label
-                    key={opcao.id}
-                    className="flex min-h-12 items-center gap-3 rounded-[var(--raio)] border border-[var(--cor-borda)] px-3"
-                  >
+                  <label key={opcao.id} className="sc-manual__opcao">
                     <input
                       type={grupo.maximo === 1 ? "radio" : "checkbox"}
                       name={`montar-${grupo.id}`}
@@ -291,7 +304,7 @@ function ItemEmMontagem({
 
       <div className="flex flex-wrap items-center gap-3">
         <span className="font-medium" id={`quantidade-${produto.id}`}>
-          Quantidade
+          Quantidade (unidades)
         </span>
         <Botao
           variante="secundaria"
@@ -378,6 +391,11 @@ export function MontarPedido({
   lancar,
 }: MontarPedidoProps) {
   const [nomeDaFicha, setNomeDaFicha] = useState<string | null>(null);
+  const [modoDoCliente, setModoDoCliente] = useState<"existente" | "novo">(
+    "existente",
+  );
+  const [escolhido, setEscolhido] = useState<ClienteDaLista | null>(null);
+  const [guardarCliente, setGuardarCliente] = useState(true);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [itens, setItens] = useState<readonly ItemMontado[]>([]);
@@ -390,6 +408,7 @@ export function MontarPedido({
   const [numero, setNumero] = useState("");
   const [bairro, setBairro] = useState("");
   const [pagamento, setPagamento] = useState<FormaDePagamento>("PIX");
+  const [trocoPara, setTrocoPara] = useState("");
   const [observacao, setObservacao] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [recusa, setRecusa] = useState<string | null>(null);
@@ -433,14 +452,37 @@ export function MontarPedido({
 
   async function confirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    // A ficha vem da URL (pedido nascido da ficha) ou da escolha na lista.
+    let fichaId: string | null = clienteId ?? escolhido?.id ?? null;
+    const novo = fichaId === null && modoDoCliente === "novo";
     const faltando: Record<string, string> = {};
-    if (!clienteId && nome.trim().length < 2)
+    if (fichaId === null && modoDoCliente === "existente") {
+      faltando.cliente =
+        "Escolha um cliente da lista ou use “Cliente novo” para cadastrar.";
+    }
+    if (novo && nome.trim().length < 2)
       faltando.nome = "Informe o nome de quem pede.";
-    if (!clienteId && telefone.trim() === "") {
+    if (novo && telefone.trim() === "") {
       faltando.telefone = "Informe o telefone, com o código de área.";
     }
-    if (entrega === "DELIVERY" && !clienteId && logradouro.trim() === "") {
+    if (
+      entrega === "DELIVERY" &&
+      fichaId === null &&
+      logradouro.trim() === ""
+    ) {
       faltando.logradouro = "Informe a rua da entrega.";
+    }
+    // Troco é opcional: em branco, o cliente paga o valor certo.
+    const trocoEmCentavos =
+      pagamento === "CASH" && trocoPara.trim() !== ""
+        ? centavosDoTexto(trocoPara)
+        : null;
+    if (pagamento === "CASH" && trocoPara.trim() !== "") {
+      if (trocoEmCentavos === null || trocoEmCentavos <= 0) {
+        faltando.troco = "Escreva só o valor em reais. Ex.: 50 ou 50,00.";
+      } else if (trocoEmCentavos <= subtotal) {
+        faltando.troco = `O troco é para um valor MAIOR que o total (${escreverDinheiro(subtotal)}). Se o cliente paga o valor certo, deixe em branco.`;
+      }
     }
     setRecusasDosCampos(faltando);
     setRecusa(itens.length === 0 ? "Adicione ao menos um item." : null);
@@ -454,9 +496,22 @@ export function MontarPedido({
             bairro: bairro.trim() || null,
           }
         : null;
+    setEnviando(true);
+    // Cliente novo entra na lista da loja (se o dono deixou marcado), para o
+    // próximo pedido dele já achá-lo. Se o cadastro não der, o pedido sai do
+    // mesmo jeito, só com nome e telefone: a venda vale mais que a ficha.
+    if (novo && guardarCliente) {
+      const ficha = await cadastrarCliente(
+        { nome: nome.trim(), telefone: telefone.trim() },
+        buscar,
+      );
+      if (ficha.estado === "salvo") fichaId = ficha.ficha.id;
+      else if (ficha.estado === "existente")
+        fichaId = ficha.existente.clienteId;
+    }
     const pedido: PedidoManualParaCriar = {
-      cliente: clienteId
-        ? { tipo: "cadastrado", clienteId }
+      cliente: fichaId
+        ? { tipo: "cadastrado", clienteId: fichaId }
         : { tipo: "avulso", nome: nome.trim(), telefone: telefone.trim() },
       itens: itens.map((item) => ({
         produtoId: item.produtoId,
@@ -467,10 +522,10 @@ export function MontarPedido({
       entrega,
       ...(endereco === null ? {} : { endereco }),
       formaDePagamento: pagamento,
+      ...(trocoEmCentavos === null ? {} : { trocoParaCentavos: trocoEmCentavos }),
       observacao: observacao.trim() || null,
     };
 
-    setEnviando(true);
     const resultado = await (lancar ?? ((p) => lancarPedidoManual(p, buscar)))(
       pedido,
     );
@@ -501,14 +556,22 @@ export function MontarPedido({
     return (
       <Sucesso
         titulo={`Pedido #${criado.numero} lançado`}
-        descricao={`Total de ${escreverDinheiro(criado.totalCentavos)}. Ele já está na fila, marcado como balcão.`}
+        descricao={`Total de ${escreverDinheiro(criado.totalCentavos)}. Ele já está no quadro, em “Pedido gerado”, marcado como balcão.`}
         acao={
-          <Link
-            className="sc-botao sc-botao--primaria"
-            href={`/painel/pedidos/${criado.id}`}
-          >
-            Abrir o pedido
-          </Link>
+          <span className="flex flex-wrap justify-center gap-3">
+            <Link
+              className="sc-botao sc-botao--primaria"
+              href="/painel/pedidos"
+            >
+              Ver no quadro
+            </Link>
+            <Link
+              className="sc-botao sc-botao--secundaria"
+              href={`/painel/pedidos/${criado.id}`}
+            >
+              Abrir o pedido
+            </Link>
+          </span>
         }
       />
     );
@@ -517,12 +580,12 @@ export function MontarPedido({
   return (
     <form
       aria-label="Montar pedido manual"
-      className="mx-auto grid max-w-2xl gap-8"
+      className="sc-manual"
       noValidate
       onSubmit={(evento) => void confirmar(evento)}
     >
-      <section aria-labelledby="quem-pede" className="grid gap-3">
-        <h2 className="text-2xl font-semibold" id="quem-pede">
+      <section aria-labelledby="quem-pede" className="sc-manual__secao">
+        <h2 className="sc-manual__titulo" id="quem-pede">
           Quem pede
         </h2>
         {clienteId ? (
@@ -531,33 +594,94 @@ export function MontarPedido({
           </p>
         ) : (
           <>
-            <p className="text-[var(--cor-tinta-suave)]">
-              Sem cadastro: nome e telefone bastam.
-            </p>
-            <Campo
-              id="manual-nome"
-              rotulo="Nome"
-              obrigatorio
-              value={nome}
-              onChange={(evento) => setNome(evento.target.value)}
-              erro={recusasDosCampos.nome}
-            />
-            <Campo
-              id="manual-telefone"
-              rotulo="Telefone"
-              obrigatorio
-              type="tel"
-              inputMode="tel"
-              value={telefone}
-              onChange={(evento) => setTelefone(evento.target.value)}
-              erro={recusasDosCampos.telefone}
-            />
+            <div
+              className="sc-kanban__visoes"
+              role="group"
+              aria-label="Tipo de cliente"
+            >
+              <button
+                type="button"
+                className="sc-kanban__visao"
+                aria-pressed={modoDoCliente === "existente"}
+                onClick={() => setModoDoCliente("existente")}
+              >
+                Cliente cadastrado
+              </button>
+              <button
+                type="button"
+                className="sc-kanban__visao"
+                aria-pressed={modoDoCliente === "novo"}
+                onClick={() => setModoDoCliente("novo")}
+              >
+                Cliente novo
+              </button>
+              <Info
+                rotulo="o tipo de cliente"
+                conteudo={{
+                  texto:
+                    "Cliente cadastrado: alguém que já está na sua lista; o pedido entra no histórico dele. Cliente novo: quem pede pela primeira vez; basta nome e telefone.",
+                }}
+              />
+            </div>
+            {modoDoCliente === "existente" ? (
+              <EscolherCliente
+                escolhido={escolhido}
+                aoEscolher={setEscolhido}
+                buscar={buscar}
+                erro={recusasDosCampos.cliente}
+              />
+            ) : (
+              <>
+                <Campo
+                  id="manual-nome"
+                  rotulo="Nome de quem pede"
+                  obrigatorio
+                  autoComplete="off"
+                  placeholder="Ex.: Ana Ribeiro"
+                  value={nome}
+                  onChange={(evento) => setNome(evento.target.value)}
+                  erro={recusasDosCampos.nome}
+                />
+                <Campo
+                  id="manual-telefone"
+                  rotulo="Telefone com DDD"
+                  obrigatorio
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="Ex.: (85) 99999-1234"
+                  value={telefone}
+                  onChange={(evento) => setTelefone(evento.target.value)}
+                  erro={recusasDosCampos.telefone}
+                />
+                <span className="flex items-center gap-1">
+                  <label className="sc-manual__opcao flex-1">
+                    <input
+                      type="checkbox"
+                      checked={guardarCliente}
+                      aria-describedby="manual-guardar-info"
+                      onChange={(evento) =>
+                        setGuardarCliente(evento.target.checked)
+                      }
+                    />
+                    Guardar na lista de clientes da loja
+                  </label>
+                  <Info
+                    id="manual-guardar"
+                    rotulo="guardar na lista de clientes"
+                    conteudo={{
+                      texto:
+                        "Marcado: a pessoa entra na sua lista de clientes (origem “Cadastrado pelo dono”) e no próximo pedido é só buscar pelo nome. Desmarcado: o pedido sai só com nome e telefone, sem ficha.",
+                    }}
+                  />
+                </span>
+              </>
+            )}
           </>
         )}
       </section>
 
-      <section aria-labelledby="o-que-pede" className="grid gap-3">
-        <h2 className="text-2xl font-semibold" id="o-que-pede">
+      <section aria-labelledby="o-que-pede" className="sc-manual__secao">
+        <h2 className="sc-manual__titulo" id="o-que-pede">
           O que pede
         </h2>
         {avisosDaRepeticao.length > 0 ? (
@@ -573,10 +697,7 @@ export function MontarPedido({
         {itens.length > 0 ? (
           <ul className="grid gap-2" aria-label="Itens do pedido">
             {itens.map((item) => (
-              <li
-                key={item.chave}
-                className="flex items-start justify-between gap-3 rounded-[var(--raio)] border border-[var(--cor-borda)] p-3"
-              >
+              <li key={item.chave} className="sc-manual__item">
                 <span>
                   {item.quantidade}× {item.descricao}
                   {item.antes ? (
@@ -619,11 +740,11 @@ export function MontarPedido({
           />
         ) : (
           <label className="grid gap-1">
-            <span className="font-medium">Acrescentar produto</span>
-            <select
-              className="sc-campo__controle min-h-12"
+            <span className="font-medium">Adicionar produto ao pedido</span>
+            <Seletor
+              className="min-h-12"
               value=""
-              onChange={(evento) => setEscolhendo(evento.target.value || null)}
+              onChange={(valor) => setEscolhendo(valor || null)}
             >
               <option value="">Escolha um produto…</option>
               {vendaveis.map((produto) => (
@@ -634,27 +755,34 @@ export function MontarPedido({
                     : ` — ${escreverDinheiro(produto.precoCentavos)}`}
                 </option>
               ))}
-            </select>
+            </Seletor>
           </label>
         )}
       </section>
 
-      <section aria-labelledby="como-recebe" className="grid gap-3">
-        <h2 className="text-2xl font-semibold" id="como-recebe">
+      <section aria-labelledby="como-recebe" className="sc-manual__secao">
+        <h2 className="sc-manual__titulo" id="como-recebe">
           Como recebe e paga
         </h2>
-        <fieldset className="grid gap-2 sm:grid-cols-2">
-          <legend className="sr-only">Forma de entrega</legend>
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 inline-flex items-center gap-1 font-medium">
+            Forma de entrega
+            <Info
+              rotulo="a forma de entrega"
+              conteudo={{
+                texto:
+                  "Retirada na loja: o cliente busca, e o pedido passa pela etapa Retirada. Entrega no endereço: a loja leva, e o pedido passa por Saiu para entrega.",
+              }}
+            />
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
           {(
             [
               ["PICKUP", "Retirada na loja"],
-              ["DELIVERY", "Entrega"],
+              ["DELIVERY", "Entrega no endereço"],
             ] as const
           ).map(([valor, rotulo]) => (
-            <label
-              key={valor}
-              className="flex min-h-12 items-center gap-3 rounded-[var(--raio)] border border-[var(--cor-borda)] px-3"
-            >
+            <label key={valor} className="sc-manual__opcao">
               <input
                 type="radio"
                 name="manual-entrega"
@@ -664,6 +792,7 @@ export function MontarPedido({
               {rotulo}
             </label>
           ))}
+          </div>
         </fieldset>
         {entrega === "DELIVERY" ? (
           <div className="grid gap-3">
@@ -674,32 +803,47 @@ export function MontarPedido({
             ) : null}
             <Campo
               id="manual-logradouro"
-              rotulo="Rua"
+              rotulo={clienteId ? "Rua da entrega (opcional)" : "Rua da entrega"}
+              obrigatorio={!clienteId}
+              placeholder="Ex.: Rua das Flores"
               value={logradouro}
               onChange={(evento) => setLogradouro(evento.target.value)}
               erro={recusasDosCampos.logradouro}
             />
             <Campo
               id="manual-numero"
-              rotulo="Número"
+              rotulo="Número (opcional)"
+              inputMode="numeric"
+              placeholder="Ex.: 123 ou s/n"
               value={numero}
               onChange={(evento) => setNumero(evento.target.value)}
             />
             <Campo
               id="manual-bairro"
-              rotulo="Bairro"
+              rotulo="Bairro (opcional)"
+              placeholder="Ex.: Aldeota"
               value={bairro}
               onChange={(evento) => setBairro(evento.target.value)}
             />
           </div>
         ) : null}
-        <label className="grid gap-1">
-          <span className="font-medium">Pagamento</span>
-          <select
-            className="sc-campo__controle min-h-12"
+        <Campo
+          id="manual-pagamento"
+          rotulo="Forma de pagamento"
+          info={{
+            texto:
+              "Como o cliente vai pagar quando receber. Aparece no pedido e no cupom impresso, para quem entrega cobrar certo. Use “A combinar” quando ainda não decidiram.",
+          }}
+          controle={
+          <Seletor
+            id="manual-pagamento"
+            aria-describedby={descritoresDoCampo("manual-pagamento", {
+              info: true,
+            }).join(" ")}
+            className="min-h-12"
             value={pagamento}
-            onChange={(evento) =>
-              setPagamento(evento.target.value as FormaDePagamento)
+            onChange={(valor) =>
+              setPagamento(valor as FormaDePagamento)
             }
           >
             {FORMAS_DE_PAGAMENTO.map(([valor, rotulo]) => (
@@ -707,17 +851,45 @@ export function MontarPedido({
                 {rotulo}
               </option>
             ))}
-          </select>
-        </label>
+          </Seletor>
+          }
+        />
+        {pagamento === "CASH" ? (
+          <Campo
+            id="manual-troco"
+            rotulo="Troco para quanto? (R$, opcional)"
+            inputMode="decimal"
+            placeholder="Ex.: 50,00"
+            dica="Em branco: o cliente paga o valor certo, sem troco."
+            info={{
+              texto:
+                "Com quanto o cliente vai pagar em dinheiro, para o entregador já levar o troco. Precisa ser maior que o total do pedido.",
+              exemplo: "pedido de R$ 37,00 e o cliente paga com uma nota de R$ 50,00.",
+            }}
+            value={trocoPara}
+            onChange={(evento) => setTrocoPara(evento.target.value)}
+            erro={recusasDosCampos.troco}
+          />
+        ) : null}
         <Campo
           id="manual-observacao"
-          rotulo="Observação (opcional)"
+          rotulo="Observação do pedido (opcional)"
+          placeholder="Ex.: sem cebola; tocar o interfone 2"
+          maxLength={MAXIMO_DA_OBSERVACAO}
+          info={{
+            texto:
+              "Recado sobre o pedido inteiro, para quem prepara e para quem entrega. Aparece no pedido aberto e no cupom impresso.",
+            exemplo: "sem cebola em todos; tocar o interfone 2.",
+          }}
           value={observacao}
           onChange={(evento) => setObservacao(evento.target.value)}
         />
       </section>
 
-      <section aria-label="Confirmar" className="grid gap-3">
+      <section
+        aria-label="Confirmar"
+        className="sc-manual__secao sc-manual__secao--confirmar"
+      >
         <p className="text-lg">
           Subtotal estimado: <strong>{escreverDinheiro(subtotal)}</strong>
           <span className="block text-sm text-[var(--cor-tinta-suave)]">

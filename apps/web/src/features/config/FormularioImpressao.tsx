@@ -20,6 +20,7 @@ import { useCallback, useState } from "react";
 
 import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
 import { ParearAgente } from "./ParearAgente.tsx";
+import { InfoDoPainel } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
 
 interface ConteudoDoCupom {
@@ -110,7 +111,10 @@ export function FormularioImpressao() {
         noValidate
       >
         <fieldset className="space-y-3">
-          <legend className="font-medium">Largura do papel</legend>
+          <legend className="flex items-center gap-1.5 font-medium">
+            Largura do papel
+            <InfoDoPainel explicacao="larguraDoPapel" nome="Largura do papel" />
+          </legend>
           {([58, 80] as const).map((largura) => (
             <label
               className="mr-5 inline-flex items-center gap-2"
@@ -132,7 +136,13 @@ export function FormularioImpressao() {
           <ErroDoCampo campo="larguraMm" erros={erros} />
         </fieldset>
         <fieldset className="space-y-3">
-          <legend className="font-medium">Conteúdo opcional</legend>
+          <legend className="flex items-center gap-1.5 font-medium">
+            Conteúdo opcional
+            <InfoDoPainel
+              explicacao="conteudoOpcional"
+              nome="Conteúdo opcional do cupom"
+            />
+          </legend>
           {OPCIONAIS.map(([campo, rotulo]) => (
             <label className="flex items-center gap-3" key={campo}>
               <input
@@ -158,7 +168,13 @@ export function FormularioImpressao() {
           ser desligados.
         </p>
         <fieldset className="space-y-3">
-          <legend className="font-medium">Impressão automática</legend>
+          <legend className="flex items-center gap-1.5 font-medium">
+            Impressão automática
+            <InfoDoPainel
+              explicacao="impressaoAutomatica"
+              nome="Impressão automática"
+            />
+          </legend>
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -193,7 +209,7 @@ export function FormularioImpressao() {
         </fieldset>
         <div className="flex flex-wrap items-center gap-4">
           <button
-            className="sc-botao sc-botao--primario"
+            className="sc-botao sc-botao--primaria"
             type="submit"
             disabled={secao.salvando}
           >

@@ -5,7 +5,13 @@
  * próprios. A combinação só aceita opções de grupos ligados ao produto e
  * marcados como eixo de variação; ingredientes e adicionais ficam fora da
  * grade e continuam sendo escolhas do item.
+ *
+ * ATACADO (card #54): a faixa é do PRODUTO e vale para todas as variações,
+ * cada uma com o seu preço de varejo. A lista traz, por variação, o atacado
+ * já em preço (`atacado`, nulo = só varejo); e o preço da variação não pode
+ * ficar menor ou igual a um desconto em reais já cadastrado (422).
  */
+import type { FaixaGravadaNoContrato } from "@simpleclick/contracts";
 import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
@@ -21,6 +27,13 @@ import type {
   IdentificacaoDaLoja,
   UsuarioAutenticado,
 } from "./categorias.routes.ts";
+import {
+  atacadoDoPreco,
+  ErroDasFaixasDeAtacado,
+  exigirFaixasNoPreco,
+  lerFaixasDeAtacado,
+  recusaDasFaixas,
+} from "./atacado.usecase.ts";
 
 const combinacao = z.strictObject({
   grupoId: z.string().uuid(),
@@ -97,23 +110,26 @@ function comoRegra(preco: LinhaDePreco): PrecoCadastrado {
   };
 }
 
-function respostaDaVariacao(variacao: {
-  readonly id: string;
-  readonly name: string;
-  readonly sku: string | null;
-  readonly barcode: string | null;
-  readonly stockQuantity: number | null;
-  readonly stockMinAlert: number | null;
-  readonly weightGrams: number | null;
-  readonly isDefault: boolean;
-  readonly isAvailable: boolean;
-  readonly sortOrder: number;
-  readonly precos: ReadonlyArray<LinhaDePreco>;
-  readonly valoresDeEixo: ReadonlyArray<{
-    readonly groupId: string;
-    readonly optionItemId: string;
-  }>;
-}) {
+function respostaDaVariacao(
+  variacao: {
+    readonly id: string;
+    readonly name: string;
+    readonly sku: string | null;
+    readonly barcode: string | null;
+    readonly stockQuantity: number | null;
+    readonly stockMinAlert: number | null;
+    readonly weightGrams: number | null;
+    readonly isDefault: boolean;
+    readonly isAvailable: boolean;
+    readonly sortOrder: number;
+    readonly precos: ReadonlyArray<LinhaDePreco>;
+    readonly valoresDeEixo: ReadonlyArray<{
+      readonly groupId: string;
+      readonly optionItemId: string;
+    }>;
+  },
+  faixasDeAtacado: readonly FaixaGravadaNoContrato[] = [],
+) {
   const preco = precoQueVale(variacao.precos.map(comoRegra), new Date());
   return {
     id: variacao.id,
@@ -132,6 +148,8 @@ function respostaDaVariacao(variacao: {
       grupoId: valor.groupId,
       opcaoId: valor.optionItemId,
     })),
+    // As faixas do produto sobre o preço desta variação.
+    atacado: atacadoDoPreco(preco.atualEmCentavos, faixasDeAtacado),
   };
 }
 
@@ -341,6 +359,7 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
                   });
                   return {
                     variacoes: await lerVariacoes(tx, lojaId, produto.id),
+                    faixas: await lerFaixasDeAtacado(tx, lojaId, produto.id),
                     controlaEstoque: loja?.ramo.tracksStock ?? false,
                   };
                 }),
@@ -353,7 +372,9 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
             // e autopeça contam unidades; a lanchonete trabalha com disponível
             // ou esgotado, e o campo de quantidade só atrapalharia o cadastro.
             resposta.json({
-              variacoes: lido.variacoes.map(respostaDaVariacao),
+              variacoes: lido.variacoes.map((variacao) =>
+                respostaDaVariacao(variacao, lido.faixas),
+              ),
               controlaEstoque: lido.controlaEstoque,
             });
           },
@@ -443,19 +464,30 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
                     variacaoId: variacao.id,
                     precoCentavos: entrada.data.precoCentavos,
                   });
+                  await exigirFaixasNoPreco(tx, lojaId, produto.id);
                   await sincronizarProduto(tx, lojaId, produto.id);
                   const linhas = await lerVariacoes(tx, lojaId, produto.id);
-                  return linhas.find((item) => item.id === variacao.id) ?? null;
+                  const linha = linhas.find((item) => item.id === variacao.id);
+                  return linha === undefined
+                    ? null
+                    : respostaDaVariacao(
+                        linha,
+                        await lerFaixasDeAtacado(tx, lojaId, produto.id),
+                      );
                 }),
             );
             if (criada === null) {
               erro(resposta, 404, "nao_encontrado");
               return;
             }
-            resposta.status(201).json(respostaDaVariacao(criada));
+            resposta.status(201).json(criada);
           },
         );
       } catch (causa) {
+        if (causa instanceof ErroDasFaixasDeAtacado) {
+          resposta.status(422).json(recusaDasFaixas(causa.problemas));
+          return;
+        }
         if (causa instanceof Error) {
           if (causa.message === "sku_duplicado") {
             erro(resposta, 409, "sku_duplicado");
@@ -627,10 +659,17 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
                   variacaoId: atual.id,
                   precoCentavos: entrada.data.precoCentavos,
                 });
+                await exigirFaixasNoPreco(tx, lojaId, produto.id);
               }
               await sincronizarProduto(tx, lojaId, produto.id);
               const linhas = await lerVariacoes(tx, lojaId, produto.id);
-              return linhas.find((item) => item.id === atual.id) ?? null;
+              const linha = linhas.find((item) => item.id === atual.id);
+              return linha === undefined
+                ? null
+                : {
+                    variacao: linha,
+                    faixas: await lerFaixasDeAtacado(tx, lojaId, produto.id),
+                  };
             }),
         );
         if (resultado === null) {
@@ -645,9 +684,13 @@ export function criarRotasDasVariacoes(opcoes: OpcoesDasVariacoes): Router {
           erro(resposta, 404, "nao_encontrado");
           return;
         }
-        resposta.json(respostaDaVariacao(resultado));
+        resposta.json(respostaDaVariacao(resultado.variacao, resultado.faixas));
       });
     } catch (causa) {
+      if (causa instanceof ErroDasFaixasDeAtacado) {
+        resposta.status(422).json(recusaDasFaixas(causa.problemas));
+        return;
+      }
       if (causa instanceof Error) {
         if (causa.message === "sku_duplicado") {
           erro(resposta, 409, "sku_duplicado");

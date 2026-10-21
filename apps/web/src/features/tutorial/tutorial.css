@@ -1,0 +1,246 @@
+/*
+ * Tutorial de primeiro acesso (card #39).
+ *
+ * Uma camada por cima de tudo: o fundo escurece a tela e pega os cliques; o
+ * recorte é uma caixa transparente com uma sombra enorme em volta, que é o que
+ * escurece o resto e deixa o elemento do passo aceso. O cartão fica ao lado
+ * do recorte no computador e sempre embaixo no celular.
+ */
+
+.sc-tutorial {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.sc-tutorial__fundo {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 23 20 / 0.6);
+  animation: sc-tutorial-surgir 180ms ease-out;
+}
+
+.sc-tutorial__fundo--transparente {
+  background: transparent;
+}
+
+.sc-tutorial__recorte {
+  position: fixed;
+  border-radius: var(--raio-cartao, 12px);
+  box-shadow:
+    0 0 0 3px var(--cor-marca, #16a34a),
+    0 0 0 9999px rgb(15 23 20 / 0.6);
+  pointer-events: none;
+  transition:
+    top 220ms ease,
+    left 220ms ease,
+    width 220ms ease,
+    height 220ms ease;
+}
+
+.sc-tutorial__cartao {
+  position: fixed;
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border-radius: var(--raio-janela, 16px);
+  background: var(--cor-superficie, #fff);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-larga, 0 20px 50px rgb(0 0 0 / 0.25));
+  outline: none;
+  animation: sc-tutorial-surgir 200ms ease-out;
+}
+
+.sc-tutorial__cartao[data-centro] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sc-tutorial__cartao:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--cor-foco, #16a34a),
+    var(--sombra-larga, 0 20px 50px rgb(0 0 0 / 0.25));
+}
+
+.sc-tutorial__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.sc-tutorial__contagem {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-marca-texto, var(--cor-tinta-suave));
+}
+
+.sc-tutorial__pular {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.25rem;
+  padding: 0 0.625rem;
+  border: 0;
+  border-radius: var(--raio-completo, 999px);
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+}
+
+.sc-tutorial__pular:hover {
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+}
+
+.sc-tutorial__pular svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sc-tutorial__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo, inherit);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.sc-tutorial__texto {
+  margin: 0.375rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--cor-tinta-suave);
+}
+
+/* A demonstração do fluxo: as etapas acendem uma a uma, em ciclo. */
+.sc-tutorial__demo {
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao, 12px);
+  background: var(--cor-fundo, var(--cor-superficie-alta));
+}
+
+.sc-tutorial__demo-titulo {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-tutorial__demo-etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-tutorial__demo-etapa {
+  --duracao: calc(var(--etapas) * 0.9s);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--raio-completo, 999px);
+  background: var(--cor-superficie);
+  font-size: 0.75rem;
+  color: var(--cor-tinta-suave);
+  animation: sc-tutorial-etapa var(--duracao) infinite;
+  animation-delay: calc(var(--ordem) * 0.9s);
+}
+
+.sc-tutorial__demo-ponto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.sc-tutorial__progresso {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.sc-tutorial__bolinha {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--cor-borda-forte, var(--cor-borda));
+  transition: width 200ms ease;
+}
+
+.sc-tutorial__bolinha[data-atual] {
+  width: 1.25rem;
+  background: var(--cor-marca, #16a34a);
+}
+
+.sc-tutorial__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Celular: o cartão encosta embaixo e não cobre o destaque. */
+@media (max-width: 39.99rem) {
+  .sc-tutorial__cartao,
+  .sc-tutorial__cartao[data-centro] {
+    top: auto !important;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+    left: 1rem !important;
+    right: 1rem;
+    width: auto;
+    transform: none;
+  }
+}
+
+/* Na pílula fechada do celular só cabe o Sair no rodapé: "Ver tutorial"
+   aparece quando a pessoa abre o menu da conta. */
+@media (max-width: 63.99rem) {
+  .sc-usuario-lateral:not([data-aberta]) [data-ver-tutorial] {
+    display: none;
+  }
+}
+
+@keyframes sc-tutorial-surgir {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sc-tutorial-etapa {
+  /* Acesa por um quinto do ciclo (4 ou 5 etapas): uma por vez, em fila. */
+  0%,
+  18% {
+    background: var(--cor-marca, #16a34a);
+    color: var(--cor-sobre-marca, #fff);
+  }
+  22%,
+  100% {
+    background: var(--cor-superficie);
+    color: var(--cor-tinta-suave);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-tutorial__fundo,
+  .sc-tutorial__cartao {
+    animation: none;
+  }
+  .sc-tutorial__recorte {
+    transition: none;
+  }
+  .sc-tutorial__demo-etapa {
+    animation: none;
+  }
+}

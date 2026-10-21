@@ -37,7 +37,7 @@ export function PainelVazio({ apelido, hoje, origem }: PainelVazioProps) {
   const idDoLink = useId();
   const [copia, setCopia] = useState<Copia>("parada");
 
-  const caminho = `/l/${encodeURIComponent(apelido)}`;
+  const caminho = `/loja/${encodeURIComponent(apelido)}`;
   const link = `${origem ?? origemDaPagina()}${caminho}`;
   const mensagem = `Faça seu pedido pelo nosso cardápio: ${link}`;
 
@@ -84,7 +84,7 @@ export function PainelVazio({ apelido, hoje, origem }: PainelVazioProps) {
         className="sc-campo__controle mt-1 w-full min-w-0"
       />
 
-      <div className="mt-3 flex flex-col gap-2 min-[540px]:flex-row min-[540px]:flex-wrap">
+      <div className="mt-4 flex flex-col gap-3 min-[540px]:flex-row min-[540px]:flex-wrap">
         <button
           type="button"
           className="sc-botao sc-botao--primaria"

@@ -1,5 +1,6 @@
 /**
- * Prova da busca na vitrine (AC-408, AC-409).
+ * Prova da busca na vitrine (AC-408, AC-409; tolerante e sem teto desde o
+ * card #75).
  *
  * CONTRA BANCO DE VERDADE, e não podia ser de outro jeito: o que está sob prova
  * aqui é o índice de texto do PostgreSQL, a configuração `portuguese` e a regra
@@ -20,6 +21,7 @@ import {
   criarCategoria,
   criarLoja,
   criarProduto,
+  criarVariacao,
   porProdutoNaCategoria,
 } from "@simpleclick/testing";
 import type { LojaDeTeste } from "@simpleclick/testing";
@@ -192,7 +194,8 @@ describe("a busca não atravessa a parede entre lojas (P-004, AC-408)", () => {
 
       // A MINHA LOJA NÃO TEM PÃO NENHUM, e a busca por "pao" nela precisa vir
       // vazia mesmo com o produto existindo na tabela, a uma linha de distância.
-      // É a política do banco que decide isso — a consulta não filtra por loja.
+      // A função de busca se prende à loja do contexto, e o catálogo que monta
+      // o cartão ainda passa pela política do banco.
       await expect(buscarNaLoja(minha, "pao")).resolves.toEqual([]);
 
       // E o contrário confirma que o produto existe: sem esta linha, o teste
@@ -334,6 +337,188 @@ describe("o termo chega à rota pelo endereço (AC-408, AC-409)", () => {
         conferido.success,
         conferido.success ? "" : JSON.stringify(conferido.error.issues),
       ).toBe(true);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("a busca tolerante acha o que o cliente digita (card #75)", () => {
+  async function autopecas(nome: string) {
+    const loja = await criarLoja({ nome, ramo: "autopeças" });
+    const secao = await criarCategoria({ loja, nome: "Peças" });
+    const peca = async (
+      nomeDaPeca: string,
+      extra: { descricao?: string } = {},
+    ) => {
+      const criado = await criarProduto({
+        loja,
+        nome: nomeDaPeca,
+        ...(extra.descricao === undefined ? {} : { descricao: extra.descricao }),
+      });
+      await porProdutoNaCategoria({ loja, produto: criado, categoria: secao });
+      return criado;
+    };
+    return { loja, secao, peca };
+  }
+
+  it(
+    "acha a abreviação do fornecedor pela palavra por extenso, e o contrário",
+    async () => {
+      const { loja, peca } = await autopecas("Autopeças das Abreviações");
+      await peca("PAST FR DT GOL G5");
+      await peca("AMORT DT GOL G4");
+      await peca("RETROV LE PALIO");
+      await peca("RET COMANDO VALV UNO");
+
+      await expect(buscarNaLoja(loja, "pastilha")).resolves.toEqual([
+        "PAST FR DT GOL G5",
+      ]);
+      await expect(buscarNaLoja(loja, "Pastilhas de freio")).resolves.toEqual([
+        "PAST FR DT GOL G5",
+      ]);
+      await expect(buscarNaLoja(loja, "amortecedor gol")).resolves.toEqual([
+        "AMORT DT GOL G4",
+      ]);
+      await expect(buscarNaLoja(loja, "retrovisor")).resolves.toEqual([
+        "RETROV LE PALIO",
+      ]);
+      // "ret" (retentor) é abreviação curta: casa só com a palavra inteira,
+      // e não acha o retrovisor.
+      await expect(buscarNaLoja(loja, "retentor")).resolves.toEqual([
+        "RET COMANDO VALV UNO",
+      ]);
+      // Começo de palavra, sem acento e sem maiúscula.
+      await expect(buscarNaLoja(loja, "amort")).resolves.toEqual([
+        "AMORT DT GOL G4",
+      ]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "o dicionário é do ramo: numa lanchonete 'past' não vira pastilha",
+    async () => {
+      const loja = await criarLoja({ nome: "Lanchonete do Past" });
+      const secao = await criarCategoria({ loja, nome: "Lanches" });
+      const item = await criarProduto({ loja, nome: "PAST FR DT" });
+      await porProdutoNaCategoria({ loja, produto: item, categoria: secao });
+
+      await expect(buscarNaLoja(loja, "pastilha")).resolves.toEqual([]);
+      await expect(buscarNaLoja(loja, "past")).resolves.toEqual(["PAST FR DT"]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "acha pela referência do fabricante, pelos similares, pela marca e pelo SKU",
+    async () => {
+      const { loja, peca } = await autopecas("Autopeças das Referências");
+      const pastilha = await peca("PAST FR NOVO UNO");
+      const filtro = await peca("FILTRO OLEO UNO");
+      await migrador.query(
+        `UPDATE app.products SET attributes = $2::jsonb WHERE id = $1`,
+        [
+          pastilha.id,
+          JSON.stringify({
+            marca: "SPEED BRAKE",
+            referencia: "SNA500",
+            similares: ["PD85", "RCPT-12550"],
+          }),
+        ],
+      );
+      const variacao = await criarVariacao({
+        loja,
+        produto: filtro,
+        nome: "Único",
+        padrao: true,
+      });
+      await migrador.query(
+        `UPDATE app.product_variants SET sku = 'WO-130' WHERE id = $1`,
+        [variacao.id],
+      );
+
+      await expect(buscarNaLoja(loja, "SNA500")).resolves.toEqual([
+        "PAST FR NOVO UNO",
+      ]);
+      await expect(buscarNaLoja(loja, "pd85")).resolves.toEqual([
+        "PAST FR NOVO UNO",
+      ]);
+      // Código com hífen acha digitado colado.
+      await expect(buscarNaLoja(loja, "rcpt12550")).resolves.toEqual([
+        "PAST FR NOVO UNO",
+      ]);
+      await expect(buscarNaLoja(loja, "speed brake")).resolves.toEqual([
+        "PAST FR NOVO UNO",
+      ]);
+      await expect(buscarNaLoja(loja, "wo130")).resolves.toEqual([
+        "FILTRO OLEO UNO",
+      ]);
+      await expect(buscarNaLoja(loja, "WO-130")).resolves.toEqual([
+        "FILTRO OLEO UNO",
+      ]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "o nome que começa pelo termo vem antes de quem só o cita",
+    async () => {
+      const { loja, peca } = await autopecas("Autopeças da Ordem");
+      await peca("REP BUCHA FILTRO AR");
+      await peca("FILTRO AR GOL");
+
+      const pagina = await request(app)
+        .get(`/v1/vitrine/${loja.apelido}/catalogo/produtos`)
+        .query({ busca: "filtro" });
+      expect(pagina.status).toBe(200);
+      expect(
+        pagina.body.produtos.map((p: { nome: string }) => p.nome),
+      ).toEqual(["FILTRO AR GOL", "REP BUCHA FILTRO AR"]);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "passa de 200 acertos: a página conta todos e o cursor percorre sem repetir",
+    async () => {
+      const { loja, secao } = await autopecas("Autopeças Sem Teto");
+      await migrador.query(
+        `WITH novos AS (
+           INSERT INTO app.products
+             (store_id, name, slug, vertical_code, status, sort_order,
+              display_price_cents, price_min_cents, price_max_cents)
+           SELECT $1, 'FILTRO OLEO ' || n, 'filtro-oleo-' || n, 'AUTO_PARTS',
+                  'PUBLISHED', n, 1000, 1000, 1000
+             FROM generate_series(1, 260) AS n
+           RETURNING id, sort_order)
+         INSERT INTO app.product_categories (store_id, product_id, category_id, sort_order)
+         SELECT $1, id, $2, sort_order FROM novos`,
+        [loja.id, secao.id],
+      );
+
+      const vistos = new Set<string>();
+      let cursor: string | undefined;
+      let total = 0;
+      for (let volta = 0; volta < 20; volta++) {
+        const pagina = await request(app)
+          .get(`/v1/vitrine/${loja.apelido}/catalogo/produtos`)
+          .query({ busca: "filtro", limite: 48, ...(cursor ? { cursor } : {}) });
+        expect(pagina.status).toBe(200);
+        total = pagina.body.total;
+        for (const p of pagina.body.produtos as { id: string }[]) {
+          expect(vistos.has(p.id)).toBe(false);
+          vistos.add(p.id);
+        }
+        cursor = pagina.body.proximoCursor ?? undefined;
+        if (cursor === undefined) break;
+      }
+      expect(total).toBe(260);
+      expect(vistos.size).toBe(260);
+
+      const resumo = await request(app)
+        .get(`/v1/vitrine/${loja.apelido}/catalogo/resumo`)
+        .query({ busca: "filtro" });
+      expect(resumo.body.secoes[0].total).toBe(260);
     },
     ESPERA_LONGA,
   );

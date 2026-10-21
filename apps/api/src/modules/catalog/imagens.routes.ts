@@ -16,6 +16,10 @@ import express, {
 } from "express";
 import { z } from "zod";
 
+import {
+  apagarMidiaPelaUrl,
+  armazenamentoDeMidiaDoAmbiente,
+} from "../../core/armazenamento-de-midia.ts";
 import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, type AcessoAoBanco } from "../../core/db.ts";
 import type {
@@ -26,7 +30,7 @@ import type {
 import {
   ErroDeHospedagemIndisponivel,
   ErroDeHospedagemRecusada,
-  hospedagemNoCloudinary,
+  hospedagemDoAmbiente,
   type HospedarImagem,
 } from "./hospedagem-de-imagem.ts";
 import {
@@ -78,6 +82,25 @@ const selecaoDaImagem = {
   height: true,
 } as const;
 
+type Transacao = Parameters<Parameters<AcessoAoBanco["emTransacao"]>[0]>[0];
+
+/**
+ * O produto duplicado aponta para as MESMAS fotos do original: apagar o
+ * arquivo de uma foto que outro produto (ou categoria) ainda usa quebraria a
+ * imagem dele. Só se apaga o arquivo que ficou sem nenhum uso.
+ */
+async function urlAindaEmUso(
+  tx: Transacao,
+  lojaId: string,
+  url: string,
+): Promise<boolean> {
+  const [fotos, categorias] = await Promise.all([
+    tx.productImage.count({ where: { storeId: lojaId, url } }),
+    tx.category.count({ where: { storeId: lojaId, imageUrl: url } }),
+  ]);
+  return fotos + categorias > 0;
+}
+
 function erro(resposta: Response, status: number, mensagem: string): void {
   resposta.status(status).json({ erro: mensagem });
 }
@@ -110,12 +133,21 @@ export interface OpcoesDasImagens {
   ) => Promise<IdentificacaoDaLoja>;
   /** Onde o arquivo fica. Padrão: Cloudinary, com a credencial do ambiente. */
   readonly hospedar?: HospedarImagem;
+  /**
+   * Apaga o arquivo de uma foto que saiu do produto (removida ou trocada).
+   * Padrão: o armazenamento do ambiente, só para arquivo desta loja.
+   */
+  readonly apagarArquivo?: (lojaId: string, url: string) => Promise<void>;
 }
 
 export function criarRotasDasImagens(opcoes: OpcoesDasImagens): Router {
   const rotas = Router();
   const acesso = opcoes.acesso ?? banco();
-  const hospedar = opcoes.hospedar ?? hospedagemNoCloudinary();
+  const hospedar = opcoes.hospedar ?? hospedagemDoAmbiente();
+  const apagarArquivo =
+    opcoes.apagarArquivo ??
+    ((lojaId: string, url: string) =>
+      apagarMidiaPelaUrl(armazenamentoDeMidiaDoAmbiente(), lojaId, url));
 
   rotas.use((requisicao, resposta, proximo) => {
     const usuario = opcoes.autenticar(requisicao);
@@ -407,6 +439,140 @@ export function criarRotasDasImagens(opcoes: OpcoesDasImagens): Router {
     },
   );
 
+  /*
+   * TROCA DA FOTO (substituir sem remover e reenviar). O corpo são os bytes da
+   * imagem nova. A foto mantém o lugar, a ordem, o texto e o "é a capa" que
+   * já tinha: só o endereço muda — e o arquivo antigo sai do armazenamento.
+   * Arquivo recusado não muda nada: a foto anterior continua no ar.
+   */
+  rotas.put(
+    "/:apelido/catalogo/produtos/:produtoId/imagens/:imagemId/arquivo",
+    express.raw({
+      type: () => true,
+      limit: TAMANHO_MAXIMO_DA_IMAGEM_EM_BYTES,
+    }),
+    async (requisicao, resposta, proximo) => {
+      try {
+        const ids = z
+          .object({ produtoId: z.string().uuid(), imagemId: z.string().uuid() })
+          .safeParse(requisicao.params);
+        if (!ids.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        const bytes = Buffer.isBuffer(requisicao.body)
+          ? new Uint8Array(requisicao.body)
+          : new Uint8Array();
+        let formato;
+        try {
+          formato = conferirConteudoDaImagem(bytes).formato;
+        } catch (causa) {
+          if (causa instanceof ErroDeImagemInvalida) {
+            resposta
+              .status(400)
+              .json({ erro: "imagem_invalida", mensagem: causa.message });
+            return;
+          }
+          throw causa;
+        }
+
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const contexto = {
+              lojaId,
+              usuarioId: usuario.identidadeId,
+              papel: usuario.papel,
+            };
+            const existe = await executarComoRequisicao(contexto, () =>
+              acesso.emTransacao(async (tx) => {
+                const produto = await produtoDaLoja(
+                  tx,
+                  lojaId,
+                  ids.data.produtoId,
+                );
+                if (produto === null) return null;
+                const atual = await tx.productImage.findFirst({
+                  where: {
+                    id: ids.data.imagemId,
+                    storeId: lojaId,
+                    productId: produto.id,
+                  },
+                  select: { id: true },
+                });
+                return atual === null ? null : produto;
+              }),
+            );
+            if (existe === null) {
+              erro(resposta, 404, "nao_encontrado");
+              return;
+            }
+
+            // Hospeda FORA da transação, como no envio novo.
+            const hospedada = await hospedar({
+              bytes,
+              formato,
+              lojaId,
+              produtoId: existe.id,
+            });
+
+            const trocada = await executarComoRequisicao(contexto, () =>
+              acesso.emTransacao(async (tx) => {
+                const antes = await tx.productImage.findFirst({
+                  where: {
+                    id: ids.data.imagemId,
+                    storeId: lojaId,
+                    productId: existe.id,
+                  },
+                  select: { url: true },
+                });
+                if (antes === null) return null;
+                const nova = await tx.productImage.update({
+                  where: { id: ids.data.imagemId },
+                  data: {
+                    url: hospedada.url,
+                    width: hospedada.largura,
+                    height: hospedada.altura,
+                    updatedAt: new Date(),
+                  },
+                  select: selecaoDaImagem,
+                });
+                const semUso =
+                  antes.url !== null &&
+                  antes.url !== hospedada.url &&
+                  !(await urlAindaEmUso(tx, lojaId, antes.url));
+                return { nova, apagar: semUso ? antes.url : null };
+              }),
+            );
+            if (trocada === null) {
+              erro(resposta, 404, "nao_encontrado");
+              return;
+            }
+            if (trocada.apagar !== null) {
+              await apagarArquivo(lojaId, trocada.apagar).catch(() => {});
+            }
+            resposta.status(200).json(respostaDaImagem(trocada.nova));
+          },
+        );
+      } catch (causa) {
+        if (causa instanceof ErroDeHospedagemIndisponivel) {
+          resposta
+            .status(503)
+            .json({ erro: "midia_indisponivel", mensagem: causa.message });
+          return;
+        }
+        if (causa instanceof ErroDeHospedagemRecusada) {
+          resposta
+            .status(422)
+            .json({ erro: "imagem_recusada", mensagem: causa.message });
+          return;
+        }
+        proximo(causa);
+      }
+    },
+  );
+
   // Arquivo acima do limite nem chega ao código da rota: quem recusa é o
   // leitor do corpo. Aqui a recusa ganha o mesmo aviso claro da conferência.
   rotas.use(
@@ -531,16 +697,16 @@ export function criarRotasDasImagens(opcoes: OpcoesDasImagens): Router {
                     lojaId,
                     requisicao.params.produtoId,
                   );
-                  if (produto === null) return 0;
+                  if (produto === null) return null;
                   const imagem = await tx.productImage.findFirst({
                     where: {
                       id: requisicao.params.imagemId,
                       storeId: lojaId,
                       productId: produto.id,
                     },
-                    select: { id: true, isPrimary: true },
+                    select: { id: true, isPrimary: true, url: true },
                   });
-                  if (imagem === null) return 0;
+                  if (imagem === null) return null;
                   await tx.productImage.delete({ where: { id: imagem.id } });
                   if (imagem.isPrimary) {
                     const proximaPrincipal = await tx.productImage.findFirst({
@@ -555,12 +721,22 @@ export function criarRotasDasImagens(opcoes: OpcoesDasImagens): Router {
                       });
                     }
                   }
-                  return 1;
+                  return {
+                    url:
+                      imagem.url !== null &&
+                      !(await urlAindaEmUso(tx, lojaId, imagem.url))
+                        ? imagem.url
+                        : null,
+                  };
                 }),
             );
-            if (removida === 0) {
+            if (removida === null) {
               erro(resposta, 404, "nao_encontrado");
               return;
+            }
+            // A foto já saiu do produto: o arquivo dela sai do armazenamento.
+            if (removida.url !== null) {
+              await apagarArquivo(lojaId, removida.url).catch(() => {});
             }
             resposta.status(204).end();
           },

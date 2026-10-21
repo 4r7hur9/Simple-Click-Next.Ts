@@ -22,6 +22,7 @@ import { emReais } from "@simpleclick/core";
 
 export type {
   ComparacaoDeMetricasNoContrato,
+  DetalhesDeMetricasNoContrato,
   MetricasNoContrato,
   ParcelaDeMetricaNoContrato,
   PeriodoDeMetricasNoContrato,
@@ -382,6 +383,55 @@ export function periodoSemPedido(metricas: MetricasNoContrato): boolean {
     resumo.cancelados.quantidade === 0 &&
     resumo.naoConfirmados.quantidade === 0
   );
+}
+
+// ---------------------------------------------------------------------------
+// Do calendário para a consulta (card #34)
+// ---------------------------------------------------------------------------
+
+/** Soma dias a uma data civil `AAAA-MM-DD`, sem passar pelo fuso do aparelho. */
+function somarDias(data: string, dias: number): string {
+  const [ano = 0, mes = 1, dia = 1] = data.split("-").map(Number);
+  return new Date(Date.UTC(ano, mes - 1, dia + dias)).toISOString().slice(0, 10);
+}
+
+/**
+ * Traduz o intervalo escolhido no calendário para a consulta da API.
+ *
+ * Os atalhos que a API conhece (hoje, 3 e 7 dias) seguem como atalho, para o
+ * endereço e o cache continuarem iguais; qualquer outro recorte vai como
+ * intervalo a dedo. `hoje` é o dia de hoje NO FUSO DA LOJA.
+ */
+export function consultaDoIntervalo(
+  intervalo: { readonly inicio: string; readonly fim: string },
+  hoje: string,
+): ConsultaDoPeriodo {
+  if (intervalo.fim === hoje) {
+    for (const [atalho, dias] of [
+      ["hoje", 0],
+      ["3d", 2],
+      ["7d", 6],
+    ] as const) {
+      if (intervalo.inicio === somarDias(hoje, -dias)) return { periodo: atalho };
+    }
+  }
+  return { periodo: "personalizado", de: intervalo.inicio, ate: intervalo.fim };
+}
+
+/** Nome da forma de pagamento como o dono a conhece. */
+export function nomeDaFormaDePagamento(forma: string | null): string {
+  switch (forma) {
+    case "PIX":
+      return "Pix";
+    case "CASH":
+      return "Dinheiro";
+    case "CARD_ON_DELIVERY":
+      return "Cartão na entrega";
+    case "OTHER":
+      return "Outra forma";
+    default:
+      return "Não informada";
+  }
 }
 
 // ---------------------------------------------------------------------------

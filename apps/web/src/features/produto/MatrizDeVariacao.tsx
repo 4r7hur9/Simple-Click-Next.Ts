@@ -51,6 +51,11 @@ export function MatrizDeVariacao({
   aoEscolherVariacao,
 }: MatrizDeVariacaoProps) {
   if (variacoes.length === 0) return null;
+  // Só a variação padrão ("Único"): não há o que escolher, e um grupo com uma
+  // opção pré-marcada só confunde. Quem escolhe por ela é EscolhasDoProduto.
+  if (eixos.length === 0 && variacoes.length === 1 && variacoes[0]?.disponivel) {
+    return null;
+  }
 
   if (eixos.length === 0) {
     return (

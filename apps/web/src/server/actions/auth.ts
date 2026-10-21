@@ -13,6 +13,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { destinoDepoisDeSair } from "../../lib/quem-esta-logado.ts";
 import { enderecoDaApi } from "../api-client.ts";
 import {
   dominioDoCookieDeSessao,
@@ -75,7 +76,7 @@ async function apagarCookiesDaSessao(): Promise<void> {
 /** Sai apenas deste navegador, revogando antes o token na API. */
 export async function sairDaConta(): Promise<void> {
   if (!(await pedirEncerramento("/v1/auth/sessoes/atual/encerrar"))) {
-    redirect("/minha-conta/seguranca?estado=erro");
+    redirect("/conta/seguranca?estado=erro");
   }
   await apagarCookiesDaSessao();
   redirect("/entrar");
@@ -84,8 +85,22 @@ export async function sairDaConta(): Promise<void> {
 /** Sai de todos os navegadores e dispositivos conectados à conta. */
 export async function encerrarTodasAsSessoes(): Promise<void> {
   if (!(await pedirEncerramento("/v1/auth/sessoes/encerrar-todas"))) {
-    redirect("/minha-conta/seguranca?estado=erro");
+    redirect("/conta/seguranca?estado=erro");
   }
   await apagarCookiesDaSessao();
   redirect("/entrar");
+}
+
+/**
+ * Sair pela barra do topo (card #22): mesma revogação de `sairDaConta`, mas
+ * volta para a página da loja em que a pessoa estava, ou para o início
+ * quando a página pedia sessão. O caminho é conferido de novo aqui: o
+ * cliente não escolhe destino fora do site.
+ */
+export async function sairPelaBarra(caminho: string): Promise<void> {
+  if (!(await pedirEncerramento("/v1/auth/sessoes/atual/encerrar"))) {
+    redirect("/conta/seguranca?estado=erro");
+  }
+  await apagarCookiesDaSessao();
+  redirect(destinoDepoisDeSair(caminho));
 }

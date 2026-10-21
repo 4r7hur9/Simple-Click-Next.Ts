@@ -176,8 +176,9 @@ describe("os modos de recebimento (AC-905)", () => {
         formasDePagamento={["CASH"]}
         pix={null}
         entrega={ENTREGA_NA_TELA}
-        linkDoCatalogo="/l/marmitaria/catalogo"
+        linkDoCatalogo="/loja/marmitaria/cardapio"
         rotuloDoCatalogo="Cardápio"
+        conta={{ nome: "Ana Paula", email: "ana@cliente.test", telefone: "+5511988887777" }}
         conferir={conferir as never}
         fechar={vi.fn() as never}
       />,

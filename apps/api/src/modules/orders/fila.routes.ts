@@ -24,6 +24,7 @@ import {
   mudarStatusDoPedido,
 } from "./mudar-status.usecase.ts";
 import { lerFilaDaLoja } from "./fila.usecase.ts";
+import { lerQuadroDoDia } from "./quadro.usecase.ts";
 
 interface ChegadaNaLoja {
   readonly host?: string | null;
@@ -36,7 +37,7 @@ type IdentificacaoDaLoja =
 
 interface UsuarioAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 export interface OpcoesDaFila {
@@ -47,12 +48,37 @@ export interface OpcoesDaFila {
   ) => Promise<IdentificacaoDaLoja>;
 }
 
+/** `2026-02-31` casa com o formato e não existe: o calendário decide. */
+function ehDataDeCalendario(texto: string): boolean {
+  const [ano, mes, dia] = texto.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const utc = new Date(Date.UTC(ano, mes - 1, dia));
+  return (
+    utc.getUTCFullYear() === ano &&
+    utc.getUTCMonth() === mes - 1 &&
+    utc.getUTCDate() === dia
+  );
+}
+
 function erro(resposta: Response, status: number, mensagem: string): void {
   resposta.status(status).json({ erro: mensagem });
 }
 
 /** O pedido pedido na rota. Formato errado é pedido que não existe. */
 const esquemaDoPedidoNaRota = z.object({ id: z.string().uuid() });
+
+/**
+ * `?dia=aaaa-mm-dd` (ou `hoje`, o dia da loja) pede o quadro daquele dia; sem
+ * ele, a fila em aberto.
+ */
+const esquemaDaConsultaDaFila = z.object({
+  dia: z
+    .union([z.literal("hoje"), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)])
+    .optional(),
+});
 
 const esquemaDaMudancaDeStatus = z.strictObject({
   status: z.string().trim().min(1).max(40),
@@ -89,13 +115,36 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
         return;
       }
 
-      const pedidos = await executarComoRequisicao(
-        {
-          lojaId: identificacao.id,
-          usuarioId: resposta.locals.usuario.identidadeId,
-          papel: resposta.locals.usuario.papel,
-        },
-        () => acesso().emTransacao(() => lerFilaDaLoja()),
+      const consulta = esquemaDaConsultaDaFila.safeParse(requisicao.query);
+      if (!consulta.success) {
+        erro(resposta, 400, "entrada_invalida");
+        return;
+      }
+
+      const contexto = {
+        lojaId: identificacao.id,
+        usuarioId: resposta.locals.usuario.identidadeId,
+        papel: resposta.locals.usuario.papel,
+      } as const;
+
+      if (consulta.data.dia !== undefined) {
+        const dia =
+          consulta.data.dia === "hoje" ? undefined : consulta.data.dia;
+        // Data que não existe (30 de fevereiro) é entrada inválida.
+        if (dia !== undefined && !ehDataDeCalendario(dia)) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        const quadro = await executarComoRequisicao(contexto, () =>
+          acesso().emTransacao(() => lerQuadroDoDia(dia)),
+        );
+        resposta.set("cache-control", "no-store");
+        resposta.json(quadro);
+        return;
+      }
+
+      const pedidos = await executarComoRequisicao(contexto, () =>
+        acesso().emTransacao(() => lerFilaDaLoja()),
       );
 
       // A fila muda a cada pedido: guardada em cache, a tela mostraria a fila
@@ -144,6 +193,8 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
                 fulfillment: true,
                 totalCents: true,
                 placedAt: true,
+                paymentMethod: true,
+                changeForCents: true,
                 customerNote: true,
                 cancelReason: true,
                 contato: {
@@ -168,6 +219,11 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
                     quantity: true,
                     lineTotalCents: true,
                     note: true,
+                    unitPriceCents: true,
+                    compareAtCents: true,
+                    priceKindSnapshot: true,
+                    wholesaleMinQuantity: true,
+                    wholesaleLabel: true,
                     opcoes: {
                       orderBy: { sortOrder: "asc" },
                       select: {
@@ -209,6 +265,11 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
           entrega: pedido.fulfillment,
           totalCentavos: Number(pedido.totalCents),
           criadoEm: pedido.placedAt.toISOString(),
+          pagamento: pedido.paymentMethod,
+          trocoParaCentavos:
+            pedido.changeForCents === null
+              ? null
+              : Number(pedido.changeForCents),
           observacao: pedido.customerNote,
           motivoCancelamento: pedido.cancelReason,
           contato: pedido.contato
@@ -232,6 +293,20 @@ export function criarRotasDaFila(opcoes: OpcoesDaFila): Router {
             variacao: item.variantName,
             quantidade: item.quantity,
             totalCentavos: Number(item.lineTotalCents),
+            precoUnitarioCentavos: Number(item.unitPriceCents),
+            // A faixa de atacado que valeu na compra (card #58); nula no varejo.
+            atacado:
+              item.priceKindSnapshot === "WHOLESALE" &&
+              item.wholesaleMinQuantity !== null
+                ? {
+                    quantidadeMinima: item.wholesaleMinQuantity,
+                    rotulo: item.wholesaleLabel,
+                    varejoUnitarioCentavos:
+                      item.compareAtCents === null
+                        ? null
+                        : Number(item.compareAtCents),
+                  }
+                : null,
             observacao: item.note,
             opcoes: item.opcoes.map((opcao) => ({
               grupo: opcao.groupNameSnapshot,

@@ -113,6 +113,10 @@ async function lerPedidoGuardado(
             quantity: true,
             lineTotalCents: true,
             note: true,
+            unitPriceCents: true,
+            priceKindSnapshot: true,
+            wholesaleMinQuantity: true,
+            wholesaleLabel: true,
             opcoes: {
               orderBy: { sortOrder: "asc" },
               select: {

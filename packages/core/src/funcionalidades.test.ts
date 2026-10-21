@@ -29,7 +29,7 @@ describe("funcionalidades por loja", () => {
     const excecoes = [{ chave: "auto_print", ligada: false, limite: null }];
 
     expect(funcionalidadeLigada("auto_print", excecoes)).toBe(false);
-    expect(funcionalidadeLigada("custom_domain", excecoes)).toBe(true);
+    expect(funcionalidadeLigada("multi_store", excecoes)).toBe(true);
 
     const impressao = funcionalidadesDaLoja(excecoes).find(
       (item) => item.chave === "auto_print",

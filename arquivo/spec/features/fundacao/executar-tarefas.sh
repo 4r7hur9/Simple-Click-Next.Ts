@@ -65,8 +65,8 @@ preparar_ambiente() {
     info "branch de trabalho: $BASE_BRANCH (a partir de $ATUAL)"
   fi
   git worktree prune
-  LOG_DIR="$(dirname "$TOPLEVEL")/onp-worktrees/SC-fundacao-logs"
-  WT_BASE="$(dirname "$TOPLEVEL")/onp-worktrees/SC-fundacao"
+  LOG_DIR="$TOPLEVEL/worktrees/SC-fundacao-logs"
+  WT_BASE="$TOPLEVEL/worktrees/SC-fundacao"
   STREAMS_DIR="${ONP_SPEC_HOME:-$HOME/.onp-spec}/painel/streams/$RUN_ID"
   mkdir -p "$LOG_DIR" "$STREAMS_DIR"
 }

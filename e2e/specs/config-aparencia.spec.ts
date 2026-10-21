@@ -61,7 +61,7 @@ test("@spec:AC-916 a apresentação editada no painel aparece na página públic
   await comALojaDoPainelSoParaMim(ENDERECO_DO_SITE, async ({ apelido }) => {
     await servirImagens(page);
 
-    await page.goto("/painel/config/aparencia");
+    await page.goto("/painel/aparencia");
     await page.getByLabel("Nome de exibição").fill(nome);
     await page.getByLabel("Mensagem de boas-vindas").fill(boasVindas);
     await page.getByLabel(/Sobre o negócio/).fill(sobre);
@@ -86,13 +86,13 @@ test("@spec:AC-916 a apresentação editada no painel aparece na página públic
     ).toBeVisible();
 
     // A PÁGINA DA LOJA: nome, boas-vindas e logo.
-    await page.goto(`/l/${apelido}`);
+    await page.goto(`/loja/${apelido}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
     await expect(page.getByText(boasVindas)).toBeVisible();
     await esperarCarregada(page, logo);
 
     // A PÁGINA SOBRE: o texto do negócio e a capa.
-    await page.goto(`/l/${apelido}/sobre`);
+    await page.goto(`/loja/${apelido}/sobre`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
     await expect(page.getByText(sobre)).toBeVisible();
     await esperarCarregada(page, capa);

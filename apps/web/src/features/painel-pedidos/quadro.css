@@ -1,0 +1,101 @@
+/*
+ * O quadro de pedidos: só ele rola de lado, nunca a página (card #65).
+ *
+ * As seis colunas têm a mesma largura, entre 340 e 380 px: crescem até 380
+ * quando a área ao lado do menu tem folga e, quando não tem, ficam em 340 e o
+ * próprio quadro rola na horizontal. Cada coluna mostra uns três cartões de
+ * altura e rola por dentro, com carregamento infinito (`ColunaDoKanban`), e
+ * por isso um dia cheio não estica a página para baixo.
+ *
+ * A "tela preta" de antes: o texto só para leitor de tela do contador
+ * (`.sc-so-leitor`, posição absoluta) não tinha ancestral posicionado,
+ * escapava da rolagem do quadro e esticava a PÁGINA — faixa escura sobrando e
+ * rolagem fantasma. Coluna, lista e área agora são posicionadas: tudo o que é
+ * absoluto fica preso dentro delas.
+ *
+ * Sobrescreve `@simpleclick/ui/styles/pedidos.css` com um nível a mais de
+ * especificidade (`.sc-pedidos …`), que não depende da ordem dos imports.
+ */
+
+.sc-pedidos .sc-kanban__area {
+  position: relative;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cor-primaria) transparent;
+  padding-block-end: var(--espaco-3);
+}
+
+.sc-pedidos .sc-kanban__colunas {
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(21.25rem, 23.75rem);
+  grid-template-columns: none;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: none;
+  contain: none;
+  overflow: visible;
+  padding-block-end: 0;
+  scroll-snap-type: none;
+}
+
+.sc-pedidos .sc-kanban__coluna {
+  position: relative;
+  gap: var(--espaco-3);
+  min-block-size: 0;
+  scroll-snap-align: start;
+}
+
+/* Uns três cartões de altura, sem passar da janela: o quadro inteiro cabe na
+   tela e a página não rola por causa dele. 28rem é o que fica acima das
+   listas (título, ações, cabeçalho da coluna) mais o respiro de baixo. */
+.sc-pedidos .sc-kanban__lista {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--espaco-4);
+  max-block-size: clamp(14rem, calc(100dvh - 28rem), 46rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  /* Espaço para o anel de foco dos cartões e para a barra fina. */
+  margin-inline: calc(var(--espaco-2) * -1);
+  padding: var(--espaco-1) var(--espaco-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--cor-borda-forte) transparent;
+}
+
+.sc-pedidos .sc-kanban__lista:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-pedidos .sc-kanban__mais {
+  display: grid;
+  padding-block: var(--espaco-2);
+}
+
+/* Celular: uma coluna por vez, escolhida nas abas, rolando com a página. */
+@media (max-width: 47.99rem) {
+  .sc-pedidos .sc-kanban__area {
+    overflow: visible;
+    padding-block-end: 0;
+  }
+
+  .sc-pedidos .sc-kanban__colunas {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: minmax(0, 1fr);
+    inline-size: auto;
+  }
+
+  .sc-pedidos .sc-kanban__lista {
+    max-block-size: none;
+    overflow: visible;
+  }
+}

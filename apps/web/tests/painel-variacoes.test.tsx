@@ -67,12 +67,19 @@ async function preencherVariacaoM(
   tela: HTMLElement,
   campos: { sku: string; preco: string; estoque: string },
 ) {
+  const pelo = (dica: string) =>
+    exigir<HTMLInputElement>(tela, `form input[placeholder="${dica}"]`);
   const [nome, sku, preco] = [
-    ...tela.querySelectorAll<HTMLInputElement>("form input:not([type])"),
+    pelo("Ex.: Camiseta azul M"),
+    pelo("Ex.: CAM-AZ-M"),
+    pelo("Ex.: 89,90"),
   ];
   digitar(nome!, "Camiseta M");
   digitar(sku!, campos.sku);
-  digitar(exigir<HTMLSelectElement>(tela, "form select"), "o-m");
+  digitar(
+    exigir<HTMLButtonElement>(tela, 'form button[role="combobox"]'),
+    "o-m",
+  );
   digitar(preco!, campos.preco);
   const estoque = tela.querySelector<HTMLInputElement>(
     'form input[name="estoque"]',

@@ -134,6 +134,8 @@ interface ApoioDaLoja {
   pedido: string;
   itemDePedido: string;
   carrinho: string;
+  comentario: string;
+  story: string;
 }
 
 const apoio: Record<string, ApoioDaLoja> = {};
@@ -211,16 +213,6 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
     }),
   },
 
-  store_domains: {
-    chave: "id",
-    alteracao: { coluna: "kind", valor: "LEGACY_SLUG" },
-    colunas: (loja, marca) => ({
-      store_id: loja,
-      host: `${marca}.exemplo.test`,
-      kind: "CUSTOM",
-    }),
-  },
-
   // O vínculo nasce ACEITO: desde a migração 0041 é ele que faz a identidade
   // de apoio ser dona da loja A — e é como dona da loja A que a varredura
   // tenta alcançar a loja B em todas as outras tabelas.
@@ -246,6 +238,143 @@ const CONSTRUTORES: Readonly<Record<string, ConstrutorDeLinha>> = {
       status: "PUBLISHED",
       // Dinheiro é inteiro em centavos, sempre (P-005).
       display_price_cents: 1990,
+    }),
+  },
+
+  // ── Card #25: limites, feed, favoritos e recentes ─────────────────────────
+
+  // O ajuste de limite da loja: a equipe só LÊ o da própria loja; escrever é
+  // da administração (privilégio retirado).
+  store_limits: {
+    chave: "store_id",
+    alteracao: { coluna: "max_products", valor: 1 },
+    colunas: (loja) => ({ store_id: loja, max_products: 10 }),
+  },
+
+  // O que a loja publicou no feed. A leitura pública atravessa lojas por
+  // função com lista fechada (0050); a tabela em si é da equipe da loja.
+  feed_posts: {
+    chave: "id",
+    alteracao: { coluna: "kind", valor: "PRODUTO_PUBLICADO" },
+    colunas: (loja) => ({
+      store_id: loja,
+      product_id: exigirApoio(loja, "produto"),
+      kind: "PRODUTO_NOVO",
+    }),
+  },
+
+  // Favoritos e recentes são da PESSOA; com loja no contexto, ela só alcança
+  // as linhas daquela loja — é o que esta varredura cobra.
+  favorite_stores: {
+    chave: "store_id",
+    alteracao: { coluna: "created_at", valor: "2020-01-01T00:00:00Z" },
+    colunas: (loja) => ({ identity_id: identidadeDeApoio, store_id: loja }),
+  },
+
+  store_visits: {
+    chave: "store_id",
+    alteracao: { coluna: "visit_count", valor: 99 },
+    colunas: (loja) => ({ identity_id: identidadeDeApoio, store_id: loja }),
+  },
+
+  // Card #45: produto favorito, da pessoa, com a loja ao lado — mesma régua.
+  favorite_products: {
+    chave: "product_id",
+    alteracao: { coluna: "created_at", valor: "2020-01-01T00:00:00Z" },
+    colunas: (loja) => ({
+      identity_id: identidadeDeApoio,
+      store_id: loja,
+      product_id: exigirApoio(loja, "produto"),
+    }),
+  },
+
+  // Card #47: curtidas são da pessoa (mesma régua dos favoritos); comentário,
+  // bloqueio e denúncia ficam na loja do comentário.
+  product_likes: {
+    chave: "product_id",
+    alteracao: { coluna: "created_at", valor: "2020-01-01T00:00:00Z" },
+    colunas: (loja) => ({
+      identity_id: identidadeDeApoio,
+      store_id: loja,
+      product_id: exigirApoio(loja, "produto"),
+    }),
+  },
+
+  store_likes: {
+    chave: "store_id",
+    alteracao: { coluna: "created_at", valor: "2020-01-01T00:00:00Z" },
+    colunas: (loja) => ({ identity_id: identidadeDeApoio, store_id: loja }),
+  },
+
+  comments: {
+    chave: "id",
+    alteracao: { coluna: "status", valor: "RECUSADO" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      product_id: exigirApoio(loja, "produto"),
+      identity_id: identidadeDeApoio,
+      author_name: "Apoio V.",
+      body: `Comentário ${marca}`,
+      status: "APROVADO",
+    }),
+  },
+
+  comment_blocks: {
+    chave: "id",
+    alteracao: { coluna: "reason", valor: "bloqueio sequestrado" },
+    colunas: (loja) => ({
+      store_id: loja,
+      identity_id: identidadeDeApoio,
+      author_name: "Apoio V.",
+    }),
+  },
+
+  comment_reports: {
+    chave: "comment_id",
+    alteracao: { coluna: "reason", valor: "denúncia sequestrada" },
+    colunas: (loja) => ({
+      comment_id: exigirApoio(loja, "comentario"),
+      store_id: loja,
+      identity_id: identidadeDeApoio,
+    }),
+  },
+
+  // Card #46: vídeo do produto e story ficam na loja; quem viu o story é da
+  // pessoa, com a loja ao lado (a régua dos favoritos).
+  product_videos: {
+    chave: "id",
+    alteracao: { coluna: "url", valor: "https://exemplo.test/sequestrado.mp4" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      product_id: exigirApoio(loja, "produto"),
+      url: `https://exemplo.test/${marca}.mp4`,
+      storage_key: `memoria:${marca}`,
+      content_type: "video/mp4",
+      size_bytes: 1000,
+    }),
+  },
+
+  stories: {
+    chave: "id",
+    alteracao: { coluna: "caption", valor: "Story sequestrado" },
+    colunas: (loja, marca) => ({
+      store_id: loja,
+      kind: "IMAGEM",
+      media_url: `https://exemplo.test/${marca}.webp`,
+      storage_key: `memoria:${marca}`,
+      content_type: "image/webp",
+      size_bytes: 1000,
+      caption: `Story ${marca}`,
+    }),
+  },
+
+  story_views: {
+    chave: "story_id",
+    alteracao: { coluna: "viewed_at", valor: "2020-01-01T00:00:00Z" },
+    colunas: (loja) => ({
+      story_id: exigirApoio(loja, "story"),
+      identity_id: identidadeDeApoio,
+      store_id: loja,
     }),
   },
 
@@ -1034,7 +1163,6 @@ beforeAll(async () => {
     ["stores"],
     [
       "store_settings",
-      "store_domains",
       "store_members",
       "store_contracts",
       "store_customers",
@@ -1048,6 +1176,10 @@ beforeAll(async () => {
       "store_hour_exceptions",
       "print_agents",
       "print_pairing_codes",
+      "store_limits",
+      "favorite_stores",
+      "store_visits",
+      "stories",
     ],
     [
       "orders",
@@ -1060,6 +1192,14 @@ beforeAll(async () => {
       "product_option_groups",
       "cart_items",
       "audit_log",
+      "feed_posts",
+      "favorite_products",
+      "product_likes",
+      "store_likes",
+      "comments",
+      "comment_blocks",
+      "product_videos",
+      "story_views",
     ],
     [
       "order_contacts",
@@ -1069,6 +1209,7 @@ beforeAll(async () => {
       "stock_movements",
       "product_attributes",
       "print_jobs",
+      "comment_reports",
     ],
     ["order_item_options"],
   ];
@@ -1100,6 +1241,8 @@ beforeAll(async () => {
       orders: "pedido",
       order_items: "itemDePedido",
       carts: "carrinho",
+      comments: "comentario",
+      stories: "story",
     };
     const nome = campo[tabela];
     if (nome !== undefined) atual[nome] = chave;

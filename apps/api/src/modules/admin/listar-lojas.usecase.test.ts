@@ -8,6 +8,14 @@ import {
   type RepositorioDaListagem,
 } from "./listar-lojas.usecase.ts";
 
+const CONTAGENS = {
+  todas: 60,
+  PENDING_APPROVAL: 3,
+  ACTIVE: 50,
+  INACTIVE: 5,
+  REJECTED: 2,
+};
+
 /** A consulta como a borda a entrega: já com os padrões preenchidos. */
 function consulta(bruta: Record<string, unknown> = {}) {
   return esquemaDaConsultaDeLojas.parse(bruta);
@@ -41,8 +49,8 @@ describe("busca de lojas (AC-206)", () => {
   it("@spec:AC-206 sem filtro a lista traz tudo que não foi excluído; com filtro, só a situação pedida", () => {
     expect(prepararBuscaDeLojas(consulta()).situacao).toBeNull();
     expect(
-      prepararBuscaDeLojas(consulta({ situacao: "SUSPENDED" })).situacao,
-    ).toBe("SUSPENDED");
+      prepararBuscaDeLojas(consulta({ situacao: "INACTIVE" })).situacao,
+    ).toBe("INACTIVE");
   });
 
   it("@spec:AC-206 a página vira limite e deslocamento, e a resposta devolve o total para a tela paginar", async () => {
@@ -50,7 +58,7 @@ describe("busca de lojas (AC-206)", () => {
     const repositorio: RepositorioDaListagem = {
       buscarLojas: vi.fn(async (busca: BuscaDeLojas) => {
         recebidas.push(busca);
-        return { lojas: [], total: 57 };
+        return { lojas: [], total: 57, contagens: CONTAGENS };
       }),
     };
 
@@ -60,6 +68,24 @@ describe("busca de lojas (AC-206)", () => {
     );
 
     expect(recebidas[0]).toMatchObject({ limite: 20, deslocamento: 40 });
-    expect(lista).toEqual({ lojas: [], total: 57, pagina: 3, porPagina: 20 });
+    expect(lista).toEqual({
+      lojas: [],
+      total: 57,
+      contagens: CONTAGENS,
+      pagina: 3,
+      porPagina: 20,
+    });
+  });
+
+  it("o tipo de negócio e a ordem chegam ao banco; sem eles, todos os tipos, das mais recentes", () => {
+    expect(prepararBuscaDeLojas(consulta())).toMatchObject({
+      tipo: null,
+      ordem: "recentes",
+    });
+    expect(
+      prepararBuscaDeLojas(
+        consulta({ tipo: "FOOD_SNACK", ordem: "faturamento" }),
+      ),
+    ).toMatchObject({ tipo: "FOOD_SNACK", ordem: "faturamento" });
   });
 });

@@ -114,6 +114,15 @@ beforeAll(async () => {
   }
   joi = String(primeira.body.id);
   central = String(segunda.body.id);
+  // Loja nova nasce aguardando aprovação (card #25): a prova é do endereço
+  // de loja no ar, então as duas são aprovadas pela administração.
+  for (const lojaId of [joi, central]) {
+    const aprovada = await request(api.app)
+      .post(`/v1/admin/lojas/${lojaId}/aprovar`)
+      .set(comoPapel(administradora.id, "ADMIN"))
+      .send({});
+    if (aprovada.status !== 200) throw new Error("não consegui aprovar a loja");
+  }
 }, ESPERA_DA_ADMINISTRACAO);
 
 afterAll(async () => {
@@ -153,17 +162,10 @@ describe("alterar o apelido preserva o endereço antigo (AC-208)", () => {
       expect(antigo.body).toEqual({ apelido: "pastelaria-joi" });
 
       const { rows } = await migrador.query(
-        `SELECT host, kind, redirect_to_canonical FROM app.store_domains
-          WHERE store_id = $1`,
+        `SELECT slugs_antigos FROM app.stores WHERE id = $1`,
         [joi],
       );
-      expect(rows).toEqual([
-        {
-          host: "pastel-da-joi",
-          kind: "LEGACY_SLUG",
-          redirect_to_canonical: true,
-        },
-      ]);
+      expect(rows).toEqual([{ slugs_antigos: ["pastel-da-joi"] }]);
     },
     ESPERA_DA_ADMINISTRACAO,
   );
@@ -220,7 +222,7 @@ describe("alterar o apelido preserva o endereço antigo (AC-208)", () => {
     "@spec:AC-208 loja fora do ar não redireciona, apelido qualquer não é antigo de ninguém, e o dono não troca o apelido",
     async () => {
       await migrador.query(
-        "UPDATE app.stores SET status = 'SUSPENDED' WHERE id = $1",
+        "UPDATE app.stores SET status = 'INACTIVE' WHERE id = $1",
         [joi],
       );
       try {

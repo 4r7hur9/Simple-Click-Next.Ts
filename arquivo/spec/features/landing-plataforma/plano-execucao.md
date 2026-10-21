@@ -32,7 +32,7 @@ bash .spec/features/landing-plataforma/executar-tarefas.sh
 Cada tarefa roda `codex exec` com **janela de contexto limpa**, na árvore principal,
 uma após a outra, com `--model` e `model_reasoning_effort` já definidos por tarefa e sandbox `workspace-write`.
 Os prompts exatos estão embutidos no script.
-Logs: `../onp-worktrees/Simple-Click-Next.Ts-landing-plataforma-logs/`.
+Logs: `worktrees/Simple-Click-Next.Ts-landing-plataforma-logs/`.
 
 **Confirmação de custos — antes de executar**: os modelos e esforços por
 tarefa estão nas tabelas acima; o agente CONFIRMA com o usuário se estão

@@ -1,0 +1,326 @@
+/*
+ * "Como vai aparecer": o lugar real onde cada foto da loja fica, desenhado
+ * POR CIMA da foto no modal de ajuste (card #36).
+ *
+ * O tamanho de tudo aqui é o REAL (em pixels da tela do cliente): o cartão da
+ * vitrine com 1168 px no computador ou 358 px no celular, a faixa do cardápio
+ * com 1104 ou 366 px. O componente (`ContextoDaFoto`) desenha a peça no
+ * tamanho real e a ENCOLHE com `transform: scale()` até caber no quadro da
+ * prévia — assim a letra, o logo e o selo ficam na proporção certa com a foto.
+ *
+ * O nome da loja segue a medida de cada lugar na loja pública, SEMPRE em
+ * CAIXA ALTA: no cartão da vitrine (página inicial) é o tamanho grande de
+ * sempre (`.sc-loja__nome`, de narrativa.css); na faixa do cardápio é o menor
+ * do catálogo (`.sc-vitrine__capa-nome`: 2 rem a 3 rem, até duas linhas).
+ * A largura da tela imitada vem em `--ctx-tela` (px, sem unidade).
+ */
+
+.sc-ctx {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  transform-origin: 0 0;
+  /* A régua do nome (cqi) é o próprio cartão. */
+  container-type: inline-size;
+  color: var(--marca-branco);
+  font-family: var(--fonte-corpo, inherit);
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+/* O véu do cartão da vitrine (`.sc-loja__veu`): mais denso no alto e na base. */
+.sc-ctx__veu-cartao {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--marca-grafite) 82%, transparent),
+      color-mix(in srgb, var(--marca-grafite) 40%, transparent) 38%,
+      color-mix(in srgb, var(--marca-grafite) 66%, transparent) 62%,
+      color-mix(in srgb, var(--marca-grafite) 94%, transparent)
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--marca-preto-tecnologico) 45%, transparent),
+      transparent 70%
+    );
+}
+
+/* O véu da faixa do cardápio (`.sc-vitrine__capa-veu`): forte à esquerda. */
+.sc-ctx__veu-faixa {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--marca-grafite) 94%, transparent),
+    color-mix(in srgb, var(--marca-grafite) 70%, transparent) 55%,
+    color-mix(in srgb, var(--marca-grafite) 10%, transparent)
+  );
+}
+
+/* --- o cartão da vitrine ---------------------------------------------------- */
+
+.sc-ctx--cartao {
+  justify-content: space-between;
+  padding: var(--ctx-respiro, 2rem);
+}
+
+.sc-ctx--cartao > :not(.sc-ctx__veu-cartao) {
+  position: relative;
+}
+
+.sc-ctx__identidade {
+  display: grid;
+  gap: 1rem;
+  min-inline-size: 0;
+}
+
+.sc-ctx__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.sc-ctx__logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 4rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--marca-branco);
+  box-shadow:
+    0 0 0 3px var(--cor-marca),
+    0 0 0 8px color-mix(in srgb, var(--cor-marca) 28%, transparent);
+}
+
+.sc-ctx__logo--iniciais {
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.sc-ctx__logo img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* O selo ABERTO: pílula grafite com o LED na cor de destaque. */
+.sc-ctx__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--marca-grafite) 72%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sc-ctx__led {
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--cor-marca) 25%, transparent),
+    0 0 6px var(--cor-marca);
+}
+
+/* O nome da loja no CATÁLOGO: 2 rem a 3 rem, até duas linhas, caixa alta. */
+.sc-ctx__nome {
+  --ctx-medida: clamp(
+    2rem,
+    calc(1.5rem + 0.018px * var(--ctx-tela, 1440)),
+    3rem
+  );
+
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: min(
+    var(--ctx-medida),
+    max(1.25rem, calc(2 * (100cqi - var(--ctx-folga, 0px)) / (var(--letras-do-nome, 1) * 0.72)))
+  );
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  padding-block: 0.06em;
+}
+
+/* O nome da loja na VITRINE (página inicial): o tamanho grande de sempre. */
+.sc-ctx--cartao .sc-ctx__nome {
+  margin-block-start: 1rem;
+  font-size: var(--ctx-nome-vitrine);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  display: block;
+  overflow: visible;
+}
+
+.sc-ctx--cartao.sc-ctx--computador {
+  /* `.sc-loja__nome` de 1280 px em diante: clamp(4.5rem, 2.5vw + 2.5rem, 5rem). */
+  --ctx-nome-vitrine: clamp(
+    4.5rem,
+    calc(0.025px * var(--ctx-tela, 1440) + 2.5rem),
+    5rem
+  );
+}
+
+.sc-ctx--cartao.sc-ctx--celular {
+  /* `.sc-loja__nome` no celular: clamp(2.25rem, 9vw, 4.25rem). */
+  --ctx-nome-vitrine: clamp(2.25rem, calc(0.09px * var(--ctx-tela, 390)), 4.25rem);
+}
+
+.sc-ctx__marcador {
+  padding-inline: 0.16em;
+  border-radius: 0.14em;
+  background: linear-gradient(
+    transparent 0.04em,
+    var(--cor-marca) 0.04em,
+    var(--cor-marca) 94%,
+    transparent 94%
+  );
+  color: var(--cor-sobre-marca);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.sc-ctx__boas-vindas {
+  max-inline-size: 38ch;
+  margin: 0;
+  color: var(--marca-cinza-ui);
+  font-size: 1.125rem;
+}
+
+.sc-ctx__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.sc-ctx__entrar {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 3.25rem;
+  padding: 0.375rem 1.5rem;
+  border-radius: 999px;
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.sc-ctx__fichas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  color: var(--marca-nevoa);
+  font-size: 0.9375rem;
+}
+
+.sc-ctx__ficha {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.sc-ctx__ficha b {
+  color: var(--cor-marca-texto);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* --- a faixa do topo do cardápio ------------------------------------------- */
+
+.sc-ctx--faixa {
+  --ctx-folga: 2rem;
+
+  justify-content: center;
+  padding: var(--ctx-respiro, 2rem);
+}
+
+.sc-ctx--faixa > :not(.sc-ctx__veu-faixa) {
+  position: relative;
+}
+
+.sc-ctx__conteudo {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  max-inline-size: 75%;
+  min-inline-size: 0;
+}
+
+.sc-ctx--faixa.sc-ctx--celular .sc-ctx__conteudo {
+  max-inline-size: 100%;
+}
+
+.sc-ctx__pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.625rem;
+  margin-block-start: 0.25rem;
+}
+
+.sc-ctx__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sc-ctx__pagina .sc-ctx__selo {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  min-block-size: 1.75rem;
+}
+
+/* O "i" do Sobre, no canto de cima à direita. */
+.sc-ctx__info {
+  position: absolute;
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 35%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--marca-grafite) 60%, transparent);
+  font-family: var(--fonte-titulo);
+  font-size: 1.125rem;
+  font-style: italic;
+  font-weight: 700;
+}

@@ -15,19 +15,19 @@
 
 ### Onda 1 — faixa-1 ∥ faixa-2 ∥ faixa-3
 
-#### faixa-1 — branch `spec/identidade-acesso-faixa-1` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-1`
+#### faixa-1 — branch `spec/identidade-acesso-faixa-1` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-1`
 
 | tarefa | título                                        | modelo          | esforço | arquivos                                                                                                                                                                                                                                                             |
 | ------ | --------------------------------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-100  | Cadastro de cliente final e política de senha | `gpt-5.6-terra` | high    | `apps/api/src/modules/auth/register.usecase.ts`, `apps/api/src/modules/auth/register.usecase.test.ts`, `apps/api/src/modules/auth/auth.schema.ts`, `apps/api/src/modules/auth/senha.ts`, `apps/api/src/modules/auth/senha.test.ts`, `packages/contracts/src/auth.ts` |
 
-#### faixa-2 — branch `spec/identidade-acesso-faixa-2` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-2`
+#### faixa-2 — branch `spec/identidade-acesso-faixa-2` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-2`
 
 | tarefa | título                                      | modelo          | esforço | arquivos                                                                                                                                                                                                                                                |
 | ------ | ------------------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-101  | Verificação de e-mail com link de uso único | `gpt-5.6-terra` | medium  | `apps/api/src/modules/auth/verificar-email.usecase.ts`, `apps/api/src/modules/auth/verificar-email.usecase.test.ts`, `apps/api/src/modules/auth/codigos.repo.ts`, `apps/api/src/jobs/email.job.ts`, `apps/web/src/app/(conta)/verificar-email/page.tsx` |
 
-#### faixa-3 — branch `spec/identidade-acesso-faixa-3` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-3`
+#### faixa-3 — branch `spec/identidade-acesso-faixa-3` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-3`
 
 | tarefa | título                                     | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------ | ------------------------------------------ | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -35,19 +35,19 @@
 
 ### Onda 2 — faixa-4 ∥ faixa-5 ∥ faixa-6
 
-#### faixa-4 — branch `spec/identidade-acesso-faixa-4` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-4`
+#### faixa-4 — branch `spec/identidade-acesso-faixa-4` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-4`
 
 | tarefa | título                                            | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                                                       |
 | ------ | ------------------------------------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-103  | Sessão com cookie e rotação com detecção de reuso | `gpt-5.6-terra` | xhigh   | `apps/api/src/modules/auth/sessao.usecase.ts`, `apps/api/src/modules/auth/sessao.usecase.test.ts`, `apps/api/src/modules/auth/token.ts`, `apps/api/src/modules/auth/token.test.ts`, `apps/web/src/server/sessao.ts`, `apps/web/src/server/session-cookie.ts`, `apps/web/src/app/api/auth/[...action]/route.ts` |
 
-#### faixa-5 — branch `spec/identidade-acesso-faixa-5` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-5`
+#### faixa-5 — branch `spec/identidade-acesso-faixa-5` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-5`
 
 | tarefa | título                                   | modelo          | esforço | arquivos                                                                                                                                                                                            |
 | ------ | ---------------------------------------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-104  | Encerrar sessão atual e todas as sessões | `gpt-5.6-terra` | medium  | `apps/api/src/modules/auth/logout.usecase.ts`, `apps/api/src/modules/auth/logout.usecase.test.ts`, `apps/web/src/app/(conta)/minha-conta/seguranca/page.tsx`, `apps/web/src/server/actions/auth.ts` |
 
-#### faixa-6 — branch `spec/identidade-acesso-faixa-6` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-6`
+#### faixa-6 — branch `spec/identidade-acesso-faixa-6` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-6`
 
 | tarefa | título                                        | modelo          | esforço | arquivos                                                                                                                                                                                                                    |
 | ------ | --------------------------------------------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,19 +56,19 @@
 
 ### Onda 3 — faixa-7 ∥ faixa-8 ∥ faixa-9
 
-#### faixa-7 — branch `spec/identidade-acesso-faixa-7` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-7`
+#### faixa-7 — branch `spec/identidade-acesso-faixa-7` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-7`
 
 | tarefa | título                                                | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                        |
 | ------ | ----------------------------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-106  | Papéis, escopo de acesso e auditoria do administrador | `gpt-5.6-terra` | high    | `apps/api/src/modules/auth/autorizar.ts`, `apps/api/src/modules/auth/autorizar.test.ts`, `apps/api/src/modules/admin/auditoria.repo.ts`, `apps/api/tests/autorizacao-papel.test.ts`, `apps/web/src/app/(painel)/painel/layout.tsx`, `apps/web/src/app/(admin)/admin/layout.tsx` |
 
-#### faixa-8 — branch `spec/identidade-acesso-faixa-8` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-8`
+#### faixa-8 — branch `spec/identidade-acesso-faixa-8` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-8`
 
 | tarefa | título                                           | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                                                          |
 | ------ | ------------------------------------------------ | --------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-107  | Aplicativo autenticador e códigos de recuperação | `gpt-5.6-terra` | high    | `apps/api/src/modules/auth/totp.usecase.ts`, `apps/api/src/modules/auth/totp.usecase.test.ts`, `apps/api/src/modules/auth/recovery-codes.ts`, `apps/api/src/modules/auth/recovery-codes.test.ts`, `apps/web/src/app/(conta)/minha-conta/seguranca/aplicativo/page.tsx`, `apps/web/src/features/auth/TotpForm.tsx` |
 
-#### faixa-9 — branch `spec/identidade-acesso-faixa-9` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-9`
+#### faixa-9 — branch `spec/identidade-acesso-faixa-9` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-9`
 
 | tarefa | título                           | modelo          | esforço | arquivos                                                                                                                   |
 | ------ | -------------------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@
 
 ### Onda 4 — faixa-10
 
-#### faixa-10 — branch `spec/identidade-acesso-faixa-10` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-10`
+#### faixa-10 — branch `spec/identidade-acesso-faixa-10` — worktree `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-faixa-10`
 
 | tarefa | título                           | modelo          | esforço | arquivos                                                                                         |
 | ------ | -------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------ |
@@ -101,7 +101,7 @@ bash .spec/features/identidade-acesso/executar-tarefas.sh
 Cada faixa roda `codex exec` com **janela de contexto limpa**, no seu worktree, com
 `--model` e `model_reasoning_effort` já definidos por tarefa e sandbox `workspace-write`. Os prompts exatos estão
 embutidos no script — quer rodar uma faixa na mão, é só copiá-los de lá.
-Logs: `../onp-worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-logs/`.
+Logs: `worktrees/SimpleClick-identidade-acesso-run-identidade-acesso-logs/`.
 
 **Confirmação de custos — antes de executar**: os modelos e esforços por
 tarefa estão nas tabelas acima; o agente CONFIRMA com o usuário se estão

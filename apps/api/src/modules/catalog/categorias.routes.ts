@@ -10,6 +10,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
+import { exigirLimiteDaLoja } from "../../core/limites-da-loja.ts";
 import {
   banco,
   type AcessoAoBanco,
@@ -67,7 +68,7 @@ export type IdentificacaoDaLoja =
 
 export interface UsuarioAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 export interface OpcoesDasCategorias {
@@ -235,6 +236,8 @@ export function criarRotasDasCategorias(opcoes: OpcoesDasCategorias): Router {
               { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
               () =>
                 acesso.emTransacao(async (tx) => {
+                  // O limite de categorias da loja (card #25): passou, 409.
+                  await exigirLimiteDaLoja("categorias");
                   const ultima = await tx.category.findFirst({
                     where: { storeId: lojaId, deletedAt: null },
                     orderBy: { sortOrder: "desc" },

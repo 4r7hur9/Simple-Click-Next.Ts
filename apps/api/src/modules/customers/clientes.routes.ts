@@ -1,11 +1,15 @@
 /**
  * As rotas do dono sobre os clientes da loja (T-700 a T-703, T-706).
  *
- *   GET    /v1/lojas/:apelido/clientes?busca=  — a lista, com totais e busca
+ *   GET    /v1/lojas/:apelido/clientes?busca=&pedidos=&cadastro=&inativosDias=
+ *          &origem=&ordem=&pagina=&porPagina=  — a lista, com totais, busca,
+ *          filtros, ordem e (com `pagina`) paginação
  *   POST   /v1/lojas/:apelido/clientes          — o cadastro manual
  *   GET    /v1/lojas/:apelido/clientes/:id      — a ficha com o histórico
  *   PATCH  /v1/lojas/:apelido/clientes/:id      — a correção da ficha
  *   DELETE /v1/lojas/:apelido/clientes/:id      — a remoção com retenção
+ *   POST   /v1/lojas/:apelido/clientes/importacao/{previa,confirmar,relatorio}
+ *          — o importador de planilhas (card #60, `importacao/`)
  *
  * MESMO ARRANJO DAS OUTRAS ROTAS DO PAINEL: a loja é resolvida pelo apelido
  * SEM contexto — ainda não se sabe qual é —, e só então a transação abre com a
@@ -32,7 +36,8 @@ import { validar } from "../../core/validar.ts";
 import { cadastrarCliente } from "./cadastrar.usecase.ts";
 import { editarCliente } from "./editar.usecase.ts";
 import { historicoDoCliente } from "./historico.usecase.ts";
-import { listarClientes } from "./listar.usecase.ts";
+import { registrarRotasDaImportacao } from "./importacao/importacao.routes.ts";
+import { listarClientes, ORDENS_DOS_CLIENTES } from "./listar.usecase.ts";
 import { removerCliente } from "./remover.usecase.ts";
 
 /** Como a loja chega: pelo apelido do caminho. */
@@ -48,7 +53,7 @@ export type IdentificacaoDaLoja =
 /** O dono autenticado, como a borda o entrega. */
 export interface DonoAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 export interface OpcoesDosClientes {
@@ -68,8 +73,20 @@ const esquemaDoClienteNaRota = z.object({
   id: z.uuid(),
 });
 
+/**
+ * A consulta da lista. Tudo é opcional (a lista antiga continua valendo):
+ * com `pagina`, a resposta vem paginada e com o total. Valor de filtro que
+ * não existe é recusado (400), e não ignorado em silêncio.
+ */
 const esquemaDaBusca = z.object({
   busca: z.string().trim().max(80).optional(),
+  pedidos: z.enum(["com", "sem"]).optional(),
+  cadastro: z.enum(["recentes"]).optional(),
+  inativosDias: z.coerce.number().int().min(1).max(3650).optional(),
+  origem: z.enum(["importados"]).optional(),
+  ordem: z.enum(ORDENS_DOS_CLIENTES).optional(),
+  pagina: z.coerce.number().int().min(1).max(100_000).optional(),
+  porPagina: z.coerce.number().int().min(10).max(100).optional(),
 });
 
 function erro(resposta: Response, status: number, codigo: string): void {
@@ -138,10 +155,15 @@ export function criarRotasDosClientes(opcoes: OpcoesDosClientes): Router {
         erro(resposta, 404, "nao_encontrado");
         return;
       }
-      const clientes = await comoDono(resposta, lojaId, () =>
-        listarClientes(consulta.data.busca),
+      const pagina = await comoDono(resposta, lojaId, () =>
+        listarClientes(consulta.data),
       );
-      resposta.json({ clientes });
+      // Sem `pagina`, a resposta é a de sempre: só a lista.
+      if (consulta.data.pagina === undefined) {
+        resposta.json({ clientes: pagina.clientes });
+        return;
+      }
+      resposta.json(pagina);
     } catch (causa) {
       proximo(causa);
     }
@@ -302,6 +324,8 @@ export function criarRotasDosClientes(opcoes: OpcoesDosClientes): Router {
       }
     },
   );
+
+  registrarRotasDaImportacao(rotas, { exigirDono, lojaDoApelido, comoDono });
 
   return rotas;
 }

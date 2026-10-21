@@ -32,7 +32,15 @@ import {
   precoQueVale,
   type PrecoCadastrado,
 } from "@simpleclick/core";
+import type {
+  AtacadoDoProdutoNoContrato,
+  MidiaPublica,
+} from "@simpleclick/contracts";
 
+import {
+  atacadoPublico,
+  comoPrecoCadastrado,
+} from "../../core/atacado-publico.ts";
 import { transacaoAtual } from "../../core/db.ts";
 import { fusoDaLoja } from "./fuso-da-loja.ts";
 
@@ -78,6 +86,8 @@ export interface VariacaoDoProduto {
     readonly grupoId: string;
     readonly opcaoId: string;
   }[];
+  /** As faixas de atacado do produto sobre o preço desta variante (card #56). */
+  readonly atacado: AtacadoDoProdutoNoContrato | null;
 }
 
 export type MotivoIndisponivel = "ESGOTADO" | "FORA_DO_HORARIO";
@@ -90,8 +100,15 @@ export interface ProdutoDaVitrine {
   readonly chamada: string | null;
   readonly descricao: string | null;
   readonly imagens: readonly ImagemDoProduto[];
+  /** Fotos e vídeos na ordem do dono (card #46). */
+  readonly midias: readonly MidiaPublica[];
   readonly precoCentavos: number | null;
   readonly precoAnteriorCentavos: number | null;
+  /**
+   * A tabela de atacado sobre `precoCentavos` (card #56): cada faixa com o
+   * preço por unidade e a economia. Nulo = só varejo.
+   */
+  readonly atacado: AtacadoDoProdutoNoContrato | null;
   readonly grupos: readonly GrupoDoProduto[];
   readonly variacoes: readonly VariacaoDoProduto[];
   readonly disponivel: boolean;
@@ -178,7 +195,14 @@ export async function produtoDaVitrine(
       hasVariants: true,
       imagens: {
         orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
-        select: { url: true, altText: true, width: true, height: true },
+        select: {
+          url: true,
+          altText: true,
+          width: true,
+          height: true,
+          sortOrder: true,
+          createdAt: true,
+        },
       },
       categorias: {
         orderBy: { sortOrder: "asc" },
@@ -250,9 +274,17 @@ export async function produtoDaVitrine(
       isActive: true,
       startsAt: true,
       endsAt: true,
+      label: true,
+      discountKind: true,
+      discountValue: true,
     },
   });
   const precoDoProduto = precoQueVale(precosDoProduto.map(comoRegra), agora);
+  // As faixas de atacado são do PRODUTO (variant_id nulo) e valem para todas
+  // as variantes, cada uma sobre o seu próprio preço (card #53).
+  const atacadoDoProduto = precosDoProduto
+    .filter((linha) => linha.kind === "WHOLESALE")
+    .map(comoPrecoCadastrado);
 
   const variacoes: VariacaoDoProduto[] = produto.variacoes.map((variante) => {
     const preco = precoQueVale(variante.precos.map(comoRegra), agora);
@@ -272,6 +304,7 @@ export async function produtoDaVitrine(
         grupoId: valor.groupId,
         opcaoId: valor.optionItemId,
       })),
+      atacado: atacadoPublico(preco.atualEmCentavos, atacadoDoProduto, agora),
     };
   });
 
@@ -295,6 +328,12 @@ export async function produtoDaVitrine(
       agora,
       await fusoDaLoja(),
     );
+  const precoCentavos = semVariantes
+    ? precosDoProduto.length > 0
+      ? precoDoProduto.atualEmCentavos
+      : emCentavos(produto.displayPriceCents)
+    : (daVariante?.precoCentavos ?? null);
+
   const esgotado =
     !produto.isAvailable ||
     (!semVariantes && variacoes.every((v) => !v.disponivel));
@@ -320,16 +359,16 @@ export async function produtoDaVitrine(
             },
           ],
     ),
-    precoCentavos: semVariantes
-      ? precosDoProduto.length > 0
-        ? precoDoProduto.atualEmCentavos
-        : emCentavos(produto.displayPriceCents)
-      : (daVariante?.precoCentavos ?? null),
+    midias: await midiasDoProduto(produto.id, produto.imagens),
+    precoCentavos,
     precoAnteriorCentavos: semVariantes
       ? precosDoProduto.length > 0
         ? precoDoProduto.anteriorEmCentavos
         : emCentavos(produto.compareAtCents)
       : (daVariante?.precoAnteriorCentavos ?? null),
+    atacado: semVariantes
+      ? atacadoPublico(precoCentavos, atacadoDoProduto, agora)
+      : (daVariante?.atacado ?? null),
     grupos: produto.gruposDeEscolha.flatMap((vinculo) =>
       // O vínculo pode apontar para grupo que a política recusa — apagado ou
       // desligado. O Prisma devolve o vínculo com o grupo nulo, e não o vínculo
@@ -375,4 +414,76 @@ export async function produtoDaVitrine(
         }
       : null,
   };
+}
+
+/**
+ * A galeria do post (card #46): as fotos já lidas e os vídeos do produto,
+ * misturados na ordem do dono (`sort_order` compartilhado). No empate, a foto
+ * principal vem antes (ela já chega primeiro em `imagens`).
+ */
+async function midiasDoProduto(
+  produtoId: string,
+  imagens: readonly {
+    readonly url: string | null;
+    readonly altText: string | null;
+    readonly width: number | null;
+    readonly height: number | null;
+    readonly sortOrder: number;
+    readonly createdAt: Date;
+  }[],
+): Promise<MidiaPublica[]> {
+  const videos = await transacaoAtual().productVideo.findMany({
+    where: { productId: produtoId },
+    select: {
+      url: true,
+      posterUrl: true,
+      durationMs: true,
+      width: true,
+      height: true,
+      sortOrder: true,
+      createdAt: true,
+    },
+  });
+  const todas = [
+    ...imagens.flatMap((imagem, posicao) =>
+      imagem.url === null
+        ? []
+        : [
+            {
+              ordem: imagem.sortOrder,
+              desempate: posicao,
+              criada: imagem.createdAt.getTime(),
+              midia: {
+                tipo: "imagem",
+                url: imagem.url,
+                capa: null,
+                duracaoSegundos: null,
+                largura: imagem.width,
+                altura: imagem.height,
+                texto: imagem.altText,
+              } satisfies MidiaPublica,
+            },
+          ],
+    ),
+    ...videos.map((video) => ({
+      ordem: video.sortOrder,
+      desempate: Number.MAX_SAFE_INTEGER,
+      criada: video.createdAt.getTime(),
+      midia: {
+        tipo: "video",
+        url: video.url,
+        capa: video.posterUrl,
+        duracaoSegundos:
+          video.durationMs === null ? null : Math.round(video.durationMs / 100) / 10,
+        largura: video.width,
+        altura: video.height,
+        texto: null,
+      } satisfies MidiaPublica,
+    })),
+  ];
+  return todas
+    .sort(
+      (a, b) => a.ordem - b.ordem || a.desempate - b.desempate || a.criada - b.criada,
+    )
+    .map((item) => item.midia);
 }

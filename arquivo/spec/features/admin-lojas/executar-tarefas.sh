@@ -65,8 +65,8 @@ preparar_ambiente() {
     info "branch de trabalho: $BASE_BRANCH (a partir de $ATUAL)"
   fi
   git worktree prune
-  LOG_DIR="$(dirname "$TOPLEVEL")/onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs"
-  WT_BASE="$(dirname "$TOPLEVEL")/onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas"
+  LOG_DIR="$TOPLEVEL/worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs"
+  WT_BASE="$TOPLEVEL/worktrees/SimpleClick-identidade-acesso-run-admin-lojas"
   STREAMS_DIR="${ONP_SPEC_HOME:-$HOME/.onp-spec}/painel/streams/$RUN_ID"
   mkdir -p "$LOG_DIR" "$STREAMS_DIR"
 }

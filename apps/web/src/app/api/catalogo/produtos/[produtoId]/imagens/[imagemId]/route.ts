@@ -1,5 +1,6 @@
 import { enderecoDaApi } from "../../../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../../../server/loja-do-painel.ts";
+import { renovarAposGravar } from "../../../../../../../server/renovar-vitrine.ts";
 
 async function encaminhar(
   requisicao: Request,
@@ -26,6 +27,8 @@ async function encaminhar(
     },
   );
   const respostaCorpo = await resposta.text();
+  // A vitrine esquece a foto de antes: a nova aparece ao recarregar.
+  renovarAposGravar(sessao.apelido, requisicao.method, resposta.status);
   return new Response(respostaCorpo === "" ? null : respostaCorpo, {
     status: resposta.status,
     headers: {

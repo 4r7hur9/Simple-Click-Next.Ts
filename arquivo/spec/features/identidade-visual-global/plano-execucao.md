@@ -15,13 +15,13 @@
 
 ### Onda 1 — faixa-1 ∥ faixa-2
 
-#### faixa-1 — branch `spec/identidade-visual-global-faixa-1` — worktree `../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-1`
+#### faixa-1 — branch `spec/identidade-visual-global-faixa-1` — worktree `worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-1`
 
 | tarefa | título                                                 | modelo         | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------ | ------------------------------------------------------ | -------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-965  | Instalar ativos oficiais e congelar os tokens da marca | `gpt-5.6-luna` | high    | `apps/web/public/brand/logo-primary.svg`, `apps/web/public/brand/logo-reverse.svg`, `apps/web/public/brand/logo-monochrome-black.svg`, `apps/web/public/brand/logo-monochrome-white.svg`, `apps/web/public/brand/app-icon-light.svg`, `apps/web/public/brand/app-icon-dark.svg`, `packages/ui/styles/theme.css`, `packages/ui/src/tokens.ts`, `packages/ui/tests/tokens.test.ts`, `packages/ui/tests/contraste.test.ts` |
 
-#### faixa-2 — branch `spec/identidade-visual-global-faixa-2` — worktree `../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-2`
+#### faixa-2 — branch `spec/identidade-visual-global-faixa-2` — worktree `worktrees/Simple-Click-Next.Ts-identidade-visual-global-faixa-2`
 
 | tarefa | título                                                         | modelo         | esforço | arquivos                                                                      |
 | ------ | -------------------------------------------------------------- | -------------- | ------- | ----------------------------------------------------------------------------- |
@@ -56,7 +56,7 @@ bash .spec/features/identidade-visual-global/executar-tarefas.sh
 Cada faixa roda `codex exec` com **janela de contexto limpa**, no seu worktree, com
 `--model` e `model_reasoning_effort` já definidos por tarefa e sandbox `workspace-write`. Os prompts exatos estão
 embutidos no script — quer rodar uma faixa na mão, é só copiá-los de lá.
-Logs: `../onp-worktrees/Simple-Click-Next.Ts-identidade-visual-global-logs/`.
+Logs: `worktrees/Simple-Click-Next.Ts-identidade-visual-global-logs/`.
 
 **Confirmação de custos — antes de executar**: os modelos e esforços por
 tarefa estão nas tabelas acima; o agente CONFIRMA com o usuário se estão

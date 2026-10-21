@@ -14,10 +14,7 @@ import type { Express } from "express";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import {
-  CONFIRMACAO_DE_CADASTRO,
-  MENSAGEM_DE_ENVIO_INDISPONIVEL,
-} from "@simpleclick/contracts";
+import { MENSAGEM_DE_ENVIO_INDISPONIVEL } from "@simpleclick/contracts";
 import { bancoDoArquivo, conectarNoBancoDoArquivo } from "@simpleclick/testing";
 
 import { emailNovo } from "./apoio-da-conta.ts";
@@ -41,7 +38,11 @@ import {
 import { abrirAcessoDaAplicacao, ESPERA_LONGA } from "./apoio-de-isolamento.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { ASSUNTOS_DE_ACESSO } from "../src/modules/auth/emails-de-acesso.ts";
-import { resumirTokenDeVerificacao } from "../src/modules/auth/verificar-email.usecase.ts";
+import { derivarSenha } from "../src/modules/auth/senha.ts";
+import {
+  gerarTokenDeVerificacao,
+  resumirTokenDeVerificacao,
+} from "../src/modules/auth/verificar-email.usecase.ts";
 
 let migrador: pg.Client;
 let acesso: AcessoAoBanco;
@@ -79,27 +80,52 @@ function cadastrar(aplicacao: Express, email: string, senha = FRASE_DA_PROVA) {
     email,
     telefone: "+5511912345678",
     senha,
+    aceitouTermos: true,
   });
+}
+
+/**
+ * Conta antiga, ainda pendente de verificação, com um link aberto. O cadastro
+ * de hoje já nasce verificado; o link continua valendo para essas contas.
+ */
+async function contaPendenteComLink(email: string): Promise<string> {
+  const { rows } = await migrador.query<{ id: string }>(
+    `INSERT INTO app.identities (email_norm, display_name, password_hash)
+     VALUES ($1, 'Pessoa da prova', $2) RETURNING id::text AS id`,
+    [email, await derivarSenha(FRASE_DA_PROVA)],
+  );
+  const token = gerarTokenDeVerificacao();
+  await migrador.query(
+    `INSERT INTO app.verification_codes
+       (identity_id, purpose, channel, code_hash, expires_at)
+     VALUES ($1, 'EMAIL_VERIFY', 'EMAIL', $2, now() + interval '1 day')`,
+    [rows[0]?.id, resumirTokenDeVerificacao(token)],
+  );
+  return token;
 }
 
 describe("cadastro e verificação de e-mail", () => {
   it(
-    "@spec:AC-132 @spec:AC-100 @spec:AC-103 cadastro cria conta pendente, o link verifica uma vez só, e só depois o login entra",
+    "@spec:AC-132 @spec:AC-100 cadastro cria a conta já verificada e devolve a sessão aberta, sem link nem código",
     async () => {
       const email = emailNovo();
       const cadastro = await cadastrar(app, email);
       expect(cadastro.status).toBe(201);
-      expect(cadastro.body).toEqual(CONFIRMACAO_DE_CADASTRO);
+      expect(cadastro.body).toMatchObject({
+        status: "SESSAO_CRIADA",
+        papel: "CUSTOMER",
+        cadastrado: true,
+      });
+      expect(typeof cadastro.body.tokenDeAcesso).toBe("string");
+      expect(refreshDa(cadastro)).toBeDefined();
+      expect(caixa.para(email)).toEqual([]);
 
-      const antes = await entrar(app, email);
-      expect(antes.status).toBe(403);
-      expect(antes.body.erro).toBe("email_nao_verificado");
-
-      const token = caixa.ultimoToken(email);
-      const primeira = await enviar(app, "/email/verificar", { token });
-      expect(primeira.body).toEqual({ situacao: "verificado" });
-      const segunda = await enviar(app, "/email/verificar", { token });
-      expect(segunda.body).toEqual({ situacao: "invalido" });
+      const { rows } = await migrador.query<{ verificado: boolean }>(
+        `SELECT email_verified_at IS NOT NULL AS verificado
+           FROM app.identities WHERE email_norm = $1`,
+        [email],
+      );
+      expect(rows[0]?.verificado).toBe(true);
 
       const depois = await entrar(app, email);
       expect(depois.status).toBe(200);
@@ -109,7 +135,22 @@ describe("cadastro e verificação de e-mail", () => {
   );
 
   it(
-    "@spec:AC-101 e-mail já cadastrado recebe a mesma resposta, e quem é avisado é o dono do endereço",
+    "telefone é opcional no cadastro",
+    async () => {
+      const email = emailNovo();
+      const cadastro = await enviar(app, "/cadastro", {
+        nome: "Pessoa sem telefone",
+        email,
+        senha: FRASE_DA_PROVA,
+        aceitouTermos: true,
+      });
+      expect(cadastro.status).toBe(201);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "e-mail que já tem conta volta 409 email_em_uso e não troca a senha",
     async () => {
       const email = emailNovo();
       await cadastrar(app, email);
@@ -119,12 +160,10 @@ describe("cadastro e verificação de e-mail", () => {
         "outra frase longa da tentativa",
       );
 
-      expect(repetido.status).toBe(201);
-      expect(repetido.body).toEqual(CONFIRMACAO_DE_CADASTRO);
-      expect(caixa.para(email).at(-1)?.assunto).toBe(
-        ASSUNTOS_DE_ACESSO.cadastroRepetido,
-      );
+      expect(repetido.status).toBe(409);
+      expect(repetido.body.erro).toBe("email_em_uso");
       expect(await contasCom(email)).toBe(1);
+      expect((await entrar(app, email)).status).toBe(200);
     },
     ESPERA_LONGA,
   );
@@ -145,11 +184,23 @@ describe("cadastro e verificação de e-mail", () => {
   );
 
   it(
+    "@spec:AC-103 o link de uma conta antiga pendente verifica uma vez só",
+    async () => {
+      const email = emailNovo();
+      const token = await contaPendenteComLink(email);
+      const primeira = await enviar(app, "/email/verificar", { token });
+      expect(primeira.body).toEqual({ situacao: "verificado" });
+      const segunda = await enviar(app, "/email/verificar", { token });
+      expect(segunda.body).toEqual({ situacao: "invalido" });
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
     "@spec:AC-104 link expirado oferece reenvio, que manda link novo e respeita o limite do período",
     async () => {
       const email = emailNovo();
-      await cadastrar(app, email);
-      const vencido = caixa.ultimoToken(email);
+      const vencido = await contaPendenteComLink(email);
       await migrador.query(
         `UPDATE app.verification_codes SET expires_at = now() - interval '1 minute'
         WHERE code_hash = $1`,
@@ -410,21 +461,21 @@ describe("limite, atalho de desenvolvimento e e-mail", () => {
   );
 
   it(
-    "@spec:AC-133 sem provedor, a API diz que o envio está indisponível, igual para conta existente e inexistente",
+    "@spec:AC-133 sem provedor, o cadastro funciona e a recuperação diz que o envio está indisponível, igual para conta existente e inexistente",
     async () => {
       const semProvedor = montarApi(acesso);
       const existente = await clienteVerificado(app, caixa, emailNovo());
       const inexistente = emailNovo();
 
-      const cadastros = await Promise.all(
-        [existente, inexistente].map((email) => cadastrar(semProvedor, email)),
-      );
+      // O cadastro não manda e-mail: funciona mesmo sem provedor.
+      const cadastro = await cadastrar(semProvedor, emailNovo());
+      expect(cadastro.status).toBe(201);
       const pedidos = await Promise.all(
         [existente, inexistente].map((email) =>
           enviar(semProvedor, "/senha/esqueci", { email }),
         ),
       );
-      for (const resposta of [...cadastros, ...pedidos]) {
+      for (const resposta of pedidos) {
         expect(resposta.status).toBe(503);
         expect(resposta.body).toEqual({
           erro: "envio_indisponivel",

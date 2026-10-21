@@ -26,6 +26,7 @@ import type { z } from "zod";
 
 import { exigirLojaDoContexto } from "../../core/contexto.ts";
 import { transacaoAtual } from "../../core/db.ts";
+import { exigirLimiteDaLoja } from "../../core/limites-da-loja.ts";
 import { enderecoParaGravar, fichaDaLinha, SELECAO_DA_FICHA } from "./ficha.ts";
 import { normalizarTelefoneDoCliente } from "./telefone-do-cliente.ts";
 
@@ -136,6 +137,10 @@ export async function cadastrarCliente(
     email,
   });
   if (repetido !== null) return { tipo: "existente", existente: repetido };
+
+  // O limite de clientes da loja (card #25) vale para o cadastro do painel;
+  // cliente que chega por pedido do site nunca é barrado.
+  await exigirLimiteDaLoja("clientes");
 
   const tx = transacaoAtual();
   const endereco = enderecoParaGravar(dados.endereco);

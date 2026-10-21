@@ -14,6 +14,12 @@
  */
 import { createHash } from "node:crypto";
 
+import {
+  armazenamentoDeMidiaDoAmbiente,
+  credenciais as credenciaisDoCloudinary,
+  usaMidiaLocal,
+} from "../../core/armazenamento-de-midia.ts";
+
 import type { FormatoDaImagem } from "./imagens.usecase.ts";
 
 export interface PedidoDeHospedagem {
@@ -61,12 +67,9 @@ interface CredencialDeMidia {
   readonly segredo: string;
 }
 
+/** As duas formas de configurar: `CLOUDINARY_URL` ou as três variáveis soltas. */
 function credencialDoAmbiente(ambiente: Ambiente): CredencialDeMidia | null {
-  const nuvem = ambiente.CLOUDINARY_CLOUD_NAME?.trim();
-  const chave = ambiente.CLOUDINARY_API_KEY?.trim();
-  const segredo = ambiente.CLOUDINARY_API_SECRET?.trim();
-  if (!nuvem || !chave || !segredo) return null;
-  return { nuvem, chave, segredo };
+  return credenciaisDoCloudinary(ambiente);
 }
 
 /**
@@ -140,5 +143,38 @@ export function hospedagemNoCloudinary(
       largura: Number.isInteger(corpo.width) ? (corpo.width as number) : null,
       altura: Number.isInteger(corpo.height) ? (corpo.height as number) : null,
     };
+  };
+}
+
+const EXTENSAO_DO_FORMATO: Readonly<Record<FormatoDaImagem, string>> = {
+  jpeg: "jpg",
+  png: "png",
+  webp: "webp",
+  gif: "gif",
+};
+
+/**
+ * A hospedagem que o ambiente oferece: o Cloudinary quando há credencial; fora
+ * de produção sem credencial, o disco da API (o mesmo dos stories), para a foto
+ * do produto poder ser enviada e trocada em desenvolvimento. Em produção sem
+ * credencial, a hospedagem do Cloudinary responde "indisponível" (503).
+ */
+export function hospedagemDoAmbiente(
+  ambiente: Ambiente = process.env,
+): HospedarImagem {
+  const naNuvem = hospedagemNoCloudinary(ambiente);
+  if (credencialDoAmbiente(ambiente) !== null || !usaMidiaLocal(ambiente)) {
+    return naNuvem;
+  }
+  return async (pedido) => {
+    const guardada = await armazenamentoDeMidiaDoAmbiente(ambiente).guardar({
+      lojaId: pedido.lojaId,
+      pasta: "fotos",
+      tipo: "imagem",
+      bytes: pedido.bytes,
+      tipoDeConteudo: `image/${pedido.formato}`,
+      extensao: EXTENSAO_DO_FORMATO[pedido.formato],
+    });
+    return { url: guardada.url, largura: null, altura: null };
   };
 }

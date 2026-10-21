@@ -105,7 +105,21 @@ export {
   somarCentavos,
 } from "./dinheiro.ts";
 export { precoAplicavel } from "./preco-aplicavel.ts";
-export type { PrecoAplicado } from "./preco-aplicavel.ts";
+export type { AtacadoDoItem, PrecoAplicado } from "./preco-aplicavel.ts";
+// Faixas de atacado com desconto (card #53).
+export {
+  faixasValidas,
+  precoNoAtacado,
+  problemasDasFaixas,
+  unitarioNaFaixa,
+} from "./atacado.ts";
+export type {
+  FaixaCalculada,
+  FaixaDeAtacado,
+  PrecoNoAtacado,
+  ProblemaDaFaixa,
+  TipoDeDescontoDoAtacado,
+} from "./atacado.ts";
 export type { ExplicacaoDoPreco } from "./pedido-total.ts";
 export {
   cnpjValido,

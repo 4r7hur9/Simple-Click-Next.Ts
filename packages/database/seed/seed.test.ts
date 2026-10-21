@@ -17,7 +17,7 @@ import {
   type RelatorioDaCarga,
 } from "./index.ts";
 import { LOJAS, MODA, PASTELARIA } from "./lojas.ts";
-import { PEDIDOS, STATUS_DE_PEDIDO } from "./pedidos.ts";
+import { PEDIDOS, STATUS_NO_BANCO } from "./pedidos.ts";
 
 /**
  * Prova da carga de dados de exemplo, contra PostgreSQL de verdade.
@@ -182,6 +182,10 @@ type RetratoDoBanco = Record<string, string>;
  */
 const RELOGIOS_DO_BANCO: Readonly<Record<string, readonly string[]>> = {
   stores: ["updated_at"],
+  // A linha única dos padrões de limite nasce na MIGRAÇÃO (0051), com
+  // `updated_at = now()` — o instante em que o banco foi migrado, e não um dado
+  // do cenário. A carga não escreve nesta tabela.
+  platform_limit_defaults: ["updated_at"],
 };
 
 /**
@@ -546,10 +550,11 @@ describe("cobertura dos ramos e dos estados", () => {
     for (const loja of LOJAS) {
       const seus = pedidos.filter((pedido) => pedido.store_id === loja.id);
       const status = new Set(seus.map((pedido) => pedido.status));
-      // Cobertura literal: todos os status, para as duas lojas.
-      expect([...status].sort()).toEqual([...STATUS_DE_PEDIDO].sort());
+      // Cobertura literal: todos os status do banco, para as duas lojas. A
+      // recusa não é status desde a 0053: é o cancelado que nunca foi aceito.
+      expect([...status].sort()).toEqual([...STATUS_NO_BANCO].sort());
       expect(status.has("CANCELLED")).toBe(true);
-      expect(status.has("REJECTED")).toBe(true);
+      expect(status.has("REJECTED")).toBe(false);
     }
 
     // Aguardando confirmação no WhatsApp NÃO é status: é o pedido pendente cuja
@@ -565,23 +570,17 @@ describe("cobertura dos ramos e dos estados", () => {
     // E o histórico do cancelado passa pelo aceite, enquanto o do recusado não:
     // são caminhos diferentes, e é o histórico que a página pública mostra.
     const historico = linhasDe("order_status_history");
-    for (const pedido of pedidos.filter(
-      (linha) => linha.status === "CANCELLED",
-    )) {
-      const passos = historico
-        .filter((linha) => linha.order_id === pedido.id)
-        .map((linha) => linha.to_status);
-      expect(passos).toContain("ACCEPTED");
-      expect(passos).toContain("CANCELLED");
-    }
-    for (const pedido of pedidos.filter(
-      (linha) => linha.status === "REJECTED",
-    )) {
-      const passos = historico
-        .filter((linha) => linha.order_id === pedido.id)
-        .map((linha) => linha.to_status);
-      expect(passos).not.toContain("ACCEPTED");
-    }
+    const caminhos = pedidos
+      .filter((linha) => linha.status === "CANCELLED")
+      .map((pedido) =>
+        historico
+          .filter((linha) => linha.order_id === pedido.id)
+          .map((linha) => linha.to_status),
+      );
+    for (const passos of caminhos) expect(passos).toContain("CANCELLED");
+    // Por loja: um cancelado depois do aceite e um recusado na chegada.
+    expect(caminhos.filter((passos) => passos.includes("ACCEPTED"))).toHaveLength(LOJAS.length);
+    expect(caminhos.filter((passos) => !passos.includes("ACCEPTED"))).toHaveLength(LOJAS.length);
   });
 
   it("@spec:AC-036 planta no banco tudo que o esquema já suporta, e adia — nomeando — só o que ainda não tem tabela", async () => {

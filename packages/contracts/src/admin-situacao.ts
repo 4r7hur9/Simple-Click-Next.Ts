@@ -90,9 +90,76 @@ export function confirmacaoConfere(confirmacao: string, nome: string): boolean {
  */
 export const esquemaDaSituacaoParaODono = z.strictObject({
   status: esquemaDaSituacaoDaLoja,
+  /** A desativação em curso (status INACTIVE): desde quando e por quê. */
   suspensao: esquemaDaSuspensaoEmCurso.nullable(),
+  /** A recusa (status REJECTED): quando e o motivo que a administração deu. */
+  recusa: esquemaDaSuspensaoEmCurso.nullable().optional(),
+  /** Verdadeiro enquanto a loja aguarda a aprovação (PENDING_APPROVAL). */
+  aguardandoAprovacao: z.boolean().optional(),
 });
 
 export type SituacaoParaODonoNoContrato = z.infer<
   typeof esquemaDaSituacaoParaODono
 >;
+
+// ---------------------------------------------------------------------------
+// Aprovação da loja (card #25)
+// ---------------------------------------------------------------------------
+//
+// Transições, todas só da administração e todas na trilha (`audit_log`):
+//
+//   PENDING_APPROVAL → ACTIVE    aprovar   POST /v1/admin/lojas/:id/aprovar
+//   PENDING_APPROVAL → REJECTED  recusar   POST /v1/admin/lojas/:id/recusar  {motivo}
+//   REJECTED         → ACTIVE    aprovar   (reconsiderar a recusa)
+//   ACTIVE           → INACTIVE  desativar POST /v1/admin/lojas/:id/desativar {motivo?}
+//   INACTIVE         → ACTIVE    ativar    POST /v1/admin/lojas/:id/ativar
+//
+// Fora delas, 409 `transicao_invalida`. Os antigos PUT .../suspensao e
+// .../reativacao continuam e equivalem a desativar e ativar.
+
+/** Os atos de aprovação, como o endereço os escreve. */
+export const ATOS_DA_APROVACAO = [
+  "aprovar",
+  "recusar",
+  "ativar",
+  "desativar",
+] as const;
+
+export type AtoDaAprovacao = (typeof ATOS_DA_APROVACAO)[number];
+
+/** De onde cada ato parte e aonde ele leva. */
+export const TRANSICOES_DA_LOJA: Readonly<
+  Record<AtoDaAprovacao, { readonly de: readonly string[]; readonly para: string }>
+> = Object.freeze({
+  aprovar: { de: ["PENDING_APPROVAL", "REJECTED"], para: "ACTIVE" },
+  recusar: { de: ["PENDING_APPROVAL"], para: "REJECTED" },
+  ativar: { de: ["INACTIVE"], para: "ACTIVE" },
+  desativar: { de: ["ACTIVE"], para: "INACTIVE" },
+});
+
+const motivoDoAto = (rotulo: string) =>
+  z
+    .string(`Informe o motivo da ${rotulo}.`)
+    .trim()
+    .min(3, `Informe o motivo da ${rotulo}, com ao menos 3 letras.`)
+    .max(500, "O motivo cabe em até 500 caracteres.");
+
+/** `POST /v1/admin/lojas/:id/recusar` — o dono lê o motivo no painel. */
+export const esquemaDaRecusaDaLoja = z.strictObject({
+  motivo: motivoDoAto("recusa"),
+});
+
+/** `POST /v1/admin/lojas/:id/desativar` — motivo opcional. */
+export const esquemaDaDesativacaoDaLoja = z.strictObject({
+  motivo: motivoDoAto("desativação").optional(),
+});
+
+/** `POST /v1/admin/lojas/:id/aprovar` e `.../ativar`: sem campo nenhum. */
+export const esquemaDoAtoSemCorpo = z.strictObject({});
+
+/** A recusa de uma transição que não existe a partir da situação atual. */
+export const esquemaDaTransicaoInvalida = z.strictObject({
+  erro: z.literal("transicao_invalida"),
+  status: esquemaDaSituacaoDaLoja,
+  mensagem: z.string(),
+});

@@ -1,8 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { centavosDoTexto } from "../../lib/dinheiro.ts";
+import { Seletor } from "@simpleclick/ui";
+
+import { EXPLICACOES } from "./explicacoes.ts";
+import { CampoComRotulo, descritoDoInfo } from "./RotuloComInfo.tsx";
+
+/** O tipo do preço como o dono lê: nunca o enum em inglês da API. */
+const ROTULO_DO_TIPO_DE_PRECO: Readonly<Record<string, string>> = {
+  BASE: "Preço normal",
+  PROMO: "Promoção",
+  WHOLESALE: "Atacado (preço fixo)",
+  CLUB: "Clube",
+};
+
+function nomeDoPreco(preco: Preco): string {
+  return preco.rotulo ?? ROTULO_DO_TIPO_DE_PRECO[preco.tipo] ?? "Preço";
+}
 
 interface Preco {
   readonly id: string;
@@ -33,6 +49,7 @@ const VAZIO = {
 };
 
 export function LinhasDePreco({ produtoId }: Props) {
+  const base = useId();
   const [precos, setPrecos] = useState<Preco[]>([]);
   const [formulario, setFormulario] = useState(VAZIO);
   const [mensagem, setMensagem] = useState("Carregando preços…");
@@ -125,7 +142,7 @@ export function LinhasDePreco({ produtoId }: Props) {
   }
 
   async function remover(preco: Preco) {
-    if (!window.confirm(`Remover ${preco.rotulo ?? preco.tipo}?`)) return;
+    if (!window.confirm(`Remover ${nomeDoPreco(preco)}?`)) return;
     const resposta = await fetch(
       `/api/catalogo/produtos/${produtoId}/precos/${preco.id}`,
       { method: "DELETE" },
@@ -145,8 +162,8 @@ export function LinhasDePreco({ produtoId }: Props) {
             Preços
           </h2>
           <p className="mt-2 text-sm leading-6 text-[var(--cor-tinta-suave)]">
-            Valores são gravados em centavos. Promoções aparecem com o preço
-            base riscado.
+            Promoção, atacado de preço fixo e outros preços além do normal. Na
+            promoção, o preço normal aparece riscado.
           </p>
         </div>
         <p role="status" className="text-sm text-[var(--cor-tinta-suave)]">
@@ -161,10 +178,19 @@ export function LinhasDePreco({ produtoId }: Props) {
             className="flex flex-wrap items-center gap-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4"
           >
             <div className="min-w-0 flex-1">
-              <p className="font-semibold">{preco.rotulo ?? preco.tipo}</p>
+              <p className="font-semibold">
+                {nomeDoPreco(preco)}
+                {preco.rotulo !== null &&
+                ROTULO_DO_TIPO_DE_PRECO[preco.tipo] !== undefined ? (
+                  <span className="ml-2 text-sm font-normal text-[var(--cor-tinta-suave)]">
+                    {ROTULO_DO_TIPO_DE_PRECO[preco.tipo]}
+                  </span>
+                ) : null}
+              </p>
               <p className="text-sm text-[var(--cor-tinta-suave)]">
                 {escreverDinheiro(preco.valorCentavos)} · a partir de{" "}
-                {preco.quantidadeMinima} unidade(s) ·{" "}
+                {preco.quantidadeMinima}{" "}
+                {preco.quantidadeMinima === 1 ? "unidade" : "unidades"} ·{" "}
                 {preco.ativo ? "ativo" : "inativo"}
               </p>
             </div>
@@ -190,45 +216,61 @@ export function LinhasDePreco({ produtoId }: Props) {
 
       <form
         onSubmit={(evento) => void adicionar(evento)}
-        className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
+        className="mt-6 grid gap-5 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
       >
-        <label>
-          <span className="text-sm font-medium">Tipo</span>
-          <select
-            className="sc-campo__controle mt-2 w-full"
+        <CampoComRotulo
+          id={`${base}-tipo`}
+          rotulo="Tipo de preço"
+          info={EXPLICACOES.tipoDePreco}
+        >
+          <Seletor
+            id={`${base}-tipo`}
+            className="w-full"
             value={formulario.tipo}
-            onChange={(evento) =>
+            aria-describedby={descritoDoInfo(
+              `${base}-tipo`,
+              EXPLICACOES.tipoDePreco,
+            )}
+            onChange={(valor) =>
               setFormulario((anterior) => ({
                 ...anterior,
-                tipo: evento.target.value,
+                tipo: valor,
               }))
             }
           >
             <option value="PROMO">Promoção</option>
-            <option value="WHOLESALE">Atacado</option>
+            <option value="WHOLESALE">Atacado (preço fixo)</option>
             <option value="CLUB">Clube</option>
-            <option value="BASE">Base</option>
-          </select>
-        </label>
-        <label>
-          <span className="text-sm font-medium">Nome (opcional)</span>
+            <option value="BASE">Preço normal</option>
+          </Seletor>
+        </CampoComRotulo>
+        <CampoComRotulo
+          id={`${base}-rotulo`}
+          rotulo="Nome do preço (opcional)"
+          info={EXPLICACOES.nomeDoPreco}
+        >
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={`${base}-rotulo`}
+            className="sc-campo__controle w-full"
             value={formulario.rotulo}
+            aria-describedby={descritoDoInfo(
+              `${base}-rotulo`,
+              EXPLICACOES.nomeDoPreco,
+            )}
             onChange={(evento) =>
               setFormulario((anterior) => ({
                 ...anterior,
                 rotulo: evento.target.value,
               }))
             }
-            placeholder="Ex.: Atacado"
+            placeholder="Ex.: Promoção de sexta"
             maxLength={100}
           />
-        </label>
-        <label>
-          <span className="text-sm font-medium">Valor (R$)</span>
+        </CampoComRotulo>
+        <CampoComRotulo id={`${base}-valor`} rotulo="Preço por unidade (R$)">
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={`${base}-valor`}
+            className="sc-campo__controle w-full"
             inputMode="decimal"
             value={formulario.valor}
             onChange={(evento) =>
@@ -237,17 +279,26 @@ export function LinhasDePreco({ produtoId }: Props) {
                 valor: evento.target.value,
               }))
             }
-            placeholder="15,00"
+            placeholder="Ex.: 15,00"
             required
           />
-        </label>
-        <label>
-          <span className="text-sm font-medium">Quantidade mínima</span>
+        </CampoComRotulo>
+        <CampoComRotulo
+          id={`${base}-quantidade`}
+          rotulo="Quantidade mínima (unidades)"
+          info={EXPLICACOES.quantidadeMinimaDoPreco}
+        >
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={`${base}-quantidade`}
+            className="sc-campo__controle w-full"
             type="number"
+            inputMode="numeric"
             min={1}
             value={formulario.quantidade}
+            aria-describedby={descritoDoInfo(
+              `${base}-quantidade`,
+              EXPLICACOES.quantidadeMinimaDoPreco,
+            )}
             onChange={(evento) =>
               setFormulario((anterior) => ({
                 ...anterior,
@@ -256,7 +307,7 @@ export function LinhasDePreco({ produtoId }: Props) {
             }
             required
           />
-        </label>
+        </CampoComRotulo>
         <label className="flex items-center gap-3 text-sm sm:col-span-2">
           <input
             className="h-5 w-5"

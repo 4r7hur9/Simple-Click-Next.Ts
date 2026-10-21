@@ -11,7 +11,7 @@ test.beforeAll(async () => {
 test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async ({
   page,
 }) => {
-  await page.goto(`/l/${LOJA}/catalogo`);
+  await page.goto(`/loja/${LOJA}/cardapio`);
   await page
     .getByRole("link", { name: /Pastel de Carne/ })
     .first()
@@ -39,7 +39,7 @@ test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async 
 test("@spec:AC-410 os grupos de escolha obrigatória aparecem sinalizados antes de decidir", async ({
   page,
 }) => {
-  await page.goto("/l/moda-boa-vista/catalogo");
+  await page.goto("/loja/moda-boa-vista/cardapio");
   await page
     .getByRole("link", { name: /Camiseta Básica/ })
     .first()

@@ -34,6 +34,10 @@ import { executarComoRequisicao } from "../../core/contexto.ts";
 import { banco, transacaoAtual, type AcessoAoBanco } from "../../core/db.ts";
 import { erroDeDominio } from "../../core/erros.ts";
 import { validar } from "../../core/validar.ts";
+import {
+  lerFaixasDeAtacado,
+  type FaixasPorProduto,
+} from "./atacado-do-pedido.ts";
 import { criarPedido, type ContatoParaCriar } from "./criar-pedido.usecase.ts";
 import {
   precificarItensDoPedidoManual,
@@ -60,7 +64,7 @@ type IdentificacaoDaLoja =
 
 interface DonoAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 export interface OpcoesDoPedidoManual {
@@ -198,6 +202,7 @@ export function criarRotasDoPedidoManual(opcoes: OpcoesDoPedidoManual): Router {
   ): Promise<{
     readonly produtos: Map<string, ProdutoParaPedidoManual | null>;
     readonly fechamento: FechamentoParaFechar | null;
+    readonly faixas: FaixasPorProduto;
   }> {
     return executarComoRequisicao({ papel: "PUBLIC", lojaId }, () =>
       acesso().emTransacao(async () => {
@@ -205,7 +210,12 @@ export function criarRotasDoPedidoManual(opcoes: OpcoesDoPedidoManual): Router {
         for (const id of new Set(produtoIds)) {
           produtos.set(id, await opcoes.lerProduto(id, agora));
         }
-        return { produtos, fechamento: await opcoes.lerFechamento() };
+        return {
+          produtos,
+          fechamento: await opcoes.lerFechamento(),
+          // As faixas de atacado do produto, pela mesma visão pública (#57).
+          faixas: await lerFaixasDeAtacado(produtoIds, agora),
+        };
       }),
     );
   }
@@ -249,7 +259,7 @@ export function criarRotasDoPedidoManual(opcoes: OpcoesDoPedidoManual): Router {
         }
 
         // PASSO 1 — o catálogo, como a vitrine o vê.
-        const { produtos, fechamento } = await catalogoDaVitrine(
+        const { produtos, fechamento, faixas } = await catalogoDaVitrine(
           lojaId,
           body.itens.map((item) => item.produtoId),
           agora,
@@ -257,6 +267,7 @@ export function criarRotasDoPedidoManual(opcoes: OpcoesDoPedidoManual): Router {
         const precificados = precificarItensDoPedidoManual(
           body.itens,
           produtos,
+          faixas,
         );
         if (precificados.pendencias.length > 0) {
           // A MESMA RECUSA DA VITRINE (AC-708): nada é criado, e o dono vê
@@ -405,14 +416,14 @@ export function criarRotasDoPedidoManual(opcoes: OpcoesDoPedidoManual): Router {
           return;
         }
 
-        const { produtos } = await catalogoDaVitrine(
+        const { produtos, faixas } = await catalogoDaVitrine(
           lojaId,
           antigo.itens.flatMap((item) =>
             item.produtoId === null ? [] : [item.produtoId],
           ),
           agora,
         );
-        resposta.json(montarRepeticao(antigo, produtos));
+        resposta.json(montarRepeticao(antigo, produtos, faixas));
       } catch (causa) {
         proximo(causa);
       }

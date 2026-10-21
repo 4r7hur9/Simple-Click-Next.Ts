@@ -20,7 +20,13 @@ import type {
 
 import { exigirLojaDoContexto } from "../../core/contexto.ts";
 import {
+  clientesDoPeriodo,
   gruposDoPeriodo,
+  itensVendidos,
+  pedidosPorEtapaAgora,
+  vendasPorCategoria,
+  vendasPorEntrega,
+  vendasPorPagamento,
   produtosMaisVendidos,
   vendasPorDia,
   vendasPorHora,
@@ -32,12 +38,22 @@ import {
   compararPeriodos,
   REGRA_DE_VENDA,
   resumirPeriodo,
+  variacao,
 } from "./faturamento.ts";
 import {
   diasDoPeriodo,
   periodoAnterior,
   type PeriodoResolvido,
 } from "./periodo.ts";
+
+/** As etapas do quadro que ainda estão em aberto (fora concluída e cancelada). */
+const STATUS_DAS_ETAPAS_AGORA: readonly string[] = [
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "READY_FOR_PICKUP",
+  "OUT_FOR_DELIVERY",
+];
 
 /** O que o caso de uso calcula; o cache e a rota completam o resto. */
 export type MetricasCalculadas = Omit<
@@ -116,17 +132,35 @@ export async function calcularMetricas(
   const lojaId = exigirLojaDoContexto();
   const anterior = periodoAnterior(periodo, agora);
 
-  const [grupos, gruposAnteriores, dias, horas, porQuantidade, porValor] =
-    await Promise.all([
+  const [
+    [grupos, gruposAnteriores, dias, horas, porQuantidade, porValor],
+    [itens, itensAnteriores, clientes, clientesAnteriores],
+    [pagamentos, entregas, categorias, etapas],
+  ] = await Promise.all([
+    Promise.all([
       gruposDoPeriodo(lojaId, periodo),
       gruposDoPeriodo(lojaId, anterior),
       vendasPorDia(lojaId, periodo),
       vendasPorHora(lojaId, periodo),
       produtosMaisVendidos(lojaId, periodo, "quantidade"),
       produtosMaisVendidos(lojaId, periodo, "valor"),
-    ]);
+    ]),
+    Promise.all([
+      itensVendidos(lojaId, periodo),
+      itensVendidos(lojaId, anterior),
+      clientesDoPeriodo(lojaId, periodo),
+      clientesDoPeriodo(lojaId, anterior),
+    ]),
+    Promise.all([
+      vendasPorPagamento(lojaId, periodo),
+      vendasPorEntrega(lojaId, periodo),
+      vendasPorCategoria(lojaId, periodo),
+      pedidosPorEtapaAgora(lojaId, STATUS_DAS_ETAPAS_AGORA),
+    ]),
+  ]);
 
   const resumo = resumirPeriodo(grupos);
+  const resumoAnterior = resumirPeriodo(gruposAnteriores);
 
   return {
     periodo: {
@@ -139,7 +173,7 @@ export async function calcularMetricas(
       fim: periodo.fim.toISOString(),
     },
     resumo,
-    comparacao: compararPeriodos(resumo, resumirPeriodo(gruposAnteriores), {
+    comparacao: compararPeriodos(resumo, resumoAnterior, {
       de: anterior.de,
       ate: anterior.ate,
       fim: anterior.fim.toISOString(),
@@ -148,6 +182,29 @@ export async function calcularMetricas(
     maisVendidos: unirRankings(porQuantidade, porValor),
     porDia: completarDias(periodo, dias),
     porHora: completarHoras(horas),
+    detalhes: {
+      itensVendidos: variacao(itens, itensAnteriores),
+      ticketMedioCentavos: variacao(
+        resumo.ticketMedioCentavos,
+        resumoAnterior.ticketMedioCentavos,
+      ),
+      cancelados: variacao(
+        resumo.cancelados.quantidade,
+        resumoAnterior.cancelados.quantidade,
+      ),
+      clientesNovos: variacao(clientes.novos, clientesAnteriores.novos),
+      clientesRecorrentes: variacao(
+        clientes.recorrentes,
+        clientesAnteriores.recorrentes,
+      ),
+      porPagamento: pagamentos,
+      porEntrega: entregas.filter(
+        (e): e is typeof e & { tipo: "DELIVERY" | "PICKUP" } =>
+          e.tipo === "DELIVERY" || e.tipo === "PICKUP",
+      ),
+      porCategoria: categorias,
+      etapasAgora: etapas,
+    },
     regraDeVenda: REGRA_DE_VENDA,
     calculadoEm: agora.toISOString(),
   };

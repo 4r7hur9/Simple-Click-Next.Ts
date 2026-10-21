@@ -183,6 +183,7 @@ export function prepararProduto(
       disponivel: variacao.disponivel,
       padrao: variacao.padrao,
       valoresDosEixos: variacao.valoresDosEixos,
+      atacado: variacao.atacado ?? null,
     }),
   );
 
@@ -208,6 +209,7 @@ export function prepararProduto(
       daApi.precoAnteriorCentavos > daApi.precoCentavos
         ? emReais(daApi.precoAnteriorCentavos)
         : null,
+    atacado: daApi.atacado ?? null,
     grupos,
     variacoes,
     disponivel: daApi.disponivel && lojaAberta,
@@ -215,10 +217,10 @@ export function prepararProduto(
     explicacaoDaIndisponibilidade: explicar(motivo),
     aceitaObservacao: daApi.aceitaObservacao,
     linkDaSecao: daApi.secao
-      ? `/l/${apelidoDaLoja}/catalogo?categoria=${encodeURIComponent(daApi.secao.apelido)}`
+      ? `/loja/${apelidoDaLoja}/cardapio?categoria=${encodeURIComponent(daApi.secao.apelido)}`
       : null,
     nomeDaSecao: daApi.secao?.nome ?? null,
-    linkDoCatalogo: `/l/${apelidoDaLoja}/catalogo`,
+    linkDoCatalogo: `/loja/${apelidoDaLoja}/cardapio`,
   };
 }
 

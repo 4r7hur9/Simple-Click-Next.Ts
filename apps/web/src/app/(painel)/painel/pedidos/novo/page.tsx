@@ -1,3 +1,5 @@
+import "@simpleclick/ui/styles/pedidos.css";
+
 import Link from "next/link";
 import { Erro } from "@simpleclick/ui";
 
@@ -25,20 +27,20 @@ export default async function PaginaDoNovoPedido({
   const catalogo = await produtosDoBalcao(loja.apelido);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
+    <div className="sc-pedidos sc-pedidos--respiro">
       <Link
-        className="text-sm font-medium text-[var(--cor-primaria-texto)]"
+        className="sc-botao sc-botao--discreta sc-botao--pequeno sc-pedidos__voltar"
         href="/painel/pedidos"
       >
-        ← Voltar para a fila
+        ← Voltar para o quadro
       </Link>
-      <header className="mt-4 mb-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-          Pedido do balcão
+      <header className="sc-pedidos__cabeca">
+        <p className="sc-pedidos__sobretitulo">Pedido do balcão</p>
+        <h1 className="sc-pedidos__titulo">Lançar pedido</h1>
+        <p className="sc-pedidos__descricao">
+          Escolha o cliente, os itens e como ele recebe e paga. O pedido entra
+          no quadro em “Pedido gerado”.
         </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em]">
-          Lançar pedido
-        </h1>
       </header>
       {catalogo.estado === "ok" ? (
         <MontarPedido
@@ -52,6 +54,6 @@ export default async function PaginaDoNovoPedido({
           mensagem="Sem o catálogo não há como montar o pedido. Recarregue a página em instantes."
         />
       )}
-    </main>
+    </div>
   );
 }

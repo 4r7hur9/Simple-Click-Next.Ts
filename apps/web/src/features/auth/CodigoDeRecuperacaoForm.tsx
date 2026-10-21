@@ -10,6 +10,7 @@
  */
 import { useState, type FormEvent } from "react";
 import { Aviso, Botao, Campo } from "@simpleclick/ui";
+import { EXPLICACOES_PARA_CLIENTES } from "../loja/explicacoes-para-clientes.ts";
 
 export type RespostaDaRecuperacaoNaTela =
   | {
@@ -78,6 +79,7 @@ export function CodigoDeRecuperacaoForm({
           spellCheck={false}
           maxLength={20}
           rotulo="Código de recuperação"
+          info={EXPLICACOES_PARA_CLIENTES.codigoDeRecuperacao}
           dica="Um dos códigos que você guardou ao ativar o aplicativo, como ABCD-EFGH."
           obrigatorio
           value={codigo}

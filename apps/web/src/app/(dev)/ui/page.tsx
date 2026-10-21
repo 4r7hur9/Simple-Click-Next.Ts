@@ -5,6 +5,8 @@ import { SecoesDaMarca } from "./_secoes/SecoesDaMarca.tsx";
 import { SecoesDasPecasNovas } from "./_secoes/SecoesDasPecasNovas.tsx";
 import { SecoesDeControles } from "./_secoes/SecoesDeControles.tsx";
 import { SecoesDeDados } from "./_secoes/SecoesDeDados.tsx";
+import { SecaoDoSeletorDePeriodo } from "./_secoes/SecaoDoSeletorDePeriodo.tsx";
+import { SecaoDoInfo } from "./_secoes/SecaoDoInfo.tsx";
 import { SecoesDeRetorno } from "./_secoes/SecoesDeRetorno.tsx";
 
 /**
@@ -50,8 +52,10 @@ export default function VitrineDoDesignSystem() {
 
       <SecoesDaMarca />
       <SecoesDeControles />
+      <SecaoDoInfo />
       <SecoesDeDados />
       <SecoesDasPecasNovas />
+      <SecaoDoSeletorDePeriodo />
       <SecoesDeRetorno />
       <SecaoDosTemas />
     </main>

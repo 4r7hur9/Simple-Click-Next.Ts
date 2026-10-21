@@ -20,6 +20,8 @@
 
 import { z } from "zod";
 
+import { ehEnderecoDeImagem } from "./endereco-de-imagem.ts";
+
 // ---------------------------------------------------------------------------
 // As seções
 // ---------------------------------------------------------------------------
@@ -305,9 +307,9 @@ export type SecaoDeContato = z.infer<typeof esquemaDaConfiguracaoDeContato>;
 /** Endereço de imagem: só HTTPS, para a vitrine não carregar conteúdo misto. */
 const enderecoDeImagem = (rotulo: string) =>
   z
-    .url(`${rotulo}: informe um endereço completo, começando por https://.`)
+    .string(`${rotulo}: informe um endereço completo, começando por https://.`)
     .max(1_000, `${rotulo}: o endereço é longo demais.`)
-    .refine((valor) => valor.startsWith("https://"), {
+    .refine((valor) => ehEnderecoDeImagem(valor), {
       message: `${rotulo}: o endereço precisa começar por https://.`,
     })
     .nullable();
@@ -356,8 +358,56 @@ export const REGRAS_DAS_IMAGENS_DA_LOJA = {
     proporcaoRecomendada:
       "larga (3:1), por exemplo 1500 × 500 pixels — as bordas podem ser cortadas no celular",
   },
+  /**
+   * As fotos do tema (fundo da vitrine e topo do cardápio), cada uma com a
+   * versão do COMPUTADOR e a do CELULAR. Só valem ao salvar o tema. As
+   * proporções saem do CSS da vitrine (conferido em `espacos-de-imagem.ts`).
+   */
+  fundo: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 3 * MEGA,
+    tamanhoMaximo: "3 MB",
+    proporcaoRecomendada:
+      "deitada (4:3) no computador, por exemplo 1600 × 1200 pixels",
+  },
+  fundoCelular: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 3 * MEGA,
+    tamanhoMaximo: "3 MB",
+    proporcaoRecomendada:
+      "em pé (9:20) no celular, por exemplo 720 × 1600 pixels",
+  },
+  topo: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 3 * MEGA,
+    tamanhoMaximo: "3 MB",
+    proporcaoRecomendada:
+      "faixa larga (4:1) no computador, por exemplo 1600 × 400 pixels",
+  },
+  /**
+   * O ORIGINAL de uma foto, guardado só para o dono reabrir "Ajustar a foto"
+   * sem reenviar (card #36). Qualquer proporção; só vale ao salvar o tema.
+   */
+  original: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 6 * MEGA,
+    tamanhoMaximo: "6 MB",
+    proporcaoRecomendada: "a da sua foto, sem corte",
+  },
+  topoCelular: {
+    formatosAceitos: ["JPEG", "PNG", "WebP"],
+    tiposDeConteudo: ["image/jpeg", "image/png", "image/webp"],
+    tamanhoMaximoBytes: 3 * MEGA,
+    tamanhoMaximo: "3 MB",
+    proporcaoRecomendada:
+      "faixa quase quadrada (19:10) no celular, por exemplo 1140 × 600 pixels",
+  },
 } as const satisfies Record<
-  "logo" | "capa",
+  "logo" | "capa" | "fundo" | "fundoCelular" | "topo" | "topoCelular" | "original",
   {
     readonly formatosAceitos: readonly string[];
     readonly tiposDeConteudo: readonly string[];

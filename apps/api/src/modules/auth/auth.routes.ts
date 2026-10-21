@@ -12,7 +12,11 @@
 import { randomUUID } from "node:crypto";
 
 import {
-  CONFIRMACAO_DE_CADASTRO,
+  MENSAGEM_DE_APELIDO_EM_USO,
+  MENSAGEM_DE_CONTA_CRIADA,
+  esquemaDaLojaSolicitada,
+  esquemaDoApelidoDaLoja,
+  mensagemDoLimiteAtingido,
   esquemaDoCadastro,
   esquemaDoCodigoDeRecuperacao,
   esquemaDoCodigoDoDesafio,
@@ -20,7 +24,9 @@ import {
   esquemaDoLogin,
 } from "@simpleclick/contracts";
 import { Router } from "express";
+import { z } from "zod";
 
+import { transacaoAtual } from "../../core/db.ts";
 import { limiteDaRequisicao } from "../../core/limite.ts";
 import { validar } from "../../core/validar.ts";
 import {
@@ -30,10 +36,18 @@ import {
   responderErro,
   rota,
 } from "./borda-da-sessao.ts";
+import { origemDoAceite, registrarAceites } from "../../core/aceites-legais.ts";
+import { clienteDaCompra } from "./cliente-da-compra.ts";
 import { montarRotasDaContaSegura } from "./conta-segura.routes.ts";
 import {
+  conferirApelido,
+  corrigirLojaEmAnalise,
+  lerLojaEmAnalise,
+  reenviarLojaRecusada,
+  solicitarLoja,
+} from "./loja-solicitada.ts";
+import {
   ErroDeEnvioIndisponivel,
-  emailDeCadastroRepetido,
   emailDeCodigoDeRecuperacaoUsado,
   emailDeVerificacao,
   emailDoCodigoDoLogin,
@@ -50,7 +64,7 @@ import {
   gerarCodigoDoDesafio,
 } from "./segundo-fator.repo.ts";
 import { confirmarSegundoFator } from "./segundo-fator.usecase.ts";
-import { avaliarPoliticaDeSenha, derivarSenha, senhaConfere } from "./senha.ts";
+import { derivarSenha, senhaConfere } from "./senha.ts";
 import {
   criarServicosDaIdentidade,
   type OpcoesDaIdentidade,
@@ -58,15 +72,23 @@ import {
 } from "./servicos-da-identidade.ts";
 import { iniciarSessao, type SessaoEntregue } from "./sessao.usecase.ts";
 import { decidirSegundoFatorObrigatorio } from "./totp.usecase.ts";
-import {
-  criarCasoDeUsoDeVerificacaoDeEmail,
-  gerarTokenDeVerificacao,
-  PRAZO_DO_LINK_DE_VERIFICACAO_EM_MS,
-  resumirTokenDeVerificacao,
-  urlDeVerificacao,
-} from "./verificar-email.usecase.ts";
+import { criarCasoDeUsoDeVerificacaoDeEmail } from "./verificar-email.usecase.ts";
 
 export type { OpcoesDaIdentidade } from "./servicos-da-identidade.ts";
+
+/** Consultas de endereço por origem: no máximo 30 por minuto. */
+const consultasDeApelido = new Map<string, { inicio: number; total: number }>();
+function podeConsultarApelido(origem: string): boolean {
+  const agora = Date.now();
+  const atual = consultasDeApelido.get(origem);
+  if (atual === undefined || agora - atual.inicio > 60_000) {
+    if (consultasDeApelido.size > 5_000) consultasDeApelido.clear();
+    consultasDeApelido.set(origem, { inicio: agora, total: 1 });
+    return true;
+  }
+  atual.total += 1;
+  return atual.total <= 30;
+}
 
 /** A administração sem aplicativo não recebe desafio por e-mail (AC-122). */
 class ConfiguracaoDoAplicativoObrigatoria extends Error {}
@@ -114,57 +136,265 @@ function montarRotasDeEntrada(rotas: Router, s: ServicosDaIdentidade): void {
     agora: s.agora,
   });
 
-  // --- Cadastro (AC-100 a AC-102, AC-133) -----------------------------------
+  // --- Cadastro (AC-100, AC-102): conta verificada e sessão já aberta -------
   const cadastro = validar({ body: esquemaDoCadastro });
   rotas.post(
     "/cadastro",
     cadastro,
     rota(async (requisicao, resposta) => {
       const { body } = cadastro.dados(requisicao);
-      if (!s.email.disponivel) return responderEnvioIndisponivel(resposta);
-      const politica = avaliarPoliticaDeSenha(body.senha);
-      if (!politica.valida) {
-        const motivos = politica.problemas.map((p) => p.mensagem).join(" ");
+      const resultado = await s.naTransacao({}, () =>
+        cadastrarClienteFinal(body, { identidades: s.repos.identidades }),
+      );
+      if (resultado.status === "SENHA_FRACA") {
+        const motivos = resultado.campos
+          .map((c) => c.problema.mensagem)
+          .join(" ");
         return responderErro(resposta, 422, "senha_fraca", motivos);
       }
-
-      await s.naTransacao({}, () =>
-        cadastrarClienteFinal(body, {
-          identidades: s.repos.identidades,
-          avisos: {
-            enviarVerificacao: async ({ email, nome }) => {
-              const token = gerarTokenDeVerificacao();
-              const agora = s.agora();
-              const criado = await s.repos.codigos.criarVerificacaoParaEmail(
-                email,
-                {
-                  id: randomUUID(),
-                  resumoDoToken: resumirTokenDeVerificacao(token),
-                  enviadoEm: agora,
-                  expiraEm: new Date(
-                    agora.getTime() + PRAZO_DO_LINK_DE_VERIFICACAO_EM_MS,
-                  ),
-                },
-              );
-              if (criado === null) return;
-              await s.email.enviar(
-                emailDeVerificacao({
-                  para: email,
-                  nome,
-                  link: urlDeVerificacao(s.enderecoDoSite, token),
-                }),
-              );
-            },
-            // O nome digitado é de quem tentou, não do dono do endereço: não
-            // vai para o e-mail do dono.
-            enviarAvisoDeCadastroExistente: ({ email }) =>
-              s.email.enviar(
-                emailDeCadastroRepetido({ para: email, nome: "" }),
-              ),
-          },
-        }),
+      if (resultado.status === "EMAIL_EM_USO") {
+        return responderErro(
+          resposta,
+          409,
+          "email_em_uso",
+          "Já existe uma conta com este e-mail. Entre com a sua senha.",
+        );
+      }
+      // O aceite (card #79): a conta já existe, então o registro corre como
+      // ela mesma. Se falhar, a conta fica com o aceite pendente e a janela
+      // de novo aceite pede de novo no primeiro acesso.
+      await s.naTransacao(
+        { usuarioId: resultado.identidadeId, papel: "CUSTOMER" },
+        () =>
+          registrarAceites(
+            transacaoAtual(),
+            resultado.identidadeId,
+            ["TERMS_OF_USE", "PRIVACY_POLICY"],
+            { origem: "SIGNUP", de: origemDoAceite(requisicao) },
+          ),
       );
-      resposta.status(201).json(CONFIRMACAO_DE_CADASTRO);
+      const { sessao, papel } = await s.abrirSessao(
+        resultado.identidadeId,
+        clienteDaRequisicao(requisicao),
+      );
+      resposta.status(201);
+      entregarSessao(resposta, sessao, papel, {
+        cadastrado: true,
+        mensagem: MENSAGEM_DE_CONTA_CRIADA,
+      });
+    }),
+  );
+
+  // --- Loja aberta pelo próprio lojista (card #25) --------------------------
+  // Qualquer conta logada pede; a loja nasce aguardando aprovação e a resposta
+  // já traz a sessão nova, com o papel de dono.
+  const lojaPedida = validar({ body: esquemaDaLojaSolicitada });
+  rotas.post(
+    "/lojas",
+    // Sem sessão, 401 antes de olhar o corpo.
+    (requisicao, resposta, proximo) => {
+      if (clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()) === null) {
+        responderErro(resposta, 401, "nao_autenticado");
+        return;
+      }
+      proximo();
+    },
+    lojaPedida,
+    rota(async (requisicao, resposta) => {
+      const pessoa = clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim());
+      if (pessoa === null) {
+        return responderErro(resposta, 401, "nao_autenticado");
+      }
+      const { body } = lojaPedida.dados(requisicao);
+      const pedido = await s.naTransacao(
+        { usuarioId: pessoa.identidadeId, papel: "CUSTOMER" },
+        async () => {
+          const criada = await solicitarLoja(body);
+          // Quem abre loja aceita os Termos do Lojista (card #79), na mesma
+          // transação: sem loja criada, sem aceite gravado.
+          if (criada.resultado === "CRIADA") {
+            await registrarAceites(
+              transacaoAtual(),
+              pessoa.identidadeId,
+              ["MERCHANT_TERMS"],
+              { origem: "SIGNUP", de: origemDoAceite(requisicao) },
+            );
+          }
+          return criada;
+        },
+      );
+      if (pedido.resultado === "SEM_SESSAO") {
+        return responderErro(resposta, 401, "nao_autenticado");
+      }
+      if (pedido.resultado === "TIPO_DESCONHECIDO") {
+        resposta.set("cache-control", "no-store");
+        resposta.status(400).json({
+          erro: "tipo_desconhecido",
+          campos: [
+            {
+              onde: "body",
+              caminho: "tipoDeNegocio",
+              mensagem: "Escolha um tipo de negócio da lista.",
+            },
+          ],
+        });
+        return;
+      }
+      if (pedido.resultado === "APELIDO_EM_USO") {
+        resposta.set("cache-control", "no-store");
+        resposta.status(409).json({
+          erro: "apelido_em_uso",
+          campos: [
+            {
+              onde: "body",
+              caminho: "apelido",
+              mensagem: MENSAGEM_DE_APELIDO_EM_USO,
+            },
+          ],
+          sugestao: pedido.sugestao,
+        });
+        return;
+      }
+      if (pedido.resultado === "LIMITE_ATINGIDO") {
+        resposta.set("cache-control", "no-store");
+        resposta.status(409).json({
+          erro: "limite_atingido",
+          recurso: "lojas",
+          limite: pedido.limite,
+          uso: pedido.uso,
+          mensagem: mensagemDoLimiteAtingido("lojas", pedido.limite),
+        });
+        return;
+      }
+      const { sessao, papel } = await s.abrirSessao(
+        pessoa.identidadeId,
+        clienteDaRequisicao(requisicao),
+      );
+      resposta.status(201);
+      entregarSessao(resposta, sessao, papel, {
+        mensagem: "Loja criada! Ela fica aguardando a aprovação do SimpleClick.",
+        loja: {
+          codigo: pedido.codigo,
+          apelido: pedido.apelido,
+          status: "PENDING_APPROVAL",
+        },
+      });
+    }),
+  );
+
+  // --- Endereço da loja livre? (público, para o cadastro de dono) -----------
+  const apelidoConsultado = validar({
+    query: z.strictObject({ valor: esquemaDoApelidoDaLoja }),
+  });
+  rotas.get(
+    "/lojas/apelido",
+    (requisicao, resposta, proximo) => {
+      if (!podeConsultarApelido(requisicao.ip ?? "")) {
+        responderErro(resposta, 429, "muitas_tentativas");
+        return;
+      }
+      proximo();
+    },
+    apelidoConsultado,
+    rota(async (requisicao, resposta) => {
+      const { query } = apelidoConsultado.dados(requisicao);
+      const resultado = await s.naTransacao({}, () =>
+        conferirApelido(query.valor),
+      );
+      resposta.set("cache-control", "no-store");
+      resposta.json(resultado);
+    }),
+  );
+
+  // --- Loja em análise: corrigir dados e reenviar (card #28) ----------------
+  const apelidoDaLoja = validar({
+    params: z.strictObject({ apelido: esquemaDoApelidoDaLoja }),
+  });
+  const correcaoDaLoja = validar({
+    params: z.strictObject({ apelido: esquemaDoApelidoDaLoja }),
+    body: esquemaDaLojaSolicitada.omit({
+      apelido: true,
+      aceitouTermosDoLojista: true,
+    }),
+  });
+  const responderLojaEmAnalise = (
+    resposta: Parameters<typeof responderErro>[0],
+    resultado: Awaited<ReturnType<typeof corrigirLojaEmAnalise>>,
+  ): boolean => {
+    if (resultado === "OK") return false;
+    if (resultado === "SEM_SESSAO") {
+      responderErro(resposta, 401, "nao_autenticado");
+    } else if (resultado === "ESTADO_INVALIDO") {
+      responderErro(
+        resposta,
+        409,
+        "estado_invalido",
+        "Esta loja não está em análise nem foi recusada.",
+      );
+    } else if (resultado === "TIPO_DESCONHECIDO") {
+      responderErro(
+        resposta,
+        400,
+        "tipo_desconhecido",
+        "Escolha um tipo de negócio da lista.",
+      );
+    } else {
+      responderErro(resposta, 404, "loja_nao_encontrada");
+    }
+    return true;
+  };
+  rotas.get(
+    "/lojas/:apelido",
+    apelidoDaLoja,
+    rota(async (requisicao, resposta) => {
+      const pessoa = clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim());
+      if (pessoa === null) {
+        return responderErro(resposta, 401, "nao_autenticado");
+      }
+      const { params } = apelidoDaLoja.dados(requisicao);
+      const loja = await s.naTransacao(
+        { usuarioId: pessoa.identidadeId, papel: "CUSTOMER" },
+        () => lerLojaEmAnalise(params.apelido),
+      );
+      if (loja === null) return responderErro(resposta, 404, "loja_nao_encontrada");
+      resposta.set("cache-control", "no-store");
+      resposta.json(loja);
+    }),
+  );
+  rotas.put(
+    "/lojas/:apelido",
+    correcaoDaLoja,
+    rota(async (requisicao, resposta) => {
+      const pessoa = clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim());
+      if (pessoa === null) {
+        return responderErro(resposta, 401, "nao_autenticado");
+      }
+      const { params, body } = correcaoDaLoja.dados(requisicao);
+      const resultado = await s.naTransacao(
+        { usuarioId: pessoa.identidadeId, papel: "CUSTOMER" },
+        () => corrigirLojaEmAnalise(params.apelido, body),
+      );
+      if (responderLojaEmAnalise(resposta, resultado)) return;
+      resposta.set("cache-control", "no-store");
+      resposta.json({ atualizada: true });
+    }),
+  );
+  rotas.post(
+    "/lojas/:apelido/reenviar",
+    apelidoDaLoja,
+    rota(async (requisicao, resposta) => {
+      const pessoa = clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim());
+      if (pessoa === null) {
+        return responderErro(resposta, 401, "nao_autenticado");
+      }
+      const { params } = apelidoDaLoja.dados(requisicao);
+      const resultado = await s.naTransacao(
+        { usuarioId: pessoa.identidadeId, papel: "CUSTOMER" },
+        () => reenviarLojaRecusada(params.apelido),
+      );
+      if (responderLojaEmAnalise(resposta, resultado)) return;
+      resposta.set("cache-control", "no-store");
+      resposta.json({ reenviada: true, situacao: "PENDING_APPROVAL" });
     }),
   );
 

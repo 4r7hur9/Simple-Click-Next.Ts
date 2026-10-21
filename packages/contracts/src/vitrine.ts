@@ -14,7 +14,10 @@
 
 import { z } from "zod";
 
+import { esquemaDoAtacadoDoProduto } from "./atacado.ts";
+import { esquemaDaMidiaPublica } from "./midia.ts";
 import { definirRota } from "./rota.ts";
+import { esquemaDoTemaDaLoja } from "./tema.ts";
 import { esquemaDeComposicaoDoRamo } from "./vertical.ts";
 
 /** Endereço da loja, para quem vai retirar. Sem CEP e sem coordenada. */
@@ -97,22 +100,79 @@ export const esquemaDeLojaPublica = z.strictObject({
   logo: z.string().nullable(),
   capa: z.string().nullable(),
   cores: z.record(z.string(), z.string()).nullable(),
+  /**
+   * O tema da loja (card #25): cor de destaque (padrão #b7ff00), imagem de
+   * fundo da vitrine e do topo do cardápio. O fundo é sempre preto.
+   */
+  tema: esquemaDoTemaDaLoja.optional(),
   whatsappPublico: z.string().nullable(),
   enderecoParaRetirada: esquemaDeEnderecoDaLoja.nullable(),
+  /**
+   * Quantas curtidas e quantos comentários APROVADOS feitos na loja tem (card #47). Sem o
+   * "curtiu" da pessoa: a vitrine é pública; quem precisa dele lê o feed.
+   * A API sempre manda; opcionais só para quem monta à mão.
+   */
+  curtidas: z.int().nonnegative().optional(),
+  comentarios: z.int().nonnegative().optional(),
 });
 
 export type LojaPublicaNoContrato = z.infer<typeof esquemaDeLojaPublica>;
+
+/**
+ * A grade semanal de funcionamento, para a página "Sobre" mostrar os 7 dias.
+ *
+ * `abertura` diz se está aberta AGORA; isto diz como é a semana. É o horário que
+ * o dono cadastrou, sem exceções datadas: o feriado de hoje já sai em
+ * `abertura`. `dia` usa 0 no domingo, como `packages/core`.
+ */
+export const esquemaDoHorarioPublico = z.strictObject({
+  modo: z.enum([
+    "SCHEDULE",
+    "ALWAYS_OPEN",
+    "TEMPORARILY_CLOSED",
+    "PERMANENTLY_CLOSED",
+  ]),
+  semana: z.array(
+    z.strictObject({
+      dia: z.int().min(0).max(6),
+      /** Vazio é dia fechado. "18:00"–"23:30", no fuso da loja. */
+      faixas: z.array(z.strictObject({ abre: z.string(), fecha: z.string() })),
+    }),
+  ),
+});
+
+export type HorarioPublicoNoContrato = z.infer<typeof esquemaDoHorarioPublico>;
+
+/**
+ * Um banner promocional do cardápio: uma imagem larga para o computador e outra
+ * para o celular, porque a mesma arte cortada nas duas proporções perde o texto.
+ *
+ * `link` é para onde o toque leva (categoria, produto ou endereço externo);
+ * `titulo` é texto opcional por cima da imagem. `alt` é obrigatório: banner é
+ * conteúdo, e quem não vê a imagem precisa saber da promoção.
+ */
+export const esquemaDoBannerPublico = z.strictObject({
+  id: z.string(),
+  imagemDesktop: z.string(),
+  imagemMobile: z.string(),
+  alt: z.string(),
+  link: z.string().nullable().optional(),
+  titulo: z.string().nullable().optional(),
+});
+
+export type BannerPublicoNoContrato = z.infer<typeof esquemaDoBannerPublico>;
 
 /** O que a página da loja recebe. */
 export const esquemaDaVitrine = z.strictObject({
   loja: esquemaDeLojaPublica,
   abertura: esquemaDeAbertura,
+  /** Opcional para o cliente antigo continuar aceitando a resposta. */
+  horario: esquemaDoHorarioPublico.optional(),
   /**
-   * Endereço canônico, quando o usado não é o oficial. A página redireciona,
-   * em vez de servir a mesma loja em dois endereços — o que dividiria a
-   * relevância dela nos buscadores.
+   * Os banners do cardápio, na ordem de exibição. Opcional e retrocompatível:
+   * ausente ou vazio, a seção não aparece.
    */
-  redirecionarPara: z.string().nullable(),
+  banners: z.array(esquemaDoBannerPublico).optional(),
 });
 
 export type Vitrine = z.infer<typeof esquemaDaVitrine>;
@@ -200,6 +260,12 @@ export const esquemaDeProdutoNaVitrine = z.strictObject({
    * que só lê `disponivel`, continuar aceitando a resposta.
    */
   motivoIndisponivel: esquemaDeIndisponibilidade.nullable().optional(),
+  /**
+   * O atacado do produto (card #56): as faixas já em preço sobre o varejo do
+   * cartão e o pedido mínimo — "Atacado a partir de 10 un.: R$ 9,50". Nulo =
+   * só varejo. A API sempre manda; opcional só para quem monta à mão.
+   */
+  atacado: esquemaDoAtacadoDoProduto.nullable().optional(),
 });
 
 export type ProdutoNaVitrineNoContrato = z.infer<
@@ -236,9 +302,36 @@ export const esquemaDoCatalogo = z.strictObject({
       }),
     )
     .optional(),
+  /**
+   * Faceta de atacado (card #59): quantos produtos do resultado atual (busca e
+   * especificações já aplicadas, sem o próprio filtro de atacado) têm ao menos
+   * uma faixa de atacado ativa, e o menor pedido mínimo entre eles. Zero
+   * produtos = a tela não oferece o filtro.
+   */
+  atacado: z
+    .strictObject({
+      produtos: z.number().int().nonnegative(),
+      menorPedidoMinimo: z.number().int().min(2).nullable(),
+    })
+    .optional(),
 });
 
 export type CatalogoDaVitrineNoContrato = z.infer<typeof esquemaDoCatalogo>;
+
+/** `?atacado=1` (ou `true`) liga o filtro; `0`/`false` é o mesmo que ausente. */
+export const esquemaDoFiltroDeAtacado = z.enum(["1", "true", "0", "false"]);
+
+/** O filtro de atacado está ligado na consulta. */
+export function atacadoLigado(valor: string | undefined): boolean {
+  return valor === "1" || valor === "true";
+}
+
+/** Pedido mínimo de atacado aceito no filtro, em unidades. */
+export const esquemaDoPedidoMinimoDeAtacado = z.coerce
+  .number()
+  .int()
+  .min(2)
+  .max(100_000);
 
 /**
  * O que a busca da vitrine aceita (AC-408).
@@ -253,6 +346,16 @@ export const esquemaDaBuscaDoCatalogo = z.strictObject({
   busca: z.string().max(60).optional(),
   categoria: z.string().max(80).optional(),
   filtro: z.union([z.string(), z.array(z.string())]).optional(),
+  /**
+   * Só produtos com preço de atacado (card #59): `?atacado=1`. `0` ou ausente
+   * não filtra.
+   */
+  atacado: esquemaDoFiltroDeAtacado.optional(),
+  /**
+   * Com `atacado=1`: só produtos cujo pedido mínimo de atacado (a menor faixa)
+   * é de até N unidades.
+   */
+  pedidoMinimo: esquemaDoPedidoMinimoDeAtacado.optional(),
 });
 
 /**
@@ -276,6 +379,147 @@ export const rotaDoCatalogo = definirRota({
   parametros: esquemaDoApelido,
   consulta: esquemaDaBuscaDoCatalogo,
   resposta: esquemaDoCatalogo,
+  errosPossiveis: [400],
+});
+
+// ---------------------------------------------------------------------------
+// Catálogo em páginas (card #74)
+// ---------------------------------------------------------------------------
+
+/**
+ * Como a lista é ordenada. `relevancia` é a ordem do dono (a da seção, quando
+ * há categoria; a do produto, quando não há).
+ */
+export const esquemaDaOrdemDoCatalogo = z.enum([
+  "relevancia",
+  "menor-preco",
+  "maior-preco",
+  "a-z",
+]);
+
+export type OrdemDoCatalogoNoContrato = z.infer<typeof esquemaDaOrdemDoCatalogo>;
+
+/** Quantos produtos cabem numa página, no máximo. */
+export const MAXIMO_DA_PAGINA_DO_CATALOGO = 48;
+
+/** Quantos produtos uma página traz quando ninguém pede outro número. */
+export const PAGINA_PADRAO_DO_CATALOGO = 24;
+
+/**
+ * O que o resumo aceita: os mesmos filtros do catálogo e, em `porSecao`,
+ * quantos produtos de cada seção vêm junto (0 = só as contagens).
+ *
+ * `totalMaximo` reparte um teto entre as seções: com ele, cada seção traz
+ * `min(porSecao, totalMaximo / seções)` produtos, nunca menos de 4. Loja de
+ * seis seções pequenas vem inteira; loja de quinze seções enormes vem com a
+ * vitrine de cada uma.
+ */
+export const esquemaDaConsultaDoResumo = esquemaDaBuscaDoCatalogo.extend({
+  porSecao: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(MAXIMO_DA_PAGINA_DO_CATALOGO)
+    .optional(),
+  totalMaximo: z.coerce.number().int().min(1).max(500).optional(),
+});
+
+/**
+ * Uma seção no resumo: a contagem e, quando pedidos, os primeiros produtos.
+ * `proximoCursor` continua a seção em `/catalogo/produtos?categoria=<apelido>`.
+ */
+export const esquemaDaSecaoNoResumo = z.strictObject({
+  id: z.uuid(),
+  apelido: z.string(),
+  nome: z.string(),
+  /** Quantos produtos a seção tem com os filtros em vigor. */
+  total: z.number().int().nonnegative(),
+  produtos: z.array(esquemaDeProdutoNaVitrine),
+  proximoCursor: z.string().nullable(),
+});
+
+/**
+ * O resumo do catálogo: as seções com a contagem de cada uma, os destaques, os
+ * filtros e a faceta de atacado — sem o catálogo inteiro. Com filtro (busca,
+ * especificação ou atacado), seção sem acerto fica de fora e não há destaques,
+ * como no catálogo inteiro.
+ */
+export const esquemaDoResumoDoCatalogo = z.strictObject({
+  versao: z.string(),
+  secoes: z.array(esquemaDaSecaoNoResumo),
+  destaques: z.array(esquemaDeProdutoNaVitrine),
+  filtros: esquemaDoCatalogo.shape.filtros,
+  atacado: esquemaDoCatalogo.shape.atacado,
+});
+
+export type ResumoDoCatalogoNoContrato = z.infer<
+  typeof esquemaDoResumoDoCatalogo
+>;
+
+/**
+ * O que a página aceita: os filtros do catálogo, a ordem, o cursor devolvido
+ * pela página anterior e o tamanho da página.
+ */
+export const esquemaDaConsultaDaPagina = esquemaDaBuscaDoCatalogo.extend({
+  ordem: esquemaDaOrdemDoCatalogo.optional(),
+  /** Opaco: é o `proximoCursor` da página anterior, como veio. */
+  cursor: z
+    .string()
+    .max(200)
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .optional(),
+  limite: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(MAXIMO_DA_PAGINA_DO_CATALOGO)
+    .optional(),
+});
+
+/** Uma página de produtos. `proximoCursor` nulo = acabou. */
+export const esquemaDaPaginaDoCatalogo = z.strictObject({
+  versao: z.string(),
+  produtos: z.array(esquemaDeProdutoNaVitrine),
+  /** Quantos produtos a lista inteira tem, com os filtros em vigor. */
+  total: z.number().int().nonnegative(),
+  proximoCursor: z.string().nullable(),
+});
+
+export type PaginaDoCatalogoNoContrato = z.infer<
+  typeof esquemaDaPaginaDoCatalogo
+>;
+
+/**
+ * `GET /v1/vitrine/:apelido/catalogo/resumo` — as seções com contagem, sem o
+ * catálogo inteiro. É o que o cardápio pede para desenhar a primeira tela.
+ */
+export const rotaDoResumoDoCatalogo = definirRota({
+  metodo: "get",
+  caminho: "/v1/vitrine/:apelido/catalogo/resumo",
+  etiqueta: "vitrine",
+  resumo: "As seções do catálogo com a contagem de produtos",
+  descricao:
+    "Devolve as seções visíveis da loja na ordem do dono, com quantos produtos cada uma tem (já com busca, especificações e atacado aplicados), os destaques, os filtros e a faceta de atacado. Com `porSecao=N`, cada seção traz também os N primeiros produtos e o cursor para continuar em `/catalogo/produtos`.",
+  parametros: esquemaDoApelido,
+  consulta: esquemaDaConsultaDoResumo,
+  resposta: esquemaDoResumoDoCatalogo,
+  errosPossiveis: [400],
+});
+
+/**
+ * `GET /v1/vitrine/:apelido/catalogo/produtos` — uma página de produtos,
+ * filtrada e ordenada no servidor.
+ */
+export const rotaDaPaginaDoCatalogo = definirRota({
+  metodo: "get",
+  caminho: "/v1/vitrine/:apelido/catalogo/produtos",
+  etiqueta: "vitrine",
+  resumo: "Uma página de produtos do catálogo",
+  descricao:
+    "Devolve até `limite` produtos (padrão 24, máximo 48) com categoria, busca, especificações, atacado e ordem aplicados no servidor, o total da lista e o cursor da página seguinte (nulo quando acabou). Sem categoria, a lista junta todas as seções, cada produto uma vez.",
+  parametros: esquemaDoApelido,
+  consulta: esquemaDaConsultaDaPagina,
+  resposta: esquemaDaPaginaDoCatalogo,
   errosPossiveis: [400],
 });
 
@@ -344,6 +588,11 @@ export const esquemaDeVariacao = z.strictObject({
   valoresDosEixos: z.array(
     z.strictObject({ grupoId: z.uuid(), opcaoId: z.uuid() }),
   ),
+  /**
+   * As faixas de atacado do produto sobre o preço DESTA variante (card #56).
+   * Nulo = só varejo. Opcional só para quem monta à mão.
+   */
+  atacado: esquemaDoAtacadoDoProduto.nullable().optional(),
 });
 
 /** O produto como a página dele o mostra (AC-410). */
@@ -354,9 +603,20 @@ export const esquemaDoProduto = z.strictObject({
   chamada: z.string().nullable(),
   descricao: z.string().nullable(),
   imagens: z.array(esquemaDeImagemDoProduto),
+  /**
+   * A galeria do post: fotos E vídeos na ordem do dono (card #46). A API
+   * sempre manda; opcional só para quem monta à mão.
+   */
+  midias: z.array(esquemaDaMidiaPublica).optional(),
   /** O preço da variante padrão, ou o do produto quando não há variante. */
   precoCentavos: z.int().nonnegative().nullable(),
   precoAnteriorCentavos: z.int().nonnegative().nullable(),
+  /**
+   * O atacado sobre `precoCentavos` (card #56): a tabela de faixas com o
+   * preço por unidade e a economia. Nulo = só varejo. Opcional só para quem
+   * monta à mão.
+   */
+  atacado: esquemaDoAtacadoDoProduto.nullable().optional(),
   grupos: z.array(esquemaDeGrupoDeEscolha),
   variacoes: z.array(esquemaDeVariacao),
   disponivel: z.boolean(),
@@ -368,6 +628,13 @@ export const esquemaDoProduto = z.strictObject({
   secao: z
     .strictObject({ id: z.uuid(), apelido: z.string(), nome: z.string() })
     .nullable(),
+  /**
+   * Quantas curtidas e quantos comentários APROVADOS o produto tem (card #47). Sem o
+   * "curtiu" da pessoa: a vitrine é pública; quem precisa dele lê o feed.
+   * A API sempre manda; opcionais só para quem monta à mão.
+   */
+  curtidas: z.int().nonnegative().optional(),
+  comentarios: z.int().nonnegative().optional(),
 });
 
 export type ProdutoNoContrato = z.infer<typeof esquemaDoProduto>;

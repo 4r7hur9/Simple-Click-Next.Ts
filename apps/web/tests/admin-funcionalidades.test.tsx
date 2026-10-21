@@ -59,9 +59,9 @@ function lista(ligada: boolean): FuncionalidadesDaLojaNoContrato {
             },
       },
       {
-        chave: "custom_domain",
-        rotulo: "Domínio próprio",
-        descricao: "Endereço próprio.",
+        chave: "multi_store",
+        rotulo: "Várias lojas",
+        descricao: "Mais de uma loja.",
         temEfeito: false,
         ligada: true,
         limite: null,
@@ -84,7 +84,7 @@ describe("o menu do dono (AC-212)", () => {
       corpo: {
         funcionalidades: [
           { chave: "auto_print", ligada: false },
-          { chave: "custom_domain", ligada: true },
+          { chave: "multi_store", ligada: true },
         ],
       },
     }));

@@ -80,4 +80,28 @@ describe("login com senha", () => {
       identidadeId: cliente.id,
     });
   });
+
+  it("cliente com e-mail não verificado entra; dono não verificado continua barrado", async () => {
+    const cliente: IdentidadeParaLogin = {
+      ...DONO,
+      id: "identidade-cliente",
+      papel: "CLIENTE",
+      emailVerificado: false,
+    };
+    const doCliente = dependenciasPara(cliente);
+    expect(
+      await entrarComSenha(
+        { email: cliente.email, senha: SENHA_CORRETA },
+        doCliente,
+      ),
+    ).toEqual({ status: "SESSAO_CRIADA", sessaoId: "sessao-123" });
+
+    const donoPendente = { ...DONO, emailVerificado: false };
+    expect(
+      await entrarComSenha(
+        { email: DONO.email, senha: SENHA_CORRETA },
+        dependenciasPara(donoPendente),
+      ),
+    ).toEqual({ status: "EMAIL_NAO_VERIFICADO" });
+  });
 });

@@ -35,7 +35,7 @@ Entrega Centro: R$ 8,00
 *Total: R$ 31,50*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;
 
 exports[`encurtamento controlado do texto (AC-521) > @spec:AC-521 pedido de 30 itens estoura o limite do link e é encurtado até caber 1`] = `
@@ -80,7 +80,7 @@ Entrega Centro: R$ 8,00
 *Total: R$ 651,50*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;
 
 exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido de convidado sem cadastro sai completo, com nome, telefone e link 1`] = `
@@ -119,7 +119,7 @@ Entrega Centro: R$ 8,00
 *Total: R$ 82,70*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;
 
 exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido de um item só sai completo, sem resumo nem sobra de bloco 1`] = `
@@ -156,7 +156,7 @@ Entrega Centro: R$ 8,00
 *Total: R$ 28,00*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;
 
 exports[`texto do pedido para o WhatsApp > @spec:AC-519 pedido sem entrega troca o endereço pela retirada e não cobra taxa 1`] = `
@@ -192,7 +192,7 @@ Desconto de retirada: -R$ 3,00
 *Total: R$ 71,70*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;
 
 exports[`texto do pedido para o WhatsApp > @spec:AC-519 traz pedido, cliente, itens com opções e valor, observações, entrega, pagamento, total e link 1`] = `
@@ -232,5 +232,5 @@ Entrega Centro: R$ 8,00
 *Total: R$ 82,70*
 
 *Acompanhe seu pedido*
-https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b"
+https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b"
 `;

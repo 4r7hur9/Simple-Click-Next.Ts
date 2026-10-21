@@ -174,19 +174,21 @@ export function FormularioCliente({
 
       <Campo
         id={`${prefixo}-nome`}
-        rotulo="Nome"
+        rotulo="Nome do cliente"
         obrigatorio
         autoComplete="off"
+        placeholder="Ex.: Ana Ribeiro"
         value={nome}
         onChange={(evento) => setNome(evento.target.value)}
         erro={recusas.nome}
       />
       <Campo
         id={`${prefixo}-telefone`}
-        rotulo="Telefone"
+        rotulo="Telefone com DDD"
         obrigatorio
         type="tel"
         inputMode="tel"
+        placeholder="Ex.: (85) 99999-1234"
         dica="Com o código de área. A pontuação não importa."
         value={telefone}
         onChange={(evento) => setTelefone(evento.target.value)}
@@ -197,6 +199,7 @@ export function FormularioCliente({
         rotulo="E-mail (opcional)"
         type="email"
         inputMode="email"
+        placeholder="Ex.: ana@email.com"
         value={email}
         onChange={(evento) => setEmail(evento.target.value)}
         erro={recusas.email}
@@ -218,39 +221,47 @@ export function FormularioCliente({
           <Campo
             id={`${prefixo}-logradouro`}
             rotulo="Rua"
+            obrigatorio
             className="sm:col-span-2"
+            placeholder="Ex.: Rua das Flores"
             value={logradouro}
             onChange={(evento) => setLogradouro(evento.target.value)}
             erro={recusas.logradouro ?? recusas.endereco}
           />
           <Campo
             id={`${prefixo}-numero`}
-            rotulo="Número"
+            rotulo="Número (opcional)"
+            placeholder="Ex.: 123 ou s/n"
             value={numero}
             onChange={(evento) => setNumero(evento.target.value)}
           />
           <Campo
             id={`${prefixo}-complemento`}
-            rotulo="Complemento"
+            rotulo="Complemento (opcional)"
+            placeholder="Ex.: apto 202, bloco B"
             value={complemento}
             onChange={(evento) => setComplemento(evento.target.value)}
           />
           <Campo
             id={`${prefixo}-bairro`}
-            rotulo="Bairro"
+            rotulo="Bairro (opcional)"
+            placeholder="Ex.: Aldeota"
             value={bairro}
             onChange={(evento) => setBairro(evento.target.value)}
           />
           <Campo
             id={`${prefixo}-cidade`}
-            rotulo="Cidade"
+            rotulo="Cidade (opcional)"
+            placeholder="Ex.: Fortaleza"
             value={cidade}
             onChange={(evento) => setCidade(evento.target.value)}
           />
           <Campo
             id={`${prefixo}-estado`}
-            rotulo="UF"
+            rotulo="Estado (UF, opcional)"
             maxLength={2}
+            placeholder="Ex.: CE"
+            autoCapitalize="characters"
             value={estado}
             onChange={(evento) => setEstado(evento.target.value)}
           />
@@ -260,7 +271,13 @@ export function FormularioCliente({
       <Campo
         id={`${prefixo}-observacao`}
         rotulo="Observação (opcional)"
+        placeholder="Ex.: portão azul; prefere troco em notas"
         dica="O que ajuda a atender: portão, ponto de referência, preferência."
+        info={{
+          texto:
+            "Anotação interna sobre o cliente, para quem atende. Só a loja vê; o cliente não.",
+          exemplo: "portão azul; prefere troco em notas.",
+        }}
         value={observacao}
         onChange={(evento) => setObservacao(evento.target.value)}
       />

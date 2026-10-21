@@ -14,19 +14,19 @@
 
 ### Onda 1 — faixa-1 ∥ faixa-2 ∥ faixa-3
 
-#### faixa-1 — branch `spec/admin-lojas-faixa-1` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-1`
+#### faixa-1 — branch `spec/admin-lojas-faixa-1` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-1`
 
 | tarefa | título                                                   | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                                                                                      |
 | ------ | -------------------------------------------------------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-200  | Cadastro de loja com código sequencial e convite do dono | `gpt-5.6-terra` | high    | `apps/api/src/modules/admin/criar-loja.usecase.ts`, `apps/api/src/modules/admin/criar-loja.usecase.test.ts`, `apps/api/src/modules/admin/admin.schema.ts`, `apps/api/src/modules/admin/documento.ts`, `apps/api/src/modules/admin/documento.test.ts`, `apps/web/src/app/(admin)/admin/lojas/nova/page.tsx`, `packages/contracts/src/admin.ts` |
 
-#### faixa-2 — branch `spec/admin-lojas-faixa-2` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-2`
+#### faixa-2 — branch `spec/admin-lojas-faixa-2` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-2`
 
 | tarefa | título                 | modelo          | esforço | arquivos                                                                                                                                                                                                       |
 | ------ | ---------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-201  | Lista e busca de lojas | `gpt-5.6-terra` | medium  | `apps/api/src/modules/admin/listar-lojas.usecase.ts`, `apps/api/src/modules/admin/listar-lojas.usecase.test.ts`, `apps/web/src/app/(admin)/admin/lojas/page.tsx`, `apps/web/src/features/admin/ListaLojas.tsx` |
 
-#### faixa-3 — branch `spec/admin-lojas-faixa-3` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-3`
+#### faixa-3 — branch `spec/admin-lojas-faixa-3` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-3`
 
 | tarefa | título                                         | modelo          | esforço | arquivos                                                                                                                                                                                                         |
 | ------ | ---------------------------------------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -34,19 +34,19 @@
 
 ### Onda 2 — faixa-4 ∥ faixa-5 ∥ faixa-6
 
-#### faixa-4 — branch `spec/admin-lojas-faixa-4` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-4`
+#### faixa-4 — branch `spec/admin-lojas-faixa-4` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-4`
 
 | tarefa | título                                          | modelo          | esforço | arquivos                                                                                                                                                                                                                    |
 | ------ | ----------------------------------------------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-203  | Alteração do tipo de negócio pela administração | `gpt-5.6-terra` | high    | `apps/api/src/modules/admin/alterar-vertical.usecase.ts`, `apps/api/src/modules/admin/alterar-vertical.usecase.test.ts`, `apps/api/tests/vertical-somente-admin.test.ts`, `apps/web/src/features/admin/SeletorVertical.tsx` |
 
-#### faixa-5 — branch `spec/admin-lojas-faixa-5` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-5`
+#### faixa-5 — branch `spec/admin-lojas-faixa-5` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-5`
 
 | tarefa | título                                      | modelo          | esforço | arquivos                                                                                                                                       |
 | ------ | ------------------------------------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-204  | Apelido alterado preserva o endereço antigo | `gpt-5.6-terra` | medium  | `apps/api/src/modules/admin/alterar-apelido.usecase.ts`, `apps/api/src/modules/admin/alterar-apelido.usecase.test.ts`, `apps/web/src/proxy.ts` |
 
-#### faixa-6 — branch `spec/admin-lojas-faixa-6` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-6`
+#### faixa-6 — branch `spec/admin-lojas-faixa-6` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-6`
 
 | tarefa | título                                    | modelo          | esforço | arquivos                                                                                                                                                                                                                                                                                                                                       |
 | ------ | ----------------------------------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,19 +54,19 @@
 
 ### Onda 3 — faixa-7 ∥ faixa-8 ∥ faixa-9
 
-#### faixa-7 — branch `spec/admin-lojas-faixa-7` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-7`
+#### faixa-7 — branch `spec/admin-lojas-faixa-7` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-7`
 
 | tarefa | título                                     | modelo          | esforço | arquivos                                                                                                                                                                                                             |
 | ------ | ------------------------------------------ | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-206  | Suspender, reativar e excluir com retenção | `gpt-5.6-terra` | medium  | `apps/api/src/modules/admin/status-loja.usecase.ts`, `apps/api/src/modules/admin/status-loja.usecase.test.ts`, `apps/web/src/features/admin/AcoesLoja.tsx`, `apps/web/src/app/(loja)/l/[slug]/indisponivel/page.tsx` |
 
-#### faixa-8 — branch `spec/admin-lojas-faixa-8` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-8`
+#### faixa-8 — branch `spec/admin-lojas-faixa-8` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-8`
 
 | tarefa | título                             | modelo          | esforço | arquivos                                                                                                                                                                                                       |
 | ------ | ---------------------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-207  | Funcionalidades liberadas por loja | `gpt-5.6-terra` | medium  | `apps/api/src/modules/admin/features.usecase.ts`, `apps/api/src/modules/admin/features.usecase.test.ts`, `apps/api/src/core/features.ts`, `apps/web/src/app/(admin)/admin/lojas/[id]/funcionalidades/page.tsx` |
 
-#### faixa-9 — branch `spec/admin-lojas-faixa-9` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-9`
+#### faixa-9 — branch `spec/admin-lojas-faixa-9` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-9`
 
 | tarefa | título                             | modelo          | esforço | arquivos                                                                                                                                                       |
 | ------ | ---------------------------------- | --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -74,7 +74,7 @@
 
 ### Onda 4 — faixa-10
 
-#### faixa-10 — branch `spec/admin-lojas-faixa-10` — worktree `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-10`
+#### faixa-10 — branch `spec/admin-lojas-faixa-10` — worktree `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-faixa-10`
 
 | tarefa | título                                  | modelo          | esforço | arquivos                                                              |
 | ------ | --------------------------------------- | --------------- | ------- | --------------------------------------------------------------------- |
@@ -99,7 +99,7 @@ bash .spec/features/admin-lojas/executar-tarefas.sh
 Cada faixa roda `codex exec` com **janela de contexto limpa**, no seu worktree, com
 `--model` e `model_reasoning_effort` já definidos por tarefa e sandbox `workspace-write`. Os prompts exatos estão
 embutidos no script — quer rodar uma faixa na mão, é só copiá-los de lá.
-Logs: `../onp-worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs/`.
+Logs: `worktrees/SimpleClick-identidade-acesso-run-admin-lojas-logs/`.
 
 **Confirmação de custos — antes de executar**: os modelos e esforços por
 tarefa estão nas tabelas acima; o agente CONFIRMA com o usuário se estão

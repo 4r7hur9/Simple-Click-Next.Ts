@@ -240,3 +240,33 @@ export const PALETA_DE_LOJA: readonly CorDeLoja[] = Object.freeze([
   { nome: "Uva", valor: "#5b2d82" },
   { nome: "Grafite", valor: "#2c3038" },
 ]);
+
+// ---------------------------------------------------------------------------
+// A cor de destaque da VITRINE (fundo sempre preto)
+// ---------------------------------------------------------------------------
+
+/** O fundo da vitrine: sempre preto, não é configurável. */
+export const COR_DE_FUNDO_DA_LOJA = "#000000";
+
+/** A cor de destaque de quem ainda não escolheu: o verde SimpleClick. */
+export const COR_DE_DESTAQUE_PADRAO_DA_LOJA = PALETA_OFICIAL.verdeClick;
+
+/**
+ * As amostras que o seletor de cor sugere ao dono: cores que aparecem bem
+ * sobre o preto. O seletor também aceita qualquer outra (quadro, matiz e
+ * código), e a vitrine conserta o contraste das que não servem.
+ */
+export const AMOSTRAS_DE_DESTAQUE_DA_LOJA: readonly CorDeLoja[] = Object.freeze(
+  [
+    { nome: "Verde SimpleClick", valor: COR_DE_DESTAQUE_PADRAO_DA_LOJA },
+    { nome: "Amarelo", valor: "#ffd60a" },
+    { nome: "Laranja", valor: "#ff8a00" },
+    { nome: "Vermelho", valor: "#ff4d4d" },
+    { nome: "Rosa", valor: "#ff4fa3" },
+    { nome: "Roxo", valor: "#a78bfa" },
+    { nome: "Azul", valor: "#4da3ff" },
+    { nome: "Turquesa", valor: "#2ee6c5" },
+    { nome: "Verde", valor: "#3ddc84" },
+    { nome: "Branco", valor: PALETA_OFICIAL.branco },
+  ],
+);

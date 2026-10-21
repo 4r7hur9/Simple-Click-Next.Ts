@@ -54,7 +54,7 @@ export function AvisosPendentes() {
             </div>
             {pendencia.href === null ? null : (
               <Link
-                className="sc-botao sc-botao--fantasma whitespace-nowrap"
+                className="sc-botao sc-botao--secundaria whitespace-nowrap"
                 href={pendencia.href}
               >
                 Configurar

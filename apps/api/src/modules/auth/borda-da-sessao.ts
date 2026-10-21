@@ -92,7 +92,17 @@ export function entregarSessao(
   resposta: Response,
   sessao: SessaoEntregue,
   papel: PapelDaSessao,
-  extra: { readonly orientarPara?: string } = {},
+  extra: {
+    readonly orientarPara?: string;
+    readonly cadastrado?: true;
+    readonly mensagem?: string;
+    /** A loja que a pessoa acabou de abrir (`POST /v1/auth/lojas`). */
+    readonly loja?: {
+      readonly codigo: string;
+      readonly apelido: string;
+      readonly status: "PENDING_APPROVAL";
+    };
+  } = {},
 ): void {
   resposta.set("cache-control", "no-store");
   const corpo = {

@@ -178,6 +178,28 @@ describe("o painel encaminha para a loja da sessão (AC-135)", () => {
   });
 });
 
+describe("a equipe entra no painel da loja em que trabalha (card #31)", () => {
+  it("sessão de cliente sem `lojas` usa `lojasDaConta` e traz o papel e as permissões", async () => {
+    const loja = {
+      apelido: "pastelaria-da-vila",
+      nome: "Pastelaria da Vila",
+      papel: "STAFF",
+      situacao: "ACTIVE",
+      permissoes: ["loja.ver", "clientes"],
+    };
+    const buscar = (async () =>
+      Response.json({
+        ...quemSouEu([]),
+        lojasDaConta: [loja],
+      })) as unknown as typeof fetch;
+    const decisao = await lojaDoPainel("sc_access=token-da-equipe", buscar);
+    expect(decisao).toMatchObject({
+      estado: "pronta",
+      loja: { apelido: "pastelaria-da-vila", papel: "STAFF" },
+    });
+  });
+});
+
 describe("dono de mais de uma loja escolhe (AC-136)", () => {
   it("@spec:AC-136 sem escolha, o painel não encaminha e pede a escolha", async () => {
     const api = apiDeMentira();

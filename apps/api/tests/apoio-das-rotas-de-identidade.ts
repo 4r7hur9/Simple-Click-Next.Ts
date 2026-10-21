@@ -148,7 +148,7 @@ export function comCookie(refresh: string): Record<string, string> {
 /** Cadastro e verificação pelas rotas de verdade; devolve o e-mail. */
 export async function clienteVerificado(
   app: Express,
-  caixa: CaixaDeEmail,
+  _caixa: CaixaDeEmail,
   email: string,
   senha = FRASE_DA_PROVA,
 ): Promise<string> {
@@ -157,14 +157,10 @@ export async function clienteVerificado(
     email,
     telefone: "+5511912345678",
     senha,
+    aceitouTermos: true,
   });
+  // O cadastro já nasce verificado e com a sessão aberta (migração 0047).
   if (cadastro.status !== 201) throw new Error(`cadastro: ${cadastro.status}`);
-  const verificado = await enviar(app, "/email/verificar", {
-    token: caixa.ultimoToken(email),
-  });
-  if (verificado.body.situacao !== "verificado") {
-    throw new Error("a verificação não passou");
-  }
   return email;
 }
 

@@ -93,7 +93,7 @@ describe("cadastro completo (AC-200)", () => {
       expect(resposta.status).toBe(201);
       expect(resposta.body).toMatchObject({
         apelido: "pastel-da-joi",
-        status: "ACTIVE",
+        status: "PENDING_APPROVAL",
         conviteEnviado: true,
       });
       expect(resposta.body.codigo).toMatch(/^\d{4}$/);
@@ -112,7 +112,7 @@ describe("cadastro completo (AC-200)", () => {
         doc_number: "11222333000181",
         doc_type: "CNPJ",
         slug: "pastel-da-joi",
-        status: "ACTIVE",
+        status: "PENDING_APPROVAL",
         vertical_code: "FOOD_SNACK",
         email: "joice.almeida@exemplo.test",
         phone1: "+5511988887777",
@@ -167,7 +167,7 @@ describe("cadastro completo (AC-200)", () => {
             codigo: resposta.body.codigo,
             apelido: "pastel-da-joi",
             tipoDeNegocio: "FOOD_SNACK",
-            status: "ACTIVE",
+            status: "PENDING_APPROVAL",
           },
         },
       ]);

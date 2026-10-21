@@ -41,11 +41,25 @@ vi.mock("../src/server/actions/auth.ts", () => ({
   encerrarTodasAsSessoes: vi.fn(),
 }));
 
+vi.mock("../src/app/(conta)/conta/_token.ts", () => ({
+  tokenOuEntrar: async () => "token-de-teste",
+}));
+
+vi.mock("../src/server/actions/conta.ts", () => ({
+  sairDepoisDeExcluirAConta: vi.fn(),
+}));
+
+vi.mock("../src/lib/conta-do-cliente.ts", () => ({
+  buscarDadosDaConta: async () => ({ estado: "indisponivel" }),
+  buscarSessoesAbertas: async () => ({ estado: "indisponivel" }),
+  buscarAceites: async () => ({ estado: "indisponivel" }),
+}));
+
 import PaginaDeCadastro from "../src/app/(conta)/cadastrar/page.tsx";
 import PaginaDeDefinicaoDeSenha from "../src/app/(conta)/definir-senha/page.tsx";
 import PaginaDeEntrar from "../src/app/(conta)/entrar/page.tsx";
 import PaginaDeVerificacao from "../src/app/(conta)/entrar/verificacao/page.tsx";
-import PaginaDeSeguranca from "../src/app/(conta)/minha-conta/seguranca/page.tsx";
+import PaginaDeSeguranca from "../src/app/(conta)/conta/seguranca/page.tsx";
 import PaginaDeRecuperacaoDeSenha from "../src/app/(conta)/recuperar-senha/page.tsx";
 import PaginaDeVerificacaoDeEmail from "../src/app/(conta)/verificar-email/page.tsx";
 import { TotpForm } from "../src/features/auth/TotpForm.tsx";
@@ -74,22 +88,31 @@ function formulario(tela: HTMLElement): HTMLFormElement {
 }
 
 describe("cadastro", () => {
+  beforeEach(() => {
+    navegacao.parametros = new URLSearchParams("tipo=cliente");
+  });
+
   async function preencherEEnviar(tela: HTMLElement, senha: string) {
     digitar(exigir(tela, "#cadastro-nome"), "Ana Souza");
     digitar(exigir(tela, "#cadastro-email"), "ana@exemplo.com");
     digitar(exigir(tela, "#cadastro-telefone"), "11 91234-5678");
     digitar(exigir(tela, "#cadastro-senha"), senha);
+    clicar(exigir(tela, "#cadastro-aceite"));
     await enviar(formulario(tela));
   }
 
-  it("@spec:AC-100 cadastro válido confirma a conta e avisa que falta confirmar o e-mail", async () => {
+  it("@spec:AC-100 cadastro válido já entra logado e volta para onde a pessoa estava", async () => {
+    navegacao.parametros = new URLSearchParams(
+      "tipo=cliente&proximo=/loja/padaria",
+    );
     const chamadas = simularApi(() => ({
       status: 201,
       corpo: {
+        autenticado: true,
+        status: "SESSAO_CRIADA",
+        papel: "CUSTOMER",
+        redirecionarPara: "/conta/pedidos",
         cadastrado: true,
-        mensagem:
-          "Seus dados foram recebidos. Enviamos instruções para confirmar seu e-mail.",
-        verificacaoDeEmailPendente: true,
       },
     }));
     const tela = montar(<PaginaDeCadastro />);
@@ -100,10 +123,69 @@ describe("cadastro", () => {
       email: "ana@exemplo.com",
       telefone: "+5511912345678",
     });
-    expect(tela.textContent).toContain(
-      "Conta criada. Falta confirmar o e-mail.",
+    expect(navegacao.replace).toHaveBeenCalledWith("/loja/padaria");
+  });
+
+  it("cadastro sem `proximo` (ou com endereço de fora) segue para a área da conta", async () => {
+    navegacao.parametros = new URLSearchParams(
+      "tipo=cliente&proximo=https://golpe.example",
     );
-    expect(tela.textContent).toContain("Enviamos instruções para confirmar");
+    simularApi(() => ({
+      status: 201,
+      corpo: {
+        status: "SESSAO_CRIADA",
+        redirecionarPara: "/conta/pedidos",
+      },
+    }));
+    const tela = montar(<PaginaDeCadastro />);
+    await preencherEEnviar(tela, "Cacto azul sob a lua 2026!");
+    expect(navegacao.replace).toHaveBeenCalledWith("/conta/pedidos");
+  });
+
+  it("e-mail que já tem conta aponta para o entrar, sem apagar os dados", async () => {
+    simularApi(() => ({
+      status: 409,
+      corpo: { erro: "email_em_uso", mensagem: "x" },
+    }));
+    const tela = montar(<PaginaDeCadastro />);
+    await preencherEEnviar(tela, "Cacto azul sob a lua 2026!");
+    expect(tela.textContent).toContain("Este e-mail já tem conta.");
+    expect(exigir<HTMLInputElement>(tela, "#cadastro-nome").value).toBe(
+      "Ana Souza",
+    );
+  });
+
+  it("campos vazios são apontados antes de chamar a API", async () => {
+    const chamadas = simularApi(() => ({ status: 500 }));
+    const tela = montar(<PaginaDeCadastro />);
+    await enviar(formulario(tela));
+    expect(chamadas).toHaveLength(0);
+    expect(tela.textContent).toContain("Informe seu nome.");
+    expect(tela.textContent).toContain("Informe seu WhatsApp com DDD.");
+  });
+
+  it("os textos servem a todo mundo e há um jeito de trocar para vender", () => {
+    const tela = montar(<PaginaDeCadastro />);
+    expect(tela.querySelector("h1")?.textContent).toBe("Criar conta");
+    expect(tela.textContent).not.toContain("Venda com um link simples");
+    expect(
+      exigir<HTMLAnchorElement>(tela, 'a[href="/cadastrar?tipo=dono"]')
+        .textContent,
+    ).toBe("Quero vender");
+  });
+
+  it("sem tipo, mostra os dois cartões: comprar e vender com minha loja", () => {
+    navegacao.parametros = new URLSearchParams("proximo=/loja/padaria");
+    const tela = montar(<PaginaDeCadastro />);
+    expect(tela.querySelector("form")).toBeNull();
+    expect(
+      exigir<HTMLAnchorElement>(tela, 'a[href*="tipo=cliente"]').textContent,
+    ).toContain("Quero comprar");
+    const dono = exigir<HTMLAnchorElement>(tela, 'a[href*="tipo=dono"]');
+    expect(dono.textContent).toContain("Quero vender com minha loja");
+    expect(dono.getAttribute("href")).toContain(
+      "proximo=%2Floja%2Fpadaria",
+    );
   });
 
   it("@spec:AC-102 senha fraca mostra o motivo no campo e não apaga os outros dados", async () => {
@@ -160,10 +242,34 @@ describe("login e segundo fator", () => {
       corpo: {
         autenticado: true,
         status: "SESSAO_CRIADA",
-        redirecionarPara: "/minha-conta",
+        redirecionarPara: "/conta",
       },
     });
-    expect(navegacao.replace).toHaveBeenCalledWith("/minha-conta");
+    expect(navegacao.replace).toHaveBeenCalledWith("/conta");
+  });
+
+  it("entrar com `proximo` volta para a página de onde a pessoa veio", async () => {
+    navegacao.parametros = new URLSearchParams("proximo=/loja/padaria/cardapio");
+    await entrarCom({
+      status: 200,
+      corpo: { status: "SESSAO_CRIADA", redirecionarPara: "/painel" },
+    });
+    expect(navegacao.replace).toHaveBeenCalledWith("/loja/padaria/cardapio");
+  });
+
+  it("o segundo fator leva o `proximo` junto", async () => {
+    navegacao.parametros = new URLSearchParams("proximo=/loja/padaria");
+    await entrarCom({
+      status: 200,
+      corpo: {
+        status: "DESAFIO_DE_SEGUNDO_FATOR",
+        desafioId: "d-1",
+        canal: "EMAIL",
+      },
+    });
+    expect(navegacao.push).toHaveBeenCalledWith(
+      "/entrar/verificacao?desafio=d-1&canal=EMAIL&proximo=%2Floja%2Fpadaria",
+    );
   });
 
   it("@spec:AC-105 e-mail ou senha errados não dizem qual dos dois falhou", async () => {
@@ -222,8 +328,8 @@ describe("login e segundo fator", () => {
       status: 200,
       corpo: {
         status: "SESSAO_CRIADA",
-        redirecionarPara: "/minha-conta",
-        orientarPara: "/minha-conta/seguranca/aplicativo",
+        redirecionarPara: "/conta",
+        orientarPara: "/conta/seguranca/aplicativo",
       },
     }));
     const tela = montar(<PaginaDeVerificacao />);
@@ -237,7 +343,7 @@ describe("login e segundo fator", () => {
       corpo: { desafioId: "desafio-2", codigo: "ABCD-EFGH" },
     });
     expect(navegacao.replace).toHaveBeenCalledWith(
-      "/minha-conta/seguranca/aplicativo",
+      "/conta/seguranca/aplicativo",
     );
   });
 });
@@ -344,7 +450,7 @@ describe("telas sem script: e-mail, senha e segurança", () => {
     const tela = await noServidor(PaginaDeSeguranca);
     expect(tela).toContain("Sair deste dispositivo");
     expect(tela).toContain("Encerrar todas as sessões");
-    expect(tela).toContain('href="/minha-conta/seguranca/aplicativo"');
+    expect(tela).toContain('href="/conta/seguranca/aplicativo"');
 
     const comErro = await noServidor(PaginaDeSeguranca, { estado: "erro" });
     expect(comErro).toContain("Não foi possível encerrar a sessão.");

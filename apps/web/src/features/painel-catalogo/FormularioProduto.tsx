@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { centavosDoTexto } from "../../lib/dinheiro.ts";
@@ -11,6 +12,23 @@ import {
   type EspecificacaoHerdada,
   type ValoresDasEspecificacoes,
 } from "./CamposDeEspecificacao.tsx";
+import { PrecoDeAtacado } from "./atacado/PrecoDeAtacado.tsx";
+import {
+  atacadoInicial,
+  lerAtacado,
+  problemasNaTela,
+  type AtacadoNaTela,
+  type FaixaGravada,
+} from "./atacado/faixas-na-tela.ts";
+import type { ProblemaDaFaixa } from "../../lib/atacado.ts";
+import { Seletor } from "@simpleclick/ui";
+
+import { EXPLICACOES } from "./explicacoes.ts";
+import {
+  CampoComRotulo,
+  RotuloComInfo,
+  descritoDoInfo,
+} from "./RotuloComInfo.tsx";
 
 interface Categoria {
   readonly id: string;
@@ -58,6 +76,20 @@ interface ProdutoInicial {
   readonly disponivel: boolean;
   /** A janela gravada; ausente no produto de antes dela existir. */
   readonly janelas?: readonly JanelaDeVenda[] | undefined;
+  /** Se o produto vai para o feed dos clientes (/explorar). */
+  readonly publicarNoFeed?: boolean | undefined;
+  /** As faixas de atacado gravadas (card #54); vazio ou ausente = só varejo. */
+  readonly faixasDeAtacado?: readonly FaixaGravada[] | undefined;
+}
+
+/**
+ * O que o formulário sabe do feed da loja. `null` enquanto carrega ou quando
+ * a pessoa não pode mexer no feed (a equipe: a API responde 403 e recusaria o
+ * campo) — aí o checkbox nem aparece e o campo não vai no envio.
+ */
+interface FeedDaLoja {
+  readonly aparecerNoFeed: boolean;
+  readonly publicarProdutosNovos: boolean;
 }
 
 interface Props {
@@ -72,6 +104,7 @@ function precoInicial(centavos: number | null | undefined): string {
 
 export function FormularioProduto({ produto }: Props) {
   const router = useRouter();
+  const base = useId();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [nome, setNome] = useState(produto?.nome ?? "");
   const [descricao, setDescricao] = useState(produto?.descricao ?? "");
@@ -81,10 +114,24 @@ export function FormularioProduto({ produto }: Props) {
     produto?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
   );
   const [disponivel, setDisponivel] = useState(produto?.disponivel ?? true);
+  const [feed, setFeed] = useState<FeedDaLoja | null>(null);
+  // Produto novo nasce como a loja configurou ("publicar produtos novos").
+  const [publicarNoFeed, setPublicarNoFeed] = useState(
+    produto?.publicarNoFeed ?? false,
+  );
   // A janela de venda (AC-322): sem faixa, vende sempre que a loja abre.
   const [janelas, setJanelas] = useState<readonly JanelaDeVenda[]>(
     produto?.janelas ?? [],
   );
+  // Preço de atacado (card #55). Só vai no envio se o dono mexeu: assim a
+  // edição de outro campo não regrava as faixas.
+  const [atacado, setAtacado] = useState<AtacadoNaTela>(() =>
+    atacadoInicial(produto?.faixasDeAtacado),
+  );
+  const [atacadoMudou, setAtacadoMudou] = useState(false);
+  const [problemasDoAtacado, setProblemasDoAtacado] = useState<
+    readonly ProblemaDaFaixa[]
+  >([]);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("Carregando categorias…");
   // As especificações que o produto herda da categoria escolhida (T-301).
@@ -155,6 +202,23 @@ export function FormularioProduto({ produto }: Props) {
       .catch(() => setMensagem("Não foi possível carregar as categorias."));
   }, []);
 
+  useEffect(() => {
+    let ativo = true;
+    void fetch("/api/loja/feed", { cache: "no-store" })
+      .then(async (resposta) => {
+        if (!resposta.ok) return;
+        const dados = (await resposta.json()) as FeedDaLoja;
+        if (!ativo) return;
+        setFeed(dados);
+        if (produto === undefined)
+          setPublicarNoFeed(dados.publicarProdutosNovos);
+      })
+      .catch(() => undefined);
+    return () => {
+      ativo = false;
+    };
+  }, [produto]);
+
   function mudarJanela(indice: number, mudanca: Partial<JanelaDeVenda>) {
     setJanelas((atuais) =>
       atuais.map((janela, posicao) =>
@@ -184,6 +248,17 @@ export function FormularioProduto({ produto }: Props) {
       );
       return;
     }
+    // As travas do atacado são as do servidor: melhor ouvir aqui que no 422.
+    // Confere mesmo sem mexer nas faixas — um preço novo menor que o desconto
+    // em reais gravado também é recusado.
+    const leituraDoAtacado = lerAtacado(atacado, precoCentavos);
+    if (!leituraDoAtacado.ok) {
+      setProblemasDoAtacado(leituraDoAtacado.problemas);
+      setMensagem(
+        "Confira as faixas do preço de atacado; o restante do preenchimento foi mantido.",
+      );
+      return;
+    }
     const pendentes = conferirEspecificacoes(especificacoes, valoresEsp);
     setErrosEsp(pendentes);
     if (Object.keys(pendentes).length > 0) {
@@ -202,6 +277,9 @@ export function FormularioProduto({ produto }: Props) {
       status,
       disponivel,
       janelas: janelas.map((janela) => ({ ...janela })),
+      // Só quem pode mexer no feed manda o campo: a API recusa o da equipe.
+      ...(feed === null ? {} : { publicarNoFeed }),
+      ...(atacadoMudou ? { faixasDeAtacado: leituraDoAtacado.faixas } : {}),
     };
     try {
       const resposta = await fetch(
@@ -214,6 +292,22 @@ export function FormularioProduto({ produto }: Props) {
           body: JSON.stringify(dados),
         },
       );
+      if (resposta.status === 422) {
+        const recusa = (await resposta.json().catch(() => ({}))) as {
+          erro?: string;
+          problemas?: ProblemaDaFaixa[];
+        };
+        if (recusa.erro === "faixas_invalidas") {
+          setProblemasDoAtacado(
+            problemasNaTela(recusa.problemas ?? [], leituraDoAtacado.origem),
+          );
+          setMensagem(
+            "Confira as faixas do preço de atacado; o restante do preenchimento foi mantido.",
+          );
+          setSalvando(false);
+          return;
+        }
+      }
       if (!resposta.ok) throw new Error();
       const salvo = (await resposta.json()) as { id: string };
       setProdutoSalvoId(salvo.id);
@@ -259,12 +353,20 @@ export function FormularioProduto({ produto }: Props) {
             placeholder="Conte o que acompanha o produto."
           />
         </label>
-        <label>
-          <span className="text-sm font-medium">Categoria</span>
-          <select
-            className="sc-campo__controle mt-2 w-full"
+        <CampoComRotulo
+          id={`${base}-categoria`}
+          rotulo="Categoria"
+          info={EXPLICACOES.categoria}
+        >
+          <Seletor
+            id={`${base}-categoria`}
+            className="w-full"
             value={categoriaId}
-            onChange={(evento) => setCategoriaId(evento.target.value)}
+            aria-describedby={descritoDoInfo(
+              `${base}-categoria`,
+              EXPLICACOES.categoria,
+            )}
+            onChange={(valor) => setCategoriaId(valor)}
             required
           >
             <option value="">Escolha uma categoria</option>
@@ -273,45 +375,97 @@ export function FormularioProduto({ produto }: Props) {
                 {categoria.nome}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
-          <span className="text-sm font-medium">Preço (R$)</span>
+          </Seletor>
+        </CampoComRotulo>
+        <CampoComRotulo
+          id={`${base}-preco`}
+          rotulo="Preço de venda (R$)"
+          info={EXPLICACOES.precoDeVenda}
+        >
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={`${base}-preco`}
+            className="sc-campo__controle w-full"
             inputMode="decimal"
             value={preco}
+            aria-describedby={descritoDoInfo(
+              `${base}-preco`,
+              EXPLICACOES.precoDeVenda,
+            )}
             onChange={(evento) => setPreco(evento.target.value)}
             required
-            placeholder="19,90"
+            placeholder="Ex.: 19,90"
           />
-        </label>
-        <label>
-          <span className="text-sm font-medium">Visibilidade</span>
-          <select
-            className="sc-campo__controle mt-2 w-full"
+        </CampoComRotulo>
+        <CampoComRotulo
+          id={`${base}-visibilidade`}
+          rotulo="Visibilidade"
+          info={EXPLICACOES.visibilidade}
+        >
+          <Seletor
+            id={`${base}-visibilidade`}
+            className="w-full"
             value={status}
-            onChange={(evento) => setStatus(evento.target.value)}
+            aria-describedby={descritoDoInfo(
+              `${base}-visibilidade`,
+              EXPLICACOES.visibilidade,
+            )}
+            onChange={(valor) => setStatus(valor)}
           >
-            <option value="DRAFT">Salvar como rascunho</option>
-            <option value="PUBLISHED">Publicar na vitrine</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-3 self-end pb-2 text-sm">
+            <option value="DRAFT">Rascunho (só no painel)</option>
+            <option value="PUBLISHED">Publicado na vitrine</option>
+          </Seletor>
+        </CampoComRotulo>
+        <span className="flex items-center gap-3 self-end pb-2 text-sm">
           <input
+            id={`${base}-disponivel`}
             className="h-5 w-5"
             type="checkbox"
             checked={disponivel}
+            aria-describedby={descritoDoInfo(
+              `${base}-disponivel`,
+              EXPLICACOES.disponivel,
+            )}
             onChange={(evento) => setDisponivel(evento.target.checked)}
           />
-          <span>
+          <RotuloComInfo
+            htmlFor={`${base}-disponivel`}
+            nome="Disponível para compra"
+            info={EXPLICACOES.disponivel}
+          >
             Disponível para compra
-            <span className="block text-xs text-[var(--cor-tinta-suave)]">
-              Desmarcado, o produto aparece como esgotado na vitrine, sem sair
-              do cadastro.
+          </RotuloComInfo>
+        </span>
+        {feed === null ? null : (
+          <label className="flex items-start gap-3 rounded-[var(--raio-botao)] border border-[var(--cor-borda)] p-4 text-sm sm:col-span-2">
+            <input
+              className="mt-0.5 h-5 w-5"
+              type="checkbox"
+              name="publicarNoFeed"
+              checked={publicarNoFeed}
+              onChange={(evento) => setPublicarNoFeed(evento.target.checked)}
+            />
+            <span>
+              <span className="font-medium">Publicar no feed</span>
+              <span className="block text-xs text-[var(--cor-tinta-suave)]">
+                O produto aparece em Explorar, o feed dos clientes do
+                SimpleClick, quando estiver publicado na vitrine e disponível.
+                {feed.aparecerNoFeed ? null : (
+                  <>
+                    {" "}
+                    Hoje a sua loja está fora do feed:{" "}
+                    <Link
+                      className="font-semibold text-[var(--cor-primaria-texto)] underline"
+                      href="/painel/feed"
+                    >
+                      ajuste em Feed da loja
+                    </Link>
+                    .
+                  </>
+                )}
+              </span>
             </span>
-          </span>
-        </label>
+          </label>
+        )}
         {/*
           A JANELA DE VENDA (AC-322): a feijoada de sábado, o brunch de domingo.
           O dono cadastra uma vez e a vitrine liga e desliga o produto sozinha,
@@ -336,13 +490,13 @@ export function FormularioProduto({ produto }: Props) {
                 >
                   <label>
                     <span className="text-xs font-medium">Dia</span>
-                    <select
-                      className="sc-campo__controle mt-1 w-full"
+                    <Seletor
+                      className="mt-1 w-full"
                       aria-label={`Dia da janela ${indice + 1}`}
                       value={janela.diaDaSemana}
-                      onChange={(evento) =>
+                      onChange={(valor) =>
                         mudarJanela(indice, {
-                          diaDaSemana: Number(evento.target.value),
+                          diaDaSemana: Number(valor),
                         })
                       }
                     >
@@ -351,10 +505,10 @@ export function FormularioProduto({ produto }: Props) {
                           {nome}
                         </option>
                       ))}
-                    </select>
+                    </Seletor>
                   </label>
                   <label>
-                    <span className="text-xs font-medium">Abre</span>
+                    <span className="text-xs font-medium">Abre às</span>
                     <input
                       className="sc-campo__controle mt-1 w-full"
                       type="time"
@@ -367,7 +521,7 @@ export function FormularioProduto({ produto }: Props) {
                     />
                   </label>
                   <label>
-                    <span className="text-xs font-medium">Fecha</span>
+                    <span className="text-xs font-medium">Fecha às</span>
                     <input
                       className="sc-campo__controle mt-1 w-full"
                       type="time"
@@ -403,6 +557,16 @@ export function FormularioProduto({ produto }: Props) {
             Adicionar dia e horário
           </button>
         </fieldset>
+        <PrecoDeAtacado
+          valor={atacado}
+          aoMudar={(proximo) => {
+            setAtacado(proximo);
+            setAtacadoMudou(true);
+            setProblemasDoAtacado([]);
+          }}
+          varejoCentavos={centavosDoTexto(preco)}
+          problemas={problemasDoAtacado}
+        />
         <CamposDeEspecificacao
           categoriaId={categoriaId}
           produtoId={produtoSalvoId}

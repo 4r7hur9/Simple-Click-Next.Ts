@@ -58,7 +58,7 @@ function situacao(pagina: Page) {
 
 /** O cliente tenta fechar um pedido para retirar, com o que está no carrinho. */
 async function tentarFechar(pagina: Page, apelido: string): Promise<void> {
-  await pagina.goto(`/l/${apelido}/checkout`);
+  await pagina.goto(`/loja/${apelido}/checkout`);
   await pagina.getByLabel("Retirar no local").check();
   await pagina.getByLabel("Seu nome").fill("Cliente do Horário");
   await pagina.getByLabel("Seu WhatsApp").fill("11977776666");
@@ -88,7 +88,7 @@ test("@spec:AC-911 fechar agora pelo painel impede o cliente de pedir, e desliga
     await salvarHorario(page);
 
     // A VITRINE avisa, e o FECHAMENTO recusa — com o carrinho preservado.
-    await page.goto(`/l/${apelido}`);
+    await page.goto(`/loja/${apelido}`);
     await expect(situacao(page)).toHaveClass(/sc-loja__situacao--fechada/);
     await tentarFechar(page, apelido);
     // O pedido não nasce: a tela recusa dizendo que a loja está fechada (e,
@@ -110,7 +110,7 @@ test("@spec:AC-911 fechar agora pelo painel impede o cliente de pedir, e desliga
     await page.getByLabel(/Parar de receber pedidos agora/).uncheck();
     await salvarHorario(page);
 
-    await page.goto(`/l/${apelido}`);
+    await page.goto(`/loja/${apelido}`);
     await expect(situacao(page)).toHaveText(/Aberta agora/);
     await tentarFechar(page, apelido);
     await expect(
@@ -135,7 +135,7 @@ test("@spec:AC-909 o dia sem faixa na grade deixa a vitrine fechada com a próxi
     ).toBeVisible();
     await salvarHorario(page);
 
-    await page.goto(`/l/${apelido}`);
+    await page.goto(`/loja/${apelido}`);
     await expect(situacao(page)).toHaveClass(/sc-loja__situacao--fechada/);
     await expect(situacao(page)).toContainText("Fechada agora");
     await expect(situacao(page)).not.toContainText("horário não informado");
@@ -154,7 +154,7 @@ test("@spec:AC-909 o dia sem faixa na grade deixa a vitrine fechada com a próxi
       .fill("23:59");
     await salvarHorario(page);
 
-    await page.goto(`/l/${apelido}`);
+    await page.goto(`/loja/${apelido}`);
     await expect(situacao(page)).toHaveText(/Aberta agora/);
   });
 });

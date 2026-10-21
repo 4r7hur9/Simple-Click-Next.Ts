@@ -31,6 +31,7 @@ import type {
   ProdutoDeTeste,
 } from "@simpleclick/testing";
 
+import { autorizacaoDoComprador } from "./apoio-de-pedidos.ts";
 import { abrirAcessoDaAplicacao, ESPERA_LONGA } from "./apoio-de-isolamento.ts";
 import { criarApp } from "../src/app.ts";
 import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
@@ -744,11 +745,12 @@ describe("a conferência cobra o que a pessoa viu (AC-503, AC-504)", () => {
 
 describe("fechar o pedido (AC-504, AC-511, AC-516, AC-517)", () => {
   /** POST no fechamento, com a origem autorizada. */
-  function fechar(corpo: Record<string, unknown>, token: string) {
+  async function fechar(corpo: Record<string, unknown>, token: string) {
     return request(app)
       .post(`/v1/vitrine/${loja.apelido}/pedidos`)
       .set("Origin", ORIGEM)
       .set("Cookie", `${COOKIE_DA_SESSAO}=${token}`)
+      .set("Authorization", await autorizacaoDoComprador())
       .send(corpo);
   }
 
@@ -977,11 +979,12 @@ describe("fechar o pedido (AC-504, AC-511, AC-516, AC-517)", () => {
 });
 
 describe("a mensagem para a loja (AC-520, AC-523)", () => {
-  function fecharPedido(corpo: Record<string, unknown>, token: string) {
+  async function fecharPedido(corpo: Record<string, unknown>, token: string) {
     return request(app)
       .post(`/v1/vitrine/${loja.apelido}/pedidos`)
       .set("Origin", ORIGEM)
       .set("Cookie", `${COOKIE_DA_SESSAO}=${token}`)
+      .set("Authorization", await autorizacaoDoComprador())
       .send(corpo);
   }
 
@@ -1080,6 +1083,7 @@ describe("a mensagem para a loja (AC-520, AC-523)", () => {
         .post(`/v1/vitrine/${semZap.apelido}/pedidos`)
         .set("Origin", ORIGEM)
         .set("Cookie", `${COOKIE_DA_SESSAO}=${tokenDe(criado)}`)
+        .set("Authorization", await autorizacaoDoComprador())
         .send(pedidoSimples());
 
       // O PEDIDO EXISTE: número, código e token. O que falta é o caminho do

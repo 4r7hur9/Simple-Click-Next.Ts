@@ -1,0 +1,1384 @@
+/*
+ * Dados de mercado da landing (#taxas, card #95).
+ *
+ * Importada pelo DadosDeMercado.tsx. Usa os valores de theme.css e as classes
+ * comuns das seções de prova (secoes.css: .sc-prova, título, sobrancelha) e
+ * dos botões da landing (landing.css: .sc-lp-botao).
+ *
+ * TRÊS TELAS, cada uma do tamanho da janela menos o topo grudado (4rem) e a
+ * folga do `scroll-padding` (1rem): um link para #taxas, #taxas-conta ou
+ * #taxas-canais mostra a tela inteira, sem corte. Altura sobrando vira
+ * respiro (conteúdo centrado); no celular e em tela baixa a tela cresce com o
+ * conteúdo, nunca espreme.
+ *
+ * CARTÕES 3D, todos do mesmo tamanho, lado a lado e com o texto centrado (pedido
+ * do dono): cada cartão é uma pilha em `preserve-3d` — a sombra colorida
+ * longe (-90px), a placa com a borda luminosa, o brilho, o conteúdo (+28px) e
+ * o número mais perto ainda (+64px). Inclinação, brilho e borda viva seguem
+ * `--px`/`--py` (-1 a 1) e `--luz-x`/`--luz-y` (0 a 1), que o
+ * MovimentoDosCartoes escreve. Só transform e opacidade animam; nada de
+ * overflow, filtro ou opacidade < 1 entre o palco e as camadas (achatam o 3D).
+ * Com movimento reduzido tudo fica plano.
+ *
+ * Mobile primeiro; espaços em múltiplos de 4/8.
+ */
+
+.sc-dados {
+  --dados-tela: calc(100svh - 5rem);
+  --dados-respiro: max(clamp(1rem, 4vw, 2rem), env(safe-area-inset-left));
+  --dados-vao: clamp(1rem, 2.6svh, 1.5rem);
+  --dados-raio: 1.25rem;
+  --serie-sua: var(--marca-verde-click);
+  --serie-plataforma: var(--cor-atencao);
+  --serie-propria: #5f8a00;
+  --serie-neutra: #8d9690;
+  --serie-vazia: var(--cor-borda);
+  --dados-curva: cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  isolation: isolate;
+  padding-block: 0;
+}
+
+/* Luz de fundo: uma por tela, alternando o lado. */
+.sc-dados::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(52rem 32rem at 0% 8%, color-mix(in oklab, var(--marca-verde-click) 5%, transparent), transparent 70%),
+    radial-gradient(44rem 30rem at 100% 42%, color-mix(in oklab, var(--cor-atencao) 4%, transparent), transparent 70%),
+    radial-gradient(44rem 30rem at 10% 88%, color-mix(in oklab, var(--marca-verde-click) 4%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.sc-dados__tela {
+  display: grid;
+  align-items: center;
+  padding-block: clamp(3rem, 8vw, 4rem);
+  scroll-margin-block-start: -1rem;
+}
+
+.sc-dados__dentro {
+  inline-size: 100%;
+  max-inline-size: 74rem;
+  margin-inline: auto;
+  padding-inline: var(--dados-respiro);
+  display: grid;
+  gap: clamp(1.5rem, 4svh, 2.25rem);
+}
+
+/* --- cabeçalho de cada tela ------------------------------------------------ */
+
+.sc-dados__cabeca {
+  display: grid;
+  gap: 0.75rem;
+  max-inline-size: 48rem;
+}
+
+.sc-dados__cabeca-texto {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sc-dados__titulo {
+  margin: 0;
+  font-size: clamp(2.125rem, 1.4rem + 2.8vw, 3.5rem);
+}
+
+.sc-dados__titulo--tela {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.625rem);
+  font-weight: var(--peso-forte);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.sc-dados__titulo em {
+  font-style: normal;
+}
+
+.sc-prova__caro,
+.sc-prova__nao,
+.sc-dados__verde {
+  font-style: normal;
+}
+
+.sc-prova__caro {
+  color: var(--cor-atencao);
+}
+
+.sc-prova__nao {
+  padding: 0 0.14em;
+  border-radius: 0.18em;
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.sc-dados__verde {
+  color: var(--marca-verde-click);
+}
+
+.sc-dados__apoio {
+  margin: 0;
+  max-inline-size: 46rem;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.5;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dados__apoio strong {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-dados__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* --- tela 1: os cartões 3D -------------------------------------------------- */
+
+.sc-dados__palco {
+  position: relative;
+}
+
+.sc-dados__cartoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.sc-dado3d__vaga {
+  display: grid;
+  container-type: inline-size;
+  perspective: 1100px;
+  transform-style: preserve-3d;
+}
+
+.sc-dado3d {
+  --acento: var(--marca-verde-click);
+  --px: 0;
+  --py: 0;
+  --luz-x: 0.5;
+  --luz-y: 0.3;
+  --sobe: 0px;
+  --extrusao: color-mix(in oklab, var(--acento) 42%, #000);
+  --extrusao-fundo: color-mix(in oklab, var(--acento) 22%, #000);
+  position: relative;
+  display: grid;
+  border-radius: var(--dados-raio);
+  color: var(--cor-tinta);
+  transform-style: preserve-3d;
+  transform:
+    translateZ(var(--sobe))
+    rotateX(calc(var(--py) * -12deg))
+    rotateY(calc(var(--px) * 12deg));
+  transition: transform 700ms var(--dados-curva);
+}
+
+.sc-dado3d[data-acento="ambar"] {
+  --acento: var(--cor-atencao);
+}
+
+.sc-dado3d[data-acento="verde"] {
+  --acento: #4fe08a;
+}
+
+.sc-dado3d[data-acento="aco"] {
+  --acento: #8fb9e3;
+}
+
+.sc-dado3d[data-inclinado] {
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+.sc-dado3d__vaga:hover .sc-dado3d,
+.sc-dado3d:focus-within {
+  --sobe: 20px;
+}
+
+/* A sombra longa e colorida, lá atrás, andando contra a inclinação. */
+.sc-dado3d__sombra {
+  position: absolute;
+  inset: 30% 14% 0;
+  border-radius: inherit;
+  background: var(--acento);
+  opacity: 0.1;
+  filter: blur(32px);
+  transform: translate3d(calc(var(--px) * -22px), calc(26px + var(--py) * -18px), -90px);
+  transition: transform 700ms var(--dados-curva);
+  pointer-events: none;
+}
+
+.sc-dado3d[data-inclinado] .sc-dado3d__sombra {
+  transition-duration: 180ms;
+}
+
+/* A placa: vidro grafite com a borda luminosa no acento. */
+.sc-dado3d__placa {
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background:
+    linear-gradient(160deg, color-mix(in oklab, var(--cor-superficie-alta) 92%, var(--acento)), var(--cor-superficie) 55%, color-mix(in oklab, var(--cor-superficie) 88%, var(--acento))) padding-box,
+    linear-gradient(140deg, color-mix(in oklab, var(--acento) 50%, transparent), color-mix(in oklab, var(--cor-borda) 70%, transparent) 40%, color-mix(in oklab, var(--cor-borda) 50%, transparent) 70%, color-mix(in oklab, var(--acento) 25%, transparent)) border-box;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 24px 40px -28px rgb(0 0 0 / 70%);
+}
+
+/* A borda viva: um anel que acende perto do ponteiro. */
+.sc-dado3d__placa::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: radial-gradient(14rem circle at calc(var(--luz-x) * 100%) calc(var(--luz-y) * 100%), color-mix(in oklab, var(--acento) 70%, transparent), transparent 65%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 400ms ease-out;
+}
+
+/* O brilho: uma mancha de luz que corre por cima do vidro. */
+.sc-dado3d__brilho {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  container-type: size;
+  transform: translateZ(1px);
+  pointer-events: none;
+}
+
+.sc-dado3d__luz {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 110cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 9%), rgb(255 255 255 / 3%) 55%, transparent);
+  opacity: 0;
+  transform: translate(calc(var(--luz-x) * 100cqw - 50%), calc(var(--luz-y) * 100cqh - 50%));
+  transition: opacity 400ms ease-out;
+}
+
+.sc-dado3d[data-inclinado] .sc-dado3d__luz,
+.sc-dado3d[data-inclinado] .sc-dado3d__placa::after {
+  opacity: 1;
+}
+
+/* O conteúdo, em camadas que saltam do vidro: tudo centrado, na mesma ordem
+   em todos os cartões, para as linhas baterem de um cartão para o outro. */
+.sc-dado3d__conteudo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  block-size: 100%;
+  padding: clamp(1.25rem, 2.4vw, 1.5rem) clamp(1rem, 2vw, 1.25rem) 1rem;
+  text-align: center;
+  transform: translateZ(28px);
+  transform-style: preserve-3d;
+}
+
+.sc-dado3d__icone {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  aspect-ratio: 1;
+  margin-block-end: 0.25rem;
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--acento) 16%, transparent);
+  color: var(--acento);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--acento) 35%, transparent);
+  transform: translateZ(22px);
+}
+
+.sc-dado3d__numero {
+  margin: 0.25rem 0 0;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.875rem, 12.5cqi, 3.5rem);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--acento);
+  text-shadow:
+    1px 1px 0 var(--extrusao),
+    2px 2px 0 var(--extrusao),
+    3px 3px 0 var(--extrusao),
+    4px 4px 0 var(--extrusao-fundo),
+    7px 10px 14px rgb(0 0 0 / 40%);
+  transform: translateZ(36px);
+}
+
+.sc-dado3d__digitos {
+  display: inline-block;
+  min-inline-size: calc(var(--digitos, 1) * 1ch);
+  text-align: end;
+}
+
+.sc-dado3d__rotulo {
+  margin: 0.25rem 0 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+  line-height: 1.25;
+  text-wrap: balance;
+  transform: translateZ(14px);
+}
+
+.sc-dado3d__detalhe {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--cor-tinta-suave);
+  text-wrap: pretty;
+}
+
+.sc-dado3d__mini {
+  inline-size: min(100%, 12rem);
+  margin-block-start: auto;
+  padding-block-start: 0.5rem;
+  transform: translateZ(12px);
+}
+
+.sc-dado3d__pe {
+  margin: 0.25rem 0 0;
+}
+
+/* Mini-gráficos */
+.sc-dado3d__mini-legenda {
+  display: block;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dado3d__mini-barras,
+.sc-dado3d__mini-colunas,
+.sc-dado3d__mini-parte {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.sc-dado3d__mini-linha {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.sc-dado3d__mini-linha > span:first-child {
+  text-align: start;
+}
+
+.sc-dado3d__mini-linha strong {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-dado3d__mini-trilho {
+  display: block;
+  block-size: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--cor-tinta) 12%, transparent);
+}
+
+.sc-dado3d__mini-trilho--grosso {
+  block-size: 0.5rem;
+}
+
+.sc-dado3d__mini-trilho > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--acento);
+  transform: scaleX(var(--parte, 0));
+  transform-origin: left center;
+}
+
+.sc-dado3d__mini-grade {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  block-size: 2.25rem;
+}
+
+.sc-dado3d__mini-grade > span {
+  flex: 1;
+  block-size: 100%;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(to top, color-mix(in oklab, var(--acento) 45%, transparent), var(--acento));
+  transform: scaleY(var(--parte, 0));
+  transform-origin: bottom;
+}
+
+.sc-dado3d__mini-rosca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sc-dado3d__mini-rosca svg {
+  flex: none;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  transform: rotate(-90deg);
+}
+
+.sc-dado3d__mini-rosca circle {
+  fill: none;
+  stroke-width: 6;
+  stroke: color-mix(in oklab, var(--cor-tinta) 12%, transparent);
+}
+
+.sc-dado3d__mini-rosca circle + circle {
+  stroke: var(--acento);
+  stroke-linecap: round;
+}
+
+/* --- a legenda da fonte: pequena, cinza, sem sublinhado --------------------- */
+
+.sc-dados__fonte {
+  display: inline-block;
+  max-inline-size: 100%;
+  margin-inline: -0.375rem;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--cor-tinta-suave);
+  text-decoration: none;
+  transition:
+    color var(--transicao-media),
+    background-color var(--transicao-media);
+}
+
+.sc-dados__fonte svg {
+  display: inline-block;
+  margin-inline-end: 0.3rem;
+  vertical-align: -1px;
+  opacity: 0.75;
+}
+
+.sc-dados__fonte:hover {
+  color: var(--cor-tinta);
+  background: color-mix(in oklab, var(--cor-tinta) 8%, transparent);
+}
+
+.sc-dados__fonte:focus-visible,
+.sc-dados__abrir-fontes:focus-visible,
+.sc-dados__fechar:focus-visible,
+.sc-dados__lista-de-fontes a:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-dados__pe-do-grafico {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  margin: 0;
+}
+
+/* --- tela 2: a conta -------------------------------------------------------- */
+
+.sc-prova-conta {
+  display: grid;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.sc-prova-conta__entradas,
+.sc-prova-conta__resultado {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  padding: clamp(1.25rem, 2.6vw, 1.75rem);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie);
+}
+
+/* O resultado é a peça que conclui: vidro um tom acima, borda acesa. */
+.sc-prova-conta__resultado {
+  position: relative;
+  border-color: transparent;
+  background:
+    linear-gradient(170deg, var(--cor-superficie-alta), var(--cor-superficie)) padding-box,
+    linear-gradient(150deg, color-mix(in oklab, var(--cor-atencao) 45%, transparent), var(--cor-borda) 40%, var(--cor-borda) 60%, color-mix(in oklab, var(--marca-verde-click) 45%, transparent)) border-box;
+}
+
+.sc-prova__subtitulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  line-height: 1.25;
+}
+
+.sc-prova-conta__campo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 1rem;
+}
+
+.sc-prova-conta__rotulo {
+  display: block;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova-conta__valor {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-prova-conta__regua,
+.sc-prova-conta__dica {
+  grid-column: 1 / -1;
+}
+
+.sc-prova-conta__dica {
+  margin: 0;
+  font-size: var(--texto-xs);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova-conta__regua {
+  -webkit-appearance: none;
+  appearance: none;
+  inline-size: 100%;
+  block-size: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sc-prova-conta__regua::-webkit-slider-runnable-track {
+  block-size: 0.375rem;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--marca-verde-click) calc(var(--preenchido, 0) * 100%), var(--cor-borda) 0);
+}
+
+.sc-prova-conta__regua::-moz-range-track {
+  block-size: 0.375rem;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--marca-verde-click) calc(var(--preenchido, 0) * 100%), var(--cor-borda) 0);
+}
+
+.sc-prova-conta__regua::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin-block-start: -0.5625rem;
+  border: 3px solid var(--marca-preto-tecnologico);
+  border-radius: 50%;
+  background: var(--marca-verde-click);
+  box-shadow: 0 0 0 1px var(--marca-verde-click);
+}
+
+.sc-prova-conta__regua::-moz-range-thumb {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border: 3px solid var(--marca-preto-tecnologico);
+  border-radius: 50%;
+  background: var(--marca-verde-click);
+  box-shadow: 0 0 0 1px var(--marca-verde-click);
+}
+
+.sc-prova-conta__regua:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sc-prova-conta__entradas {
+  grid-template-rows: auto auto auto 1fr;
+}
+
+.sc-prova-conta__faturamento {
+  align-self: end;
+  margin: 0;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--cor-borda);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova-conta__faturamento strong {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  color: var(--cor-tinta);
+}
+
+.sc-prova-conta__manchete {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.sc-prova-conta__total {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-atencao);
+}
+
+.sc-prova-conta__ano {
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova-conta__barras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.125rem;
+}
+
+.sc-prova-conta__linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "nome custo"
+    "trilho trilho";
+  gap: 0.375rem 1rem;
+  align-items: baseline;
+  padding: 0.375rem 0.75rem 0.5rem;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-prova-conta__linha[data-destaque="sim"] {
+  background: color-mix(in oklab, var(--marca-verde-click) 9%, transparent);
+}
+
+.sc-prova-conta__nome {
+  grid-area: nome;
+  font-size: var(--texto-sm);
+}
+
+.sc-prova-conta__custo {
+  grid-area: custo;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-prova-conta__linha[data-mais-cara="sim"] .sc-prova-conta__custo {
+  color: var(--cor-atencao);
+}
+
+.sc-prova-conta__trilho {
+  grid-area: trilho;
+  position: relative;
+  display: block;
+  block-size: 0.625rem;
+}
+
+.sc-prova-conta__barra {
+  position: absolute;
+  inset: 0;
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+  background: var(--serie-plataforma);
+  transform: scaleX(var(--parte, 0));
+  transform-origin: left center;
+}
+
+.sc-prova-conta__linha[data-destaque="sim"] .sc-prova-conta__trilho::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 0.625rem;
+  border-radius: 50%;
+  background: var(--serie-sua);
+}
+
+/* A conclusão: "No seu link: R$ 0" e o botão, no fim do resultado. */
+.sc-prova-conta__conclusao {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: 1rem 1.125rem 1.125rem;
+  border-radius: var(--raio-cartao);
+  background: color-mix(in oklab, var(--marca-verde-click) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--marca-verde-click) 25%, transparent);
+}
+
+.sc-prova-conta__no-link {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+}
+
+.sc-prova-conta__no-link strong {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl, 1.5rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  color: var(--marca-verde-click);
+}
+
+.sc-prova-conta__no-link > span:first-child {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-prova-conta__conclusao .sc-lp-botao {
+  max-inline-size: 100%;
+}
+
+.sc-prova-conta__nota {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova-conta__comparativo {
+  display: grid;
+}
+
+/* --- moldura comum dos gráficos -------------------------------------------- */
+
+.sc-prova__grafico {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  margin: 0;
+  padding: clamp(1.25rem, 2.6vw, 1.75rem);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie);
+}
+
+.sc-prova__grafico-cabeca {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.sc-prova__grafico-texto {
+  margin: 0;
+  max-inline-size: 40rem;
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova__legenda {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.25rem;
+  font-size: var(--texto-xs);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova__legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sc-prova__amostra {
+  flex: none;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 3px;
+  background: var(--serie-neutra);
+}
+
+.sc-prova [data-serie="sobra"],
+.sc-prova [data-serie="whatsapp"],
+.sc-prova [data-serie="celular"] {
+  --cor-da-serie: var(--serie-sua);
+}
+
+.sc-prova [data-serie="taxa"],
+.sc-prova [data-serie="apps"] {
+  --cor-da-serie: var(--serie-plataforma);
+}
+
+.sc-prova [data-serie="proprio"] {
+  --cor-da-serie: var(--serie-propria);
+}
+
+.sc-prova [data-serie="telefone"] {
+  --cor-da-serie: var(--serie-neutra);
+}
+
+.sc-prova [data-serie="resto"] {
+  --cor-da-serie: var(--serie-vazia);
+}
+
+.sc-prova__amostra[data-serie],
+.sc-prova__segmento[data-serie],
+.sc-prova__celula[data-serie] {
+  background: var(--cor-da-serie);
+}
+
+/* De cada R$ 100: barras empilhadas (sobra + taxa = 100), em linhas curtas */
+.sc-prova__barras {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.sc-prova__barra-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "nome valor"
+    "trilho trilho";
+  gap: 0.375rem 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-prova__barra-linha[data-destaque="sim"] {
+  background: color-mix(in oklab, var(--marca-verde-click) 8%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--marca-verde-click) 35%, transparent);
+}
+
+.sc-prova__barra-nome {
+  grid-area: nome;
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova__barra-nome strong {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--cor-tinta);
+}
+
+.sc-prova__barra-nome span + span::before {
+  content: " · ";
+}
+
+.sc-prova__trilho {
+  grid-area: trilho;
+  display: block;
+  block-size: 0.75rem;
+}
+
+.sc-prova__barra {
+  display: flex;
+  gap: 2px;
+  block-size: 100%;
+  transform-origin: left center;
+}
+
+.sc-prova__segmento {
+  flex: 0 0 0;
+  block-size: 100%;
+}
+
+.sc-prova__segmento:first-child {
+  border-start-start-radius: 3px;
+  border-end-start-radius: 3px;
+}
+
+.sc-prova__segmento:last-child {
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+}
+
+.sc-prova__barra-valor {
+  grid-area: valor;
+  display: grid;
+  justify-items: end;
+  align-self: start;
+  margin: 0;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-prova__barra-valor strong {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  line-height: 1.1;
+}
+
+.sc-prova__barra-valor span {
+  font-size: 0.6875rem;
+  color: var(--cor-tinta-suave);
+}
+
+/* --- tela 3: rosca dos canais e quadriculado do celular --------------------- */
+
+.sc-prova__par {
+  display: grid;
+  gap: 1rem;
+}
+
+.sc-prova__rosca-corpo,
+.sc-prova__quadros-corpo {
+  display: grid;
+  gap: 1.25rem;
+  align-items: center;
+  justify-items: center;
+}
+
+.sc-prova__rosca {
+  position: relative;
+  inline-size: clamp(9rem, 22svh, 11rem);
+  max-inline-size: 100%;
+  aspect-ratio: 1;
+}
+
+.sc-prova__rosca svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  transform: rotate(-90deg);
+}
+
+.sc-prova__rosca-trilho,
+.sc-prova__fatia {
+  fill: none;
+  stroke-width: 14;
+}
+
+.sc-prova__rosca-trilho {
+  stroke: var(--cor-superficie-alta);
+}
+
+.sc-prova__fatia {
+  stroke: var(--cor-da-serie);
+}
+
+.sc-prova__rosca-centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  text-align: center;
+}
+
+.sc-prova__rosca-centro strong {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.sc-prova__rosca-centro span {
+  font-size: var(--texto-xs);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-prova__legenda--lista {
+  display: grid;
+  gap: 0.625rem;
+  inline-size: 100%;
+  margin: 0;
+}
+
+.sc-prova__legenda--lista li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.sc-prova__legenda--lista strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-tinta);
+}
+
+.sc-prova__quadros {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+  inline-size: clamp(9rem, 22svh, 11rem);
+  max-inline-size: 100%;
+}
+
+.sc-prova__celula {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--serie-vazia);
+}
+
+/* O convite da tela 3: a mensagem e o botão, numa faixa só. */
+.sc-dados__convite {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: clamp(1.25rem, 2.6vw, 1.5rem) clamp(1.25rem, 3vw, 2rem);
+  border-radius: var(--raio-janela);
+  background:
+    radial-gradient(60% 140% at 0% 50%, color-mix(in oklab, var(--marca-verde-click) 6%, transparent), transparent 70%),
+    var(--cor-superficie);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--marca-verde-click) 22%, transparent);
+}
+
+.sc-dados__convite-texto {
+  margin: 0;
+  max-inline-size: 38rem;
+  font-size: var(--texto-lg);
+  line-height: 1.45;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dados__convite-texto strong {
+  color: var(--cor-tinta);
+}
+
+/* --- rodapé da seção: "Fontes e metodologia" e a gaveta --------------------- */
+
+.sc-dados__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.6875rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dados__abrir-fontes {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-block-size: 1.5rem;
+  margin-inline: -0.375rem;
+  padding: 0 0.375rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--cor-tinta-suave);
+  font: inherit;
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+  transition:
+    color var(--transicao-media),
+    background-color var(--transicao-media);
+}
+
+.sc-dados__abrir-fontes:hover,
+.sc-dados__abrir-fontes[aria-expanded="true"] {
+  color: var(--cor-tinta);
+  background: color-mix(in oklab, var(--cor-tinta) 8%, transparent);
+}
+
+.sc-dados__rodape-nota {
+  opacity: 0.85;
+}
+
+.sc-dados__gaveta {
+  position: fixed;
+  inset: auto var(--dados-respiro) var(--dados-respiro) auto;
+  inline-size: min(26rem, calc(100vw - 2 * var(--dados-respiro)));
+  max-block-size: min(32rem, calc(100svh - 7rem));
+  margin: 0;
+  padding: 1.25rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 70%);
+}
+
+.sc-dados__gaveta:popover-open {
+  display: grid;
+  gap: 1rem;
+}
+
+.sc-dados__gaveta::backdrop {
+  background: rgb(0 0 0 / 35%);
+}
+
+.sc-dados__gaveta-cabeca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sc-dados__gaveta-titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+}
+
+.sc-dados__fechar {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  margin: -0.625rem -0.625rem -0.625rem 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+}
+
+.sc-dados__fechar:hover {
+  color: var(--cor-tinta);
+  background: color-mix(in oklab, var(--cor-tinta) 8%, transparent);
+}
+
+.sc-dados__lista-de-fontes {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--texto-xs);
+}
+
+.sc-dados__lista-de-fontes li {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.sc-dados__lista-de-fontes a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  color: var(--cor-tinta);
+  text-decoration: none;
+  line-height: 1.4;
+  border-radius: 4px;
+}
+
+.sc-dados__lista-de-fontes a svg {
+  flex: none;
+  transform: translateY(1px);
+  color: var(--marca-verde-click);
+}
+
+.sc-dados__lista-de-fontes a:hover span {
+  color: var(--marca-verde-click);
+}
+
+.sc-dados__data {
+  padding-inline-start: 1.0625rem;
+  font-size: 0.6875rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dados__metodologia {
+  display: grid;
+  gap: 0.5rem;
+  padding-block-start: 0.875rem;
+  border-block-start: 1px solid var(--cor-borda);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-dados__metodologia p {
+  margin: 0;
+}
+
+/* --- a partir de 30rem ------------------------------------------------------ */
+
+@media (min-width: 30rem) {
+  .sc-prova__rosca-corpo,
+  .sc-prova__quadros-corpo {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: stretch;
+  }
+
+  .sc-dados__convite {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+/* --- a partir de 48rem (tablet): telas na altura da janela ------------------ */
+
+@media (min-width: 48rem) {
+  .sc-dados__tela {
+    min-block-size: var(--dados-tela);
+    padding-block: 0.5rem;
+  }
+
+  /* Dois por linha no tablet; os quatro lado a lado a partir de 64rem. */
+  .sc-dados__cartoes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sc-prova-conta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sc-prova-conta__comparativo {
+    grid-column: 1 / -1;
+  }
+
+  .sc-prova__par {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- a partir de 64rem: o leque, a conta em três colunas, ações ao lado ----- */
+
+@media (min-width: 64rem) {
+  .sc-dados__cabeca--com-acoes {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 1.5rem 3rem;
+    max-inline-size: none;
+  }
+
+  .sc-dados__acoes {
+    justify-content: flex-end;
+  }
+
+  .sc-dados__cartoes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sc-prova-conta {
+    grid-template-columns: minmax(0, 0.74fr) minmax(0, 1.18fr) minmax(0, 1.08fr);
+  }
+
+  .sc-prova-conta__nome {
+    font-size: 0.8125rem;
+  }
+
+  .sc-prova-conta__comparativo {
+    grid-column: auto;
+  }
+
+  .sc-prova-conta__conclusao .sc-lp-botao {
+    padding-inline: 1rem 1.125rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Tela baixa (notebook de 768px, tablet deitado): menos respiro, mesma ordem. */
+@media (min-width: 48rem) and (max-height: 50rem) {
+  .sc-dados__dentro {
+    gap: 0.875rem;
+  }
+
+  .sc-dados__titulo {
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 2.75rem);
+  }
+
+  .sc-dados__titulo--tela {
+    font-size: clamp(1.625rem, 1.1rem + 1.6vw, 2.125rem);
+  }
+
+  .sc-dados__cabeca,
+  .sc-dados__cabeca-texto {
+    gap: 0.5rem;
+  }
+
+  .sc-prova-conta__entradas,
+  .sc-prova-conta__resultado,
+  .sc-prova__grafico {
+    gap: 0.875rem;
+    padding: 1.125rem 1.25rem;
+  }
+
+  .sc-prova-conta__conclusao {
+    gap: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  /* O detalhe de cada taxa e a nota da estimativa continuam na tabela do
+     leitor de tela e na gaveta "Fontes e metodologia"; na tela baixa o gráfico
+     mostra só nome e valor. */
+  .sc-prova__barra-nome span,
+  .sc-prova-conta__nota {
+    display: none;
+  }
+
+  .sc-prova-conta__total {
+    font-size: clamp(2.25rem, 1.8rem + 1.6vw, 3rem);
+  }
+
+  .sc-prova__grafico-texto {
+    font-size: var(--texto-xs);
+  }
+}
+
+/* Abaixo de 600px de altura a tela deixa de ter altura: cresce com o conteúdo. */
+@media (max-height: 37.5rem) {
+  .sc-dados__tela {
+    min-block-size: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-prova-conta__barra {
+    transition: transform 300ms var(--dados-curva);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-dado3d,
+  .sc-dado3d__conteudo,
+  .sc-dado3d__conteudo > *,
+  .sc-dado3d__brilho,
+  .sc-dado3d__sombra {
+    transform: none;
+    transition: none;
+  }
+
+  .sc-dado3d__sombra,
+  .sc-dado3d__brilho {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .sc-prova__segmento,
+  .sc-prova__amostra,
+  .sc-prova__celula[data-serie],
+  .sc-prova-conta__barra,
+  .sc-dado3d__mini-trilho > span,
+  .sc-dado3d__mini-grade > span {
+    forced-color-adjust: none;
+  }
+
+  .sc-dado3d__placa {
+    border-color: CanvasText;
+  }
+}

@@ -29,6 +29,7 @@ import {
 import { Aviso, Botao, Campo, Erro, Sucesso } from "@simpleclick/ui";
 import { useState, type FormEvent } from "react";
 
+import { INFO_DA_EXCLUSAO } from "./explicacoes.ts";
 import { momentoNaTela } from "./trilha-na-tela.ts";
 
 /** Os atos desta seção. */
@@ -142,9 +143,19 @@ export interface AcoesLojaProps {
   readonly aoMudar: (ficha: FichaDaLojaNoContrato) => void;
   /** O relógio, para saber se o prazo de restauração já venceu. */
   readonly agora?: () => Date;
+  /**
+   * Esconde suspender e reativar: na ficha nova, quem liga e desliga a loja é
+   * o cabeçalho (Ativar e Desativar), e aqui sobram só excluir e restaurar.
+   */
+  readonly somenteExclusao?: boolean;
 }
 
-export function AcoesLoja({ ficha, aoMudar, agora }: AcoesLojaProps) {
+export function AcoesLoja({
+  ficha,
+  aoMudar,
+  agora,
+  somenteExclusao = false,
+}: AcoesLojaProps) {
   const [passo, setPasso] = useState<Passo>({ fase: "parado" });
   const [motivo, setMotivo] = useState("");
   const [erroDoMotivo, setErroDoMotivo] = useState<string | undefined>();
@@ -231,13 +242,14 @@ export function AcoesLoja({ ficha, aoMudar, agora }: AcoesLojaProps) {
             id="ficha-confirmacao-da-exclusao"
             rotulo="Para confirmar, digite o nome da loja"
             dica={`Digite exatamente: ${ficha.nome}`}
+            info={INFO_DA_EXCLUSAO}
             className="mt-4"
             autoComplete="off"
             value={confirmacao}
             onChange={(evento) => setConfirmacao(evento.target.value)}
           />
         )}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-3">
           <Botao
             variante={ato === "excluir" ? "perigo" : "primaria"}
             carregando={enviando}
@@ -333,7 +345,9 @@ export function AcoesLoja({ ficha, aoMudar, agora }: AcoesLojaProps) {
     <div className="grid gap-6">
       {retorno}
 
-      {ficha.status === "SUSPENDED" ? (
+      {!somenteExclusao && (
+        <>
+      {ficha.status === "INACTIVE" ? (
         <div>
           <Aviso
             tom="atencao"
@@ -370,17 +384,17 @@ export function AcoesLoja({ ficha, aoMudar, agora }: AcoesLojaProps) {
           noValidate
           onSubmit={aoPedirSuspensao}
           aria-label="Suspensão da loja"
-          className="grid gap-3"
+          className="grid gap-4"
         >
           <p>
-            {ficha.status === "PENDING"
+            {ficha.status === "PENDING_APPROVAL"
               ? "A loja ainda não foi publicada."
               : "A loja está no ar."}
           </p>
           <Campo
             id="ficha-motivo-da-suspensao"
             rotulo="Motivo da suspensão"
-            dica="O dono lê este motivo ao entrar no painel. Nada é apagado."
+            dica="De 3 a 500 caracteres. O dono lê este motivo ao entrar no painel. Nada é apagado."
             erro={erroDoMotivo}
             controle={
               <textarea
@@ -422,7 +436,10 @@ export function AcoesLoja({ ficha, aoMudar, agora }: AcoesLojaProps) {
         </form>
       )}
 
-      <section aria-labelledby="ficha-exclusao" className="grid gap-3">
+        </>
+      )}
+
+      <section aria-labelledby="ficha-exclusao" className="grid gap-4">
         <h3 id="ficha-exclusao" className="text-lg font-semibold">
           Excluir a loja
         </h3>

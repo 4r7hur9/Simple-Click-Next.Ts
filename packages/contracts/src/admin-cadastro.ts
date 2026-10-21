@@ -20,11 +20,7 @@ import {
 /** Minúsculas, números e hífen no meio, de 2 a 63 caracteres (rótulo de DNS). */
 export const FORMATO_DO_APELIDO = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
 
-/**
- * Nomes que pertencem à plataforma e nunca viram loja. Sem esta lista, quem
- * cadastrasse a loja "admin" passaria a receber o tráfego da administração —
- * é a mesma lista que o site usa para ler o endereço (`lib/host-loja.ts`).
- */
+/** Nomes que a plataforma reserva para si e que nunca viram apelido de loja. */
 export const APELIDOS_RESERVADOS: readonly string[] = [
   "www",
   "app",
@@ -34,7 +30,9 @@ export const APELIDOS_RESERVADOS: readonly string[] = [
   "static",
   "cdn",
   "mail",
-  "l",
+  "loja",
+  "conta",
+  "explorar",
   "entrar",
   "imprimir",
 ];
@@ -178,11 +176,22 @@ export const esquemaDaNovaLoja = z.strictObject({
 export type NovaLojaNoContrato = z.output<typeof esquemaDaNovaLoja>;
 export type NovaLojaEnviada = z.input<typeof esquemaDaNovaLoja>;
 
-/** Situações de uma loja, na língua de quem administra. */
+/**
+ * Situações de uma loja, na língua de quem administra (card #25):
+ *
+ * - `PENDING_APPROVAL` loja nova, aguardando a aprovação da administração;
+ *   não aparece na vitrine nem no feed.
+ * - `ACTIVE` aprovada e no ar.
+ * - `REJECTED` recusada, com motivo.
+ * - `INACTIVE` desativada pela administração: fora da vitrine e do feed, sem
+ *   pedido novo (quem já pediu continua acompanhando).
+ * - `DELETED` excluída, restaurável por prazo.
+ */
 export const SITUACOES_DA_LOJA = [
-  "PENDING",
+  "PENDING_APPROVAL",
   "ACTIVE",
-  "SUSPENDED",
+  "REJECTED",
+  "INACTIVE",
   "DELETED",
 ] as const;
 
@@ -236,8 +245,9 @@ export type SituacaoDaLoja = (typeof SITUACOES_DA_LOJA)[number];
 
 /** Como cada situação se chama na tela da administração. */
 export const ROTULOS_DAS_SITUACOES: Readonly<Record<SituacaoDaLoja, string>> = {
-  PENDING: "Pendente",
+  PENDING_APPROVAL: "Aguardando aprovação",
   ACTIVE: "Ativa",
-  SUSPENDED: "Suspensa",
+  REJECTED: "Recusada",
+  INACTIVE: "Desativada",
   DELETED: "Excluída",
 };

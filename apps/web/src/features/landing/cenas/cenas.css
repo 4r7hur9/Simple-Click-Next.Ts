@@ -1,0 +1,995 @@
+/*
+ * As cenas da landing: aparelhos com telas reais e o produto como fio da
+ * história. Só a página inicial importa esta folha. Cor só de theme.css (a
+ * landing inteira é `data-tema="escuro"`); espaços em múltiplos de 8.
+ *
+ * DOIS MODOS, o mesmo HTML (cenas/Cenas.tsx):
+ *
+ * - MODO SLIDE (com script, com movimento e tela de pelo menos 560px de
+ *   altura): a narrativa ocupa `--cenas` alturas de palco; o palco gruda na
+ *   tela e as cenas ficam empilhadas DENTRO dele, cada uma do tamanho exato
+ *   da tela, com o conteúdo centrado. Só a primeira aparece; a narrativa
+ *   (NarrativaDaLanding) troca as outras. Vale desde o primeiro quadro, por
+ *   `@media (scripting: enabled)`, então não há salto quando o script chega.
+ * - MODO COMUM (sem script, movimento reduzido, tela baixa, ou quando o
+ *   script põe `data-modo="fluxo"` porque o texto não coube): as cenas são
+ *   blocos, um embaixo do outro, cada um com a sua figura.
+ *
+ * Do menor para o maior: o modo comum é a base; o slide acrescenta.
+ */
+
+.sc-lp {
+  --lp-topo: 4rem;
+  --lp-grade: var(--lp-largura);
+  --lp-metal-claro: color-mix(in oklab, var(--marca-cinza-ui) 62%, var(--marca-grafite));
+  --lp-metal: color-mix(in oklab, var(--marca-cinza-ui) 22%, var(--marca-grafite));
+  --lp-preto: var(--marca-preto-tecnologico);
+  --lp-luz: color-mix(in oklab, var(--marca-verde-click) 12%, transparent);
+  --lp-luz-fria: color-mix(in oklab, var(--marca-cinza-ui) 9%, transparent);
+  /* Grão de filme: ruído SVG estático, tira o degradê "em degraus" do escuro. */
+  --lp-grao: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* A curva das trocas de cena (a mesma do GSAP: power3.inOut). */
+  --lp-curva: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* --- a narrativa (modo comum) ---------------------------------------------- */
+
+.sc-lp-narrativa {
+  position: relative;
+  isolation: isolate;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+}
+
+.sc-lp-narrativa__palco {
+  position: relative;
+  overflow: clip;
+}
+
+/* O fundo: grade de linhas (herói), duas luzes e o grão. Nunca atrás do texto. */
+.sc-lp-narrativa__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc-lp-narrativa__fundo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--lp-grao);
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+.sc-lp-narrativa__linhas {
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: min(100svh, 60rem);
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--cor-tinta) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--cor-tinta) 6%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 40%, black, transparent 75%);
+}
+
+/* As luzes: o script as leva de um ponto a outro do palco a cada cena. */
+.sc-lp-narrativa__luz {
+  position: absolute;
+  inset-block-start: -12rem;
+  inset-inline-start: 50%;
+  inline-size: 56rem;
+  aspect-ratio: 5 / 4;
+  margin-inline-start: -28rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--lp-luz), transparent);
+}
+
+.sc-lp-narrativa__luz--fria {
+  display: none;
+  background: radial-gradient(closest-side, var(--lp-luz-fria), transparent);
+}
+
+.sc-lp-narrativa__grade {
+  position: relative;
+  max-inline-size: var(--lp-grade);
+  margin-inline: auto;
+  padding-inline: var(--lp-respiro);
+}
+
+/* O palco e o indicador só existem no modo slide. */
+.sc-lp-narrativa__aparelhos,
+.sc-lp-indicador {
+  display: none;
+}
+
+.sc-lp-momento {
+  display: grid;
+  gap: 48px;
+  padding-block: 64px;
+}
+
+.sc-lp-momento:first-child,
+.sc-lp-momento[data-cena="0"] {
+  padding-block-start: 48px;
+}
+
+.sc-lp-momento__texto {
+  max-inline-size: 36rem;
+}
+
+.sc-lp-momento__figura {
+  display: grid;
+  justify-items: center;
+  padding-block-end: 16px;
+}
+
+/* Modo comum no computador: texto e figura lado a lado, sem altura forçada. */
+@media (min-width: 900px) {
+  .sc-lp-momento {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    align-items: center;
+    column-gap: 32px;
+    padding-block: 96px;
+  }
+
+  .sc-lp-momento--largo {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  }
+
+  .sc-lp-momento[data-cena="0"] {
+    padding-block-start: 64px;
+  }
+}
+
+/* --- tipografia ----------------------------------------------------------- */
+
+.sc-lp-heroi__titulo,
+.sc-lp-momento__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.sc-lp-heroi__titulo {
+  font-size: clamp(3rem, 1.6rem + 4.4vw, 5.25rem);
+  line-height: 0.96;
+}
+
+.sc-lp-heroi__texto,
+.sc-lp-momento__texto-corrido {
+  max-inline-size: 34rem;
+  margin: 24px 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.sc-lp-heroi__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-block-start: 40px;
+}
+
+.sc-lp-heroi__acoes .sc-lp-botao {
+  min-block-size: 3.25rem;
+}
+
+.sc-lp-heroi__garantias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 32px 0 0;
+  padding: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  list-style: none;
+}
+
+.sc-lp-heroi__garantias li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sc-lp-heroi__garantias svg {
+  color: var(--marca-verde-click);
+}
+
+.sc-lp-momento__sobrancelha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sc-lp-momento__sobrancelha span {
+  color: var(--cor-tinta);
+  letter-spacing: 0.04em;
+}
+
+.sc-lp-momento__titulo {
+  font-size: clamp(2.25rem, 1.3rem + 3.6vw, 4rem);
+  line-height: 1;
+}
+
+.sc-lp-momento__titulo--grande {
+  font-size: clamp(3rem, 1.8rem + 3.6vw, 5rem);
+  line-height: 0.95;
+}
+
+.sc-lp-etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: etapa;
+}
+
+.sc-lp-etapas li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 2.75rem;
+  padding: 0 16px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  counter-increment: etapa;
+  transition:
+    color 240ms ease,
+    border-color 240ms ease,
+    background-color 240ms ease;
+}
+
+.sc-lp-etapas li::before {
+  content: counter(etapa);
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+}
+
+.sc-lp-etapas li[data-ativa] {
+  border-color: color-mix(in oklab, var(--marca-verde-click) 60%, transparent);
+  background: color-mix(in oklab, var(--marca-verde-click) 8%, transparent);
+  color: var(--cor-tinta);
+}
+
+/* O título do herói: uma linha por frase, cada uma atrás de uma máscara. */
+.sc-lp-linha {
+  display: block;
+  overflow: clip;
+  padding-block-end: 0.1em;
+  margin-block-end: -0.1em;
+}
+
+.sc-lp-linha > span {
+  display: block;
+}
+
+/* As linhas que o script divide (SplitText): a máscara não corta o "ç" nem o "g". */
+.sc-lp-linha-dividida-mask {
+  padding-block-end: 0.14em;
+  margin-block-end: -0.14em;
+}
+
+/* --- o celular -------------------------------------------------------------- */
+
+.sc-lp-celular {
+  --l: var(--largura-do-celular, min(64vw, 18.75rem));
+  position: relative;
+  inline-size: var(--l);
+  padding: calc(var(--l) * 0.024);
+  border-radius: calc(var(--l) * 0.17);
+  /* Titânio escuro: o chanfro claro nos cantos é a luz do estúdio batendo. */
+  background: linear-gradient(
+    135deg,
+    var(--lp-metal-claro) 0%,
+    var(--lp-metal) 9%,
+    var(--lp-preto) 32%,
+    var(--lp-preto) 68%,
+    var(--lp-metal) 91%,
+    var(--lp-metal-claro) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--marca-branco) 16%, transparent),
+    inset 0 1px 1px color-mix(in oklab, var(--marca-branco) 28%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--lp-preto) 80%, transparent),
+    0 48px 96px -36px color-mix(in oklab, var(--lp-preto) 92%, transparent),
+    0 24px 140px -24px color-mix(in oklab, var(--marca-verde-click) 9%, transparent);
+}
+
+/* Sombra de contato: a mesa embaixo do aparelho. */
+.sc-lp-celular::after {
+  content: "";
+  position: absolute;
+  inset: auto 12% -5% 12%;
+  z-index: -1;
+  block-size: 7%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lp-preto) 85%, transparent), transparent);
+  filter: blur(10px);
+}
+
+.sc-lp-celular__vidro {
+  padding: calc(var(--l) * 0.022);
+  border-radius: calc(var(--l) * 0.148);
+  background: var(--lp-preto);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--marca-branco) 7%, transparent);
+}
+
+.sc-lp-celular__botao {
+  position: absolute;
+  inline-size: calc(var(--l) * 0.012 + 1px);
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--lp-metal), var(--lp-metal-claro), var(--lp-metal));
+}
+
+.sc-lp-celular__botao--energia {
+  inset-block-start: 24%;
+  inset-inline-end: calc(var(--l) * -0.011);
+  block-size: 11%;
+}
+
+.sc-lp-celular__botao--volume {
+  inset-block-start: 20%;
+  inset-inline-start: calc(var(--l) * -0.011);
+  block-size: 15%;
+  /* Dois botões de volume numa peça só: o vão no meio é o fundo aparecendo. */
+  mask-image: linear-gradient(to bottom, black 46%, transparent 46%, transparent 54%, black 54%);
+}
+
+.sc-lp-tela {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 390 / 844;
+  border-radius: calc(var(--l) * 0.126);
+  background: var(--lp-preto);
+}
+
+.sc-lp-tela__imagem {
+  position: absolute;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* Só a primeira tela aparece; a narrativa troca as outras. */
+.sc-lp-tela__imagem:not([data-indice="0"]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.sc-lp-celular__camera {
+  position: absolute;
+  inset-block-start: 1.7%;
+  inset-inline-start: 50%;
+  inline-size: calc(var(--l) * 0.034);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in oklab, var(--marca-cinza-ui) 30%, var(--lp-preto)) 0 18%,
+    var(--lp-preto) 40%
+  );
+  box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--marca-branco) 6%, transparent);
+  transform: translateX(-50%);
+}
+
+/* O vidro: um reflexo diagonal muito leve, como luz de janela no estúdio. */
+.sc-lp-celular__reflexo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    118deg,
+    color-mix(in oklab, var(--marca-branco) 9%, transparent) 0%,
+    color-mix(in oklab, var(--marca-branco) 3%, transparent) 24%,
+    transparent 24.5%
+  );
+  pointer-events: none;
+}
+
+/* --- o notebook ---------------------------------------------------------------- */
+
+.sc-lp-notebook {
+  --l: 100%;
+  position: relative;
+  inline-size: min(100%, 52rem);
+  margin-inline: auto;
+  perspective: 2400px;
+}
+
+.sc-lp-notebook__tampa {
+  position: relative;
+  padding: 1.6% 1.6% 2.4%;
+  border-radius: 18px 18px 6px 6px;
+  background: var(--lp-preto);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--marca-branco) 12%, transparent),
+    0 0 0 1px var(--lp-metal),
+    0 0 0 2px color-mix(in oklab, var(--lp-preto) 70%, transparent);
+  transform-origin: 50% 100%;
+}
+
+.sc-lp-notebook__camera {
+  position: absolute;
+  inset-block-start: 0.6%;
+  inset-inline-start: 50%;
+  inline-size: 6px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--marca-cinza-ui) 25%, var(--lp-preto));
+  transform: translateX(-50%);
+}
+
+.sc-lp-tela--larga {
+  aspect-ratio: 1800 / 1125;
+  border-radius: 4px;
+}
+
+.sc-lp-notebook__base {
+  position: relative;
+  block-size: 0;
+  margin-inline: -7%;
+  padding-block-end: 3%;
+  border-radius: 0 0 40% 40% / 0 0 100% 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--lp-metal-claro) 0%,
+    var(--lp-metal) 30%,
+    color-mix(in oklab, var(--lp-metal) 60%, var(--lp-preto)) 100%
+  );
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--marca-branco) 10%, transparent) inset;
+}
+
+/* O vão para abrir a tampa com o dedo. */
+.sc-lp-notebook__base::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  inline-size: 14%;
+  block-size: 38%;
+  border-radius: 0 0 12px 12px;
+  background: color-mix(in oklab, var(--lp-metal) 50%, var(--lp-preto));
+  transform: translateX(-50%);
+}
+
+.sc-lp-notebook__base::after {
+  content: "";
+  position: absolute;
+  inset: auto 6% -120% 6%;
+  z-index: -1;
+  block-size: 160%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--lp-preto) 90%, transparent), transparent);
+  filter: blur(12px);
+}
+
+/* --- o produto (foto real recortada) ------------------------------------------- */
+
+.sc-lp-produto {
+  position: relative;
+  pointer-events: none;
+}
+
+.sc-lp-produto__foto {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  /* Um contorno de luz verde quase imperceptível: o único acento no produto. */
+  filter: drop-shadow(0 0 28px color-mix(in oklab, var(--marca-verde-click) 16%, transparent));
+}
+
+.sc-lp-produto__sombra {
+  position: absolute;
+  inset-inline: -8%;
+  inset-block-end: -9%;
+  display: block;
+  inline-size: 116%;
+  block-size: auto;
+  opacity: 0.95;
+}
+
+/* Composição: o celular e, à frente dele, o produto. */
+.sc-lp-composicao {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  padding-block: 8px 32px;
+}
+
+.sc-lp-composicao .sc-lp-produto {
+  position: absolute;
+  inset-block-end: 6%;
+  inset-inline-start: max(0px, calc(50% - var(--l-do-celular, min(64vw, 18.75rem)) * 0.8));
+  inline-size: calc(var(--l-do-celular, min(64vw, 18.75rem)) * 0.8);
+}
+
+.sc-lp-par {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  --largura-do-celular: min(42vw, 15rem);
+}
+
+/* Celular empilhado: aparelho a ~64% da largura, centrado. */
+.sc-lp-momento__figura .sc-lp-composicao {
+  --largura-do-celular: min(64vw, 18.75rem);
+  --l-do-celular: min(64vw, 18.75rem);
+}
+
+/* O produto só encosta na quina de baixo do aparelho: não cobre botão nem texto. */
+.sc-lp-momento__figura .sc-lp-composicao .sc-lp-produto {
+  inset-block-end: 0;
+  inset-inline-start: max(0px, calc(50% - var(--l-do-celular) * 0.92));
+  inline-size: calc(var(--l-do-celular) * 0.56);
+}
+
+/* O herói é a exceção: o hambúrguer grande à frente do aparelho é a assinatura. */
+.sc-lp-momento[data-cena="0"] .sc-lp-composicao .sc-lp-produto {
+  inset-block-end: 6%;
+  inset-inline-start: max(0px, calc(50% - var(--l-do-celular) * 0.8));
+  inline-size: calc(var(--l-do-celular) * 0.8);
+}
+
+/* --- tablet: figuras maiores, ainda empilhadas ------------------------------------ */
+
+@media (min-width: 600px) {
+  .sc-lp-momento__figura .sc-lp-composicao {
+    --largura-do-celular: 18.75rem;
+    --l-do-celular: 18.75rem;
+  }
+
+  .sc-lp-par {
+    --largura-do-celular: 15rem;
+  }
+}
+
+
+/* --- modo slide: o palco ------------------------------------------------------------ */
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 560px) {
+  .sc-lp-narrativa:not([data-modo="fluxo"]) {
+    /* Uma cena = a tela menos o topo (que gruda por cima, com a borda). */
+    --lp-palco: calc(100svh - var(--lp-topo) - 1px);
+    /* Onde o aparelho começa, no celular, antes do script encostá-lo no texto. */
+    --lp-divisa: 60%;
+    block-size: calc(var(--cenas) * var(--lp-palco));
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__palco {
+    position: sticky;
+    inset-block-start: calc(var(--lp-topo) + 1px);
+    block-size: var(--lp-palco);
+  }
+
+  /* As luzes começam onde o herói as quer (LUZES[0] em cenas-em-slide.ts);
+     o script só as desloca (transform) de uma cena para outra. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__luz {
+    inset-block-start: 28%;
+    inset-inline-start: 72%;
+    margin: 0;
+    translate: -50% -50%;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__luz--fria {
+    display: block;
+    inset-block-start: 92%;
+    inset-inline-start: 12%;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__grade {
+    block-size: 100%;
+    /* Folga à direita para o indicador de cenas. */
+    padding-inline-end: max(var(--lp-respiro), 3rem);
+  }
+
+  /* Cada cena ocupa o palco inteiro, empilhada sobre as outras. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento {
+    position: absolute;
+    inset: 0 max(var(--lp-respiro), 3rem) 0 var(--lp-respiro);
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 0;
+    padding-block: clamp(16px, 3.5svh, 40px) 0;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento:not([data-cena="0"]) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* No celular o texto fica em cima e o aparelho aparece embaixo dele, cortado
+     pela borda: o texto pode ocupar até 70% do palco. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__texto {
+    max-block-size: calc(var(--lp-palco) * 0.7 - 16px);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__figura {
+    display: none;
+  }
+
+  /* O texto do celular, mais justo: precisa caber acima do aparelho. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__titulo {
+    font-size: clamp(2.25rem, 1.2rem + 4.4vw, 5.25rem);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__titulo {
+    font-size: clamp(2rem, 1.1rem + 3.6vw, 4rem);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__titulo--grande {
+    font-size: clamp(2.5rem, 1.4rem + 3.6vw, 5rem);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__texto,
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__texto-corrido {
+    margin-block-start: clamp(12px, 2svh, 24px);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__acoes {
+    margin-block-start: clamp(16px, 3svh, 40px);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__garantias {
+    gap: 4px 16px;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__garantias,
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-etapas {
+    margin-block-start: clamp(12px, 2.5svh, 32px);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__sobrancelha {
+    margin-block-end: clamp(12px, 2svh, 24px);
+  }
+
+  /* Os aparelhos: uma camada só, embaixo do texto, que nunca recebe clique. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__aparelhos {
+    position: absolute;
+    inset: var(--lp-divisa) max(var(--lp-respiro), 3rem) 0 var(--lp-respiro);
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    pointer-events: none;
+  }
+
+  .sc-lp-narrativa__vaga {
+    grid-area: 1 / 1;
+    display: grid;
+    justify-items: center;
+    align-items: start;
+    container-type: inline-size;
+  }
+
+  /* No celular o aparelho sobe da borda de baixo, cortado por ela. */
+  .sc-lp-composicao--palco {
+    --largura-do-celular: min(66cqi, 18rem);
+    --l-do-celular: min(66cqi, 18rem);
+    justify-items: center;
+    padding: 0;
+  }
+
+  .sc-lp-composicao--palco .sc-lp-produto {
+    inset-block: 6% auto;
+    inset-inline-start: max(-4%, calc(50% - var(--l-do-celular) * 0.95));
+    inline-size: calc(var(--l-do-celular) * 0.62);
+  }
+
+  .sc-lp-composicao--palco .sc-lp-produto--peca {
+    inline-size: calc(var(--l-do-celular) * 0.56);
+  }
+
+  .sc-lp-notebook--palco {
+    inline-size: min(96cqi, 40rem);
+  }
+
+  /* Até a narrativa trocar: só o herói, o celular com a primeira tela. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-produto--ramo,
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__vaga--notebook {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* --- o indicador de cenas --- */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-indicador {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: max(4px, env(safe-area-inset-right));
+    z-index: 3;
+    display: grid;
+    justify-items: center;
+    translate: 0 -50%;
+  }
+
+  .sc-lp-indicador__lista {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sc-lp-indicador__trilho {
+    position: absolute;
+    inset-block: 22px;
+    inset-inline-start: 50%;
+    inline-size: 2px;
+    margin-inline-start: -1px;
+    border-radius: 1px;
+    background: color-mix(in oklab, var(--cor-tinta) 14%, transparent);
+  }
+
+  .sc-lp-indicador__progresso {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--marca-verde-click);
+    transform: scaleY(0);
+    transform-origin: 50% 0;
+    transition: transform 1s var(--lp-curva);
+  }
+
+  /* Alvo de toque de 44px; a bolinha é só o desenho no meio dele. */
+  .sc-lp-indicador__ponto {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--raio-completo);
+    color: var(--cor-tinta);
+    text-decoration: none;
+  }
+
+  .sc-lp-indicador__ponto::before {
+    content: "";
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 50%;
+    background: var(--cor-fundo);
+    box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--cor-tinta) 45%, transparent);
+    transition:
+      transform 400ms var(--lp-curva),
+      background-color 400ms var(--lp-curva),
+      box-shadow 400ms var(--lp-curva);
+  }
+
+  .sc-lp-indicador__ponto[aria-current]::before {
+    background: var(--marca-verde-click);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--marca-verde-click) 22%, transparent);
+    transform: scale(1.35);
+  }
+
+  .sc-lp-indicador__ponto:hover::before {
+    box-shadow: 0 0 0 1.5px var(--cor-tinta);
+  }
+
+  .sc-lp-indicador__ponto:focus-visible {
+    outline: 2px solid var(--marca-verde-click);
+    outline-offset: -4px;
+  }
+
+  /* O nome da cena aparece ao passar o mouse ou com o foco do teclado. */
+  .sc-lp-indicador__rotulo {
+    position: absolute;
+    inset-inline-end: calc(100% + 4px);
+    padding: 4px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-completo);
+    background: color-mix(in oklab, var(--cor-fundo) 88%, transparent);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-forte);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    opacity: 0;
+    translate: 8px 0;
+    pointer-events: none;
+    transition:
+      opacity 200ms ease,
+      translate 200ms ease;
+  }
+
+  .sc-lp-indicador__ponto:hover .sc-lp-indicador__rotulo,
+  .sc-lp-indicador__ponto:focus-visible .sc-lp-indicador__rotulo {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .sc-lp-indicador__contagem {
+    display: none;
+    margin: 8px 0 0;
+    color: var(--cor-tinta-suave);
+    font-family: var(--fonte-titulo);
+    font-size: var(--texto-xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+    writing-mode: vertical-rl;
+  }
+
+  .sc-lp-indicador__contagem [data-contagem] {
+    color: var(--cor-tinta);
+  }
+}
+
+/* --- modo slide no celular: o texto do herói, mais compacto ----------------------- */
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 560px) and (max-width: 899.98px) {
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__texto {
+    font-size: var(--texto-base);
+    line-height: 1.5;
+  }
+
+  /* "Ver como funciona" é o próprio arrastar: no palco do celular, sai. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__acoes .sc-lp-botao--fantasma {
+    display: none;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-heroi__garantias {
+    font-size: var(--texto-xs);
+  }
+
+  /* No celular quem navega é o dedo arrastando; as bolinhas são só o mapa.
+     Coluna mais curta (alvo de 32px, acima dos 24px do WCAG 2.2 AA) para não
+     pesar ao lado do texto e do aparelho. */
+  .sc-lp-indicador__ponto {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+
+  .sc-lp-indicador__trilho {
+    inset-block: 1rem;
+  }
+}
+
+/* --- modo slide no computador: texto à esquerda, aparelho à direita ---------------- */
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 560px) and (min-width: 900px) {
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__grade {
+    padding-inline-end: max(var(--lp-respiro), 4rem);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento,
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__aparelhos {
+    inset: 0 max(var(--lp-respiro), 4rem) 0 var(--lp-respiro);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento {
+    align-content: center;
+    align-items: center;
+    padding-block: 32px;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__texto {
+    grid-column: 1 / span 6;
+    max-block-size: none;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento--largo .sc-lp-momento__texto {
+    grid-column: 1 / span 4;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__aparelhos {
+    padding-block: clamp(24px, 5svh, 64px);
+  }
+
+  .sc-lp-narrativa__vaga {
+    align-items: center;
+    container-type: size;
+  }
+
+  .sc-lp-narrativa__vaga--celular {
+    grid-column: 7 / -1;
+  }
+
+  .sc-lp-narrativa__vaga--notebook {
+    grid-column: 5 / -1;
+  }
+
+  /* O aparelho cabe na altura do palco (o celular tem ~2,3 larguras de altura). */
+  .sc-lp-composicao--palco {
+    --largura-do-celular: min(72cqi, 41cqb, 20.5rem);
+    --l-do-celular: min(72cqi, 41cqb, 20.5rem);
+    justify-items: end;
+  }
+
+  /* O produto fica À FRENTE do aparelho, mas só encosta na borda dele (~14%
+     da largura): a tela do app continua inteira à vista, com o botão
+     "Ver o cardápio" e o rodapé de "Adicionar à sacola" livres. */
+  .sc-lp-composicao--palco .sc-lp-produto {
+    inset-block: auto 4%;
+    inset-inline-start: auto;
+    inset-inline-end: calc(var(--l-do-celular) * 0.86);
+    /* Nunca passa para a coluna do texto (a vaga é o contêiner: 100cqi). */
+    inline-size: min(var(--l-do-celular), calc(100cqi - var(--l-do-celular) * 0.86));
+  }
+
+  .sc-lp-composicao--palco .sc-lp-produto--peca {
+    inline-size: min(calc(var(--l-do-celular) * 0.92), calc(100cqi - var(--l-do-celular) * 0.86));
+  }
+
+  .sc-lp-notebook--palco {
+    inline-size: min(100cqi, 140cqb, 56rem);
+  }
+
+  /* Sem a sobra lateral da grade (até 1280px), a base do notebook (7% mais
+     larga que a tampa de cada lado) entraria embaixo do indicador de cenas. */
+  @media (max-width: 1279.98px) {
+    .sc-lp-notebook--palco {
+      inline-size: min(87cqi, 140cqb, 56rem);
+    }
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-indicador__contagem {
+    display: block;
+  }
+}
+
+/* --- entrada do herói (CSS: chega antes de qualquer script) ------------------------- */
+
+@keyframes sc-lp-linha-sobe {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+@keyframes sc-lp-produto-chega {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-lp-revelar-linhas .sc-lp-linha > span {
+    animation: sc-lp-linha-sobe 900ms cubic-bezier(0.2, 0.75, 0.15, 1) both;
+  }
+
+  .sc-lp-revelar-linhas .sc-lp-linha:nth-child(2) > span {
+    animation-delay: 90ms;
+  }
+
+  .sc-lp-revelar-linhas .sc-lp-linha:nth-child(3) > span {
+    animation-delay: 180ms;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-momento__texto > :not(h1) {
+    animation: sc-lp-surgir 700ms 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sc-lp-momento[data-cena="0"] .sc-lp-produto,
+  .sc-lp-produto--voa {
+    animation: sc-lp-produto-chega 1100ms 250ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+/* A cena recebe o foco quando uma âncora a chama; o contorno seria o palco inteiro. */
+.sc-lp-momento:focus {
+  outline: none;
+}

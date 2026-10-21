@@ -27,6 +27,8 @@
 import {
   confirmacaoConfere,
   DIAS_DE_RETENCAO_DA_LOJA_EXCLUIDA,
+  TRANSICOES_DA_LOJA,
+  type AtoDaAprovacao,
   type SituacaoDaLoja,
 } from "@simpleclick/contracts";
 
@@ -43,7 +45,7 @@ export interface SituacaoGravada {
   readonly removerApos: Date | null;
 }
 
-/** A suspensão em curso, como a trilha a registrou. */
+/** A desativação (ou suspensão) em curso, como a trilha a registrou. */
 export interface SuspensaoRegistrada {
   readonly desde: Date;
   readonly motivo: string;
@@ -51,7 +53,20 @@ export interface SuspensaoRegistrada {
 
 /** Os atos que estes casos de uso registram na trilha. */
 export type AtoDeSituacao =
-  "LOJA_SUSPENSA" | "LOJA_REATIVADA" | "LOJA_EXCLUIDA" | "LOJA_RESTAURADA";
+  | "LOJA_APROVADA"
+  | "LOJA_RECUSADA"
+  | "LOJA_ATIVADA"
+  | "LOJA_DESATIVADA"
+  | "LOJA_EXCLUIDA"
+  | "LOJA_RESTAURADA";
+
+/** O ato da trilha de cada transição de aprovação (card #25). */
+export const ATO_DA_TRILHA: Readonly<Record<AtoDaAprovacao, AtoDeSituacao>> = {
+  aprovar: "LOJA_APROVADA",
+  recusar: "LOJA_RECUSADA",
+  ativar: "LOJA_ATIVADA",
+  desativar: "LOJA_DESATIVADA",
+};
 
 export interface RegistroDeSituacao {
   readonly lojaId: string;
@@ -65,11 +80,11 @@ export interface RegistroDeSituacao {
 export interface RepositorioDaSituacao {
   /** A situação atual, com a linha da loja TRAVADA. `null` se não existe. */
   lerSituacao(lojaId: string): Promise<SituacaoGravada | null>;
-  /** A suspensão em curso (o último `LOJA_SUSPENSA`), se houver. */
+  /** A desativação em curso (o último ato de desativar), se houver. */
   suspensaoEmCurso(lojaId: string): Promise<SuspensaoRegistrada | null>;
   /** A situação de antes da exclusão, como o `LOJA_EXCLUIDA` a guardou. */
   situacaoAntesDaExclusao(lojaId: string): Promise<SituacaoDaLoja | null>;
-  /** Troca só a situação: suspender e reativar. */
+  /** Troca só a situação. Ir para ACTIVE marca a primeira aprovação. */
   gravarStatus(
     lojaId: string,
     status: Exclude<SituacaoDaLoja, "DELETED">,
@@ -94,12 +109,22 @@ export interface RepositorioDaSituacao {
 type NaoEncontrada = { readonly ok: false; readonly motivo: "NAO_ENCONTRADA" };
 const NAO_ENCONTRADA: NaoEncontrada = { ok: false, motivo: "NAO_ENCONTRADA" };
 
-/** A loja excluída não é suspensa nem reativada: ela é RESTAURADA. */
+/** A loja excluída não muda de situação: ela é RESTAURADA. */
 type Excluida = { readonly ok: false; readonly motivo: "EXCLUIDA" };
 const EXCLUIDA: Excluida = { ok: false, motivo: "EXCLUIDA" };
 
+/** A transição não existe a partir da situação atual. */
+type TransicaoInvalida = {
+  readonly ok: false;
+  readonly motivo: "TRANSICAO_INVALIDA";
+  readonly status: SituacaoDaLoja;
+};
+
 export type ResultadoDaMudanca =
-  { readonly ok: true; readonly mudou: boolean } | NaoEncontrada | Excluida;
+  | { readonly ok: true; readonly mudou: boolean }
+  | NaoEncontrada
+  | Excluida
+  | TransicaoInvalida;
 
 export type ResultadoDaExclusao =
   | { readonly ok: true; readonly mudou: boolean }
@@ -112,61 +137,96 @@ export type ResultadoDaRestauracao =
   | { readonly ok: false; readonly motivo: "PRAZO_VENCIDO" };
 
 /**
- * Suspende a loja, com o motivo. A vitrine sai do ar; o dono, ao entrar, lê o
- * motivo (AC-209). Suspender a que já está suspensa não muda nada nem grava.
+ * Aprovar, recusar, ativar ou desativar a loja (card #25). A tabela de
+ * transições é a do contrato (`TRANSICOES_DA_LOJA`): fora dela, a resposta é
+ * `TRANSICAO_INVALIDA` e nada muda. Repetir o ato que já vale (aprovar a
+ * aprovada) não muda nada nem grava.
+ *
+ * O motivo vai para a trilha, de onde o dono o lê: obrigatório para recusar,
+ * opcional para desativar. Ativar a desativada guarda o PERÍODO inteiro da
+ * desativação (desde, até e por quê), como o AC-210 pede ao histórico.
  */
-export async function suspenderLoja(
-  lojaId: string,
-  motivo: string,
-  administradorId: string,
+export async function mudarSituacaoDaLoja(
+  ato: AtoDaAprovacao,
+  pedido: {
+    readonly lojaId: string;
+    readonly administradorId: string;
+    readonly motivo?: string | null | undefined;
+  },
   repositorio: RepositorioDaSituacao,
+  agora: Date,
 ): Promise<ResultadoDaMudanca> {
+  const { lojaId, administradorId } = pedido;
   const atual = await repositorio.lerSituacao(lojaId);
   if (atual === null) return NAO_ENCONTRADA;
   if (atual.status === "DELETED") return EXCLUIDA;
-  if (atual.status === "SUSPENDED") return { ok: true, mudou: false };
 
-  await repositorio.gravarStatus(lojaId, "SUSPENDED");
+  const transicao = TRANSICOES_DA_LOJA[ato];
+  if (atual.status === transicao.para) return { ok: true, mudou: false };
+  if (!transicao.de.includes(atual.status)) {
+    return { ok: false, motivo: "TRANSICAO_INVALIDA", status: atual.status };
+  }
+
+  const para = transicao.para as Exclude<SituacaoDaLoja, "DELETED">;
+  const desativacao =
+    ato === "ativar" ? await repositorio.suspensaoEmCurso(lojaId) : null;
+  await repositorio.gravarStatus(lojaId, para);
+
+  const motivo = pedido.motivo?.trim() || null;
   await repositorio.registrar({
     lojaId,
     atorId: administradorId,
-    acao: "LOJA_SUSPENSA",
+    acao: ATO_DA_TRILHA[ato],
     antes: { status: atual.status },
-    depois: { status: "SUSPENDED", motivo },
+    depois:
+      ato === "ativar"
+        ? {
+            status: para,
+            suspensaDesde: desativacao?.desde.toISOString() ?? null,
+            suspensaAte: agora.toISOString(),
+            motivo: desativacao?.motivo ?? null,
+          }
+        : { status: para, ...(motivo === null ? {} : { motivo }) },
   });
   return { ok: true, mudou: true };
 }
 
 /**
- * Reativa a loja suspensa: a vitrine volta com o mesmo catálogo, porque nada
- * foi tocado, e a trilha guarda o período inteiro da suspensão (AC-210).
+ * Suspende (desativa) a loja, com o motivo — o endereço antigo
+ * `PUT .../suspensao`. A vitrine sai do ar; o dono, ao entrar, lê o motivo
+ * (AC-209).
  */
-export async function reativarLoja(
+export function suspenderLoja(
+  lojaId: string,
+  motivo: string,
+  administradorId: string,
+  repositorio: RepositorioDaSituacao,
+): Promise<ResultadoDaMudanca> {
+  // Desativar não lê o relógio: só a ativação guarda o período.
+  return mudarSituacaoDaLoja(
+    "desativar",
+    { lojaId, administradorId, motivo },
+    repositorio,
+    new Date(),
+  );
+}
+
+/**
+ * Reativa a loja desativada — o endereço antigo `PUT .../reativacao`. A
+ * vitrine volta com o mesmo catálogo, porque nada foi tocado (AC-210).
+ */
+export function reativarLoja(
   lojaId: string,
   administradorId: string,
   repositorio: RepositorioDaSituacao,
   agora: Date,
 ): Promise<ResultadoDaMudanca> {
-  const atual = await repositorio.lerSituacao(lojaId);
-  if (atual === null) return NAO_ENCONTRADA;
-  if (atual.status === "DELETED") return EXCLUIDA;
-  if (atual.status !== "SUSPENDED") return { ok: true, mudou: false };
-
-  const suspensao = await repositorio.suspensaoEmCurso(lojaId);
-  await repositorio.gravarStatus(lojaId, "ACTIVE");
-  await repositorio.registrar({
-    lojaId,
-    atorId: administradorId,
-    acao: "LOJA_REATIVADA",
-    antes: { status: "SUSPENDED" },
-    depois: {
-      status: "ACTIVE",
-      suspensaDesde: suspensao?.desde.toISOString() ?? null,
-      suspensaAte: agora.toISOString(),
-      motivo: suspensao?.motivo ?? null,
-    },
-  });
-  return { ok: true, mudou: true };
+  return mudarSituacaoDaLoja(
+    "ativar",
+    { lojaId, administradorId },
+    repositorio,
+    agora,
+  );
 }
 
 /**

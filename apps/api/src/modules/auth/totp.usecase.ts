@@ -140,7 +140,7 @@ export function codigosTotpAceitos(
 
 export interface DecisaoDoSegundoFatorDoAdministrador {
   readonly status: "CONFIGURACAO_OBRIGATORIA" | "PODE_CONTINUAR";
-  readonly caminho?: "/minha-conta/seguranca/aplicativo";
+  readonly caminho?: "/conta/seguranca/aplicativo";
 }
 
 /** Administrador sem aplicativo nunca recebe uma rota alternativa por e-mail. */
@@ -151,7 +151,7 @@ export function decidirSegundoFatorObrigatorio(
   if (papel === "ADMINISTRADOR" && !aplicativoAtivo) {
     return {
       status: "CONFIGURACAO_OBRIGATORIA",
-      caminho: "/minha-conta/seguranca/aplicativo",
+      caminho: "/conta/seguranca/aplicativo",
     };
   }
   return { status: "PODE_CONTINUAR" };

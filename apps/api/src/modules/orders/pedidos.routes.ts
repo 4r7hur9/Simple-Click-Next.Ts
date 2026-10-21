@@ -66,6 +66,12 @@ import {
   pedidoGuardado,
 } from "./pedido-fechado.usecase.ts";
 import { acompanharPedido } from "./acompanhar.usecase.ts";
+import {
+  compradorDaConta,
+  RecusaDoComprador,
+  type CompradorDaConta,
+  type EnderecosDaConta,
+} from "./comprador-da-conta.ts";
 import { vincularClienteDaLoja } from "./meus-pedidos.usecase.ts";
 import {
   confirmarEnvioNoWhatsApp,
@@ -101,12 +107,16 @@ function novoTokenDoPedido(): string {
   return randomBytes(32).toString("base64url");
 }
 
+/** O texto do 401 do fechamento sem conta. */
+export const MENSAGEM_DE_CONTA_OBRIGATORIA =
+  "Entre ou crie sua conta para fechar o pedido.";
+
 /** Evento do registro quando o total da tela não bate com o do servidor. */
 export const EVENTO_DE_DIVERGENCIA_NO_PEDIDO = "pedido.total_divergente";
 
 /**
- * Evento do registro quando o pedido de um cliente logado não pôde ser ligado
- * à conta dele (AC-616). A venda segue como convidado: perder o vínculo é
+ * Evento do registro quando o pedido não pôde ser ligado ao cliente da loja
+ * (AC-616). A venda segue sem o vínculo: perder o vínculo é
  * ruim, perder a venda é pior — e o aviso é o que impede a falha de ficar
  * invisível.
  */
@@ -142,6 +152,23 @@ export interface ConferenciaParaFechar {
     readonly totalDaLinhaEmCentavos: number;
   }[];
   readonly subtotalEmCentavos: number;
+  /**
+   * O preço explicado de cada item (card #57): qual preço valeu, o varejo da
+   * época e a faixa de atacado — o que o pedido congela para o histórico.
+   */
+  readonly precosDosItens?: ReadonlyMap<string, PrecoDoItemParaFechar>;
+}
+
+/** O preço explicado de um item, como esta rota precisa vê-lo. */
+export interface PrecoDoItemParaFechar {
+  readonly tipo: string;
+  readonly varejoUnitarioEmCentavos: number | null;
+  readonly faixa: {
+    readonly quantidadeMinima: number;
+    readonly tipoDeDesconto: "PERCENTUAL" | "VALOR" | null;
+    readonly desconto: number | null;
+    readonly rotulo: string | null;
+  } | null;
 }
 
 /** A configuração de entrega da loja, como esta rota precisa vê-la. */
@@ -202,16 +229,19 @@ export interface OpcoesDosPedidos {
   /** O endereço do site, para o link de acompanhamento dentro da mensagem. */
   readonly enderecoDoSite?: string | undefined;
   /**
-   * Quem está comprando, quando a requisição traz sessão de CLIENTE. O pedido
-   * nasce ligado à conta dessa pessoa e entra no histórico dela (AC-616).
-   * Nulo é compra de convidado — a maioria (ASM-103).
+   * Quem está comprando: a conta logada (Bearer ou cookie `sc_access`). O
+   * pedido EXIGE conta — nulo (ou ausente) responde 401 `conta_obrigatoria`.
+   * O pedido nasce ligado à conta e entra no histórico dela (AC-616).
    */
   readonly autenticarCliente?:
     | ((requisicao: Request) => { readonly identidadeId: string } | null)
     | undefined;
+  /** Os endereços salvos da conta (módulo `customers`), para a entrega. */
+  readonly enderecosDaConta: EnderecosDaConta;
 }
 
 export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
+  const enderecos = opcoes.enderecosDaConta;
   const rotas = Router();
   const borda = validar({
     params: esquemaDoApelido,
@@ -223,6 +253,19 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       const { params, body } = borda.dados(req);
       const acesso = opcoes.acesso ?? banco();
       const agora = opcoes.agora?.() ?? new Date();
+
+      // PEDIDO SÓ COM CONTA. Sem sessão (Bearer ou cookie `sc_access`), nada
+      // de carrinho nem de banco: a tela manda a pessoa entrar ou se cadastrar.
+      const comprador = opcoes.autenticarCliente?.(req) ?? null;
+      if (comprador === null) {
+        res.set("cache-control", "no-store");
+        res.status(401).json({
+          erro: "conta_obrigatoria",
+          mensagem: MENSAGEM_DE_CONTA_OBRIGATORIA,
+        });
+        return;
+      }
+
       const sessao = sessaoDoCarrinho(req, res);
       const tokenDoPedido = novoTokenDoPedido();
 
@@ -237,16 +280,33 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
       }
       const lojaId = identificacao.id;
 
-      // O cliente logado, quando há sessão de CLIENTE: o pedido nasce ligado
-      // à conta dele e entra no histórico (AC-616). É um passo próprio, antes
-      // do fechamento, porque o vínculo é escrito no papel CUSTOMER e o
-      // fechamento corre como PUBLIC — dois contextos, duas transações.
+      // QUEM COMPRA, pela conta: nome, e-mail e telefone da conta; o endereço
+      // é um salvo ou um novo, que fica salvo nela. Papel CLIENTE, sem loja —
+      // é a área da pessoa. Recusa que a pessoa resolve na tela vira 422.
+      let contato: CompradorDaConta;
+      try {
+        contato = await executarComoRequisicao(
+          { papel: "CUSTOMER", usuarioId: comprador.identidadeId },
+          () => acesso.emTransacao(() => compradorDaConta(body, enderecos)),
+        );
+      } catch (causa) {
+        if (!(causa instanceof RecusaDoComprador)) throw causa;
+        res.set("cache-control", "no-store");
+        res
+          .status(causa.codigo === "conta_obrigatoria" ? 401 : 422)
+          .json({ erro: causa.codigo, mensagem: causa.message });
+        return;
+      }
+
+      // O pedido nasce ligado à conta e entra no histórico (AC-616). É um
+      // passo próprio, antes do fechamento, porque o vínculo é escrito no
+      // papel CUSTOMER com a loja e o fechamento corre como PUBLIC — dois
+      // contextos, duas transações.
       const clienteDaLojaId = await clienteDaLojaDaSessao({
-        opcoes,
         acesso,
-        req,
+        identidadeId: comprador.identidadeId,
         lojaId,
-        contato: body.contato,
+        contato: { nome: contato.nome, telefone: contato.telefoneE164 },
       });
 
       // PASSO 2 — transação nova, com a loja, a sessão E a chave de fechamento
@@ -306,25 +366,28 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
               carrinho.id,
             );
 
+            // O SUBTOTAL DOS ITENS NÃO PODE TER MUDADO desde a conferência que
+            // a pessoa viu (card #57): a faixa de atacado depende da
+            // quantidade e o dono pode ter mexido nela. O servidor recalculou;
+            // se não bate, o pedido não sai e a tela confere de novo.
+            const subtotalVisto = body.subtotalVistoCentavos ?? null;
+            if (
+              subtotalVisto !== null &&
+              subtotalVisto !== conferencia.subtotalEmCentavos
+            ) {
+              throw erroDeDominio("conflito", {
+                recurso: "pedido",
+                motivo: "preco_divergente",
+              });
+            }
+
             const itens = itensDoPedido(carrinho, conferencia);
             const criado = await criarPedido(
               {
                 lojaId,
                 clienteDaLojaId,
-                contato: {
-                  nome: body.contato.nome,
-                  // O telefone chega como a pessoa digitou; quem normaliza é o
-                  // caso de uso, que já conhece a regra (T-509).
-                  telefoneE164: body.contato.telefone,
-                  email: body.contato.email ?? null,
-                  logradouro: body.contato.logradouro ?? null,
-                  numero: body.contato.numero ?? null,
-                  complemento: body.contato.complemento ?? null,
-                  bairro: body.contato.bairro ?? null,
-                  cidade: body.contato.cidade ?? null,
-                  estado: body.contato.estado ?? null,
-                  cep: body.contato.cep ?? null,
-                },
+                // Os dados da CONTA, e o endereço só na entrega.
+                contato,
                 itens,
                 entrega: body.entrega,
                 canal: "ONLINE",
@@ -434,7 +497,10 @@ export function criarRotasDePedidos(opcoes: OpcoesDosPedidos): Router {
           carrinho: resultado.carrinho,
           conferencia: resultado.conferencia,
           fechamento: resultado.fechamento,
-          corpo: body,
+          corpo: {
+            ...body,
+            contato: { ...contato, telefone: contato.telefoneE164 },
+          },
           enderecoDoSite: opcoes.enderecoDoSite ?? "",
           apelidoDaLoja: params.apelido,
         }),
@@ -632,12 +698,22 @@ function itensDoPedido(
       }),
     );
 
+    const preco = conferencia.precosDosItens?.get(precificado.itemId);
+
     return {
       produtoId: precificado.produtoId,
       variacaoId: doCarrinho?.variacaoId ?? null,
       nomeDoProduto: precificado.nome,
       quantidade: precificado.quantidade,
       precoUnitarioEmCentavos: precificado.precoUnitarioEmCentavos,
+      // O preço que valeu e a faixa de atacado, congelados (card #57).
+      ...(preco === undefined
+        ? {}
+        : {
+            tipoDePreco: preco.tipo,
+            precoDeVarejoEmCentavos: preco.varejoUnitarioEmCentavos,
+            faixaDeAtacado: preco.faixa,
+          }),
       opcoesEmCentavos: precificado.acrescimosEmCentavos,
       totalDaLinhaEmCentavos: precificado.totalDaLinhaEmCentavos,
       observacao: doCarrinho?.observacao ?? null,
@@ -682,24 +758,19 @@ function registrarDivergencia(
  * enviado é nome e telefone (P-009).
  */
 async function clienteDaLojaDaSessao({
-  opcoes,
   acesso,
-  req,
+  identidadeId,
   lojaId,
   contato,
 }: {
-  readonly opcoes: OpcoesDosPedidos;
   readonly acesso: AcessoAoBanco;
-  readonly req: Request;
+  readonly identidadeId: string;
   readonly lojaId: string;
   readonly contato: { readonly nome: string; readonly telefone: string };
 }): Promise<string | null> {
-  const cliente = opcoes.autenticarCliente?.(req) ?? null;
-  if (cliente === null) return null;
-
   try {
     return await executarComoRequisicao(
-      { papel: "CUSTOMER", lojaId, usuarioId: cliente.identidadeId },
+      { papel: "CUSTOMER", lojaId, usuarioId: identidadeId },
       () =>
         acesso.emTransacao(() =>
           vincularClienteDaLoja({
@@ -712,7 +783,7 @@ async function clienteDaLojaDaSessao({
     registrador().aviso(EVENTO_DE_VINCULO_SEM_CONTA, {
       lojaId,
       recurso: "cliente_da_loja",
-      recursoId: cliente.identidadeId,
+      recursoId: identidadeId,
       detalhe: { causa: causa instanceof Error ? causa.name : "desconhecida" },
     });
     return null;
@@ -803,7 +874,7 @@ function linkDeAcompanhamento(
   apelidoDaLoja: string,
   tokenPublico: string,
 ): string {
-  return `${enderecoDoSite}/l/${apelidoDaLoja}/pedido/${tokenPublico}`;
+  return `${enderecoDoSite}/loja/${apelidoDaLoja}/pedido/${tokenPublico}`;
 }
 
 /**

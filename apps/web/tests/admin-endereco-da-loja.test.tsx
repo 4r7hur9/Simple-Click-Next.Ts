@@ -77,7 +77,7 @@ describe("a troca do endereço na ficha (AC-208)", () => {
     const aoTrocar = vi.fn();
     const tela = montar(<EnderecoDaLoja ficha={FICHA} aoTrocar={aoTrocar} />);
 
-    expect(tela.textContent).toContain("Endereço atual: /l/pastel-da-joi");
+    expect(tela.textContent).toContain("Endereço atual: /loja/pastel-da-joi");
     expect(tela.querySelector("#ficha-apelido-dica")?.textContent).toContain(
       "O endereço antigo continua funcionando",
     );
@@ -94,7 +94,7 @@ describe("a troca do endereço na ficha (AC-208)", () => {
     ]);
     expect(aoTrocar).toHaveBeenCalledWith(trocada);
     expect(tela.textContent).toContain(
-      "Quem abrir o link antigo, /l/pastel-da-joi, é levado ao endereço novo.",
+      "Quem abrir o link antigo, /loja/pastel-da-joi, é levado ao endereço novo.",
     );
   });
 

@@ -609,8 +609,8 @@ describe("o endereço do produto pode ser compartilhado (AC-414)", () => {
     // isso o link aberto em outro aparelho chega ao mesmo lugar.
     const produto = naTela();
 
-    expect(produto.linkDoCatalogo).toBe(`/l/${LOJA}/catalogo`);
-    expect(produto.linkDaSecao).toBe(`/l/${LOJA}/catalogo?categoria=lanches`);
+    expect(produto.linkDoCatalogo).toBe(`/loja/${LOJA}/cardapio`);
+    expect(produto.linkDaSecao).toBe(`/loja/${LOJA}/cardapio?categoria=lanches`);
   });
 });
 

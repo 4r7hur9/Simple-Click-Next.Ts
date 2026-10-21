@@ -20,7 +20,6 @@
 
 export const CHAVES_DE_FUNCIONALIDADE = [
   "auto_print",
-  "custom_domain",
   "multi_store",
   "orders_per_month",
 ] as const;
@@ -43,12 +42,6 @@ export const CATALOGO_DE_FUNCIONALIDADES: readonly DescricaoDaFuncionalidade[] =
       descricao:
         "Cupom na impressora térmica, configuração do papel e impressão automática pelo agente.",
       temEfeito: true,
-    },
-    {
-      chave: "custom_domain",
-      rotulo: "Domínio próprio",
-      descricao: "Loja atendendo pelo endereço próprio do lojista.",
-      temEfeito: false,
     },
     {
       chave: "multi_store",

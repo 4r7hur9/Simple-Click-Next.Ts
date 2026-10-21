@@ -17,7 +17,16 @@ import {
   type LojaCriadaNoContrato,
   type TipoDeNegocioNoContrato,
 } from "@simpleclick/contracts";
-import { Botao, Campo, Carregando, Erro, Sucesso } from "@simpleclick/ui";
+import {
+  Botao,
+  Campo,
+  Carregando,
+  descritoresDoCampo,
+  Erro,
+  Seletor,
+  Sucesso,
+  type ConteudoDoInfo,
+} from "@simpleclick/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -32,6 +41,11 @@ import {
   type ErrosDaNovaLoja,
   type ValoresDaNovaLoja,
 } from "./formulario-da-loja.ts";
+import {
+  INFO_DO_APELIDO,
+  INFO_DO_DOCUMENTO,
+  INFO_DO_TIPO_DE_NEGOCIO,
+} from "./explicacoes.ts";
 
 export type EstadoDosTipos =
   | { readonly estado: "carregando" }
@@ -80,7 +94,7 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
             : "A loja foi criada, mas o convite ainda não saiu. Reenvie pela ficha da loja."
         }
         acao={
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Link
               className="sc-botao sc-botao--primaria"
               href={`/admin/lojas/${envio.loja.id}`}
@@ -102,6 +116,7 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
     extra: {
       obrigatorio?: boolean;
       dica?: string;
+      info?: ConteudoDoInfo;
       tipo?: string;
       autoComplete?: string;
       inputMode?: "numeric" | "tel" | "email" | "text";
@@ -114,6 +129,7 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
       value={valores[campo]}
       erro={erros[campo]}
       dica={extra.dica}
+      info={extra.info}
       obrigatorio={extra.obrigatorio ?? true}
       type={extra.tipo ?? "text"}
       autoComplete={extra.autoComplete ?? "off"}
@@ -126,24 +142,28 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
     campo: "tipoDeNegocio" | "uf",
     rotulo: string,
     opcoes: readonly { readonly valor: string; readonly nome: string }[],
+    info?: ConteudoDoInfo,
   ) => (
     <Campo
       id={idDoCampo(campo)}
       rotulo={rotulo}
       erro={erros[campo]}
+      info={info}
       obrigatorio
       controle={
-        <select
+        <Seletor
           id={idDoCampo(campo)}
           name={campo}
-          className="sc-campo__controle"
           required
           value={valores[campo]}
           aria-invalid={erros[campo] !== undefined || undefined}
           aria-describedby={
-            erros[campo] !== undefined ? `${idDoCampo(campo)}-erro` : undefined
+            descritoresDoCampo(idDoCampo(campo), {
+              info: info !== undefined,
+              erro: erros[campo],
+            }).join(" ") || undefined
           }
-          onChange={(evento) => props.aoMudar(campo, evento.target.value)}
+          onChange={(valor) => props.aoMudar(campo, valor)}
         >
           <option value="">Escolha…</option>
           {opcoes.map((opcao) => (
@@ -151,7 +171,7 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
               {opcao.nome}
             </option>
           ))}
-        </select>
+        </Seletor>
       }
     />
   );
@@ -176,6 +196,7 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
         {texto("documento", "CPF ou CNPJ", {
           inputMode: "numeric",
           dica: "Pode digitar com ou sem pontos, barra e hífen.",
+          info: INFO_DO_DOCUMENTO,
         })}
         {props.tipos.estado === "carregando" && (
           <Carregando rotulo="Carregando os tipos de negócio…" />
@@ -199,9 +220,11 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
               valor: tipo.codigo,
               nome: tipo.nome,
             })),
+            INFO_DO_TIPO_DE_NEGOCIO,
           )}
-        {texto("apelido", "Endereço da loja na web", {
-          dica: `simpleclick.app/l/${valores.apelido || "nome-da-loja"} — letras minúsculas, números e hífen.`,
+        {texto("apelido", "Endereço da loja na web (apelido)", {
+          dica: `simpleclick.app/loja/${valores.apelido || "nome-da-loja"} — letras minúsculas, números e hífen.`,
+          info: INFO_DO_APELIDO,
         })}
         {props.sugestao !== null && (
           <p className="text-sm">
@@ -228,20 +251,24 @@ export function CamposDaNovaLoja(props: CamposDaNovaLojaProps) {
         {texto("responsavelTelefone", "Telefone com DDD", {
           tipo: "tel",
           inputMode: "tel",
+          dica: "Ex.: (85) 99999-0000.",
         })}
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="text-xl font-semibold">Endereço da loja</legend>
-        {texto("cep", "CEP", { inputMode: "numeric" })}
+        {texto("cep", "CEP", {
+          inputMode: "numeric",
+          dica: "8 números. Ex.: 60115-000.",
+        })}
         {texto("logradouro", "Logradouro")}
-        {texto("numero", "Número")}
+        {texto("numero", "Número", { dica: "Sem número? Escreva S/N." })}
         {texto("complemento", "Complemento", { obrigatorio: false })}
         {texto("bairro", "Bairro")}
         {texto("cidade", "Cidade")}
         {seletor(
           "uf",
-          "UF",
+          "Estado (UF)",
           UNIDADES_DA_FEDERACAO.map((uf) => ({ valor: uf, nome: uf })),
         )}
       </fieldset>

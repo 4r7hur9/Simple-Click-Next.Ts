@@ -128,7 +128,7 @@ beforeAll(async () => {
   // (AC-211). As duas situações entram direto no banco: o que se prova aqui é
   // a LISTA, e a mudança de situação tem prova própria (T-206).
   await migrador.query(
-    `UPDATE app.stores SET status = 'SUSPENDED' WHERE slug = 'moda-boa-vista'`,
+    `UPDATE app.stores SET status = 'INACTIVE' WHERE slug = 'moda-boa-vista'`,
   );
   await migrador.query(
     `UPDATE app.stores
@@ -161,7 +161,7 @@ describe("a lista de lojas (AC-206)", () => {
         nome: "Moda Boa Vista",
         apelido: "moda-boa-vista",
         tipoDeNegocio: { codigo: "APPAREL", nome: "Roupas" },
-        status: "SUSPENDED",
+        status: "INACTIVE",
         cidade: "São Paulo",
         uf: "SP",
       });
@@ -215,7 +215,7 @@ describe("a lista de lojas (AC-206)", () => {
   it(
     "@spec:AC-206 o filtro de situação mostra as suspensas e, só quando pedido, as excluídas em retenção",
     async () => {
-      const suspensas = lida((await listar({ situacao: "SUSPENDED" })).body);
+      const suspensas = lida((await listar({ situacao: "INACTIVE" })).body);
       expect(suspensas.lojas.map((loja) => loja.nome)).toEqual([
         "Moda Boa Vista",
       ]);

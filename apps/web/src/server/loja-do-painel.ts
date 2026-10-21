@@ -94,7 +94,9 @@ export function decidirLoja(
   eu: EuNoContrato,
   escolhida: string | undefined,
 ): LojaDoPainel {
-  const lojas = eu.lojas;
+  // Dono e equipe: a lista vem do vínculo (`lojasDaConta`), não do papel da
+  // sessão — a equipe entra com sessão de cliente e `lojas` vem vazia (card #32).
+  const lojas = eu.lojasDaConta ?? eu.lojas;
   if (lojas.length === 0) return { estado: "sem-loja" };
   if (escolhida !== undefined) {
     const loja = lojas.find((l) => l.apelido === escolhida);

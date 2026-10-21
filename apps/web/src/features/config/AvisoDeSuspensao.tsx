@@ -42,7 +42,7 @@ export function AvisoDeSuspensaoNaTela({
 }: {
   readonly situacao: SituacaoParaODonoNoContrato | null;
 }) {
-  if (situacao === null || situacao.status !== "SUSPENDED") return null;
+  if (situacao === null || situacao.status !== "INACTIVE") return null;
   const { suspensao } = situacao;
 
   return (

@@ -32,7 +32,7 @@ type IdentificacaoDaLoja =
 
 interface UsuarioAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 export interface OpcoesDaRotaDoCupom {

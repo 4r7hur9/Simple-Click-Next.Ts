@@ -1,0 +1,57 @@
+/*
+ * O seletor de cor da aparência da loja (painel do dono).
+ *
+ * O quadro é um degradê de CSS, sem canvas nem biblioteca: por cima da cor do
+ * matiz (que o componente põe em `background-color`) vão um degradê de branco
+ * (saturação) e um de preto (brilho). A barra de matiz é o arco-íris contínuo.
+ * Fica aqui, e não no componente, porque cor escrita é declaração do design system.
+ */
+.sc-seletor-quadro {
+  background-image:
+    linear-gradient(to top, #000, rgb(0 0 0 / 0%)),
+    linear-gradient(to right, #fff, rgb(255 255 255 / 0%));
+}
+
+.sc-seletor-matiz {
+  background-image: linear-gradient(
+    to right,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+}
+
+.sc-seletor-matiz::-webkit-slider-thumb {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 0 1.5px rgb(0 0 0 / 60%),
+    0 4px 10px rgb(0 0 0 / 45%);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sc-seletor-matiz::-moz-range-thumb {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 0 1.5px rgb(0 0 0 / 60%),
+    0 4px 10px rgb(0 0 0 / 45%);
+}
+
+.sc-seletor-ponto {
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 1.5px rgb(0 0 0 / 60%),
+    0 4px 10px rgb(0 0 0 / 45%);
+}

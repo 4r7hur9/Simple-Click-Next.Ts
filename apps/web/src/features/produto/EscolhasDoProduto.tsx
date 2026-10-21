@@ -20,7 +20,11 @@
  */
 import { useMemo, useState } from "react";
 
-import { adicionarAoCarrinho } from "../../lib/carrinho-do-navegador.ts";
+import { unitarioNoAtacado } from "../../lib/atacado-na-vitrine.ts";
+import {
+  adicionarAoCarrinho,
+  avisarQueOCarrinhoMudou,
+} from "../../lib/carrinho-do-navegador.ts";
 import {
   ancoraDoGrupo,
   calcularItem,
@@ -34,8 +38,10 @@ import {
 } from "../../lib/produto.ts";
 
 import { BotaoAdicionar } from "./BotaoAdicionar.tsx";
+import { exemploDaObservacao } from "./exemplo-da-observacao.ts";
 import { MatrizDeVariacao } from "./MatrizDeVariacao.tsx";
 import { SelecaoDeOpcoes } from "./SelecaoDeOpcoes.tsx";
+import { TabelaDoAtacado } from "./TabelaDoAtacado.tsx";
 
 /** O que a página manda ao servidor quando a pessoa adiciona. */
 export interface ItemEscolhido {
@@ -58,6 +64,8 @@ export interface EscolhasDoProdutoProps {
    * escolha vem do ramo, e não de um `if` aqui dentro.
    */
   readonly rotulos: { readonly variacao: string };
+  /** O tipo de negócio da loja: escolhe o exemplo da observação do item. */
+  readonly ramo?: string | null | undefined;
   /**
    * Quem leva o item ao servidor.
    *
@@ -68,13 +76,20 @@ export interface EscolhasDoProdutoProps {
    * própria máquina.
    */
   readonly aoAdicionar?: ((item: ItemEscolhido) => Promise<void>) | undefined;
+  /**
+   * Chamado depois que o item entrou no carrinho. A janela do produto usa para
+   * fechar e devolver a pessoa ao cardápio no lugar em que ela estava.
+   */
+  readonly aoAdicionado?: (() => void) | undefined;
 }
 
 export function EscolhasDoProduto({
   produto,
   apelidoDaLoja,
   rotulos,
+  ramo,
   aoAdicionar,
+  aoAdicionado,
 }: EscolhasDoProdutoProps) {
   const eixos = useMemo(
     () => produto.grupos.filter((grupo) => grupo.eixoDeVariacao),
@@ -114,7 +129,13 @@ export function EscolhasDoProduto({
   );
 
   const [variacaoManual, setVariacaoManual] = useState<string | null>(
-    () => produto.variacoes.find((v) => v.padrao && v.disponivel)?.id ?? null,
+    () =>
+      produto.variacoes.find((v) => v.padrao && v.disponivel)?.id ??
+      // Uma variação só (a "Único" do cadastro): ela já é a escolha, e o
+      // grupo nem aparece (MatrizDeVariacao).
+      (produto.variacoes.length === 1 && produto.variacoes[0]?.disponivel
+        ? produto.variacoes[0].id
+        : null),
   );
 
   const [quantidade, setQuantidade] = useState(1);
@@ -163,10 +184,21 @@ export function EscolhasDoProduto({
   // não há variante nenhuma. Produto com variantes e sem escolha fica sem base
   // — e o total mostra zero até a pessoa escolher, o que é honesto: não existe
   // "o preço" antes do tamanho.
-  const precoBase =
+  const varejo =
     produto.variacoes.length === 0
       ? (produto.precoCentavos ?? 0)
       : (variacao?.precoCentavos ?? 0);
+  // O atacado (card #56) é sobre o preço da variante escolhida; antes da
+  // escolha, a tabela mostra o da padrão, que é o preço que a página abriu.
+  const atacado =
+    produto.variacoes.length === 0
+      ? produto.atacado
+      : variacao === null
+        ? null
+        : variacao.atacado;
+  // Levando o pedido mínimo, a base passa a ser o unitário da faixa — o mesmo
+  // que o carrinho cobra; a API já fez a conta de cada faixa.
+  const precoBase = unitarioNoAtacado(atacado, quantidade) ?? varejo;
 
   const conta = useMemo(
     () =>
@@ -302,7 +334,9 @@ export function EscolhasDoProduto({
       });
 
       if (resultado.estado === "adicionado") {
-        setRecado("Adicionado ao carrinho.");
+        setRecado("Adicionado à sacola.");
+        avisarQueOCarrinhoMudou();
+        aoAdicionado?.();
         return;
       }
 
@@ -345,18 +379,30 @@ export function EscolhasDoProduto({
         aoAlternar={alternar}
       />
 
+      <TabelaDoAtacado
+        atacado={variacao === null ? produto.atacado : atacado}
+        varejoCentavos={variacao === null ? produto.precoCentavos : varejo}
+        quantidade={quantidade}
+      />
+
       {produto.aceitaObservacao ? (
         <p className="sc-produto__observacao">
-          <label htmlFor="observacao">Alguma observação?</label>
+          <label htmlFor="observacao">
+            Observação para este item (opcional)
+          </label>
           <textarea
             id="observacao"
             name="observacao"
             rows={2}
             maxLength={280}
-            placeholder="Ex.: sem cebola, ponto da carne, troco para R$ 50"
+            placeholder={exemploDaObservacao(ramo)}
+            aria-describedby="observacao-dica"
             value={observacao}
             onChange={(evento) => setObservacao(evento.target.value)}
           />
+          <span className="sc-campo__dica" id="observacao-dica">
+            Até 280 letras. O troco se informa ao finalizar o pedido.
+          </span>
         </p>
       ) : null}
 
@@ -374,7 +420,6 @@ export function EscolhasDoProduto({
         enviando={enviando}
         aoMudarQuantidade={setQuantidade}
         aoAdicionar={() => void adicionar()}
-        linkDoCarrinho={`/l/${apelidoDaLoja}/checkout`}
       />
     </div>
   );

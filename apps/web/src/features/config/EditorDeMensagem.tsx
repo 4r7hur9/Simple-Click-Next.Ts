@@ -21,6 +21,7 @@ import {
 } from "../../lib/previa-da-mensagem.ts";
 import { lerMensagemDoWhatsApp } from "../../lib/texto-whatsapp.ts";
 import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
+import { comInfo, RotuloComInfo } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
 
 /** O contato como a tela o edita. */
@@ -92,23 +93,29 @@ export function EditorDeMensagem({
         noValidate
       >
         <div>
-          <label className="block">
-            <span className="font-medium">WhatsApp da loja</span>
-            <input
-              className="sc-campo mt-2 w-full"
-              type="tel"
-              name="numero"
-              value={dados.numero}
-              onChange={(evento) =>
-                mudar((anterior) => ({
-                  ...anterior,
-                  numero: evento.target.value,
-                }))
-              }
-              placeholder="(11) 91234-5678"
-              {...atributosDeErro("numero", erros)}
-            />
-          </label>
+          <RotuloComInfo
+            para="contato-numero"
+            explicacao="whatsappDaLoja"
+            nome="WhatsApp da loja"
+            className="font-medium"
+          >
+            WhatsApp da loja
+          </RotuloComInfo>
+          <input
+            id="contato-numero"
+            className="sc-campo mt-2 w-full"
+            type="tel"
+            name="numero"
+            value={dados.numero}
+            onChange={(evento) =>
+              mudar((anterior) => ({
+                ...anterior,
+                numero: evento.target.value,
+              }))
+            }
+            placeholder="(11) 91234-5678"
+            {...comInfo("contato-numero", atributosDeErro("numero", erros))}
+          />
           {numero === null ? (
             <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
               Aceitamos máscara, espaços ou o número sem o código do país.
@@ -153,32 +160,38 @@ export function EditorDeMensagem({
         </label>
 
         <div>
-          <label className="block">
-            <span className="font-medium">Saudação da mensagem</span>
-            <textarea
-              className="sc-campo mt-2 min-h-28 w-full"
-              name="saudacao"
-              value={dados.saudacao}
-              onChange={(evento) =>
-                mudar((anterior) => ({
-                  ...anterior,
-                  saudacao: evento.target.value,
-                }))
-              }
-              maxLength={280}
-              {...atributosDeErro("saudacao", erros)}
-            />
-            <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
-              Escreva do seu jeito, ou apague para o pedido começar direto pelo
-              código.
-            </span>
-          </label>
+          <RotuloComInfo
+            para="contato-saudacao"
+            explicacao="saudacao"
+            nome="Saudação da mensagem"
+            className="font-medium"
+          >
+            Saudação da mensagem
+          </RotuloComInfo>
+          <textarea
+            id="contato-saudacao"
+            className="sc-campo mt-2 min-h-28 w-full"
+            name="saudacao"
+            value={dados.saudacao}
+            onChange={(evento) =>
+              mudar((anterior) => ({
+                ...anterior,
+                saudacao: evento.target.value,
+              }))
+            }
+            maxLength={280}
+            {...comInfo("contato-saudacao", atributosDeErro("saudacao", erros))}
+          />
+          <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+            Escreva do seu jeito, ou apague para o pedido começar direto pelo
+            código.
+          </p>
           <ErroDoCampo campo="saudacao" erros={erros} />
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           <button
-            className="sc-botao sc-botao--primario"
+            className="sc-botao sc-botao--primaria"
             type="submit"
             disabled={secao.salvando}
           >

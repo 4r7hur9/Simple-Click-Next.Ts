@@ -40,7 +40,7 @@ const LOJA: LojaNaTv = {
   corPrincipal: PALETA_ESCURA.primaria,
 };
 
-export const VITRINE = "https://simpleclick.app/l/sabor-e-cia/catalogo";
+export const VITRINE = "https://simpleclick.app/loja/sabor-e-cia/cardapio";
 
 /** Um produto disponível de Salgados, com o que o teste quiser trocar. */
 export function produto(

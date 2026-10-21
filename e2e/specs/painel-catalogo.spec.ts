@@ -64,7 +64,7 @@ test("@spec:AC-304 o dono cria a seção e o produto pelo painel, e o produto ap
   const produtoId = editar?.split("/").pop();
   expect(produtoId).toBeTruthy();
 
-  await page.goto(`/l/${APELIDO_DO_PAINEL}/produto/${produtoId}`);
+  await page.goto(`/loja/${APELIDO_DO_PAINEL}/produto/${produtoId}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(produto);
   await expect(page.getByText(/R\$\s19,90/).first()).toBeVisible();
   await expect(page.getByText("Algodão penteado, gola careca.")).toBeVisible();

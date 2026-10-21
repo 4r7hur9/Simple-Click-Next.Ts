@@ -11,9 +11,9 @@
 /** Apelido aceito: minúsculas, números e hífen, de 2 a 63 caracteres. */
 const FORMATO_DO_APELIDO = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
 
-/** O apelido de um caminho `/l/<apelido>/...`, ou `null`. */
+/** O apelido de um caminho `/loja/<apelido>/...`, ou `null`. */
 export function apelidoDoCaminho(caminho: string): string | null {
-  const achado = /^\/l\/([^/]+)(?:\/|$)/.exec(caminho);
+  const achado = /^\/loja\/([^/]+)(?:\/|$)/.exec(caminho);
   const apelido = achado?.[1]?.toLowerCase();
   return apelido !== undefined && FORMATO_DO_APELIDO.test(apelido)
     ? apelido
@@ -26,22 +26,12 @@ export function caminhoComApelidoNovo(
   antigo: string,
   novo: string,
 ): string {
-  const prefixo = `/l/${antigo}`;
-  if (caminho.toLowerCase() === prefixo) return `/l/${novo}`;
+  const prefixo = `/loja/${antigo}`;
+  if (caminho.toLowerCase() === prefixo) return `/loja/${novo}`;
   if (caminho.toLowerCase().startsWith(`${prefixo}/`)) {
-    return `/l/${novo}${caminho.slice(prefixo.length)}`;
+    return `/loja/${novo}${caminho.slice(prefixo.length)}`;
   }
   return caminho;
-}
-
-/** O mesmo endereço, com o apelido novo no primeiro rótulo do host. */
-export function hostComApelidoNovo(
-  host: string,
-  antigo: string,
-  novo: string,
-): string {
-  const [primeiro, ...resto] = host.split(".");
-  return primeiro?.toLowerCase() === antigo ? [novo, ...resto].join(".") : host;
 }
 
 /**

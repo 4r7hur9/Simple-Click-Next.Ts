@@ -8,7 +8,13 @@
  * lojas pela função dedicada `app.lojas_da_sessao()` (migração 0046), que
  * aplica a mesma regra de vínculo ativo que as rotas do dono conferem.
  */
-import { esquemaDoEu, type EuNoContrato } from "@simpleclick/contracts";
+import {
+  esquemaDoEu,
+  PERMISSOES_DA_PLATAFORMA,
+  permissoesDoPapel,
+  type EuNoContrato,
+  type PapelEfetivo,
+} from "@simpleclick/contracts";
 import { Router, type Request } from "express";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
@@ -55,16 +61,44 @@ interface LinhaDaLoja {
   readonly store_status: string;
 }
 
+/** O papel efetivo pelo que a conta tem: admin, depois dono, depois equipe. */
+export function papelEfetivoDaConta(
+  adminDaPlataforma: boolean,
+  lojasDaConta: readonly { readonly papel: string }[],
+): PapelEfetivo {
+  if (adminDaPlataforma) return "ADMIN";
+  if (lojasDaConta.some((loja) => loja.papel === "OWNER")) return "DONO";
+  if (lojasDaConta.some((loja) => loja.papel === "STAFF")) return "EQUIPE";
+  return "CLIENTE";
+}
+
+function comoLoja(linha: LinhaDaLoja) {
+  return {
+    apelido: linha.store_slug,
+    nome: linha.store_name,
+    papel: linha.member_role,
+    situacao: linha.store_status,
+    // O que a conta pode nesta loja, pela matriz do papel (card #25).
+    permissoes: [...permissoesDoPapel(linha.member_role)],
+  };
+}
+
 /**
- * Lê a identidade e as lojas dentro da transação em curso. O papel do
- * contexto é o da sessão: só dono tem loja; cliente e administração rodam
- * como cliente e recebem a lista vazia.
+ * Lê a identidade e as lojas dentro da transação em curso. `lojas` segue o
+ * papel da sessão (só dono tem loja; é o que o painel usa); `lojasDaConta`
+ * traz todo vínculo ativo de dono ou equipe, pela função `app.minhas_lojas()`
+ * (migração 0047), para a barra de usuário e o checkout.
  */
 async function lerEu(papel: PapelDaSessao): Promise<EuNoContrato | null> {
   const tx = transacaoAtual();
   const identidades = await tx.$queryRaw<
-    { id: string; email_norm: string; display_name: string | null }[]
-  >`SELECT id::text AS id, email_norm, display_name
+    {
+      id: string;
+      email_norm: string;
+      display_name: string | null;
+      phone_e164: string | null;
+    }[]
+  >`SELECT id::text AS id, email_norm, display_name, phone_e164
       FROM app.identities
      WHERE id = app.current_user_id() AND anonymized_at IS NULL`;
   const identidade = identidades[0];
@@ -76,6 +110,12 @@ async function lerEu(papel: PapelDaSessao): Promise<EuNoContrato | null> {
           SELECT store_slug, store_name, member_role, store_status
             FROM app.lojas_da_sessao()`
       : [];
+  const lojasDaConta = await tx.$queryRaw<LinhaDaLoja[]>`
+    SELECT store_slug, store_name, member_role, store_status
+      FROM app.minhas_lojas()`;
+  const [admin] = await tx.$queryRaw<{ admin: boolean }[]>`
+    SELECT app.sou_admin_da_plataforma() AS admin`;
+  const adminDaPlataforma = admin?.admin === true;
 
   // O esquema do contrato confere a forma: campo a mais ou situação fora da
   // lista vira erro aqui, e não resposta diferente do que o contrato promete.
@@ -85,13 +125,16 @@ async function lerEu(papel: PapelDaSessao): Promise<EuNoContrato | null> {
       email: identidade.email_norm,
       nome: identidade.display_name,
       papel,
+      telefone: identidade.phone_e164,
     },
-    lojas: lojas.map((linha) => ({
-      apelido: linha.store_slug,
-      nome: linha.store_name,
-      papel: linha.member_role,
-      situacao: linha.store_status,
-    })),
+    lojas: lojas.map(comoLoja),
+    papelEfetivo: papelEfetivoDaConta(
+      adminDaPlataforma,
+      lojasDaConta.map(comoLoja),
+    ),
+    adminDaPlataforma,
+    lojasDaConta: lojasDaConta.map(comoLoja),
+    permissoesDaPlataforma: adminDaPlataforma ? [...PERMISSOES_DA_PLATAFORMA] : [],
   });
 }
 

@@ -28,7 +28,7 @@ describe("códigos de recuperação", () => {
     ).resolves.toEqual({
       status: "SESSAO_LIBERADA",
       sessaoId: "sessao-nova",
-      orientarPara: "/minha-conta/seguranca/aplicativo",
+      orientarPara: "/conta/seguranca/aplicativo",
     });
     await expect(
       usarCodigoDeRecuperacao(

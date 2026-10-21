@@ -8,8 +8,10 @@ async function encaminhar(requisicao: Request): Promise<Response> {
 
   const corpo =
     requisicao.method === "POST" ? await requisicao.text() : undefined;
+  // A lista paginada (card #76) manda página, busca, filtros e ordem na URL.
+  const consulta = requisicao.method === "GET" ? new URL(requisicao.url).search : "";
   const resposta = await fetch(
-    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/catalogo/produtos`,
+    `${enderecoDaApi()}/v1/lojas/${encodeURIComponent(sessao.apelido)}/catalogo/produtos${consulta}`,
     {
       method: requisicao.method,
       cache: "no-store",

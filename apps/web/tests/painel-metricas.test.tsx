@@ -109,12 +109,12 @@ describe("dia sem venda orienta em vez de zero seco (AC-801)", () => {
     );
     expect(vazio.textContent).toMatch(/nenhum pedido entrou hoje/);
 
-    const link = `${window.location.origin}/l/pastel-da-zica`;
+    const link = `${window.location.origin}/loja/pastel-da-zica`;
     expect(
       exigir<HTMLInputElement>(vazio, "[data-link-da-vitrine]").value,
     ).toBe(link);
     expect(
-      exigir<HTMLAnchorElement>(vazio, 'a[href="/l/pastel-da-zica"]')
+      exigir<HTMLAnchorElement>(vazio, 'a[href="/loja/pastel-da-zica"]')
         .textContent,
     ).toBe("Abrir minha vitrine");
     const whatsapp = exigir<HTMLAnchorElement>(
@@ -148,23 +148,17 @@ describe("comparação com o período anterior (AC-802)", () => {
     }));
     const tela = await abrirPainel();
 
-    const comparativo = exigir(tela, "[data-comparativo]");
-    expect(comparativo.querySelector("h2")?.textContent).toBe(
-      "Comparado com ontem até 14h32",
-    );
+    const vendido = exigir(tela, '[data-metrica="vendido"]');
+    const seta = exigir(vendido, "[data-direcao]");
+    expect(seta.getAttribute("data-direcao")).toBe("subiu");
+    expect(seta.textContent).toContain("25%");
+    expect(seta.textContent).toContain("Subiu R$ 100,00 (25%)");
+    expect(vendido.textContent).toContain("vs ontem até 14h32");
 
-    const vendido = exigir(comparativo, '[data-variacao="vendido"]');
-    expect(vendido.getAttribute("data-direcao")).toBe("subiu");
-    expect(vendido.querySelector("[data-texto]")?.textContent).toBe(
-      "Subiu R$ 100,00 (25%)",
-    );
-    expect(vendido.textContent).toContain("R$ 500,00 agora, R$ 400,00 antes");
-
-    const pedidos = exigir(comparativo, '[data-variacao="pedidos"]');
-    expect(pedidos.getAttribute("data-direcao")).toBe("caiu");
-    expect(pedidos.querySelector("[data-texto]")?.textContent).toBe(
-      "Caiu 2 pedidos (20%)",
-    );
+    const pedidos = exigir(tela, '[data-metrica="pedidos"]');
+    const setaPedidos = exigir(pedidos, "[data-direcao]");
+    expect(setaPedidos.getAttribute("data-direcao")).toBe("caiu");
+    expect(setaPedidos.textContent).toContain("Caiu 2 pedidos (20%)");
   });
 
   it("@spec:AC-802 sem venda no período anterior não inventa porcentagem", async () => {
@@ -174,9 +168,12 @@ describe("comparação com o período anterior (AC-802)", () => {
     }));
     const tela = await abrirPainel();
 
-    const vendido = exigir(tela, '[data-variacao="vendido"]');
-    expect(vendido.getAttribute("data-direcao")).toBe("sem-base");
-    expect(vendido.textContent).not.toMatch(/%/);
+    const seta = exigir(
+      exigir(tela, '[data-metrica="vendido"]'),
+      "[data-direcao]",
+    );
+    expect(seta.getAttribute("data-direcao")).toBe("sem-base");
+    expect(seta.textContent).not.toMatch(/\d%/);
   });
 });
 

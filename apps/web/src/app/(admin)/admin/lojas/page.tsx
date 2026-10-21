@@ -1,10 +1,13 @@
 /**
- * Lojas da plataforma: lista e busca (AC-206).
+ * Lojas da plataforma: lista, busca, filtros e aprovação (AC-206, card #29).
  *
  * A página é a moldura; a lista busca, filtra e pagina. Quem decide se a
  * pessoa pode ver as lojas é a API, com a credencial própria da administração.
+ * A consulta mora no endereço (`?situacao=PENDING_APPROVAL`), por isso a lista
+ * é montada dentro de `Suspense`.
  */
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { ListaLojas } from "../../../../features/admin/ListaLojas.tsx";
 
@@ -12,7 +15,7 @@ export const metadata = { title: "Lojas | Administração SimpleClick" };
 
 export default function PaginaDeLojas() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
@@ -22,15 +25,17 @@ export default function PaginaDeLojas() {
             Lojas
           </h1>
           <p className="mt-3 text-lg leading-8 text-[var(--cor-tinta-suave)]">
-            Encontre qualquer cadastro pelo nome, pelo CPF ou CNPJ ou pelo
-            código de atendimento.
+            Aprove as lojas novas e acompanhe todas as outras: situação, dono,
+            pedidos e faturamento.
           </p>
         </div>
         <Link className="sc-botao sc-botao--primaria" href="/admin/lojas/nova">
           Nova loja
         </Link>
       </header>
-      <ListaLojas />
+      <Suspense fallback={null}>
+        <ListaLojas />
+      </Suspense>
     </div>
   );
 }

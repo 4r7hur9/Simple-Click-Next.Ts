@@ -219,11 +219,13 @@ describe("ninguém além da pessoa alcança os endereços dela (AC-509)", () => 
         contato: { nome: "Elisa Compradora", telefone: "11 93100-0000" },
       });
 
-      // Pela porta da conta, sessão de dono não entra.
+      // Pela porta da conta, a sessão de dono vê só os endereços DELE (a
+      // conta é uma só): nenhum da Elisa.
       const pelaConta = await request(app)
         .get("/v1/conta/enderecos")
         .set("Authorization", alvo.autorizacao);
-      expect(pelaConta.status).toBe(401);
+      expect(pelaConta.status).toBe(200);
+      expect(pelaConta.body).toEqual({ enderecos: [] });
 
       // E no banco, no contexto do painel da loja, a tabela é vazia para ele.
       const vistas = await comoRequisicao(

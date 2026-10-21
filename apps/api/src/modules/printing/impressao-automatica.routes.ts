@@ -79,7 +79,7 @@ type IdentificacaoDaLoja =
 
 interface UsuarioAutenticado {
   readonly identidadeId: string;
-  readonly papel: "OWNER";
+  readonly papel: "OWNER" | "STAFF";
 }
 
 /** Os limites da porta do pareamento. Tudo tem padrão; a prova encurta. */

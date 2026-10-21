@@ -82,7 +82,8 @@ export function CodigoForm({
           inputMode="numeric"
           autoComplete="one-time-code"
           maxLength={6}
-          rotulo="Código de seis dígitos"
+          rotulo="Código de verificação (6 dígitos)"
+          placeholder="000000"
           dica={
             canal === "TOTP"
               ? "Abra o aplicativo autenticador e informe o código atual."

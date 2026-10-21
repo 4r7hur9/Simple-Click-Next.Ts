@@ -12,7 +12,7 @@
  * mascarado do servidor, e da loja só o nome e o contato que ela tornou público.
  */
 import { useEffect, useState } from "react";
-import { Aviso, Cartao, IconePedido, TemaDaLoja } from "@simpleclick/ui";
+import { Aviso, Cartao, IconePedido, TemaDaMarca } from "@simpleclick/ui";
 import type { AcompanhamentoNoContrato } from "@simpleclick/contracts";
 
 import {
@@ -110,16 +110,16 @@ export function AcompanhamentoDoPedido({
   const motivo = motivoDoCancelamento(pedido);
 
   return (
-    <TemaDaLoja corPrincipal={corPrincipal} className="sc-pagina-da-loja">
+    <TemaDaMarca corDestaque={corPrincipal} className="sc-pagina-da-loja">
       {/* O fundo vai num bloco próprio: o contêiner do tema é `display:
           contents` e não pinta nada. */}
       <div className="min-h-screen bg-[var(--cor-superficie)] text-[var(--cor-tinta)]">
-        <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:py-12">
+        <main className="mx-auto max-w-5xl px-4 pt-8 pb-16 sm:px-8 lg:pt-12 lg:pb-20">
           <header className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <a
                 className="inline-flex min-h-[var(--altura-toque)] items-center font-medium text-[var(--cor-primaria-texto)] underline"
-                href={voltar?.href ?? `/l/${apelidoDaLoja}`}
+                href={voltar?.href ?? `/loja/${apelidoDaLoja}`}
               >
                 {voltar?.rotulo ?? "← Voltar para a loja"}
               </a>
@@ -260,6 +260,6 @@ export function AcompanhamentoDoPedido({
           </div>
         </main>
       </div>
-    </TemaDaLoja>
+    </TemaDaMarca>
   );
 }

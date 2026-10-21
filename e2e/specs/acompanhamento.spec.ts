@@ -89,7 +89,7 @@ test("@spec:AC-604 @spec:AC-612 @spec:AC-613 o dono aceita, prepara, despacha e 
       });
       const pedido = await pedidoDoLink(token);
       criados.push(pedido.id);
-      await page.goto(`/l/${apelido}/pedido/${token}`);
+      await page.goto(`/loja/${apelido}/pedido/${token}`);
 
       // AC-612: número, status em linguagem clara, linha do tempo, itens,
       // total, forma de pagamento e contato da loja.
@@ -190,7 +190,7 @@ test("@spec:AC-614 link trocado ou adivinhado responde que o pedido não foi enc
     criados.push(pedido.id);
 
     // O link verdadeiro abre o pedido.
-    await page.goto(`/l/${apelido}/pedido/${token}`);
+    await page.goto(`/loja/${apelido}/pedido/${token}`);
     await expect(page.getByText(nomeDoCliente)).toBeVisible();
 
     // Trocar um caractere, usar o número, o identificador interno ou um
@@ -203,7 +203,7 @@ test("@spec:AC-614 link trocado ou adivinhado responde que o pedido não foi enc
       randomBytes(24).toString("base64url"),
     ];
     for (const tentativa of tentativas) {
-      const resposta = await page.goto(`/l/${apelido}/pedido/${tentativa}`);
+      const resposta = await page.goto(`/loja/${apelido}/pedido/${tentativa}`);
       expect(resposta?.status(), tentativa).toBe(404);
       await expect(
         page.getByRole("heading", { level: 1, name: "Pedido não encontrado" }),

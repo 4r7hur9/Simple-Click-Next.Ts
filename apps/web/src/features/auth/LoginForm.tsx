@@ -43,7 +43,7 @@ function mensagemDaRecusa(resposta: RespostaDoLoginNaTela): string {
     case "INDISPONIVEL":
       return resposta.mensagem;
     default:
-      return "E-mail ou senha incorretos.";
+      return "E-mail ou senha incorretos. Confira e tente de novo.";
   }
 }
 
@@ -57,12 +57,15 @@ export interface LoginFormProps {
     canal: "EMAIL" | "TOTP",
   ) => void;
   readonly aoCriarSessao: (redirecionarPara: string) => void;
+  /** Prefixo dos `id` dos campos (a janela da loja usa o seu). */
+  readonly prefixo?: string;
 }
 
 export function LoginForm({
   aoEntrar,
   aoPedirSegundoFator,
   aoCriarSessao,
+  prefixo = "entrar",
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -71,8 +74,12 @@ export function LoginForm({
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    setEnviando(true);
     setErro(undefined);
+    if (email.trim() === "" || senha === "") {
+      setErro("Informe seu e-mail e sua senha.");
+      return;
+    }
+    setEnviando(true);
     try {
       const resposta = await aoEntrar({ email: email.trim(), senha });
       if (resposta.status === "DESAFIO_DE_SEGUNDO_FATOR") {
@@ -99,7 +106,7 @@ export function LoginForm({
     >
       <div className="sc-conta__campos">
         <Campo
-          id="entrar-email"
+          id={`${prefixo}-email`}
           name="email"
           type="email"
           autoComplete="email"
@@ -110,7 +117,7 @@ export function LoginForm({
           desabilitado={enviando}
         />
         <CampoDeSenha
-          id="entrar-senha"
+          id={`${prefixo}-senha`}
           name="senha"
           autoComplete="current-password"
           rotulo="Senha"

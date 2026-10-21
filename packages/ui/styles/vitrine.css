@@ -1,407 +1,734 @@
 /*
- * A vitrine: barra do topo, destaques, abas de categoria e a grade de produtos
- * (T-403).
+ * A vitrine: barra do topo, capa, barra do catálogo (categorias, filtro e
+ * ordem), banners, destaques, a grade de produtos e a sacola flutuante.
  *
- * SUPERFÍCIE DE QUEM ESTÁ COMPRANDO. A régua do projeto separa as telas pela
- * pressa de quem está nelas, e esta é a mais apressada de todas: alguém com
- * fome, no celular, com uma barra de sinal. Aqui não entra narrativa por
- * rolagem, não entra 3D e não entra nada que segure o dedo — só transição
- * curta e micro-interação.
+ * SUPERFÍCIE DE QUEM ESTÁ COMPRANDO. Aqui não entra narrativa por rolagem nem
+ * 3D — só transição curta e micro-interação, toda em CSS, e toda desligada para
+ * quem pediu menos movimento (bloco no fim do arquivo).
+ *
+ * LIMPO, COM HIERARQUIA. Capa grafite > barra do catálogo > banners >
+ * destaques > grade. Pouca caixa e pouca borda: o respiro separa as partes, e o
+ * verde-click é acento — o título em marcador, a categoria escolhida, o "+" do
+ * cartão e a sacola. A cor do dono aparece onde ela assina: a marca da loja.
  *
  * Escrito de baixo para cima: o estilo base atende o dobrável fechado de 344px,
- * e cada `min-width` acrescenta. O contrário obriga a desfazer regra em cada
- * quebra, que é onde nasce o estouro horizontal que o portão reprova.
- *
- * Depende de `theme.css`, que declara cor, espaço, raio e tipografia.
+ * e cada `min-width` acrescenta. Nenhuma cor é escrita aqui (AC-014).
  */
 
 /*
- * A altura da barra do topo é DECLARADA, e não medida: a faixa de categorias
+ * A altura da barra do topo é DECLARADA, e não medida: a barra do catálogo
  * gruda logo abaixo dela, e um número só nos dois lugares é o que impede uma
  * de passar por baixo da outra.
  */
 .sc-pagina-da-loja {
-  --altura-da-barra: 4rem;
-}
+  /* Não há mais barra do topo: a barra do catálogo gruda no alto da tela. */
+  --altura-da-barra: 0px;
+  --respiro-lateral: var(--espaco-4);
+  --sombra-cartao: 0 18px 36px -24px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 45%, transparent);
+  --borda-leve: color-mix(in srgb, var(--cor-borda) 35%, transparent);
 
-/* --- a barra do topo -------------------------------------------------------
- *
- * Marca, busca larga e carrinho numa linha só, mesmo no dobrável fechado: a
- * busca fica com a largura que sobra. Ela gruda no topo e recolhe quando a
- * pessoa rola para baixo (o script só marca `data-recolhida`); rolando para
- * cima, volta. Sem script, só fica grudada.
- */
-
-.sc-barra {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 3;
-  padding-block-start: env(safe-area-inset-top);
-  border-block-end: 1px solid var(--cor-borda);
-  background: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
-  transition: transform var(--transicao-media);
-}
-
-.sc-barra[data-recolhida] {
-  transform: translateY(-100%);
-}
-
-.sc-barra__conteudo {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  block-size: var(--altura-da-barra);
-  inline-size: 100%;
-  max-inline-size: 72rem;
-  margin-inline: auto;
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-}
-
-.sc-barra__marca {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: var(--espaco-2);
-  min-block-size: var(--altura-toque);
-  border-radius: var(--raio-botao);
-  color: var(--cor-tinta);
-  font-family: var(--fonte-titulo);
-  font-weight: var(--peso-forte);
-  text-decoration: none;
-}
-
-.sc-barra__logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: var(--raio-botao);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  object-fit: cover;
-}
-
-/* No celular a marca é só a logo: o nome continua no link para quem ouve. */
-.sc-barra__nome,
-.sc-barra__carrinho-texto {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.sc-barra__vao {
-  flex: 1 1 auto;
-}
-
-.sc-barra__carrinho {
-  flex: 0 0 auto;
-  min-inline-size: var(--altura-toque);
-  padding-inline: var(--espaco-3);
-}
-
-/* --- a página ------------------------------------------------------------- */
-
-.sc-vitrine {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-5);
   min-block-size: 100svh;
-  inline-size: 100%;
-  max-inline-size: 72rem;
-  margin-inline: auto;
-  /* Área segura: sem isto o conteúdo encosta na borda arredondada do aparelho. */
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-  padding-block-start: var(--espaco-5);
-  padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
-  color: var(--cor-tinta);
+  background: var(--cor-fundo);
 }
 
-/*
- * O fundo da página é a superfície, e o cartão é a superfície alta: é o
- * contraste entre as duas que desenha o cartão, sem precisar de borda. Vai no
- * `body` porque o contêiner do tema da loja é `display: contents` e não pinta
- * fundo nenhum.
- */
-body:has(.sc-pagina-da-loja > .sc-barra) {
-  background: var(--cor-superficie);
-}
-
-.sc-vitrine__voltar {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  min-block-size: var(--altura-toque);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-  text-decoration: none;
-}
-
-.sc-vitrine__voltar:hover {
-  color: var(--cor-tinta);
-  text-decoration: underline;
-}
-
-.sc-vitrine__titulo {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-xl);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
-}
-
-/* --- a busca ---------------------------------------------------------------
- *
- * O campo e a lupa formam uma pílula só, e a lupa não some no celular: sem
- * script, ela é a única forma de enviar para quem não descobre que "enter"
- * busca. O campo fica com a largura que sobra.
- */
+/* --- a busca -------------------------------------------------------------- */
 
 .sc-vitrine__busca {
+  position: relative;
   display: flex;
-  flex: 1 1 auto;
+  flex: 1;
   align-items: center;
-  /* `min-inline-size: 0` porque item de flex não encolhe sozinho: sem ele a
-   * barra estoura a largura no dobrável fechado, de 344px. */
   min-inline-size: 0;
-  border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-completo);
-  background: var(--cor-superficie);
-}
-
-.sc-vitrine__busca:focus-within {
-  outline: 2px solid var(--cor-foco);
-  outline-offset: 2px;
 }
 
 .sc-vitrine__busca-campo {
-  flex: 1 1 auto;
-  min-inline-size: 0;
-  min-block-size: var(--altura-toque);
-  padding-block: var(--espaco-2);
-  padding-inline: var(--espaco-3) 0;
-  border: none;
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  padding-block: 0;
+  padding-inline: 1rem 3.25rem;
+  border: 1px solid transparent;
   border-radius: var(--raio-completo);
-  background: transparent;
+  background: var(--cor-superficie);
   color: var(--cor-tinta);
-  font-family: inherit;
-  /* 16px: abaixo disso o Safari do iPhone aproxima a página ao focar. */
-  font-size: var(--texto-base);
-}
-
-/* O anel fica na pílula inteira (`:focus-within`), e não só no campo. */
-.sc-vitrine__busca-campo:focus-visible {
-  outline: none;
+  font: inherit;
+  /* 16px impede o iPhone de dar zoom no campo ao tocar. */
+  font-size: 1rem;
+  transition:
+    border-color var(--transicao-rapida),
+    background var(--transicao-rapida);
 }
 
 .sc-vitrine__busca-campo::placeholder {
   color: var(--cor-tinta-suave);
 }
 
+.sc-vitrine__busca-campo:focus-visible {
+  border-color: var(--cor-tinta);
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 1px;
+  background: var(--cor-superficie-alta);
+}
+
 .sc-vitrine__busca-botao {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  min-block-size: 2.75rem;
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
   min-inline-size: 2.75rem;
-  margin: 0;
+  min-block-size: 2.75rem;
   padding: 0;
   border: none;
-  border-radius: var(--raio-completo);
+  border-radius: 50%;
   background: transparent;
   color: var(--cor-tinta);
   cursor: pointer;
 }
 
 .sc-vitrine__busca-botao:hover {
-  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
 }
 
-.sc-vitrine__sem-resultado {
+.sc-vitrine__busca-botao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
+
+/* --- o corpo da vitrine --------------------------------------------------- */
+
+.sc-vitrine {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--espaco-3);
-  padding: var(--espaco-7) var(--espaco-4);
-  border-radius: var(--raio-cartao);
-  background: var(--cor-superficie-alta);
-  text-align: center;
+  gap: var(--espaco-5);
+  inline-size: 100%;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  /* Respiro no alto: sem barra do topo, a capa não encosta na borda da tela. */
+  padding: max(var(--espaco-6), env(safe-area-inset-top))
+    max(var(--respiro-lateral), env(safe-area-inset-right))
+    calc(7rem + env(safe-area-inset-bottom))
+    max(var(--respiro-lateral), env(safe-area-inset-left));
 }
 
-.sc-vitrine__sem-resultado-icone {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 3rem;
-  block-size: 3rem;
-  border-radius: var(--raio-completo);
-  background: var(--cor-primaria-suave);
-  color: var(--cor-tinta);
-}
-
-.sc-vitrine__sem-resultado-titulo {
-  margin: 0;
-  font-size: var(--texto-lg);
-}
-
-.sc-vitrine__sem-resultado-texto {
-  margin: 0;
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-}
-
-/* --- as abas de categoria -------------------------------------------------
+/* --- a capa do cardápio ----------------------------------------------------
  *
- * A faixa gruda logo abaixo da barra do topo para o AC-405 valer depois da
- * primeira rolagem: o filtro em vigor continua visível, e voltar a "Todas"
- * continua a um toque. Quando a barra recolhe, a faixa sobe junto até o topo.
- * Grudar não é sequestrar — a página vai onde o dedo mandar.
+ * O FUNDO TEM TAMANHO FIXO PARA A ARTE DA MARCA: proporção 4:1 no computador
+ * (arte recomendada 1600 × 400 px), mais alta no celular, sempre cortando pela
+ * direita a partir do centro. Sem capa do dono, a capa padrão do ramo, em
+ * ladrilho. Um véu grafite à esquerda garante a leitura do texto.
+ *
+ * O texto fica à esquerda: o nome da loja no bloco verde e, alinhados embaixo,
+ * "CARDÁPIO │ ● ABERTO". O "i" do Sobre no canto de cima à direita.
  */
 
-.sc-vitrine__abas {
+.sc-vitrine__capa {
+  /* A capa é a régua da letra do nome no celular (`cqw`). */
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  /* O texto no meio da altura do painel. */
+  align-items: center;
+  min-block-size: 12rem;
+  padding: var(--espaco-6) var(--espaco-4);
+  border-radius: var(--raio-janela);
+  background-color: var(--marca-grafite);
+  color: var(--marca-branco);
+  overflow: clip;
+  isolation: isolate;
+}
+
+.sc-vitrine__capa-fundo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: center right;
+}
+
+/* A capa padrão do ramo é um ladrilho: repete, discreta, sobre o grafite. */
+.sc-vitrine__capa--padrao .sc-vitrine__capa-fundo {
+  --capa-tamanho: 240px;
+  --capa-posicao: top left;
+  opacity: 0.35;
+}
+
+/* O véu: grafite forte à esquerda (onde está o texto), livre à direita. */
+.sc-vitrine__capa-veu {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      ellipse at 15% 80%,
+      color-mix(in srgb, var(--cor-marca) 18%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--marca-grafite) 94%, transparent),
+      color-mix(in srgb, var(--marca-grafite) 70%, transparent) 55%,
+      color-mix(in srgb, var(--marca-grafite) 10%, transparent)
+    );
+  pointer-events: none;
+}
+
+.sc-vitrine__capa > :not(.sc-vitrine__capa-fundo, .sc-vitrine__capa-veu) {
+  position: relative;
+  z-index: 1;
+}
+
+/* O "i" do Sobre: 44px, no canto de cima à direita. */
+.sc-vitrine__capa > .sc-vitrine__capa-sobre {
+  position: absolute;
+  inset-block-start: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  z-index: 2;
+}
+
+.sc-vitrine__capa-sobre {
+  display: grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 30%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--marca-grafite) 60%, transparent);
+  color: var(--marca-branco);
+  transition:
+    background var(--transicao-rapida),
+    border-color var(--transicao-rapida),
+    color var(--transicao-rapida);
+}
+
+.sc-vitrine__capa-sobre:hover {
+  border-color: var(--cor-marca-texto);
+  color: var(--cor-marca-texto);
+}
+
+/* O texto, à esquerda: nome e, alinhados embaixo, página e situação. */
+.sc-vitrine__capa-conteudo {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+}
+
+.sc-vitrine__capa-marca {
+  display: block;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  border-radius: 0.2em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sc-vitrine__capa-marca:focus-visible,
+.sc-vitrine__capa-sobre:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
+  outline-offset: 4px;
+}
+
+/*
+ * O nome da loja no topo do cardápio, em caixa alta no marcador: menor que o
+ * título da página inicial da loja — 2rem no celular a 3rem no computador
+ * (`--nome-da-loja-tamanho`, que a prévia da aparência também lê). Até duas
+ * linhas: nome longo encolhe pela quantidade de letras (`--letras-do-nome`,
+ * vinda do componente), até 1,25rem, em vez de ser cortado.
+ */
+.sc-vitrine__capa-nome {
+  --nome-da-loja-tamanho: clamp(2rem, 1.5rem + 1.8vw, 3rem);
+
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  font-family: var(--fonte-titulo);
+  font-size: min(
+    var(--nome-da-loja-tamanho),
+    max(
+      1.25rem,
+      calc(
+        2 * (100cqi - 2 * var(--espaco-4)) / (var(--letras-do-nome, 1) * 0.72)
+      )
+    )
+  );
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  /* Folga para o acento e o marcador não serem cortados pelo `overflow`. */
+  padding-block: 0.06em;
+}
+
+/*
+ * "CARDÁPIO  ● ABERTO", alinhado ao nome e bem menor que ele: o nome é a
+ * estrela. Os dois ficam na mesma linha central (28px de altura), com 10px
+ * entre si e 12px a 16px abaixo do nome. Tamanhos em rem/clamp: valem em
+ * 390px, 1400px e 2100px.
+ */
+.sc-vitrine__capa-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) 0.625rem;
+  margin-block-start: 0.25rem;
+}
+
+.sc-vitrine__titulo,
+.sc-vitrine__capa-situacao {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sc-vitrine__titulo {
+  color: var(--marca-branco);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(0.8125rem, 1.1vw, 0.9375rem);
+}
+
+.sc-vitrine__capa-situacao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--marca-branco);
+  font-size: clamp(0.6875rem, 0.9vw, 0.8125rem);
+}
+
+/* A pílula do selo (selo-de-status.css) enxuta: ~28px de altura. */
+.sc-vitrine__capa-pagina .sc-vitrine__capa-situacao.sc-selo-status {
+  min-block-size: 1.75rem;
+  padding: 0 0.625rem;
+  border-inline-start: 0;
+}
+
+/* O LED: verde aceso quando aberta, vermelho quando fechada. */
+.sc-vitrine__capa-ponto {
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+}
+
+.sc-vitrine__capa-situacao--aberta .sc-vitrine__capa-ponto {
+  background: var(--cor-marca);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--cor-marca) 25%, transparent),
+    0 0 6px var(--cor-marca);
+}
+
+.sc-vitrine__capa-situacao--fechada .sc-vitrine__capa-ponto {
+  background: color-mix(in srgb, var(--cor-erro) 70%, var(--marca-branco));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cor-erro) 30%, transparent);
+}
+
+/* --- a barra do catálogo ---------------------------------------------------
+ *
+ * Categorias, filtro e ordem numa faixa só, grudada logo abaixo da barra do
+ * topo (AC-405): a categoria em vigor continua visível e "Todas" fica a um
+ * toque. Quando a barra do topo recolhe, esta sobe junto.
+ */
+
+.sc-catalogo-barra {
   position: sticky;
   inset-block-start: calc(var(--altura-da-barra) + env(safe-area-inset-top));
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
-  /* A faixa encosta nas bordas da tela, como a barra; a lista é que tem
-   * respiro. Sem isso, os cartões apareceriam pelas laterais ao rolar. */
-  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
-  padding-block: var(--espaco-2);
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
-  /* Fundo opaco: sem ele os cartões passam por baixo e o texto fica ilegível. */
-  background: var(--cor-superficie);
+  z-index: 5;
+  margin-inline: calc(-1 * var(--respiro-lateral));
+  padding: var(--espaco-3) var(--respiro-lateral);
+  background: var(--cor-fundo);
   transition: inset-block-start var(--transicao-media);
 }
 
-.sc-pagina-da-loja:has(.sc-barra[data-recolhida]) .sc-vitrine__abas {
-  inset-block-start: 0;
+/* Um esmaecido embaixo, em vez de borda: separa sem desenhar caixa. */
+.sc-catalogo-barra::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: 0.75rem;
+  background: linear-gradient(
+    var(--cor-fundo),
+    color-mix(in srgb, var(--cor-fundo) 0%, transparent)
+  );
+  pointer-events: none;
+}
+
+.sc-pagina-da-loja:has(.sc-barra[data-recolhida]) .sc-catalogo-barra {
+  inset-block-start: env(safe-area-inset-top);
+}
+
+.sc-catalogo-barra__conteudo {
+  display: flex;
+  align-items: center;
+  /* As categorias rolam por baixo da busca: o vão deixa claro onde acabam. */
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+}
+
+.sc-catalogo-barra__vao {
+  flex: 1;
+}
+
+.sc-vitrine__abas {
+  flex: 1;
+  min-inline-size: 0;
 }
 
 .sc-vitrine__abas-lista {
   display: flex;
   gap: var(--espaco-2);
   margin: 0;
-  /* A lista rola na horizontal no celular; a barra some, o dedo continua. */
-  padding: var(--espaco-1);
+  padding: 0.125rem;
   overflow-x: auto;
-  scrollbar-width: none;
   list-style: none;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
 }
 
 .sc-vitrine__abas-lista::-webkit-scrollbar {
   display: none;
 }
 
+.sc-vitrine__abas-lista li {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* A aba também veste os links e botões de "ver tudo" e "continuar". */
 .sc-vitrine__aba {
   display: inline-flex;
   align-items: center;
-  min-block-size: var(--altura-toque);
-  padding-inline: var(--espaco-4);
-  border: 1px solid var(--cor-borda);
+  justify-content: center;
+  min-block-size: 2.75rem;
+  padding-inline: 1.125rem;
+  border: 1px solid transparent;
   border-radius: var(--raio-completo);
-  background: var(--cor-superficie-alta);
+  background: var(--cor-superficie);
   color: var(--cor-tinta);
+  font: inherit;
   font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
-  /* A aba não quebra em duas linhas: "Salgados fritos" viraria dois degraus. */
+  font-weight: var(--peso-forte);
   white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
   transition:
     background var(--transicao-rapida),
-    border-color var(--transicao-rapida);
+    border-color var(--transicao-rapida),
+    color var(--transicao-rapida),
+    transform var(--transicao-rapida);
 }
 
 .sc-vitrine__aba:hover {
-  border-color: var(--cor-borda-forte);
-  background: var(--cor-primaria-suave);
+  border-color: var(--cor-borda);
+}
+
+.sc-vitrine__aba:active {
+  transform: scale(0.96);
+}
+
+.sc-vitrine__aba:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-vitrine__aba--em-vigor,
+.sc-vitrine__aba--em-vigor:hover {
+  border-color: var(--cor-marca-texto);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-weight: 700;
 }
 
 /*
- * A aba em vigor muda FORMA e não só cor: fundo cheio e peso mais forte. Cor
- * sozinha não chega a quem não a distingue (P-012), e `aria-current` no HTML
- * cobre quem ouve a página.
+ * A frase "Mostrando Bebidas" continua no HTML — o leitor de tela a ouve e
+ * ela não depende da cor (P-012) —, mas dentro da faixa grudada ela engordaria
+ * a barra a cada filtro. Para quem vê, a aba em vigor já está no marcador.
  */
-.sc-vitrine__aba--em-vigor {
-  border-color: var(--cor-tinta);
-  background: var(--cor-tinta);
-  color: var(--cor-fundo);
-  font-weight: var(--peso-forte);
-}
-
-.sc-vitrine__aba--em-vigor:hover {
-  border-color: var(--cor-tinta);
-  background: var(--cor-tinta);
+.sc-catalogo-barra .sc-vitrine__filtro-em-vigor {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .sc-vitrine__filtro-em-vigor {
-  margin: 0;
-  padding-inline: var(--espaco-1);
+  margin: var(--espaco-2) 0 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
 }
 
-/* --- o filtro por especificação --------------------------------------------
- *
- * Fechado por padrão (`details`), para não empurrar o primeiro produto. Cada
- * valor é um chip: a caixa de marcar continua lá dentro, e o chip marcado
- * muda borda e fundo, além do tique.
- */
-
-.sc-filtro {
-  border-radius: var(--raio-cartao);
-  background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-1);
+.sc-catalogo-barra__acoes {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-inline-start: auto;
 }
 
-.sc-filtro__titulo {
+.sc-catalogo-barra__botao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-completo);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color var(--transicao-rapida),
+    background var(--transicao-rapida);
+}
+
+.sc-catalogo-barra__botao:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-catalogo-barra__botao:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-catalogo-barra__botao--largo {
+  display: none;
+}
+
+.sc-catalogo-barra__botao--estreito {
+  padding: 0;
+}
+
+/* A busca compacta: só no computador; no celular ela mora atrás da lupa. */
+.sc-catalogo-barra__busca {
+  display: none;
+}
+
+.sc-catalogo-barra__ponto {
+  position: absolute;
+  inset-block-start: 0.5rem;
+  inset-inline-end: 0.5rem;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  box-shadow: 0 0 0 2px var(--cor-fundo);
+}
+
+.sc-catalogo-barra__selo {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding-inline: 0.3rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-catalogo-barra__botao--estreito .sc-catalogo-barra__selo {
+  position: absolute;
+  inset-block-start: -0.25rem;
+  inset-inline-end: -0.25rem;
+  box-shadow: 0 0 0 2px var(--cor-fundo);
+}
+
+/* O chip "Atacado" (card #59): link que liga e desliga o filtro. Aparece nas
+   duas larguras; ligado, ganha a cor da loja. */
+.sc-catalogo-barra__chip {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sc-catalogo-barra__chip--ligado {
+  border-color: var(--cor-marca);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+}
+
+.sc-catalogo-barra__chip--ligado:hover {
+  border-color: var(--cor-marca);
+}
+
+.sc-catalogo-barra__contagem {
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+/* --- os painéis do filtro e da ordem ---------------------------------------
+ *
+ * Abrem pelo atributo `popover` do HTML, sem script. No celular, gaveta que
+ * sobe do pé; no computador, painel pendurado no botão que o abriu.
+ */
+
+.sc-painel {
+  position: fixed;
+  inset: auto 0 0;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 85svh;
+  margin: 0;
+  padding: var(--espaco-4) var(--espaco-4)
+    calc(var(--espaco-5) + env(safe-area-inset-bottom));
+  border: none;
+  border-radius: var(--raio-janela) var(--raio-janela) 0 0;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.sc-painel:popover-open {
+  animation: sc-gaveta-sobe 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.sc-painel::backdrop {
+  background: color-mix(
+    in srgb,
+    var(--marca-preto-tecnologico) 50%,
+    transparent
+  );
+}
+
+.sc-painel__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-block-end: var(--espaco-2);
+}
+
+.sc-painel__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.sc-painel__topo .sc-painel__titulo {
+  margin: 0;
+}
+
+.sc-painel__subtitulo {
+  margin: 0 0 var(--espaco-2);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sc-painel__secao + .sc-painel__secao {
+  margin-block-start: var(--espaco-5);
+}
+
+.sc-painel__fechar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-painel__fechar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-painel__so-largo {
+  display: none;
+}
+
+/* A busca do celular: um painel que desce do alto, com o campo e o fechar. */
+.sc-painel--busca {
+  inset: 0 0 auto;
+  padding: max(var(--espaco-3), env(safe-area-inset-top)) var(--espaco-3)
+    var(--espaco-3);
+  border-radius: 0 0 var(--raio-janela) var(--raio-janela);
+}
+
+.sc-painel--busca:popover-open {
+  animation: sc-painel-desce 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.sc-painel--busca .sc-painel__topo {
+  margin: 0;
+}
+
+.sc-catalogo-barra__ordens {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-catalogo-barra__ordem {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--espaco-3);
   min-block-size: var(--altura-toque);
-  padding-inline: var(--espaco-4);
-  border-radius: var(--raio-cartao);
-  font-weight: var(--peso-forte);
-  list-style: none;
-  cursor: pointer;
+  padding-inline: var(--espaco-3);
+  border-radius: var(--raio-botao);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  text-decoration: none;
 }
 
-.sc-filtro__titulo::-webkit-details-marker {
-  display: none;
+.sc-catalogo-barra__ordem:hover {
+  background: var(--cor-superficie);
 }
 
-.sc-filtro__titulo:focus-visible {
-  outline: 2px solid var(--cor-foco);
-  outline-offset: 2px;
+.sc-catalogo-barra__ordem:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
 }
 
-.sc-filtro__contagem {
-  color: var(--cor-primaria-texto);
+.sc-catalogo-barra__ordem--em-vigor {
+  background: var(--cor-superficie);
+  font-weight: 700;
 }
 
-.sc-filtro__seta {
-  color: var(--cor-tinta-suave);
-}
-
-.sc-filtro[open] .sc-filtro__seta {
-  transform: rotate(180deg);
-}
-
+/* O formulário do filtro, dentro do painel. */
 .sc-filtro__formulario {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--espaco-4);
-  padding: 0 var(--espaco-4) var(--espaco-4);
 }
 
 .sc-filtro__grupo {
@@ -417,8 +744,10 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   margin-block-end: var(--espaco-2);
   padding: 0;
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .sc-filtro__opcao {
@@ -427,65 +756,257 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   gap: var(--espaco-2);
   min-block-size: var(--altura-toque);
   padding-inline: var(--espaco-3) var(--espaco-4);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--borda-leve);
   border-radius: var(--raio-completo);
   font-size: var(--texto-sm);
   cursor: pointer;
 }
 
 .sc-filtro__opcao:has(input:checked) {
-  border-color: var(--cor-tinta);
-  background: var(--cor-primaria-suave);
-  color: var(--cor-tinta);
+  border-color: var(--marca-grafite);
+  background: var(--marca-grafite);
+  color: var(--cor-marca-texto);
   font-weight: var(--peso-forte);
+}
+
+.sc-filtro__opcao:has(input:focus-visible) {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .sc-filtro__opcao input {
   margin: 0;
-  accent-color: var(--cor-tinta);
+  accent-color: var(--cor-marca-texto);
 }
 
-/* --- os destaques ---------------------------------------------------------
+/* Os botões grudam no pé do painel: com muitos filtros, "Aplicar" não some. */
+.sc-filtro__acoes {
+  position: sticky;
+  inset-block-end: calc(-1 * var(--espaco-5) - env(safe-area-inset-bottom));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  margin-block-end: calc(-1 * var(--espaco-3));
+  padding-block: var(--espaco-3);
+  background: var(--cor-fundo);
+}
+
+.sc-filtro__limpar {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-2);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* --- os banners promocionais -----------------------------------------------
  *
- * Tira que rola na horizontal com encaixe. Sem script: o dedo arrasta, o cartão
- * para no lugar, e o teclado percorre porque cada cartão é um link.
+ * Uma faixa larga que encaixa ao arrastar (`scroll-snap`, sem biblioteca). A
+ * altura acompanha a capa: mais baixa no celular, perto de 300px no computador.
  */
 
-.sc-vitrine__destaques {
+.sc-banners {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
+  gap: var(--espaco-1);
+  min-inline-size: 0;
 }
 
-.sc-vitrine__tira {
+.sc-banners__trilho {
   display: flex;
-  gap: var(--espaco-3);
-  /* O respiro é do anel de foco e da sombra, que senão ficam cortados. */
-  margin: calc(-1 * var(--espaco-2));
-  padding: var(--espaco-2);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--espaco-2);
-  list-style: none;
-  overscroll-behavior-inline: contain;
+  margin: 0;
+  padding: 0;
   border-radius: var(--raio-cartao);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 
-.sc-vitrine__tira:focus-visible {
-  outline: 2px solid var(--cor-foco);
+.sc-banners__trilho::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-banners__trilho:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-banners__item {
+  position: relative;
+  flex: 0 0 100%;
+  aspect-ratio: 16 / 9;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.sc-banners__link {
+  display: block;
+  block-size: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sc-banners__link:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
+}
+
+.sc-banners__imagem,
+.sc-banners__imagem img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.sc-banners__imagem img {
+  object-fit: cover;
+  background: var(--marca-grafite);
+}
+
+/* O texto do banner vai no marcador, como os títulos: legível sobre qualquer arte. */
+.sc-banners__texto {
+  position: absolute;
+  inset-inline-start: var(--espaco-4);
+  inset-block-end: var(--espaco-4);
+  max-inline-size: min(72%, 30rem);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.125rem, 3.2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Inline, para a faixa abraçar cada linha em vez de virar um bloco largo. */
+.sc-banners__texto > span {
+  padding: 0.12em 0.3em 0.04em;
+  border-radius: 0.18em;
+  background: var(--cor-marca);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.sc-banners__seta {
+  position: absolute;
+  inset-block-start: calc((100% - 2.75rem) / 2 - 1.375rem);
+  z-index: 1;
+  display: none;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(
+    in srgb,
+    var(--marca-preto-tecnologico) 62%,
+    transparent
+  );
+  color: var(--marca-branco);
+  cursor: pointer;
+  transition: background var(--transicao-rapida);
+}
+
+.sc-banners__seta:hover {
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+}
+
+.sc-banners__seta:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
   outline-offset: 2px;
 }
 
-.sc-vitrine__tira-item {
-  display: flex;
-  flex: 0 0 auto;
-  /* Cabe um cartão inteiro e a beirada do próximo — é a beirada que conta que
-   * há mais coisa para o lado. Sem ela, a tira parece uma lista que acabou. */
-  inline-size: min(62%, 14rem);
-  scroll-snap-align: start;
+.sc-banners__seta--anterior {
+  inset-inline-start: var(--espaco-3);
 }
 
-/* --- as seções e a grade --------------------------------------------------- */
+.sc-banners__seta--proxima {
+  inset-inline-end: var(--espaco-3);
+}
+
+.sc-banners__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-1);
+  min-block-size: 2.75rem;
+}
+
+.sc-banners__pausa {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+}
+
+.sc-banners__pausa[hidden] {
+  display: none;
+}
+
+.sc-banners__pausa:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-banners__pausa:focus-visible,
+.sc-banners__ponto:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
+}
+
+.sc-banners__pontos {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* O alvo tem 44px; o ponto desenhado é pequeno, por dentro. */
+.sc-banners__ponto {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sc-banners__ponto::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-borda);
+  transition:
+    inline-size var(--transicao-media),
+    background var(--transicao-media);
+}
+
+.sc-banners__ponto[aria-current="true"]::before {
+  inline-size: 1.5rem;
+  background: var(--cor-tinta);
+}
+
+/* --- seções e títulos ----------------------------------------------------- */
 
 .sc-vitrine__secoes {
   display: flex;
@@ -493,32 +1014,78 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   gap: var(--espaco-7);
 }
 
+/* Os destaques e a grade respiram mais que a capa, a barra e os banners. */
+.sc-vitrine__destaques,
+.sc-vitrine__secoes {
+  margin-block-start: var(--espaco-4);
+}
+
+.sc-vitrine__destaques,
 .sc-vitrine__secao {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
-  /* A âncora da seção não para debaixo da barra e da faixa grudadas. */
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+  /* A âncora do título não para embaixo da barra do topo e da do catálogo. */
   scroll-margin-block-start: calc(var(--altura-da-barra) + 4.5rem);
 }
 
-.sc-vitrine__secao-nome {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
+.sc-vitrine__secao-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-3);
 }
 
 /*
- * `auto-fill` com mínimo em rem: a grade decide sozinha quantas colunas cabem,
- * de duas no dobrável fechado a seis no monitor, sem uma consulta de mídia por
- * ponto de quebra. Ponto de quebra fixo aqui erraria no Fold, que é estreito e
- * comprido ao mesmo tempo.
+ * O título da seção vai no MARCADOR: letra escura sobre a faixa verde-click,
+ * a mesma caneta do nome da loja. Legível igual nos dois temas, porque a letra
+ * nunca fica sobre o fundo da página.
+ *
+ * O ACENTO CABE NA FAIXA. Em caixa alta, o "Á" e o "É" sobem quase 0,2em acima
+ * da letra sem acento; com a altura de linha justa de antes, o acento encostava
+ * na borda de cima e parecia cortado. A folga de cima (0,14em) é maior que a de
+ * baixo (0,06em), e a altura de linha mais justa compensa — a faixa sai com a
+ * mesma altura total de antes, e a palavra sem acento fica onde estava.
  */
+.sc-vitrine__secao-nome {
+  inline-size: fit-content;
+  margin: 0;
+  padding: 0.14em 0.25em 0.06em;
+  border-radius: 0.2em;
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.375rem, 5.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.sc-vitrine__secao-contagem {
+  flex: none;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- o cartão de produto ---------------------------------------------------
+ *
+ * Sem caixa: a foto com canto de 16px, o nome, o preço e o "+". O respiro da
+ * grade separa um produto do outro. Duas colunas no celular, três no tablet e
+ * quatro no computador largo.
+ */
+
 .sc-vitrine__grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: var(--espaco-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-5) var(--espaco-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -526,54 +1093,50 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 
 .sc-vitrine__item {
   display: flex;
+  min-inline-size: 0;
 }
 
-/* --- o cartão do produto ---------------------------------------------------
- *
- * A foto dentro do cartão, com moldura própria, e o texto embaixo; o preço e o
- * "+" fecham o pé. O cartão inteiro é UM link — o "+" é desenho, e não um
- * segundo botão: dois alvos no mesmo cartão de 160px é o dedo errando um deles.
- */
-
 .sc-vitrine__cartao {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
   inline-size: 100%;
-  padding: var(--espaco-2);
-  padding-block-end: var(--espaco-3);
-  border: 1px solid transparent;
   border-radius: var(--raio-cartao);
-  background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   text-decoration: none;
-  box-shadow: var(--sombra-1);
-  /* Nome comprido não empurra a coluna: o que passar do cartão é cortado. */
   overflow: clip;
-  transition:
-    border-color var(--transicao-rapida),
-    box-shadow var(--transicao-rapida);
+  overflow-clip-margin: 4px;
 }
 
-.sc-vitrine__cartao:hover {
-  border-color: var(--cor-borda);
-  box-shadow: var(--sombra-larga);
+/*
+ * O cartão tem DOIS links: o do produto (foto, nome e preço) e o "+". O do
+ * produto herda a cor do texto — sem isso, ele pegaria a cor de link da loja.
+ */
+.sc-vitrine__link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+  border-radius: var(--raio-cartao);
+  color: inherit;
+  text-decoration: none;
 }
 
-.sc-vitrine__cartao:focus-visible {
+.sc-vitrine__link:focus-visible {
   outline: 3px solid var(--cor-foco);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .sc-vitrine__moldura {
   position: relative;
   display: block;
-  /* O espaço da foto já existe antes de ela chegar, e a página não pula. */
-  aspect-ratio: 4 / 3;
   inline-size: 100%;
-  border-radius: calc(var(--raio-cartao) - var(--espaco-2));
+  aspect-ratio: 1;
+  border-radius: var(--raio-cartao);
+  overflow: hidden;
   background: var(--cor-superficie);
-  overflow: clip;
 }
 
 .sc-vitrine__foto {
@@ -581,22 +1144,159 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
+  transition: transform 450ms ease-out;
 }
 
+.sc-vitrine__cartao:hover .sc-vitrine__foto {
+  transform: scale(1.04);
+}
+
+/*
+ * Produto sem foto: o espaço é o mesmo, num tom neutro da paleta com a inicial
+ * discreta — sem cor chapada disputando com as fotos ao lado.
+ */
 .sc-vitrine__sem-foto {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   inline-size: 100%;
   block-size: 100%;
-  background: var(--cor-primaria-suave);
-  color: var(--cor-primaria-texto);
+  background-color: var(--cor-superficie);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--cor-tinta) 10%, transparent) 1px,
+    transparent 1.6px
+  );
+  background-size: 14px 14px;
+  color: var(--cor-tinta-suave);
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-2xl);
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.sc-vitrine__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
+  padding-inline: 0.125rem;
+}
+
+.sc-vitrine__nome {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* A chamada fica para a tela mais larga: no celular, duas colunas não têm onde pô-la. */
+.sc-vitrine__chamada {
+  display: none;
+  overflow: hidden;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* O pé guarda lugar para o "+", que fica por cima, no canto de baixo. */
+.sc-vitrine__pe {
+  display: flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  margin-block-start: auto;
+  padding-block-start: var(--espaco-1);
+  padding-inline-end: 3.25rem;
+}
+
+.sc-vitrine__precos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--espaco-2);
+  min-inline-size: 0;
+}
+
+.sc-vitrine__preco {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-vitrine__preco--variavel {
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-sm);
   font-weight: var(--peso-forte);
 }
 
-/* --- o produto que acabou -------------------------------------------------- */
+.sc-vitrine__preco-anterior {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+/* Varejo e atacado juntos (card #56): o atacado vai numa linha só dele. */
+.sc-vitrine__atacado {
+  flex-basis: 100%;
+  color: var(--cor-marca-texto);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  line-height: 1.3;
+}
+
+/* O "+" é desenho, e não botão: o cartão inteiro já é o link. */
+/* O "+": um link próprio, de 44px, no canto de baixo do cartão. */
+.sc-vitrine__mais {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  transition: transform var(--transicao-media);
+}
+
+.sc-vitrine__mais:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-vitrine__mais:active {
+  transform: scale(0.92);
+}
+
+.sc-vitrine__cartao:hover .sc-vitrine__mais {
+  transform: rotate(90deg);
+}
+
+.sc-vitrine__cartao--esgotado .sc-vitrine__foto {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.sc-vitrine__cartao--esgotado .sc-vitrine__preco {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-vitrine__cartao--esgotado .sc-vitrine__mais {
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+}
 
 .sc-vitrine__esgotado {
   position: absolute;
@@ -608,218 +1308,1066 @@ body:has(.sc-pagina-da-loja > .sc-barra) {
 }
 
 .sc-vitrine__esgotado-selo {
-  padding-block: var(--espaco-1);
-  padding-inline: var(--espaco-3);
+  padding: var(--espaco-1) var(--espaco-3);
   border-radius: var(--raio-completo);
-  background: var(--cor-tinta);
-  color: var(--cor-fundo);
+  background: var(--marca-preto-tecnologico);
+  color: var(--marca-branco);
   font-size: var(--texto-xs);
   font-weight: var(--peso-forte);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
-/*
- * O cartão esgotado esmaece a FOTO, e não o texto. Esmaecer o nome e o preço
- * derrubaria o contraste deles abaixo do mínimo, e a informação de que o
- * produto existe é justamente o que ele ainda precisa entregar.
+/* --- os destaques ----------------------------------------------------------
+ *
+ * Uma tira que encaixa ao arrastar, sem script. O cartão é o mesmo da grade,
+ * com a foto em pé — o destaque se diferencia pelo tamanho, não por caixa.
  */
-.sc-vitrine__cartao--esgotado .sc-vitrine__foto,
-.sc-vitrine__cartao--esgotado .sc-vitrine__sem-foto {
-  filter: grayscale(1);
-  opacity: 0.6;
-}
 
-/* --- o texto do cartão ----------------------------------------------------- */
-
-.sc-vitrine__texto {
+.sc-vitrine__tira {
   display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--espaco-1);
-  padding-inline: var(--espaco-1);
+  gap: var(--espaco-3);
+  margin: 0 calc(-1 * var(--respiro-lateral));
+  padding: var(--espaco-1) var(--respiro-lateral) var(--espaco-2);
+  overflow-x: auto;
+  list-style: none;
+  scroll-padding-inline: var(--respiro-lateral);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 
-.sc-vitrine__nome {
+.sc-vitrine__tira::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-vitrine__tira:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
+  border-radius: var(--raio-cartao);
+}
+
+.sc-vitrine__tira-item {
+  display: flex;
+  flex: 0 0 min(62%, 15rem);
+  scroll-snap-align: start;
+}
+
+.sc-vitrine__tira .sc-vitrine__moldura {
+  aspect-ratio: 4 / 5;
+}
+
+.sc-vitrine__tira .sc-vitrine__nome {
+  font-size: 1.125rem;
+}
+
+/* --- estados: nada encontrado, voltar ------------------------------------- */
+
+.sc-vitrine__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
   font-size: var(--texto-sm);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
+  text-decoration: none;
 }
 
-.sc-vitrine__chamada {
+.sc-vitrine__voltar:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-vitrine__voltar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-vitrine__sem-resultado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-7) var(--espaco-4);
+  border: 1px dashed var(--cor-borda);
+  border-radius: 2rem;
+  background: var(--cor-superficie);
+  text-align: center;
+}
+
+.sc-vitrine__sem-resultado-icone {
+  display: grid;
+  place-items: center;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: 50%;
+  background: var(--marca-grafite);
+  color: var(--cor-marca-texto);
+}
+
+.sc-vitrine__sem-resultado-titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.sc-vitrine__sem-resultado-texto {
+  margin: 0;
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
-  line-height: var(--altura-linha-apertada);
-  /* Duas linhas no máximo: a terceira empurra o preço para fora do cartão e
-   * desalinha a grade inteira. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: var(--texto-sm);
 }
 
-/* O pé vai para o fim do cartão: preços na mesma linha em toda a grade. */
-.sc-vitrine__pe {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+/* --- a sacola flutuante ----------------------------------------------------
+ *
+ * Um botão grafite com a sacola em verde-click, a contagem e o total, que a
+ * pessoa arrasta para onde quiser. Só existe com item dentro (o componente
+ * decide). A ÁREA é o retângulo onde ela pode ficar: a tela menos uma margem e
+ * a área segura do aparelho — o componente só mede este elemento invisível.
+ */
+
+.sc-sacola__area {
+  position: fixed;
+  inset: max(var(--espaco-4), env(safe-area-inset-top))
+    max(var(--espaco-4), env(safe-area-inset-right))
+    max(var(--espaco-4), env(safe-area-inset-bottom))
+    max(var(--espaco-4), env(safe-area-inset-left));
+  z-index: -1;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sc-sacola__area--acima-da-acao {
+  inset-block-end: calc(
+    var(--altura-da-acao, 5.75rem) +
+      max(var(--espaco-4), env(safe-area-inset-bottom))
+  );
+}
+
+.sc-sacola {
+  position: fixed;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  inset-inline-end: max(1rem, env(safe-area-inset-right));
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
   gap: var(--espaco-2);
-  margin-block-start: auto;
-  padding-block-start: var(--espaco-2);
+  /* No celular, 48px: alvo confortável sem cobrir o cardápio. */
+  min-inline-size: 3rem;
+  min-block-size: 3rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font: inherit;
+  box-shadow:
+    0 16px 32px -12px
+      color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--marca-branco) 10%, transparent);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: sc-sacola-entra 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
-.sc-vitrine__precos {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: var(--espaco-2);
-  min-inline-size: 0;
+/* Posicionada pelo script: a posição vem do `left`/`top` em linha. */
+.sc-sacola--posicionada {
+  inset-block-end: auto;
+  inset-inline-end: auto;
+  transition:
+    left 160ms ease-out,
+    top 160ms ease-out,
+    transform var(--transicao-media),
+    box-shadow var(--transicao-media);
 }
 
-.sc-vitrine__preco {
-  font-size: var(--texto-base);
-  font-weight: var(--peso-forte);
+.sc-sacola:has(.sc-sacola__total) {
+  padding-inline-end: 0.75rem;
+}
+
+.sc-sacola:hover {
+  box-shadow:
+    0 20px 40px -12px
+      color-mix(in srgb, var(--marca-preto-tecnologico) 70%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 40%, transparent);
+}
+
+.sc-sacola--arrastando,
+.sc-sacola--posicionada.sc-sacola--arrastando {
+  cursor: grabbing;
+  transform: scale(1.06);
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-sacola:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
+  outline-offset: 3px;
+}
+
+.sc-sacola__icone {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+}
+
+.sc-sacola__contagem {
+  position: absolute;
+  inset-block-start: -0.3rem;
+  inset-inline-end: -0.3rem;
+  display: grid;
+  place-items: center;
+  min-inline-size: 1.375rem;
+  block-size: 1.375rem;
+  padding-inline: 0.3rem;
+  border-radius: var(--raio-completo);
+  background: var(--marca-branco);
+  color: var(--marca-preto-tecnologico);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--marca-grafite);
+  animation: sc-selo-pula 450ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.sc-sacola__total {
+  color: var(--cor-marca-texto);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.sc-vitrine__preco--variavel {
-  color: var(--cor-primaria-texto);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
+/*
+ * O CARRINHO É UMA JANELA (modal) CENTRALIZADA, em qualquer largura: no
+ * celular com margem nas bordas, no computador mais estreita. Rola por dentro
+ * só se a lista passar da altura.
+ */
+.sc-flutuante__gaveta {
+  position: fixed;
+  inset: 0;
+  inline-size: min(30rem, calc(100% - 2 * var(--espaco-4)));
+  max-inline-size: none;
+  max-block-size: calc(100dvh - 2 * var(--espaco-4));
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--raio-janela);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
-.sc-vitrine__preco-anterior {
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
+.sc-flutuante__gaveta[open] {
+  animation: sc-janela-aparece 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
-.sc-vitrine__mais {
+.sc-flutuante__gaveta::backdrop,
+.sc-janela-produto::backdrop {
+  background: color-mix(
+    in srgb,
+    var(--marca-preto-tecnologico) 62%,
+    transparent
+  );
+}
+
+/* --- a janela do carrinho --------------------------------------------------
+ *
+ * Três faixas: cabeçalho verde (fixo), lista (a única parte que rola, com a
+ * barra de rolagem afastada do cabeçalho e do X) e rodapé com o resumo e o
+ * "Fechar pedido" (fixo). A sacola de marca-d'água fica ao fundo, atrás de
+ * tudo, sem pegar clique.
+ */
+
+.sc-carrinho-janela[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sc-carrinho-janela__quadro {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+  isolation: isolate;
+}
+
+.sc-carrinho-janela__marca {
+  position: absolute;
+  inset-block-end: -2.5rem;
+  inset-inline-end: -3rem;
+  z-index: -1;
+  inline-size: min(20rem, 75%);
+  color: var(--cor-tinta);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* No tema claro, a marca-d'água é ainda mais discreta. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema="escuro"]) .sc-carrinho-janela__marca {
+    opacity: 0.035;
+  }
+}
+
+[data-tema="claro"] .sc-carrinho-janela__marca {
+  opacity: 0.035;
+}
+
+[data-tema="escuro"] .sc-carrinho-janela__marca {
+  opacity: 0.06;
+}
+
+/* O cabeçalho: faixa verde, tudo numa linha só, com o mesmo respiro dos lados. */
+.sc-carrinho-janela__topo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-3) var(--espaco-5);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+}
+
+/* Grafite sobre o verde: a regra geral de título pintaria de branco, sem contraste. */
+.sc-carrinho-janela__titulo {
+  margin: 0;
+  color: var(--marca-preto-tecnologico);
+  font-family: var(--fonte-titulo);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.sc-carrinho-janela__titulo:focus {
+  outline: none;
+}
+
+.sc-carrinho-janela__selo {
   display: inline-flex;
-  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  white-space: nowrap;
+}
+
+.sc-carrinho-janela__selo strong {
+  color: var(--cor-marca-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__fechar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  margin-inline-start: auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--marca-grafite);
+  color: var(--cor-marca-texto);
+  cursor: pointer;
+  transition: background var(--transicao-rapida);
+}
+
+.sc-carrinho-janela__fechar:hover {
+  background: var(--marca-preto-tecnologico);
+}
+
+/* Sem anel ao clicar; anel grafite só para quem navega pelo teclado. */
+.sc-carrinho-janela__fechar:focus {
+  outline: none;
+}
+
+.sc-carrinho-janela__fechar:focus-visible {
+  outline: 3px solid var(--marca-preto-tecnologico);
+  outline-offset: 2px;
+}
+
+/* A lista: só ela rola, e a barra de rolagem fica com margem. */
+.sc-carrinho-janela__corpo {
+  flex: 1;
+  min-block-size: 0;
+  margin: var(--espaco-2) var(--espaco-1) 0 0;
+  padding: 0 var(--espaco-4) var(--espaco-3) var(--espaco-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sc-carrinho-janela__itens {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-carrinho-janela__item {
+  display: grid;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4) 0;
+  border: none;
+  border-block-end: 1px solid var(--borda-leve);
+}
+
+.sc-carrinho-janela__item:last-child {
+  border-block-end: none;
+}
+
+.sc-carrinho-janela__cabeca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.sc-carrinho-janela__nome {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.sc-carrinho-janela__subtotal {
+  flex: none;
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__descricao {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* O que foi escolhido: lista discreta com filete verde à esquerda. */
+.sc-carrinho-janela__detalhes {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0 0 0 var(--espaco-3);
+  border-inline-start: 2px solid var(--cor-marca-texto);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  list-style: none;
+}
+
+.sc-carrinho-janela__detalhes li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.sc-carrinho-janela__grupo {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-carrinho-janela__acrescimo {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__observacao {
+  font-style: italic;
+}
+
+.sc-carrinho-janela__pe {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block-start: var(--espaco-1);
+}
+
+.sc-carrinho-janela__quantidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+}
+
+.sc-carrinho-janela__passo,
+.sc-carrinho-janela__remover {
+  display: grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-carrinho-janela__passo:hover:not(:disabled),
+.sc-carrinho-janela__remover:hover:not(:disabled) {
+  background: var(--cor-superficie-alta);
+}
+
+.sc-carrinho-janela__passo:disabled,
+.sc-carrinho-janela__remover:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sc-carrinho-janela__passo:focus-visible,
+.sc-carrinho-janela__remover:focus-visible,
+.sc-carrinho-janela__continuar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-carrinho-janela__contagem {
+  min-inline-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__unitario {
+  flex: 1;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__remover {
+  color: var(--cor-tinta-suave);
+}
+
+/* Estados: carregando, erro e vazio. */
+.sc-carrinho-janela__estado {
+  display: grid;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-5);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-carrinho-janela__estado p {
+  margin: 0;
+}
+
+.sc-carrinho-janela__esqueleto {
+  display: block;
+  block-size: 4.5rem;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+}
+
+.sc-carrinho-janela__vazio {
+  justify-items: center;
+  padding-block: var(--espaco-6);
+  text-align: center;
+}
+
+/* No vazio, a sacola aparece de verdade, junto da mensagem. */
+.sc-carrinho-janela__vazio-sacola {
+  inline-size: 7rem;
+  color: var(--cor-marca-texto);
+  opacity: 0.6;
+}
+
+.sc-carrinho-janela--vazio .sc-carrinho-janela__marca {
+  display: none;
+}
+
+/* O rodapé: resumo e o "Fechar pedido", sempre à vista. */
+.sc-carrinho-janela__rodape {
+  display: grid;
+  flex: none;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4) var(--espaco-5)
+    max(var(--espaco-4), env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--borda-leve);
+  background: color-mix(in srgb, var(--cor-fundo) 94%, transparent);
+}
+
+.sc-carrinho-janela__resumo {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.sc-carrinho-janela__resumo div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-carrinho-janela__resumo dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-carrinho-janela__resumo-total {
+  margin-block-start: 0.25rem;
+}
+
+.sc-carrinho-janela__resumo .sc-carrinho-janela__resumo-total {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: 700;
+}
+
+/* O botão da SimpleClick: pílula verde-click, texto grafite, seta. */
+.sc-carrinho-janela__acao {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 2rem;
-  block-size: 2rem;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque-grande);
+  padding-inline: var(--espaco-5);
+  border: none;
   border-radius: var(--raio-completo);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
 }
 
-.sc-vitrine__cartao--esgotado .sc-vitrine__mais {
+.sc-carrinho-janela__acao--larga {
+  inline-size: 100%;
+  min-block-size: 3.25rem;
+}
+
+.sc-carrinho-janela__acao:hover {
+  box-shadow: 0 10px 24px -12px
+    color-mix(in srgb, var(--cor-marca) 90%, transparent);
+  transform: translateY(-1px);
+}
+
+.sc-carrinho-janela__acao:active {
+  transform: scale(0.98);
+}
+
+.sc-carrinho-janela__acao:focus-visible {
+  outline: 3px solid var(--cor-tinta);
+  outline-offset: 3px;
+}
+
+.sc-carrinho-janela__acao:disabled {
   background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* --- telas maiores --------------------------------------------------------- */
+.sc-carrinho-janela__continuar {
+  justify-self: center;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+  border: none;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta-suave);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
 
-/* Dobrável aberto em diante: a marca ganha o nome, o carrinho ganha a palavra. */
-@media (min-width: 540px) {
-  .sc-barra__nome,
-  .sc-barra__carrinho-texto {
-    position: static;
-    inline-size: auto;
-    block-size: auto;
-    overflow: visible;
-    clip-path: none;
+@keyframes sc-sacola-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes sc-selo-pula {
+  0% {
+    transform: scale(0.4);
   }
 
-  .sc-barra__conteudo {
-    gap: var(--espaco-4);
+  60% {
+    transform: scale(1.25);
   }
+}
 
+@keyframes sc-gaveta-sobe {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sc-gaveta-entra-do-lado {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sc-painel-desce {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes sc-janela-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.98);
+  }
+}
+
+@keyframes sc-aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes sc-painel-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+}
+
+/* --- quebras -------------------------------------------------------------- */
+
+/* O nome da loja entra na barra a partir do celular comum (360px). */
+@media (min-width: 360px) {
   .sc-barra__nome {
-    max-inline-size: 14rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: inline;
+    max-inline-size: 6rem;
+  }
+}
+
+/* Dobrável aberto: a foto do cartão deita (4:3) e a chamada aparece. */
+@media (min-width: 540px) {
+  .sc-vitrine__grade {
+    gap: var(--espaco-6) var(--espaco-4);
   }
 
-  .sc-barra__carrinho {
-    padding-inline: var(--espaco-4);
+  .sc-vitrine__moldura {
+    aspect-ratio: 4 / 3;
+  }
+
+  .sc-vitrine__chamada {
+    display: -webkit-box;
+  }
+
+  .sc-vitrine__nome {
+    font-size: 1.0625rem;
+  }
+
+  .sc-vitrine__tira-item {
+    flex-basis: 16rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .sc-banners__item {
+    aspect-ratio: auto;
+    block-size: clamp(13.75rem, 26vw, 18.75rem);
+  }
+
+  .sc-banners__trilho {
+    border-radius: var(--raio-janela);
+  }
+
+  .sc-banners__texto {
+    inset-inline-start: var(--espaco-6);
+    inset-block-end: var(--espaco-6);
   }
 }
 
 @media (min-width: 768px) {
+  /* No computador a sacola volta ao tamanho cheio. */
+  .sc-sacola {
+    min-inline-size: 3.5rem;
+    min-block-size: 3.5rem;
+    padding: 0.375rem;
+  }
+
+  .sc-sacola:has(.sc-sacola__total) {
+    padding-inline-end: 1rem;
+  }
+
+  .sc-sacola__icone {
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+  }
+
+  .sc-sacola__total {
+    font-size: 1rem;
+  }
+
   .sc-pagina-da-loja {
-    --altura-da-barra: 4.5rem;
+    --respiro-lateral: var(--espaco-6);
   }
 
-  .sc-barra__conteudo,
-  .sc-vitrine {
-    padding-inline: var(--espaco-6);
+  .sc-barra__nome {
+    max-inline-size: 14rem;
   }
 
-  .sc-vitrine {
-    gap: var(--espaco-6);
-    padding-block-start: var(--espaco-6);
+  .sc-barra__marca {
+    padding-inline-end: var(--espaco-3);
   }
 
-  .sc-vitrine__abas {
-    margin-inline: calc(-1 * var(--espaco-6));
-    padding-inline: var(--espaco-6);
-  }
-
-  .sc-vitrine__titulo {
-    font-size: var(--texto-2xl);
-  }
-
-  .sc-vitrine__secao-nome {
-    font-size: var(--texto-xl);
-  }
-
-  /* A busca é larga, mas não infinita: num monitor ela para em 36rem. */
-  .sc-barra .sc-vitrine__busca {
-    max-inline-size: 36rem;
+  .sc-vitrine__busca {
+    max-inline-size: 30rem;
     margin-inline: auto;
   }
 
-  .sc-vitrine__grade {
-    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-    gap: var(--espaco-4);
+  .sc-vitrine {
+    gap: var(--espaco-5);
   }
 
-  .sc-vitrine__tira-item {
+  /*
+   * Tablet em diante: o painel no tamanho fixo da arte (4:1) e o nome maior,
+   * podendo quebrar em duas linhas — sem passar da metade esquerda e meia,
+   * para a arte da marca aparecer à direita.
+   */
+  .sc-vitrine__capa {
+    aspect-ratio: 4 / 1;
+    min-block-size: 13rem;
+    padding: var(--espaco-6);
+  }
+
+  .sc-vitrine__capa-conteudo {
+    max-inline-size: 75%;
+  }
+
+  .sc-vitrine__capa-conteudo {
+    gap: var(--espaco-3);
+  }
+
+  .sc-vitrine__grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sc-catalogo-barra__botao--largo {
+    display: inline-flex;
+  }
+
+  .sc-catalogo-barra__botao--estreito {
+    display: none;
+  }
+
+  .sc-banners__seta {
+    display: grid;
+  }
+
+  /*
+   * No computador, o painel pende do botão. Sem posicionamento por âncora no
+   * navegador, ele encosta à direita, logo abaixo das barras.
+   */
+  .sc-painel {
+    inset: calc(var(--altura-da-barra) + 4.25rem)
+      max(
+        var(--respiro-lateral),
+        calc((100vw - 72rem) / 2 + var(--respiro-lateral))
+      )
+      auto auto;
+    inline-size: 22rem;
+    max-block-size: min(70vh, 34rem);
+    padding: var(--espaco-4);
+    border: 1px solid var(--borda-leve);
+    border-radius: var(--raio-cartao);
+  }
+
+  .sc-painel:popover-open {
+    animation: sc-painel-aparece 160ms ease-out;
+  }
+
+  .sc-painel::backdrop {
+    background: transparent;
+  }
+
+  .sc-filtro__acoes {
+    inset-block-end: calc(-1 * var(--espaco-4));
+  }
+
+  .sc-painel--ordem {
     inline-size: 16rem;
   }
 
-  .sc-vitrine__nome {
-    font-size: var(--texto-base);
+  .sc-painel__so-estreito {
+    display: none;
   }
 
-  .sc-vitrine__preco {
-    font-size: var(--texto-lg);
+  .sc-painel__so-largo {
+    display: inline;
   }
 
-  .sc-vitrine__mais {
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
+  .sc-flutuante__gaveta {
+    max-block-size: min(85dvh, 44rem);
+  }
+
+  .sc-catalogo-barra__busca {
+    display: block;
+    flex: none;
+    inline-size: 13rem;
+    transition: inline-size var(--transicao-media);
+  }
+
+  .sc-catalogo-barra__busca:focus-within {
+    inline-size: 18rem;
+  }
+
+  .sc-catalogo-barra__busca .sc-vitrine__busca {
+    max-inline-size: none;
+    margin: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  @supports (position-area: bottom) {
+    .sc-painel {
+      inset: auto;
+      margin-block-start: var(--espaco-2);
+      position-area: bottom span-left;
+      position-try-fallbacks: flip-inline;
+    }
+  }
+}
+
+@media (min-width: 1024px) {
+  .sc-sacola__area--acima-da-acao {
+    inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 1100px) {
+  .sc-vitrine__capa {
+    padding: var(--espaco-7);
+  }
+
+  .sc-vitrine__grade {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 /*
- * Tela baixa e deitada: a faixa grudada come metade do que sobra. Num celular
- * deitado de 360px de altura, o filtro passa a rolar com a página em vez de
- * ocupar espaço permanente.
- */
-@media (max-height: 600px) {
-  .sc-vitrine__abas {
-    position: static;
-  }
-}
-
-/*
- * Quem pediu menos movimento recebe o estado final, e não a ausência de
- * conteúdo: o que some é a transição, nunca o cartão. A barra nem recolhe —
- * o script confere a mesma consulta e a deixa parada no topo.
+ * Quem pediu menos movimento recebe o ESTADO FINAL: a barra não recolhe (o
+ * script já não marca), o cartão não flutua, a gaveta e os painéis aparecem
+ * sem deslizar, a sacola não pula e os banners não giram (o script decide).
  */
 @media (prefers-reduced-motion: reduce) {
   .sc-barra,
-  .sc-vitrine__abas,
-  .sc-vitrine__cartao,
-  .sc-vitrine__aba {
+  .sc-catalogo-barra,
+  .sc-vitrine__aba,
+  .sc-vitrine__foto,
+  .sc-vitrine__mais,
+  .sc-catalogo-barra__botao,
+  .sc-banners__seta,
+  .sc-banners__ponto::before,
+  .sc-sacola,
+  .sc-sacola--posicionada {
     transition: none;
   }
 
-  .sc-vitrine__tira {
+  .sc-banners__trilho {
     scroll-behavior: auto;
   }
+
+  .sc-vitrine__cartao:hover .sc-vitrine__foto,
+  .sc-vitrine__cartao:hover .sc-vitrine__mais,
+  .sc-vitrine__aba:active,
+  .sc-sacola--arrastando,
+  .sc-sacola--posicionada.sc-sacola--arrastando {
+    transform: none;
+  }
+
+  .sc-sacola,
+  .sc-sacola__contagem,
+  .sc-painel:popover-open,
+  .sc-flutuante__gaveta[open] {
+    animation: none;
+  }
+}
+
+/* ── Atacado na linha do carrinho (card #57) ─────────────────────────────
+   O varejo riscado ao lado do preço da faixa e, embaixo do nome, a faixa que
+   já vale e quantas peças faltam para a próxima. */
+.sc-carrinho-janela__varejo {
+  margin-inline-end: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  text-decoration-thickness: 1px;
+}
+
+.sc-carrinho-janela__atacado {
+  display: grid;
+  gap: var(--espaco-1);
+  margin-block: var(--espaco-1) 0;
+  font-size: var(--texto-sm);
+}
+
+.sc-carrinho-janela__atacado p {
+  margin: 0;
+}
+
+.sc-carrinho-janela__atacado-faixa {
+  color: var(--cor-marca-texto);
+  font-weight: 600;
+}
+
+.sc-carrinho-janela__atacado-falta {
+  color: var(--cor-tinta-suave);
+}
+
+/* "Ver mais" de uma lista do cardápio (card #74): a página seguinte chega
+   embaixo da grade, sem sair do lugar. */
+.sc-vitrine__ver-mais {
+  display: flex;
+  justify-content: center;
+  margin-block-start: var(--espaco-5);
+}
+
+.sc-vitrine__ver-mais .sc-vitrine__aba {
+  border-color: var(--cor-borda);
 }

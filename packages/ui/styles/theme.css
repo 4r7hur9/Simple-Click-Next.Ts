@@ -15,6 +15,10 @@
  */
 
 @import "./componentes.css";
+@import "./calendario.css";
+@import "./info.css";
+@import "./recortador.css"; /* recorte de imagem (card #82) */
+@import "./contexto-da-foto.css"; /* "como vai aparecer" das fotos da loja (card #36) */
 
 :root {
   /* --- paleta oficial: valores brutos, nunca reinterpretados --- */
@@ -26,6 +30,12 @@
   --marca-nevoa: #f5f7f4;
   --marca-branco: #ffffff;
   --marca-preto-tecnologico: #0b0f0d;
+
+  /* --- a cor de destaque da loja: o dono escolhe; a vitrine redefine estes três
+     no envelope da loja (ver packages/ui/src/marca-da-loja.ts) --- */
+  --cor-marca: var(--marca-verde-click);
+  --cor-sobre-marca: var(--marca-preto-tecnologico);
+  --cor-marca-texto: var(--marca-verde-click);
 
   /* --- cor: superfícies e tinta (tema claro é o padrão) --- */
   --cor-fundo: #ffffff;
@@ -372,4 +382,102 @@
 [data-tema] {
   --cor-papel: var(--cor-superficie);
   --cor-perigo: var(--cor-erro);
+}
+
+/*
+ * --- barra de rolagem ---
+ *
+ * Uma regra só, para a página inteira e para tudo que rola dentro dela:
+ * janela, gaveta, tabela, lista, textarea, menu suspenso. Componente nenhum
+ * escreve a sua; quem precisa SUMIR com a barra (carrossel, abas) continua
+ * usando `scrollbar-width: none`, que vence esta regra por especificidade.
+ *
+ * As cores saem do trecho, e não da raiz: o bloco é repetido em `[data-tema]`
+ * para o menu lateral grafite dentro de página clara ganhar a barra escura.
+ * No claro, o polegar é o verde de texto (#3f7900) para dar contraste sobre o
+ * trilho neutro; no escuro, o próprio verde-limão. Em repouso ele vem
+ * misturado à superfície (mais apagado) e acende no hover e ao arrastar.
+ */
+:root,
+[data-tema] {
+  --barra-rolagem-trilho: color-mix(in srgb, var(--cor-borda) 22%, transparent);
+  --barra-rolagem-polegar: color-mix(
+    in srgb,
+    var(--cor-primaria-texto) 78%,
+    var(--cor-superficie)
+  );
+  --barra-rolagem-polegar-ativo: var(--cor-primaria-texto);
+  --barra-rolagem-largura: 10px;
+}
+
+/*
+ * Chrome, Edge e Safari desenham pelos pseudo-elementos, que deixam arredondar
+ * e afastar o polegar da borda. O Chrome ignora os pseudo-elementos quando
+ * `scrollbar-color` está declarado, por isso a forma padrão só entra onde eles
+ * não existem (Firefox). A borda transparente é a margem que faz o polegar
+ * parecer flutuante sem encolher a área de arrastar: ela continua com 10px.
+ */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--barra-rolagem-polegar) var(--barra-rolagem-trilho);
+    scrollbar-width: thin;
+  }
+}
+
+::-webkit-scrollbar {
+  width: var(--barra-rolagem-largura);
+  height: var(--barra-rolagem-largura);
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background-color: var(--barra-rolagem-trilho);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  background-color: var(--barra-rolagem-polegar);
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--barra-rolagem-polegar-ativo);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+/*
+ * A CAPA PADRÃO TINGIDA. O ladrilho SVG de cada ramo é só o desenho (traço
+ * sobre transparente): aqui ele vira MÁSCARA de um bloco da cor de destaque da
+ * loja, então o desenho acompanha a cor que o dono escolheu. O endereço do
+ * ladrilho vem na variável `--capa-url`.
+ */
+.sc-loja__padrao::before,
+.sc-sobre__padrao::before,
+.sc-vitrine__capa--padrao .sc-vitrine__capa-fundo::before,
+.sc-capa-padrao::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--cor-marca);
+  -webkit-mask-image: var(--capa-url);
+  mask-image: var(--capa-url);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-size: var(--capa-tamanho, 300px);
+  mask-size: var(--capa-tamanho, 300px);
+  -webkit-mask-position: var(--capa-posicao, top right);
+  mask-position: var(--capa-posicao, top right);
+}
+
+/*
+ * A foto da loja com versão para o celular (`<picture>`): o envelope não gera
+ * caixa, para a foto continuar posicionada pelo cartão ou pela faixa.
+ */
+.sc-foto-da-loja {
+  display: contents;
 }

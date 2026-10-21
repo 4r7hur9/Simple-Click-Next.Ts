@@ -11,12 +11,8 @@
  * trata: pares de nome e valor. Uma tabela prometeria linhas e colunas que não
  * existem, e uma pilha de `div` não diria nada a quem usa leitor de tela.
  */
-import {
-  Aviso,
-  Cartao,
-  IconePedido,
-  type EstadoDaTela,
-} from "@simpleclick/ui";
+import { useId } from "react";
+import { Aviso, type EstadoDaTela } from "@simpleclick/ui";
 
 /** Uma linha do resumo, já formatada pelo servidor. */
 export interface LinhaDoResumo {
@@ -42,16 +38,18 @@ export function ResumoDoPedido({
   impedimento,
   estado = "pronto",
 }: ResumoDoPedidoProps) {
+  const idDoTitulo = useId();
+
+  // Uma seção com título, e não um cartão dentro da janela: no fechamento o
+  // resumo é o último bloco antes do botão, e caixa dentro de caixa só pesa.
   return (
-    <Cartao
-      className="sc-resumo-cartao"
-      icone={<IconePedido />}
-      titulo="Resumo do pedido"
-      nivelDoTitulo={2}
-      estado={estado}
-      rotuloDeEspera="Calculando os valores do seu pedido"
-      esperaComEsqueleto
-    >
+    <section className="sc-fechar__grupo sc-resumo-bloco" aria-labelledby={idDoTitulo}>
+      <h3 className="sc-fechar__titulo" id={idDoTitulo}>
+        Resumo do pedido
+      </h3>
+      {estado === "carregando" ? (
+        <p role="status">Calculando os valores do seu pedido…</p>
+      ) : null}
       <dl className="sc-resumo">
         {linhas.map((linha) => (
           <div className="sc-resumo__linha" key={linha.chave}>
@@ -81,6 +79,6 @@ export function ResumoDoPedido({
           {impedimento}
         </Aviso>
       ) : null}
-    </Cartao>
+    </section>
   );
 }

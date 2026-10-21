@@ -14,7 +14,7 @@
  * cada toque: o "voltar" do navegador sai do painel, como a pessoa espera, em
  * vez de desfazer um a um os atalhos tocados.
  */
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Aviso } from "@simpleclick/ui";
 
 import {
@@ -43,6 +43,8 @@ export interface MetricasPorPeriodoProps {
   readonly consultaInicial: ConsultaDoPeriodo;
   /** Leitor das métricas. A prova troca por um que responde sem rede. */
   readonly buscar?: BuscarMetricas | undefined;
+  /** Mostra "Levar os números para fora" (a visão detalhada). */
+  readonly exportar?: boolean | undefined;
   /** Quem grava o período em vigor no endereço. */
   readonly gravarNoEndereco?:
     ((consulta: ConsultaDoPeriodo) => void) | undefined;
@@ -51,6 +53,7 @@ export interface MetricasPorPeriodoProps {
 export function MetricasPorPeriodo({
   consultaInicial,
   buscar,
+  exportar = true,
   gravarNoEndereco = gravarPeriodoNoEndereco,
 }: MetricasPorPeriodoProps) {
   const uso = useMetricas({
@@ -60,6 +63,7 @@ export function MetricasPorPeriodo({
   });
   const periodo = uso.metricas?.periodo ?? null;
   const idDaExportacao = useId();
+  const [comparar, setComparar] = useState(true);
 
   return (
     <div className="space-y-6">
@@ -68,6 +72,8 @@ export function MetricasPorPeriodo({
         periodo={periodo}
         ocupado={uso.fase === "carregando"}
         aoEscolher={uso.escolher}
+        comparar={comparar}
+        aoComparar={setComparar}
       />
 
       {uso.recusa !== null ? (
@@ -81,9 +87,9 @@ export function MetricasPorPeriodo({
         </Aviso>
       ) : null}
 
-      <CorpoDasMetricas uso={uso} />
+      <CorpoDasMetricas uso={uso} comparar={comparar} />
 
-      {uso.fase === "pronta" ? (
+      {exportar && uso.fase === "pronta" ? (
         <section
           aria-labelledby={idDaExportacao}
           className="sc-cartao"

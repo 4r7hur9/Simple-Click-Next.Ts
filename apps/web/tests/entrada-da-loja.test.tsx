@@ -46,7 +46,7 @@ function comAApresentacaoNaPagina(): void {
     <ApresentacaoDaLoja
       loja={LOJA}
       abertura={{ aberta: true, proximaAbertura: null, motivo: "ABERTA" }}
-      linkDoCardapio="/l/sabor-e-cia/catalogo"
+      linkDoCardapio="/loja/sabor-e-cia/cardapio"
       rotuloDoCatalogo="Cardápio"
     />,
   );

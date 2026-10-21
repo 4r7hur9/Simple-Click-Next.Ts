@@ -38,13 +38,10 @@ interface LinhaResolvida {
   readonly vertical_code: string;
   readonly timezone: string;
   readonly catalog_version: bigint;
-  readonly canonical_host: string | null;
-  readonly redirect_needed: boolean;
 }
 
-/** Por onde a pessoa chegou: domínio próprio ou apelido no endereço. */
+/** Por onde a pessoa chegou: o apelido da loja no endereço (`/loja/<apelido>`). */
 export interface ChegadaNaLoja {
-  readonly host?: string | null;
   readonly apelido?: string | null;
 }
 
@@ -53,8 +50,6 @@ export interface LojaIdentificada {
   readonly encontrada: true;
   readonly id: string;
   readonly apelido: string;
-  /** Endereço canônico, quando o que foi usado não é o oficial. */
-  readonly redirecionarPara: string | null;
   /**
    * A versão do catálogo naquele instante.
    *
@@ -99,7 +94,7 @@ async function resolverNoBanco(
 ): Promise<LinhaResolvida | null> {
   const linhas = await tx.$queryRaw<
     LinhaResolvida[]
-  >`SELECT * FROM app.resolve_store(${chegada.host ?? null}, ${chegada.apelido ?? null})`;
+  >`SELECT * FROM app.resolve_store(${chegada.apelido ?? null})`;
 
   return linhas[0] ?? null;
 }
@@ -114,7 +109,7 @@ async function resolverNoBanco(
 export async function identificarLoja(
   chegada: ChegadaNaLoja,
 ): Promise<IdentificacaoDaLoja> {
-  if (!chegada.host && !chegada.apelido) return INDISPONIVEL;
+  if (!chegada.apelido) return INDISPONIVEL;
 
   const linha = await resolverNoBanco(transacaoAtual(), chegada);
 
@@ -125,7 +120,6 @@ export async function identificarLoja(
     encontrada: true,
     id: linha.id,
     apelido: linha.slug,
-    redirecionarPara: linha.redirect_needed ? linha.canonical_host : null,
     versaoDoCatalogo: linha.catalog_version.toString(),
   };
 }
@@ -154,7 +148,7 @@ export interface LojaNaoExcluida {
 export async function identificarLojaNaoExcluida(
   chegada: ChegadaNaLoja,
 ): Promise<LojaNaoExcluida | LojaIndisponivel> {
-  if (!chegada.host && !chegada.apelido) return INDISPONIVEL;
+  if (!chegada.apelido) return INDISPONIVEL;
 
   const linha = await resolverNoBanco(transacaoAtual(), chegada);
   if (linha === null || linha.status === "DELETED") return INDISPONIVEL;

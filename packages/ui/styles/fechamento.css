@@ -1,5 +1,5 @@
 /*
- * A página do fechamento (T-515).
+ * O fechamento (T-515): o segundo passo da janela do carrinho.
  *
  * A SUPERFÍCIE MAIS TENSA DO FLUXO. Quem chegou aqui já decidiu comprar e está
  * a um toque de desistir: cada campo é uma chance de abandono, e cada segundo
@@ -12,41 +12,6 @@
  * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
  * Depende de `theme.css`.
  */
-
-/*
- * O fundo é a superfície, e os cartões a superfície alta, como na vitrine. Vai
- * no `body` porque o contêiner do tema da loja é `display: contents`.
- */
-body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
-  background: var(--cor-superficie);
-}
-
-.sc-fechamento__pagina {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-5);
-  min-block-size: 100svh;
-  inline-size: 100%;
-  max-inline-size: 40rem;
-  margin-inline: auto;
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-  padding-block-end: max(var(--espaco-8), env(safe-area-inset-bottom));
-  color: var(--cor-tinta);
-}
-
-.sc-fechamento__caminho {
-  display: flex;
-  padding-block-start: max(var(--espaco-4), env(safe-area-inset-top));
-}
-
-.sc-fechamento__titulo {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-2xl);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
-}
 
 .sc-fechamento {
   display: flex;
@@ -98,7 +63,7 @@ body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
   color: var(--cor-tinta);
 }
 
-.sc-fechamento__pronto h2 {
+.sc-fechamento__pronto h3 {
   margin: 0;
   font-family: var(--fonte-titulo);
   font-size: var(--texto-xl);
@@ -108,19 +73,6 @@ body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
 .sc-fechamento__pronto p {
   margin: 0;
   line-height: var(--altura-linha-base);
-}
-
-.sc-fechamento__acompanhar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: var(--altura-toque-grande);
-  padding-inline: var(--espaco-5);
-  border-radius: var(--raio-completo);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-weight: var(--peso-forte);
-  text-decoration: none;
 }
 
 /* --- o resumo do pedido ----------------------------------------------------
@@ -185,121 +137,6 @@ body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
   font-family: var(--fonte-titulo);
   font-size: var(--texto-xl);
   font-weight: var(--peso-forte);
-}
-
-/* --- o formulário ----------------------------------------------------------
- *
- * As escolhas (entrega, pagamento) são CARTÕES de opção: a linha inteira é o
- * alvo do toque, e a marcada muda borda e fundo — não só a bolinha do rádio.
- */
-
-.sc-checkout,
-.sc-pagamento,
-.sc-endereco {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-  margin: 0;
-  padding: var(--espaco-5);
-  border: none;
-  border-radius: var(--raio-janela);
-  background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-larga);
-}
-
-/* O endereço já mora dentro do formulário: lá ele é um bloco, e não outro
- * cartão com sombra dentro de um cartão. */
-.sc-checkout .sc-endereco {
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.sc-checkout__entrega {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.sc-checkout__entrega legend,
-.sc-pagamento__titulo,
-.sc-endereco__titulo {
-  margin-block-end: var(--espaco-3);
-  padding: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
-}
-
-.sc-checkout__opcao,
-.sc-pagamento__opcao {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  min-block-size: var(--altura-toque-grande);
-  padding-inline: var(--espaco-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-botao);
-  background: var(--cor-superficie-alta);
-}
-
-.sc-checkout__opcao:has(input:checked),
-.sc-pagamento__opcao:has(input:checked) {
-  border-color: var(--cor-tinta);
-  background: var(--cor-primaria-suave);
-  box-shadow: inset 0 0 0 1px var(--cor-tinta);
-}
-
-.sc-checkout__opcao input,
-.sc-pagamento__opcao input {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
-  margin: 0;
-  accent-color: var(--cor-tinta);
-}
-
-/* O rótulo cobre a linha inteira: o toque em qualquer ponto marca a opção. */
-.sc-checkout__opcao label,
-.sc-pagamento__opcao label {
-  flex: 1 1 auto;
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  font-weight: var(--peso-medio);
-  cursor: pointer;
-}
-
-.sc-checkout__forma-unica {
-  margin: 0;
-  color: var(--cor-tinta-suave);
-}
-
-.sc-checkout__retirada {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-1);
-  padding: var(--espaco-4);
-  border-radius: var(--raio-botao);
-  background: var(--cor-superficie);
-}
-
-.sc-checkout__retirada p {
-  margin: 0;
-}
-
-.sc-checkout__endereco-da-loja {
-  font-weight: var(--peso-forte);
-}
-
-/* O botão de fechar ocupa a largura: é o alvo do polegar, e o fim da página. */
-.sc-checkout > .sc-botao,
-.sc-carrinho .sc-botao--grande,
-.sc-envio .sc-botao--grande {
-  inline-size: 100%;
 }
 
 /* --- o PIX ----------------------------------------------------------------- */
@@ -482,9 +319,474 @@ body:has(.sc-pagina-da-loja > .sc-fechamento__pagina) {
   font-variant-numeric: tabular-nums;
 }
 
-@media (min-width: 768px) {
-  .sc-fechamento__pagina {
-    gap: var(--espaco-6);
-    padding-inline: var(--espaco-6);
+/* --- o fechamento na janela do carrinho -----------------------------------
+ *
+ * O MESMO MOLDE DO CARRINHO (vitrine.css: `.sc-carrinho-janela__*`): faixa
+ * verde no alto, o meio que rola só se precisar, o rodapé com o total e a
+ * pílula verde sempre à vista. Aqui fica só o que o fechamento acrescenta: a
+ * janela um pouco maior, os grupos com o bloco verde no título e as escolhas
+ * em cartões com a marcação quadradinha do cardápio. Sem caixa dentro de
+ * caixa: os grupos se separam pelo espaço, e não por sombra.
+ */
+
+/* No celular, quase a tela inteira; no computador, um pouco mais larga e
+ * alta que a do carrinho — o formulário pede mais respiro que a lista. */
+.sc-flutuante__gaveta.sc-carrinho-janela--fechamento {
+  inline-size: calc(100% - 2 * var(--espaco-4));
+  block-size: calc(100dvh - 2 * var(--espaco-4));
+  max-block-size: calc(100dvh - 2 * var(--espaco-4));
+}
+
+@media (min-width: 640px) {
+  .sc-flutuante__gaveta.sc-carrinho-janela--fechamento {
+    inline-size: min(34rem, calc(100% - 3rem));
+    /* `fit-content`, e não `auto`: com `inset: 0`, auto esticaria a janela
+       até o teto mesmo com pouco conteúdo (o pedido feito, o "entre"). */
+    block-size: fit-content;
+    max-block-size: min(92dvh, 52rem);
   }
+}
+
+/* O voltar fica à esquerda do título; o X continua empurrado para a ponta. */
+.sc-fechar .sc-carrinho-janela__topo:has(.sc-fechar__voltar) {
+  padding-inline-start: var(--espaco-3);
+}
+
+.sc-fechar__voltar.sc-carrinho-janela__fechar {
+  margin-inline-start: 0;
+}
+
+.sc-fechar__voltar + .sc-carrinho-janela__titulo {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.sc-fechar .sc-carrinho-janela__titulo {
+  font-size: 1.25rem;
+}
+
+.sc-fechar__corpo {
+  padding-block-start: var(--espaco-3);
+}
+
+.sc-fechar__formulario {
+  display: grid;
+  gap: var(--espaco-6);
+  padding-block-end: var(--espaco-3);
+}
+
+.sc-fechar__grupo {
+  display: grid;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* O título do grupo: maiúsculas da marca, com o bloco verde na frente. */
+.sc-fechar__titulo,
+.sc-fechar .sc-pagamento__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0 0 var(--espaco-3);
+  padding: 0;
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.sc-fechar__titulo::before,
+.sc-fechar .sc-pagamento__titulo::before {
+  content: "";
+  flex: none;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 0.2rem;
+  background: var(--cor-marca);
+}
+
+/* `h3` e `legend` já trazem margem; no grupo em grade, quem espaça é o gap. */
+h3.sc-fechar__titulo {
+  margin-block-end: 0;
+}
+
+/* --- quem pede ----------------------------------------------------------- */
+
+.sc-fechar__quem {
+  display: grid;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+}
+
+.sc-fechar__quem-linha {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sc-fechar__quem-linha strong {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+}
+
+.sc-fechar__quem-linha span {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sc-fechar__quem-email {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.sc-fechar__quem .sc-campo {
+  margin-block-start: var(--espaco-3);
+}
+
+/* --- as escolhas (entrega, endereço, pagamento) -------------------------- */
+
+.sc-fechar__escolhas {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+@media (min-width: 420px) {
+  .sc-fechar__escolhas--lado-a-lado {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sc-fechar__escolha,
+.sc-fechar .sc-pagamento__opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-block-size: 3.25rem;
+  padding: 0.625rem var(--espaco-4);
+  border: 1.5px solid color-mix(in srgb, var(--cor-borda) 45%, transparent);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-fechar__escolha:hover,
+.sc-fechar .sc-pagamento__opcao:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-fechar__escolha:has(input:checked),
+.sc-fechar .sc-pagamento__opcao:has(input:checked) {
+  /* Borda verde: no tema escuro o grafite quase some no fundo da janela. */
+  border-color: var(--cor-marca);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  box-shadow: none;
+}
+
+.sc-fechar__escolha:has(input:focus-visible),
+.sc-fechar .sc-pagamento__opcao:has(input:focus-visible) {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-fechar__escolha:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* A marcação quadradinha do cardápio: verde com o visto quando marcada. */
+.sc-fechar__escolha input,
+.sc-fechar .sc-pagamento__opcao input {
+  display: grid;
+  flex: none;
+  place-content: center;
+  box-sizing: border-box;
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  min-inline-size: 1.375rem;
+  min-block-size: 1.375rem;
+  max-block-size: 1.375rem;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--cor-borda-forte);
+  border-radius: 0.4rem;
+  background: var(--cor-superficie-alta);
+  appearance: none;
+  cursor: inherit;
+}
+
+.sc-fechar__escolha input:checked,
+.sc-fechar .sc-pagamento__opcao input:checked {
+  border-color: var(--cor-marca-texto);
+  background: var(--cor-marca);
+}
+
+.sc-fechar__escolha input:checked::before,
+.sc-fechar .sc-pagamento__opcao input:checked::before {
+  content: "";
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  background: var(--marca-preto-tecnologico);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+
+.sc-fechar .sc-pagamento__opcao label {
+  flex: 1 1 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+}
+
+.sc-fechar__escolha-texto {
+  display: grid;
+  flex: 1;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.sc-fechar__escolha-nome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-weight: var(--peso-forte);
+  overflow-wrap: anywhere;
+}
+
+.sc-fechar__escolha-detalhe {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.sc-fechar__escolha:has(input:checked) .sc-fechar__escolha-detalhe {
+  color: color-mix(in srgb, var(--marca-branco) 75%, transparent);
+}
+
+.sc-fechar__selo {
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sc-fechar__adicionar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-block-size: 3.25rem;
+  padding-inline: var(--espaco-4);
+  border: 1.5px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-cartao);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+}
+
+.sc-fechar__adicionar:hover:not(:disabled) {
+  border-color: var(--cor-tinta);
+  background: var(--cor-superficie);
+}
+
+.sc-fechar__adicionar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-fechar__adicionar span {
+  color: var(--cor-marca-texto);
+  font-family: var(--fonte-titulo);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.sc-fechar__novo {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+/* Os campos do novo endereço já moram no grupo "Onde entregar": sem cartão,
+ * e a legenda fica para o leitor de tela, sem repetir o título na tela. */
+.sc-fechar .sc-endereco {
+  display: grid;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+  margin: 0;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sc-fechar .sc-endereco__titulo {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sc-fechar__acoes-do-novo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-fechar__dica,
+.sc-fechar__forma-unica {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-fechar__pendencia {
+  margin: 0;
+  color: var(--cor-erro);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+}
+
+.sc-fechar__retirada {
+  margin: 0;
+  padding: var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  font-weight: var(--peso-forte);
+}
+
+/* --- pagamento e PIX: sem cartão dentro da janela ------------------------ */
+
+.sc-fechar .sc-pagamento {
+  display: grid;
+  gap: var(--espaco-2);
+  min-inline-size: 0;
+  margin: 0;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sc-fechar .sc-pagamento .sc-campo {
+  margin-block-start: var(--espaco-2);
+}
+
+.sc-fechar .sc-cartao {
+  padding: var(--espaco-4);
+  border: none;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  box-shadow: none;
+}
+
+.sc-fechar .sc-envio {
+  padding: 0;
+  background: transparent;
+}
+
+/* O botão do WhatsApp é a pílula da SimpleClick, como o resto da janela — e
+ * não a cor da loja, que aqui destoaria do verde do cabeçalho. */
+.sc-fechar .sc-envio .sc-botao--primaria {
+  min-block-size: 3.25rem;
+  border-color: var(--cor-marca-texto);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.sc-fechar .sc-envio a,
+.sc-fechar .sc-fechamento__pronto a:not(.sc-carrinho-janela__acao) {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+  text-underline-offset: 0.2em;
+}
+
+/* --- o resumo: linhas soltas, o total tracejado -------------------------- */
+
+.sc-resumo-bloco .sc-aviso {
+  margin-block-start: var(--espaco-2);
+}
+
+/* --- sem conta, recusa e mudança ---------------------------------------- */
+
+.sc-fechar__conta {
+  display: grid;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-5);
+}
+
+.sc-fechar__conta p {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-fechar__conta .sc-fechar__conta-titulo {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.sc-fechar__conta-acoes {
+  display: grid;
+  gap: var(--espaco-2);
+  margin-block-start: var(--espaco-2);
+}
+
+.sc-fechar__secundario {
+  min-block-size: 3.25rem;
+  padding-inline: var(--espaco-5);
+  border: 1.5px solid var(--cor-tinta);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sc-fechar__secundario:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-fechar__secundario:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-fechar__mudancas {
+  padding-block: var(--espaco-3);
+}
+
+.sc-fechar .sc-fechamento__pronto {
+  border: none;
+  border-radius: var(--raio-cartao);
 }

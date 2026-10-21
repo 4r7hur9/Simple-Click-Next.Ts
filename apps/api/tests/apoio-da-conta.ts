@@ -18,9 +18,9 @@ import {
   type RepositoriosDaIdentidade,
 } from "./apoio-da-identidade.ts";
 import { entrarComSenha } from "../src/modules/auth/login.usecase.ts";
-import { cadastrarClienteFinal } from "../src/modules/auth/register.usecase.ts";
 import {
   avaliarPoliticaDeSenha,
+  derivarSenha,
   senhaConfere,
 } from "../src/modules/auth/senha.ts";
 import {
@@ -67,18 +67,45 @@ export function avisosQueCriamOLink(repositorios: RepositoriosDaIdentidade) {
   };
 }
 
+/**
+ * Conta PENDENTE de verificação, pelo caminho antigo (o cadastro da rota já
+ * nasce verificado): é o que as provas do link de verificação precisam.
+ */
 export function cadastrar(
   repositorios: RepositoriosDaIdentidade,
   email: string,
   avisos = avisosQueCriamOLink(repositorios),
   senha = FRASE_DA_PROVA,
 ) {
-  return comoVisitante(() =>
-    cadastrarClienteFinal(
-      { nome: "Pessoa da prova", email, telefone: "+5511912345678", senha },
-      { identidades: repositorios.identidades, avisos },
-    ),
-  );
+  return comoVisitante(async () => {
+    const politica = avaliarPoliticaDeSenha(senha);
+    if (!politica.valida) {
+      return {
+        cadastrado: false as const,
+        campos: politica.problemas.map((problema) => ({
+          campo: "senha" as const,
+          problema,
+        })),
+      };
+    }
+    const { criada } = await repositorios.identidades.criarPendenteSeAusente({
+      nome: "Pessoa da prova",
+      emailNormalizado: email.trim().toLowerCase(),
+      telefoneE164: "+5511912345678",
+      senhaDerivada: await derivarSenha(senha),
+    });
+    if (criada) {
+      await avisos.enviarVerificacao({ email });
+    } else {
+      await avisos.enviarAvisoDeCadastroExistente();
+    }
+    return {
+      cadastrado: true as const,
+      mensagem:
+        "Seus dados foram recebidos. Enviamos instruções para confirmar seu e-mail.",
+      verificacaoDeEmailPendente: true as const,
+    };
+  });
 }
 
 /** Conta criada e verificada pelos passos de verdade; devolve o id. */

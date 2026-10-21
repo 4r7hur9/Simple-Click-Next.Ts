@@ -118,7 +118,7 @@ describe("a conta mostra todos os pedidos, de todas as lojas (AC-616)", () => {
       escreverDinheiro(900),
     );
     expect(emPreparo?.querySelector("a")?.getAttribute("href")).toBe(
-      `/minha-conta/pedidos/${ID_A2}`,
+      `/conta/pedidos/${ID_A2}`,
     );
 
     const aCaminho = tela.querySelector(`[data-pedido="${ID_B1}"]`);
@@ -133,8 +133,8 @@ describe("a conta mostra todos os pedidos, de todas as lojas (AC-616)", () => {
   });
 
   it("@spec:AC-616 o caminho do detalhe é o da conta, e não o link público", () => {
-    expect(caminhoDoMeuPedido(ID_A1)).toBe(`/minha-conta/pedidos/${ID_A1}`);
-    expect(caminhoDoMeuPedido(ID_A1)).not.toContain("/l/");
+    expect(caminhoDoMeuPedido(ID_A1)).toBe(`/conta/pedidos/${ID_A1}`);
+    expect(caminhoDoMeuPedido(ID_A1)).not.toContain("/loja/");
   });
 
   it("@spec:AC-616 agrupar por loja mantém a loja do pedido mais recente primeiro e a ordem dentro dela", () => {
@@ -167,7 +167,7 @@ describe("a lista cobre vazio, erro e sucesso (P-011)", () => {
     const alerta = tela.querySelector("[role='alert']");
     expect(alerta?.textContent).toContain("Não deu para carregar seus pedidos");
     expect(alerta?.querySelector("a")?.getAttribute("href")).toBe(
-      "/minha-conta/pedidos",
+      "/conta/pedidos",
     );
     expect(tela.textContent).not.toContain("ECONNREFUSED");
   });

@@ -17,7 +17,11 @@
  * servidor. O valor que o cliente enviou é descartado antes de chegar aqui
  * (P-006) — nunca se confia no que a tela mandou de volta.
  */
-import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
+import type {
+  FaixaDeAtacadoCongelada,
+  ItemParaCriar,
+  OpcaoParaCriar,
+} from "./criar-pedido.usecase.ts";
 
 /** O produto como o catálogo o descreve AGORA, lido pelo servidor. */
 export interface ProdutoNoCatalogo {
@@ -28,6 +32,13 @@ export interface ProdutoNoCatalogo {
   readonly custoEmCentavos?: number | null;
   /** Qual dos preços do produto valeu: base, promoção, atacado. */
   readonly tipoDePreco?: string | null;
+  /**
+   * O preço de varejo por unidade quando o cobrado (`precoEmCentavos`) saiu
+   * menor — a faixa de atacado ou a promoção. Vira o "de" riscado do pedido.
+   */
+  readonly precoDeVarejoEmCentavos?: number | null;
+  /** A faixa de atacado que valeu para a quantidade (card #57). */
+  readonly faixaDeAtacado?: FaixaDeAtacadoCongelada | null;
 }
 
 /** A variação escolhida, se o produto tiver. */
@@ -159,6 +170,24 @@ export function congelarItem(escolha: EscolhaDoCliente): ItemParaCriar {
 
   const unitario = precoDoProduto + acrescimoDaVariacao;
 
+  // O PREÇO QUE VALEU TAMBÉM É CÓPIA (card #57): a faixa de atacado e o varejo
+  // da época. O dono muda a faixa amanhã e o pedido continua explicando por
+  // que dez peças saíram mais baratas.
+  const faixa = produto.faixaDeAtacado ?? null;
+  const varejo =
+    produto.precoDeVarejoEmCentavos === undefined ||
+    produto.precoDeVarejoEmCentavos === null
+      ? null
+      : exigirCentavos(
+          produto.precoDeVarejoEmCentavos,
+          `preço de varejo de "${produto.nome}"`,
+        ) + acrescimoDaVariacao;
+  if (faixa !== null && faixa.quantidadeMinima > quantidade) {
+    throw new ErroDeItemInvalido(
+      `a faixa de "${produto.nome}" vale a partir de ${faixa.quantidadeMinima} unidades, e o item tem ${quantidade}`,
+    );
+  }
+
   return {
     produtoId: produto.id,
     variacaoId: variacao?.id ?? null,
@@ -171,6 +200,19 @@ export function congelarItem(escolha: EscolhaDoCliente): ItemParaCriar {
     totalDaLinhaEmCentavos: (unitario + acrescimoEmCentavos) * quantidade,
     observacao: escolha.observacao ?? null,
     opcoes: congeladas,
+    tipoDePreco: produto.tipoDePreco ?? (faixa === null ? null : "WHOLESALE"),
+    precoDeVarejoEmCentavos:
+      varejo !== null && varejo > unitario ? varejo : null,
+    faixaDeAtacado:
+      faixa === null
+        ? null
+        : {
+            quantidadeMinima: faixa.quantidadeMinima,
+            tipoDeDesconto: faixa.tipoDeDesconto,
+            desconto: faixa.desconto,
+            // Cópia do texto de agora, como o nome do produto.
+            rotulo: faixa.rotulo === null ? null : String(faixa.rotulo),
+          },
   };
 }
 

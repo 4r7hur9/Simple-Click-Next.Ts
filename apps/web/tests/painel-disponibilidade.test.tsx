@@ -30,6 +30,7 @@ import { FormularioProduto } from "../src/features/painel-catalogo/FormularioPro
 import { BotaoAdicionar } from "../src/features/produto/BotaoAdicionar";
 import { CartaoDeProduto } from "../src/features/vitrine/GradeDeProdutos";
 import { prepararProduto } from "../src/server/produto";
+import { eSeletor, escolherNoSeletor } from "./apoio-seletor.ts";
 
 interface Chamada {
   readonly url: string;
@@ -125,9 +126,17 @@ async function clicar(elemento: HTMLElement): Promise<void> {
 
 /** Digita como o navegador: o React só ouve o valor que passa pelo setter nativo. */
 async function digitar(
-  alvo: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+  alvo:
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | HTMLSelectElement
+    | HTMLButtonElement,
   valor: string,
 ): Promise<void> {
+  if (eSeletor(alvo)) {
+    escolherNoSeletor(alvo, valor);
+    return;
+  }
   const prototipo = Object.getPrototypeOf(alvo) as object;
   const setter = Object.getOwnPropertyDescriptor(prototipo, "value")?.set;
   await act(async () => {
@@ -178,7 +187,10 @@ async function formularioPronto(
     <FormularioProduto {...(produto === undefined ? {} : { produto })} />,
   );
   // As categorias e as especificações herdadas chegam antes de o dono mexer.
-  expect(chamadas).toHaveLength(2);
+  // (A configuração do feed, do card #38, também é lida, e fica de fora.)
+  expect(
+    chamadas.filter((chamada) => chamada.url !== "/api/loja/feed"),
+  ).toHaveLength(2);
   expect(gravacao(chamadas)).toBeUndefined();
   return { tela, chamadas };
 }
@@ -193,7 +205,7 @@ describe("o dono marca o produto como esgotado sem apagar o cadastro (AC-321)", 
       "Coxinha de frango",
     );
     await digitar(
-      tela.querySelector<HTMLInputElement>('input[placeholder="19,90"]')!,
+      tela.querySelector<HTMLInputElement>('input[placeholder="Ex.: 19,90"]')!,
       "7,50",
     );
     const disponivel = tela.querySelector<HTMLInputElement>(
@@ -201,8 +213,10 @@ describe("o dono marca o produto como esgotado sem apagar o cadastro (AC-321)", 
     );
     if (!disponivel) throw new Error("sem o interruptor de disponibilidade");
     expect(disponivel.checked).toBe(true);
-    expect(disponivel.closest("label")?.textContent).toContain(
-      "aparece como esgotado na vitrine",
+    // A explicação mora no "i" e chega ao leitor de tela pelo describedby.
+    const explicacao = disponivel.getAttribute("aria-describedby") ?? "";
+    expect(document.getElementById(explicacao)?.textContent).toContain(
+      "aparece como esgotado",
     );
     await clicar(disponivel);
 
@@ -255,7 +269,7 @@ describe("o dono marca o produto como esgotado sem apagar o cadastro (AC-321)", 
           imagem: null,
           disponivel: false,
           motivoIndisponivel: "ESGOTADO",
-          link: "/l/loja/produto/p-1",
+          link: "/loja/loja/produto/p-1",
         }}
       />,
     );
@@ -291,19 +305,19 @@ describe("o produto de fim de semana (AC-322)", () => {
       "Feijoada completa",
     );
     await digitar(
-      tela.querySelector<HTMLInputElement>('input[placeholder="19,90"]')!,
+      tela.querySelector<HTMLInputElement>('input[placeholder="Ex.: 19,90"]')!,
       "49,90",
     );
     expect(tela.textContent).toContain("Janela de venda");
 
     await clicar(botao(tela, "Adicionar dia e horário"));
-    await digitar(campo<HTMLSelectElement>(tela, "Dia da janela 1"), "6");
+    await digitar(campo<HTMLButtonElement>(tela, "Dia da janela 1"), "6");
     await digitar(campo<HTMLInputElement>(tela, "Abre na janela 1"), "11:00");
     await digitar(campo<HTMLInputElement>(tela, "Fecha na janela 1"), "15:00");
     // Uma segunda faixa, para o domingo — e removida: o que sai da tela não
     // pode ir para a rota.
     await clicar(botao(tela, "Adicionar dia e horário"));
-    await digitar(campo<HTMLSelectElement>(tela, "Dia da janela 2"), "0");
+    await digitar(campo<HTMLButtonElement>(tela, "Dia da janela 2"), "0");
     await clicar(botao(tela, "Remover janela 2"));
 
     await enviar(tela.querySelector("form"));
@@ -323,7 +337,7 @@ describe("o produto de fim de semana (AC-322)", () => {
   it("@spec:AC-322 a faixa que fecha antes de abrir não é enviada: a tela explica e mantém o preenchimento", async () => {
     const { tela, chamadas } = await formularioPronto(FEIJOADA);
     // A janela gravada abre já preenchida na edição.
-    expect(campo<HTMLSelectElement>(tela, "Dia da janela 1").value).toBe("6");
+    expect(campo<HTMLButtonElement>(tela, "Dia da janela 1").value).toBe("6");
     expect(campo<HTMLInputElement>(tela, "Abre na janela 1").value).toBe(
       "11:00",
     );
@@ -354,7 +368,7 @@ describe("o produto de fim de semana (AC-322)", () => {
           imagem: null,
           disponivel: false,
           motivoIndisponivel: "FORA_DO_HORARIO",
-          link: "/l/loja/produto/p-2",
+          link: "/loja/loja/produto/p-2",
         }}
       />,
     );

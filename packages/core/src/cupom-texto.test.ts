@@ -79,7 +79,7 @@ function pedidoCompleto(): PedidoParaTexto {
     subtotalEmCentavos: 7970,
     descontoEmCentavos: 500,
     totalEmCentavos: 8270,
-    linkDeAcompanhamento: "https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b",
+    linkDeAcompanhamento: "https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b",
   };
 }
 
@@ -162,7 +162,7 @@ describe("texto do pedido para o WhatsApp", () => {
     expect(texto).toContain("Centro - São Paulo/SP");
     expect(texto).toContain("Entrega Centro: R$ 8,00");
     expect(texto).toContain(
-      "https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b",
+      "https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b",
     );
   });
 
@@ -208,7 +208,7 @@ describe("texto do pedido para o WhatsApp", () => {
     expect(gerado.texto).toContain("Dinheiro");
     expect(gerado.texto).toContain("Troco para R$ 100,00");
     expect(gerado.texto).toContain(
-      "https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b",
+      "https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b",
     );
   });
 
@@ -280,7 +280,7 @@ describe("encurtamento controlado do texto (AC-521)", () => {
 
     expect(gerado.texto).toContain("*Acompanhe seu pedido*");
     expect(linhas.at(-1)).toBe(
-      "https://app.simpleclick.com.br/l/sabor/p/9f3c1a7b",
+      "https://app.simpleclick.com.br/loja/sabor/p/9f3c1a7b",
     );
   });
 

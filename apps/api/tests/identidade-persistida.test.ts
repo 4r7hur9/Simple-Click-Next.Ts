@@ -60,7 +60,7 @@ afterAll(async () => {
 
 describe("cadastro e verificação de e-mail gravados no banco", () => {
   it(
-    "@spec:AC-100 @spec:AC-129 cadastro válido grava a conta pendente com a senha derivada, e outra instância a reconhece sem deixar entrar",
+    "@spec:AC-100 @spec:AC-129 conta pendente gravada com a senha derivada, e outra instância a reconhece e deixa o cliente entrar",
     async () => {
       const email = emailNovo();
       const avisos = avisosQueCriamOLink(primeira);
@@ -81,9 +81,12 @@ describe("cadastro e verificação de e-mail gravados no banco", () => {
       expect(linha?.password_hash).not.toContain(FRASE_DA_PROVA);
 
       // Outra instância, outro agrupador: a conta e a senha estão no banco.
+      // Cliente entra mesmo com o e-mail pendente (a marca é organização).
       const tentativa = await entrar(segunda, email, FRASE_DA_PROVA);
-      expect(tentativa.resultado).toEqual({ status: "EMAIL_NAO_VERIFICADO" });
-      expect(tentativa.criarSessao).not.toHaveBeenCalled();
+      expect(tentativa.resultado).toEqual({
+        status: "SESSAO_CRIADA",
+        sessaoId: "sessao-da-prova",
+      });
     },
     ESPERA_LONGA,
   );

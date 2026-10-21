@@ -40,7 +40,7 @@ describe("a tela leva o cardápio para o celular (AC-931)", () => {
 
     expect(html).toContain('role="img"');
     expect(html).toContain(
-      "Código para abrir simpleclick.app/l/sabor-e-cia/catalogo no celular",
+      "Código para abrir simpleclick.app/loja/sabor-e-cia/cardapio no celular",
     );
     expect(html).toContain(`d="${esperado}"`);
     // Elemento grande, e não selo de canto: 44% do lado menor da tela.
@@ -49,7 +49,7 @@ describe("a tela leva o cardápio para o celular (AC-931)", () => {
 
   it("@spec:AC-931 o endereço aparece escrito, para quem prefere digitar", () => {
     expect(comoSeLe(desenhar())).toContain(
-      "simpleclick.app/l/sabor-e-cia/catalogo",
+      "simpleclick.app/loja/sabor-e-cia/cardapio",
     );
     expect(comoSeLe(desenhar())).toContain("Aponte a câmera");
   });

@@ -1,8 +1,8 @@
-import { revalidatePath } from "next/cache";
 import { SECOES_DO_DONO } from "@simpleclick/contracts";
 
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
+import { renovarVitrineDaLoja } from "../../../../server/renovar-vitrine.ts";
 
 /**
  * O que o site encaminha: as seções do dono (AC-921) e os avisos do painel.
@@ -40,16 +40,7 @@ async function encaminhar(
 
   const corpo = await resposta.text();
   if (resposta.status === 204) {
-    try {
-      revalidatePath(`/l/${sessao.apelido}`);
-      revalidatePath(`/l/${sessao.apelido}/sobre`);
-      revalidatePath(`/l/${sessao.apelido}/catalogo`);
-      revalidatePath(`/l/${sessao.apelido}/checkout`);
-    } catch {
-      // A gravação já foi confirmada pela API. Em desenvolvimento, o cache
-      // pode não ter um contexto de revalidação; a próxima leitura ainda
-      // receberá o valor novo quando a janela expirar.
-    }
+    renovarVitrineDaLoja(sessao.apelido);
     return new Response(null, {
       status: 204,
       headers: { "cache-control": "no-store" },

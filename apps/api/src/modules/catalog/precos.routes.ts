@@ -5,6 +5,11 @@
  * mesma regra pura do carrinho e da vitrine. Os campos antigos do produto são
  * mantidos como projeção de compatibilidade enquanto esta entidade passa a
  * ser a fonte administrativa.
+ *
+ * As FAIXAS DE ATACADO com desconto (card #54) moram na mesma tabela, mas têm
+ * rota própria — `/atacado`, que lê e regrava a lista inteira com as travas do
+ * card #53. A rota genérica não as lista nem as altera: editada por aqui, uma
+ * faixa perderia o desconto e viraria preço fixo de zero.
  */
 import { precoQueVale, type PrecoCadastrado } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
@@ -16,6 +21,15 @@ import {
   type AcessoAoBanco,
   type TransacaoDoBanco,
 } from "../../core/db.ts";
+import {
+  atacadoDoPreco,
+  ehRecusaDoBancoNasFaixas,
+  ErroDasFaixasDeAtacado,
+  gravarFaixasDeAtacado,
+  idsDasFaixas,
+  lerFaixasDeAtacado,
+  recusaDasFaixas,
+} from "./atacado.usecase.ts";
 import type {
   ChegadaNaLoja,
   IdentificacaoDaLoja,
@@ -86,6 +100,9 @@ type LinhaDePreco = {
 function erro(resposta: Response, status: number, mensagem: string): void {
   resposta.status(status).json({ erro: mensagem });
 }
+
+/** O corpo do `PUT /atacado`: a lista vai inteira; as travas vêm depois. */
+const esquemaDoCorpoDoAtacado = z.object({ faixas: z.array(z.unknown()) });
 
 function comoRegra(preco: LinhaDePreco): PrecoCadastrado {
   return {
@@ -204,7 +221,8 @@ export function criarRotasDosPrecos(opcoes: OpcoesDosPrecos): Router {
                     requisicao.params.produtoId,
                   );
                   if (produto === null) return null;
-                  return tx.productPrice.findMany({
+                  const faixas = await idsDasFaixas(tx, lojaId, produto.id);
+                  const precos = await tx.productPrice.findMany({
                     where: {
                       storeId: lojaId,
                       productId: produto.id,
@@ -213,6 +231,7 @@ export function criarRotasDosPrecos(opcoes: OpcoesDosPrecos): Router {
                     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
                     select: selecaoDoPreco,
                   });
+                  return precos.filter((preco) => !faixas.has(preco.id));
                 }),
             );
             if (precos === null) {
@@ -353,6 +372,8 @@ export function criarRotasDosPrecos(opcoes: OpcoesDosPrecos): Router {
                     select: { id: true },
                   });
                   if (atual === null) return null;
+                  const faixas = await idsDasFaixas(tx, lojaId, produto.id);
+                  if (faixas.has(atual.id)) return null;
                   const preco = await tx.productPrice.update({
                     where: { id: atual.id },
                     data: {
@@ -423,6 +444,8 @@ export function criarRotasDosPrecos(opcoes: OpcoesDosPrecos): Router {
                     requisicao.params.produtoId,
                   );
                   if (produto === null) return 0;
+                  const faixas = await idsDasFaixas(tx, lojaId, produto.id);
+                  if (faixas.has(requisicao.params.precoId)) return 0;
                   const resultado = await tx.productPrice.deleteMany({
                     where: {
                       id: requisicao.params.precoId,
@@ -444,6 +467,119 @@ export function criarRotasDosPrecos(opcoes: OpcoesDosPrecos): Router {
           },
         );
       } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  /** O que as duas rotas do atacado devolvem: faixas, varejo e a prévia. */
+  async function atacadoDoProduto(
+    tx: TransacaoDoBanco,
+    lojaId: string,
+    produto: { id: string; displayPriceCents: bigint | null },
+  ) {
+    const faixas = await lerFaixasDeAtacado(tx, lojaId, produto.id);
+    const varejo =
+      produto.displayPriceCents === null
+        ? null
+        : Number(produto.displayPriceCents);
+    return {
+      faixas,
+      precoDeVarejoCentavos: varejo,
+      atacado: atacadoDoPreco(varejo, faixas),
+    };
+  }
+
+  rotas.get(
+    "/:apelido/catalogo/produtos/:produtoId/atacado",
+    async (requisicao, resposta, proximo) => {
+      try {
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const lido = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const produto = await produtoDaLoja(
+                    tx,
+                    lojaId,
+                    requisicao.params.produtoId,
+                  );
+                  if (produto === null) return null;
+                  return atacadoDoProduto(tx, lojaId, produto);
+                }),
+            );
+            if (lido === null) {
+              erro(resposta, 404, "nao_encontrado");
+              return;
+            }
+            resposta.json(lido);
+          },
+        );
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  rotas.put(
+    "/:apelido/catalogo/produtos/:produtoId/atacado",
+    async (requisicao, resposta, proximo) => {
+      try {
+        const corpo = esquemaDoCorpoDoAtacado.safeParse(requisicao.body);
+        if (!corpo.success) {
+          erro(resposta, 400, "entrada_invalida");
+          return;
+        }
+        await comLoja(
+          requisicao.params.apelido,
+          resposta,
+          async (lojaId, usuario) => {
+            const gravado = await executarComoRequisicao(
+              { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
+              () =>
+                acesso.emTransacao(async (tx) => {
+                  const produto = await produtoDaLoja(
+                    tx,
+                    lojaId,
+                    requisicao.params.produtoId,
+                  );
+                  if (produto === null) return null;
+                  await gravarFaixasDeAtacado(
+                    tx,
+                    lojaId,
+                    produto.id,
+                    corpo.data.faixas,
+                  );
+                  return atacadoDoProduto(tx, lojaId, produto);
+                }),
+            );
+            if (gravado === null) {
+              erro(resposta, 404, "nao_encontrado");
+              return;
+            }
+            resposta.json(gravado);
+          },
+        );
+      } catch (causa) {
+        if (causa instanceof ErroDasFaixasDeAtacado) {
+          resposta.status(422).json(recusaDasFaixas(causa.problemas));
+          return;
+        }
+        if (ehRecusaDoBancoNasFaixas(causa)) {
+          resposta.status(422).json(
+            recusaDasFaixas([
+              {
+                indice: null,
+                mensagem:
+                  "Não deu para salvar as faixas: confira as quantidades e os descontos e tente de novo.",
+              },
+            ]),
+          );
+          return;
+        }
         proximo(causa);
       }
     },

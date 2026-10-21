@@ -28,6 +28,8 @@ import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
 import { criarApp } from "./app.ts";
+import { exigirAceiteVigente } from "./core/aceites-legais.ts";
+import { clienteDaCompra } from "./modules/auth/cliente-da-compra.ts";
 import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
 import { encerrarCache } from "./core/cache.ts";
 import { encerrarCacheDoLimite } from "./modules/auth/limite-da-identidade.ts";
@@ -53,6 +55,13 @@ import {
   type SegundoPlano,
 } from "./jobs/index.ts";
 import { criarRemocaoDefinitiva } from "./modules/admin/remocao-definitiva.ts";
+import { armazenamentoDeMidiaDoAmbiente } from "./core/armazenamento-de-midia.ts";
+import { limitesDeMidiaDoAmbiente } from "./core/conferencia-de-midia.ts";
+import {
+  agendarLimpezaDosStories,
+  criarLimpezaDosStories,
+  type LimpezaAgendada,
+} from "./core/limpeza-dos-stories.ts";
 
 /**
  * Quanto o desligamento pode levar antes de desistir e sair com erro.
@@ -252,6 +261,13 @@ export async function iniciarApi(
       // O processo que serve de verdade avisa o site quando o dono muda a
       // loja (dívida 93); configuração pela metade recusa a partida.
       avisarSite: avisoDoSiteDoAmbiente(fonte),
+      // Aceite versionado dos termos (card #79): conta com versão nova
+      // pendente não cria nada até aceitar.
+      exigirAceite: exigirAceiteVigente({
+        identidade: (requisicao) =>
+          clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim())
+            ?.identidadeId ?? null,
+      }),
     });
 
   // As respostas ainda abertas. Ao desligar, as que não mandaram cabeçalho
@@ -279,6 +295,20 @@ export async function iniciarApi(
     throw erro;
   }
 
+  // A limpeza dos stories vencidos (card #46): no próprio processo, de
+  // STORIES_LIMPEZA_MINUTOS em STORIES_LIMPEZA_MINUTOS (0 desliga). Só no
+  // processo de verdade: a prova que injeta a aplicação não limpa nada.
+  const minutosDaLimpeza = limitesDeMidiaDoAmbiente(fonte).limpezaDosStoriesMinutos;
+  const limpeza: LimpezaAgendada | undefined =
+    opcoes.aplicacao === undefined && minutosDaLimpeza > 0
+      ? agendarLimpezaDosStories(
+          criarLimpezaDosStories({
+            armazenamento: armazenamentoDeMidiaDoAmbiente(fonte),
+          }),
+          minutosDaLimpeza * 60_000,
+        )
+      : undefined;
+
   const porta = (servidor.address() as AddressInfo).port;
   // A porta entra como campo, não como texto interpolado (AC-021).
   registro.info(EVENTOS_DA_PARTIDA.iniciou, { porta });
@@ -302,6 +332,7 @@ export async function iniciarApi(
   ): Promise<ResultadoDoDesligamento> {
     const inicio = Date.now();
     desligando = true;
+    limpeza?.parar();
     registro.info(EVENTOS_DA_PARTIDA.desligando, { detalhe: motivo });
 
     const pendentes = new Set<string>([

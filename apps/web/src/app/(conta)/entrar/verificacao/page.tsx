@@ -15,6 +15,7 @@ import {
   respostaDaRecuperacao,
   respostaDoCodigo,
 } from "../../../../features/auth/respostas-de-acesso.ts";
+import { destinoDosParametros } from "../../../../features/auth/destino-seguro.ts";
 
 /** POST na ponte e o corpo lido, sem confiar na forma. */
 async function enviarParaAPonte(caminho: string, corpo: unknown) {
@@ -34,6 +35,8 @@ function ConteudoDaVerificacao() {
   const desafioId = parametros.get("desafio");
   const canal = parametros.get("canal") === "TOTP" ? "TOTP" : "EMAIL";
   const [porRecuperacao, setPorRecuperacao] = useState(false);
+  // Quem veio de uma página (a loja, o checkout) volta para ela.
+  const destino = destinoDosParametros(parametros);
 
   useEffect(() => {
     if (desafioId === null || desafioId === "") roteador.replace("/entrar");
@@ -65,7 +68,7 @@ function ConteudoDaVerificacao() {
             );
             return respostaDaRecuperacao(status, corpo);
           }}
-          aoCriarSessao={(destino) => roteador.replace(destino)}
+          aoCriarSessao={(caminho) => roteador.replace(caminho)}
         />
       ) : (
         <CodigoForm
@@ -77,7 +80,9 @@ function ConteudoDaVerificacao() {
             });
             return respostaDoCodigo(status, corpo);
           }}
-          aoCriarSessao={(destino) => roteador.replace(destino)}
+          aoCriarSessao={(paraOPapel) =>
+            roteador.replace(destino ?? paraOPapel)
+          }
           aoRecomecarLogin={() => roteador.replace("/entrar")}
         />
       )}

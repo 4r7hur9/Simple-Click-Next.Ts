@@ -1,0 +1,315 @@
+/*
+ * Cadastro por tipo de conta e tela de aprovação da loja (card #28).
+ *
+ * Vive em arquivo próprio para não disputar `conta.css`, que a conta do
+ * cliente está reformando. Só tokens do tema — nenhuma cor escrita; nada se
+ * move sozinho.
+ */
+
+/* --- criar conta: os dois cartões ---------------------------------------- */
+
+.sc-cadastro__tipos {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-cadastro__tipo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--espaco-4);
+  align-items: center;
+  min-block-size: 6rem;
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta);
+  text-decoration: none;
+}
+
+.sc-cadastro__tipo:hover {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-cadastro__tipo:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-cadastro__tipo-icone {
+  display: grid;
+  inline-size: 3rem;
+  block-size: 3rem;
+  place-items: center;
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-cadastro__tipo-icone svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.sc-cadastro__tipo-texto {
+  display: grid;
+  gap: var(--espaco-1);
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-cadastro__tipo-texto strong {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+}
+
+.sc-cadastro__tipo-seta {
+  display: grid;
+  color: var(--cor-tinta-suave);
+  transform: rotate(-90deg);
+}
+
+/* --- cadastro de dono ----------------------------------------------------- */
+
+.sc-cadastro__etapas {
+  display: flex;
+  gap: var(--espaco-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-cadastro__etapas li {
+  display: inline-flex;
+  gap: var(--espaco-2);
+  align-items: center;
+}
+
+.sc-cadastro__etapas li > span {
+  display: grid;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  place-items: center;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  font-weight: var(--peso-forte);
+}
+
+.sc-cadastro__etapas li[aria-current="step"] {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-cadastro__etapas li[aria-current="step"] > span,
+.sc-cadastro__etapas li[data-feita] > span {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-cadastro__duas-colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  gap: var(--espaco-4);
+}
+
+.sc-cadastro__acoes {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--espaco-4);
+}
+
+.sc-cadastro__nota {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-cadastro__sugestao {
+  margin: calc(var(--espaco-2) * -1) 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-cadastro__sugestao-botao {
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-1);
+  border: 0;
+  background: none;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-weight: var(--peso-forte);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+/* --- painel: cadastro em análise / recusado ------------------------------- */
+
+.sc-aprovacao {
+  display: grid;
+  min-block-size: 100dvh;
+  place-items: start center;
+  padding: var(--espaco-4);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta);
+}
+
+.sc-aprovacao__cartao {
+  display: grid;
+  gap: var(--espaco-5);
+  inline-size: min(100%, 40rem);
+  margin-block: var(--espaco-6);
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background-color: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-aprovacao__topo {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sc-aprovacao__marca {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+}
+
+.sc-aprovacao__selo {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.75rem;
+  padding: 0 var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sc-aprovacao__selo[data-tom="recusada"] {
+  background-color: var(--cor-erro);
+  color: var(--cor-em-erro);
+}
+
+.sc-aprovacao__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  line-height: 1.15;
+}
+
+.sc-aprovacao__texto {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-aprovacao__loja {
+  display: grid;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie);
+  font-size: var(--texto-sm);
+}
+
+.sc-aprovacao__loja strong {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+}
+
+.sc-aprovacao__loja span {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-aprovacao__passos {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.sc-aprovacao__passos li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--espaco-4);
+  align-items: start;
+  font-size: var(--texto-sm);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-aprovacao__passos li::before {
+  content: counter(passo);
+  counter-increment: passo;
+  display: grid;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  place-items: center;
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+}
+
+.sc-aprovacao__passos strong {
+  display: block;
+  color: var(--cor-tinta);
+}
+
+.sc-aprovacao__motivo {
+  margin: 0;
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-erro);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-erro-suave);
+  color: var(--cor-tinta);
+}
+
+.sc-aprovacao__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.sc-aprovacao__rodape {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-aprovacao__rodape a {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+@media (min-width: 48rem) {
+  .sc-aprovacao {
+    padding: var(--espaco-6);
+  }
+
+  .sc-aprovacao__cartao {
+    padding: var(--espaco-6);
+  }
+
+  .sc-cadastro__tipo {
+    padding: var(--espaco-5);
+  }
+}
+
+.sc-aprovacao__acoes-bloco {
+  display: grid;
+  gap: var(--espaco-3);
+}

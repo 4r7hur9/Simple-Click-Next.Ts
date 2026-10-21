@@ -19,6 +19,8 @@
 
 import { z } from "zod";
 
+import { esquemaDoAtacadoNoItem } from "./atacado.ts";
+import { esquemaDoEnderecoParaSalvar } from "./clientes.ts";
 import { definirRota } from "./rota.ts";
 import { esquemaDoApelido } from "./vitrine.ts";
 
@@ -202,6 +204,18 @@ export const esquemaDeItemConferido = z.strictObject({
     })
     .nullable()
     .optional(),
+  /** `BASE`, `PROMO` ou `WHOLESALE`: qual preço valeu (card #57). */
+  tipoDePreco: z.string().optional(),
+  /**
+   * O preço de varejo por unidade (com as opções), quando o cobrado é menor —
+   * o riscado ao lado. Nulo no preço normal.
+   */
+  varejoUnitarioCentavos: z.int().positive().nullable().optional(),
+  /**
+   * O atacado do produto: faixa aplicada, próxima e quantas peças faltam — o
+   * "faltam 4 peças para o próximo desconto". Nulo sem faixas.
+   */
+  atacado: esquemaDoAtacadoNoItem.nullable().optional(),
 });
 
 /**
@@ -257,7 +271,12 @@ export const rotaDeConferirCarrinho = definirRota({
 // Criar o pedido
 // ---------------------------------------------------------------------------
 
-/** Quem pediu. Convidado chega igual a cliente com conta (AC-518). */
+/**
+ * Contato no formato antigo (quando o pedido aceitava convidado). Continua
+ * aceito por compatibilidade: com conta logada, nome e e-mail vêm da CONTA;
+ * o telefone daqui só vale quando a conta ainda não tem; e o endereço daqui
+ * vira endereço novo salvo na conta.
+ */
 export const esquemaDoContato = z.strictObject({
   nome: z.string().min(2).max(120),
   /** Como a pessoa digitou. A API normaliza — a tela não precisa saber E.164. */
@@ -281,7 +300,17 @@ export const esquemaDoContato = z.strictObject({
  * existe para impedir.
  */
 export const esquemaDoPedidoParaCriar = z.strictObject({
-  contato: esquemaDoContato,
+  /** Formato antigo, opcional. Ver `esquemaDoContato`. */
+  contato: esquemaDoContato.optional(),
+  /**
+   * Telefone para o pedido, como a pessoa digitou. Só é exigido quando a
+   * conta ainda não tem telefone — e então fica salvo na conta.
+   */
+  telefone: z.string().min(8).max(24).optional(),
+  /** Na entrega: um endereço salvo da conta (`GET /v1/conta/enderecos`). */
+  enderecoId: z.uuid().optional(),
+  /** Na entrega: um endereço novo, que fica salvo na conta. */
+  endereco: esquemaDoEnderecoParaSalvar.optional(),
   entrega: z.enum(["DELIVERY", "PICKUP"]),
   /** `PIX`, `CASH`, `CARD_ON_DELIVERY`. */
   formaDePagamento: z.string().nullable().optional(),
@@ -297,6 +326,12 @@ export const esquemaDoPedidoParaCriar = z.strictObject({
   chaveDeIdempotencia: z.string().min(8).max(64),
   /** O total que a tela mostrou. Só serve para registrar divergência. */
   totalVistoCentavos: z.int().nonnegative().nullable().optional(),
+  /**
+   * O subtotal dos itens que a tela mostrou (o da conferência). O servidor
+   * recalcula com a faixa de atacado de agora e RECUSA o pedido (409) quando
+   * não bate: a pessoa confere o preço novo antes de pagar (card #57).
+   */
+  subtotalVistoCentavos: z.int().nonnegative().nullable().optional(),
 });
 
 /** O pedido criado, com o que a tela mostra em seguida. */
@@ -358,9 +393,9 @@ export const rotaDeCriarPedido = definirRota({
   etiqueta: "carrinho",
   resumo: "Fecha o pedido",
   descricao:
-    "Cria o pedido a partir do carrinho da sessão, com os preços que o servidor lê do catálogo. Recusa quando a loja está fechada, quando o carrinho está vazio e quando o subtotal não alcança o mínimo. A mesma chave de idempotência devolve o mesmo pedido, nunca um segundo.",
+    "Exige conta logada (Bearer ou cookie `sc_access`); sem sessão, 401 `conta_obrigatoria`. Nome e e-mail vêm da conta; o telefone também, e só é pedido no corpo (`telefone`) quando a conta não tem — sem nenhum, 422 `telefone_obrigatorio`. Na entrega, o endereço é um salvo da conta (`enderecoId`; de outra pessoa ou inexistente, 422 `endereco_nao_encontrado`) ou um novo (`endereco`, que fica salvo na conta); sem nenhum, 422 `endereco_obrigatorio`. Cria o pedido a partir do carrinho da sessão, com os preços que o servidor lê do catálogo. Recusa quando a loja está fechada, quando o carrinho está vazio e quando o subtotal não alcança o mínimo. A mesma chave de idempotência devolve o mesmo pedido, nunca um segundo.",
   parametros: esquemaDoApelido,
   corpo: esquemaDoPedidoParaCriar,
   resposta: esquemaDoPedidoCriado,
-  errosPossiveis: [400, 404, 409],
+  errosPossiveis: [400, 401, 404, 409, 422],
 });

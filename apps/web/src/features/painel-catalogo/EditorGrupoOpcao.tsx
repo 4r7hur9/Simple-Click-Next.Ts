@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useId, useState } from "react";
 
 import { centavosDoTexto } from "../../lib/dinheiro.ts";
+import { Seletor } from "@simpleclick/ui";
+
+import { ROTULO_DO_TIPO_DE_GRUPO } from "../painel-estoque/visao-do-catalogo.ts";
+import { EXPLICACOES } from "./explicacoes.ts";
+import {
+  RotuloComInfo,
+  TituloComInfo,
+  descritoDoInfo,
+} from "./RotuloComInfo.tsx";
 
 interface Opcao {
   readonly id: string;
@@ -39,9 +49,12 @@ const GRUPO_VAZIO = {
   eixoDeVariacao: false,
   ativo: true,
 };
+// Acréscimo vazio por padrão (card #67): vazio = não muda o preço. O "0"
+// pré-preenchido parecia um valor de verdade e ninguém entendia o campo.
 const OPCAO_VAZIA = {
   nome: "",
-  acrescimo: "0",
+  acrescimo: "",
+  codigoExterno: "",
   disponivel: true,
   padrao: false,
 };
@@ -54,6 +67,7 @@ function dinheiro(centavos: number) {
 }
 
 export function EditorGrupoOpcao({ produtoId }: Props) {
+  const base = useId();
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [grupo, setGrupo] = useState(GRUPO_VAZIO);
   const [opcoes, setOpcoes] = useState<Record<string, typeof OPCAO_VAZIA>>({});
@@ -123,12 +137,16 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
 
   async function criarOpcao(
     evento: React.FormEvent<HTMLFormElement>,
-    grupoId: string,
+    grupo: Grupo,
   ) {
     evento.preventDefault();
+    const grupoId = grupo.id;
     const formulario = opcoes[grupoId] ?? OPCAO_VAZIA;
     // Centavos lidos como texto (AC-311): "2.50" é R$ 2,50, e não R$ 250.
-    const acrescimoCentavos = centavosDoTexto(formulario.acrescimo);
+    // Vazio é "sem acréscimo"; no eixo de variação o preço mora na variação.
+    const acrescimo = formulario.acrescimo.trim();
+    const acrescimoCentavos =
+      grupo.eixoDeVariacao || acrescimo === "" ? 0 : centavosDoTexto(acrescimo);
     if (acrescimoCentavos === null) {
       setMensagem("Acréscimo inválido. Escreva em reais, como 2,50.");
       return;
@@ -144,8 +162,8 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
             nome: formulario.nome,
             acrescimoCentavos,
             disponivel: formulario.disponivel,
-            padrao: formulario.padrao,
-            codigoExterno: null,
+            padrao: grupo.eixoDeVariacao ? false : formulario.padrao,
+            codigoExterno: formulario.codigoExterno.trim() || null,
           }),
         },
       );
@@ -182,6 +200,20 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
     else setMensagem("Não foi possível remover a opção.");
   }
 
+  function mudarOpcao(grupoId: string, mudanca: Partial<typeof OPCAO_VAZIA>) {
+    setOpcoes((anteriores) => ({
+      ...anteriores,
+      [grupoId]: { ...(anteriores[grupoId] ?? OPCAO_VAZIA), ...mudanca },
+    }));
+  }
+
+  const idNome = `${base}-grupo-nome`;
+  const idTipo = `${base}-grupo-tipo`;
+  const idMinimo = `${base}-grupo-minimo`;
+  const idMaximo = `${base}-grupo-maximo`;
+  const idRepetir = `${base}-grupo-repetir`;
+  const idEixo = `${base}-grupo-eixo`;
+
   return (
     <section
       className="mt-8 max-w-4xl rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)] p-6 sm:p-8"
@@ -193,8 +225,8 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
             Escolhas e adicionais
           </h2>
           <p className="mt-2 text-sm leading-6 text-[var(--cor-tinta-suave)]">
-            O mínimo define se o grupo é obrigatório. Opções indisponíveis
-            continuam visíveis sem bloquear o produto.
+            O mínimo define se o grupo é obrigatório. Opções esgotadas continuam
+            visíveis sem bloquear o produto.
           </p>
         </div>
         <p role="status" className="text-sm text-[var(--cor-tinta-suave)]">
@@ -204,6 +236,11 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
       <div className="mt-6 space-y-5">
         {grupos.map((item) => {
           const formulario = opcoes[item.id] ?? OPCAO_VAZIA;
+          const eixo = item.eixoDeVariacao;
+          const idOpcaoNome = `${base}-${item.id}-nome`;
+          const idOpcaoAcrescimo = `${base}-${item.id}-acrescimo`;
+          const idOpcaoCodigo = `${base}-${item.id}-codigo`;
+          const idOpcaoPadrao = `${base}-${item.id}-padrao`;
           return (
             <article
               key={item.id}
@@ -214,18 +251,45 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                   <h3 className="text-xl font-semibold">{item.nome}</h3>
                   <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
                     {item.minimo > 0
-                      ? `Obrigatório: ${item.minimo}`
+                      ? `Obrigatório: escolher ao menos ${item.minimo}`
                       : "Opcional"}{" "}
-                    · máximo {item.maximo ?? "livre"} ·{" "}
-                    {item.permiteRepetir ? "permite repetir" : "não repete"}
-                    {item.eixoDeVariacao ? " · eixo de variação" : ""}
+                    ·{" "}
+                    {item.maximo === null
+                      ? "sem máximo"
+                      : `no máximo ${item.maximo}`}{" "}
+                    ·{" "}
+                    {item.permiteRepetir
+                      ? "pode repetir a mesma opção"
+                      : "sem repetir a opção"}
+                    {eixo ? " · eixo da grade de variações" : ""}
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-[var(--cor-primaria-texto)]">
-                  {item.tipo}
+                <span className="sc-selo sc-selo--neutro">
+                  {ROTULO_DO_TIPO_DE_GRUPO[item.tipo] ?? "Grupo"}
                 </span>
               </div>
-              <ul className="mt-4 space-y-2">
+              {eixo ? (
+                <p className="mt-4 rounded-[var(--raio-botao)] bg-[var(--cor-papel)] p-3 text-sm leading-6">
+                  O preço e o estoque de cada opção ficam em{" "}
+                  <Link
+                    className="font-semibold text-[var(--cor-primaria-texto)] underline"
+                    href={`/painel/produtos/${produtoId}/variacoes`}
+                  >
+                    Variações
+                  </Link>
+                  .
+                </p>
+              ) : null}
+              {item.opcoes.length > 0 ? (
+                <TituloComInfo
+                  className="mt-4"
+                  nome="Esgotar e remover opções"
+                  info={EXPLICACOES.esgotarOpcao}
+                >
+                  Opções deste grupo
+                </TituloComInfo>
+              ) : null}
+              <ul className="mt-2 space-y-2">
                 {item.opcoes.map((opcao) => (
                   <li
                     key={opcao.id}
@@ -234,10 +298,11 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                     <span className="flex-1 font-medium">
                       {opcao.nome}{" "}
                       <span className="text-sm text-[var(--cor-tinta-suave)]">
-                        {opcao.acrescimoCentavos === 0
+                        {eixo || opcao.acrescimoCentavos === 0
                           ? ""
-                          : `· ${dinheiro(opcao.acrescimoCentavos)}`}{" "}
+                          : `· ${opcao.acrescimoCentavos > 0 ? "+" : "−"} ${dinheiro(Math.abs(opcao.acrescimoCentavos))} `}
                         · {opcao.disponivel ? "disponível" : "esgotada"}
+                        {opcao.padrao ? " · já vem marcada" : ""}
                       </span>
                     </span>
                     <button
@@ -258,43 +323,120 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                 ))}
               </ul>
               <form
-                onSubmit={(evento) => void criarOpcao(evento, item.id)}
-                className="mt-4 grid gap-3 border-t border-[var(--cor-borda)] pt-4 sm:grid-cols-[1fr_10rem_auto]"
+                onSubmit={(evento) => void criarOpcao(evento, item)}
+                className="mt-4 grid gap-4 border-t border-[var(--cor-borda)] pt-4"
               >
-                <input
-                  className="sc-campo__controle"
-                  value={formulario.nome}
-                  onChange={(evento) =>
-                    setOpcoes((anteriores) => ({
-                      ...anteriores,
-                      [item.id]: { ...formulario, nome: evento.target.value },
-                    }))
+                <h4 className="text-sm font-semibold">Nova opção</h4>
+                <div
+                  className={
+                    eixo
+                      ? "grid gap-4 sm:grid-cols-[minmax(0,1fr)_14rem] sm:items-end"
+                      : "grid gap-4 sm:grid-cols-[minmax(0,1fr)_14rem_14rem] sm:items-end"
                   }
-                  placeholder="Nova opção"
-                  required
-                />
-                <input
-                  className="sc-campo__controle"
-                  inputMode="decimal"
-                  value={formulario.acrescimo}
-                  onChange={(evento) =>
-                    setOpcoes((anteriores) => ({
-                      ...anteriores,
-                      [item.id]: {
-                        ...formulario,
-                        acrescimo: evento.target.value,
-                      },
-                    }))
-                  }
-                  placeholder="Acréscimo R$"
-                />
-                <button
-                  className="sc-botao sc-botao--secundaria"
-                  type="submit"
-                  disabled={salvando}
                 >
-                  Adicionar
-                </button>
+                  <div className="grid gap-2">
+                    <RotuloComInfo htmlFor={idOpcaoNome}>
+                      Nome da opção
+                    </RotuloComInfo>
+                    <input
+                      id={idOpcaoNome}
+                      className="sc-campo__controle w-full"
+                      value={formulario.nome}
+                      onChange={(evento) =>
+                        mudarOpcao(item.id, { nome: evento.target.value })
+                      }
+                      placeholder={eixo ? "Ex.: Grande" : "Ex.: Borda recheada"}
+                      maxLength={120}
+                      required
+                    />
+                  </div>
+                  {eixo ? null : (
+                    <div className="grid gap-2">
+                      <RotuloComInfo
+                        htmlFor={idOpcaoAcrescimo}
+                        nome="Acréscimo no preço"
+                        info={EXPLICACOES.acrescimoDaOpcao}
+                      >
+                        Acréscimo no preço (R$)
+                      </RotuloComInfo>
+                      <input
+                        id={idOpcaoAcrescimo}
+                        className="sc-campo__controle w-full"
+                        inputMode="decimal"
+                        value={formulario.acrescimo}
+                        aria-describedby={descritoDoInfo(
+                          idOpcaoAcrescimo,
+                          EXPLICACOES.acrescimoDaOpcao,
+                        )}
+                        onChange={(evento) =>
+                          mudarOpcao(item.id, {
+                            acrescimo: evento.target.value,
+                          })
+                        }
+                        placeholder="Vazio = sem acréscimo"
+                      />
+                    </div>
+                  )}
+                  <div className="grid gap-2">
+                    <RotuloComInfo
+                      htmlFor={idOpcaoCodigo}
+                      nome="Código externo"
+                      info={EXPLICACOES.codigoExterno}
+                    >
+                      Código externo (opcional)
+                    </RotuloComInfo>
+                    <input
+                      id={idOpcaoCodigo}
+                      className="sc-campo__controle w-full"
+                      value={formulario.codigoExterno}
+                      maxLength={100}
+                      aria-describedby={descritoDoInfo(
+                        idOpcaoCodigo,
+                        EXPLICACOES.codigoExterno,
+                      )}
+                      onChange={(evento) =>
+                        mudarOpcao(item.id, {
+                          codigoExterno: evento.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {eixo ? (
+                    <span />
+                  ) : (
+                    <span className="flex items-center gap-3 text-sm">
+                      <input
+                        id={idOpcaoPadrao}
+                        className="h-5 w-5"
+                        type="checkbox"
+                        checked={formulario.padrao}
+                        aria-describedby={descritoDoInfo(
+                          idOpcaoPadrao,
+                          EXPLICACOES.opcaoJaMarcada,
+                        )}
+                        onChange={(evento) =>
+                          mudarOpcao(item.id, { padrao: evento.target.checked })
+                        }
+                      />
+                      <RotuloComInfo
+                        htmlFor={idOpcaoPadrao}
+                        nome="Já vem marcada"
+                        info={EXPLICACOES.opcaoJaMarcada}
+                      >
+                        Já vem marcada para o cliente
+                      </RotuloComInfo>
+                    </span>
+                  )}
+                  <button
+                    className="sc-botao sc-botao--secundaria"
+                    type="submit"
+                    disabled={salvando}
+                  >
+                    Adicionar opção
+                  </button>
+                </div>
               </form>
             </article>
           );
@@ -302,13 +444,14 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
       </div>
       <form
         onSubmit={(evento) => void criarGrupo(evento)}
-        className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
+        className="mt-6 grid gap-5 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
       >
         <h3 className="sm:col-span-2 text-xl font-semibold">Novo grupo</h3>
-        <label>
-          <span className="text-sm font-medium">Nome</span>
+        <div className="grid content-start gap-2">
+          <RotuloComInfo htmlFor={idNome}>Nome do grupo</RotuloComInfo>
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={idNome}
+            className="sc-campo__controle w-full"
             value={grupo.nome}
             onChange={(evento) =>
               setGrupo((anterior) => ({
@@ -316,37 +459,61 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
                 nome: evento.target.value,
               }))
             }
-            placeholder="Ex.: Adicionais"
+            placeholder="Ex.: Borda, Adicionais, Tamanho"
+            maxLength={120}
             required
           />
-        </label>
-        <label>
-          <span className="text-sm font-medium">Tipo</span>
-          <select
-            className="sc-campo__controle mt-2 w-full"
+        </div>
+        <div className="grid content-start gap-2">
+          <RotuloComInfo
+            htmlFor={idTipo}
+            nome="Tipo do grupo"
+            info={EXPLICACOES.tipoDoGrupo}
+          >
+            Tipo do grupo
+          </RotuloComInfo>
+          <Seletor
+            id={idTipo}
+            className="w-full"
             value={grupo.tipo}
-            onChange={(evento) =>
+            aria-describedby={descritoDoInfo(idTipo, EXPLICACOES.tipoDoGrupo)}
+            onChange={(valor) =>
               setGrupo((anterior) => ({
                 ...anterior,
-                tipo: evento.target.value,
+                tipo: valor,
                 eixoDeVariacao:
-                  evento.target.value === "VARIATION" ||
-                  anterior.eixoDeVariacao,
+                  valor === "VARIATION" ||
+                  (anterior.tipo === "VARIATION"
+                    ? false
+                    : anterior.eixoDeVariacao),
               }))
             }
           >
             <option value="ADDON">Adicional</option>
             <option value="INGREDIENT">Ingrediente</option>
-            <option value="VARIATION">Eixo de variação</option>
-          </select>
-        </label>
-        <label>
-          <span className="text-sm font-medium">Mínimo</span>
+            <option value="VARIATION">Variação (eixo da grade)</option>
+          </Seletor>
+        </div>
+        <div className="grid content-start gap-2">
+          <RotuloComInfo
+            htmlFor={idMinimo}
+            nome="Mínimo de escolhas"
+            info={EXPLICACOES.minimoDoGrupo}
+          >
+            Mínimo de escolhas
+          </RotuloComInfo>
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={idMinimo}
+            className="sc-campo__controle w-full"
             type="number"
+            inputMode="numeric"
             min={0}
+            max={100}
             value={grupo.minimo}
+            aria-describedby={descritoDoInfo(
+              idMinimo,
+              EXPLICACOES.minimoDoGrupo,
+            )}
             onChange={(evento) =>
               setGrupo((anterior) => ({
                 ...anterior,
@@ -354,14 +521,33 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
               }))
             }
           />
-        </label>
-        <label>
-          <span className="text-sm font-medium">Máximo (opcional)</span>
+          <span className="text-xs text-[var(--cor-tinta-suave)]">
+            {Number(grupo.minimo) > 0
+              ? "Obrigatório: o cliente precisa escolher."
+              : "0 = opcional."}
+          </span>
+        </div>
+        <div className="grid content-start gap-2">
+          <RotuloComInfo
+            htmlFor={idMaximo}
+            nome="Máximo de escolhas"
+            info={EXPLICACOES.maximoDoGrupo}
+          >
+            Máximo de escolhas (opcional)
+          </RotuloComInfo>
           <input
-            className="sc-campo__controle mt-2 w-full"
+            id={idMaximo}
+            className="sc-campo__controle w-full"
             type="number"
+            inputMode="numeric"
             min={1}
+            max={100}
             value={grupo.maximo}
+            placeholder="Vazio = sem limite"
+            aria-describedby={descritoDoInfo(
+              idMaximo,
+              EXPLICACOES.maximoDoGrupo,
+            )}
             onChange={(evento) =>
               setGrupo((anterior) => ({
                 ...anterior,
@@ -369,12 +555,17 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
               }))
             }
           />
-        </label>
-        <label className="flex items-center gap-3 text-sm sm:col-span-2">
+        </div>
+        <span className="flex items-center gap-3 text-sm sm:col-span-2">
           <input
+            id={idRepetir}
             className="h-5 w-5"
             type="checkbox"
             checked={grupo.permiteRepetir}
+            aria-describedby={descritoDoInfo(
+              idRepetir,
+              EXPLICACOES.permiteRepetir,
+            )}
             onChange={(evento) =>
               setGrupo((anterior) => ({
                 ...anterior,
@@ -382,13 +573,24 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
               }))
             }
           />
-          Permitir repetir a mesma opção
-        </label>
-        <label className="flex items-center gap-3 text-sm sm:col-span-2">
+          <RotuloComInfo
+            htmlFor={idRepetir}
+            nome="Permitir repetir"
+            info={EXPLICACOES.permiteRepetir}
+          >
+            Permitir repetir a mesma opção
+          </RotuloComInfo>
+        </span>
+        <span className="flex items-center gap-3 text-sm sm:col-span-2">
           <input
+            id={idEixo}
             className="h-5 w-5"
             type="checkbox"
             checked={grupo.eixoDeVariacao}
+            aria-describedby={descritoDoInfo(
+              idEixo,
+              EXPLICACOES.eixoDeVariacao,
+            )}
             onChange={(evento) =>
               setGrupo((anterior) => ({
                 ...anterior,
@@ -397,8 +599,14 @@ export function EditorGrupoOpcao({ produtoId }: Props) {
               }))
             }
           />
-          Usar este grupo como eixo da grade de variações
-        </label>
+          <RotuloComInfo
+            htmlFor={idEixo}
+            nome="Eixo da grade de variações"
+            info={EXPLICACOES.eixoDeVariacao}
+          >
+            Usar este grupo como eixo da grade de variações
+          </RotuloComInfo>
+        </span>
         <button
           className="sc-botao sc-botao--primaria w-fit"
           type="submit"

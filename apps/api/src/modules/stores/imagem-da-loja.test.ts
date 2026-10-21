@@ -74,3 +74,56 @@ describe("a imagem é conferida pelo conteúdo (AC-918)", () => {
     expect(vazio.ok ? null : vazio.motivo).toBe("VAZIO");
   });
 });
+
+describe("as fotos do tema (fundo da vitrine e topo do cardápio)", () => {
+  const ROTULOS = {
+    fundo: ["A foto de fundo (computador)", "4:3"],
+    fundoCelular: ["A foto de fundo (celular)", "9:20"],
+    topo: ["A foto do topo (computador)", "4:1"],
+    topoCelular: ["A foto do topo (celular)", "19:10"],
+  } as const;
+
+  it("aceitam até 3 MB; a recusa diz de qual foto se trata e a proporção dela", () => {
+    for (const tipo of [
+      "fundo",
+      "fundoCelular",
+      "topo",
+      "topoCelular",
+    ] as const) {
+      expect(conferirImagemDaLoja(tipo, arquivo(JPEG))).toMatchObject({
+        ok: true,
+        formato: "jpeg",
+      });
+      const grande = conferirImagemDaLoja(
+        tipo,
+        arquivo(JPEG, 3 * 1024 * 1024 + 1),
+      );
+      expect(grande.ok).toBe(false);
+      if (!grande.ok) {
+        const [nome, proporcao] = ROTULOS[tipo];
+        expect(grande.mensagem).toContain("3 MB");
+        expect(grande.mensagem).toContain(proporcao);
+        expect(grande.mensagem).toContain(nome);
+      }
+    }
+  });
+});
+
+describe("o original da foto (card #36)", () => {
+  it("aceita até 6 MB, em qualquer proporção, e a recusa diz que é o original", () => {
+    expect(
+      conferirImagemDaLoja("original", arquivo(PNG, 5 * 1024 * 1024)),
+    ).toMatchObject({
+      ok: true,
+    });
+    const grande = conferirImagemDaLoja(
+      "original",
+      arquivo(JPEG, 6 * 1024 * 1024 + 1),
+    );
+    expect(grande.ok).toBe(false);
+    if (!grande.ok) {
+      expect(grande.mensagem).toContain("6 MB");
+      expect(grande.mensagem).toContain("A foto original");
+    }
+  });
+});

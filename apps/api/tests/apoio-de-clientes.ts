@@ -135,11 +135,13 @@ export class Painel {
     return `/v1/lojas/${this.alvo.loja.apelido}${resto}`;
   }
 
-  listar(busca?: string) {
+  /** A lista; com texto é só a busca, com objeto vão filtros, ordem e página. */
+  listar(consulta?: string | Record<string, string>) {
     const pedido = request(this.app)
       .get(this.caminho("/clientes"))
       .set("Authorization", this.alvo.autorizacao);
-    return busca === undefined ? pedido : pedido.query({ busca });
+    if (consulta === undefined) return pedido;
+    return pedido.query(typeof consulta === "string" ? { busca: consulta } : consulta);
   }
 
   cadastrar(corpo: Record<string, unknown>) {

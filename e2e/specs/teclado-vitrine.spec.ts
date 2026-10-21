@@ -12,7 +12,7 @@ test.beforeAll(async () => {
 test("@spec:AC-418 a vitrine percorre links com foco visível pelo teclado", async ({
   page,
 }) => {
-  await page.goto(`/l/${APELIDO_DA_LOJA}/catalogo`);
+  await page.goto(`/loja/${APELIDO_DA_LOJA}/cardapio`);
 
   const focados: string[] = [];
   for (let indice = 0; indice < 12; indice += 1) {

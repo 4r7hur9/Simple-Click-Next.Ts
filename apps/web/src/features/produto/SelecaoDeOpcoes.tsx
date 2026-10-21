@@ -74,7 +74,9 @@ export function SelecaoDeOpcoes({
               >
                 {grupo.obrigatorio
                   ? `${grupo.regra} · obrigatório`
-                  : grupo.regra}
+                  : grupo.regra === "Opcional"
+                    ? grupo.regra
+                    : `${grupo.regra} · opcional`}
               </span>
             </legend>
 

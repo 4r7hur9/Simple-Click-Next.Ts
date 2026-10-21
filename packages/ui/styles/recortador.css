@@ -1,0 +1,462 @@
+/*
+ * Recortador de imagem (card #82): a janela que abre ao escolher uma foto.
+ *
+ * Mesmo desenho dos modais do Carrinho e do Sobre (`sc-dialogo`), só que mais
+ * larga, com a moldura da foto na proporção exata do espaço. No celular ocupa
+ * quase a tela inteira, com o rodapé de botões sempre à vista.
+ *
+ * SEM `backdrop-filter` e sem cor escrita à mão: o escurecimento e o véu saem
+ * dos tokens de marca com `color-mix`.
+ */
+
+.sc-recortador {
+  /* O `dialog` modal já centraliza; aqui só o tamanho. */
+  margin: auto;
+  inline-size: 100%;
+  max-inline-size: min(60rem, calc(100vw - var(--espaco-4)));
+  max-block-size: calc(100dvh - var(--espaco-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sc-recortador__corpo {
+  gap: var(--espaco-4);
+}
+
+.sc-recortador__area {
+  display: grid;
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+@media (min-width: 760px) {
+  .sc-recortador__area {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+
+.sc-recortador__previa {
+  display: grid;
+  gap: var(--espaco-2);
+  min-inline-size: 0;
+}
+
+/* --- abas "Computador | Celular" ------------------------------------------- */
+
+.sc-recortador__abas-caixa {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.sc-recortador__abas {
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  padding: var(--espaco-1);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie);
+}
+
+.sc-recortador__aba {
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-5);
+  border: 0;
+  border-radius: var(--raio-completo);
+  background-color: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-recortador__aba:hover:not(:disabled):not([aria-selected="true"]) {
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-recortador__aba[aria-selected="true"] {
+  background-color: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-weight: var(--peso-forte);
+}
+
+.sc-recortador__aba:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-recortador__aba:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* "Usar o mesmo ajuste do computador": a caixinha da aba do celular. */
+.sc-recortador__igual {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-recortador__igual input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  accent-color: var(--cor-marca);
+}
+
+/* --- a moldura ----------------------------------------------------------- */
+
+.sc-recortador__moldura {
+  position: relative;
+  inline-size: min(100%, calc(46dvh * var(--proporcao, 1)));
+  aspect-ratio: var(--proporcao, 1);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-cartao);
+  background-color: var(--marca-grafite);
+  cursor: grab;
+  /* O dedo arrasta a foto, não a página. */
+  touch-action: none;
+  user-select: none;
+  isolation: isolate;
+}
+
+.sc-recortador__moldura:active {
+  cursor: grabbing;
+}
+
+.sc-recortador__moldura:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-recortador__moldura--retangulo {
+  border-radius: var(--raio-2);
+}
+
+.sc-recortador__foto {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  /* O reset do Tailwind limita imagens a 100%; aqui a foto passa da moldura. */
+  max-inline-size: none;
+  max-block-size: none;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.sc-recortador__lendo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--marca-nevoa);
+  font-size: var(--texto-sm);
+}
+
+/* O véu do topo da vitrine, igual ao da capa: forte à esquerda, livre à direita. */
+.sc-recortador__veu {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--marca-grafite) 94%, transparent),
+    color-mix(in srgb, var(--marca-grafite) 70%, transparent) 55%,
+    color-mix(in srgb, var(--marca-grafite) 10%, transparent)
+  );
+}
+
+/* Linhas dos terços: aparecem quando a pessoa pega na moldura. */
+.sc-recortador__grade {
+  --linha: color-mix(in srgb, var(--marca-branco) 55%, transparent);
+
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transicao-rapida);
+  background-image:
+    linear-gradient(var(--linha), var(--linha)),
+    linear-gradient(var(--linha), var(--linha)),
+    linear-gradient(var(--linha), var(--linha)),
+    linear-gradient(var(--linha), var(--linha));
+  background-repeat: no-repeat;
+  background-size:
+    1px 100%,
+    1px 100%,
+    100% 1px,
+    100% 1px;
+  background-position:
+    33.333% 0,
+    66.666% 0,
+    0 33.333%,
+    0 66.666%;
+}
+
+.sc-recortador__moldura:hover .sc-recortador__grade,
+.sc-recortador__moldura:focus-visible .sc-recortador__grade,
+.sc-recortador__moldura:active .sc-recortador__grade {
+  opacity: 1;
+}
+
+/* Logo redonda: o círculo mostra o que fica; a sobra aparece escurecida. */
+.sc-recortador__guia {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--cor-marca);
+  border-radius: 50%;
+  box-shadow: 0 0 0 100vmax
+    color-mix(in srgb, var(--marca-preto-tecnologico) 62%, transparent);
+  pointer-events: none;
+}
+
+/* Fundo "transparente": o xadrez de sempre. */
+.sc-recortador__xadrez {
+  background-color: var(--cor-superficie);
+  background-image: conic-gradient(
+    color-mix(in srgb, var(--cor-borda) 55%, transparent) 25%,
+    transparent 0 50%,
+    color-mix(in srgb, var(--cor-borda) 55%, transparent) 0 75%,
+    transparent 0
+  );
+  background-size: 16px 16px;
+}
+
+.sc-recortador__medidas {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  text-align: center;
+}
+
+/* --- controles ----------------------------------------------------------- */
+
+.sc-recortador__controles {
+  display: grid;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+}
+
+.sc-recortador__grupo {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.sc-recortador__rotulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+}
+
+.sc-recortador__dica {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-recortador__segmentos,
+.sc-recortador__fundos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-recortador__segmento,
+.sc-recortador__ferramenta,
+.sc-recortador__cor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.sc-recortador__segmento:hover:not(:disabled),
+.sc-recortador__ferramenta:hover:not(:disabled),
+.sc-recortador__icone:hover:not(:disabled),
+.sc-recortador__cor:hover {
+  background-color: var(--cor-superficie);
+}
+
+.sc-recortador__segmento[aria-pressed="true"],
+.sc-recortador__ferramenta[aria-pressed="true"] {
+  border-color: transparent;
+  background-color: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-weight: var(--peso-forte);
+}
+
+.sc-recortador__segmento:focus-visible,
+.sc-recortador__ferramenta:focus-visible,
+.sc-recortador__icone:focus-visible,
+.sc-recortador__cor:focus-within,
+.sc-recortador input[type="range"]:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-recortador__segmento:disabled,
+.sc-recortador__ferramenta:disabled,
+.sc-recortador__icone:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sc-recortador__ferramentas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-2);
+}
+
+.sc-recortador__ferramenta {
+  border-radius: var(--raio-botao);
+  padding-inline: var(--espaco-3);
+}
+
+.sc-recortador__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.sc-recortador__zoom input[type="range"] {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: var(--altura-toque);
+  accent-color: var(--cor-marca);
+}
+
+.sc-recortador__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-inline-size: var(--altura-toque);
+  min-block-size: var(--altura-toque);
+  padding: 0;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: transparent;
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-recortador__cor {
+  position: relative;
+  padding-inline: var(--espaco-2) var(--espaco-4);
+}
+
+.sc-recortador__cor input[type="color"] {
+  inline-size: 2rem;
+  block-size: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: none;
+  cursor: pointer;
+}
+
+/* --- "como vai aparecer" -------------------------------------------------- */
+
+.sc-recortador__miniaturas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espaco-4);
+}
+
+.sc-recortador__miniatura {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  max-inline-size: 100%;
+}
+
+.sc-recortador__miniatura figcaption {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-recortador__quadro {
+  position: relative;
+  max-inline-size: 100%;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-2);
+  background-color: var(--marca-grafite);
+  isolation: isolate;
+}
+
+.sc-recortador__quadro--arredondado {
+  border-radius: var(--raio-cartao);
+}
+
+.sc-recortador__quadro--redondo {
+  border-radius: 50%;
+}
+
+.sc-recortador__palco {
+  position: absolute;
+}
+
+/* O texto, o logo e o selo do lugar onde a foto aparece, por cima dela. */
+.sc-recortador__sobre {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* --- celular: quase tela cheia, botões sempre à vista -------------------- */
+
+@media (max-width: 639px) {
+  .sc-recortador {
+    inline-size: calc(100vw - var(--espaco-2));
+    max-inline-size: none;
+    block-size: calc(100dvh - var(--espaco-2));
+    max-block-size: none;
+    border-radius: var(--raio-cartao);
+  }
+
+  .sc-recortador .sc-dialogo__corpo {
+    min-block-size: 100%;
+    padding: var(--espaco-4);
+  }
+
+  .sc-recortador .sc-dialogo__rodape {
+    position: sticky;
+    inset-block-end: 0;
+    margin-inline: calc(var(--espaco-4) * -1);
+    padding: var(--espaco-3) var(--espaco-4)
+      max(var(--espaco-3), env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--cor-borda);
+    background-color: var(--cor-superficie-alta);
+  }
+
+  .sc-recortador .sc-dialogo__rodape > * {
+    flex: 1 1 0;
+  }
+
+  .sc-recortador__moldura {
+    inline-size: min(100%, calc(36dvh * var(--proporcao, 1)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-recortador__grade {
+    transition: none;
+  }
+}

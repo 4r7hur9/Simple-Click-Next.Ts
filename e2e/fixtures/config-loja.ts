@@ -213,9 +213,9 @@ export async function irAoFechamentoCom(
   produtoIds: readonly string[],
 ): Promise<void> {
   for (const produtoId of produtoIds) {
-    await pagina.goto(`/l/${apelido}/produto/${produtoId}`);
+    await pagina.goto(`/loja/${apelido}/produto/${produtoId}`);
     await pagina.getByRole("button", { name: /Adicionar/ }).click();
     await expect(pagina.getByText("Adicionado ao carrinho")).toBeVisible();
   }
-  await pagina.goto(`/l/${apelido}/checkout`);
+  await pagina.goto(`/loja/${apelido}/checkout`);
 }

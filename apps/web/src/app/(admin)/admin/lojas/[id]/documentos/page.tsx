@@ -6,8 +6,6 @@
  * própria da administração — e o arquivo só sai por link temporário gerado
  * no clique, com cada abertura registrada na trilha.
  */
-import Link from "next/link";
-
 import { DocumentosDaLoja } from "../../../../../../features/admin/DocumentosDaLoja.tsx";
 
 export const metadata = {
@@ -23,27 +21,19 @@ export default async function PaginaDosDocumentos({
 }: ParametrosDaPagina) {
   const { id } = await params;
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link
-        className="text-sm font-medium text-[var(--cor-primaria-texto)]"
-        href={`/admin/lojas/${encodeURIComponent(id)}`}
+    <section aria-labelledby="titulo-dos-documentos">
+      <h2
+        id="titulo-dos-documentos"
+        className="text-2xl font-semibold tracking-[-0.02em]"
       >
-        ← Voltar para a ficha da loja
-      </Link>
-      <header className="mt-6 max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-          Administração da plataforma
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-          Contrato e documentos
-        </h1>
-      </header>
-      <p className="mt-2 max-w-prose text-lg">
+        Contrato e documentos
+      </h2>
+      <p className="mt-2 max-w-prose text-[var(--cor-tinta-suave)]">
         O contrato assinado e os documentos do responsável. Nenhum deles fica
         público: cada um abre por um link que vale cinco minutos, só com a sua
         sessão.
       </p>
       <DocumentosDaLoja lojaId={id} />
-    </div>
+    </section>
   );
 }

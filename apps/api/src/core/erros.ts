@@ -27,6 +27,7 @@ import type {
 } from "express";
 
 import { contextoAtual } from "./contexto.ts";
+import { ErroDeLimiteAtingido } from "./erro-de-limite.ts";
 import { descreverErro, EVENTOS, registrar } from "./log.ts";
 
 // ---------------------------------------------------------------------------
@@ -213,6 +214,22 @@ export function manipuladorDeErros(): ErrorRequestHandler {
       erro: descreverErro(erro),
       detalhe: erro instanceof ErroDeDominio ? erro.detalhe : {},
     };
+    // O limite da loja (card #25) tem resposta própria: a tela precisa saber
+    // qual recurso, quanto pode e quanto já usa.
+    if (erro instanceof ErroDeLimiteAtingido) {
+      registrar.aviso(EVENTOS.requisicaoFalhou, {
+        ...linha,
+        status: 409,
+        detalhe: { recurso: erro.recurso, limite: erro.limite, uso: erro.uso },
+      });
+      if (res.headersSent) {
+        next(erro);
+        return;
+      }
+      res.status(409).json(erro.corpo());
+      return;
+    }
+
     if (status >= 500) registrar.erro(EVENTOS.requisicaoFalhou, linha);
     else registrar.aviso(EVENTOS.requisicaoFalhou, linha);
 

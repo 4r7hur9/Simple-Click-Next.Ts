@@ -228,7 +228,7 @@ describe("aplicativo autenticador no banco", () => {
       });
       expect(await usar(segunda, pessoa.id, primeiroCodigo)).toMatchObject({
         status: "SESSAO_LIBERADA",
-        orientarPara: "/minha-conta/seguranca/aplicativo",
+        orientarPara: "/conta/seguranca/aplicativo",
       });
       expect(await usar(primeira, pessoa.id, primeiroCodigo)).toEqual({
         status: "CODIGO_INVALIDO",

@@ -118,7 +118,6 @@ export default async function PaginaDeVerificacaoDeEmail({
       identificadorDoTitulo="verificar-email-titulo"
       titulo="Confirme seu e-mail."
       descricao="A confirmação garante que ninguém use o seu endereço sem você saber."
-      etiqueta="Conta"
     >
       <div className="sc-conta__form" aria-live="polite">
         {conteudo}

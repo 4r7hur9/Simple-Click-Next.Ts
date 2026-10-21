@@ -20,12 +20,14 @@
  * Tudo em centavos inteiros (P-005): o total do item sai de
  * `multiplicarCentavos`, que recusa conta com valor quebrado.
  */
+import { precoNoAtacado, type FaixaCalculada } from "./atacado.ts";
 import { multiplicarCentavos } from "./dinheiro.ts";
 import {
   precoQueVale,
   precoValeAgora,
   type PrecoCadastrado,
 } from "./preco-vigente.ts";
+import { emReais } from "./taxa-entrega.ts";
 
 /** Como cada tipo de preço é chamado quando o dono não lhe deu nome. */
 const NOME_PADRAO: Readonly<Record<string, string>> = {
@@ -53,6 +55,38 @@ export interface PrecoAplicado {
   readonly motivo: string | null;
   /** Unitário × quantidade. */
   readonly totalEmCentavos: number;
+  /**
+   * O atacado do produto, quando ele tem faixas com desconto valendo (card
+   * #53): o pedido mínimo, a faixa que valeu, a próxima e quanto falta — é o
+   * "leve mais 4 e pague R$ 1,00 a menos em cada" do carrinho. Nulo sem faixas.
+   */
+  readonly atacado?: AtacadoDoItem | null;
+}
+
+/** O atacado de um item no carrinho. */
+export interface AtacadoDoItem {
+  readonly pedidoMinimo: number;
+  readonly faixaAplicada: FaixaCalculada | null;
+  readonly proximaFaixa: FaixaCalculada | null;
+  readonly faltamParaProxima: number | null;
+  /** (Varejo − unitário da faixa) × quantidade; zero no varejo. */
+  readonly economiaEmCentavos: number;
+}
+
+/** "5%" ou "R$ 1,00", para a explicação da faixa. */
+function descontoEmTexto(faixa: FaixaCalculada): string {
+  return faixa.tipoDeDesconto === "PERCENTUAL"
+    ? `${faixa.desconto}%`
+    : emReais(faixa.desconto);
+}
+
+/** Se a linha é uma faixa de atacado com desconto (e não preço fixo). */
+function ehFaixaComDesconto(p: PrecoCadastrado): boolean {
+  return (
+    p.tipo === "WHOLESALE" &&
+    p.tipoDeDesconto !== undefined &&
+    p.tipoDeDesconto !== null
+  );
 }
 
 /** O rótulo que o dono deu ao preço, ou o nome padrão do tipo. */
@@ -86,13 +120,67 @@ export function precoAplicavel(
   const unidades = Math.max(1, Math.trunc(quantidade));
   const normal = precoQueVale(precos, agora, unidades);
 
+  // O atacado ANTIGO, de preço fixo: vale o menor que a quantidade alcança.
   const porQuantidade = precos
-    .filter((p) => p.tipo === "WHOLESALE" && precoValeAgora(p, agora, unidades))
+    .filter(
+      (p) =>
+        p.tipo === "WHOLESALE" &&
+        !ehFaixaComDesconto(p) &&
+        precoValeAgora(p, agora, unidades),
+    )
     .sort(
       (a, b) =>
         a.valorEmCentavos - b.valorEmCentavos ||
         b.quantidadeMinima - a.quantidadeMinima,
     )[0];
+
+  // As faixas COM DESCONTO (card #53) incidem sobre o varejo vigente. Ligadas
+  // e dentro da janela de datas, qualquer que seja a quantidade: a próxima
+  // faixa também interessa a quem ainda não chegou nela.
+  const faixas = precos
+    .filter(
+      (p) =>
+        ehFaixaComDesconto(p) &&
+        precoValeAgora(p, agora, Number.MAX_SAFE_INTEGER),
+    )
+    .map((p) => ({
+      quantidadeMinima: p.quantidadeMinima,
+      tipoDeDesconto: p.tipoDeDesconto as "PERCENTUAL" | "VALOR",
+      desconto: p.desconto ?? 0,
+      rotulo: p.rotulo ?? null,
+    }));
+  const noAtacado =
+    normal.atualEmCentavos === null || faixas.length === 0
+      ? null
+      : precoNoAtacado(normal.atualEmCentavos, unidades, faixas);
+  const atacado: AtacadoDoItem | null =
+    noAtacado === null || noAtacado.pedidoMinimoDoAtacado === null
+      ? null
+      : {
+          pedidoMinimo: noAtacado.pedidoMinimoDoAtacado,
+          faixaAplicada: noAtacado.faixaAplicada,
+          proximaFaixa: noAtacado.proximaFaixa,
+          faltamParaProxima: noAtacado.faltamParaProxima,
+          economiaEmCentavos: noAtacado.economiaEmCentavos,
+        };
+
+  const faixa = noAtacado?.faixaAplicada ?? null;
+  if (
+    faixa !== null &&
+    (porQuantidade === undefined ||
+      faixa.unitarioEmCentavos <= porQuantidade.valorEmCentavos)
+  ) {
+    const rotulo = faixa.rotulo ?? NOME_PADRAO["WHOLESALE"] ?? "Atacado";
+    return {
+      unitarioEmCentavos: faixa.unitarioEmCentavos,
+      anteriorEmCentavos: normal.atualEmCentavos,
+      tipo: "WHOLESALE",
+      rotulo,
+      motivo: `${rotulo}: ${descontoEmTexto(faixa)} de desconto a partir de ${faixa.quantidadeMinima} ${plural(faixa.quantidadeMinima)}, e você está levando ${unidades}.`,
+      totalEmCentavos: multiplicarCentavos(faixa.unitarioEmCentavos, unidades),
+      atacado,
+    };
+  }
 
   if (
     porQuantidade !== undefined &&
@@ -110,6 +198,7 @@ export function precoAplicavel(
         porQuantidade.valorEmCentavos,
         unidades,
       ),
+      atacado,
     };
   }
 
@@ -137,5 +226,6 @@ export function precoAplicavel(
     rotulo,
     motivo: emPromocao ? `${rotulo}: preço promocional valendo agora.` : null,
     totalEmCentavos: multiplicarCentavos(normal.atualEmCentavos, unidades),
+    atacado,
   };
 }

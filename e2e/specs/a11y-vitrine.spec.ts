@@ -29,9 +29,9 @@ test("@spec:AC-419 página pública não tem violação séria ou crítica", asy
   );
 
   for (const caminho of [
-    `/l/${APELIDO_DA_LOJA}`,
-    `/l/${APELIDO_DA_LOJA}/catalogo`,
-    `/l/${APELIDO_DA_LOJA}/produto/${produtoId}`,
+    `/loja/${APELIDO_DA_LOJA}`,
+    `/loja/${APELIDO_DA_LOJA}/cardapio`,
+    `/loja/${APELIDO_DA_LOJA}/produto/${produtoId}`,
   ]) {
     await page.goto(caminho);
     await page.waitForLoadState("networkidle");
@@ -79,7 +79,7 @@ test("@spec:AC-420 a vitrine cabe na menor largura suportada", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 344, height: 882 });
-  await page.goto(`/l/${APELIDO_DA_LOJA}/catalogo`);
+  await page.goto(`/loja/${APELIDO_DA_LOJA}/cardapio`);
 
   const medidas = await page.evaluate(() => {
     const largura = document.documentElement.clientWidth;

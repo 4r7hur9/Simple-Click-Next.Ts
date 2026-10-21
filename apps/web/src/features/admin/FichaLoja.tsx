@@ -1,10 +1,8 @@
 "use client";
 
 /**
- * A ficha da loja na administração (AC-207).
- *
- * `FichaLoja` busca e guarda o estado; `FichaDaLojaNaTela` só desenha — e é
- * ela que a prova confere nos quatro estados (P-011). O formulário do
+ * O cadastro da loja na administração (AC-207). A ficha em si é buscada pelo
+ * `ProvedorDaFicha` e repartida entre as abas (card #29). O formulário do
  * cadastro manda à API SÓ O QUE MUDOU, validado antes pelo mesmo contrato que
  * a API aplica; a resposta é a ficha nova, com a alteração já no topo do
  * histórico.
@@ -16,31 +14,21 @@
 import {
   esquemaDaFichaDaLoja,
   esquemaDaRecusaDeCadastro,
-  ROTULOS_DAS_SITUACOES,
   UNIDADES_DA_FEDERACAO,
   type FichaDaLojaNoContrato,
 } from "@simpleclick/contracts";
 import {
   Botao,
   Campo,
-  Carregando,
-  Cartao,
   Erro,
-  Selo,
+  Seletor,
   Sucesso,
-  Vazio,
+  type ConteudoDoInfo,
 } from "@simpleclick/ui";
-import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
 
-import { AcoesLoja } from "./AcoesLoja.tsx";
-import { telaDosDocumentos } from "./documentos-da-loja.ts";
+import { INFO_DO_DOCUMENTO } from "./explicacoes.ts";
+import { useState, type FormEvent } from "react";
+
 import {
   edicaoDoFormulario,
   errosDaEdicao,
@@ -50,9 +38,6 @@ import {
   type ErrosDaEdicao,
   type ValoresDaEdicao,
 } from "./edicao-da-loja.ts";
-import { EnderecoDaLoja } from "./EnderecoDaLoja.tsx";
-import { ListaDaTrilha } from "./ListaDaTrilha.tsx";
-import { SeletorVertical } from "./SeletorVertical.tsx";
 
 export type EstadoDaFicha =
   | { readonly fase: "carregando" }
@@ -166,6 +151,7 @@ export function CadastroDaLoja({
       readonly tipo?: string;
       readonly inputMode?: "numeric" | "tel" | "email" | "text";
       readonly dica?: string;
+      readonly info?: ConteudoDoInfo;
     } = {},
   ) => (
     <Campo
@@ -175,6 +161,7 @@ export function CadastroDaLoja({
       value={valores[campo]}
       erro={erros[campo]}
       dica={extra.dica}
+      info={extra.info}
       obrigatorio={extra.obrigatorio ?? false}
       type={extra.tipo ?? "text"}
       autoComplete="off"
@@ -216,21 +203,29 @@ export function CadastroDaLoja({
           obrigatorio: true,
           inputMode: "numeric",
           dica: "Pode digitar com ou sem pontos, barra e hífen.",
+          info: INFO_DO_DOCUMENTO,
         })}
       </fieldset>
 
       <fieldset className="grid gap-4">
         <legend className="text-lg font-semibold">Contato</legend>
-        {texto("email", "E-mail", { tipo: "email", inputMode: "email" })}
+        {texto("email", "E-mail de contato da loja", {
+          tipo: "email",
+          inputMode: "email",
+        })}
         {texto("telefone", "Telefone com DDD", {
           tipo: "tel",
           inputMode: "tel",
+          dica: "Ex.: (85) 99999-0000.",
         })}
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="text-lg font-semibold">Endereço</legend>
-        {texto("cep", "CEP", { inputMode: "numeric" })}
+        {texto("cep", "CEP", {
+          inputMode: "numeric",
+          dica: "8 números. Ex.: 60115-000.",
+        })}
         {texto("logradouro", "Logradouro")}
         {texto("numero", "Número")}
         {texto("complemento", "Complemento")}
@@ -238,19 +233,18 @@ export function CadastroDaLoja({
         {texto("cidade", "Cidade")}
         <Campo
           id={idDoCampo("uf")}
-          rotulo="UF"
+          rotulo="Estado (UF)"
           erro={erros.uf}
           controle={
-            <select
+            <Seletor
               id={idDoCampo("uf")}
               name="uf"
-              className="sc-campo__controle"
               value={valores.uf}
               aria-invalid={erros.uf !== undefined || undefined}
               aria-describedby={
                 erros.uf !== undefined ? `${idDoCampo("uf")}-erro` : undefined
               }
-              onChange={(evento) => aoMudar("uf", evento.target.value)}
+              onChange={(valor) => aoMudar("uf", valor)}
             >
               <option value="">Escolha…</option>
               {UNIDADES_DA_FEDERACAO.map((uf) => (
@@ -258,7 +252,7 @@ export function CadastroDaLoja({
                   {uf}
                 </option>
               ))}
-            </select>
+            </Seletor>
           }
         />
       </fieldset>
@@ -279,204 +273,3 @@ export function CadastroDaLoja({
 // ---------------------------------------------------------------------------
 // A ficha
 // ---------------------------------------------------------------------------
-
-export interface FichaDaLojaNaTelaProps {
-  readonly estado: EstadoDaFicha;
-  readonly aoTentarDeNovo: () => void;
-  readonly aoAtualizar: (ficha: FichaDaLojaNoContrato) => void;
-}
-
-function Secao({
-  id,
-  titulo,
-  children,
-}: {
-  readonly id: string;
-  readonly titulo: string;
-  readonly children: ReactNode;
-}) {
-  return (
-    <section aria-labelledby={id} className="mt-10">
-      <h2 id={id} className="text-2xl font-semibold tracking-[-0.02em]">
-        {titulo}
-      </h2>
-      <div className="mt-4">
-        <Cartao>{children}</Cartao>
-      </div>
-    </section>
-  );
-}
-
-/** Só desenha. Nenhuma chamada de rede mora aqui, fora do formulário. */
-export function FichaDaLojaNaTela(props: FichaDaLojaNaTelaProps) {
-  const { estado } = props;
-
-  if (estado.fase === "carregando") {
-    return <Carregando rotulo="Carregando a ficha da loja…" className="mt-8" />;
-  }
-  if (estado.fase === "nao-encontrada") {
-    return (
-      <Vazio
-        titulo="Loja não encontrada"
-        descricao="O endereço não corresponde a nenhuma loja cadastrada."
-        className="mt-8"
-        acao={
-          <Link className="sc-botao sc-botao--primaria" href="/admin/lojas">
-            Voltar para as lojas
-          </Link>
-        }
-      />
-    );
-  }
-  if (estado.fase === "erro") {
-    return (
-      <Erro
-        titulo="A ficha não carregou"
-        mensagem={estado.mensagem}
-        className="mt-8"
-        acao={
-          <Botao variante="secundaria" onClick={props.aoTentarDeNovo}>
-            Tentar de novo
-          </Botao>
-        }
-      />
-    );
-  }
-
-  const { ficha } = estado;
-  return (
-    <article aria-labelledby="ficha-titulo" className="mt-6">
-      <header>
-        <p className="font-mono text-sm text-[var(--cor-tinta-suave)]">
-          Código {ficha.codigo} · /l/{ficha.apelido}
-        </p>
-        <h1
-          id="ficha-titulo"
-          className="mt-2 text-4xl font-semibold tracking-[-0.04em]"
-        >
-          {ficha.nome}
-        </h1>
-        <p className="mt-2 flex flex-wrap items-center gap-3 text-lg">
-          {ficha.tipoDeNegocio.nome}
-          {" · "}
-          <Selo
-            tom={
-              ficha.status === "ACTIVE"
-                ? "sucesso"
-                : ficha.status === "PENDING"
-                  ? "atencao"
-                  : ficha.status === "SUSPENDED"
-                    ? "erro"
-                    : "neutro"
-            }
-          >
-            {ROTULOS_DAS_SITUACOES[ficha.status]}
-          </Selo>
-        </p>
-      </header>
-
-      <Secao id="ficha-cadastro" titulo="Cadastro">
-        <CadastroDaLoja ficha={ficha} aoSalvar={props.aoAtualizar} />
-      </Secao>
-
-      <Secao id="ficha-endereco" titulo="Endereço na web">
-        <EnderecoDaLoja ficha={ficha} aoTrocar={props.aoAtualizar} />
-      </Secao>
-
-      <Secao id="ficha-tipo" titulo="Tipo de negócio">
-        <SeletorVertical ficha={ficha} aoTrocar={props.aoAtualizar} />
-      </Secao>
-
-      <Secao id="ficha-documentos" titulo="Contrato e documentos">
-        <p className="max-w-prose">
-          O contrato assinado e os documentos do responsável ficam guardados
-          fora do site público e só abrem por link temporário, gerado no clique.
-        </p>
-        <p className="mt-3">
-          <Link
-            className="sc-botao sc-botao--secundaria"
-            href={telaDosDocumentos(ficha.id)}
-          >
-            Ver contrato e documentos
-          </Link>
-        </p>
-      </Secao>
-
-      <Secao id="ficha-funcionalidades" titulo="Funcionalidades liberadas">
-        <p className="max-w-prose">
-          Toda loja nasce com tudo ligado, sem custo e sem limite. Aqui a
-          administração desliga, como exceção desta loja, o que ela não usa.
-        </p>
-        <p className="mt-3">
-          <Link
-            className="sc-botao sc-botao--secundaria"
-            href={`/admin/lojas/${encodeURIComponent(ficha.id)}/funcionalidades`}
-          >
-            Ver funcionalidades
-          </Link>
-        </p>
-      </Secao>
-
-      <Secao id="ficha-situacao" titulo="Situação da loja">
-        <AcoesLoja ficha={ficha} aoMudar={props.aoAtualizar} />
-      </Secao>
-
-      <Secao id="ficha-historico" titulo="Histórico de alterações">
-        {ficha.historico.length === 0 ? (
-          <p className="text-sm">Nenhuma alteração registrada ainda.</p>
-        ) : (
-          <ListaDaTrilha registros={ficha.historico} />
-        )}
-        <Link
-          className="mt-3 inline-block text-sm font-medium text-[var(--cor-primaria)] underline-offset-2 hover:underline"
-          href={`/admin/auditoria?loja=${ficha.id}`}
-        >
-          Ver o histórico completo desta loja
-        </Link>
-      </Secao>
-    </article>
-  );
-}
-
-/** Estado e rede. O desenho é todo de `FichaDaLojaNaTela`. */
-export function FichaLoja({ lojaId }: { readonly lojaId: string }) {
-  const [estado, setEstado] = useState<EstadoDaFicha>({ fase: "carregando" });
-  const [tentativa, setTentativa] = useState(0);
-
-  const carregar = useCallback(async () => {
-    setEstado({ fase: "carregando" });
-    try {
-      const resposta = await fetch(enderecoDaFicha(lojaId), {
-        cache: "no-store",
-      });
-      if (resposta.status === 404) {
-        setEstado({ fase: "nao-encontrada" });
-        return;
-      }
-      if (resposta.status === 401 || resposta.status === 403) {
-        setEstado({ fase: "erro", mensagem: MENSAGEM_DE_SESSAO_DA_FICHA });
-        return;
-      }
-      if (!resposta.ok) {
-        setEstado({ fase: "erro", mensagem: MENSAGEM_DE_FALHA_DA_FICHA });
-        return;
-      }
-      const ficha = esquemaDaFichaDaLoja.parse(await resposta.json());
-      setEstado({ fase: "pronta", ficha });
-    } catch {
-      setEstado({ fase: "erro", mensagem: MENSAGEM_DE_FALHA_DA_FICHA });
-    }
-  }, [lojaId]);
-
-  useEffect(() => {
-    void carregar();
-  }, [carregar, tentativa]);
-
-  return (
-    <FichaDaLojaNaTela
-      estado={estado}
-      aoTentarDeNovo={() => setTentativa((anterior) => anterior + 1)}
-      aoAtualizar={(ficha) => setEstado({ fase: "pronta", ficha })}
-    />
-  );
-}

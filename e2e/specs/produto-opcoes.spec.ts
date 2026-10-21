@@ -59,7 +59,7 @@ test("@spec:AC-313 o grupo obrigatório criado pelo dono impede adicionar sem es
   await expect(grupo).toContainText(/Listrada · R\$\s2,50/);
 
   // A vitrine: sem escolher, o item não vai; escolhendo, o total já soma.
-  await page.goto(`/l/${APELIDO_DO_PAINEL}/produto/${produtoId}`);
+  await page.goto(`/loja/${APELIDO_DO_PAINEL}/produto/${produtoId}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
 
   const adicionar = page.getByRole("button", { name: /Adicionar/ });

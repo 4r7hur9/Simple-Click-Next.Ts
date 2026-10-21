@@ -1,1067 +1,1563 @@
 /*
- * A landing da plataforma.
+ * A landing da plataforma ("/").
  *
- * É a única página do projeto onde a pessoa chega SEM PRESSA — ela está
- * decidindo se confia, e disposta a rolar. É por isso que aqui, e só aqui, o
- * peso de uma narrativa se paga. A vitrine, o carrinho e o painel não importam
- * esta folha.
+ * Só a página inicial importa esta folha. Toda cor vem dos valores declarados
+ * em theme.css: as faixas escuras (abertura, taxas, convite, rodapé) usam
+ * `data-tema="escuro"`, que redefine os mesmos nomes de cor naquele trecho —
+ * então a regra é uma só e vale nos dois fundos, e nos dois temas do aparelho.
  *
- * Nenhuma cor é escrita aqui. Toda cor vem de valor declarado, e o ESLint
- * reprova quem escrever direto (AC-014).
+ * Escrita de baixo para cima: o estilo base serve ao dobrável fechado (344px)
+ * e cada `min-width` acrescenta.
+ *
+ * Movimento: a entrada da abertura é CSS; a revelação das seções, os
+ * contadores e o parallax são da NarrativaDaLanding (GSAP), e o mundo 3D é da
+ * MundoDaLanding. Tudo só para quem não pediu menos movimento — e sem script a
+ * página está no estado final, nunca invisível.
+ *
+ * Régua de espaço (igual às outras telas): lateral de 1rem a 2rem, 5rem ou
+ * mais entre seções, 1,5rem entre cartões, raio 16 (cartão) e 24 (janela).
  */
 
-/*
- * A LANDING TEM COR PRÓPRIA, e ela é a que a pessoa escolheu na prévia.
- *
- * O valor de reserva existe para a página desenhada no servidor já nascer
- * colorida: sem ele, a landing chegaria cinza e ganharia cor só depois que o
- * script rodasse — e quem tem script bloqueado nunca a veria.
- *
- * A reserva é a COR INICIAL DA LANDING declarada em `tokens.ts`, e não a cor do
- * sistema: é a mesma que a prévia já traz marcada, então a página não muda de
- * cor sozinha no primeiro quadro depois que o script roda.
- *
- * O valor está escrito aqui porque o CSS não lê TypeScript. Se aquele mudar,
- * este muda junto — o comentário ao lado do valor é o que amarra os dois.
- */
+/* O topo gruda: o foco do teclado e os links de âncora não podem parar embaixo dele. */
+html:has(.sc-lp) {
+  scroll-padding-block-start: 5rem;
+}
+
+/* A landing é escura de ponta a ponta: o fundo da página também, senão o
+   "elástico" do Mac/iPhone e a saída das cenas mostram uma faixa branca. */
+html:has(.sc-lp),
+html:has(.sc-lp) body {
+  background-color: var(--marca-preto-tecnologico);
+  color-scheme: dark;
+}
+
 .sc-lp {
-  --cor-da-landing: #0f6e5c; /* Mata — espelha `COR_INICIAL_DA_LANDING` */
+  --lp-largura: 74rem;
+  --lp-respiro: max(clamp(1rem, 4vw, 2rem), env(safe-area-inset-left));
+  --lp-secao: clamp(5rem, 10vw, 8rem);
+  --lp-vao: var(--espaco-5);
 
-  /*
-   * A COR DO SISTEMA NÃO ENTRA AQUI. A landing tinha azul em botão, marcador,
-   * capa e barra de progresso, porque todos liam `--cor-primaria` — e a escolha
-   * da pessoa pintava só o fundo. O resultado era uma página em duas cores que
-   * não conversavam.
-   *
-   * Redefinir os valores no escopo da landing resolve num lugar só: cada regra
-   * que já pedia a cor primária passa a receber a escolhida, sem que nenhuma
-   * delas precise ser reescrita. E funciona antes do script, porque é cascata.
-   */
-  --cor-primaria: var(--cor-da-landing);
-  --cor-primaria-texto: var(--cor-da-landing);
-  --cor-em-primaria: #ffffff;
-  --cor-foco: var(--cor-da-landing);
-
-  position: relative;
+  overflow-x: clip;
   background: var(--cor-fundo);
   color: var(--cor-tinta);
 }
 
-/* --- a luz de fundo -------------------------------------------------------
- *
- * Dois lavados grandes e desfocados da cor escolhida. É a única camada de fundo
- * que funciona em TODO aparelho, inclusive no celular, onde o mundo em três
- * dimensões é barrado pelo critério de desempenho — e é onde está a maioria de
- * quem abre esta página. Sem ela, quem chega pelo celular via fundo liso.
- *
- * Fica fora do fluxo, não intercepta toque, e some para o leitor de tela.
- */
-.sc-lp__luz {
-  display: none;
+/* Faixa escura: fundo e tinta do tema escuro, onde quer que esteja. */
+.sc-lp [data-tema="escuro"] {
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
 }
 
-.sc-lp__lavado {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.42;
-  /* A troca de cor é suave: mudar de vermelho para azul num quadro pisca. */
-  transition: background var(--transicao-media, 320ms ease-out);
-}
-
-.sc-lp__lavado--um {
-  inline-size: min(90vw, 42rem);
-  block-size: min(90vw, 42rem);
-  inset-block-start: -18%;
-  inset-inline-end: -14%;
-  background: color-mix(in oklab, var(--cor-da-landing) 55%, transparent);
-}
-
-.sc-lp__lavado--dois {
-  inline-size: min(100vw, 48rem);
-  block-size: min(100vw, 48rem);
-  inset-block-end: -26%;
-  inset-inline-start: -20%;
-  background: color-mix(in oklab, var(--cor-da-landing) 32%, transparent);
-}
-
-/* --- a estrutura de cada tela --------------------------------------------
- *
- * `min-block-size`, e não `block-size`: com altura fixa, o conteúdo que não
- * couber seria cortado, e num celular deitado de 360px de altura o caminho para
- * começar sairia da vista. Com altura mínima, a seção cresce.
- *
- * A altura vem da régua, que já divide o espaço entre duas ou três seções nas
- * telas compridas. Escrever `100svh` aqui desfaria isso.
- */
-.sc-lp__abertura,
-.sc-lp__capitulo {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-block-size: var(--altura-da-secao);
-  padding-inline: var(--espaco-5);
-  padding-block: max(var(--espaco-7), env(safe-area-inset-top))
-    max(var(--espaco-7), env(safe-area-inset-bottom));
-}
-
-/*
- * O conteúdo tem TETO. Metade de uma vertical 4K ainda são 2160px, e um bloco
- * esticado até lá não fica imponente, fica quebrado. A sobra vira respiro nas
- * pontas.
- *
- * E ELE NÃO TEM CHÃO. Teve, por duas versões, e o chão era o problema: um
- * retângulo translúcido atrás do texto escondia justamente o gráfico que ele
- * deveria deixar passar. Translúcido o bastante para ler o texto era opaco o
- * bastante para apagar as linhas — não existe ajuste que resolva os dois.
- *
- * O QUE SEPARA O TEXTO DO FUNDO É UMA AURÉOLA, e não uma camada. A sombra na cor
- * do fundo abre um vão de poucos pixels ao redor de cada letra: a linha passa
- * atrás, some ao encostar no texto e reaparece do outro lado. O contraste é
- * garantido onde ele importa — no contorno da letra — e em nenhum lugar além.
- *
- * É por isso que o mundo virou LINHA. Barra ocupa área, e área atrás de texto
- * exige um chão. Linha não exige.
- */
-.sc-lp__conteudo {
-  position: relative;
+.sc-lp-dentro {
   inline-size: 100%;
-  max-inline-size: 40rem;
-  max-block-size: 900px;
-  margin-block: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-  padding: var(--espaco-6);
-  background-color: var(--cor-fundo);
+  max-inline-size: var(--lp-largura);
+  margin-inline: auto;
+  padding-inline: var(--lp-respiro);
 }
 
-/* --- tipografia -----------------------------------------------------------
- *
- * Responde à LARGURA, com teto, e nunca à altura. Numa tela comprida a altura
- * sobrando vira respiro — não letra maior. A medida confortável de leitura
- * continua sendo cerca de 65 caracteres por linha, numa TV ou num celular.
- */
-.sc-lp__sobrancelha {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.sc-lp-so-leitor {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sc-lp-pular {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  position: absolute;
+  inset-block-start: var(--espaco-2);
+  inset-inline-start: var(--espaco-2);
+  z-index: 60;
+  padding: var(--espaco-2) var(--espaco-4);
+  border-radius: var(--raio-botao);
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  font-weight: var(--peso-forte);
+  transform: translateY(-200%);
+}
+
+.sc-lp-pular:focus-visible {
+  transform: none;
+}
+
+/* --- tipografia comum ---------------------------------------------------- */
+
+.sc-lp-sobrancelha {
+  margin: 0 0 var(--espaco-3);
   color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-.sc-lp__titulo-maior {
+.sc-lp-titulo,
+.sc-lp-abertura__titulo,
+.sc-lp-convite__titulo {
   margin: 0;
   font-family: var(--fonte-titulo);
-  font-weight: 700;
-  font-size: clamp(2rem, 7vw, 3.5rem);
-  line-height: 1.05;
+  font-weight: var(--peso-forte);
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
-.sc-lp__titulo {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-weight: 650;
-  font-size: clamp(1.625rem, 5.5vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
+.sc-lp-titulo {
+  font-size: clamp(2rem, 1.35rem + 3vw, 3.25rem);
+  line-height: 1.06;
 }
 
-.sc-lp__texto {
-  margin: 0;
-  max-inline-size: 58ch;
-  font-size: clamp(1rem, 2.2vw, 1.125rem);
-  line-height: 1.6;
+.sc-lp-subtitulo {
+  margin: 0 0 var(--espaco-5);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.875rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.sc-lp-texto {
+  max-inline-size: 62ch;
+  margin: var(--espaco-4) 0 0;
   color: var(--cor-tinta-suave);
+  font-size: var(--texto-lg);
+  line-height: 1.6;
   text-wrap: pretty;
 }
 
-.sc-lp__texto--grande {
-  font-size: clamp(1.0625rem, 2.6vw, 1.25rem);
+.sc-lp-texto strong {
+  color: var(--cor-tinta);
 }
 
-.sc-lp__nota {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--cor-tinta-suave);
+/* Os destaques: três jeitos de pôr uma palavra em evidência. */
+.sc-lp-verde {
+  color: var(--cor-primaria-texto);
 }
 
-/* --- os pontos ------------------------------------------------------------ */
+.sc-lp-alerta {
+  color: var(--cor-atencao);
+}
 
-.sc-lp__pontos {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+.sc-lp-marca-texto {
+  padding: 0 0.16em;
+  border-radius: 0.18em;
+  background: linear-gradient(
+      var(--marca-verde-click),
+      var(--marca-verde-click)
+    )
+    no-repeat 0 100% / 100% 100%;
+  color: var(--marca-preto-tecnologico);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.sc-lp-sublinhado {
+  text-decoration: underline wavy var(--marca-verde-digital);
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+  text-decoration-skip-ink: none;
+}
+
+.sc-lp-cabecalho {
+  max-inline-size: 48rem;
+  margin-block-end: clamp(2rem, 5vw, 3.5rem);
+}
+
+.sc-lp-cabecalho--centro {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.sc-lp-cabecalho--centro .sc-lp-texto {
+  margin-inline: auto;
+}
+
+.sc-lp-lista {
+  display: grid;
   gap: var(--espaco-3);
+  margin: var(--espaco-5) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.sc-lp__pontos li {
+.sc-lp-lista li {
   position: relative;
-  padding-inline-start: var(--espaco-5);
-  font-size: clamp(0.9375rem, 2vw, 1rem);
+  padding-inline-start: 1.75rem;
   line-height: 1.5;
 }
 
-/*
- * A marca de item é desenhada, e não um caractere de lista: assim ela usa a cor
- * do tema e fica alinhada à primeira linha em qualquer tamanho de fonte.
- */
-.sc-lp__pontos li::before {
+.sc-lp-lista li::before {
   content: "";
   position: absolute;
+  inset-block-start: 0.3em;
   inset-inline-start: 0;
-  inset-block-start: 0.55em;
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
   border-radius: 50%;
-  background: var(--cor-primaria);
+  background: var(--marca-verde-click)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0f0d' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 70% no-repeat;
 }
 
-/* --- o caminho para começar ----------------------------------------------- */
+/* --- botões ------------------------------------------------------------- */
 
-.sc-lp__chamada {
-  margin: var(--espaco-2) 0 0;
-}
-
-.sc-lp__comecar {
+.sc-lp-botao {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--espaco-2);
-  min-block-size: 3.25rem;
-  padding-inline: var(--espaco-7);
-  border-radius: var(--raio-botao);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-size: 1.0625rem;
-  font-weight: 550;
+  min-block-size: var(--altura-toque-grande);
+  padding: 0 var(--espaco-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--raio-completo);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
   text-decoration: none;
-  box-shadow: none;
   transition:
     transform var(--transicao-rapida),
-    box-shadow var(--transicao-rapida);
+    background-color var(--transicao-rapida),
+    box-shadow var(--transicao-media);
 }
 
-/*
- * Nos capítulos do meio o caminho é DISCRETO. Ele precisa estar lá para quem se
- * convenceu ali — mas repetir o botão cheio quatro vezes transforma a página
- * num anúncio, e a pessoa para de ver todos eles.
- */
-.sc-lp__comecar--discreto {
-  background: var(--cor-superficie-alta);
-  color: var(--cor-primaria-texto);
-  border: 1px solid var(--cor-borda-forte);
-  box-shadow: none;
-  min-block-size: 2.75rem;
-  padding-inline: var(--espaco-5);
-  font-size: 1rem;
+.sc-lp-botao svg {
+  transition: transform var(--transicao-media);
 }
 
-.sc-lp__comecar:hover {
-  transform: translateY(-1px);
-}
-
-.sc-lp__comecar:active {
-  transform: translateY(0);
-}
-
-.sc-lp__comecar:focus-visible {
-  outline: 3px solid var(--cor-foco);
-  outline-offset: 3px;
-}
-
-.sc-lp__seta {
-  flex: none;
-  transition: transform var(--transicao-rapida);
-}
-
-.sc-lp__comecar:hover .sc-lp__seta {
+.sc-lp-botao:hover svg {
   transform: translateX(3px);
 }
 
-/* --- o mundo em três dimensões -------------------------------------------
- *
- * Ele fica ATRÁS do conteúdo, sem interceptar toque nem clique, e some para o
- * leitor de tela. A página conta a mesma história sem ele — e na maioria dos
- * aparelhos ele nem é baixado.
- *
- * A OPACIDADE É BAIXA DE PROPÓSITO. Um mundo em cheio disputa a atenção com o
- * texto que ele deveria acompanhar, e a pessoa acaba lendo nenhum dos dois. Aqui
- * ele é atmosfera: percebe-se que a página tem profundidade, e não se para para
- * olhar as peças.
- */
-.sc-lp__mundo {
+.sc-lp-botao--cheio {
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  box-shadow: 0 10px 30px -12px var(--marca-verde-digital);
+}
+
+.sc-lp-botao--cheio:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px -12px var(--marca-verde-digital);
+}
+
+.sc-lp-botao--contorno {
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-tinta);
+}
+
+.sc-lp-botao--contorno:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-lp-botao--fantasma {
+  border-color: var(--cor-borda);
+  color: var(--cor-tinta);
+}
+
+.sc-lp-botao--fantasma:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-lp-chamada {
+  margin: clamp(2rem, 5vw, 3rem) 0 0;
+}
+
+/* --- topo --------------------------------------------------------------- */
+
+.sc-lp-topo {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 50;
+  border-block-end: 1px solid var(--cor-borda);
+  background: color-mix(in oklab, var(--cor-fundo) 86%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.sc-lp-topo__dentro {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  max-inline-size: var(--lp-largura);
+  min-block-size: 4rem;
+  margin-inline: auto;
+  padding-inline: var(--lp-respiro);
+}
+
+.sc-lp-marca {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  gap: var(--espaco-2);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.sc-lp-marca__simbolo {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--raio-2);
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  font-size: var(--texto-base);
+}
+
+.sc-lp-topo__navegacao {
   display: none;
 }
 
-/*
- * A OPACIDADE VIVE NA TELA DE DESENHO, e não no recipiente.
- *
- * Ela estava no recipiente, e por isso valia também para os balões — que são
- * números, e número apagado não se lê. Descer a regra um nível separa as duas
- * coisas: a linha fica de fundo, o número fica legível.
- *
- * Mais presença que na versão de barras: linha de três pixels ocupa uma fração
- * da área que a barra ocupava, e some se receber a mesma opacidade.
- */
-.sc-lp__tela {
-  opacity: 0.6;
+.sc-lp-topo__navegacao a,
+.sc-lp-topo__entrar {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
 }
 
-/* --- os balões de pedidos -------------------------------------------------
- *
- * O formato é o de quem acompanha cotação: um marcador no pico e o número
- * saindo dele. É a leitura que o dono de loja gostaria de ter do próprio
- * movimento — e a razão de o marcador ir SÓ no pico é que marcar os treze
- * vértices devolveria a mancha que fez as barras serem descartadas.
- *
- * A camada não é apagada como a tela: ela carrega texto.
- */
-.sc-lp__baloes {
+.sc-lp-topo__navegacao a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  min-inline-size: var(--altura-toque);
+  justify-content: center;
+}
+
+.sc-lp-topo__navegacao a:hover,
+.sc-lp-topo__entrar:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-lp-topo__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  margin-inline-start: auto;
+}
+
+.sc-lp-topo__entrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--altura-toque);
+  min-inline-size: var(--altura-toque);
+}
+
+.sc-lp-topo__criar {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-topo__navegacao {
+    display: flex;
+    gap: var(--espaco-6);
+    margin-inline-start: var(--espaco-7);
+  }
+}
+
+/* --- abertura ----------------------------------------------------------- */
+
+.sc-lp-abertura {
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(3rem, 8vw, 6rem) var(--espaco-7);
+}
+
+/* A luz verde e a grade de pontos: fundo vivo, sem imagem e sem script. */
+.sc-lp-abertura::before,
+.sc-lp-abertura::after {
+  content: "";
   position: absolute;
   inset: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
-/* --- a legenda das três linhas ---------------------------------------------
- *
- * FIXA E À ESQUERDA, e não viajando na ponta de cada linha como já foi. A
- * viagem existia porque as três eram do mesmo verde e o nome só podia ser
- * ligado ao traço estando em cima dele — mas ela atropelava o texto ao cruzar
- * a coluna, e os três nomes se empilhavam onde as linhas se cruzam.
- *
- * Cor própria por linha resolve o que a viagem resolvia: a bolinha casa com o
- * traço, e o nome pode ficar parado num canto livre.
- *
- * A esquerda é esse canto: a coluna de texto é centrada e tem largura de teto,
- * então sempre sobra faixa livre dos dois lados numa tela larga — e é da
- * esquerda que a linha começa a crescer.
- */
-.sc-lp__legenda {
-  position: absolute;
-  inset-inline-start: var(--espaco-5);
-  inset-block-start: 50%;
-  translate: 0 -50%;
-  display: flex;
-  flex-direction: column;
+.sc-lp-abertura::before {
+  background:
+    radial-gradient(
+      60rem 36rem at 85% 10%,
+      color-mix(in oklab, var(--marca-verde-click) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 30rem at 0% 100%,
+      color-mix(in oklab, var(--marca-verde-digital) 14%, transparent),
+      transparent 70%
+    );
+}
+
+.sc-lp-abertura::after {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--cor-tinta) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.sc-lp-abertura__dentro {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  max-inline-size: var(--lp-largura);
+  margin-inline: auto;
+  padding-inline: var(--lp-respiro);
+}
+
+.sc-lp-selo {
+  display: inline-flex;
+  align-items: center;
   gap: var(--espaco-2);
+  margin: 0 0 var(--espaco-5);
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--cor-superficie) 70%, transparent);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-lp-selo__ponto {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--marca-verde-click);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--marca-verde-click) 25%, transparent);
+}
+
+.sc-lp-abertura__titulo {
+  font-size: clamp(2.375rem, 1.4rem + 4.6vw, 4.75rem);
+  line-height: 1.02;
+}
+
+.sc-lp-abertura__subtitulo {
+  max-inline-size: 36rem;
+  margin: var(--espaco-5) 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.sc-lp-abertura__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-block-start: var(--espaco-6);
+}
+
+.sc-lp-abertura__garantias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-5);
+  margin: var(--espaco-5) 0 0;
+  padding: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  list-style: none;
+}
+
+.sc-lp-abertura__garantias li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.sc-lp-abertura__garantias svg {
+  color: var(--marca-verde-click);
+}
+
+/* As telas reais, montadas como numa mesa: computador atrás, celular na frente. */
+.sc-lp-abertura__vitrine {
+  position: relative;
+  padding-block-end: 2.5rem;
+  padding-inline-end: 12%;
+}
+
+.sc-lp-aparelho {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-lp-aparelho picture {
+  display: block;
+}
+
+.sc-lp-aparelho img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.sc-lp-aparelho__barra {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-block-end: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+}
+
+.sc-lp-aparelho__barra i {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--cor-borda);
+}
+
+.sc-lp-aparelho--celular {
+  border: 6px solid var(--marca-grafite);
+  border-radius: var(--raio-janela);
+  box-shadow:
+    0 0 0 1px var(--cor-borda),
+    var(--sombra-3);
+}
+
+.sc-lp-aparelho--abertura {
+  box-shadow:
+    0 40px 80px -30px rgb(0 0 0 / 70%),
+    0 0 0 1px var(--cor-borda);
+}
+
+.sc-lp-aparelho--flutuante {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  inline-size: 30%;
+  max-inline-size: 12.5rem;
+  aspect-ratio: 600 / 860;
+}
+
+.sc-lp-aparelho--flutuante picture,
+.sc-lp-galeria__celular picture {
+  block-size: 100%;
+}
+
+.sc-lp-aparelho--flutuante img {
+  block-size: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.sc-lp-abertura__aviso-pedido {
+  position: absolute;
+  inset-block-start: -0.75rem;
+  inset-inline-end: 4%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-lp-numeros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  max-inline-size: calc(var(--lp-largura) - 2 * var(--lp-respiro));
+  margin: clamp(3rem, 7vw, 5rem) var(--lp-respiro) 0;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-borda);
+}
+
+.sc-lp-numeros div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+}
+
+.sc-lp-numeros dt {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-lp-numeros dd {
+  margin: 0;
+  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .sc-lp-numeros {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sc-lp-numeros div {
+    padding: var(--espaco-5);
+  }
+}
+
+@media (min-width: 1280px) {
+  .sc-lp-numeros {
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-abertura__dentro {
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .sc-lp-abertura__vitrine {
+    perspective: 1800px;
+  }
+
+  .sc-lp-aparelho--abertura {
+    transform: rotateY(-9deg) rotateX(4deg);
+    transform-origin: left center;
+  }
+}
+
+/* --- seções ------------------------------------------------------------- */
+
+.sc-lp-secao {
+  padding-block: var(--lp-secao);
+}
+
+.sc-lp-secao--nevoa {
+  background: var(--cor-superficie);
+}
+
+.sc-lp-secao--escura {
+  position: relative;
+  isolation: isolate;
+}
+
+.sc-lp-secao--escura::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    50rem 30rem at 100% 0%,
+    color-mix(in oklab, var(--cor-atencao) 10%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.sc-lp-icone {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: var(--raio-3);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+}
+
+/* como funciona */
+
+.sc-lp-passos {
+  display: grid;
+  gap: var(--lp-vao);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.sc-lp-passo {
+  position: relative;
+  padding: var(--espaco-6) var(--espaco-5) var(--espaco-5);
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+}
+
+.sc-lp-passo p {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-tinta-suave);
+  line-height: 1.6;
+}
+
+.sc-lp-passo__numero {
+  position: absolute;
+  inset-block-start: var(--espaco-3);
+  inset-inline-end: var(--espaco-4);
+  color: transparent;
+  font-family: var(--fonte-titulo);
+  font-size: 4.5rem;
+  font-weight: var(--peso-forte);
+  line-height: 1;
+  -webkit-text-stroke: 1.5px var(--cor-borda);
+}
+
+.sc-lp-passo__titulo,
+.sc-lp-recurso__titulo {
+  margin: var(--espaco-4) 0 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.015em;
+}
+
+@media (min-width: 768px) {
+  .sc-lp-passos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* por dentro: as abas com as telas */
+
+/* No celular, as quatro abas em grade 2×2: nenhuma fica escondida à direita. */
+.sc-lp-galeria__abas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-1);
+  margin-block-end: var(--espaco-6);
+  padding: var(--espaco-1);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+}
+
+@media (min-width: 540px) {
+  .sc-lp-galeria__abas {
+    display: flex;
+    inline-size: max-content;
+    max-inline-size: 100%;
+    border-radius: var(--raio-completo);
+  }
+}
+
+.sc-lp-galeria__aba {
+  flex: none;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-5);
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta-suave);
+  font: inherit;
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+  transition:
+    background-color var(--transicao-rapida),
+    color var(--transicao-rapida);
+}
+
+.sc-lp-galeria__aba:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-lp-galeria__aba[aria-selected="true"] {
+  background: var(--marca-verde-click);
+  color: var(--marca-preto-tecnologico);
+}
+
+.sc-lp-galeria__tela {
+  display: grid;
+  gap: var(--espaco-6);
+  align-items: center;
+}
+
+.sc-lp-galeria__tela[hidden] {
+  display: none;
+}
+
+.sc-lp-galeria__texto p {
+  margin: var(--espaco-3) 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-lg);
+  line-height: 1.6;
+}
+
+.sc-lp-galeria__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+}
+
+/* O computador e, por cima no canto, o celular com a mesma tela. */
+.sc-lp-galeria__aparelhos {
+  position: relative;
+  padding-block-end: var(--espaco-7);
+  padding-inline-end: 14%;
+}
+
+.sc-lp-galeria__celular {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  inline-size: 30%;
+  max-inline-size: 14rem;
+  aspect-ratio: 390 / 600;
+}
+
+.sc-lp-galeria__celular img {
+  block-size: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-galeria__tela {
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.6fr);
+    gap: var(--espaco-8);
+  }
+
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-lp-galeria__tela:not([hidden]) .sc-lp-galeria__aparelhos {
+    animation: sc-lp-surgir 420ms ease-out both;
+  }
+}
+
+/* taxas: a seção de dados de mercado mora em
+   apps/web/src/features/landing/secoes/secoes.css (#91). */
+
+/* recursos */
+
+.sc-lp-recursos {
+  display: grid;
+  gap: var(--lp-vao);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sc-lp__legenda-item {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  color: var(--cor-tinta-suave);
-  font-size: 0.75rem;
-  font-weight: 550;
-  white-space: nowrap;
-  /* A mesma auréola do texto da página: a legenda fica sobre as linhas, e sem
-     ela um traço passando atrás corta o nome no meio. */
-  text-shadow:
-    0 0 4px var(--cor-fundo),
-    0 0 10px var(--cor-fundo);
-}
-
-/*
- * A bolinha que casa com a linha. Ela é o elo inteiro entre a legenda e o
- * gráfico — por isso a cor vem por `--cor-da-serie`, definida junto com a da
- * própria linha, e não repetida aqui onde poderia divergir dela.
- */
-.sc-lp__legenda-item::before {
-  content: "";
-  inline-size: 0.625rem;
-  block-size: 0.625rem;
-  border-radius: 50%;
-  background: var(--cor-da-serie);
-  flex: none;
-}
-
-.sc-lp__pico {
-  position: absolute;
-  /* O ponto marcado é o CENTRO do marcador, e não o canto: sem o deslocamento
-     de meia largura, a bolinha fica pendurada à direita e abaixo do pico. */
-  translate: -50% -50%;
-  inline-size: 0.75rem;
-  block-size: 0.75rem;
-  border-radius: 50%;
-  background: var(--cor-da-serie);
-  /* O halo separa o marcador da linha que passa por baixo dele. */
-  box-shadow: 0 0 0 4px
-    color-mix(in oklab, var(--cor-da-serie) 22%, transparent);
-  opacity: 0;
-  scale: 0.6;
+.sc-lp-recurso {
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
   transition:
-    opacity var(--transicao-media),
-    scale var(--transicao-media);
+    border-color var(--transicao-media),
+    transform var(--transicao-media);
 }
 
-.sc-lp__pico[data-visivel="sim"] {
-  opacity: 1;
-  scale: 1;
+/* Cartões respondem ao ponteiro: sobem um pouco e ganham a borda verde. */
+.sc-lp-passo,
+.sc-lp-dado,
+.sc-lp-depoimento figure {
+  transition:
+    border-color var(--transicao-media),
+    transform var(--transicao-media),
+    box-shadow var(--transicao-media);
 }
 
-/* O tracejado entre o marcador e a etiqueta, como a linha de preço que atravessa
-   o gráfico até o valor. Sem ele, os dois são dois objetos soltos. */
-.sc-lp__pico::after {
-  content: "";
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 100%;
-  inline-size: 0.8rem;
-  block-size: 1px;
-  translate: 0 -50%;
-  border-block-start: 1px dashed var(--cor-da-serie);
+@media (hover: hover) {
+  .sc-lp-recurso:hover,
+  .sc-lp-passo:hover,
+  .sc-lp-dado:hover,
+  .sc-lp-depoimento figure:hover {
+    border-color: var(--marca-verde-digital);
+    box-shadow: var(--sombra-larga);
+    transform: translateY(-4px);
+  }
 }
 
-.sc-lp__balao {
-  position: absolute;
-  /* Centrado na altura do marcador e à direita dele — a posição da etiqueta de
-     resultado num gráfico de operação, que é a referência deste desenho. */
-  inset-block-start: 50%;
-  inset-inline-start: 1.15rem;
-  translate: 0 -50%;
+.sc-lp-recurso p {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-tinta-suave);
+  line-height: 1.55;
+}
+
+.sc-lp-recurso__titulo {
+  font-size: var(--texto-lg);
+}
+
+@media (min-width: 640px) {
+  .sc-lp-recursos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-recursos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* depoimentos */
+
+.sc-lp-aviso-exemplo {
+  max-inline-size: 48rem;
+  margin: calc(var(--espaco-5) * -1) 0 var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-inline-start: 4px solid var(--cor-atencao);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-atencao-suave);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+}
+
+.sc-lp-depoimentos {
+  display: grid;
+  gap: var(--lp-vao);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-lp-depoimento figure {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: var(--raio-1);
-  /* CHEIO, e não tingido. A versão anterior era um tom claro do verde com o
-     texto no verde escuro, e sumia por cima da linha que passava atrás dela.
-     Preenchido, o balão se descola do gráfico — que é o que uma etiqueta de
-     valor precisa fazer. */
-  background: var(--cor-da-serie);
-  color: var(--cor-em-sucesso);
-  line-height: 1.15;
-  white-space: nowrap;
-  box-shadow: 0 2px 10px color-mix(in oklab, var(--cor-tinta) 22%, transparent);
+  block-size: 100%;
+  margin: 0;
+  padding: var(--espaco-6) var(--espaco-5) var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
 }
 
-.sc-lp__balao-rotulo {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  /* Some por cima do verde sem virar outra cor: o rótulo é referência, e o
-     número é a informação. */
-  opacity: 0.75;
+.sc-lp-depoimento__aspas {
+  color: var(--marca-verde-digital);
 }
 
-.sc-lp__balao-valor {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  /* Dígito de largura fixa: sem isto o balão muda de tamanho a cada número, e a
-     coluna de etiquetas fica trêmula enquanto o gráfico cresce. */
-  font-variant-numeric: tabular-nums;
+.sc-lp-depoimento blockquote {
+  flex: 1;
+  margin: var(--espaco-3) 0 var(--espaco-5);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-medio);
+  line-height: 1.45;
 }
 
-/*
- * A seta que aponta para o marcador. É ela que faz a etiqueta pertencer àquele
- * pico, e não flutuar perto dele.
- */
-.sc-lp__balao::before {
+.sc-lp-depoimento blockquote p {
+  margin: 0;
+}
+
+.sc-lp-depoimento figcaption {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  font-size: var(--texto-sm);
+}
+
+.sc-lp-depoimento figcaption > span:nth-child(2) {
+  display: grid;
+  flex: 1;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-lp-depoimento figcaption strong {
+  color: var(--cor-tinta);
+}
+
+.sc-lp-depoimento__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--marca-grafite);
+  color: var(--marca-verde-click);
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+}
+
+.sc-lp-depoimento__selo {
+  flex: none;
+  padding: 2px var(--espaco-2);
+  border: 1px solid var(--cor-atencao);
+  border-radius: var(--raio-completo);
+  color: var(--cor-atencao);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+}
+
+@media (min-width: 900px) {
+  .sc-lp-depoimentos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* preço */
+
+.sc-lp-preco {
+  display: grid;
+  gap: var(--espaco-7);
+  align-items: center;
+}
+
+.sc-lp-preco .sc-lp-cabecalho {
+  margin-block-end: 0;
+}
+
+.sc-lp-preco__cartao {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie-alta);
+  box-shadow: var(--sombra-larga);
+}
+
+.sc-lp-preco__valor {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding-block-end: var(--espaco-5);
+  border-block-end: 1px dashed var(--cor-borda);
+}
+
+.sc-lp-preco__valor > span:first-child {
+  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(3.5rem, 2.5rem + 4vw, 5rem);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sc-lp-preco__valor > span:last-child {
+  color: var(--cor-tinta-suave);
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-preco {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--espaco-8);
+  }
+}
+
+/* dúvidas */
+
+.sc-lp-duvidas {
+  display: grid;
+  gap: var(--espaco-6);
+}
+
+.sc-lp-duvidas .sc-lp-cabecalho {
+  margin-block-end: 0;
+}
+
+.sc-lp-perguntas {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.sc-lp-pergunta {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+}
+
+.sc-lp-pergunta summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  min-block-size: var(--altura-toque-grande);
+  padding: var(--espaco-4) var(--espaco-5);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sc-lp-pergunta summary::-webkit-details-marker {
+  display: none;
+}
+
+.sc-lp-pergunta summary::after {
+  content: "+";
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 50%;
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-xl);
+  line-height: 1;
+  transition: transform var(--transicao-media);
+}
+
+.sc-lp-pergunta[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.sc-lp-pergunta p {
+  margin: 0;
+  padding: 0 var(--espaco-5) var(--espaco-5);
+  color: var(--cor-tinta-suave);
+  line-height: 1.6;
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-duvidas {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    gap: var(--espaco-8);
+    align-items: start;
+  }
+}
+
+/* convite e rodapé */
+
+.sc-lp-convite {
+  position: relative;
+  isolation: isolate;
+  padding-block: var(--lp-secao);
+  overflow: hidden;
+  text-align: center;
+}
+
+.sc-lp-convite::before {
   content: "";
   position: absolute;
-  inset-inline-end: 100%;
-  inset-block-start: 50%;
-  translate: 0 -50%;
-  border: 0.34rem solid transparent;
-  border-inline-end-color: var(--cor-da-serie);
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    40rem 22rem at 50% 110%,
+    color-mix(in oklab, var(--marca-verde-click) 30%, transparent),
+    transparent 70%
+  );
 }
 
-.sc-lp__abertura,
-.sc-lp__capitulo {
-  z-index: 1;
+.sc-lp-convite__dentro {
+  display: grid;
+  justify-items: center;
 }
 
-/* --- telas baixas ---------------------------------------------------------
- *
- * Celular deitado e Nest Hub: sem altura para respiro, o conteúdo encolhe para
- * o caminho de começar continuar alcançável.
- */
-@media (max-height: 600px) {
-  .sc-lp__abertura,
-  .sc-lp__capitulo {
-    padding-block: var(--espaco-5);
+.sc-lp-convite__titulo {
+  max-inline-size: 20ch;
+  font-size: clamp(2.25rem, 1.5rem + 3.6vw, 4rem);
+  line-height: 1.04;
+}
+
+.sc-lp-convite p {
+  max-inline-size: 40rem;
+  margin: var(--espaco-5) 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-lg);
+  line-height: 1.6;
+}
+
+.sc-lp-convite .sc-lp-abertura__acoes {
+  justify-content: center;
+}
+
+.sc-lp-rodape {
+  padding-block: var(--espaco-7)
+    max(var(--espaco-7), calc(env(safe-area-inset-bottom) + var(--espaco-5)));
+  border-block-start: 1px solid var(--cor-borda);
+}
+
+.sc-lp-rodape__dentro {
+  display: grid;
+  gap: var(--espaco-5);
+}
+
+.sc-lp-rodape nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-5);
+}
+
+.sc-lp-rodape nav a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-tinta-suave);
+  text-decoration: none;
+}
+
+.sc-lp-rodape nav a:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-lp-rodape p {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+@media (min-width: 768px) {
+  .sc-lp-rodape__dentro {
+    grid-template-columns: auto 1fr;
+    align-items: center;
   }
 
-  .sc-lp__conteudo {
-    gap: var(--espaco-3);
+  .sc-lp-rodape nav {
+    justify-content: flex-end;
+  }
+
+  .sc-lp-rodape p {
+    grid-column: 1 / -1;
   }
 }
 
-/* --- movimento reduzido ---------------------------------------------------
- *
- * Recebe o ESTADO FINAL, e não a ausência. O erro comum é esconder o elemento e
- * animar a entrada: quem pediu para parar de mexer fica sem o conteúdo, não sem
- * a animação.
- */
+/* --- barra de progresso da leitura (a narrativa anima scaleX) ----------- */
+
+.sc-lp-progresso {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  background: var(--marca-verde-click);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  /* O destino, na hora: quem pediu menos movimento continua vendo os números —
-     o que se perde é a chegada deles, não eles. */
-  .sc-lp__pico {
-    opacity: 1;
-    scale: 1;
-    transition: none;
-  }
-
-  .sc-lp__conteudo,
-  .sc-lp__abertura,
-  .sc-lp__capitulo {
-    opacity: 1;
-    transform: none;
-    transition: none;
-    animation: none;
-  }
-
-  .sc-lp__comecar:hover {
-    transform: none;
-  }
-
-  .sc-lp__comecar:hover .sc-lp__seta {
-    transform: none;
-  }
-
-  .sc-lp__mundo {
+  .sc-lp-progresso {
     display: none;
   }
 }
 
-/* =========================================================================
- * A PRÉVIA VIVA
+/* --- o mundo da abertura ------------------------------------------------
  *
- * O que diferencia uma landing de construtor de loja não é decoração: é mostrar
- * o produto funcionando. Os elementos são os do negócio — um celular com a loja
- * dentro e a mensagem do WhatsApp —, porque são as duas coisas que quem tem
- * lanchonete reconhece de imediato.
- * ========================================================================= */
-
-.sc-previa {
-  display: grid;
-  gap: var(--espaco-6);
-  inline-size: 100%;
-}
-
-/* --- os controles --------------------------------------------------------- */
-
-.sc-previa__controles {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-}
-
-.sc-previa__rotulo {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 550;
-  color: var(--cor-tinta);
-  margin-block-end: var(--espaco-2);
-  padding: 0;
-}
-
-.sc-previa__campo {
-  inline-size: 100%;
-  max-inline-size: 24rem;
-  min-block-size: 3rem;
-  padding-inline: var(--espaco-4);
-  border-radius: var(--raio-2);
-  border: 1px solid var(--cor-borda-forte);
-  background: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
-  font-size: 1rem;
-}
-
-.sc-previa__campo:focus-visible {
-  outline: 3px solid var(--cor-foco);
-  outline-offset: 2px;
-}
-
-.sc-previa__cores {
-  border: 0;
-  padding: 0;
-  margin: 0;
-}
-
-.sc-previa__paleta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-3);
-}
-
-.sc-previa__cor {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  cursor: pointer;
-  font-size: 0.8125rem;
-  color: var(--cor-tinta-suave);
-}
-
-/*
- * O controle nativo fica escondido mas ALCANÇÁVEL: `display: none` o tiraria da
- * ordem de foco, e quem navega por teclado perderia a escolha de cor por
- * completo. Escondido assim, o foco continua chegando e a amostra o mostra.
+ * Atrás de tudo, sem interceptar toque. O pôster (o brilho do logo em SVG) é o
+ * fundo de todo aparelho; quando o 3D desenha o primeiro quadro, ele esmaece.
  */
-.sc-previa__cor input {
+
+.sc-lp-mundo {
   position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc-lp-mundo canvas {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+  transition: opacity 900ms ease-out;
+}
+
+.sc-lp-mundo[data-pronto] canvas {
+  opacity: 1;
+}
+
+.sc-lp-mundo__poster {
+  position: absolute;
+  inset-block-start: 46%;
+  inset-inline-end: -22%;
+  inline-size: min(110vw, 34rem);
+  block-size: auto;
+  fill: var(--marca-verde-click);
+  opacity: 0.16;
+  filter: drop-shadow(0 0 60px var(--marca-verde-digital));
+  transition: opacity 900ms ease-out;
+}
+
+.sc-lp-mundo[data-pronto] .sc-lp-mundo__poster {
   opacity: 0;
 }
 
-.sc-previa__amostra {
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
-  border-radius: 50%;
-  border: 2px solid var(--cor-borda);
-  transition:
-    transform var(--transicao-rapida),
-    box-shadow var(--transicao-rapida);
-}
-
-.sc-previa__cor input:checked + .sc-previa__amostra {
-  transform: scale(1.15);
-  box-shadow:
-    0 0 0 3px var(--cor-fundo),
-    0 0 0 5px var(--cor-tinta);
-}
-
-.sc-previa__cor input:focus-visible + .sc-previa__amostra {
-  outline: 3px solid var(--cor-foco);
-  outline-offset: 3px;
-}
-
-.sc-previa__cor input:checked ~ .sc-previa__cor-nome {
-  color: var(--cor-tinta);
-  font-weight: 550;
-}
-
-/* --- o palco -------------------------------------------------------------- */
-
-.sc-previa__palco {
-  display: grid;
-  gap: var(--espaco-6);
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .sc-previa__palco {
-    grid-template-columns: auto 1fr;
-    gap: var(--espaco-7);
+@media (min-width: 1024px) {
+  .sc-lp-mundo__poster {
+    inset-block-start: 6%;
+    inset-inline-end: 2%;
+    inline-size: 40rem;
+    opacity: 0.2;
   }
 }
 
-/* --- o celular -----------------------------------------------------------
+/* --- comparativo --------------------------------------------------------
  *
- * É a moldura que quem tem loja reconhece: é assim que o cliente dele vai ver a
- * loja. Mostrar num retângulo branco perderia metade do argumento.
+ * Tabela de verdade no computador. No celular, cada linha vira um cartão: o
+ * critério no topo e as quatro empresas embaixo, cada uma com o nome antes do
+ * valor (data-rotulo) — nada de rolar a tabela para o lado.
  */
-.sc-previa__celular {
-  position: relative;
-  inline-size: min(100%, 17rem);
-  margin-inline: auto;
-  padding: 0.75rem;
-  border-radius: 2.25rem;
-  background: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
+
+.sc-lp-comparativo {
+  overflow: hidden;
 }
 
-.sc-previa__entalhe {
-  position: absolute;
-  inset-block-start: 1.15rem;
-  inset-inline: 0;
-  margin-inline: auto;
-  inline-size: 4.5rem;
-  block-size: 1.1rem;
-  border-radius: 999px;
-  background: var(--cor-tinta);
-  z-index: 2;
-}
-
-.sc-previa__tela {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--espaco-2);
-  border-radius: 1.6rem;
-  background: var(--cor-fundo);
-  padding: var(--espaco-6) var(--espaco-4) var(--espaco-4);
-  overflow: clip;
-  min-block-size: 26rem;
-}
-
-/*
- * A capa é um lavado da cor escolhida. Ela é o que faz duas escolhas de cor
- * produzirem duas lojas visivelmente diferentes — que é o argumento inteiro
- * deste bloco.
- */
-.sc-previa__capa {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  block-size: 6.5rem;
-  background: var(--cor-primaria);
-}
-
-.sc-previa__marca {
-  position: relative;
-  display: grid;
-  place-items: center;
-  inline-size: 3.5rem;
-  block-size: 3.5rem;
-  margin-block-start: var(--espaco-4);
-  border-radius: 50%;
-  background: var(--cor-superficie-alta);
-  border: 2px solid var(--cor-fundo);
-  font-weight: 600;
-  color: var(--cor-primaria-texto);
-  box-shadow: var(--sombra-1);
-}
-
-.sc-previa__nome-da-loja {
-  position: relative;
-  margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--cor-tinta);
-  /* Nome longo não pode empurrar a moldura do celular. */
-  max-inline-size: 100%;
-  overflow-wrap: anywhere;
-}
-
-.sc-previa__situacao {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  margin: 0 0 var(--espaco-2);
-  font-size: 0.6875rem;
-  color: var(--cor-tinta-suave);
-}
-
-.sc-previa__pulso {
-  inline-size: 0.375rem;
-  block-size: 0.375rem;
-  border-radius: 50%;
-  background: var(--cor-sucesso);
-}
-
-.sc-previa__itens {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.sc-lp-comparativo table {
   inline-size: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.sc-previa__item {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  padding: var(--espaco-2);
-  border-radius: var(--raio-2);
-  background: var(--cor-superficie);
-  font-size: 0.75rem;
-}
-
-/*
- * A figura do produto é um bloco de cor, e não uma imagem: a landing não carrega
- * foto nenhuma, e um retângulo cinza vazio diria "faltou carregar". Com a cor da
- * loja, ele lê como produto sem foto — que é como a loja nova começa mesmo.
- */
-.sc-previa__item-figura {
-  flex: none;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: var(--raio-1);
-  background: color-mix(
-    in oklab,
-    var(--cor-primaria) 22%,
-    var(--cor-superficie-alta)
-  );
-}
-
-.sc-previa__item-texto {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-inline-size: 0;
-}
-
-.sc-previa__item-texto strong {
-  font-weight: 550;
-  color: var(--cor-tinta);
-  overflow-wrap: anywhere;
-}
-
-.sc-previa__item-texto em {
-  font-style: normal;
-  font-size: 0.6875rem;
-  color: var(--cor-tinta-suave);
-}
-
-.sc-previa__item-preco {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-  color: var(--cor-tinta);
-}
-
-.sc-previa__total {
-  display: flex;
-  justify-content: space-between;
-  inline-size: 100%;
-  margin: var(--espaco-2) 0 0;
-  padding-block-start: var(--espaco-2);
-  border-block-start: 1px solid var(--cor-borda);
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.sc-previa__botao {
-  inline-size: 100%;
-  margin: var(--espaco-2) 0 0;
-  padding-block: var(--espaco-3);
-  border-radius: var(--raio-botao);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-size: 0.8125rem;
-  font-weight: 550;
-  text-align: center;
-}
-
-/* --- a conversa ----------------------------------------------------------
- *
- * É o que o dono recebe, e o motivo pelo qual ele confia no produto antes de
- * testar: ele já sabe como uma mensagem de pedido deveria parecer, porque recebe
- * pedido no WhatsApp todo dia.
- */
-.sc-previa__conversa {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-3);
-  min-inline-size: 0;
-}
-
-.sc-previa__conversa-titulo {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--cor-tinta-suave);
-}
-
-.sc-previa__balao {
-  position: relative;
-  align-self: flex-start;
-  max-inline-size: 100%;
-  padding: var(--espaco-4) var(--espaco-4) var(--espaco-5);
-  border-radius: var(--raio-3) var(--raio-3) var(--raio-3) var(--raio-1);
-  background: var(--cor-superficie-alta);
-  border: 1px solid var(--cor-borda);
-  box-shadow: var(--sombra-1);
-}
-
-/*
- * A MENSAGEM TEM TETO E ROLA POR DENTRO.
- *
- * Ela tem vinte e sete linhas — cliente, itens, entrega, pagamento, valores e o
- * link de acompanhamento. Solta, ela dobra a altura da seção e empurra o resto
- * da landing para fora da tela, o que quebrava a página em todo aparelho.
- *
- * Rolar por dentro é o que uma mensagem longa faz no WhatsApp de verdade, então
- * o recorte não mente sobre o produto: ele reproduz o comportamento.
- */
-.sc-previa__mensagem {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  max-block-size: 18rem;
-  overflow-y: auto;
-  font-size: 0.8125rem;
-  line-height: 1.55;
-  overflow-wrap: anywhere;
-  color: var(--cor-tinta);
-  /* Espaço para o desvanecer do fim não cobrir a última linha. */
-  padding-block-end: var(--espaco-3);
-}
-
-/*
- * A linha vazia é o espaço entre os blocos da mensagem. Sem altura mínima ela
- * colapsaria, e "Itens" colaria no cliente de cima.
- */
-.sc-previa__linha {
-  min-block-size: 1.2em;
-}
-
-.sc-previa__mensagem strong {
-  font-weight: 650;
-}
-
-/*
- * O desvanecer diz que há mais mensagem abaixo. Sem ele, o corte no meio de uma
- * linha lê como texto faltando, e não como conteúdo que continua.
- */
-.sc-previa__balao::after {
-  content: "";
-  position: absolute;
-  inset-block-end: 1.75rem;
-  inset-inline: 1px;
-  block-size: 2.5rem;
-  pointer-events: none;
+.sc-lp-comparativo thead {
   display: none;
 }
 
-.sc-previa__hora {
-  position: absolute;
-  inset-block-end: var(--espaco-2);
-  inset-inline-end: var(--espaco-3);
-  font-size: 0.625rem;
+.sc-lp-comparativo tbody {
+  display: grid;
+  gap: var(--lp-vao);
+}
+
+.sc-lp-comparativo tr {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+}
+
+.sc-lp-comparativo th[scope="row"] {
+  padding: var(--espaco-4) var(--espaco-5) var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  text-align: start;
+}
+
+.sc-lp-comparativo td {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: var(--espaco-3);
+  padding: var(--espaco-2) var(--espaco-5);
   color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
 }
 
-/* --- movimento reduzido --------------------------------------------------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .sc-previa__amostra,
-  .sc-previa__cor input:checked + .sc-previa__amostra {
-    transition: none;
-    transform: none;
-  }
-}
-
-/* A seção da prévia precisa de mais largura que o texto: ela tem duas colunas. */
-.sc-lp__conteudo--largo {
-  max-inline-size: 64rem;
-}
-
-.sc-lp__demo {
-  background: var(--cor-superficie);
-  border-block: 1px solid var(--cor-borda);
-}
-
-/* =========================================================================
- * OS CAPÍTULOS, EM DUAS COLUNAS
- *
- * Quatro blocos com o mesmo desenho e o mesmo alinhamento leem como formulário,
- * e a pessoa para de olhar no terceiro — o olho aprende o padrão e pula. A
- * alternância quebra isso sem inventar um layout novo por seção.
- * ========================================================================= */
-
-.sc-lp__conteudo--dois {
-  max-inline-size: 62rem;
-  display: grid;
-  gap: var(--espaco-6);
-  align-items: center;
-}
-
-@media (min-width: 768px) {
-  .sc-lp__conteudo--dois {
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: var(--espaco-7);
-  }
-
-  /*
-   * No capítulo invertido o desenho vem primeiro na TELA e continua depois na
-   * LEITURA: quem ouve a página recebe o texto antes da decoração, que é a
-   * ordem que importa. Trocar a ordem no documento inverteria as duas.
-   */
-  .sc-lp__capitulo--invertido .sc-lp__coluna {
-    order: 2;
-  }
-
-  .sc-lp__capitulo--invertido .sc-lp__figura {
-    order: 1;
-  }
-}
-
-.sc-lp__coluna {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-  min-inline-size: 0;
-}
-
-.sc-lp__figura {
-  display: grid;
-  place-items: center;
-  min-inline-size: 0;
-}
-
-/*
- * O DESENHO É DA COR DA TINTA, e não da cor escolhida.
- *
- * Ele herdava a cor da landing, e enquanto ela era vermelha isso funcionava. Com
- * a landing verde, o traço verde sobre o fundo escuro — que também puxa para o
- * verde — ficou tão perto do fundo que a figura sumia: uma foto de teste mostrou
- * os papéis quase invisíveis.
- *
- * Tinta resolve nos dois temas de uma vez, e sem escolher lado nenhum: é branca
- * no escuro e quase preta no claro, sempre no contraste máximo contra o fundo
- * que estiver atrás. A opacidade é o que a mantém decoração — ela não pode
- * competir com o texto, que é da mesma cor.
- *
- * Traço e não foto continua valendo: foto ficaria presa na cor de quem a tirou.
- */
-.sc-lp__desenho {
-  inline-size: 100%;
-  max-inline-size: 24rem;
-  block-size: auto;
+.sc-lp-comparativo td::before {
+  content: attr(data-rotulo);
   color: var(--cor-tinta);
-  opacity: 0.5;
+  font-weight: var(--peso-forte);
 }
 
-/* --- os pontos ganham marca de verificado -------------------------------
+.sc-lp-comparativo td svg {
+  display: none;
+}
+
+.sc-lp-comparativo td:last-child {
+  padding-block-end: var(--espaco-4);
+}
+
+.sc-lp-comparativo td[data-empresa="simpleclick"] {
+  margin: var(--espaco-1) var(--espaco-3) var(--espaco-2);
+  padding: var(--espaco-3);
+  border-radius: var(--raio-3);
+  background: color-mix(in oklab, var(--marca-verde-click) 18%, transparent);
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-comparativo {
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-janela);
+    background: var(--cor-superficie-alta);
+    box-shadow: var(--sombra-larga);
+  }
+
+  .sc-lp-comparativo table {
+    table-layout: fixed;
+  }
+
+  .sc-lp-comparativo thead {
+    display: table-header-group;
+  }
+
+  .sc-lp-comparativo tbody {
+    display: table-row-group;
+  }
+
+  .sc-lp-comparativo tr {
+    display: table-row;
+    border: 0;
+    background: none;
+  }
+
+  .sc-lp-comparativo th,
+  .sc-lp-comparativo td {
+    display: table-cell;
+    padding: var(--espaco-4) var(--espaco-5);
+    border-block-end: 1px solid var(--cor-borda);
+    vertical-align: middle;
+  }
+
+  .sc-lp-comparativo tbody tr:last-child > * {
+    border-block-end: 0;
+  }
+
+  .sc-lp-comparativo thead th {
+    color: var(--cor-tinta);
+    font-family: var(--fonte-titulo);
+    font-size: var(--texto-lg);
+    font-weight: var(--peso-forte);
+    text-align: start;
+  }
+
+  .sc-lp-comparativo th[scope="row"] {
+    inline-size: 17%;
+    font-size: var(--texto-base);
+  }
+
+  .sc-lp-comparativo td::before {
+    content: none;
+  }
+
+  .sc-lp-comparativo td:last-child {
+    padding-block-end: var(--espaco-4);
+  }
+
+  /* A coluna do SimpleClick em destaque: fundo verde de cima a baixo. */
+  .sc-lp-comparativo [data-empresa="simpleclick"],
+  .sc-lp-comparativo td[data-empresa="simpleclick"] {
+    margin: 0;
+    border-radius: 0;
+    background: color-mix(in oklab, var(--marca-verde-click) 16%, transparent);
+  }
+
+  .sc-lp-comparativo thead th[data-empresa="simpleclick"] {
+    background: var(--marca-verde-click);
+    color: var(--marca-preto-tecnologico);
+  }
+
+  .sc-lp-comparativo td svg {
+    display: inline-block;
+    margin-inline-end: var(--espaco-1);
+    color: var(--cor-primaria-texto);
+    vertical-align: -3px;
+  }
+}
+
+.sc-lp-fontes {
+  margin-block-start: var(--espaco-5);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  line-height: 1.5;
+}
+
+.sc-lp-fontes summary {
+  display: inline-flex;
+  min-block-size: var(--altura-toque);
+  align-items: center;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.sc-lp-fontes ul {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: var(--espaco-2) 0;
+  padding-inline-start: var(--espaco-5);
+}
+
+.sc-lp-fontes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--espaco-1);
+}
+
+.sc-lp-fontes a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-tinta);
+}
+
+.sc-lp-fontes p {
+  max-inline-size: 70ch;
+  margin: var(--espaco-2) 0 0;
+}
+
+/* --- movimento ----------------------------------------------------------
  *
- * A MARCA É VERDE EM TODAS AS LISTAS, inclusive na de problemas.
- *
- * Ela acompanhava `--cor-da-landing`, e com o tema vermelho a página ficava com
- * dez sinais vermelhos ao lado de vantagens: a forma dizia "confere" e a cor
- * dizia "erro". A cor vence essa disputa — ninguém lê o desenho do risquinho
- * antes de reagir à cor dele.
- *
- * A lista do primeiro capítulo chegou a ter marca própria, em vermelho, para
- * não dizer "aprovado" ao lado de "pedido anotado errado". Foi revertido: o
- * dono do produto pediu verde em todas, e ali a marca lê como item conferido de
- * uma lista do que dói hoje — que é o que ela é.
- *
- * É o mesmo verde de aprovação que o produto usa no resto do sistema, e por
- * isso ele muda junto com o tema sem nenhuma regra extra aqui.
+ * Só para quem não pediu menos movimento. Sem esta consulta, nada se mexe e
+ * tudo já está no lugar.
  */
 
-.sc-lp__pontos li::before {
-  /* Um ponto redondo é ruído; uma marca diz "isto você ganha". */
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: 0.3em;
-  inline-size: 1rem;
-  block-size: 1rem;
-  border-radius: 50%;
-  background: color-mix(in oklab, var(--cor-sucesso) 20%, transparent);
+@keyframes sc-lp-surgir {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
 }
 
-.sc-lp__pontos li::after {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0.3rem;
-  inset-block-start: 0.62em;
-  inline-size: 0.35rem;
-  block-size: 0.2rem;
-  border-inline-start: 2px solid var(--cor-sucesso);
-  border-block-end: 2px solid var(--cor-sucesso);
-  transform: rotate(-45deg);
+@keyframes sc-lp-flutuar {
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
-.sc-lp__pontos li {
-  padding-inline-start: var(--espaco-6);
+@keyframes sc-lp-pintar {
+  from {
+    background-size: 0% 100%;
+  }
+}
+
+@keyframes sc-lp-pulsar {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px
+      color-mix(in oklab, var(--marca-verde-click) 25%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px
+      color-mix(in oklab, var(--marca-verde-click) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-lp-abertura__texto > * {
+    animation: sc-lp-surgir 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sc-lp-abertura__texto > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+
+  .sc-lp-abertura__texto > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  .sc-lp-abertura__texto > :nth-child(n + 4) {
+    animation-delay: 180ms;
+  }
+
+  .sc-lp-abertura__titulo .sc-lp-marca-texto {
+    animation: sc-lp-pintar 700ms 450ms cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+
+  .sc-lp-abertura__vitrine {
+    animation: sc-lp-surgir 800ms 150ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sc-lp-aparelho--flutuante {
+    animation: sc-lp-flutuar 6s ease-in-out infinite;
+  }
+
+  .sc-lp-selo__ponto {
+    animation: sc-lp-pulsar 2.4s ease-in-out infinite;
+  }
+
 }

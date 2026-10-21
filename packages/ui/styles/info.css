@@ -1,0 +1,160 @@
+/*
+ * Info: o botão "i" na linha do rótulo e o balão de explicação.
+ *
+ * O botão fica no fluxo do texto (inline), logo depois do rótulo: não há
+ * `position: absolute` aqui, de propósito — o "i" nunca pode ficar por cima do
+ * controle. O alvo de toque tem 24px, mas a margem negativa na vertical faz
+ * ele não esticar a linha do rótulo.
+ *
+ * O balão é `position: fixed` com a posição calculada em
+ * `src/info-posicao.ts`. Com `popover`, entra na camada de topo (acima de
+ * `<dialog>` modal); sem ele, o `z-index` o põe acima dos painéis e janelas do
+ * projeto (o maior hoje é 80, do Seletor).
+ */
+
+.sc-info {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  /* Ocupa a altura de uma linha de texto, sem empurrar a linha. */
+  margin-block: -0.25rem;
+}
+
+.sc-info__botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  /* A regra geral de 44px para botões esticaria a linha do rótulo; 24px é o
+     alvo mínimo (WCAG 2.5.8) e o "i" não tem vizinho clicável colado. */
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta-suave);
+  cursor: pointer;
+  transition:
+    color var(--transicao-rapida),
+    background-color var(--transicao-rapida);
+}
+
+.sc-info__botao:hover,
+.sc-info__botao[data-aberto] {
+  color: var(--cor-primaria-texto);
+  background-color: var(--cor-primaria-suave);
+}
+
+.sc-info__botao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 1px;
+}
+
+.sc-info__icone {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sc-info__balao {
+  position: fixed;
+  inset: auto;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-3);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  text-align: start;
+  animation: sc-info-surgir var(--transicao-rapida) both;
+}
+
+.sc-info__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sc-info__corpo p {
+  margin: 0;
+}
+
+.sc-info__titulo {
+  font-weight: var(--peso-forte);
+  color: var(--cor-tinta);
+}
+
+.sc-info__texto {
+  color: var(--cor-tinta);
+}
+
+.sc-info__exemplo {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-info__ex {
+  font-weight: var(--peso-medio);
+  color: var(--cor-primaria-texto);
+}
+
+/* Seta: quadrado girado, metade para fora do balão, apontando o ícone. */
+.sc-info__seta {
+  position: absolute;
+  left: calc(var(--sc-info-seta-x, 50%) - 0.375rem);
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: var(--cor-superficie-alta);
+  border: 1px solid var(--cor-borda-forte);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.sc-info__balao[data-lado="cima"] .sc-info__seta {
+  bottom: -0.4375rem;
+  border-top-color: transparent;
+  border-left-color: transparent;
+}
+
+.sc-info__balao[data-lado="baixo"] .sc-info__seta {
+  top: -0.4375rem;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+
+@keyframes sc-info-surgir {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-info__balao {
+    animation: none;
+  }
+
+  .sc-info__botao {
+    transition: none;
+  }
+}
+
+/* Na moldura do Campo: rótulo e "i" na mesma linha. */
+.sc-campo__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-1);
+}

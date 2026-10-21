@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Seletor } from "@simpleclick/ui";
 
 /**
  * As especificações que o produto herda da categoria (T-301, AC-326).
@@ -337,11 +338,11 @@ export function CamposDeEspecificacao({
                 {rotulo}
               </label>
               {especificacao.tipo === "lista" ? (
-                <select
+                <Seletor
                   {...comuns}
                   value={vazio(valor) ? "" : String(valor)}
-                  onChange={(evento) =>
-                    mudar(especificacao.id, evento.target.value || null)
+                  onChange={(escolhido) =>
+                    mudar(especificacao.id, escolhido || null)
                   }
                 >
                   <option value="">Escolha…</option>
@@ -350,24 +351,22 @@ export function CamposDeEspecificacao({
                       {opcao}
                     </option>
                   ))}
-                </select>
+                </Seletor>
               ) : especificacao.tipo === "booleano" ? (
-                <select
+                <Seletor
                   {...comuns}
                   value={vazio(valor) ? "" : valor === true ? "sim" : "nao"}
-                  onChange={(evento) =>
+                  onChange={(escolhido) =>
                     mudar(
                       especificacao.id,
-                      evento.target.value === ""
-                        ? null
-                        : evento.target.value === "sim",
+                      escolhido === "" ? null : escolhido === "sim",
                     )
                   }
                 >
                   <option value="">Escolha…</option>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
-                </select>
+                </Seletor>
               ) : (
                 <input
                   {...comuns}

@@ -9,3 +9,5 @@ export * from "./admin-lista.ts";
 export * from "./admin-ficha.ts";
 export * from "./admin-documentos.ts";
 export * from "./admin-situacao.ts";
+export * from "./admin-metricas.ts";
+export * from "./admin-gestao.ts";

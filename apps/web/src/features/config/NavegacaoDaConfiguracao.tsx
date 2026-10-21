@@ -28,7 +28,7 @@ export function NavegacaoDaConfiguracaoNaTela({
   const caminho = usePathname();
   return (
     <nav
-      className="mt-6 -mx-1 overflow-x-auto px-1 pb-1"
+      className="mt-6 -mx-4 overflow-x-auto px-4 pb-1 sm:-mx-1 sm:px-1"
       aria-label="Configurações da loja"
     >
       <ul className="flex w-max gap-2">

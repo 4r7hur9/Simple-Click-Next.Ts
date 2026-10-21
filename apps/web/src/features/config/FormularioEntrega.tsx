@@ -15,6 +15,7 @@
 import type { SecaoDeEntrega } from "@simpleclick/contracts";
 
 import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
+import { comInfo, InfoDoPainel, RotuloComInfo } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
 
 type CampoDeDinheiro =
@@ -51,10 +52,18 @@ const CAMPOS_DE_DINHEIRO: readonly (readonly [
   string,
   string,
 ])[] = [
-  ["taxaCentavos", "Taxa de entrega (R$)", "8,00"],
-  ["gratisAcimaDeCentavos", "Entrega grátis acima de (R$)", "60,00"],
-  ["minimoParaEntregaCentavos", "Mínimo para entrega (R$)", "25,00"],
-  ["minimoParaRetiradaCentavos", "Mínimo para retirada (R$)", "0,00"],
+  ["taxaCentavos", "Taxa de entrega (R$)", "Ex.: 8,00"],
+  ["gratisAcimaDeCentavos", "Entrega grátis acima de (R$)", "Ex.: 60,00"],
+  [
+    "minimoParaEntregaCentavos",
+    "Pedido mínimo para entrega (R$)",
+    "Ex.: 25,00",
+  ],
+  [
+    "minimoParaRetiradaCentavos",
+    "Pedido mínimo para retirada (R$)",
+    "Ex.: 10,00",
+  ],
 ];
 
 /**
@@ -120,7 +129,8 @@ export function entregaParaApi(
   }
   const prazo = entrega.prazoMinutos.trim();
   if (prazo !== "" && !/^\d+$/.test(prazo)) {
-    erros["prazoMinutos"] = "Prazo: informe os minutos em número inteiro.";
+    erros["prazoMinutos"] =
+      "Tempo estimado: informe os minutos em número inteiro, como 40.";
   }
   if (Object.keys(erros).length > 0) return { ok: false, erros };
 
@@ -174,7 +184,13 @@ export function FormularioEntrega() {
       noValidate
     >
       <fieldset className="space-y-3">
-        <legend className="font-medium">Modos de recebimento</legend>
+        <legend className="flex items-center gap-1.5 font-medium">
+          Modos de recebimento
+          <InfoDoPainel
+            explicacao="modosDeRecebimento"
+            nome="Modos de recebimento"
+          />
+        </legend>
         {(
           [
             ["aceitaEntrega", "Entrega"],
@@ -202,59 +218,85 @@ export function FormularioEntrega() {
 
       {CAMPOS_DE_DINHEIRO.map(([campo, rotulo, exemplo]) => (
         <div key={campo}>
-          <label className="block">
-            <span>{rotulo}</span>
-            <input
-              className="sc-campo mt-2 w-full"
-              type="text"
-              inputMode="decimal"
-              name={campo}
-              value={dados[campo]}
-              onChange={(evento) => mudarCampo(campo, evento.target.value)}
-              placeholder={exemplo}
-              {...atributosDeErro(campo, erros)}
-            />
-          </label>
+          <RotuloComInfo
+            para={`entrega-${campo}`}
+            explicacao={campo}
+            nome={rotulo}
+          >
+            {rotulo}
+          </RotuloComInfo>
+          <input
+            id={`entrega-${campo}`}
+            className="sc-campo mt-2 w-full"
+            type="text"
+            inputMode="decimal"
+            name={campo}
+            value={dados[campo]}
+            onChange={(evento) => mudarCampo(campo, evento.target.value)}
+            placeholder={exemplo}
+            {...comInfo(`entrega-${campo}`, atributosDeErro(campo, erros))}
+          />
+          {campo === "taxaCentavos" ? (
+            <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+              Vazio aparece como “a combinar”; 0,00 é entrega grátis.
+            </p>
+          ) : null}
           <ErroDoCampo campo={campo} erros={erros} />
         </div>
       ))}
       <div>
-        <label className="block">
-          <span>Nome da taxa</span>
-          <input
-            className="sc-campo mt-2 w-full"
-            name="nomeDaTaxa"
-            value={dados.nomeDaTaxa}
-            maxLength={80}
-            onChange={(evento) => mudarCampo("nomeDaTaxa", evento.target.value)}
-            {...atributosDeErro("nomeDaTaxa", erros)}
-          />
-          <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
-            É como a linha aparece no resumo do cliente: “Motoboy”, “Frete”.
-          </span>
-        </label>
+        <RotuloComInfo
+          para="entrega-nomeDaTaxa"
+          explicacao="nomeDaTaxa"
+          nome="Nome da taxa"
+        >
+          Nome da taxa
+        </RotuloComInfo>
+        <input
+          id="entrega-nomeDaTaxa"
+          className="sc-campo mt-2 w-full"
+          name="nomeDaTaxa"
+          value={dados.nomeDaTaxa}
+          maxLength={80}
+          placeholder="Ex.: Motoboy"
+          onChange={(evento) => mudarCampo("nomeDaTaxa", evento.target.value)}
+          {...comInfo(
+            "entrega-nomeDaTaxa",
+            atributosDeErro("nomeDaTaxa", erros),
+          )}
+        />
+        <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
+          É como a linha aparece no resumo do cliente: “Motoboy”, “Frete”.
+        </p>
         <ErroDoCampo campo="nomeDaTaxa" erros={erros} />
       </div>
       <div>
-        <label className="block">
-          <span>Prazo estimado (minutos)</span>
-          <input
-            className="sc-campo mt-2 w-full"
-            type="text"
-            inputMode="numeric"
-            name="prazoMinutos"
-            value={dados.prazoMinutos}
-            onChange={(evento) =>
-              mudarCampo("prazoMinutos", evento.target.value)
-            }
-            {...atributosDeErro("prazoMinutos", erros)}
-          />
-        </label>
+        <RotuloComInfo
+          para="entrega-prazoMinutos"
+          explicacao="prazoMinutos"
+          nome="Tempo estimado de entrega"
+        >
+          Tempo estimado de entrega (minutos)
+        </RotuloComInfo>
+        <input
+          id="entrega-prazoMinutos"
+          className="sc-campo mt-2 w-full"
+          type="text"
+          inputMode="numeric"
+          name="prazoMinutos"
+          value={dados.prazoMinutos}
+          placeholder="Ex.: 40"
+          onChange={(evento) => mudarCampo("prazoMinutos", evento.target.value)}
+          {...comInfo(
+            "entrega-prazoMinutos",
+            atributosDeErro("prazoMinutos", erros),
+          )}
+        />
         <ErroDoCampo campo="prazoMinutos" erros={erros} />
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <button
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           type="submit"
           disabled={secao.salvando}
         >

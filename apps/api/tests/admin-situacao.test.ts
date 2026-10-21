@@ -202,13 +202,13 @@ describe("loja suspensa sai do ar sem perder dados (AC-209)", () => {
 
       expect(resposta.status).toBe(200);
       const suspensa = ficha(resposta);
-      expect(suspensa.status).toBe("SUSPENDED");
+      expect(suspensa.status).toBe("INACTIVE");
       expect(suspensa.suspensao?.motivo).toBe("Mensalidade em atraso");
       expect(suspensa.historico[0]).toMatchObject({
-        acao: "LOJA_SUSPENSA",
+        acao: "LOJA_DESATIVADA",
         quem: { id: administradora.id, nome: "Administradora geral" },
         campos: [
-          { campo: "status", antes: "ACTIVE", depois: "SUSPENDED" },
+          { campo: "status", antes: "ACTIVE", depois: "INACTIVE" },
           { campo: "motivo", antes: null, depois: "Mensalidade em atraso" },
         ],
       });
@@ -218,7 +218,7 @@ describe("loja suspensa sai do ar sem perder dados (AC-209)", () => {
       const daInexistente = await vitrine("loja-que-nunca-existiu");
       expect(daSuspensa.status).toBe(404);
       expect(daSuspensa.status).toBe(daInexistente.status);
-      expect(JSON.stringify(daSuspensa.body)).not.toContain("SUSPENDED");
+      expect(JSON.stringify(daSuspensa.body)).not.toContain("INACTIVE");
       // E o fechamento também não atende.
       const fechamento = await request(api.app).get(
         `/v1/vitrine/${loja.apelido}/fechamento`,
@@ -246,7 +246,7 @@ describe("loja suspensa sai do ar sem perder dados (AC-209)", () => {
       expect(resposta.status).toBe(200);
       expect(resposta.headers["cache-control"]).toContain("no-store");
       const situacao = esquemaDaSituacaoParaODono.parse(resposta.body);
-      expect(situacao.status).toBe("SUSPENDED");
+      expect(situacao.status).toBe("INACTIVE");
       expect(situacao.suspensao?.motivo).toBe("Mensalidade em atraso");
       expect(Date.parse(situacao.suspensao?.desde ?? "")).not.toBeNaN();
     },
@@ -270,6 +270,8 @@ describe("loja suspensa sai do ar sem perder dados (AC-209)", () => {
       expect(esquemaDaSituacaoParaODono.parse(daOutra.body)).toEqual({
         status: "ACTIVE",
         suspensao: null,
+        recusa: null,
+        aguardandoAprovacao: false,
       });
     },
     ESPERA_DA_ADMINISTRACAO,
@@ -343,7 +345,7 @@ describe("reativação devolve a loja ao ar como estava (AC-210)", () => {
       const reativada = ficha(resposta);
       expect(reativada.status).toBe("ACTIVE");
       expect(reativada.suspensao).toBeNull();
-      expect(reativada.historico[0]?.acao).toBe("LOJA_REATIVADA");
+      expect(reativada.historico[0]?.acao).toBe("LOJA_ATIVADA");
       const campos = Object.fromEntries(
         (reativada.historico[0]?.campos ?? []).map((campo) => [
           campo.campo,
@@ -373,6 +375,8 @@ describe("reativação devolve a loja ao ar como estava (AC-210)", () => {
       expect(esquemaDaSituacaoParaODono.parse(situacao.body)).toEqual({
         status: "ACTIVE",
         suspensao: null,
+        recusa: null,
+        aguardandoAprovacao: false,
       });
     },
     ESPERA_DA_ADMINISTRACAO,
@@ -388,7 +392,7 @@ describe("reativação devolve a loja ao ar como estava (AC-210)", () => {
       expect(resposta.status).toBe(200);
       expect(
         ficha(resposta).historico.filter(
-          (registro) => registro.acao === "LOJA_REATIVADA",
+          (registro) => registro.acao === "LOJA_ATIVADA",
         ),
       ).toEqual([]);
     },
@@ -516,20 +520,20 @@ describe("exclusão exige confirmação e é reversível por prazo (AC-211)", ()
       expect(resposta.status).toBe(200);
       const restaurada = ficha(resposta);
       // Estava suspensa quando foi excluída: volta suspensa.
-      expect(restaurada.status).toBe("SUSPENDED");
+      expect(restaurada.status).toBe("INACTIVE");
       expect(restaurada.retencao).toBeNull();
       expect(restaurada.suspensao?.motivo).toBe("Documentação pendente");
       expect(restaurada.historico[0]).toMatchObject({
         acao: "LOJA_RESTAURADA",
         campos: expect.arrayContaining([
-          { campo: "status", antes: "DELETED", depois: "SUSPENDED" },
+          { campo: "status", antes: "DELETED", depois: "INACTIVE" },
         ]),
       });
       expect(
         esquemaDaSituacaoParaODono.parse(
           (await situacaoDoDono(loja.apelido, loja.dono.id)).body,
         ).status,
-      ).toBe("SUSPENDED");
+      ).toBe("INACTIVE");
     },
     ESPERA_DA_ADMINISTRACAO,
   );
@@ -622,7 +626,6 @@ describe("exclusão exige confirmação e é reversível por prazo (AC-211)", ()
       });
       // Acesso, endereços e configuração saem.
       expect(await contar("store_members", lojaId)).toBe(0);
-      expect(await contar("store_domains", lojaId)).toBe(0);
       const configuracao = await migrador.query<{ payment: unknown }>(
         `SELECT payment FROM app.store_settings WHERE store_id = $1`,
         [lojaId],

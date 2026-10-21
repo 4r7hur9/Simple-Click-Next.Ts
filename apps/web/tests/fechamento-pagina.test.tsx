@@ -56,6 +56,13 @@ const PEDIDO: PedidoNaTela = {
   },
 };
 
+/** A conta logada: nome, e-mail e telefone saem dela. */
+const CONTA = {
+  nome: "Ana Paula",
+  email: "ana@cliente.test",
+  telefone: "+5511988887777",
+};
+
 // Anotado de propósito: sem o tipo, o `null` dos dois últimos campos vira o
 // tipo `null`, e os cenários que os sobrescrevem com número não compilam.
 const ENTREGA: EntregaDaLojaNaTela = {
@@ -107,8 +114,9 @@ async function montar(cenario: Cenario = {}) {
             : cenario.pix
         }
         entrega={cenario.entrega ?? ENTREGA}
-        linkDoCatalogo={`/l/${LOJA}/catalogo`}
+        linkDoCatalogo={`/loja/${LOJA}/cardapio`}
         rotuloDoCatalogo="Cardápio"
+        conta={CONTA}
         conferir={conferir as never}
         fechar={fechar as never}
       />,
@@ -260,7 +268,7 @@ describe("carrinho vazio não é erro", () => {
     });
 
     expect(caixa.textContent).toContain("carrinho está vazio");
-    expect(caixa.querySelector(`a[href="/l/${LOJA}/catalogo"]`)).not.toBeNull();
+    expect(caixa.querySelector(`a[href="/loja/${LOJA}/cardapio"]`)).not.toBeNull();
     desmontar();
   });
 });
@@ -297,7 +305,8 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
     });
 
     const enviado = fechar.mock.calls[0]?.[1] as { totalVistoCentavos: number };
-    expect(enviado.totalVistoCentavos).toBe(5300);
+    // Retirada: sem taxa, o total visto é só o dos itens.
+    expect(enviado.totalVistoCentavos).toBe(4600);
     desmontar();
   });
 
@@ -364,8 +373,9 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
           formasDePagamento={["CASH"]}
           pix={null}
           entrega={ENTREGA}
-          linkDoCatalogo={`/l/${LOJA}/catalogo`}
+          linkDoCatalogo={`/loja/${LOJA}/cardapio`}
           rotuloDoCatalogo="Cardápio"
+          conta={CONTA}
           conferir={conferir as never}
           fechar={fechar as never}
         />,
@@ -384,7 +394,7 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
     expect(caixa.textContent).toContain("não cadastrou WhatsApp");
     expect(
       caixa.querySelector(
-        `a[href="/l/${LOJA}/pedido/token-secreto-do-pedido"]`,
+        `a[href="/loja/${LOJA}/pedido/token-secreto-do-pedido"]`,
       ),
     ).not.toBeNull();
 
@@ -406,7 +416,7 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
     expect(caixa.textContent).toContain("A-0042");
     expect(
       caixa.querySelector(
-        `a[href="/l/${LOJA}/pedido/token-secreto-do-pedido"]`,
+        `a[href="/loja/${LOJA}/pedido/token-secreto-do-pedido"]`,
       ),
     ).not.toBeNull();
     desmontar();
@@ -414,34 +424,10 @@ describe("fechar o pedido (AC-504, AC-516)", () => {
 });
 
 /**
- * Preenche os campos obrigatórios do formulário.
- *
- * O VALOR VAI PELO SETTER NATIVO, e não por `elemento.value = ...`: campo
- * controlado pelo React ignora a atribuição direta, e o formulário continuaria
- * vazio — bloqueando o envio por um motivo que não é o do teste.
+ * Deixa o formulário pronto para enviar. Nome e telefone vêm da conta; a
+ * retirada é o caminho mais curto até o envio (sem endereço), e o que estes
+ * testes exercitam é o envio.
  */
-function digitar(elemento: HTMLInputElement | null, texto: string) {
-  if (elemento === null) return;
-  const setter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    "value",
-  )?.set;
-  setter?.call(elemento, texto);
-  elemento.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
 function preencher(caixa: HTMLElement) {
-  act(() => {
-    // Retirada primeiro: sem endereço obrigatório, é o caminho mais curto até
-    // o envio, e o que este teste quer exercitar é o envio.
-    clicar(caixa.querySelector('input[value="PICKUP"]'));
-    digitar(
-      caixa.querySelector<HTMLInputElement>('input[name="nome"]'),
-      "Ana Paula",
-    );
-    digitar(
-      caixa.querySelector<HTMLInputElement>('input[name="telefone"]'),
-      "11988887777",
-    );
-  });
+  clicar(caixa.querySelector('input[value="PICKUP"]'));
 }

@@ -123,6 +123,18 @@ describe("recusa que explica o que falta (AC-913)", () => {
     }
   });
 
+  it("código de área 00 é citado como foi digitado, não como o que sobra do zero da discagem", () => {
+    // "(00) 98666-0006": tirar o zero da discagem deixaria "09" no lugar do
+    // DDD, e a frase apontaria um número que a pessoa não digitou.
+    const resultado = normalizarWhatsApp("(00) 98666-0006");
+
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) {
+      expect(resultado.causa).toBe("DDD_DESCONHECIDO");
+      expect(resultado.explicacao).toContain("código de área 00 ");
+    }
+  });
+
   it("@spec:AC-913 celular no formato antigo é recusado sem o sistema chutar o nove", () => {
     // Acrescentar o 9 sozinho pareceria gentileza e seria adivinhação: o número
     // resultante pode ser de outra pessoa, e ninguém saberia.

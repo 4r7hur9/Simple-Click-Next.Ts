@@ -124,6 +124,15 @@ export function blocosDoItem(item: ItemDoPedido): BlocoDoCupom[] {
       negrito: true,
     },
   ];
+  const atacado = item.atacado;
+  if (atacado !== undefined && atacado !== null) {
+    const rotulo = presente(atacado.rotulo);
+    blocos.push({
+      tipo: "texto",
+      texto: `* ATACADO ${String(atacado.quantidadeMinima)}+ un.: ${reais(atacado.unitarioEmCentavos)}/un.${rotulo === null ? "" : ` - ${rotulo}`}`,
+      recuo: 3,
+    });
+  }
   for (const opcao of item.opcoes ?? []) blocos.push(linhaDaOpcao(opcao));
   const observacao = presente(item.observacao);
   if (observacao !== null) {

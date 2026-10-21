@@ -1,31 +1,30 @@
 "use client";
 
 /**
- * O menu lateral das áreas logadas (painel do dono e, depois, a administração).
+ * O menu lateral das áreas logadas (painel do dono e administração).
  *
- * Não sabe nada de loja: recebe os itens por propriedade e só decide como
- * mostrá-los em cada tamanho de tela.
+ * Não sabe nada de loja nem de papel: recebe as SEÇÕES prontas e só decide
+ * como mostrá-las em cada tamanho de tela. Todas as funções ficam à vista, em
+ * seções com título — não há grupo que abra e feche. Se a lista passar da
+ * altura da tela, a rolagem é interna ao menu e sem barra à vista (roda do
+ * mouse, toque e Tab continuam rolando: o item focado entra na tela sozinho).
  *
  * - Computador (lg+): o menu inteiro, com nome e ícone.
- * - Tablet (md até lg): uma faixa só de ícones. O nome aparece numa dica ao
- *   passar o mouse E ao chegar pelo teclado, e continua no texto do link, que
- *   é o que o leitor de tela lê.
+ * - Tablet (md até lg): uma faixa só de ícones, que também rola por dentro
+ *   (sem ela, os ícones que não cabem esticavam a página para baixo). O nome
+ *   aparece numa dica ao passar o mouse E ao chegar pelo teclado, desenhada
+ *   numa camada fixa fora da faixa para a rolagem não cortá-la; no link ele
+ *   continua como texto, que é o que o leitor de tela lê.
  * - Celular (abaixo de md): uma barra no topo abre o menu como gaveta, sobre um
  *   fundo escurecido. Esc, o fundo e o botão de fechar fecham. Embaixo fica uma
- *   barra fixa com os atalhos.
+ *   barra fixa com os atalhos e o botão "Menu", que abre a gaveta.
  *
  * O menu é grafite nos dois temas (`data-tema="escuro"` só neste trecho), e o
  * item da página atual leva o verde da marca com letra escura. A gaveta desliza
  * com uma transição CSS curta, e só quando a pessoa não pediu menos movimento.
  */
 
-import {
-  Botao,
-  IconeFechar,
-  IconeMenu,
-  IconeSeta,
-  type Icone,
-} from "@simpleclick/ui";
+import { Botao, IconeFechar, IconeMenu } from "@simpleclick/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -39,201 +38,77 @@ import {
   type ReactNode,
 } from "react";
 
-export interface SubitemDoMenu {
-  readonly rotulo: string;
-  readonly href: string;
-}
+import { FOCO } from "./estilo-do-menu.ts";
+import { SecaoDoMenu } from "./SecaoDoMenu.tsx";
+import {
+  itemEstaAtivo,
+  type ItemDoMenu,
+  type SecaoDoMenu as SecaoNoMenu,
+} from "./tipos-do-menu.ts";
 
-export interface ItemDoMenu {
-  readonly rotulo: string;
-  readonly href: string;
-  readonly icone: Icone;
-  /** Ativo só no endereço exato (a página inicial, que é prefixo de todas). */
-  readonly exato?: boolean;
-  /**
-   * Com subitens, o item vira um grupo que abre e fecha (`aria-expanded`). Na
-   * faixa só de ícones o grupo não cabe: o item vira link para o `href`.
-   */
-  readonly subitens?: readonly SubitemDoMenu[];
-}
+export { itemEstaAtivo };
+export type { ItemDoMenu, SecaoNoMenu as SecaoDoMenu };
 
 export interface PropsDoMenuLateral {
   /** Nome da navegação para o leitor de tela. */
   readonly rotulo: string;
   /** A marca no topo do menu (normalmente um link para o início). */
   readonly marca: ReactNode;
-  /** Uma linha de contexto sob a marca — por exemplo, a loja aberta. */
+  /** Sob a marca, no menu: por exemplo, a loja aberta. */
   readonly contexto?: ReactNode;
-  readonly itens: readonly ItemDoMenu[];
-  /** Itens secundários no pé do menu (ver a loja, trocar de loja, conta). */
+  /** Sob a marca, na barra do topo do celular (cabe pouco). Padrão: `contexto`. */
+  readonly contextoDoTopo?: ReactNode;
+  /** As seções do menu, em ordem. Tem precedência sobre `itens`. */
+  readonly secoes?: readonly SecaoNoMenu[];
+  /** Atalho para uma lista simples, sem títulos (a administração usa). */
+  readonly itens?: readonly ItemDoMenu[];
+  /** Itens secundários no pé do menu, depois de `itens`. */
   readonly itensDoRodape?: readonly ItemDoMenu[];
-  /** Os atalhos da barra de baixo do celular. Use de 4 a 5. */
+  /** Os atalhos da barra de baixo do celular. Use de 3 a 5. */
   readonly atalhos?: readonly ItemDoMenu[];
+  /** Acrescenta o botão "Menu" à barra de baixo, para abrir a gaveta. */
+  readonly botaoDoMenuNosAtalhos?: boolean;
+  /** Quem está logado (avatar, Minha conta, Sair), no pé do menu. */
+  readonly usuario?: ReactNode;
 }
 
 /** A largura a partir da qual o menu deixa de ser gaveta (o `md` do Tailwind). */
 const SEM_GAVETA = "(min-width: 48rem)";
 
-function bateCom(caminho: string | null, href: string, exato = false): boolean {
-  if (caminho === null) return false;
-  if (exato) return caminho === href;
-  return caminho === href || caminho.startsWith(`${href}/`);
+/** A faixa só de ícones (do `md` ao `lg` do Tailwind). */
+const FAIXA_DE_ICONES = "(min-width: 48rem) and (max-width: 63.99rem)";
+
+interface Dica {
+  readonly texto: string;
+  readonly esquerda: number;
+  readonly meio: number;
 }
 
-/** O item é a página atual, ou o grupo contém a página atual. */
-export function itemEstaAtivo(
-  caminho: string | null,
-  item: ItemDoMenu,
-): boolean {
-  if (bateCom(caminho, item.href, item.exato)) return true;
-  return (item.subitens ?? []).some((sub) => bateCom(caminho, sub.href));
+/** A dica do item sob o mouse ou o foco, só na faixa de ícones. */
+function dicaDoItem(alvo: EventTarget | null): Dica | null {
+  if (!(alvo instanceof Element)) return null;
+  if (!window.matchMedia(FAIXA_DE_ICONES).matches) return null;
+  const item = alvo.closest("a, button");
+  const texto = item?.querySelector("[data-nome-do-item]")?.textContent?.trim();
+  if (item == null || !texto) return null;
+  const caixa = item.getBoundingClientRect();
+  return {
+    texto,
+    esquerda: caixa.right + 12,
+    meio: caixa.top + caixa.height / 2,
+  };
 }
 
-const FOCO =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cor-foco)]";
-
-const BASE_DO_ITEM = `group relative flex min-h-[var(--altura-toque-grande)] w-full items-center gap-3 rounded-[var(--raio)] px-3 text-left text-sm font-medium motion-safe:transition-colors motion-safe:duration-150 md:max-lg:justify-center md:max-lg:px-0 ${FOCO}`;
-
-const ITEM_ATIVO =
-  "bg-[var(--cor-primaria)] font-semibold text-[var(--cor-em-primaria)]";
-const ITEM_COM_ATIVO_DENTRO =
-  "bg-[var(--cor-superficie-alta)] text-[var(--cor-tinta)]";
-const ITEM_PARADO =
-  "text-[var(--cor-tinta-suave)] hover:bg-[var(--cor-superficie-alta)] hover:text-[var(--cor-tinta)]";
-
-/**
- * O nome do item. Na faixa de ícones ele vira dica: continua no DOM (o link
- * segue com nome), só fica transparente até o mouse ou o foco chegar.
- */
-const NOME_DO_ITEM =
-  "truncate md:max-lg:pointer-events-none md:max-lg:absolute md:max-lg:left-full md:max-lg:z-50 md:max-lg:ml-3 md:max-lg:rounded-[var(--raio)] md:max-lg:bg-[var(--cor-superficie-alta)] md:max-lg:px-3 md:max-lg:py-1.5 md:max-lg:font-medium md:max-lg:whitespace-nowrap md:max-lg:text-[var(--cor-tinta)] md:max-lg:opacity-0 md:max-lg:shadow-[var(--sombra-larga)] md:max-lg:group-hover:opacity-100 md:max-lg:group-focus-visible:opacity-100";
-
-function classeDoItem(ativo: boolean, comAtivoDentro = false): string {
-  if (ativo) return `${BASE_DO_ITEM} ${ITEM_ATIVO}`;
-  if (comAtivoDentro) return `${BASE_DO_ITEM} ${ITEM_COM_ATIVO_DENTRO}`;
-  return `${BASE_DO_ITEM} ${ITEM_PARADO}`;
-}
-
-function LinkDoMenu({
-  item,
-  caminho,
-  className = "",
-}: {
-  readonly item: ItemDoMenu;
-  readonly caminho: string | null;
-  readonly className?: string;
-}) {
-  const pagina = bateCom(caminho, item.href, item.exato);
-  const dentro = !pagina && itemEstaAtivo(caminho, item);
-  const Desenho = item.icone;
-  return (
-    <Link
-      href={item.href}
-      aria-current={pagina ? "page" : dentro ? "true" : undefined}
-      className={`${classeDoItem(pagina, dentro)} ${className}`}
-    >
-      <Desenho className="shrink-0" />
-      <span className={NOME_DO_ITEM}>{item.rotulo}</span>
-    </Link>
-  );
-}
-
-function GrupoDoMenu({
-  item,
-  caminho,
-  aberto,
-  alternar,
-}: {
-  readonly item: ItemDoMenu & { readonly subitens: readonly SubitemDoMenu[] };
-  readonly caminho: string | null;
-  readonly aberto: boolean;
-  readonly alternar: () => void;
-}) {
-  const idDaLista = useId();
-  const dentro = itemEstaAtivo(caminho, item);
-  const Desenho = item.icone;
-  return (
-    <>
-      {/* Faixa de ícones: o grupo vira link para a primeira tela dele. */}
-      <LinkDoMenu
-        item={item}
-        caminho={caminho}
-        className="hidden md:max-lg:flex"
-      />
-      <button
-        type="button"
-        aria-expanded={aberto}
-        aria-controls={idDaLista}
-        onClick={alternar}
-        className={`${classeDoItem(false, dentro)} md:max-lg:hidden`}
-      >
-        <Desenho className="shrink-0" />
-        <span className="flex-1 truncate">{item.rotulo}</span>
-        <IconeSeta
-          className={`shrink-0 motion-safe:transition-transform motion-safe:duration-150 ${aberto ? "rotate-180" : ""}`}
-        />
-      </button>
-      <ul
-        id={idDaLista}
-        hidden={!aberto}
-        className="mt-1 ml-5 flex flex-col gap-1 border-l border-[var(--cor-borda)] pl-3 md:max-lg:hidden"
-      >
-        {item.subitens.map((sub) => {
-          const pagina = bateCom(caminho, sub.href);
-          return (
-            <li key={sub.href}>
-              <Link
-                href={sub.href}
-                aria-current={pagina ? "page" : undefined}
-                className={`flex min-h-[var(--altura-toque)] items-center rounded-[var(--raio)] px-3 text-sm motion-safe:transition-colors motion-safe:duration-150 ${FOCO} ${pagina ? ITEM_ATIVO : ITEM_PARADO}`}
-              >
-                {sub.rotulo}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </>
-  );
-}
-
-function ListaDoMenu({
-  itens,
-  caminho,
-  abertos,
-  alternar,
-}: {
-  readonly itens: readonly ItemDoMenu[];
-  readonly caminho: string | null;
-  readonly abertos: Readonly<Record<string, boolean>>;
-  readonly alternar: (rotulo: string, agora: boolean) => void;
-}) {
-  return (
-    <ul className="flex flex-col gap-1">
-      {itens.map((item) => {
-        const subitens = item.subitens;
-        if (subitens === undefined || subitens.length === 0) {
-          return (
-            <li key={item.href}>
-              <LinkDoMenu item={item} caminho={caminho} />
-            </li>
-          );
-        }
-        // Fechado ou aberto à mão vale; sem toque, o grupo da página atual abre.
-        const aberto = abertos[item.rotulo] ?? itemEstaAtivo(caminho, item);
-        return (
-          <li key={item.href}>
-            <GrupoDoMenu
-              item={{ ...item, subitens }}
-              caminho={caminho}
-              aberto={aberto}
-              alternar={() => alternar(item.rotulo, aberto)}
-            />
-          </li>
-        );
-      })}
-    </ul>
-  );
+function secoesDoMenu(props: PropsDoMenuLateral): readonly SecaoNoMenu[] {
+  if (props.secoes !== undefined) return props.secoes;
+  const lista: SecaoNoMenu[] = [];
+  if (props.itens !== undefined && props.itens.length > 0) {
+    lista.push({ itens: props.itens });
+  }
+  if (props.itensDoRodape !== undefined && props.itensDoRodape.length > 0) {
+    lista.push({ itens: props.itensDoRodape });
+  }
+  return lista;
 }
 
 const SELETOR_DE_FOCAVEIS =
@@ -246,25 +121,23 @@ function focaveis(painel: HTMLElement): HTMLElement[] {
   );
 }
 
-export function MenuLateral({
-  rotulo,
-  marca,
-  contexto,
-  itens,
-  itensDoRodape = [],
-  atalhos = [],
-}: PropsDoMenuLateral) {
+export function MenuLateral(props: PropsDoMenuLateral) {
+  const {
+    rotulo,
+    marca,
+    contexto,
+    contextoDoTopo = contexto,
+    atalhos = [],
+    botaoDoMenuNosAtalhos = false,
+    usuario,
+  } = props;
+  const secoes = secoesDoMenu(props);
   const caminho = usePathname();
   const idDoMenu = useId();
   const painel = useRef<HTMLElement>(null);
   const quemAbriu = useRef<HTMLElement | null>(null);
   const [aberta, setAberta] = useState(false);
-  const [abertos, setAbertos] = useState<Readonly<Record<string, boolean>>>({});
-
-  const alternarGrupo = useCallback((nome: string, agora: boolean) => {
-    setAbertos((antes) => ({ ...antes, [nome]: !agora }));
-  }, []);
-
+  const [dica, setDica] = useState<Dica | null>(null);
   const abrir = useCallback(() => {
     quemAbriu.current =
       document.activeElement instanceof HTMLElement
@@ -350,7 +223,7 @@ export function MenuLateral({
       >
         <div className="flex min-w-0 flex-col">
           {marca}
-          {contexto}
+          {contextoDoTopo}
         </div>
         {botaoDeAbrir}
       </header>
@@ -372,7 +245,7 @@ export function MenuLateral({
           : {})}
         onKeyDown={prenderFoco}
         onClick={aoClicarNoMenu}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-y-auto rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible md:max-lg:overflow-visible lg:w-64 ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-hidden rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible lg:w-64 ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
       >
         <div className="flex items-start justify-between gap-2 px-2 pt-2 md:max-lg:justify-center md:max-lg:px-0">
           <div className="flex min-w-0 flex-col md:max-lg:hidden">
@@ -400,25 +273,46 @@ export function MenuLateral({
           </span>
         </div>
 
-        <nav aria-label={rotulo} className="flex flex-1 flex-col gap-4">
-          <ListaDoMenu
-            itens={itens}
-            caminho={caminho}
-            abertos={abertos}
-            alternar={alternarGrupo}
-          />
-          {itensDoRodape.length > 0 ? (
+        <nav
+          aria-label={rotulo}
+          onPointerOver={(evento) => setDica(dicaDoItem(evento.target))}
+          onPointerLeave={() => setDica(null)}
+          onFocus={(evento) =>
+            setDica(
+              evento.target.matches(":focus-visible")
+                ? dicaDoItem(evento.target)
+                : null,
+            )
+          }
+          onBlur={() => setDica(null)}
+          onScroll={() => setDica(null)}
+          className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain [scrollbar-width:none] md:max-lg:gap-2 [&::-webkit-scrollbar]:hidden"
+        >
+          {secoes.map((secao, indice) => (
+            <SecaoDoMenu
+              key={secao.titulo ?? `secao-${indice}`}
+              secao={secao}
+              caminho={caminho}
+            />
+          ))}
+          {usuario !== undefined ? (
             <div className="mt-auto border-t border-[var(--cor-borda)] pt-3">
-              <ListaDoMenu
-                itens={itensDoRodape}
-                caminho={caminho}
-                abertos={abertos}
-                alternar={alternarGrupo}
-              />
+              {usuario}
             </div>
           ) : null}
         </nav>
       </aside>
+
+      {dica !== null ? (
+        <span
+          aria-hidden="true"
+          data-tema="escuro"
+          className="pointer-events-none fixed z-50 hidden -translate-y-1/2 whitespace-nowrap rounded-[var(--raio)] bg-[var(--cor-superficie-alta)] px-3 py-1.5 text-sm font-medium text-[var(--cor-tinta)] shadow-[var(--sombra-larga)] md:max-lg:block"
+          style={{ left: dica.esquerda, top: dica.meio }}
+        >
+          {dica.texto}
+        </span>
+      ) : null}
 
       {/* Celular: os atalhos na barra de baixo. */}
       {atalhos.length > 0 ? (
@@ -429,29 +323,60 @@ export function MenuLateral({
         >
           <ul
             className="grid"
-            style={{ gridTemplateColumns: `repeat(${atalhos.length}, 1fr)` }}
+            style={{
+              gridTemplateColumns: `repeat(${atalhos.length + (botaoDoMenuNosAtalhos ? 1 : 0)}, 1fr)`,
+            }}
           >
             {atalhos.map((atalho) => {
-              const pagina = bateCom(caminho, atalho.href, atalho.exato);
               const ativo = itemEstaAtivo(caminho, atalho);
               const Desenho = atalho.icone;
+              const novos = atalho.contador ?? 0;
               return (
                 <li key={atalho.href}>
                   <Link
                     href={atalho.href}
-                    aria-current={pagina ? "page" : ativo ? "true" : undefined}
+                    aria-current={ativo ? "page" : undefined}
                     className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs font-medium ${FOCO} ${ativo ? "text-[var(--cor-tinta)]" : "text-[var(--cor-tinta-suave)]"}`}
                   >
                     <span
-                      className={`flex h-8 w-12 items-center justify-center rounded-[var(--raio-completo)] motion-safe:transition-colors motion-safe:duration-150 ${ativo ? "bg-[var(--cor-primaria)] text-[var(--cor-em-primaria)]" : ""}`}
+                      className={`relative flex h-8 w-12 items-center justify-center rounded-[var(--raio-completo)] motion-safe:transition-colors motion-safe:duration-150 ${ativo ? "bg-[var(--cor-primaria)] text-[var(--cor-em-primaria)]" : ""}`}
                     >
                       <Desenho />
+                      {novos > 0 ? (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className="absolute -top-1 right-0 min-w-4 rounded-[var(--raio-completo)] bg-[var(--cor-primaria)] px-1 text-center text-[0.625rem] font-bold leading-4 text-[var(--cor-em-primaria)] ring-2 ring-[var(--cor-superficie)]"
+                          >
+                            {novos > 99 ? "99+" : novos}
+                          </span>
+                          <span className="sr-only">
+                            , {novos} {novos === 1 ? "novo" : "novos"}
+                          </span>
+                        </>
+                      ) : null}
                     </span>
                     <span className="max-w-full truncate">{atalho.rotulo}</span>
                   </Link>
                 </li>
               );
             })}
+            {botaoDoMenuNosAtalhos ? (
+              <li>
+                <button
+                  type="button"
+                  aria-expanded={aberta}
+                  aria-controls={idDoMenu}
+                  onClick={abrir}
+                  className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-xs font-medium text-[var(--cor-tinta-suave)] ${FOCO}`}
+                >
+                  <span className="flex h-8 w-12 items-center justify-center">
+                    <IconeMenu />
+                  </span>
+                  <span>Menu</span>
+                </button>
+              </li>
+            ) : null}
           </ul>
         </nav>
       ) : null}

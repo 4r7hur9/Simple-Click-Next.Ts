@@ -423,25 +423,6 @@ function linhaDasConfiguracoes(
   };
 }
 
-function linhasDosDominios(
-  loja: LojaDeExemplo,
-  referencia: Date,
-): readonly LinhaDeExemplo[] {
-  const criacao = instanteDeExemplo(referencia, -49_500);
-  return [
-    {
-      id: idDeExemplo(`dominio:${loja.chave}:canonico`),
-      store_id: loja.id,
-      host: `${loja.slug}.simpleclick.localhost`,
-      kind: "SUBDOMAIN",
-      is_canonical: true,
-      verified_at: criacao,
-      redirect_to_canonical: false,
-      created_at: criacao,
-    },
-  ];
-}
-
 function linhasDosMembros(
   loja: LojaDeExemplo,
   referencia: Date,
@@ -592,10 +573,6 @@ export function montarLojas(referencia: Date): readonly ConjuntoDeExemplo[] {
     {
       tabela: "store_hours",
       linhas: LOJAS.flatMap((loja) => linhasDosHorarios(loja, referencia)),
-    },
-    {
-      tabela: "store_domains",
-      linhas: LOJAS.flatMap((loja) => linhasDosDominios(loja, referencia)),
     },
     {
       tabela: "store_members",

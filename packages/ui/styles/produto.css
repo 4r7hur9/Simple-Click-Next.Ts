@@ -1,208 +1,384 @@
 /*
- * A página de um produto (T-405).
+ * A página de um produto.
  *
- * MESMA SUPERFÍCIE DA VITRINE, mesma régua: quem está aqui já decidiu olhar o
- * item e quer saber o preço e apertar o botão. Nada que segure a rolagem, nada
- * de 3D, só transição curta.
+ * NO CELULAR, A FOTO É A PÁGINA. Ela ocupa o topo de ponta a ponta, encaixa de
+ * foto em foto ao arrastar, e o caminho de volta flutua sobre ela. A FOLHA com
+ * nome, preço e escolhas sobe por cima da foto com cantos arredondados — o
+ * gesto de quem abre um item num aplicativo de pedido.
  *
- * O BOTÃO GRUDA NO PÉ DA TELA no celular. É a decisão de desenho que mais pesa
- * nesta página: com quatro grupos de escolha, o botão fica a três rolagens do
- * polegar, e a pessoa perde de vista quanto vai pagar enquanto escolhe. Grudado,
- * o total acompanha cada marcação — que é o que o AC-411 quer dizer com "o total
- * exibido no botão passa a R$ 46,00 imediatamente".
+ * O BOTÃO GRUDA NO PÉ DA TELA no celular: com quatro grupos de escolha, ele
+ * ficaria a três rolagens do polegar, e a pessoa perderia de vista quanto vai
+ * pagar. Grudado, o total acompanha cada marcação (AC-411).
  *
- * NO DESKTOP, DUAS COLUNAS: a foto fica parada à esquerda enquanto as escolhas
- * rolam à direita. É a mesma ordem do celular — foto, nome, preço, escolhas —
- * só que lado a lado, porque a tela larga tem espaço para as duas coisas.
+ * NO COMPUTADOR, DUAS COLUNAS: a galeria fica grudada à esquerda enquanto as
+ * escolhas rolam à direita, e a barra de adicionar vira uma cápsula no pé da
+ * coluna da decisão.
  *
- * Escrito de baixo para cima, a partir do dobrável fechado de 344px.
+ * Paleta da SimpleClick: grafite, verde-click, mint. Nenhuma cor escrita aqui
+ * (AC-014). Escrito de baixo para cima, a partir do dobrável fechado de 344px.
  * Depende de `theme.css`, e de `vitrine.css` para a barra do topo.
  */
 
+.sc-pagina-do-produto {
+  --altura-da-acao: 5.25rem;
+}
+
+/* No celular a barra sai de cena: a foto assume o topo. */
+.sc-pagina-do-produto .sc-barra {
+  display: none;
+}
+
 .sc-produto {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-5);
+  display: block;
   min-block-size: 100svh;
   inline-size: 100%;
-  max-inline-size: 48rem;
-  margin-inline: auto;
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
-    max(var(--espaco-4), env(safe-area-inset-right));
-  /* O respiro do fim precisa caber o botão grudado, senão ele tampa a última
-   * opção do último grupo — que costuma ser a observação. */
-  padding-block-end: var(--espaco-6);
-  color: var(--cor-tinta);
+  padding-block-end: calc(
+    var(--altura-da-acao) + var(--espaco-6) + env(safe-area-inset-bottom)
+  );
+}
+
+/* --- o palco: galeria e caminho ------------------------------------------- */
+
+.sc-produto__palco {
+  position: relative;
+  background: var(--cor-superficie);
 }
 
 .sc-produto__caminho {
+  position: absolute;
+  inset-block-start: max(0.75rem, env(safe-area-inset-top));
+  inset-inline: max(0.75rem, env(safe-area-inset-left))
+    max(0.75rem, env(safe-area-inset-right));
+  z-index: 3;
   display: flex;
   flex-wrap: wrap;
-  column-gap: var(--espaco-4);
-  padding-block-start: var(--espaco-2);
+  gap: var(--espaco-2);
 }
 
-/* --- a foto ---------------------------------------------------------------- */
+.sc-produto__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border-radius: var(--raio-completo);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 86%, transparent);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  box-shadow: 0 8px 24px -12px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 45%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.sc-produto__voltar:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.sc-produto__voltar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-produto__galeria {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.sc-produto__galeria::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-produto__galeria:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: -3px;
+}
 
 .sc-produto__figura {
   position: relative;
-  /* A proporção segura o espaço mesmo quando o catálogo não sabe a dimensão:
-   * a foto preenche a moldura, e a página não pula quando ela chega. */
-  aspect-ratio: 4 / 3;
+  flex: 0 0 100%;
+  aspect-ratio: 1;
+  max-block-size: 62svh;
   margin: 0;
-  border-radius: var(--raio-janela);
-  background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-larga);
-  overflow: clip;
+  scroll-snap-align: start;
 }
 
 .sc-produto__foto {
   object-fit: cover;
 }
 
-.sc-produto__galeria-item {
-  flex: 0 0 auto;
-  inline-size: min(40%, 8rem);
-  scroll-snap-align: start;
+/* As miniaturas: no celular, pontos com foto sobre a borda de baixo. */
+.sc-produto__miniaturas {
+  position: absolute;
+  inset-block-end: 2.75rem;
+  inset-inline: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.sc-produto__galeria-item img {
+.sc-produto__miniatura {
+  display: block;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: 2px solid var(--marca-branco);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 6px 16px -6px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent);
+  transition: transform var(--transicao-rapida);
+}
+
+.sc-produto__miniatura:hover {
+  transform: translateY(-2px);
+}
+
+.sc-produto__miniatura:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
+  outline-offset: 2px;
+}
+
+.sc-produto__miniatura img {
   display: block;
   inline-size: 100%;
-  block-size: auto;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--raio-cartao);
+  block-size: 100%;
   object-fit: cover;
 }
 
-/* --- o cabeçalho ----------------------------------------------------------- */
+.sc-produto__sem-foto {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  max-block-size: 50svh;
+  inline-size: 100%;
+  background-color: var(--marca-grafite);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--marca-branco) 12%, transparent) 1px,
+    transparent 1.6px
+  );
+  background-size: 18px 18px;
+  color: var(--cor-marca-texto);
+  font-family: var(--fonte-titulo);
+  font-size: clamp(5rem, 30vw, 9rem);
+  font-weight: 700;
+}
 
-.sc-produto__cabecalho {
+/* --- a folha --------------------------------------------------------------- */
+
+.sc-produto__folha {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-2);
+  gap: var(--espaco-5);
+  margin-block-start: -2rem;
+  padding: var(--espaco-6) max(var(--espaco-4), env(safe-area-inset-right)) 0
+    max(var(--espaco-4), env(safe-area-inset-left));
+  border-radius: 2rem 2rem 0 0;
+  background: var(--cor-fundo);
+}
+
+.sc-produto__folha::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 50%;
+  inline-size: 2.75rem;
+  block-size: 0.3rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-borda);
+  transform: translateX(-50%);
+}
+
+.sc-produto__cabecalho {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.sc-produto__etiqueta {
+  justify-self: start;
+  margin: 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--raio-completo);
+  background: color-mix(in srgb, var(--cor-marca) 22%, var(--marca-branco));
+  color: var(--marca-preto-tecnologico);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .sc-produto__nome {
   margin: 0;
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-2xl);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-apertada);
+  font-size: clamp(2rem, 9.5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .sc-produto__chamada {
   margin: 0;
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-base);
+  font-size: var(--texto-lg);
+  line-height: var(--altura-linha-base);
 }
 
+/* O PREÇO É UM ADESIVO: letra grande sobre a faixa verde-click, levemente torto. */
 .sc-produto__precos {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--espaco-2);
-  margin: 0;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin: var(--espaco-1) 0 0;
 }
 
 .sc-produto__preco {
-  font-size: var(--texto-2xl);
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: 0.875rem;
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  font-weight: var(--peso-forte);
+  transform: rotate(-1.5deg);
+  box-shadow: 0 10px 24px -14px
+    color-mix(in srgb, var(--cor-marca) 90%, transparent);
 }
 
 .sc-produto__preco-anterior {
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-base);
 }
 
 .sc-produto__preco-convite {
+  justify-self: start;
   margin: 0;
-  color: var(--cor-primaria-texto);
-  font-size: var(--texto-base);
-  font-weight: var(--peso-medio);
+  padding: 0.6rem 0.95rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--cor-marca) 22%, var(--marca-branco));
+  color: var(--marca-preto-tecnologico);
+  font-weight: var(--peso-forte);
 }
 
-/* --- descrição e seções ---------------------------------------------------- */
-
 .sc-produto__descricao {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+  padding: var(--espaco-5);
+  border-radius: 1.5rem;
+  background: var(--cor-superficie);
+}
+
+.sc-produto__secao-nome {
+  margin: 0 0 var(--espaco-2);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .sc-produto__descricao p {
   margin: 0;
-  /* Medida confortável de leitura: cerca de 65 caracteres por linha, em
-   * qualquer tela. Altura sobrando vira respiro, e nunca letra maior. */
-  max-inline-size: 65ch;
-  line-height: var(--altura-linha-base);
+  line-height: 1.65;
 }
 
-.sc-produto__secao-nome {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
-}
-
-/* --- os grupos de escolha -------------------------------------------------- */
+/* --- as escolhas ----------------------------------------------------------- */
 
 .sc-produto__formulario {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-5);
+  gap: var(--espaco-4);
 }
 
 .sc-produto__grupo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+  min-inline-size: 0;
   margin: 0;
-  padding: var(--espaco-4);
-  border: 1px solid transparent;
-  border-radius: var(--raio-cartao);
+  padding: var(--espaco-5) var(--espaco-4) var(--espaco-4);
+  border: 1px solid color-mix(in srgb, var(--cor-borda) 40%, transparent);
+  border-radius: 1.5rem;
   background: var(--cor-superficie-alta);
-  box-shadow: var(--sombra-1);
+  /* A rolagem até o grupo pendente não o deixa sob a barra de adicionar. */
+  scroll-margin-block: 6rem calc(var(--altura-da-acao) + 2rem);
+  transition:
+    border-color var(--transicao-media),
+    box-shadow var(--transicao-media);
 }
 
-/*
- * O grupo pendente muda BORDA e ganha faixa lateral, e não só cor de fundo:
- * cor sozinha não é informação (P-012), e a faixa aparece mesmo em alto
- * contraste.
- */
-.sc-produto__grupo--pendente {
-  border-color: var(--cor-erro);
-  border-inline-start-width: 4px;
-}
-
-/* O grupo recebe foco pela rolagem do AC-412; o anel não pode sumir. */
 .sc-produto__grupo:focus-visible {
-  outline: 2px solid var(--cor-foco);
+  outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
 }
 
+.sc-produto__grupo > * + * {
+  margin-block-start: var(--espaco-3);
+}
+
+/*
+ * A legenda flutua para ficar DENTRO da caixa, e não cortando a borda — que é
+ * onde o navegador põe `legend` por padrão.
+ */
 .sc-produto__grupo-nome {
+  float: left;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--espaco-2);
+  inline-size: 100%;
   padding: 0;
   font-family: var(--fonte-titulo);
-  font-size: var(--texto-base);
-  font-weight: var(--peso-forte);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.sc-produto__grupo-nome + * {
+  clear: both;
+  padding-block-start: var(--espaco-3);
+}
+
+.sc-produto__grupo--pendente {
+  border-color: var(--cor-erro);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor-erro) 18%, transparent);
 }
 
 .sc-produto__grupo-regra {
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
   font-family: var(--fonte-base);
   font-size: var(--texto-xs);
-  font-weight: var(--peso-normal);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .sc-produto__grupo-regra--exigida {
-  color: var(--cor-primaria-texto);
-  font-weight: var(--peso-medio);
+  background: var(--marca-grafite);
+  color: var(--cor-marca-texto);
+}
+
+p.sc-produto__grupo-regra {
+  display: inline-block;
+  margin-block-end: 0;
 }
 
 .sc-produto__grupo-descricao {
@@ -213,310 +389,839 @@
 
 .sc-produto__pendencia {
   margin: 0;
-  padding: var(--espaco-2) var(--espaco-3);
-  border-radius: var(--raio-botao);
-  background: var(--cor-erro-suave);
   color: var(--cor-erro);
   font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
+  font-weight: var(--peso-forte);
 }
 
 .sc-produto__escolhas {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--espaco-2);
 }
 
 .sc-produto__escolha {
   display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  /* Alvo de toque confortável: o dedo erra a linha de 32px no ônibus. */
-  min-block-size: var(--altura-toque-grande);
-  padding-inline: var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-botao);
-  cursor: pointer;
-  transition:
-    background var(--transicao-rapida),
-    border-color var(--transicao-rapida);
-}
-
-.sc-produto__escolha:hover {
-  background: var(--cor-superficie);
-}
-
-/* Marcada muda a BORDA e o fundo, além do controle: cor sozinha não basta. */
-.sc-produto__escolha:has(input:checked) {
-  border-color: var(--cor-tinta);
-  background: var(--cor-primaria-suave);
-  box-shadow: inset 0 0 0 1px var(--cor-tinta);
-}
-
-.sc-produto__escolha input {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
-  margin: 0;
-  accent-color: var(--cor-tinta);
-}
-
-.sc-produto__escolha--indisponivel {
-  color: var(--cor-tinta-suave);
-  cursor: not-allowed;
-}
-
-.sc-produto__escolha-nome {
-  flex: 1 1 auto;
-  font-size: var(--texto-sm);
-}
-
-.sc-produto__escolha-valor {
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-  font-variant-numeric: tabular-nums;
-}
-
-.sc-produto__escolha-aviso {
-  padding-inline: var(--espaco-2);
-  border-radius: var(--raio-completo);
-  background: var(--cor-superficie);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.sc-produto__escolha-vezes {
-  font-size: var(--texto-xs);
-  font-weight: var(--peso-forte);
-}
-
-/* --- a observação ---------------------------------------------------------- */
-
-.sc-produto__observacao {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
-  margin: 0;
-}
-
-.sc-produto__observacao textarea {
-  inline-size: 100%;
-  padding: var(--espaco-3);
-  border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-botao);
-  background: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
-  font-family: var(--fonte-base);
-  font-size: var(--texto-base);
-  resize: vertical;
-}
-
-/* --- a ação ----------------------------------------------------------------
- *
- * Quantidade, o botão grande em pílula com o total, e o carrinho ao lado. No
- * celular estreito, o botão principal ganha a linha de baixo inteira: com a
- * quantidade e o carrinho ao lado, "Adicionar R$ 46,00" não cabe em 344px.
- */
-
-.sc-produto__acao {
-  position: sticky;
-  /* Grudado no PÉ, e com a área segura somada: em aparelho com barra de gestos,
-   * o botão ficaria por baixo dela. */
-  inset-block-end: 0;
-  z-index: 1;
-  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--espaco-2) var(--espaco-3);
-  /* A faixa encosta nas bordas da tela, e o fundo opaco não deixa as opções
-   * aparecerem por baixo do botão. */
-  margin-inline: calc(-1 * max(var(--espaco-4), env(safe-area-inset-left)));
-  padding-block: var(--espaco-3);
-  padding-block-end: max(var(--espaco-3), env(safe-area-inset-bottom));
-  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
-  border-block-start: 1px solid var(--cor-borda);
-  background: var(--cor-superficie-alta);
-}
-
-.sc-produto__quantidade {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-completo);
-  background: var(--cor-superficie-alta);
-}
-
-.sc-produto__passo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: var(--altura-toque);
-  block-size: var(--altura-toque);
-  border: none;
-  border-radius: var(--raio-completo);
-  background: transparent;
-  color: var(--cor-tinta);
+  min-block-size: 3.25rem;
+  padding: 0.625rem var(--espaco-4);
+  border: 1.5px solid color-mix(in srgb, var(--cor-borda) 45%, transparent);
+  border-radius: 1rem;
+  background: var(--cor-fundo);
   cursor: pointer;
+  transition:
+    background var(--transicao-rapida),
+    border-color var(--transicao-rapida),
+    color var(--transicao-rapida),
+    transform var(--transicao-rapida);
 }
 
-.sc-produto__passo:hover:not(:disabled) {
-  background: var(--cor-superficie);
+.sc-produto__escolha:hover {
+  border-color: var(--cor-tinta);
 }
 
-.sc-produto__passo:disabled {
-  color: var(--cor-tinta-suave);
-  cursor: not-allowed;
+.sc-produto__escolha:active {
+  transform: scale(0.985);
 }
 
-.sc-produto__contagem {
-  min-inline-size: 2ch;
-  text-align: center;
-  font-weight: var(--peso-forte);
-  font-variant-numeric: tabular-nums;
+.sc-produto__escolha:has(input:checked) {
+  border-color: var(--marca-grafite);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
 }
 
-/* O carrinho vai para a ponta direita da primeira linha. */
-.sc-produto__carrinho {
-  margin-inline-start: auto;
-}
-
-.sc-produto__adicionar {
-  display: flex;
-  flex: 1 1 100%;
-  order: 3;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espaco-3);
-  min-block-size: var(--altura-toque-grande);
-  padding-inline: var(--espaco-5);
-  border: 1px solid var(--cor-primaria);
-  border-radius: var(--raio-completo);
-  background: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-family: var(--fonte-base);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
-  cursor: pointer;
-  transition: filter var(--transicao-rapida);
-}
-
-.sc-produto__adicionar:hover:not(:disabled) {
-  filter: brightness(0.94);
-}
-
-.sc-produto__adicionar:focus-visible {
+.sc-produto__escolha:has(input:focus-visible) {
   outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
 }
 
-.sc-produto__adicionar:disabled {
-  border-color: var(--cor-borda);
+/* A marcação desenhada: círculo para escolha única, quadrado para várias. */
+.sc-produto__escolha input {
+  display: grid;
+  flex: none;
+  align-self: center;
+  place-content: center;
+  box-sizing: border-box;
+  /* Tamanho travado: regra global de campo (altura de toque) não estica a
+     marcação — o alvo de toque é a linha inteira, e não a bolinha. */
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  min-inline-size: 1.375rem;
+  min-block-size: 1.375rem;
+  max-block-size: 1.375rem;
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 0;
+  border: 2px solid var(--cor-borda-forte);
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  appearance: none;
+  cursor: inherit;
+}
+
+.sc-produto__escolha input[type="checkbox"] {
+  border-radius: 0.4rem;
+}
+
+.sc-produto__escolha input:checked {
+  border-color: var(--cor-marca-texto);
+  background: var(--cor-marca);
+}
+
+.sc-produto__escolha input:checked::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--marca-preto-tecnologico);
+}
+
+.sc-produto__escolha input[type="checkbox"]:checked::before {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 0;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+
+.sc-produto__escolha-nome {
+  flex: 1;
+  /* A palavra inteira cabe: quem desce de linha é o valor ou o "Acabou",
+     e não o meio do nome ("Chedd/ar"). */
+  min-inline-size: min(100%, min-content);
+  font-weight: var(--peso-forte);
+  overflow-wrap: break-word;
+}
+
+.sc-produto__escolha-valor {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sc-produto__escolha:has(input:checked) .sc-produto__escolha-valor {
+  color: var(--cor-marca-texto);
+}
+
+.sc-produto__escolha-aviso {
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--raio-completo);
   background: var(--cor-superficie);
   color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  text-transform: uppercase;
+}
+
+.sc-produto__escolha-vezes {
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+
+.sc-produto__escolha--indisponivel {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.sc-produto__total {
+.sc-produto__escolha--indisponivel:hover {
+  border-color: color-mix(in srgb, var(--cor-borda) 45%, transparent);
+}
+
+/* A tabela de atacado (card #56): varejo e faixas, a linha que vale marcada. */
+.sc-atacado {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.sc-atacado__tabela {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  overflow: hidden;
+  font-size: var(--texto-sm);
   font-variant-numeric: tabular-nums;
 }
 
+.sc-atacado__tabela th,
+.sc-atacado__tabela td {
+  padding: var(--espaco-2) var(--espaco-3);
+  text-align: start;
+  vertical-align: top;
+}
+
+.sc-atacado__tabela thead th {
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+}
+
+.sc-atacado__linha + .sc-atacado__linha > * {
+  border-block-start: 1px solid var(--cor-borda);
+}
+
+.sc-atacado__linha th {
+  font-weight: var(--peso-forte);
+}
+
+.sc-atacado__rotulo {
+  display: block;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-normal);
+}
+
+.sc-atacado__preco {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sc-atacado__economia {
+  color: var(--cor-marca-texto);
+}
+
+.sc-atacado__linha--vale {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+}
+
+.sc-produto__observacao {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0;
+}
+
+.sc-produto__observacao label {
+  font-family: var(--fonte-titulo);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.sc-produto__observacao textarea {
+  inline-size: 100%;
+  padding: 0.875rem var(--espaco-4);
+  border: 1.5px solid color-mix(in srgb, var(--cor-borda) 45%, transparent);
+  border-radius: 1rem;
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.sc-produto__observacao textarea:focus-visible {
+  border-color: var(--cor-tinta);
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 1px;
+}
+
+.sc-produto__recado {
+  margin: 0;
+  padding: 0.75rem var(--espaco-4);
+  border-radius: 1rem;
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font-weight: var(--peso-forte);
+}
+
+/* --- a barra de adicionar --------------------------------------------------- */
+
+.sc-produto__acao {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: 0.75rem max(1rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  border-block-start: 1px solid
+    color-mix(in srgb, var(--cor-borda) 35%, transparent);
+  background: var(--cor-fundo);
+  box-shadow: 0 -14px 30px -20px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 40%, transparent);
+}
+
+.sc-produto__quantidade {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+}
+
+.sc-produto__passo {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: 0 1px 2px
+    color-mix(in srgb, var(--marca-preto-tecnologico) 12%, transparent);
+  cursor: pointer;
+}
+
+.sc-produto__passo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sc-produto__passo:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-produto__contagem {
+  min-inline-size: 2ch;
+  font-family: var(--fonte-titulo);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/*
+ * Rótulo e total precisam de uns 15rem lado a lado. Em tela estreita (até
+ * ~420px) o botão desce para uma linha própria, inteira, em vez de o total
+ * vazar por cima da borda.
+ */
+.sc-produto__adicionar {
+  display: flex;
+  flex: 1 1 15rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  min-inline-size: 0;
+  min-block-size: 3.5rem;
+  padding-inline: 1.25rem 0.5rem;
+  border: none;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--cor-sobre-marca);
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 14px 30px -16px
+    color-mix(in srgb, var(--cor-marca) 95%, transparent);
+  cursor: pointer;
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-rapida);
+}
+
+.sc-produto__adicionar:hover {
+  transform: translateY(-1px);
+}
+
+.sc-produto__adicionar:active {
+  transform: scale(0.98);
+}
+
+.sc-produto__adicionar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 3px;
+}
+
+.sc-produto__adicionar:disabled {
+  justify-content: center;
+  padding-inline: 1.25rem;
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sc-produto__adicionar > span:first-child {
+  min-inline-size: 0;
+  line-height: 1.15;
+  text-align: start;
+  text-wrap: balance;
+}
+
+.sc-produto__total {
+  flex: none;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--raio-completo);
+  background: var(--marca-preto-tecnologico);
+  color: var(--cor-marca-texto);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* O atalho do carrinho cede o lugar no celular: o flutuante já faz o papel. */
+.sc-produto__carrinho {
+  display: none;
+}
+
 .sc-produto__indisponivel {
-  flex: 1 1 100%;
-  order: 4;
+  flex-basis: 100%;
   margin: 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
 }
 
-/* --- telas maiores --------------------------------------------------------- */
+/* --- quebras -------------------------------------------------------------- */
 
-/* Celular grande em diante: a quantidade, o botão e o carrinho numa linha só. */
-@media (min-width: 430px) {
-  .sc-produto__adicionar {
-    flex: 1 1 12rem;
-    order: 0;
+@media (min-width: 540px) {
+  .sc-produto__escolhas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sc-produto__carrinho {
-    margin-inline-start: 0;
+    display: inline-flex;
+  }
+
+  .sc-produto__folha {
+    padding-inline: var(--espaco-6);
   }
 }
 
 @media (min-width: 768px) {
-  .sc-produto {
-    gap: var(--espaco-6);
-    padding-inline: var(--espaco-6);
-    padding-block-end: var(--espaco-8);
-  }
-
-  /*
-   * No desktop o botão DESGRUDA: a tela inteira cabe sem rolagem longa, e uma
-   * barra fixa no pé de um monitor de 27 polegadas é peso sem motivo.
-   */
-  .sc-produto__acao {
-    position: static;
-    margin-inline: 0;
-    padding-inline: 0;
-    border-block-start: none;
-    background: transparent;
-  }
-
-  .sc-produto__adicionar {
-    flex: 1 1 12rem;
-    max-inline-size: 22rem;
+  .sc-produto__figura {
+    aspect-ratio: 4 / 3;
   }
 }
 
-/*
- * Tablet deitado em diante: a foto à esquerda, parada, e o resto à direita. A
- * ordem da marcação continua a do celular; quem muda de lugar é só a foto.
- */
+/* Computador: duas colunas, a galeria grudada e a decisão rolando ao lado. */
 @media (min-width: 1024px) {
+  .sc-pagina-do-produto {
+    --altura-da-acao: 0px;
+  }
+
+  .sc-pagina-do-produto .sc-barra {
+    display: block;
+  }
+
   .sc-produto {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-content: start;
-    column-gap: var(--espaco-8);
-    max-inline-size: 72rem;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--espaco-8);
+    max-inline-size: 76rem;
+    margin-inline: auto;
+    padding: var(--espaco-4) var(--espaco-6) var(--espaco-8);
   }
 
-  .sc-produto > * {
-    grid-column: 2;
-  }
-
-  .sc-produto > .sc-produto__caminho {
-    grid-column: 1 / -1;
-  }
-
-  .sc-produto > .sc-produto__figura {
+  .sc-produto__palco {
     position: sticky;
-    inset-block-start: calc(var(--altura-da-barra, 0px) + var(--espaco-6));
-    grid-column: 1;
-    grid-row: 2 / span 4;
-    align-self: start;
+    inset-block-start: calc(var(--altura-da-barra) + var(--espaco-4));
+    display: grid;
+    gap: var(--espaco-4);
+    background: transparent;
+  }
+
+  .sc-produto__caminho {
+    position: static;
+  }
+
+  .sc-produto__galeria {
+    border-radius: 2.25rem;
+    background: var(--cor-superficie);
+  }
+
+  .sc-produto__figura {
+    aspect-ratio: 1;
+    max-block-size: calc(100svh - 14rem);
+  }
+
+  .sc-produto__sem-foto {
+    aspect-ratio: 1;
+    border-radius: 2.25rem;
+  }
+
+  .sc-produto__miniaturas {
+    position: static;
+    justify-content: flex-start;
+    gap: var(--espaco-2);
+  }
+
+  .sc-produto__miniatura {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+    border: 2px solid transparent;
+    border-radius: 1rem;
+    box-shadow: none;
+  }
+
+  .sc-produto__miniatura:hover {
+    border-color: var(--cor-tinta);
+  }
+
+  .sc-produto__folha {
+    margin: 0;
+    padding: var(--espaco-7) 0 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .sc-produto__folha::before {
+    display: none;
+  }
+
+  .sc-produto__acao {
+    position: sticky;
+    inset-block-end: var(--espaco-4);
+    margin-block-start: var(--espaco-2);
+    padding: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--cor-borda) 35%, transparent);
+    border-radius: var(--raio-completo);
+  }
+
+  .sc-produto__indisponivel {
+    padding-inline: var(--espaco-3);
+    padding-block-end: var(--espaco-2);
+  }
+}
+
+/* Quem pediu menos movimento recebe o estado final, sem deslizar nem saltar. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-produto__galeria {
+    scroll-behavior: auto;
+  }
+
+  .sc-produto__escolha,
+  .sc-produto__grupo,
+  .sc-produto__adicionar,
+  .sc-produto__miniatura {
+    transition: none;
+  }
+
+  .sc-produto__escolha:active,
+  .sc-produto__adicionar:hover,
+  .sc-produto__adicionar:active,
+  .sc-produto__miniatura:hover {
+    transform: none;
+  }
+}
+
+/* --- a janela do produto (sobre o cardápio) --------------------------------
+ *
+ * O detalhe do produto abre numa janela modal CENTRALIZADA por cima do
+ * cardápio, em qualquer largura: no celular ocupa a largura com margem, no
+ * computador fica em duas colunas — foto contida à esquerda, decisão à
+ * direita, alinhadas pelo topo. A foto nunca domina a janela. A barra de
+ * adicionar gruda no pé da janela, que rola por dentro só se precisar.
+ */
+
+.sc-janela-produto {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  inline-size: min(34rem, calc(100% - 2 * var(--espaco-4)));
+  max-inline-size: none;
+  max-block-size: calc(100dvh - 2 * var(--espaco-4));
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-janela);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sc-janela-produto[open] {
+  animation: sc-janela-aparece 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* Aberta pelo servidor, sem script: não é modal e não tem fundo; a sombra faz o papel dele. */
+.sc-janela-produto[open]:not(:modal) {
+  z-index: 50;
+  box-shadow: 0 0 0 100vmax
+    color-mix(in srgb, var(--marca-preto-tecnologico) 62%, transparent);
+}
+
+/* Com uma janela aberta, o cardápio de baixo não rola junto. */
+html:has(.sc-janela-produto[open]),
+html:has(.sc-flutuante__gaveta[open]) {
+  overflow: hidden;
+}
+
+.sc-janela-produto__moldura {
+  position: relative;
+}
+
+/* O fechar fica preso no alto enquanto o conteúdo rola: 44px de alvo. */
+.sc-janela-produto__fechar {
+  position: sticky;
+  inset-block-start: var(--espaco-3);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  margin: var(--espaco-3) var(--espaco-3)
+    calc(-1 * (var(--altura-toque) + var(--espaco-3))) auto;
+  border: 1px solid color-mix(in srgb, var(--marca-branco) 24%, transparent);
+  border-radius: var(--raio-completo);
+  background: color-mix(in srgb, var(--marca-grafite) 88%, transparent);
+  color: var(--marca-branco);
+  transition: background var(--transicao-rapida);
+}
+
+.sc-janela-produto__fechar:hover {
+  background: var(--marca-preto-tecnologico);
+}
+
+.sc-janela-produto__fechar:focus-visible {
+  outline: 3px solid var(--cor-marca-texto);
+  outline-offset: 2px;
+}
+
+.sc-janela-produto__estado {
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-7) var(--espaco-5);
+  color: var(--cor-tinta-suave);
+  text-align: center;
+}
+
+.sc-janela-produto__estado p {
+  margin: 0;
+}
+
+.sc-janela-produto__estado-titulo {
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: 700;
+}
+
+.sc-janela-produto__esqueleto {
+  display: block;
+  inline-size: min(100%, 16rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+}
+
+.sc-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4) var(--espaco-4) 0;
+}
+
+/* A foto é contida: no celular, uma faixa baixa; nunca a janela inteira. */
+.sc-detalhe__fotos {
+  position: relative;
+  min-inline-size: 0;
+}
+
+.sc-detalhe__galeria {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--raio-cartao);
+  overflow-x: auto;
+  list-style: none;
+  background: var(--cor-superficie);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.sc-detalhe__galeria::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-detalhe__galeria:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-detalhe__figura {
+  position: relative;
+  flex: 0 0 100%;
+  block-size: clamp(9rem, 28dvh, 13rem);
+  margin: 0;
+  scroll-snap-align: start;
+}
+
+.sc-detalhe__foto {
+  object-fit: cover;
+}
+
+.sc-detalhe__sem-foto {
+  display: grid;
+  place-items: center;
+  block-size: clamp(7rem, 20dvh, 10rem);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--cor-tinta) 10%, transparent) 1px,
+    transparent 1.6px
+  );
+  background-size: 16px 16px;
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-titulo);
+  font-size: 3.5rem;
+  font-weight: 700;
+}
+
+.sc-detalhe__contagem-de-fotos {
+  position: absolute;
+  inset-block-end: var(--espaco-2);
+  inset-inline-start: var(--espaco-2);
+  margin: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--raio-completo);
+  background: color-mix(
+    in srgb,
+    var(--marca-preto-tecnologico) 70%,
+    transparent
+  );
+  color: var(--marca-branco);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+}
+
+.sc-detalhe__decisao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+}
+
+.sc-janela-produto .sc-produto__cabecalho {
+  gap: var(--espaco-2);
+  /* O nome não passa por baixo do botão de fechar. */
+  padding-inline-end: calc(var(--altura-toque) + var(--espaco-2));
+}
+
+.sc-janela-produto .sc-produto__nome {
+  font-size: clamp(1.375rem, 5vw, 1.875rem);
+  line-height: 1.1;
+}
+
+.sc-janela-produto .sc-produto__chamada {
+  font-size: var(--texto-base);
+}
+
+.sc-janela-produto .sc-produto__preco {
+  font-size: 1.375rem;
+}
+
+.sc-janela-produto .sc-produto__descricao {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.sc-janela-produto .sc-produto__escolhas {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Na janela, a barra de adicionar gruda no pé da janela (e não da tela). */
+.sc-janela-produto .sc-produto__acao {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  margin: var(--espaco-2) calc(-1 * var(--espaco-4)) 0;
+  padding: var(--espaco-3) var(--espaco-4)
+    max(var(--espaco-3), env(safe-area-inset-bottom));
+  border: 0;
+  border-block-start: 1px solid
+    color-mix(in srgb, var(--cor-borda) 35%, transparent);
+  border-radius: 0;
+  background: var(--cor-fundo);
+  box-shadow: none;
+}
+
+/* O aviso curto do "+" ("Pastel entrou na sacola"): sobe, fica e some. */
+.sc-aviso-rapido {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding-inline: var(--espaco-4);
+  pointer-events: none;
+}
+
+.sc-aviso-rapido__texto {
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--raio-completo);
+  background: var(--marca-grafite);
+  color: var(--marca-branco);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  box-shadow:
+    var(--sombra-3),
+    inset 0 0 0 1px
+      color-mix(in srgb, var(--cor-marca) 45%, transparent);
+  animation: sc-aviso-entra 220ms ease-out;
+}
+
+/* Computador: duas colunas alinhadas pelo topo, a foto com tamanho contido. */
+@media (min-width: 768px) {
+  .sc-janela-produto {
+    inline-size: min(52rem, calc(100% - 3rem));
+    max-block-size: min(88dvh, 46rem);
+  }
+
+  .sc-detalhe {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    gap: var(--espaco-6);
+    padding: var(--espaco-6) var(--espaco-6) 0;
+  }
+
+  .sc-detalhe__fotos {
+    position: sticky;
+    inset-block-start: var(--espaco-6);
+  }
+
+  .sc-detalhe__figura,
+  .sc-detalhe__sem-foto {
+    block-size: auto;
+    aspect-ratio: 1;
+  }
+
+  .sc-janela-produto .sc-produto__acao {
+    margin-inline: calc(-1 * var(--espaco-6)) calc(-1 * var(--espaco-6));
+    padding-inline: var(--espaco-6);
+  }
+
+  .sc-aviso-rapido {
+    inset-block-end: 1.5rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sc-produto__adicionar,
-  .sc-produto__escolha {
+  .sc-janela-produto[open],
+  .sc-aviso-rapido__texto {
+    animation: none;
+  }
+
+  .sc-janela-produto__fechar {
     transition: none;
   }
-}
-
-/*
- * O recado depois de adicionar. Fica ACIMA do botão grudado, e não dentro dele:
- * dentro, ele empurraria o total para fora da vista justamente quando a pessoa
- * quer conferir o que acabou de acontecer.
- */
-.sc-produto__recado {
-  margin: 0;
-  padding: var(--espaco-3) var(--espaco-4);
-  border-radius: var(--raio-botao);
-  background: var(--cor-sucesso-suave);
-  color: var(--cor-sucesso);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
 }

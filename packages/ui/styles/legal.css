@@ -1,0 +1,458 @@
+/*
+ * Páginas legais, rodapé legal e aviso de cookies (card #78).
+ * MODELO PARA REVISÃO JURÍDICA ANTES DE PUBLICAR (só os textos; o estilo é final).
+ * Tudo em cima dos valores declarados do design system; o trecho usa
+ * data-tema="escuro" (fundo grafite, verde-limão).
+ */
+
+/* ---------- aviso de cookies ---------- */
+
+.sc-cookies {
+  position: fixed;
+  /* Celular e tablet: janela de baixo em largura total, acima da barra de
+     atalhos do painel e da barra de ação do produto, dentro da área segura. */
+  inset-block-end: calc(
+    max(var(--espaco-3), env(safe-area-inset-bottom)) + var(--sc-cookies-sobe, 0px)
+  );
+  inset-inline: max(var(--espaco-3), env(safe-area-inset-left))
+    max(var(--espaco-3), env(safe-area-inset-right));
+  /* Abaixo da sacola flutuante (20) e da lateral (30/40): nunca as cobre. */
+  z-index: 15;
+  box-sizing: border-box;
+  /* Deixa o topo livre (Entrar/Menu) e rola por dentro se não couber. */
+  max-block-size: calc(100dvh - 8rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  font-family: var(--fonte-corpo);
+}
+
+body:has(nav[aria-label="Atalhos"]) .sc-cookies {
+  --sc-cookies-sobe: 4.5rem;
+}
+
+body:has(.sc-pagina-do-produto) .sc-cookies {
+  --sc-cookies-sobe: 5.5rem;
+}
+
+/* A sacola arrastável não desce para trás do aviso: enquanto ele existe, o
+   rodapé da área dela sobe a altura dele (medida pelo próprio aviso). */
+body:has(.sc-cookies) .sc-sacola__area {
+  inset-block-end: calc(
+    max(var(--espaco-4), env(safe-area-inset-bottom)) +
+      var(--altura-do-aviso-de-cookies, 0px) + var(--espaco-3)
+  );
+}
+
+body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
+  inset-block-end: calc(
+    var(--altura-da-acao, 5.75rem) +
+      max(var(--espaco-4), env(safe-area-inset-bottom)) +
+      var(--altura-do-aviso-de-cookies, 0px) + var(--espaco-3)
+  );
+}
+
+.sc-cookies:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-cookies__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+}
+
+.sc-cookies__texto {
+  margin: 0 0 var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+}
+
+.sc-cookies__texto a {
+  color: var(--cor-primaria-texto);
+  text-decoration: underline;
+}
+
+.sc-cookies__categorias {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0 0 var(--espaco-3);
+  padding: 0;
+  border: 0;
+}
+
+.sc-cookies__legenda {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.sc-cookies__categoria {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-fundo);
+  font-size: var(--texto-sm);
+}
+
+.sc-cookies__categoria input {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.125rem 0 0;
+  accent-color: var(--cor-primaria);
+}
+
+.sc-cookies__categoria small {
+  display: block;
+  margin-block-start: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  line-height: 1.4;
+}
+
+.sc-cookies__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-cookies__botao {
+  min-block-size: 2.75rem;
+  padding: 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+}
+
+.sc-cookies__botao:hover {
+  border-color: var(--cor-tinta);
+}
+
+.sc-cookies__botao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-cookies__botao--principal {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-cookies__botao--discreto {
+  border-color: transparent;
+  text-decoration: underline;
+}
+
+@media (max-width: 40rem) {
+  /* Compacto: o aviso não pode tomar metade da tela do celular. */
+  .sc-cookies {
+    padding: var(--espaco-3) var(--espaco-4);
+  }
+
+  .sc-cookies__titulo {
+    margin-block-end: var(--espaco-1);
+    font-size: var(--texto-sm);
+  }
+
+  .sc-cookies__texto {
+    margin-block-end: var(--espaco-2);
+    font-size: var(--texto-xs);
+  }
+
+  .sc-cookies__acoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sc-cookies__botao {
+    inline-size: 100%;
+    padding-inline: var(--espaco-2);
+  }
+
+  .sc-cookies__botao--discreto {
+    grid-column: 1 / -1;
+    min-block-size: 2.5rem;
+  }
+}
+
+/* Computador: cartão no canto de baixo à direita (painel, administração,
+   landing, login) ou, onde há a lateral do usuário, logo ao lado dela. */
+@media (min-width: 64rem) {
+  .sc-cookies {
+    inset-block-end: max(var(--espaco-5), env(safe-area-inset-bottom));
+    inset-inline: auto max(var(--espaco-5), env(safe-area-inset-right));
+    inline-size: min(26rem, calc(100vw - 2 * var(--espaco-5)));
+    max-block-size: calc(100dvh - 2 * var(--espaco-5));
+  }
+
+  body:has(.sc-usuario-lateral) .sc-cookies {
+    inset-inline: calc(var(--largura-da-lateral, 0px) + var(--espaco-5)) auto;
+  }
+}
+
+/* ---------- rodapé legal ---------- */
+
+.sc-rodape-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3) var(--espaco-5);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-5) var(--espaco-5)
+    calc(var(--espaco-5) + env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--cor-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-sm);
+}
+
+.sc-rodape-legal ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-rodape-legal__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding: var(--espaco-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.sc-rodape-legal__link:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-rodape-legal__link:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+  border-radius: var(--raio-1);
+}
+
+.sc-rodape-legal__marca {
+  margin: 0;
+}
+
+/* ---------- páginas legais ---------- */
+
+.sc-legal {
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-corpo);
+}
+
+.sc-legal__topo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3) var(--espaco-5);
+  align-items: center;
+  justify-content: space-between;
+  /* O espaço de cima é da barra do usuário global. */
+  padding: var(--espaco-7) var(--espaco-5) var(--espaco-4);
+  border-block-end: 1px solid var(--cor-borda);
+}
+
+.sc-legal__marca {
+  color: var(--cor-primaria-texto);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+}
+
+.sc-legal__abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-legal__abas a {
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  text-decoration: none;
+}
+
+.sc-legal__abas a[aria-current="page"] {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-legal a:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-legal__corpo {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-6);
+  inline-size: min(100%, 72rem);
+  margin-inline: auto;
+  padding: var(--espaco-6) var(--espaco-5) var(--espaco-8);
+  box-sizing: border-box;
+}
+
+.sc-legal__indice {
+  font-size: var(--texto-sm);
+}
+
+.sc-legal__indice-titulo {
+  margin: 0 0 var(--espaco-2);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sc-legal__indice ol {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding-inline-start: var(--espaco-5);
+}
+
+.sc-legal__indice a {
+  color: var(--cor-tinta-suave);
+  text-decoration: none;
+}
+
+.sc-legal__indice a:hover {
+  color: var(--cor-primaria-texto);
+  text-decoration: underline;
+}
+
+.sc-legal__texto {
+  max-inline-size: 44rem;
+  line-height: 1.7;
+}
+
+.sc-legal__texto h1 {
+  margin: 0 0 var(--espaco-3);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  line-height: 1.15;
+}
+
+.sc-legal__resumo {
+  margin: 0 0 var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-lg);
+}
+
+.sc-legal__data {
+  margin: 0 0 var(--espaco-6);
+  padding-block-end: var(--espaco-4);
+  border-block-end: 1px solid var(--cor-borda);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-legal__texto section {
+  /* Âncora não fica escondida sob a barra do usuário. */
+  scroll-margin-block-start: var(--espaco-8);
+  margin-block-end: var(--espaco-6);
+}
+
+.sc-legal__texto h2 {
+  margin: 0 0 var(--espaco-3);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  line-height: 1.25;
+}
+
+.sc-legal__texto p,
+.sc-legal__texto ul {
+  margin: 0 0 var(--espaco-3);
+}
+
+.sc-legal__texto ul {
+  display: grid;
+  gap: var(--espaco-2);
+  padding-inline-start: var(--espaco-5);
+}
+
+.sc-legal__texto a {
+  color: var(--cor-primaria-texto);
+  text-underline-offset: 0.2em;
+}
+
+.sc-legal__contato {
+  padding: var(--espaco-4) var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+}
+
+.sc-legal__contato p:last-child {
+  margin-block-end: 0;
+}
+
+@media (min-width: 64rem) {
+  .sc-legal__corpo {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--espaco-8);
+  }
+
+  .sc-legal__indice {
+    position: sticky;
+    inset-block-start: var(--espaco-7);
+    align-self: start;
+    max-block-size: calc(100dvh - 2 * var(--espaco-7));
+    overflow-y: auto;
+  }
+}
+
+/* ---------- frase "Ao continuar você concorda" ---------- */
+
+.sc-conta__legal {
+  margin: var(--espaco-4) 0 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sc-conta__legal a {
+  color: inherit;
+  text-decoration: underline;
+}

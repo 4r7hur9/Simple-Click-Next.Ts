@@ -1,7 +1,31 @@
-import express, { type Express } from "express";
+import express, {
+  type Express,
+  type Request,
+  type RequestHandler,
+} from "express";
 
 import { corsDeOrigensFechadas, origensDoAmbiente } from "./core/cors.ts";
+import {
+  equipeDaRequisicao,
+  portaoDaEquipe,
+  type OpcoesDoPortaoDaEquipe,
+  type SessaoDaRequisicao,
+} from "./core/equipe-da-loja.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
+import { identificarLojaDoPainel } from "./core/loja-do-painel.ts";
+import {
+  criarRotasDoFeed,
+  type OpcoesDoFeed,
+} from "./modules/feed/feed.routes.ts";
+import {
+  criarRotasDaGestaoDaLoja,
+  type OpcoesDaGestaoDaLoja,
+} from "./modules/stores/gestao.routes.ts";
+import {
+  avaliarPoliticaDeSenha,
+  derivarSenha,
+  senhaConfere,
+} from "./modules/auth/senha.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
 import { conferirAntesDeFechar } from "./modules/cart/conferir-preco.usecase.ts";
 import { verCarrinho } from "./modules/cart/carrinho.usecase.ts";
@@ -24,15 +48,33 @@ import {
 import { criarRotasDasCategorias } from "./modules/catalog/categorias.routes.ts";
 import { criarRotasDosProdutos } from "./modules/catalog/produtos.routes.ts";
 import { criarRotasDasImagens } from "./modules/catalog/imagens.routes.ts";
+import {
+  criarRotaDosLimitesDeMidia,
+  criarRotasDasMidias,
+} from "./modules/catalog/midias.routes.ts";
+import {
+  criarRotasDosStoriesDaLoja,
+  criarRotasDosStoriesPublicos,
+  montarRotasDoLimiteDeStories,
+} from "./modules/stories/stories.routes.ts";
+import {
+  criarRotasDaModeracao,
+  criarRotasSociais,
+} from "./modules/social/social.routes.ts";
+import {
+  CAMINHO_DOS_ARQUIVOS_DE_MIDIA,
+  servirMidiaLocal,
+  usaMidiaLocal,
+  type ArmazenamentoDeMidia,
+} from "./core/armazenamento-de-midia.ts";
+import type { LimitesDeMidiaDaApi } from "./core/conferencia-de-midia.ts";
 import { criarRotasDosPrecos } from "./modules/catalog/precos.routes.ts";
 import { criarRotasDosGruposDeEscolha } from "./modules/catalog/opcoes.routes.ts";
 import { criarRotasDasVariacoes } from "./modules/catalog/variacoes.routes.ts";
 import { criarRotasDoEstoque } from "./modules/catalog/estoque.routes.ts";
+import { criarRotasDaVisaoGeral } from "./modules/catalog/visao-geral.routes.ts";
 import { criarRotasDasEspecificacoes } from "./modules/catalog/especificacoes.routes.ts";
-import {
-  criarRotasDasConfiguracoes,
-  type UsuarioAutenticado,
-} from "./modules/stores/configuracao.routes.ts";
+import { criarRotasDasConfiguracoes } from "./modules/stores/configuracao.routes.ts";
 import type { OpcoesDasConfiguracoes } from "./modules/stores/configuracao.routes.ts";
 import {
   tokenDoCabecalhoDeAutorizacao,
@@ -78,6 +120,7 @@ import {
   type OpcoesDaAdministracao,
 } from "./modules/admin/admin.routes.ts";
 import { montarEmailDoConvite } from "./modules/admin/convite-do-dono.ts";
+import { montarRotasDasMetricasDoAdmin } from "./modules/admin-metricas/metricas.routes.ts";
 import {
   gerarTokenDeConvite,
   resumirTokenDeConvite,
@@ -87,6 +130,14 @@ import {
   saidaDeEmailDoAmbiente,
 } from "./jobs/email.job.ts";
 import {
+  criarRotasDaContaInterna,
+  type OpcoesDaContaInterna,
+} from "./modules/conta/conta.routes.ts";
+import {
+  criarRotasDoTutorial,
+  type OpcoesDoTutorial,
+} from "./modules/conta/tutorial.routes.ts";
+import {
   criarRotasDosClientes,
   type OpcoesDosClientes,
 } from "./modules/customers/clientes.routes.ts";
@@ -94,6 +145,10 @@ import {
   criarRotasDosEnderecos,
   type OpcoesDosEnderecos,
 } from "./modules/customers/enderecos.routes.ts";
+import {
+  listarEnderecos,
+  salvarEndereco,
+} from "./modules/customers/enderecos.usecase.ts";
 import {
   criarRotasDoPedidoManual,
   type OpcoesDoPedidoManual,
@@ -146,6 +201,22 @@ export const IDENTIFICACAO_DA_API = {
 /** Onde as verificações de saúde ficam montadas (AC-023). */
 export const PREFIXO_DE_SAUDE = "/v1/health";
 
+/**
+ * A sessão do Bearer, de qualquer papel, ou `null` sem token válido. O papel
+ * de cada pessoa NA LOJA vem do vínculo, e quem decide é o portão da equipe.
+ */
+function sessaoDoToken(requisicao: Request): SessaoDaRequisicao | null {
+  const token = tokenDoCabecalhoDeAutorizacao(requisicao.headers.authorization);
+  const segredo = process.env.JWT_SECRET?.trim();
+  if (!token || !segredo) return null;
+  try {
+    const alegacoes = verificarTokenDeAcesso(token, segredo);
+    return { identidadeId: alegacoes.identidadeId, papel: alegacoes.papel };
+  } catch {
+    return null;
+  }
+}
+
 /** Ajustes da composição. Tudo tem padrão; teste sobrescreve o que precisa. */
 export interface OpcoesDoApp {
   /**
@@ -188,6 +259,16 @@ export interface OpcoesDoApp {
   readonly pedidoManual?: Partial<OpcoesDoPedidoManual>;
   /** O mesmo, para os endereços salvos da conta (T-707). */
   readonly enderecos?: Partial<OpcoesDosEnderecos>;
+  /** O mesmo, para dados, senha, sessões e exclusão da conta (card #35). */
+  readonly contaInterna?: Partial<OpcoesDaContaInterna>;
+  /**
+   * O freio do aceite versionado (card #79): conta com aceite pendente não
+   * cria nada (POST) até aceitar. Fica desligado quando não informado, para
+   * as provas que não falam de aceite; `main.ts` liga o de verdade.
+   */
+  readonly exigirAceite?: RequestHandler;
+  /** O mesmo, para o tutorial de primeiro acesso (card #39). */
+  readonly tutorial?: Partial<OpcoesDoTutorial>;
   /** O mesmo, para o cupom impresso (T-705 prova o do pedido manual). */
   readonly cupom?: Partial<OpcoesDaRotaDoCupom>;
   /**
@@ -212,6 +293,20 @@ export interface OpcoesDoApp {
   readonly identidade?: OpcoesDaIdentidade;
   /** O mesmo, para a rota "quem sou eu" (T-115): acesso e segredo do token. */
   readonly eu?: OpcoesDoEu;
+  /** O mesmo, para o portão da equipe do painel (card #25). */
+  readonly portaoDaEquipe?: Partial<OpcoesDoPortaoDaEquipe>;
+  /** O mesmo, para a gestão da loja: equipe, limites, tema e feed (card #25). */
+  readonly gestaoDaLoja?: Partial<OpcoesDaGestaoDaLoja>;
+  /** O mesmo, para o feed, favoritos e recentes (card #25). */
+  readonly feed?: Partial<OpcoesDoFeed>;
+  /**
+   * Vídeo do produto e stories (card #46): onde a mídia fica e os limites.
+   * A prova troca por armazenamento em memória e limites pequenos.
+   */
+  readonly midia?: {
+    readonly armazenamento?: ArmazenamentoDeMidia;
+    readonly limites?: LimitesDeMidiaDaApi;
+  };
 }
 
 /**
@@ -251,12 +346,24 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // depender de nada que ela ainda esteja montando (AC-023).
   app.use(PREFIXO_DE_SAUDE, criarRotasDeSaude());
 
+  // O aceite versionado dos termos (card #79): barra só ações de criação.
+  if (opcoes.exigirAceite !== undefined) app.use("/v1", opcoes.exigirAceite);
+
   // ANTES DE TODA ROTA DO DONO: o ponto único que avisa o site quando o
   // catálogo ou a configuração de uma loja muda (dívida 93). Fica na frente
   // para que rota nova do painel já nasça avisando, sem ninguém lembrar.
   app.use(
     "/v1/lojas",
     avisarOSiteQuandoODonoAltera(opcoes.avisarSite ?? naoAvisarOSite),
+  );
+
+  // O PORTÃO DA EQUIPE (card #25): antes de toda rota do painel, decide o
+  // papel da conta NAQUELA loja pelo vínculo (dono ou equipe) e confere a rota
+  // contra a matriz de permissões. Cada rota lê o papel daqui
+  // (`equipeDaRequisicao`), e o banco confere o vínculo de novo.
+  app.use(
+    "/v1/lojas/:apelido",
+    portaoDaEquipe({ identificar: sessaoDoToken, ...opcoes.portaoDaEquipe }),
   );
 
   // Identidade (T-112). Fora de produção, o atalho do usuário de teste local
@@ -284,7 +391,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     ROTAS_DA_IMPRESSAO_TERMICA.map((caminho) => `/v1/lojas${caminho}`),
     exigirFuncionalidade("auto_print", {
-      resolverLoja: identificarLoja,
+      resolverLoja: identificarLojaDoPainel,
       ...opcoes.funcionalidades,
     }),
   );
@@ -292,26 +399,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDasConfiguracoes({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          const usuario: UsuarioAutenticado = {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER",
-          };
-          return usuario;
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
       ...opcoes.configuracoes,
     }),
   );
@@ -319,25 +408,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDaFila({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
       ...opcoes.fila,
     }),
   );
@@ -345,175 +417,93 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDasCategorias({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER",
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDosProdutos({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDasImagens({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
+    }),
+  );
 
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+  // Vídeos do produto e a galeria mista; stories da loja (card #46).
+  app.use(
+    "/v1/lojas",
+    criarRotasDasMidias({
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
+      ...opcoes.midia,
+    }),
+  );
+
+  app.use(
+    "/v1/lojas",
+    criarRotasDosStoriesDaLoja({
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
+      ...opcoes.midia,
+    }),
+  );
+
+  // Moderação dos comentários da loja (card #47).
+  app.use(
+    "/v1/lojas",
+    criarRotasDaModeracao({
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDosPrecos({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDosGruposDeEscolha({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDasVariacoes({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
   app.use(
     "/v1/lojas",
     criarRotasDoEstoque({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
+    }),
+  );
 
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+  // Estoque, variações e opções de todos os produtos (card #52).
+  app.use(
+    "/v1/lojas",
+    criarRotasDaVisaoGeral({
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
@@ -522,25 +512,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDasEspecificacoes({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
     }),
   );
 
@@ -550,26 +523,9 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDoCupom({
-      resolverLoja: identificarLoja,
+      resolverLoja: identificarLojaDoPainel,
       lerConfiguracaoDoCupom: normalizarConfiguracaoDeImpressao,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      autenticar: equipeDaRequisicao,
       ...opcoes.cupom,
     }),
   );
@@ -579,25 +535,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDosClientes({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
       ...opcoes.clientes,
     }),
   );
@@ -619,24 +558,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         if (vitrine === null) return null;
         return fechamentoDaLoja(vitrine.publica.formasDeEntrega);
       },
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      autenticar: equipeDaRequisicao,
       ...opcoes.pedidoManual,
     }),
   );
@@ -650,27 +572,10 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1",
     criarRotasDaImpressaoAutomatica({
-      resolverLoja: identificarLoja,
+      resolverLoja: identificarLojaDoPainel,
       lerConfiguracaoDoCupom: normalizarConfiguracaoDeImpressao,
       cacheDoLimite: cacheDoLimiteSobDemanda(process.env.REDIS_URL),
-      autenticarDono: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      autenticarDono: equipeDaRequisicao,
       ...opcoes.impressaoAutomatica,
     }),
   );
@@ -682,26 +587,9 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotasDasMetricas({
-      resolverLoja: identificarLoja,
+      resolverLoja: identificarLojaDoPainel,
       lerFusoDaLoja: fusoDaLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      autenticar: equipeDaRequisicao,
       ...opcoes.metricas,
     }),
   );
@@ -738,9 +626,67 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         ),
       gerarTokenDeConvite,
       resumirTokenDeConvite,
+      rotasDeOutrosModulos: [
+        montarRotasDasMetricasDoAdmin,
+        montarRotasDoLimiteDeStories,
+      ],
       ...opcoes.administracao,
     }),
   );
+
+  // A GESTÃO DA LOJA (card #25): equipe, uso e limites, tema da vitrine e
+  // configuração do feed. Derivar e avaliar senha são do módulo de
+  // identidade; a borda passa as funções.
+  app.use(
+    "/v1/lojas",
+    criarRotasDaGestaoDaLoja({
+      autenticar: equipeDaRequisicao,
+      resolverLoja: identificarLojaDoPainel,
+      derivarSenha,
+      problemasDaSenha: (senha) =>
+        avaliarPoliticaDeSenha(senha).problemas.map((problema) => problema.mensagem),
+      ...opcoes.gestaoDaLoja,
+    }),
+  );
+
+  // O FEED (card #25): público, com a conta da sessão quando houver (Bearer
+  // ou o cookie do site). Fica antes das rotas da conta, que também moram em
+  // `/v1/conta`.
+  app.use(
+    "/v1",
+    criarRotasDoFeed({
+      autenticar: (requisicao) =>
+        clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()),
+      ...opcoes.feed,
+    }),
+  );
+
+  // Curtidas e comentários (card #47): públicos, com a conta da sessão
+  // quando houver. Também antes das rotas da conta (`/v1/conta/comentarios`).
+  app.use(
+    "/v1",
+    criarRotasSociais({
+      autenticar: (requisicao) =>
+        clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()),
+      ...(opcoes.feed?.acesso === undefined ? {} : { acesso: opcoes.feed.acesso }),
+    }),
+  );
+
+  // Stories ativos (público) e o "visto" da pessoa; limites de envio de mídia
+  // e, fora de produção sem serviço de mídia, os arquivos do disco local
+  // (card #46).
+  app.use(
+    "/v1",
+    criarRotasDosStoriesPublicos({
+      autenticar: (requisicao) =>
+        clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()),
+      ...(opcoes.feed?.acesso === undefined ? {} : { acesso: opcoes.feed.acesso }),
+    }),
+  );
+  app.use("/v1/midia", criarRotaDosLimitesDeMidia(opcoes.midia?.limites));
+  if (opcoes.midia?.armazenamento === undefined && usaMidiaLocal()) {
+    app.use(CAMINHO_DOS_ARQUIVOS_DE_MIDIA, servirMidiaLocal());
+  }
 
   // A vitrine é pública por natureza: é o endereço que o cliente abre antes de
   // existir sessão, conta ou loja no contexto. Ela mesma descobre qual loja
@@ -812,20 +758,25 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
           proximaAbertura: vitrine?.abertura.proximaAbertura ?? null,
         };
       },
-      // O cliente logado, quando a sessão é de CLIENTE: o pedido nasce ligado
-      // à conta dele e aparece no histórico (AC-616). O navegador leva a
-      // sessão no cookie `sc_access`, e o nativo no Bearer. Dono e
-      // administração não compram "como conta", e convidado segue sem vínculo
-      // (ASM-103).
+      // A conta logada: o pedido EXIGE conta (sem ela, 401
+      // `conta_obrigatoria`), nasce ligado a ela e aparece no histórico
+      // (AC-616). O navegador leva a sessão no cookie `sc_access`, e o nativo
+      // no Bearer. Qualquer papel compra: a conta é uma só.
       autenticarCliente: (requisicao) =>
         clienteDaCompra(requisicao, process.env.JWT_SECRET?.trim()),
+      // O endereço da entrega é um dos salvos da conta, ou um novo que fica
+      // salvo nela (módulo `customers`).
+      enderecosDaConta: {
+        listar: listarEnderecos,
+        salvar: salvarEndereco,
+      },
       ...opcoes.pedidos,
     }),
   );
 
   // A ÁREA DA CONTA não é de loja nenhuma: é da pessoa. O histórico dela
-  // cruza lojas por um caminho dedicado (AC-616), e a sessão precisa ser de
-  // CLIENTE — dono e administração não têm "meus pedidos".
+  // cruza lojas por um caminho dedicado (AC-616). Qualquer sessão vale — a
+  // leitura roda no papel CLIENTE, com a identidade da sessão.
   app.use(
     PREFIXO_DA_CONTA,
     criarRotasDaConta({
@@ -838,7 +789,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
 
         try {
           const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "CUSTOMER") return null;
+          // A mesma conta serve a todos: dono e administração também
+          // compram, e veem os próprios pedidos como qualquer cliente.
           return {
             identidadeId: alegacoes.identidadeId,
             papel: "CUSTOMER" as const,
@@ -858,24 +810,7 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     "/v1/lojas",
     criarRotaDaSituacaoDaLoja({
       resolverLoja: identificarLojaNaoExcluida,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      autenticar: equipeDaRequisicao,
       ...opcoes.situacaoDaLoja,
     }),
   );
@@ -885,25 +820,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   app.use(
     "/v1/lojas",
     criarRotaDasFuncionalidadesDaLoja({
-      resolverLoja: identificarLoja,
-      autenticar: (requisicao) => {
-        const token = tokenDoCabecalhoDeAutorizacao(
-          requisicao.headers.authorization,
-        );
-        const segredo = process.env.JWT_SECRET?.trim();
-        if (!token || !segredo) return null;
-
-        try {
-          const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "OWNER") return null;
-          return {
-            identidadeId: alegacoes.identidadeId,
-            papel: "OWNER" as const,
-          };
-        } catch {
-          return null;
-        }
-      },
+      resolverLoja: identificarLojaDoPainel,
+      autenticar: equipeDaRequisicao,
       ...opcoes.funcionalidadesDaLoja,
     }),
   );
@@ -922,7 +840,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
 
         try {
           const alegacoes = verificarTokenDeAcesso(token, segredo);
-          if (alegacoes.papel !== "CUSTOMER") return null;
+          // A mesma conta serve a todos: dono e administração também
+          // compram, e guardam endereço como qualquer cliente.
           return {
             identidadeId: alegacoes.identidadeId,
             papel: "CUSTOMER" as const,
@@ -932,6 +851,54 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         }
       },
       ...opcoes.enderecos,
+    }),
+  );
+
+  // DADOS, SENHA, SESSÕES E EXCLUSÃO da conta do cliente (card #35).
+  app.use(
+    PREFIXO_DA_CONTA,
+    criarRotasDaContaInterna({
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+        try {
+          const alegacoes = verificarTokenDeAcesso(token, segredo);
+          return {
+            identidadeId: alegacoes.identidadeId,
+            familiaId: alegacoes.familiaId,
+          };
+        } catch {
+          return null;
+        }
+      },
+      derivarSenha,
+      senhaConfere,
+      problemasDaSenha: (senha) =>
+        avaliarPoliticaDeSenha(senha).problemas.map((problema) => problema.mensagem),
+      ...opcoes.contaInterna,
+    }),
+  );
+
+  // TUTORIAL DE PRIMEIRO ACESSO (card #39): quais a conta já viu ou pulou.
+  app.use(
+    PREFIXO_DA_CONTA,
+    criarRotasDoTutorial({
+      autenticar: (requisicao) => {
+        const token = tokenDoCabecalhoDeAutorizacao(
+          requisicao.headers.authorization,
+        );
+        const segredo = process.env.JWT_SECRET?.trim();
+        if (!token || !segredo) return null;
+        try {
+          return verificarTokenDeAcesso(token, segredo).identidadeId;
+        } catch {
+          return null;
+        }
+      },
+      ...opcoes.tutorial,
     }),
   );
 

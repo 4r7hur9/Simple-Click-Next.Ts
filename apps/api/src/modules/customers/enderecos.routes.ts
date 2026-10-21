@@ -5,11 +5,12 @@
  *   POST   /v1/conta/enderecos       — salva um endereço
  *   PUT    /v1/conta/enderecos/:id   — troca um endereço
  *   DELETE /v1/conta/enderecos/:id   — apaga um endereço
+ *   POST   /v1/conta/enderecos/:id/padrao — marca como o padrão
  *
  * A área da conta não é de loja nenhuma: é da pessoa. A transação abre SEM
  * loja, com a identidade e o papel CLIENTE — é o que as políticas de
- * `customer_addresses` (0036) exigem. Dono e administração não têm endereço
- * salvo por esta porta: a borda só autentica sessão de cliente.
+ * `customer_addresses` (0036) exigem. A conta é uma só: dono e administração
+ * também guardam endereço por aqui, sempre no papel CLIENTE.
  */
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
@@ -22,6 +23,7 @@ import { validar } from "../../core/validar.ts";
 import {
   apagarEndereco,
   listarEnderecos,
+  marcarEnderecoPadrao,
   salvarEndereco,
   trocarEndereco,
 } from "./enderecos.usecase.ts";
@@ -149,6 +151,27 @@ export function criarRotasDosEnderecos(opcoes: OpcoesDosEnderecos): Router {
         return;
       }
       resposta.status(204).end();
+    } catch (causa) {
+      proximo(causa);
+    }
+  });
+
+  rotas.post("/enderecos/:id/padrao", async (requisicao, resposta, proximo) => {
+    try {
+      if (exigirCliente(requisicao, resposta) === null) return;
+      const params = esquemaDoEnderecoNaRota.safeParse(requisicao.params);
+      if (!params.success) {
+        erro(resposta, 404, "nao_encontrado");
+        return;
+      }
+      const marcado = await comoCliente(resposta, () =>
+        marcarEnderecoPadrao(params.data.id),
+      );
+      if (marcado === null) {
+        erro(resposta, 404, "nao_encontrado");
+        return;
+      }
+      resposta.json(marcado);
     } catch (causa) {
       proximo(causa);
     }

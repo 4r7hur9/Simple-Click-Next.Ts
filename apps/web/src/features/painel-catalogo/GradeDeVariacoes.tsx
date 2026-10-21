@@ -1,9 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { centavosDoTexto, escreverDinheiro } from "../../lib/dinheiro.ts";
+import { Seletor } from "@simpleclick/ui";
+
+import { EXPLICACOES } from "./explicacoes.ts";
+import {
+  CampoComRotulo as Linha,
+  RotuloComInfo,
+  TituloComInfo,
+  descritoDoInfo,
+} from "./RotuloComInfo.tsx";
 
 interface Opcao {
   readonly id: string;
@@ -37,6 +46,7 @@ interface Props {
 const VARIACAO_VAZIA = {
   nome: "",
   sku: "",
+  codigoDeBarras: "",
   preco: "",
   estoque: "",
   minimo: "",
@@ -51,6 +61,7 @@ function dinheiro(centavos: number | null) {
 }
 
 export function GradeDeVariacoes({ produtoId }: Props) {
+  const base = useId();
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [variacoes, setVariacoes] = useState<Variacao[]>([]);
   const [formulario, setFormulario] = useState(VARIACAO_VAZIA);
@@ -158,7 +169,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
           body: JSON.stringify({
             nome: formulario.nome,
             sku: formulario.sku.trim() || null,
-            codigoDeBarras: null,
+            codigoDeBarras: formulario.codigoDeBarras.trim() || null,
             precoCentavos,
             estoque: unidades,
             estoqueMinimo: minimo,
@@ -238,7 +249,16 @@ export function GradeDeVariacoes({ produtoId }: Props) {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-2">
+      {variacoes.length > 0 ? (
+        <TituloComInfo
+          className="mt-6"
+          nome="Esgotar e remover variações"
+          info={EXPLICACOES.esgotarVariacao}
+        >
+          Variações cadastradas
+        </TituloComInfo>
+      ) : null}
+      <ul className="mt-2 space-y-2">
         {variacoes.map((variacao) => (
           <li
             key={variacao.id}
@@ -255,7 +275,7 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                     ? " · estoque não controlado"
                     : ""
                   : ` · ${variacao.estoque} un.`}
-                {variacao.padrao ? " · padrão" : ""}
+                {variacao.padrao ? " · já vem escolhida" : ""}
               </span>
             </span>
             <span className="text-xs font-semibold">
@@ -282,14 +302,22 @@ export function GradeDeVariacoes({ produtoId }: Props) {
       {eixos.length > 0 ? (
         <form
           onSubmit={(evento) => void criarVariacao(evento)}
-          className="mt-6 grid gap-4 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
+          className="mt-6 grid gap-5 border-t border-[var(--cor-borda)] pt-6 sm:grid-cols-2"
         >
           <h3 className="text-xl font-semibold sm:col-span-2">Nova variação</h3>
-          <label>
-            <span className="text-sm font-medium">Nome interno</span>
+          <Linha
+            id={`${base}-nome`}
+            rotulo="Nome interno"
+            info={EXPLICACOES.nomeDaVariacao}
+          >
             <input
-              className="sc-campo__controle mt-2 w-full"
+              id={`${base}-nome`}
+              className="sc-campo__controle w-full"
               value={formulario.nome}
+              aria-describedby={descritoDoInfo(
+                `${base}-nome`,
+                EXPLICACOES.nomeDaVariacao,
+              )}
               onChange={(evento) =>
                 setFormulario((anterior) => ({
                   ...anterior,
@@ -297,35 +325,26 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                 }))
               }
               placeholder="Ex.: Camiseta azul M"
+              maxLength={160}
               required
             />
-          </label>
-          <label>
-            <span className="text-sm font-medium">SKU</span>
-            <input
-              className="sc-campo__controle mt-2 w-full"
-              value={formulario.sku}
-              onChange={(evento) =>
-                setFormulario((anterior) => ({
-                  ...anterior,
-                  sku: evento.target.value,
-                }))
-              }
-              placeholder="Opcional"
-            />
-          </label>
+          </Linha>
           {eixos.map((grupo) => (
-            <label key={grupo.id}>
-              <span className="text-sm font-medium">{grupo.nome}</span>
-              <select
-                className="sc-campo__controle mt-2 w-full"
+            <Linha
+              key={grupo.id}
+              id={`${base}-eixo-${grupo.id}`}
+              rotulo={grupo.nome}
+            >
+              <Seletor
+                id={`${base}-eixo-${grupo.id}`}
+                className="w-full"
                 value={formulario.escolhas[grupo.id] ?? ""}
-                onChange={(evento) =>
+                onChange={(valor) =>
                   setFormulario((anterior) => ({
                     ...anterior,
                     escolhas: {
                       ...anterior.escolhas,
-                      [grupo.id]: evento.target.value,
+                      [grupo.id]: valor,
                     },
                   }))
                 }
@@ -338,18 +357,26 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                     disabled={!opcao.disponivel}
                   >
                     {opcao.nome}
-                    {opcao.disponivel ? "" : " (indisponível)"}
+                    {opcao.disponivel ? "" : " (esgotada)"}
                   </option>
                 ))}
-              </select>
-            </label>
+              </Seletor>
+            </Linha>
           ))}
-          <label>
-            <span className="text-sm font-medium">Preço (R$)</span>
+          <Linha
+            id={`${base}-preco`}
+            rotulo="Preço desta variação (R$)"
+            info={EXPLICACOES.precoDaVariacao}
+          >
             <input
-              className="sc-campo__controle mt-2 w-full"
+              id={`${base}-preco`}
+              className="sc-campo__controle w-full"
               inputMode="decimal"
               value={formulario.preco}
+              aria-describedby={descritoDoInfo(
+                `${base}-preco`,
+                EXPLICACOES.precoDaVariacao,
+              )}
               onChange={(evento) =>
                 setFormulario((anterior) => ({
                   ...anterior,
@@ -359,17 +386,69 @@ export function GradeDeVariacoes({ produtoId }: Props) {
               placeholder="Ex.: 89,90"
               required
             />
-          </label>
+          </Linha>
+          <Linha
+            id={`${base}-sku`}
+            rotulo="SKU (opcional)"
+            info={EXPLICACOES.sku}
+          >
+            <input
+              id={`${base}-sku`}
+              className="sc-campo__controle w-full"
+              value={formulario.sku}
+              maxLength={100}
+              aria-describedby={descritoDoInfo(`${base}-sku`, EXPLICACOES.sku)}
+              onChange={(evento) =>
+                setFormulario((anterior) => ({
+                  ...anterior,
+                  sku: evento.target.value,
+                }))
+              }
+              placeholder="Ex.: CAM-AZ-M"
+            />
+          </Linha>
+          <Linha
+            id={`${base}-barras`}
+            rotulo="Código de barras (opcional)"
+            info={EXPLICACOES.codigoDeBarras}
+          >
+            <input
+              id={`${base}-barras`}
+              className="sc-campo__controle w-full"
+              inputMode="numeric"
+              value={formulario.codigoDeBarras}
+              maxLength={100}
+              aria-describedby={descritoDoInfo(
+                `${base}-barras`,
+                EXPLICACOES.codigoDeBarras,
+              )}
+              onChange={(evento) =>
+                setFormulario((anterior) => ({
+                  ...anterior,
+                  codigoDeBarras: evento.target.value,
+                }))
+              }
+            />
+          </Linha>
           {controlaEstoque ? (
             <>
-              <label>
-                <span className="text-sm font-medium">Estoque</span>
+              <Linha
+                id={`${base}-estoque`}
+                rotulo="Estoque (unidades)"
+                info={EXPLICACOES.estoqueDaVariacao}
+              >
                 <input
-                  className="sc-campo__controle mt-2 w-full"
+                  id={`${base}-estoque`}
+                  className="sc-campo__controle w-full"
                   type="number"
+                  inputMode="numeric"
                   name="estoque"
                   min={0}
                   value={formulario.estoque}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-estoque`,
+                    EXPLICACOES.estoqueDaVariacao,
+                  )}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
                       ...anterior,
@@ -378,33 +457,45 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                   }
                   placeholder="Vazio = não controla"
                 />
-              </label>
-              <label>
-                <span className="text-sm font-medium">
-                  Avisar quando chegar a
-                </span>
+              </Linha>
+              <Linha
+                id={`${base}-minimo`}
+                rotulo="Alerta de estoque mínimo (unidades)"
+                info={EXPLICACOES.alertaDeEstoque}
+              >
                 <input
-                  className="sc-campo__controle mt-2 w-full"
+                  id={`${base}-minimo`}
+                  className="sc-campo__controle w-full"
                   type="number"
+                  inputMode="numeric"
                   name="minimo"
                   min={0}
                   value={formulario.minimo}
+                  aria-describedby={descritoDoInfo(
+                    `${base}-minimo`,
+                    EXPLICACOES.alertaDeEstoque,
+                  )}
                   onChange={(evento) =>
                     setFormulario((anterior) => ({
                       ...anterior,
                       minimo: evento.target.value,
                     }))
                   }
-                  placeholder="Ex.: 5"
+                  placeholder="Vazio = sem aviso"
                 />
-              </label>
+              </Linha>
             </>
           ) : null}
-          <label className="flex items-center gap-3 text-sm">
+          <span className="flex items-center gap-3 text-sm sm:col-span-2">
             <input
+              id={`${base}-padrao`}
               className="h-5 w-5"
               type="checkbox"
               checked={formulario.padrao}
+              aria-describedby={descritoDoInfo(
+                `${base}-padrao`,
+                EXPLICACOES.variacaoPadrao,
+              )}
               onChange={(evento) =>
                 setFormulario((anterior) => ({
                   ...anterior,
@@ -412,8 +503,14 @@ export function GradeDeVariacoes({ produtoId }: Props) {
                 }))
               }
             />
-            Abrir como padrão
-          </label>
+            <RotuloComInfo
+              htmlFor={`${base}-padrao`}
+              nome="Já vem escolhida"
+              info={EXPLICACOES.variacaoPadrao}
+            >
+              Já vem escolhida (padrão)
+            </RotuloComInfo>
+          </span>
           <button
             className="sc-botao sc-botao--primaria w-fit"
             type="submit"

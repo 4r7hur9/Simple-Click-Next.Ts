@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Carregando,
   IconeConfiguracoes,
@@ -10,9 +10,12 @@ import {
   IconeOrdemCrescente,
   IconeOrdemDecrescente,
   MenuSuspenso,
+  Seletor,
   Selo,
   Vazio,
 } from "@simpleclick/ui";
+import { EXPLICACOES } from "./explicacoes.ts";
+import { RotuloComInfo, descritoDoInfo } from "./RotuloComInfo.tsx";
 
 /**
  * As categorias do dono (T-300).
@@ -55,6 +58,7 @@ function rotuloDeProdutos(quantidade: number): string {
 }
 
 export function ListaCategorias() {
+  const idDoFormulario = useId();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [estado, setEstado] = useState<Estado>("carregando");
   const [salvando, setSalvando] = useState(false);
@@ -286,19 +290,19 @@ export function ListaCategorias() {
           />
         ) : (
           <ol
-            className="mt-6 space-y-3"
+            className="mt-6 space-y-4"
             aria-label="Categorias na ordem da vitrine"
           >
             {categorias.map((categoria, indice) => (
               <li
                 key={categoria.id}
-                className="rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] px-4 py-3 shadow-[var(--sombra-larga)]"
+                className="rounded-[var(--raio-cartao)] border border-[var(--cor-borda)] bg-[var(--cor-superficie-alta)] px-4 py-4 shadow-[var(--sombra-larga)]"
               >
-                <div className="flex min-h-12 flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex min-h-12 flex-wrap items-center gap-x-4 gap-y-3">
                   <span className="w-7 text-center font-[family-name:var(--fonte-titulo)] text-sm font-semibold text-[var(--cor-tinta-suave)]">
                     {String(indice + 1).padStart(2, "0")}
                   </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-48">
                     <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
                       {categoria.nome}
                       {categoria.visivel ? (
@@ -312,7 +316,7 @@ export function ListaCategorias() {
                       {rotuloDeProdutos(categoria.produtos)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="ml-auto flex items-center gap-2">
                     <button
                       className="sc-botao sc-botao--discreta sc-botao--so-icone"
                       type="button"
@@ -346,7 +350,8 @@ export function ListaCategorias() {
                           ) : (
                             <IconeMostrar />
                           ),
-                          aoEscolher: () => void alternarVisibilidade(categoria),
+                          aoEscolher: () =>
+                            void alternarVisibilidade(categoria),
                         },
                         {
                           id: "especificacoes",
@@ -407,13 +412,13 @@ export function ListaCategorias() {
                         {remocao.escolha === "mover" ? (
                           <label className="mt-2 block text-sm">
                             <span>Categoria de destino</span>
-                            <select
-                              className="sc-campo__controle mt-1 w-full"
+                            <Seletor
+                              className="mt-1 w-full"
                               value={remocao.destinoId}
-                              onChange={(evento) =>
+                              onChange={(valor) =>
                                 setRemocao({
                                   ...remocao,
-                                  destinoId: evento.target.value,
+                                  destinoId: valor,
                                 })
                               }
                             >
@@ -422,7 +427,7 @@ export function ListaCategorias() {
                                   {item.nome}
                                 </option>
                               ))}
-                            </select>
+                            </Seletor>
                           </label>
                         ) : null}
                         <label className="mt-3 flex items-center gap-3 text-sm">
@@ -474,7 +479,7 @@ export function ListaCategorias() {
           produtos.
         </p>
         <label className="mt-5 block">
-          <span className="text-sm font-medium">Nome</span>
+          <span className="text-sm font-medium">Nome da categoria</span>
           <input
             className="sc-campo__controle mt-2 w-full"
             value={formulario.nome}
@@ -503,10 +508,15 @@ export function ListaCategorias() {
             maxLength={500}
           />
         </label>
-        <label className="mt-4 flex items-center gap-3 text-sm">
+        <span className="mt-4 flex items-center gap-3 text-sm">
           <input
+            id={`${idDoFormulario}-visivel`}
             className="h-5 w-5"
             type="checkbox"
+            aria-describedby={descritoDoInfo(
+              `${idDoFormulario}-visivel`,
+              EXPLICACOES.categoriaVisivel,
+            )}
             checked={formulario.visivel}
             onChange={(evento) =>
               setFormulario((anterior) => ({
@@ -515,8 +525,14 @@ export function ListaCategorias() {
               }))
             }
           />
-          Mostrar na vitrine agora
-        </label>
+          <RotuloComInfo
+            htmlFor={`${idDoFormulario}-visivel`}
+            nome="Mostrar na vitrine"
+            info={EXPLICACOES.categoriaVisivel}
+          >
+            Mostrar na vitrine agora
+          </RotuloComInfo>
+        </span>
         <button
           className="sc-botao sc-botao--primaria mt-6 w-full"
           type="submit"

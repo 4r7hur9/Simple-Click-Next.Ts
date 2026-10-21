@@ -97,7 +97,7 @@ export function BotaoAdicionar({
       >
         {aVenda ? (
           <>
-            <span>{enviando ? "Adicionando…" : "Adicionar"}</span>
+            <span>{enviando ? "Adicionando…" : "Adicionar à sacola"}</span>
             {/*
               O total muda a cada escolha, e o leitor de tela precisa ouvir a
               mudança — senão quem não vê aperta sem saber quanto vai pagar.

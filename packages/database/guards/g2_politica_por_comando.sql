@@ -22,6 +22,8 @@
 WITH so_acrescenta(tabela) AS (
   VALUES
     ('audit_log'),             -- trilha imutável em três camadas (G9)
+    ('audit_platform'),        -- idem, para o que não é de loja nenhuma (0051)
+    ('legal_acceptances'),     -- aceite é prova de consentimento: só acrescenta (0073)
     ('order_items'),           -- cópia congelada do momento da compra (P-010)
     ('order_item_options'),    -- idem: opção escolhida não muda depois
     ('order_status_history'),  -- histórico de transição só cresce

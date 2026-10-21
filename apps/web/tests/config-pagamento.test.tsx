@@ -21,6 +21,7 @@ import {
   montar,
   simularApi,
 } from "./apoio-config.tsx";
+import { seletorPeloNome } from "./apoio-seletor.ts";
 
 afterEach(desmontar);
 
@@ -41,7 +42,7 @@ describe("cadastrar a chave PIX (AC-900)", () => {
 
     clicar(exigir(tela, 'input[name="forma-PIX"]'));
     clicar(exigir(tela, 'input[name="forma-CASH"]'));
-    digitar(exigir(tela, 'select[name="pix.tipo"]'), "CPF");
+    digitar(seletorPeloNome(tela, "pix.tipo"), "CPF");
     digitar(exigir(tela, 'input[name="pix.chave"]'), "529.982.247-25");
     digitar(exigir(tela, 'input[name="pix.titular"]'), "Zica da Silva");
     await enviar(exigir<HTMLFormElement>(tela, "form"));
@@ -69,7 +70,7 @@ describe("cadastrar a chave PIX (AC-900)", () => {
 
     const chave = exigir<HTMLInputElement>(tela, 'input[name="pix.chave"]');
     expect(chave.placeholder).toBe("(11) 91234-5678");
-    digitar(exigir(tela, 'select[name="pix.tipo"]'), "CNPJ");
+    digitar(seletorPeloNome(tela, "pix.tipo"), "CNPJ");
     expect(
       exigir<HTMLInputElement>(tela, 'input[name="pix.chave"]').placeholder,
     ).toBe("12.345.678/0001-95");
@@ -106,7 +107,9 @@ describe("chave recusada (AC-901)", () => {
     const chave = exigir<HTMLInputElement>(tela, 'input[name="pix.chave"]');
     expect(chave.getAttribute("aria-invalid")).toBe("true");
     expect(
-      exigir(tela, `#${chave.getAttribute("aria-describedby")}`).textContent,
+      // O erro vem primeiro; depois dele, o texto do "i" da chave.
+      exigir(tela, `#${chave.getAttribute("aria-describedby")?.split(" ")[0]}`)
+        .textContent,
     ).toBe(formato);
     expect(exigir(tela, '[role="status"]').textContent).toBe(
       MENSAGEM_DE_RECUSA,

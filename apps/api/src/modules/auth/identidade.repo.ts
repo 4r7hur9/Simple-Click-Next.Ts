@@ -71,15 +71,24 @@ function papelNoLogin(papel: string): PapelNoLogin {
 }
 
 // ---------------------------------------------------------------------------
-// Cadastro (AC-100, AC-101)
+// Cadastro (AC-100): conta de cliente já verificada (migração 0047)
 // ---------------------------------------------------------------------------
 
 /** O cadastro de cliente final no banco. */
 export function repositorioDeIdentidadesNoBanco(
   acesso: AcessoDoRepositorio,
-): RepositorioDeIdentidades {
+): RepositorioDeIdentidades & {
+  /**
+   * Conta pendente de verificação, pelo caminho antigo (migração 0045). O
+   * cadastro não usa mais; fica para as provas do link de verificação, que
+   * continua valendo para as contas antigas.
+   */
+  criarPendenteSeAusente(
+    identidade: NovaIdentidade,
+  ): Promise<{ readonly criada: boolean }>;
+} {
   return {
-    async criarSeAusente(identidade: NovaIdentidade) {
+    async criarPendenteSeAusente(identidade: NovaIdentidade) {
       const [linha] = await acesso().emTransacao(
         (tx) =>
           tx.$queryRaw<{ criada: boolean }[]>`
@@ -88,6 +97,17 @@ export function repositorioDeIdentidadesNoBanco(
                    ${identidade.telefoneE164}, ${identidade.senhaDerivada}) AS criada`,
       );
       return { criada: linha?.criada === true };
+    },
+    async criarVerificadaSeAusente(identidade: NovaIdentidade) {
+      const [linha] = await acesso().emTransacao(
+        (tx) =>
+          tx.$queryRaw<{ id: string | null }[]>`
+          SELECT app.auth_cadastrar_cliente_verificado(
+                   ${identidade.emailNormalizado}, ${identidade.nome},
+                   ${identidade.telefoneE164}, ${identidade.senhaDerivada})::text AS id`,
+      );
+      const id = linha?.id ?? null;
+      return id === null ? null : { identidadeId: id };
     },
   };
 }

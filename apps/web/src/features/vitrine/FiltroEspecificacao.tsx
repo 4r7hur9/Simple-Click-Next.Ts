@@ -8,12 +8,16 @@
  * chega especificação marcada como filtrável, com os valores que os produtos
  * publicados têm.
  *
- * FICA DENTRO DE UM `details`, fechado até alguém precisar: no celular, três
- * grupos de caixas abertos empurram o primeiro produto para fora da tela. O
- * `details` abre e fecha pelo próprio navegador, sem script, e nasce aberto
- * quando há filtro em vigor — quem filtrou precisa ver o que marcou.
+ * É SÓ O FORMULÁRIO. Quem o abre e fecha é a barra do catálogo
+ * (`BarraDeCatalogo`), que o guarda num painel `popover` — fechado até alguém
+ * tocar em "Filtrar", sem script, e sem empurrar o primeiro produto para fora
+ * da tela no celular.
  */
-import { IconeSeta } from "@simpleclick/ui";
+import {
+  PARAMETRO_DA_ORDEM,
+  PARAMETRO_DO_ATACADO,
+  type OrdemDoCatalogo,
+} from "../../lib/catalogo.ts";
 
 type Filtro = {
   readonly chave: string;
@@ -27,6 +31,10 @@ export interface FiltroEspecificacaoProps {
   readonly acao: string;
   readonly categoria: string | null;
   readonly busca: string | null;
+  /** A ordem em vigor vai junto, para filtrar não desfazer o "Ordenar". */
+  readonly ordem?: OrdemDoCatalogo | undefined;
+  /** O filtro de atacado ligado vai junto (card #59). */
+  readonly atacado?: boolean | undefined;
 }
 
 /**
@@ -39,6 +47,23 @@ function rotuloDoValor(valor: string): string {
   return valor;
 }
 
+/** O mesmo catálogo, sem nenhum `filtro=` — mantém categoria, busca e ordem. */
+function limparFiltros(
+  acao: string,
+  categoria: string | null,
+  busca: string | null,
+  ordem: OrdemDoCatalogo,
+  atacado: boolean,
+): string {
+  const parametros = new URLSearchParams();
+  if (categoria) parametros.set("categoria", categoria);
+  if (busca) parametros.set("busca", busca);
+  if (atacado) parametros.set(PARAMETRO_DO_ATACADO, "1");
+  if (ordem !== "relevancia") parametros.set(PARAMETRO_DA_ORDEM, ordem);
+  const consulta = parametros.toString();
+  return consulta === "" ? acao : `${acao}?${consulta}`;
+}
+
 /** Formulário GET: cada seleção é um controle funcional sem JavaScript. */
 export function FiltroEspecificacao({
   filtros,
@@ -46,61 +71,62 @@ export function FiltroEspecificacao({
   acao,
   categoria,
   busca,
+  ordem = "relevancia",
+  atacado = false,
 }: FiltroEspecificacaoProps) {
   if (filtros.length === 0) return null;
   return (
-    <details
-      className="sc-filtro"
-      open={selecionados.length > 0 || undefined}
+    <form
+      className="sc-filtro__formulario"
+      action={acao}
+      method="get"
+      aria-label="Filtrar por especificação"
     >
-      <summary className="sc-filtro__titulo">
-        <span>
-          Filtrar
-          {selecionados.length > 0 ? (
-            <span className="sc-filtro__contagem">
-              {" "}
-              ({selecionados.length})
-            </span>
-          ) : null}
-        </span>
-        <IconeSeta className="sc-filtro__seta" />
-      </summary>
-      <form
-        className="sc-filtro__formulario"
-        action={acao}
-        method="get"
-        aria-label="Filtrar por especificação"
-      >
-        {categoria ? (
-          <input type="hidden" name="categoria" value={categoria} />
+      {categoria ? (
+        <input type="hidden" name="categoria" value={categoria} />
+      ) : null}
+      {busca ? <input type="hidden" name="busca" value={busca} /> : null}
+      {ordem === "relevancia" ? null : (
+        <input type="hidden" name={PARAMETRO_DA_ORDEM} value={ordem} />
+      )}
+      {atacado ? (
+        <input type="hidden" name={PARAMETRO_DO_ATACADO} value="1" />
+      ) : null}
+      {filtros.map((filtro) => (
+        <fieldset className="sc-filtro__grupo" key={filtro.chave}>
+          <legend className="sc-filtro__nome">{filtro.nome}</legend>
+          {filtro.valores.map((valor) => {
+            const chave = `${filtro.chave}=${valor}`;
+            return (
+              <label className="sc-filtro__opcao" key={chave}>
+                <input
+                  type="checkbox"
+                  name="filtro"
+                  value={chave}
+                  defaultChecked={selecionados.includes(chave)}
+                />
+                {rotuloDoValor(valor)}
+              </label>
+            );
+          })}
+        </fieldset>
+      ))}
+      <div className="sc-filtro__acoes">
+        {selecionados.length > 0 ? (
+          <a
+            className="sc-filtro__limpar"
+            href={limparFiltros(acao, categoria, busca, ordem, atacado)}
+          >
+            Limpar filtros
+          </a>
         ) : null}
-        {busca ? <input type="hidden" name="busca" value={busca} /> : null}
-        {filtros.map((filtro) => (
-          <fieldset className="sc-filtro__grupo" key={filtro.chave}>
-            <legend className="sc-filtro__nome">{filtro.nome}</legend>
-            {filtro.valores.map((valor) => {
-              const chave = `${filtro.chave}=${valor}`;
-              return (
-                <label className="sc-filtro__opcao" key={chave}>
-                  <input
-                    type="checkbox"
-                    name="filtro"
-                    value={chave}
-                    defaultChecked={selecionados.includes(chave)}
-                  />
-                  {rotuloDoValor(valor)}
-                </label>
-              );
-            })}
-          </fieldset>
-        ))}
         <button
           className="sc-botao sc-botao--primaria sc-botao--pilula"
           type="submit"
         >
-          Filtrar
+          Aplicar filtros
         </button>
-      </form>
-    </details>
+      </div>
+    </form>
   );
 }

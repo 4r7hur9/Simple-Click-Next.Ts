@@ -24,10 +24,14 @@ import {
   Botao,
   Campo,
   Carregando,
+  descritoresDoCampo,
   Erro,
+  Seletor,
   Sucesso,
 } from "@simpleclick/ui";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+
+import { INFO_DO_NOVO_TIPO } from "./explicacoes.ts";
 
 type EstadoDosTipos =
   | { readonly estado: "carregando" }
@@ -189,7 +193,7 @@ export function SeletorVertical({
               ),
             )}
           </ul>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Botao
               carregando={troca.estado === "trocando"}
               rotuloDeEspera="Trocando…"
@@ -211,20 +215,23 @@ export function SeletorVertical({
       <form
         onSubmit={aoEscolher}
         aria-label="Troca do tipo de negócio"
-        className="flex flex-wrap items-end gap-3"
+        className="flex flex-wrap items-end gap-4"
       >
         <Campo
           id="ficha-tipo-de-negocio"
           rotulo="Novo tipo de negócio"
+          info={INFO_DO_NOVO_TIPO}
           className="min-w-64 flex-1"
           controle={
-            <select
+            <Seletor
               id="ficha-tipo-de-negocio"
               name="tipoDeNegocio"
-              className="sc-campo__controle"
               value={escolhido}
-              onChange={(evento) => {
-                setEscolhido(evento.target.value);
+              aria-describedby={descritoresDoCampo("ficha-tipo-de-negocio", {
+                info: true,
+              }).join(" ")}
+              onChange={(valor) => {
+                setEscolhido(valor);
                 setTroca({ estado: "escolhendo" });
               }}
             >
@@ -233,7 +240,7 @@ export function SeletorVertical({
                   {tipo.nome}
                 </option>
               ))}
-            </select>
+            </Seletor>
           }
         />
         <Botao

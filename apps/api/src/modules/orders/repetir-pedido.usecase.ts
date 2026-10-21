@@ -21,6 +21,11 @@ import type { RepeticaoDoPedidoNoContrato } from "@simpleclick/contracts";
 import { calcularItem, type EscolhaFeita } from "@simpleclick/core";
 
 import { transacaoAtual } from "../../core/db.ts";
+import {
+  aplicarAtacado,
+  quantidadesPorProduto,
+  type FaixasPorProduto,
+} from "./atacado-do-pedido.ts";
 import type { ProdutoParaPedidoManual } from "./pedido-manual.usecase.ts";
 
 /** Uma escolha guardada no item do pedido antigo. */
@@ -140,6 +145,8 @@ function indisponivel(
 function repetirItem(
   item: ItemDaEpoca,
   produto: ProdutoParaPedidoManual | null,
+  faixas: FaixasPorProduto,
+  quantidadeDoProduto: number,
 ): Repetido | Indisponivel {
   if (item.produtoId === null || produto === null) {
     return indisponivel(item, "FORA_DO_CATALOGO");
@@ -181,8 +188,16 @@ function repetirItem(
     });
   }
 
+  // A faixa de atacado de HOJE, pela quantidade do produto no pedido todo: o
+  // pedido novo sai pelo lançamento manual, que cobra a mesma faixa (card #57).
+  const comAtacado = aplicarAtacado(
+    precoBase,
+    quantidadeDoProduto,
+    faixas.get(produto.id),
+  );
+
   const conta = calcularItem({
-    precoBaseEmCentavos: precoBase,
+    precoBaseEmCentavos: comAtacado.unitarioEmCentavos,
     quantidade: item.quantidade,
     grupos: grupos.map((grupo) => ({
       grupoId: grupo.id,
@@ -224,14 +239,24 @@ function repetirItem(
 export function montarRepeticao(
   pedido: PedidoDaEpoca,
   produtos: ReadonlyMap<string, ProdutoParaPedidoManual | null>,
+  /** As faixas de atacado que valem agora, por produto (card #57). */
+  faixas: FaixasPorProduto = new Map(),
 ): RepeticaoDoPedidoNoContrato {
   const itens: Repetido[] = [];
   const indisponiveis: Indisponivel[] = [];
+  const pecas = quantidadesPorProduto(pedido.itens);
 
   for (const item of pedido.itens) {
     const produto =
       item.produtoId === null ? null : (produtos.get(item.produtoId) ?? null);
-    const resultado = repetirItem(item, produto);
+    const resultado = repetirItem(
+      item,
+      produto,
+      faixas,
+      item.produtoId === null
+        ? item.quantidade
+        : (pecas.get(item.produtoId) ?? item.quantidade),
+    );
     if ("motivo" in resultado) indisponiveis.push(resultado);
     else itens.push(resultado);
   }

@@ -57,3 +57,12 @@ Thumbs.db
 
 # documentos da loja guardados em disco no ambiente local (T-205, ARMAZENAMENTO_PRIVADO_DIR)
 .armazenamento-privado/
+
+# worktrees e logs de execução locais
+/worktrees/
+
+# Arquivos enviados em desenvolvimento (logo, capa, fotos): ficam na pasta da API.
+apps/api/.midia-local/
+
+# Relatórios locais de importação: dados da loja e caminhos desta máquina.
+/.rmcode/importacao-winsis/

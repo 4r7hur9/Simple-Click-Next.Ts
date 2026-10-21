@@ -22,7 +22,7 @@ export default async function PaginaDaAuditoria({
 }: ParametrosDaPagina) {
   const { loja } = await searchParams;
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <Link
         className="text-sm font-medium text-[var(--cor-primaria-texto)]"
         href="/admin/lojas"

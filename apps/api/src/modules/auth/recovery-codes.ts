@@ -23,7 +23,7 @@ export interface AvisadorDeUsoDeRecuperacao {
 export interface ResultadoDoCodigoDeRecuperacao {
   readonly status: "SESSAO_LIBERADA";
   readonly sessaoId: string;
-  readonly orientarPara: "/minha-conta/seguranca/aplicativo";
+  readonly orientarPara: "/conta/seguranca/aplicativo";
 }
 
 export async function criarCodigosDeRecuperacao(
@@ -67,7 +67,7 @@ export async function usarCodigoDeRecuperacao(
   return {
     status: "SESSAO_LIBERADA",
     sessaoId: sessao.sessaoId,
-    orientarPara: "/minha-conta/seguranca/aplicativo",
+    orientarPara: "/conta/seguranca/aplicativo",
   };
 }
 

@@ -99,7 +99,20 @@ export function fraseDaRecusa(
   problema: string,
 ): string {
   const orientacao = orientacaoDaImagem(tipo);
-  const nome = tipo === "logo" ? "A logo" : "A capa";
+  const nome =
+    tipo === "logo"
+      ? "A logo"
+      : tipo === "fundo"
+        ? "A foto de fundo (computador)"
+        : tipo === "fundoCelular"
+          ? "A foto de fundo (celular)"
+          : tipo === "topo"
+            ? "A foto do topo (computador)"
+            : tipo === "topoCelular"
+              ? "A foto do topo (celular)"
+              : tipo === "original"
+                ? "A foto original"
+                : "A capa";
   return `${problema} ${nome} aceita ${orientacao.formatosAceitos.join(", ")} de até ${orientacao.tamanhoMaximo}, na proporção ${orientacao.proporcaoRecomendada}. A imagem anterior continua no ar.`;
 }
 

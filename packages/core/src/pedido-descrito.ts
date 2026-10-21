@@ -37,6 +37,18 @@ export interface ItemDoPedido {
   readonly totalDaLinhaEmCentavos: number;
   readonly opcoes?: readonly OpcaoDoItem[];
   readonly observacao?: string | null;
+  /**
+   * A faixa de atacado que valeu na compra (card #58); ausente ou nula no
+   * varejo. O cupom marca a linha para a cozinha e o caixa conferirem o preço.
+   */
+  readonly atacado?: AtacadoNoCupom | null;
+}
+
+/** O atacado congelado no item: a partir de quantas peças e o preço de cada. */
+export interface AtacadoNoCupom {
+  readonly quantidadeMinima: number;
+  readonly unitarioEmCentavos: number;
+  readonly rotulo?: string | null;
 }
 
 /** Endereço de entrega. Só existe quando a forma de entrega é `DELIVERY`. */

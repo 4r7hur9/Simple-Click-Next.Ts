@@ -23,7 +23,7 @@ export interface OpcoesDasFuncionalidadesDaLoja {
   readonly acesso?: AcessoAoBanco;
   readonly autenticar: (
     requisicao: Request,
-  ) => { readonly identidadeId: string; readonly papel: "OWNER" } | null;
+  ) => { readonly identidadeId: string; readonly papel: "OWNER" | "STAFF" } | null;
   readonly resolverLoja: (chegada: {
     readonly apelido: string;
   }) => Promise<
@@ -72,7 +72,7 @@ export function criarRotaDasFuncionalidadesDaLoja(
         const { params } = borda.dados(requisicao);
         const usuario = resposta.locals.dono as {
           readonly identidadeId: string;
-          readonly papel: "OWNER";
+          readonly papel: "OWNER" | "STAFF";
         };
         const acesso = opcoes.acesso ?? banco();
         resposta.setHeader("cache-control", "no-store");

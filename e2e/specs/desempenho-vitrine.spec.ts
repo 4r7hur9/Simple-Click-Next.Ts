@@ -41,7 +41,7 @@ test("@spec:AC-415 a vitrine chega pronta no HTML sem JavaScript", async ({
 }, testInfo) => {
   const { contexto, pagina, inicio } = await comoRobo(browser, testInfo);
 
-  const resposta = await pagina.goto(`/l/${LOJA}/catalogo`, {
+  const resposta = await pagina.goto(`/loja/${LOJA}/cardapio`, {
     waitUntil: "domcontentloaded",
   });
 
@@ -70,7 +70,7 @@ test("@spec:AC-416 a imagem usa formato automático e largura reservada", () => 
 test("@spec:AC-416 a vitrine publica srcset e reserva a moldura da foto", async ({
   page,
 }) => {
-  await page.goto(`/l/${LOJA}/catalogo`);
+  await page.goto(`/loja/${LOJA}/cardapio`);
 
   const imagens = page.locator("img.sc-vitrine__foto");
   await expect(imagens.first()).toBeVisible();

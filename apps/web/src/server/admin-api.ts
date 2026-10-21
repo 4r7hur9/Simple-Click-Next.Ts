@@ -70,6 +70,22 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
     padrao: new RegExp(`^lojas/${UUID}/funcionalidades/[a-z][a-z0-9_]{1,62}$`),
     metodos: ["PUT"],
   },
+  // Aprovação, ativação e desativação da loja (card #25, card #29).
+  {
+    padrao: new RegExp(`^lojas/${UUID}/(aprovar|recusar|ativar|desativar)$`),
+    metodos: ["POST"],
+  },
+  // Números e equipe de cada loja, e os limites editáveis (card #29).
+  { padrao: new RegExp(`^lojas/${UUID}/metricas$`), metodos: ["GET"] },
+  { padrao: new RegExp(`^lojas/${UUID}/equipe$`), metodos: ["GET"] },
+  { padrao: new RegExp(`^lojas/${UUID}/limites$`), metodos: ["GET", "PATCH"] },
+  // Contas da plataforma (donos e equipe) e o limite de lojas de cada dono.
+  // Painel de crescimento da home da administração (card #30).
+  { padrao: /^metricas$/, metodos: ["GET"] },
+  { padrao: /^limites$/, metodos: ["GET"] },
+  { padrao: /^contas$/, metodos: ["GET"] },
+  { padrao: new RegExp(`^contas/${UUID}$`), metodos: ["GET"] },
+  { padrao: new RegExp(`^donos/${UUID}/limites$`), metodos: ["GET", "PATCH"] },
 ];
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */

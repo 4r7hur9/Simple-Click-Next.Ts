@@ -159,3 +159,74 @@ describe("a conta do item sai certa (AC-515)", () => {
     expect(recusa).toThrow(/Marmita executiva/);
   });
 });
+
+describe("a faixa de atacado fica congelada no item (card #57)", () => {
+  const CAMISETA: EscolhaDoCliente = {
+    produto: {
+      id: "22222222-2222-2222-2222-222222222222",
+      nome: "Camiseta básica",
+      // 5% sobre R$ 20,00 a partir de 10 peças.
+      precoEmCentavos: 1900,
+      precoDeVarejoEmCentavos: 2000,
+      faixaDeAtacado: {
+        quantidadeMinima: 10,
+        tipoDeDesconto: "PERCENTUAL",
+        desconto: 5,
+        rotulo: "Caixa fechada",
+      },
+    },
+    quantidade: 12,
+  };
+
+  it("grava o unitário da faixa, o varejo riscado, o tipo e a faixa", () => {
+    const item = congelarItem(CAMISETA);
+
+    expect(item.precoUnitarioEmCentavos).toBe(1900);
+    expect(item.totalDaLinhaEmCentavos).toBe(1900 * 12);
+    expect(item.tipoDePreco).toBe("WHOLESALE");
+    expect(item.precoDeVarejoEmCentavos).toBe(2000);
+    expect(item.faixaDeAtacado).toEqual({
+      quantidadeMinima: 10,
+      tipoDeDesconto: "PERCENTUAL",
+      desconto: 5,
+      rotulo: "Caixa fechada",
+    });
+  });
+
+  it("mudar a faixa do catálogo depois não muda o item congelado", () => {
+    const faixa = {
+      quantidadeMinima: 10,
+      tipoDeDesconto: "VALOR" as const,
+      desconto: 150,
+      rotulo: "Atacado",
+    };
+    const item = congelarItem({
+      ...CAMISETA,
+      produto: {
+        ...CAMISETA.produto,
+        precoEmCentavos: 1850,
+        faixaDeAtacado: faixa,
+      },
+    });
+
+    faixa.desconto = 500;
+    faixa.rotulo = "Outro nome";
+
+    expect(item.faixaDeAtacado?.desconto).toBe(150);
+    expect(item.faixaDeAtacado?.rotulo).toBe("Atacado");
+  });
+
+  it("no varejo, sem faixa, os campos de atacado ficam nulos", () => {
+    const item = congelarItem(MARMITA);
+
+    expect(item.faixaDeAtacado).toBeNull();
+    expect(item.precoDeVarejoEmCentavos).toBeNull();
+    expect(item.tipoDePreco).toBeNull();
+  });
+
+  it("recusa faixa que a quantidade do item não alcança", () => {
+    expect(() => congelarItem({ ...CAMISETA, quantidade: 3 })).toThrow(
+      ErroDeItemInvalido,
+    );
+  });
+});

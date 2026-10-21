@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CONFIGURACOES_DA_PLATAFORMA } from "@simpleclick/contracts";
 
-import LayoutDaConfiguracao from "../src/app/(painel)/painel/config/layout.tsx";
+import { MolduraDaConfiguracao as LayoutDaConfiguracao } from "../src/features/painel/MolduraDaConfiguracao.tsx";
 import { FormularioHorario } from "../src/features/config/FormularioHorario.tsx";
 import { InicioDoPainel } from "../src/features/dashboard/InicioDoPainel.tsx";
 import { MENSAGEM_DE_RECUSA } from "../src/features/config/useSecao.ts";
@@ -51,7 +51,7 @@ describe("a navegação das configurações (AC-921)", () => {
       { rotulo: "Entrega", href: "/painel/config/entrega" },
       { rotulo: "Horário", href: "/painel/config/horarios" },
       { rotulo: "Contato", href: "/painel/config/contato" },
-      { rotulo: "Apresentação", href: "/painel/config/aparencia" },
+      { rotulo: "Apresentação", href: "/painel/aparencia" },
       { rotulo: "Impressão", href: "/painel/config/impressao" },
     ]);
   });
@@ -90,7 +90,7 @@ describe("o tipo de negócio não é campo do painel (AC-323)", () => {
   it("@spec:AC-323 nem a casa do painel nem as configurações oferecem o tipo de negócio para editar", () => {
     const telas = [
       renderToStaticMarkup(
-        <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+        <InicioDoPainel consultaInicial={{ periodo: "hoje" }} />,
       ),
       renderToStaticMarkup(
         <LayoutDaConfiguracao>
@@ -111,7 +111,7 @@ describe("o tipo de negócio não é campo do painel (AC-323)", () => {
     const texto = new DOMParser()
       .parseFromString(
         renderToStaticMarkup(
-          <InicioDoPainel apelidoDaLoja="pastelaria-da-vila" />,
+          <InicioDoPainel consultaInicial={{ periodo: "hoje" }} />,
         ),
         "text/html",
       )

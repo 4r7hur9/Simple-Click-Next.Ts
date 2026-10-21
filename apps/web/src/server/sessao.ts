@@ -13,6 +13,8 @@ import {
   valorDoSetCookie,
   type ExtrasDaChamada,
 } from "./chamada-de-identidade.ts";
+import { enderecoDaApi } from "./api-client.ts";
+import { usuarioDoEu } from "../lib/quem-esta-logado.ts";
 import {
   adicionarCookieDeAcesso,
   adicionarCookieDeRenovacao,
@@ -28,6 +30,7 @@ export const ACOES_DE_SESSAO = [
   "segundo-fator",
   "segundo-fator/recuperacao",
   "cadastro",
+  "lojas",
   "aplicativo/preparar",
   "aplicativo/confirmar",
   "aplicativo/codigos-de-recuperacao",
@@ -35,16 +38,22 @@ export const ACOES_DE_SESSAO = [
 
 export type AcaoDeSessao = (typeof ACOES_DE_SESSAO)[number];
 
-/** As ações cuja resposta de sucesso é uma sessão aberta. */
+/**
+ * As ações cuja resposta de sucesso é uma sessão aberta. O cadastro de
+ * cliente também abre: a conta nasce verificada e a pessoa já entra logada.
+ */
 const ABREM_SESSAO: ReadonlySet<AcaoDeSessao> = new Set([
   "login",
   "renovar",
   "segundo-fator",
   "segundo-fator/recuperacao",
+  "cadastro",
+  "lojas",
 ]);
 
 /** As ações de quem já está logado: vão com o Bearer do cookie de acesso. */
 const DE_QUEM_ESTA_LOGADO: ReadonlySet<AcaoDeSessao> = new Set([
+  "lojas",
   "aplicativo/preparar",
   "aplicativo/confirmar",
   "aplicativo/codigos-de-recuperacao",
@@ -69,9 +78,10 @@ export function ehAcaoDeSessao(acao: string): acao is AcaoDeSessao {
 }
 
 /**
- * Para onde cada papel vai depois de entrar. O cliente vai para os pedidos
- * dele, que é a primeira tela da conta que existe (a raiz `/minha-conta`
- * ainda não tem página — o ponta a ponta da T-114 achou o 404).
+ * Para onde cada papel vai depois de entrar, quando a tela não trouxe um
+ * `?proximo=` (quem entrou de dentro de uma loja volta para ela: a tela de
+ * entrar dá preferência ao destino conferido). O cliente começa pelo feed
+ * (/explorar, card #37); dono e administração, pela área deles.
  */
 export function destinoDoPapel(papel: unknown): string {
   if (papel === "OWNER") return "/painel";
@@ -79,8 +89,43 @@ export function destinoDoPapel(papel: unknown): string {
   return DESTINO_DO_CLIENTE;
 }
 
-/** A tela do cliente depois de entrar. */
-export const DESTINO_DO_CLIENTE = "/minha-conta/pedidos";
+/** A tela do cliente depois de entrar: o feed, na aba de produtos. */
+export const DESTINO_DO_CLIENTE = "/explorar/produtos";
+
+/** A conferência do papel não segura o login: passou disso, vale o papel. */
+const ESPERA_DO_EU_EM_MS = 2500;
+
+/**
+ * O destino de quem acabou de entrar. A equipe entra com sessão de cliente
+ * (o papel no painel vem do vínculo com a loja), então o `CUSTOMER` é
+ * conferido em `/v1/eu`: quem tem loja vai para o painel; o resto, para o
+ * feed. API fora do ar na conferência: segue como cliente.
+ */
+export async function destinoDaSessao(
+  papel: unknown,
+  tokenDeAcesso: string,
+  buscar: typeof fetch = fetch,
+): Promise<string> {
+  if (papel !== "CUSTOMER") return destinoDoPapel(papel);
+  try {
+    const resposta = await buscar(`${enderecoDaApi()}/v1/eu`, {
+      method: "GET",
+      cache: "no-store",
+      signal: AbortSignal.timeout(ESPERA_DO_EU_EM_MS),
+      headers: {
+        accept: "application/json",
+        authorization: `Bearer ${tokenDeAcesso}`,
+      },
+    });
+    if (!resposta?.ok) return DESTINO_DO_CLIENTE;
+    const usuario = usuarioDoEu(await resposta.json());
+    if (usuario.papel === "admin") return "/admin";
+    if (usuario.papel === "dono" || usuario.papel === "equipe") return "/painel";
+    return DESTINO_DO_CLIENTE;
+  } catch {
+    return DESTINO_DO_CLIENTE;
+  }
+}
 
 function respostaJson(
   status: number,
@@ -101,12 +146,13 @@ export function responderSessaoDoNavegador(
   sessao: SessaoRecebidaDaApi,
   fonte: Readonly<Record<string, string | undefined>> = process.env,
   extra: Record<string, unknown> = {},
+  status = 200,
 ): Response {
   const cabecalhos = new Headers();
   adicionarCookieDeRenovacao(cabecalhos, sessao.tokenDeRenovacao, fonte);
   adicionarCookieDeAcesso(cabecalhos, sessao.tokenDeAcesso, fonte);
   return respostaJson(
-    200,
+    status,
     { autenticado: true, acessoExpiraEm: sessao.acessoExpiraEm, ...extra },
     cabecalhos,
   );
@@ -177,7 +223,7 @@ export async function responderAcaoDeSessao(
   const recebido = resposta.corpo;
   if (
     ABREM_SESSAO.has(acao) &&
-    resposta.status === 200 &&
+    (resposta.status === 200 || resposta.status === 201) &&
     recebido["status"] === "SESSAO_CRIADA"
   ) {
     const tokenDeAcesso = recebido["tokenDeAcesso"];
@@ -197,16 +243,35 @@ export async function responderAcaoDeSessao(
       return respostaJson(502, { erro: "resposta_invalida" });
     }
     const orientarPara = recebido["orientarPara"];
-    return responderSessaoDoNavegador(
+    const redirecionarPara = await destinoDaSessao(
+      recebido["papel"],
+      tokenDeAcesso,
+      buscar,
+    );
+    const mensagem = recebido["mensagem"];
+    // O cadastro mantém o 201 (a tela de cadastro lê "criado" por ele).
+    const aberta = responderSessaoDoNavegador(
       { tokenDeAcesso, tokenDeRenovacao, acessoExpiraEm },
       fonte,
       {
         status: "SESSAO_CRIADA",
         papel: recebido["papel"],
-        redirecionarPara: destinoDoPapel(recebido["papel"]),
+        redirecionarPara,
         ...(typeof orientarPara === "string" ? { orientarPara } : {}),
+        ...(recebido["cadastrado"] === true ? { cadastrado: true } : {}),
+        ...(typeof mensagem === "string" ? { mensagem } : {}),
+        ...(typeof recebido["loja"] === "object" && recebido["loja"] !== null
+          ? { loja: recebido["loja"] }
+          : {}),
       },
+      resposta.status,
     );
+    // Loja nova: a escolha guardada de uma conta anterior neste navegador
+    // não vale mais, e o painel abre direto na loja que acabou de nascer.
+    if (acao === "lojas") {
+      aberta.headers.append("set-cookie", "sc_loja=; Max-Age=0; Path=/");
+    }
+    return aberta;
   }
 
   // Renovação recusada: a sessão deste navegador acabou; os cookies saem.

@@ -32,7 +32,32 @@ export interface ItemParaCriar {
   readonly totalDaLinhaEmCentavos: number;
   readonly observacao?: string | null;
   readonly opcoes?: readonly OpcaoParaCriar[];
+  /** Qual preço valeu: `BASE`, `PROMO` ou `WHOLESALE` (card #57). */
+  readonly tipoDePreco?: string | null;
+  /** O varejo por unidade da época, quando o cobrado foi menor (o riscado). */
+  readonly precoDeVarejoEmCentavos?: number | null;
+  /** A faixa de atacado que valeu; nula no varejo. */
+  readonly faixaDeAtacado?: FaixaDeAtacadoCongelada | null;
 }
+
+/**
+ * A faixa de atacado que valeu na compra, copiada (card #57, migração 0066):
+ * o dono muda a faixa amanhã e o pedido de hoje continua dizendo qual era.
+ */
+export interface FaixaDeAtacadoCongelada {
+  readonly quantidadeMinima: number;
+  /** Nulo no atacado antigo, de preço fixo. */
+  readonly tipoDeDesconto: "PERCENTUAL" | "VALOR" | null;
+  /** Percentual inteiro ou centavos por unidade; nulo no preço fixo. */
+  readonly desconto: number | null;
+  readonly rotulo: string | null;
+}
+
+/** O nome de cada tipo de desconto em `order_items`. */
+const TIPO_DE_DESCONTO_NO_BANCO = {
+  PERCENTUAL: "PERCENT",
+  VALOR: "AMOUNT",
+} as const;
 
 /** Escolha registrada num item, como texto do momento da compra. */
 export interface OpcaoParaCriar {
@@ -175,6 +200,30 @@ async function pedidoJaCriado(
   };
 }
 
+/** O preço que valeu e a faixa de atacado, nas colunas de `order_items`. */
+export function colunasDoPreco(item: ItemParaCriar) {
+  const faixa = item.faixaDeAtacado ?? null;
+  const tipoDeDesconto =
+    faixa === null || faixa.tipoDeDesconto === null
+      ? null
+      : TIPO_DE_DESCONTO_NO_BANCO[faixa.tipoDeDesconto];
+  return {
+    priceKindSnapshot: item.tipoDePreco ?? null,
+    compareAtCents:
+      item.precoDeVarejoEmCentavos === undefined ||
+      item.precoDeVarejoEmCentavos === null
+        ? null
+        : BigInt(item.precoDeVarejoEmCentavos),
+    wholesaleMinQuantity: faixa?.quantidadeMinima ?? null,
+    wholesaleDiscountKind: tipoDeDesconto,
+    wholesaleDiscountValue:
+      tipoDeDesconto === null || faixa?.desconto === null || faixa === null
+        ? null
+        : BigInt(faixa.desconto),
+    wholesaleLabel: faixa?.rotulo ?? null,
+  };
+}
+
 /** Grava os itens e as escolhas de cada um, como cópia congelada (P-010). */
 async function gravarItens(
   tx: TransacaoDoBanco,
@@ -197,6 +246,7 @@ async function gravarItens(
         skuSnapshot: item.sku ?? null,
         quantity: item.quantidade,
         unitPriceCents: BigInt(item.precoUnitarioEmCentavos),
+        ...colunasDoPreco(item),
         optionsTotalCents: BigInt(item.opcoesEmCentavos ?? 0),
         lineTotalCents: BigInt(item.totalDaLinhaEmCentavos),
         note: item.observacao ?? null,

@@ -19,7 +19,7 @@ test.beforeAll(async () => {
 test("@spec:AC-500 o item vai ao carrinho e sobrevive ao recarregar", async ({
   page,
 }) => {
-  await page.goto(`/l/${loja.apelido}/produto/${loja.produtoId}`);
+  await page.goto(`/loja/${loja.apelido}/produto/${loja.produtoId}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     PRODUTO.nome,
   );
@@ -29,7 +29,7 @@ test("@spec:AC-500 o item vai ao carrinho e sobrevive ao recarregar", async ({
 
   // RECARREGAR É O PONTO. O carrinho vive no servidor, achado pelo cookie —
   // não em memória do navegador, que some ao fechar a aba.
-  await page.goto(`/l/${loja.apelido}/checkout`);
+  await page.goto(`/loja/${loja.apelido}/checkout`);
 
   await expect(page.getByText(PRODUTO.nome)).toBeVisible();
   await expect(page.getByText("R$ 12,00").first()).toBeVisible();
@@ -42,14 +42,14 @@ test("@spec:AC-502 outra sessão não enxerga o carrinho da primeira", async ({
   // antes dela, todo visitante via o carrinho de todos os outros da loja.
   const primeira = await browser.newContext();
   const paginaUm = await primeira.newPage();
-  await paginaUm.goto(`/l/${loja.apelido}/produto/${loja.produtoId}`);
+  await paginaUm.goto(`/loja/${loja.apelido}/produto/${loja.produtoId}`);
   await paginaUm.getByRole("button", { name: /Adicionar/ }).click();
   await expect(paginaUm.getByText("Adicionado ao carrinho")).toBeVisible();
 
   // Contexto novo é navegador novo: cookie nenhum, sessão nenhuma.
   const segunda = await browser.newContext();
   const paginaDois = await segunda.newPage();
-  await paginaDois.goto(`/l/${loja.apelido}/checkout`);
+  await paginaDois.goto(`/loja/${loja.apelido}/checkout`);
 
   await expect(paginaDois.getByText("carrinho está vazio")).toBeVisible();
 

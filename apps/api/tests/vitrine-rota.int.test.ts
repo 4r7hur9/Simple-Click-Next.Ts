@@ -40,7 +40,7 @@ beforeAll(async () => {
   app = criarApp({ vitrine: { acesso, agora: () => AGORA } });
 
   ativa = await criarLoja({ nome: "Bar da Rota" });
-  suspensa = await criarLoja({ nome: "Bar Fechado", status: "SUSPENDED" });
+  suspensa = await criarLoja({ nome: "Bar Fechado", status: "INACTIVE" });
 
   await migrador.query(
     `UPDATE app.stores
@@ -130,7 +130,7 @@ describe("inexistente e suspensa respondem igual (AC-402)", () => {
       const resposta = await request(app).get("/v1/vitrine/loja-inexistente");
 
       expect(resposta.status).toBe(404);
-      expect(JSON.stringify(resposta.body)).not.toContain("SUSPENDED");
+      expect(JSON.stringify(resposta.body)).not.toContain("INACTIVE");
     },
     ESPERA_LONGA,
   );

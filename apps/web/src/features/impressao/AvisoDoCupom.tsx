@@ -65,7 +65,7 @@ export function AvisoDoCupom({
       <h1 className="sc-cupom-aviso__titulo">{texto.titulo}</h1>
       <p>{texto.explicacao}</p>
       <a
-        className="sc-botao sc-botao--primario"
+        className="sc-botao sc-botao--primaria"
         href={destino(motivo, pedidoId)}
       >
         {texto.acao}

@@ -208,3 +208,28 @@ export async function apagarEndereco(enderecoId: string): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Marca um endereço como o padrão, sem reenviar o endereço inteiro. Endereço
+ * de outra pessoa não existe para esta requisição e responde nulo (404).
+ */
+export async function marcarEnderecoPadrao(
+  enderecoId: string,
+): Promise<EnderecoSalvoNoContrato | null> {
+  const pessoa = exigirPessoa();
+  const tx = transacaoAtual();
+
+  const atual = await tx.customerAddress.findFirst({
+    where: { id: enderecoId, anonymizedAt: null },
+    select: { id: true, isDefault: true },
+  });
+  if (atual === null) return null;
+  if (!atual.isDefault) await desmarcarPadrao(pessoa);
+
+  const marcado = await tx.customerAddress.update({
+    where: { id: atual.id },
+    data: { isDefault: true },
+    select: SELECAO_DO_ENDERECO,
+  });
+  return comoContrato(marcado);
+}

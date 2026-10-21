@@ -18,6 +18,7 @@ import request from "supertest";
 
 import type { LojaDeTeste } from "@simpleclick/testing";
 
+import { autorizacaoDoComprador } from "./apoio-de-pedidos.ts";
 import { manipuladorDeErros } from "../src/core/erros.ts";
 import {
   definirRegistrador,
@@ -151,12 +152,14 @@ export class Visitante {
     return this.guardar(
       await this.comSessao(
         request(this.app).post(`/v1/vitrine/${this.apelido}/pedidos`),
-      ).send({
-        contato: { nome: "Ana Paula", telefone: "11988887777" },
-        entrega: "PICKUP",
-        chaveDeIdempotencia: `chave-${Math.random().toString(36).slice(2)}-teste`,
-        ...corpo,
-      }),
+      )
+        .set("Authorization", await autorizacaoDoComprador())
+        .send({
+          contato: { nome: "Ana Paula", telefone: "11988887777" },
+          entrega: "PICKUP",
+          chaveDeIdempotencia: `chave-${Math.random().toString(36).slice(2)}-teste`,
+          ...corpo,
+        }),
     );
   }
 }

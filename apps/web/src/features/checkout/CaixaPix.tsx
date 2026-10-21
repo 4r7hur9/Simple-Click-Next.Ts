@@ -67,7 +67,7 @@ export function CaixaPix({
   const rotuloDoTipo = tipoDaChave ? NOME_DO_TIPO[tipoDaChave] : undefined;
 
   return (
-    <Cartao titulo="Pague com PIX" nivelDoTitulo={2}>
+    <Cartao titulo="Pague com PIX" nivelDoTitulo={3}>
       <dl className="sc-pix">
         <div className="sc-pix__linha">
           <dt className="sc-pix__rotulo">

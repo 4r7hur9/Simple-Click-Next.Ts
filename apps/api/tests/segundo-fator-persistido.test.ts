@@ -192,7 +192,7 @@ describe("desafio do segundo fator no banco", () => {
         ),
       ).toEqual({
         status: "CONFIGURACAO_OBRIGATORIA",
-        caminho: "/minha-conta/seguranca/aplicativo",
+        caminho: "/conta/seguranca/aplicativo",
       });
 
       await expect(

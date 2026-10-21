@@ -31,6 +31,8 @@ export type {
 
 import type { GrupoDeEscolha } from "@simpleclick/core";
 
+import type { AtacadoNaVitrine } from "./atacado-na-vitrine.ts";
+
 /** Uma imagem do produto, com o espaço dela já conhecido. */
 export interface ImagemNaTela {
   readonly url: string;
@@ -78,6 +80,8 @@ export interface VariacaoNaTela {
     readonly grupoId: string;
     readonly opcaoId: string;
   }[];
+  /** As faixas de atacado sobre o preço desta variante (card #56). */
+  readonly atacado?: AtacadoNaVitrine | null | undefined;
 }
 
 /** Por que o produto não pode ser comprado agora (AC-413). */
@@ -94,6 +98,11 @@ export interface ProdutoNaTela {
   readonly preco: string | null;
   readonly precoCentavos: number | null;
   readonly precoAnterior: string | null;
+  /**
+   * As faixas de atacado sobre `precoCentavos` (card #56), já em preço pela
+   * API: a página mostra a tabela. Nulo ou ausente = só varejo.
+   */
+  readonly atacado?: AtacadoNaVitrine | null | undefined;
   readonly grupos: readonly GrupoNaTela[];
   readonly variacoes: readonly VariacaoNaTela[];
   readonly disponivel: boolean;

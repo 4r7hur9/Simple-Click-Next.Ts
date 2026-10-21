@@ -1,0 +1,98 @@
+/*
+ * Aceite dos termos (card #79): a caixa "Li e aceito…" dos cadastros, a janela
+ * de novo aceite e a seção "Privacidade e dados" da conta. Só valores
+ * declarados do design system.
+ */
+
+.sc-aceite {
+  display: grid;
+  gap: var(--espaco-1);
+}
+
+.sc-aceite__rotulo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.sc-aceite__caixa {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.1rem 0 0;
+  accent-color: var(--cor-primaria);
+}
+
+.sc-aceite__caixa:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-aceite__link {
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-forte);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.sc-aceite__erro {
+  margin: 0;
+  color: var(--cor-erro);
+  font-size: var(--texto-sm);
+}
+
+.sc-aceite__lista {
+  display: grid;
+  gap: var(--espaco-3);
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- seção Privacidade e dados ---------- */
+
+.sc-privacidade__historico {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-privacidade__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  font-size: var(--texto-sm);
+}
+
+.sc-privacidade__item strong {
+  font-weight: var(--peso-forte);
+}
+
+.sc-privacidade__quando {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-privacidade__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.sc-privacidade__texto {
+  margin: 0 0 var(--espaco-3);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+}

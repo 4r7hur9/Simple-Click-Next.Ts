@@ -19,7 +19,10 @@ import request from "supertest";
 
 import type { LojaDeTeste, ProdutoDeTeste } from "@simpleclick/testing";
 
-import { ORIGEM_DO_PAINEL } from "./apoio-de-pedidos.ts";
+import {
+  autorizacaoDoComprador,
+  ORIGEM_DO_PAINEL,
+} from "./apoio-de-pedidos.ts";
 import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
 
 /** O que o fechamento devolve ao cliente. */
@@ -77,6 +80,8 @@ export interface OpcoesDaCompra {
    */
   readonly cookieDeAcesso?: string | undefined;
   readonly contato?: { readonly nome: string; readonly telefone: string };
+  /** Sem conta nenhuma: para provar o 401 `conta_obrigatoria`. */
+  readonly semConta?: boolean | undefined;
 }
 
 /**
@@ -112,8 +117,14 @@ export async function fecharPeloSite(
         ? `${COOKIE_DA_SESSAO}=${sessao}`
         : `${COOKIE_DA_SESSAO}=${sessao}; sc_access=${encodeURIComponent(opcoes.cookieDeAcesso)}`,
     );
+  // O pedido exige conta: sem sessão escolhida, compra a conta da prova.
   if (opcoes.autorizacao !== undefined) {
     fechamento = fechamento.set("Authorization", opcoes.autorizacao);
+  } else if (opcoes.cookieDeAcesso === undefined && opcoes.semConta !== true) {
+    fechamento = fechamento.set(
+      "Authorization",
+      await autorizacaoDoComprador(),
+    );
   }
   const fechado = await fechamento.send({
     contato: opcoes.contato ?? { nome: "Ana Paula", telefone: "11988887777" },
@@ -126,4 +137,34 @@ export async function fecharPeloSite(
     );
   }
   return fechado.body as PedidoFechado;
+}
+
+/**
+ * Monta o carrinho e manda o fechamento com o corpo dado, devolvendo a
+ * resposta crua — para as provas que olham a recusa (401, 422).
+ */
+export async function tentarFecharPeloSite(
+  app: Express,
+  alvo: LojaDeTeste,
+  item: ProdutoDeTeste,
+  envio: {
+    readonly autorizacao?: string | undefined;
+    readonly corpo: Record<string, unknown>;
+  },
+): Promise<request.Response> {
+  const acrescentado = await request(app)
+    .post(`/v1/vitrine/${alvo.apelido}/carrinho/itens`)
+    .set("Origin", ORIGEM_DO_PAINEL)
+    .send({ produtoId: item.id, quantidade: 1, escolhas: [] });
+  let fechamento = request(app)
+    .post(`/v1/vitrine/${alvo.apelido}/pedidos`)
+    .set("Origin", ORIGEM_DO_PAINEL)
+    .set("Cookie", `${COOKIE_DA_SESSAO}=${sessaoDe(acrescentado)}`);
+  if (envio.autorizacao !== undefined) {
+    fechamento = fechamento.set("Authorization", envio.autorizacao);
+  }
+  return fechamento.send({
+    chaveDeIdempotencia: `chave-${Math.random().toString(36).slice(2)}-teste`,
+    ...envio.corpo,
+  });
 }

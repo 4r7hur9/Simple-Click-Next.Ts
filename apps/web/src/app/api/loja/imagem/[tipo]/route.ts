@@ -1,17 +1,25 @@
 /**
- * Envio da logo e da capa da loja para a API (AC-916, AC-918).
+ * Envio da logo, da capa e das fotos do tema (fundo, topo, versões do celular e
+ * original) da loja para a API (AC-916, AC-918).
  *
  * Encaminha os BYTES como chegaram, com o tipo declarado pelo navegador. Quem
  * decide se é imagem é a API, pela assinatura do arquivo — o tipo declarado e
  * a extensão não provam nada. O limite daqui é só uma trava contra corpo
  * gigante; o limite que o dono lê na recusa é o da API.
  */
-import { revalidatePath } from "next/cache";
-
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
+import { renovarVitrineDaLoja } from "../../../../../server/renovar-vitrine.ts";
 
-const TIPOS = new Set(["logo", "capa"]);
+const TIPOS = new Set([
+  "logo",
+  "capa",
+  "fundo",
+  "fundoCelular",
+  "topo",
+  "topoCelular",
+  "original",
+]);
 /** Trava do encaminhamento: acima disto nem vale a ida à API. */
 const MAXIMO_ENCAMINHADO_EM_BYTES = 8 * 1024 * 1024;
 
@@ -49,15 +57,8 @@ export async function PUT(
     },
   );
 
-  if (resposta.ok) {
-    try {
-      revalidatePath(`/l/${sessao.apelido}`);
-      revalidatePath(`/l/${sessao.apelido}/sobre`);
-    } catch {
-      // A gravação já foi confirmada; a vitrine pega o valor novo quando a
-      // janela de cache expirar.
-    }
-  }
+  // A vitrine esquece a versão de antes: a imagem nova aparece ao recarregar.
+  if (resposta.ok) renovarVitrineDaLoja(sessao.apelido);
 
   return new Response(await resposta.text(), {
     status: resposta.status,

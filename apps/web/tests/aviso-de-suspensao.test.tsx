@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 const SUSPENSA: SituacaoParaODonoNoContrato = {
-  status: "SUSPENDED",
+  status: "INACTIVE",
   suspensao: {
     desde: "2026-10-01T12:30:00.000Z",
     motivo: "Mensalidade em atraso",

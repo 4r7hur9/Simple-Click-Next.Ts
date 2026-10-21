@@ -4,12 +4,28 @@
  * Imagens, preços por vigência, opções e estoque têm regras próprias e ficam
  * nas próximas tarefas. Aqui o dono consegue montar um produto simples,
  * deixá-lo em rascunho e publicá-lo quando estiver pronto.
+ *
+ * As FAIXAS DE ATACADO (card #54) entram no cadastro: a lista vem em
+ * `faixasDeAtacado` e pode ser enviada na criação e na edição (ausente = não
+ * mexe; lista vazia = só varejo). A rota `/atacado` dos preços faz o mesmo
+ * sozinha. Trocar o preço confere as faixas em reais que já existem.
+ *
+ * A LISTA PAGINA NO BANCO (card #76): `GET .../produtos?pagina=&porPagina=&
+ * busca=&categoria=&situacao=&marca=&ordem=` devolve só a página, com total,
+ * atalhos (`resumo`), categorias e marcas para os filtros. Sem parâmetro
+ * nenhum, a lista inteira, como antes.
  */
+import {
+  MENSAGEM_DE_SEM_PERMISSAO,
+  podeNaLoja,
+  type FaixaGravadaNoContrato,
+} from "@simpleclick/contracts";
 import { estaAcabando, lerJanelasDeDisponibilidade } from "@simpleclick/core";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { executarComoRequisicao } from "../../core/contexto.ts";
+import { exigirLimiteDaLoja } from "../../core/limites-da-loja.ts";
 import {
   banco,
   type AcessoAoBanco,
@@ -24,6 +40,24 @@ import {
   ErroDeAtributoInvalido,
   validarAtributosDoRamo,
 } from "./atributos.usecase.ts";
+import {
+  ehRecusaDoBancoNasFaixas,
+  ErroDasFaixasDeAtacado,
+  exigirFaixasNoPreco,
+  gravarFaixasDeAtacado,
+  lerFaixasDeAtacado,
+  lerFaixasDosProdutos,
+  pedidoMinimoDosProdutos,
+  recusaDasFaixas,
+} from "./atacado.usecase.ts";
+import {
+  categoriasDoFiltro,
+  esquemaDaConsultaDeProdutos,
+  lerConsulta,
+  marcasDaLoja,
+  paginaDeProdutos,
+  pedePagina,
+} from "./listagem-do-painel.ts";
 import { ESTADO_DA_DUPLICATA, nomeDaDuplicata } from "./produtos.usecase.ts";
 import { planejarTrocaDeCategoria } from "./mover-categoria.usecase.ts";
 
@@ -181,6 +215,10 @@ const esquemaDaCriacao = z.strictObject({
   status: statusDoProduto,
   disponivel: z.boolean(),
   janelas: esquemaDasJanelas.optional(),
+  /** Publicar no feed. Ausente: vale a configuração do feed da loja. */
+  publicarNoFeed: z.boolean().optional(),
+  /** As faixas de atacado; as travas são conferidas na gravação. */
+  faixasDeAtacado: z.array(z.unknown()).optional(),
 });
 
 const esquemaDaAtualizacao = z
@@ -193,6 +231,8 @@ const esquemaDaAtualizacao = z
     status: statusDoProduto.optional(),
     disponivel: z.boolean().optional(),
     janelas: esquemaDasJanelas.optional(),
+    publicarNoFeed: z.boolean().optional(),
+    faixasDeAtacado: z.array(z.unknown()).optional(),
   })
   .refine((valor) => Object.keys(valor).length > 0, {
     message: "Informe ao menos um campo para alterar.",
@@ -227,6 +267,7 @@ type LinhaDoProduto = {
   readonly saleWindows: unknown;
   readonly attributes: unknown;
   readonly sortOrder: number;
+  readonly publishToFeed: boolean;
   readonly categorias: ReadonlyArray<{
     readonly categoryId: string;
     readonly categoria: { readonly name: string };
@@ -258,8 +299,19 @@ function criadorDaSessao(identidadeId: string): string | undefined {
     : undefined;
 }
 
-function respostaDoProduto(produto: LinhaDoProduto) {
+function respostaDoProduto(
+  produto: LinhaDoProduto,
+  faixasDeAtacado: readonly FaixaGravadaNoContrato[] = [],
+  pedidoMinimoDeAtacado: number | null = null,
+  temVideo = false,
+) {
   const categoria = produto.categorias[0];
+  // Soma só das variações com estoque controlado; nulo = nenhuma controla.
+  const controladas = produto.variacoes.filter((v) => v.stockQuantity !== null);
+  const estoqueTotal =
+    controladas.length === 0
+      ? null
+      : controladas.reduce((soma, v) => soma + (v.stockQuantity as number), 0);
   // O que está acabando vem com o produto, para a lista do dono sinalizar sem
   // abrir produto por produto (AC-336).
   const acabando = produto.variacoes
@@ -288,8 +340,15 @@ function respostaDoProduto(produto: LinhaDoProduto) {
     janelas: lerJanelasDeDisponibilidade(produto.saleWindows),
     atributos: produto.attributes,
     ordem: produto.sortOrder,
+    publicarNoFeed: produto.publishToFeed,
+    temVideo,
+    estoqueTotal,
     estoqueBaixo: acabando.length > 0,
     variacoesAcabando: acabando,
+    // Vazia = só varejo. O preço em cada faixa sai da rota `/atacado`.
+    faixasDeAtacado,
+    // A menor quantidade que já compra no atacado agora; nulo = só varejo.
+    pedidoMinimoDeAtacado,
   };
 }
 
@@ -304,6 +363,7 @@ const selecaoDoProduto = {
   saleWindows: true,
   attributes: true,
   sortOrder: true,
+  publishToFeed: true,
   categorias: {
     where: { isPrimary: true },
     select: { categoryId: true, categoria: { select: { name: true } } },
@@ -314,6 +374,95 @@ const selecaoDoProduto = {
     select: { id: true, name: true, stockQuantity: true, stockMinAlert: true },
   },
 } as const;
+
+/**
+ * A marca "publicar no feed" é da permissão `feed`, que a equipe não tem
+ * (card #25). Equipe que manda a marca recebe 403; sem a marca, segue.
+ */
+function podeMarcarOFeed(
+  usuario: UsuarioAutenticado,
+  publicarNoFeed: boolean | undefined,
+  resposta: Response,
+): boolean {
+  if (publicarNoFeed === undefined || podeNaLoja(usuario.papel, "feed")) {
+    return true;
+  }
+  resposta.status(403).json({
+    erro: "sem_permissao",
+    permissao: "feed",
+    mensagem: MENSAGEM_DE_SEM_PERMISSAO,
+  });
+  return false;
+}
+
+/** A resposta de um produto recém-gravado, com o pedido mínimo de agora. */
+async function respostaDoProdutoGravado(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  produto: LinhaDoProduto,
+  faixasDeAtacado: readonly FaixaGravadaNoContrato[],
+) {
+  const minimos = await pedidoMinimoDosProdutos(tx, lojaId, [produto.id]);
+  return respostaDoProduto(
+    produto,
+    faixasDeAtacado,
+    minimos.get(produto.id) ?? null,
+  );
+}
+
+/** Faixa que não passou nas travas (ou que o banco recusou): 422. */
+function recusouAsFaixas(causa: unknown, resposta: Response): boolean {
+  if (causa instanceof ErroDasFaixasDeAtacado) {
+    resposta.status(422).json(recusaDasFaixas(causa.problemas));
+    return true;
+  }
+  if (ehRecusaDoBancoNasFaixas(causa)) {
+    resposta.status(422).json(
+      recusaDasFaixas([
+        {
+          indice: null,
+          mensagem:
+            "Não deu para salvar as faixas: confira as quantidades e os descontos e tente de novo.",
+        },
+      ]),
+    );
+    return true;
+  }
+  return false;
+}
+
+/**
+ * A duplicata leva as faixas de atacado do original, regravadas com as
+ * travas. Se alguma não couber no preço da duplicata (o original tinha uma
+ * variação mais cara), ela nasce só no varejo, e o dono cadastra de novo.
+ */
+async function copiarFaixas(
+  tx: TransacaoDoBanco,
+  lojaId: string,
+  origemId: string,
+  destinoId: string,
+): Promise<FaixaGravadaNoContrato[]> {
+  const faixas = (await lerFaixasDeAtacado(tx, lojaId, origemId)).filter(
+    (faixa) => faixa.ativo,
+  );
+  if (faixas.length === 0) return [];
+  try {
+    return await gravarFaixasDeAtacado(
+      tx,
+      lojaId,
+      destinoId,
+      faixas.map((faixa) => ({
+        quantidadeMinima: faixa.quantidadeMinima,
+        tipoDeDesconto: faixa.tipoDeDesconto,
+        desconto: faixa.desconto,
+        rotulo: faixa.rotulo,
+      })),
+    );
+  } catch (causa) {
+    if (causa instanceof ErroDasFaixasDeAtacado) return [];
+    throw causa;
+  }
+}
 
 export interface OpcoesDosProdutos {
   readonly acesso?: AcessoAoBanco;
@@ -402,18 +551,74 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
           requisicao.params.apelido,
           resposta,
           async (lojaId, usuario) => {
-            const produtos = await executarComoRequisicao(
+            const query = requisicao.query as Record<string, unknown>;
+            // Com `pagina` (ou filtro, ou ordem): só a página pedida, com o
+            // total e os atalhos contados no banco (card #76). Sem nada: a
+            // loja inteira, como sempre (cadastro, feed e testes usam assim).
+            const consulta = pedePagina(query)
+              ? lerConsulta(esquemaDaConsultaDeProdutos, query)
+              : null;
+            const corpo = await executarComoRequisicao(
               { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
               () =>
-                acesso.emTransacao((tx) =>
-                  tx.product.findMany({
-                    where: { storeId: lojaId, deletedAt: null },
+                acesso.emTransacao(async (tx) => {
+                  const pagina =
+                    consulta === null
+                      ? null
+                      : await paginaDeProdutos(tx, lojaId, consulta);
+                  const linhas = await tx.product.findMany({
+                    where: {
+                      storeId: lojaId,
+                      deletedAt: null,
+                      ...(pagina === null
+                        ? {}
+                        : { id: { in: [...pagina.ids] } }),
+                    },
                     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
                     select: selecaoDoProduto,
-                  }),
-                ),
+                  });
+                  if (pagina !== null) {
+                    const posicao = new Map(
+                      pagina.ids.map((id, indice) => [id, indice]),
+                    );
+                    linhas.sort(
+                      (a, b) => posicao.get(a.id)! - posicao.get(b.id)!,
+                    );
+                  }
+                  const ids = linhas.map((linha) => linha.id);
+                  const faixas = await lerFaixasDosProdutos(tx, lojaId, ids);
+                  const minimos = await pedidoMinimoDosProdutos(
+                    tx,
+                    lojaId,
+                    ids,
+                  );
+                  const comVideo = new Set(
+                    (
+                      await tx.productVideo.findMany({
+                        where: { storeId: lojaId, productId: { in: ids } },
+                        select: { productId: true },
+                      })
+                    ).map((video) => video.productId),
+                  );
+                  const produtos = linhas.map((linha) =>
+                    respostaDoProduto(
+                      linha,
+                      faixas.get(linha.id),
+                      minimos.get(linha.id) ?? null,
+                      comVideo.has(linha.id),
+                    ),
+                  );
+                  if (pagina === null) return { produtos };
+                  const { ids: _ids, ...resto } = pagina;
+                  return {
+                    produtos,
+                    ...resto,
+                    categorias: await categoriasDoFiltro(tx, lojaId),
+                    marcas: await marcasDaLoja(tx, lojaId),
+                  };
+                }),
             );
-            resposta.json({ produtos: produtos.map(respostaDoProduto) });
+            resposta.json(corpo);
           },
         );
       } catch (causa) {
@@ -435,6 +640,11 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
           requisicao.params.apelido,
           resposta,
           async (lojaId, usuario) => {
+            if (
+              !podeMarcarOFeed(usuario, entrada.data.publicarNoFeed, resposta)
+            ) {
+              return;
+            }
             const criado = await executarComoRequisicao(
               { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
               () =>
@@ -445,9 +655,11 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     entrada.data.categoriaId,
                   );
                   if (categoria === null) throw new Error("categoria_invalida");
+                  // O limite de produtos da loja (card #25): passou, 409.
+                  await exigirLimiteDaLoja("produtos");
                   const loja = await tx.store.findUnique({
                     where: { id: lojaId },
-                    select: { verticalCode: true },
+                    select: { verticalCode: true, feedAutoPublishNew: true },
                   });
                   if (loja === null) throw new Error("nao_encontrado");
                   const ultima = await tx.product.findFirst({
@@ -475,6 +687,8 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       priceMaxCents: entrada.data.precoCentavos,
                       sortOrder: (ultima?.sortOrder ?? -1) + 1,
                       createdBy: criadorDaSessao(usuario.identidadeId) ?? null,
+                      publishToFeed:
+                        entrada.data.publicarNoFeed ?? loja.feedAutoPublishNew,
                     },
                     select: { id: true },
                   });
@@ -495,16 +709,31 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       amountCents: entrada.data.precoCentavos,
                     },
                   });
-                  return tx.product.findUniqueOrThrow({
-                    where: { id: produto.id },
-                    select: selecaoDoProduto,
-                  });
+                  const faixas =
+                    entrada.data.faixasDeAtacado === undefined
+                      ? []
+                      : await gravarFaixasDeAtacado(
+                          tx,
+                          lojaId,
+                          produto.id,
+                          entrada.data.faixasDeAtacado,
+                        );
+                  return respostaDoProdutoGravado(
+                    tx,
+                    lojaId,
+                    await tx.product.findUniqueOrThrow({
+                      where: { id: produto.id },
+                      select: selecaoDoProduto,
+                    }),
+                    faixas,
+                  );
                 }),
             );
-            resposta.status(201).json(respostaDoProduto(criado));
+            resposta.status(201).json(criado);
           },
         );
       } catch (causa) {
+        if (recusouAsFaixas(causa, resposta)) return;
         if (causa instanceof ErroDeAtributoInvalido) {
           erro(resposta, 400, "atributos_invalidos");
           return;
@@ -535,6 +764,11 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
           requisicao.params.apelido,
           resposta,
           async (lojaId, usuario) => {
+            if (
+              !podeMarcarOFeed(usuario, entrada.data.publicarNoFeed, resposta)
+            ) {
+              return;
+            }
             const atualizado = await executarComoRequisicao(
               { lojaId, usuarioId: usuario.identidadeId, papel: usuario.papel },
               () =>
@@ -604,6 +838,9 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       ...(entrada.data.disponivel === undefined
                         ? {}
                         : { isAvailable: entrada.data.disponivel }),
+                      ...(entrada.data.publicarNoFeed === undefined
+                        ? {}
+                        : { publishToFeed: entrada.data.publicarNoFeed }),
                       ...(entrada.data.janelas === undefined
                         ? {}
                         : {
@@ -652,20 +889,38 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                       });
                     }
                   }
-                  return tx.product.findUniqueOrThrow({
-                    where: { id: atual.id },
-                    select: selecaoDoProduto,
-                  });
+                  // Faixas novas são conferidas contra o preço novo; sem
+                  // elas, as que já existem também precisam caber nele.
+                  if (entrada.data.faixasDeAtacado !== undefined) {
+                    await gravarFaixasDeAtacado(
+                      tx,
+                      lojaId,
+                      atual.id,
+                      entrada.data.faixasDeAtacado,
+                    );
+                  } else if (entrada.data.precoCentavos !== undefined) {
+                    await exigirFaixasNoPreco(tx, lojaId, atual.id);
+                  }
+                  return respostaDoProdutoGravado(
+                    tx,
+                    lojaId,
+                    await tx.product.findUniqueOrThrow({
+                      where: { id: atual.id },
+                      select: selecaoDoProduto,
+                    }),
+                    await lerFaixasDeAtacado(tx, lojaId, atual.id),
+                  );
                 }),
             );
             if (atualizado === null) {
               erro(resposta, 404, "nao_encontrado");
               return;
             }
-            resposta.json(respostaDoProduto(atualizado));
+            resposta.json(atualizado);
           },
         );
       } catch (causa) {
+        if (recusouAsFaixas(causa, resposta)) return;
         if (causa instanceof ErroDeAtributoInvalido) {
           erro(resposta, 400, "atributos_invalidos");
           return;
@@ -718,6 +973,7 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     },
                   });
                   if (original === null) return null;
+                  await exigirLimiteDaLoja("produtos");
                   const nome = nomeDaDuplicata(original.name);
                   const ultima = await tx.product.findFirst({
                     where: { storeId: lojaId, deletedAt: null },
@@ -780,17 +1036,28 @@ export function criarRotasDosProdutos(opcoes: OpcoesDosProdutos): Router {
                     original.id,
                     produto.id,
                   );
-                  return tx.product.findUniqueOrThrow({
-                    where: { id: produto.id },
-                    select: selecaoDoProduto,
-                  });
+                  const faixas = await copiarFaixas(
+                    tx,
+                    lojaId,
+                    original.id,
+                    produto.id,
+                  );
+                  return respostaDoProdutoGravado(
+                    tx,
+                    lojaId,
+                    await tx.product.findUniqueOrThrow({
+                      where: { id: produto.id },
+                      select: selecaoDoProduto,
+                    }),
+                    faixas,
+                  );
                 }),
             );
             if (duplicado === null) {
               erro(resposta, 404, "nao_encontrado");
               return;
             }
-            resposta.status(201).json(respostaDoProduto(duplicado));
+            resposta.status(201).json(duplicado);
           },
         );
       } catch (causa) {

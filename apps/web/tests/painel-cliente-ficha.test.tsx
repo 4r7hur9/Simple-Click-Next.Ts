@@ -6,7 +6,7 @@
  * catálogo marcado sem quebrar a tela; a repetição levando à montagem do
  * pedido; a correção e a remoção com confirmação na própria tela.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { FichaCliente } from "../src/features/painel-clientes/FichaCliente.tsx";
 import {
@@ -20,6 +20,17 @@ import {
   montar,
   simularApi,
 } from "./apoio-config.tsx";
+
+beforeEach(() => {
+  // O jsdom não traz a janela modal que o painel usa.
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    this.removeAttribute("open");
+    this.dispatchEvent(new Event("close"));
+  };
+});
 
 afterEach(desmontar);
 
@@ -114,10 +125,94 @@ describe("a ficha mostra o histórico e o que saiu do catálogo (AC-711, AC-713)
     const [recente] = cartoes;
     expect(recente?.textContent).toContain("Pedido #42");
     expect(recente?.textContent).toContain("20/09/2026");
-    expect(recente?.textContent).toContain("Aceito");
+    expect(recente?.textContent).toContain("Confirmado");
     expect(recente?.textContent).toContain("R$ 25,00");
     expect(recente?.textContent).toContain("1× X-Salada");
     expect(recente?.textContent).toContain("Molho: Ketchup");
+  });
+
+  it("a ficha resume total gasto, pedidos, último pedido, contato e endereço", async () => {
+    simularApi(() => ({ status: 200, corpo: FICHA }));
+    const tela = montar(<FichaCliente clienteId={JOAO_ID} />);
+    await esperar();
+
+    const resumo = exigir(tela, "[data-resumo-do-cliente]").textContent ?? "";
+    expect(resumo).toContain("R$ 54,00");
+    expect(resumo).toContain("Pedidos2");
+    expect(resumo).toContain("20/09/2026");
+    expect(resumo).toContain("01/09/2026");
+    const texto = tela.textContent ?? "";
+    expect(texto).toContain("Rua das Flores, 10 · Centro");
+    expect(texto).toContain("Repetir último pedido");
+  });
+
+  it("pedido cancelado não entra no total gasto nem na contagem", async () => {
+    const [primeiro, segundo] = FICHA.pedidos;
+    simularApi(() => ({
+      status: 200,
+      corpo: {
+        ...FICHA,
+        pedidos: [{ ...primeiro, status: "CANCELLED" }, segundo],
+      },
+    }));
+    const tela = montar(<FichaCliente clienteId={JOAO_ID} />);
+    await esperar();
+    const resumo = exigir(tela, "[data-resumo-do-cliente]").textContent ?? "";
+    expect(resumo).toContain("R$ 29,00");
+    expect(resumo).toContain("Pedidos1");
+  });
+
+  it("clicar no pedido do histórico abre o detalhe em janela", async () => {
+    simularApi((chamada) =>
+      chamada.url.includes("/api/painel/pedidos/")
+        ? {
+            status: 200,
+            corpo: {
+              pedido: {
+                id: "44444444-4444-4444-8444-444444444444",
+                numero: 42,
+                codigo: "A-0042",
+                status: "ACCEPTED",
+                canal: "MANUAL",
+                entrega: "PICKUP",
+                pagamento: "CASH",
+                totalCentavos: 2500,
+                criadoEm: "2026-09-20T15:00:00.000Z",
+                observacao: null,
+                motivoCancelamento: null,
+                contato: {
+                  nome: "João Açaí",
+                  telefone: "+5511988887777",
+                  endereco: {},
+                },
+                itens: [
+                  {
+                    id: "i1",
+                    nome: "X-Salada",
+                    variacao: null,
+                    quantidade: 1,
+                    totalCentavos: 2500,
+                    observacao: null,
+                    opcoes: [],
+                  },
+                ],
+                historico: [],
+                proximosStatus: [],
+              },
+            },
+          }
+        : { status: 200, corpo: FICHA },
+    );
+    const tela = montar(<FichaCliente clienteId={JOAO_ID} />);
+    await esperar();
+
+    clicar(exigir<HTMLButtonElement>(tela, "[data-abrir-pedido]"));
+    await esperar();
+
+    const janela = exigir(tela, "dialog[open]");
+    expect(janela.textContent).toContain("Pedido #42");
+    expect(janela.textContent).toContain("Itens");
+    expect(janela.textContent).toContain("Imprimir cupom");
   });
 
   it("@spec:AC-713 o item de produto removido mostra nome e preço da época, marcado como não disponível", async () => {
@@ -147,6 +242,51 @@ describe("a ficha mostra o histórico e o que saiu do catálogo (AC-711, AC-713)
     );
     expect(repetir?.getAttribute("href")).toBe(
       `/painel/pedidos/novo?cliente=${JOAO_ID}&repetir=55555555-5555-4555-8555-555555555555`,
+    );
+  });
+});
+
+describe("a ficha diz de onde veio o cadastro", () => {
+  async function origemCom(
+    temConta: boolean,
+    canais: readonly string[],
+  ): Promise<string> {
+    const [modelo] = FICHA.pedidos;
+    simularApi(() => ({
+      status: 200,
+      corpo: {
+        cliente: { ...FICHA.cliente, temConta },
+        pedidos: canais.map((canal, i) => ({
+          ...modelo,
+          id: `6666666${i}-6666-4666-8666-666666666666`,
+          canal,
+        })),
+      },
+    }));
+    const tela = montar(<FichaCliente clienteId={JOAO_ID} />);
+    await esperar();
+    const linha = exigir(tela, "[data-origem-do-cliente]");
+    // O rótulo é "Origem"; o resto do <dt> é o texto do "i" (card #69).
+    expect(
+      linha.parentElement?.querySelector("dt")?.firstChild?.textContent?.trim(),
+    ).toBe("Origem");
+    expect(tela.textContent).not.toContain("Conta na plataforma");
+    return linha.textContent ?? "";
+  }
+
+  it("com conta: 'Tem conta no SimpleClick'", async () => {
+    expect(await origemCom(true, ["ONLINE"])).toBe("Tem conta no SimpleClick");
+  });
+
+  it("sem conta e só pedidos manuais (ou nenhum): 'Cadastrado pelo dono'", async () => {
+    expect(await origemCom(false, ["MANUAL"])).toBe("Cadastrado pelo dono");
+    desmontar();
+    expect(await origemCom(false, [])).toBe("Cadastrado pelo dono");
+  });
+
+  it("sem conta e com pedido pela vitrine: 'Comprou sem conta'", async () => {
+    expect(await origemCom(false, ["MANUAL", "ONLINE"])).toBe(
+      "Comprou sem conta",
     );
   });
 });

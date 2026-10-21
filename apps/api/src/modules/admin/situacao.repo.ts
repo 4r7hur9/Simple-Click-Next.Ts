@@ -62,15 +62,31 @@ async function situacaoAntesDaExclusao(
        AND action = 'LOJA_EXCLUIDA'
      ORDER BY created_at DESC, id DESC
      LIMIT 1`;
-  const status = linhas[0]?.status ?? null;
-  return status === "PENDING" ||
-    status === "ACTIVE" ||
-    status === "SUSPENDED" ||
-    status === "DELETED"
-    ? status
-    : null;
+  return situacaoDaTrilha(linhas[0]?.status ?? null);
 }
 
+/**
+ * A situação como a trilha a guardou. Os atos anteriores ao card #25 falam a
+ * língua antiga (`PENDING`, `SUSPENDED`), e a trilha é imutável: traduz aqui.
+ */
+export function situacaoDaTrilha(status: string | null): SituacaoDaLoja | null {
+  switch (status) {
+    case "PENDING":
+    case "PENDING_APPROVAL":
+      return "PENDING_APPROVAL";
+    case "SUSPENDED":
+    case "INACTIVE":
+      return "INACTIVE";
+    case "ACTIVE":
+    case "REJECTED":
+    case "DELETED":
+      return status;
+    default:
+      return null;
+  }
+}
+
+/** Troca a situação. A primeira vez em ACTIVE marca quando a loja foi ao ar. */
 async function gravarStatus(
   lojaId: string,
   status: Exclude<SituacaoDaLoja, "DELETED">,
@@ -79,7 +95,12 @@ async function gravarStatus(
     { recurso: "loja", id: lojaId },
     () =>
       transacaoAtual().$executeRaw`
-      UPDATE app.stores SET status = ${status} WHERE id = ${lojaId}::uuid`,
+      UPDATE app.stores
+         SET status = ${status},
+             approved_at = CASE WHEN ${status} = 'ACTIVE'
+                                THEN coalesce(approved_at, now())
+                                ELSE approved_at END
+       WHERE id = ${lojaId}::uuid`,
   );
 }
 
@@ -207,8 +228,6 @@ async function removerEmDefinitivo(
     RETURNING storage_key`;
   const membros = await tx.$executeRaw`
     DELETE FROM app.store_members WHERE store_id = ${lojaId}::uuid`;
-  const enderecos = await tx.$executeRaw`
-    DELETE FROM app.store_domains WHERE store_id = ${lojaId}::uuid`;
   await tx.$executeRaw`
     UPDATE app.store_settings
        SET theme = '{}'::jsonb, landing = '{}'::jsonb, checkout = '{}'::jsonb,
@@ -222,6 +241,7 @@ async function removerEmDefinitivo(
       tx.$executeRaw`
       UPDATE app.stores
          SET name = 'Loja ' || code || ' (removida)',
+             slugs_antigos = '{}',
              legal_name = NULL, doc_number = NULL, doc_type = NULL,
              slug = 'removida-' || lower(code),
              whatsapp_e164 = NULL, phone1 = NULL, phone2 = NULL, email = NULL,
@@ -243,7 +263,6 @@ async function removerEmDefinitivo(
             ${JSON.stringify({
               status: "DELETED",
               equipe: membros,
-              enderecos,
               documentos: documentos.length,
             })}::jsonb)`;
 

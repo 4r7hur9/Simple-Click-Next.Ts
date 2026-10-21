@@ -1,0 +1,69 @@
+/*
+ * O selo ABERTO/FECHADO sobre a capa (card #64).
+ *
+ * Pílula sólida, clara ou escura. As cores chegam do componente como
+ * variáveis (`--selo-fundo`, `--selo-texto`, `--selo-ponto`), calculadas em
+ * `src/selo-de-status.ts` para passar no AA: aqui só a forma. O anel fino do tom
+ * oposto separa a pílula da capa mesmo quando as duas são parecidas.
+ *
+ * Vale para a capa do cardápio (`.sc-vitrine__capa-situacao`) e para a página
+ * da loja (`.sc-loja__situacao`), que mantêm a tipografia delas.
+ */
+
+.sc-selo-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  inline-size: fit-content;
+  padding: 0.4rem 0.85rem;
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: var(--selo-fundo);
+  color: var(--selo-texto);
+  text-shadow: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--selo-texto) 22%, transparent),
+    0 2px 10px color-mix(in srgb, var(--marca-preto-tecnologico) 35%, transparent);
+}
+
+/* Sobre a capa do cardápio, a pílula substitui o fio que separava do título. */
+.sc-vitrine__capa-situacao.sc-selo-status {
+  padding-inline-start: 0.85rem;
+  border-inline-start: 0;
+  color: var(--selo-texto);
+}
+
+/* A página da loja escurecia a etiqueta por cima da capa; a pílula manda. */
+.sc-loja__painel .sc-loja__situacao.sc-selo-status {
+  border: 0;
+  background: var(--selo-fundo);
+  color: var(--selo-texto);
+}
+
+/* O ponto: verde aberto, vermelho fechado, sempre sobre a pílula. */
+.sc-selo-status[data-selo] .sc-vitrine__capa-ponto,
+.sc-selo-status[data-selo] .sc-loja__pulso {
+  background: var(--selo-ponto);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--selo-ponto) 22%, transparent);
+}
+
+.sc-selo-status--aberta[data-selo] .sc-loja__pulso {
+  animation: sc-selo-pulso 2s ease-out infinite;
+}
+
+@keyframes sc-selo-pulso {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--selo-ponto) 55%, transparent);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--selo-ponto) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-selo-status--aberta[data-selo] .sc-loja__pulso {
+    animation: none;
+  }
+}

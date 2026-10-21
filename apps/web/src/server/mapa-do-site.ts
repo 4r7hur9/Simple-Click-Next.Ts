@@ -17,7 +17,7 @@
  * função — o caminho previsto é `generateSitemaps`, que pede a lista de ids
  * antecipadamente. Isso é exatamente o mapa único que o parágrafo acima recusa:
  * seria enumerar todas as lojas da plataforma para servir a de uma. A rota
- * própria devolve o mesmo endereço (`/l/{apelido}/sitemap.xml`) sem essa
+ * própria devolve o mesmo endereço (`/loja/{apelido}/sitemap.xml`) sem essa
  * enumeração. Descoberto rodando o cenário de ponta a ponta, e não por leitura.
  *
  * SEM `lastModified`, e a ausência é decisão. O campo pede a data em que AQUELE

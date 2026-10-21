@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import { esquemaDeCadastroDeCliente } from "./auth.schema.ts";
 import {
   cadastrarClienteFinal,
-  type AvisosDeCadastro,
   type NovaIdentidade,
   type RepositorioDeIdentidades,
 } from "./register.usecase.ts";
@@ -16,103 +15,81 @@ import {
 const FRASE_FORTE = ["Cacto", "azul", "sob", "a", "lua", "2026!"].join(" ");
 
 const ENTRADA = esquemaDeCadastroDeCliente.parse({
+  aceitouTermos: true,
   nome: "Ana Souza",
   email: "Ana@Exemplo.com",
   telefone: "+5511912345678",
   senha: FRASE_FORTE,
 });
 
-function dependenciasPara(criada: boolean): {
+function dependenciasPara(existente: boolean): {
   readonly identidades: RepositorioDeIdentidades;
-  readonly avisos: AvisosDeCadastro;
   readonly identidadesCriadas: NovaIdentidade[];
-  readonly verificacoes: unknown[];
-  readonly avisosDeExistente: unknown[];
 } {
   const identidadesCriadas: NovaIdentidade[] = [];
-  const verificacoes: unknown[] = [];
-  const avisosDeExistente: unknown[] = [];
-
   return {
     identidades: {
-      criarSeAusente: vi.fn(async (identidade: NovaIdentidade) => {
+      criarVerificadaSeAusente: vi.fn(async (identidade: NovaIdentidade) => {
         identidadesCriadas.push(identidade);
-        return { criada };
-      }),
-    },
-    avisos: {
-      enviarVerificacao: vi.fn(async (dados) => {
-        verificacoes.push(dados);
-      }),
-      enviarAvisoDeCadastroExistente: vi.fn(async (dados) => {
-        avisosDeExistente.push(dados);
+        return existente ? null : { identidadeId: "identidade-nova" };
       }),
     },
     identidadesCriadas,
-    verificacoes,
-    avisosDeExistente,
   };
 }
 
 describe("cadastro de cliente final", () => {
-  it("@spec:AC-100 cadastro válido cria conta pendente de verificação e envia instruções", async () => {
-    const dependencias = dependenciasPara(true);
+  it("@spec:AC-100 cadastro válido cria a conta já verificada e devolve o id para abrir a sessão", async () => {
+    const dependencias = dependenciasPara(false);
 
     const resposta = await cadastrarClienteFinal(ENTRADA, dependencias);
 
     expect(resposta).toEqual({
-      cadastrado: true,
-      mensagem:
-        "Seus dados foram recebidos. Enviamos instruções para confirmar seu e-mail.",
-      verificacaoDeEmailPendente: true,
+      status: "CRIADA",
+      identidadeId: "identidade-nova",
     });
-    expect(dependencias.identidadesCriadas).toHaveLength(1);
     expect(dependencias.identidadesCriadas[0]).toMatchObject({
       emailNormalizado: "ana@exemplo.com",
-      emailVerificadoEm: null,
+      telefoneE164: "+5511912345678",
     });
     expect(dependencias.identidadesCriadas[0]?.senhaDerivada).not.toBe(
       ENTRADA.senha,
     );
-    expect(dependencias.verificacoes).toEqual([
-      { email: "ana@exemplo.com", nome: "Ana Souza" },
-    ]);
   });
 
-  it("@spec:AC-101 e-mail já cadastrado devolve a mesma confirmação e avisa o dono do endereço", async () => {
-    const novo = dependenciasPara(true);
-    const existente = dependenciasPara(false);
+  it("telefone é opcional: texto vazio vira conta sem telefone", async () => {
+    const dependencias = dependenciasPara(false);
+    const semTelefone = esquemaDeCadastroDeCliente.parse({
+      ...ENTRADA,
+      telefone: "",
+    });
 
-    const respostaNova = await cadastrarClienteFinal(ENTRADA, novo);
-    const respostaExistente = await cadastrarClienteFinal(ENTRADA, existente);
+    await cadastrarClienteFinal(semTelefone, dependencias);
 
-    expect(respostaExistente).toEqual(respostaNova);
-    expect(existente.verificacoes).toEqual([]);
-    expect(existente.avisosDeExistente).toEqual([
-      { email: "ana@exemplo.com", nome: "Ana Souza" },
-    ]);
+    expect(dependencias.identidadesCriadas[0]?.telefoneE164).toBeNull();
+  });
+
+  it("e-mail que já tem conta responde EMAIL_EM_USO", async () => {
+    const resposta = await cadastrarClienteFinal(
+      ENTRADA,
+      dependenciasPara(true),
+    );
+    expect(resposta).toEqual({ status: "EMAIL_EM_USO" });
   });
 
   it("@spec:AC-102 senha fraca recusa o cadastro com cada motivo e não cria conta", async () => {
-    const dependencias = dependenciasPara(true);
+    const dependencias = dependenciasPara(false);
     const entradaFraca = { ...ENTRADA, senha: "123456" };
 
     const resposta = await cadastrarClienteFinal(entradaFraca, dependencias);
 
-    expect(resposta).toMatchObject({ cadastrado: false });
-    if (!resposta.cadastrado) {
+    expect(resposta.status).toBe("SENHA_FRACA");
+    if (resposta.status === "SENHA_FRACA") {
       expect(resposta.campos.map(({ problema }) => problema.codigo)).toEqual([
         "minimo_de_caracteres",
         "senha_vazada",
       ]);
-      expect(
-        resposta.campos.map(({ problema }) => problema.mensagem).join(" "),
-      ).toContain("pelo menos 12 caracteres");
-      expect(
-        resposta.campos.map(({ problema }) => problema.mensagem).join(" "),
-      ).toContain("vazamentos conhecidos");
     }
     expect(dependencias.identidadesCriadas).toEqual([]);
-    expect(dependencias.verificacoes).toEqual([]);
   });
 });

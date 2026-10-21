@@ -29,6 +29,11 @@ export async function escolherLojaDoPainel(dados: FormData): Promise<void> {
   const loja = lojaEscolhivel(decisao, dados.get("apelido"));
   if (loja === null) redirect(`${CAMINHO_DA_ESCOLHA_DE_LOJA}?estado=recusada`);
 
+  // Loja aguardando aprovação ou recusada não tem painel (card #32).
+  if (loja.situacao === "PENDING_APPROVAL" || loja.situacao === "REJECTED") {
+    redirect(`${CAMINHO_DA_ESCOLHA_DE_LOJA}?estado=aguardando`);
+  }
+
   const armazenamento = await cookies();
   armazenamento.set({
     name: NOME_DO_COOKIE_DA_LOJA,

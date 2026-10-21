@@ -37,6 +37,12 @@ export const esquemaDoClienteDaLoja = z.strictObject({
 /** `GET /v1/lojas/:apelido/clientes` — os clientes da loja, com busca. */
 export const esquemaDaListaDeClientes = z.strictObject({
   clientes: z.array(esquemaDoClienteDaLoja),
+  // Só vêm quando a lista é pedida por página (`?pagina=`).
+  total: z.int().nonnegative().optional(),
+  todos: z.int().nonnegative().optional(),
+  pagina: z.int().positive().optional(),
+  porPagina: z.int().positive().optional(),
+  totalDePaginas: z.int().positive().optional(),
 });
 
 /** O endereço anotado na ficha do cliente sem conta (AC-703). */

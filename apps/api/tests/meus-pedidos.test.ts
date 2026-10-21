@@ -238,7 +238,7 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
   );
 
   it(
-    "@spec:AC-616 sem sessão de cliente não há histórico: anônimo e dono de loja são recusados",
+    "@spec:AC-616 sem sessão não há histórico; a sessão de dono vê só o histórico da própria conta",
     async () => {
       const anonimo = await meusPedidos();
       const dono = await meusPedidos(comoDono(donoA));
@@ -248,20 +248,22 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
       );
 
       expect(anonimo.status).toBe(401);
-      expect(dono.status).toBe(401);
-      expect(donoNoDetalhe.status).toBe(401);
+      // A conta é uma só: o dono também compra, e vê os pedidos DELE.
+      expect(dono.status).toBe(200);
+      expect(esquemaDosMeusPedidos.parse(dono.body).pedidos).toEqual([]);
+      expect(donoNoDetalhe.status).toBe(404);
     },
     ESPERA_DA_OPERACAO,
   );
 
   it(
-    "@spec:AC-616 o pedido de cliente logado fica ligado à ficha dele na loja: uma ficha por loja, nenhuma para o convidado",
+    "@spec:AC-616 o pedido fica ligado à ficha da conta na loja: uma ficha por loja, e a de outra conta é outra",
     async () => {
       const emA = await fecharPeloSite(app, lojaA, produtoA, {
         autorizacao: comoCliente(maria),
         contato: { nome: "Maria da Conta", telefone: "11977776666" },
       });
-      const convidado = await fecharPeloSite(app, lojaA, produtoA);
+      const outraConta = await fecharPeloSite(app, lojaA, produtoA);
 
       const fichas = await migrador.query<{ id: string; store_id: string }>(
         `SELECT id, store_id FROM app.store_customers
@@ -277,18 +279,19 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
         id: string;
         store_customer_id: string | null;
       }>(`SELECT id, store_customer_id FROM app.orders WHERE id = ANY($1)`, [
-        [emA.id, convidado.id],
+        [emA.id, outraConta.id],
       ]);
       const ligacaoDe = (id: string) =>
         ligacoes.rows.find((linha) => linha.id === id)?.store_customer_id;
       expect(ligacaoDe(emA.id)).toBe(fichaEmA?.id);
-      expect(ligacaoDe(convidado.id)).toBeNull();
+      expect(ligacaoDe(outraConta.id)).not.toBeNull();
+      expect(ligacaoDe(outraConta.id)).not.toBe(fichaEmA?.id);
     },
     ESPERA_DA_OPERACAO,
   );
 
   it(
-    "@spec:AC-616 a compra pelo navegador, que leva a sessão no cookie sc_access e nenhum cabeçalho, também entra no histórico; cookie de dono ou estragado compra como convidado",
+    "@spec:AC-616 a compra pelo navegador, que leva a sessão no cookie sc_access e nenhum cabeçalho, também entra no histórico; cookie de dono compra pela conta do dono; sem conta ou com cookie estragado, 401",
     async () => {
       // A página não lê o token (HttpOnly) e não monta Authorization: o que
       // chega à API é só o cookie, junto com o do carrinho.
@@ -297,10 +300,16 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
       });
       const comCookieDeDono = await fecharPeloSite(app, lojaB, produtoB, {
         cookieDeAcesso: tokenDeAcesso(donoB.identidade.id, "OWNER"),
+        contato: { nome: "Dono Comprando", telefone: "11966665555" },
       });
-      const comCookieEstragado = await fecharPeloSite(app, lojaB, produtoB, {
-        cookieDeAcesso: "nao.e.um-token",
-      });
+      await expect(
+        fecharPeloSite(app, lojaB, produtoB, {
+          cookieDeAcesso: "nao.e.um-token",
+        }),
+      ).rejects.toThrow(/401.*conta_obrigatoria/);
+      await expect(
+        fecharPeloSite(app, lojaB, produtoB, { semConta: true }),
+      ).rejects.toThrow(/401.*conta_obrigatoria/);
 
       const { pedidos } = esquemaDosMeusPedidos.parse(
         (await meusPedidos(comoCliente(maria))).body,
@@ -308,17 +317,12 @@ describe("o cliente logado vê o histórico sem depender do link (AC-616)", () =
       const ids = pedidos.map((pedido) => pedido.id);
       expect(ids).toContain(peloNavegador.id);
       expect(ids).not.toContain(comCookieDeDono.id);
-      expect(ids).not.toContain(comCookieEstragado.id);
 
-      const ligacoes = await migrador.query<{
-        id: string;
-        store_customer_id: string | null;
-      }>(`SELECT id, store_customer_id FROM app.orders WHERE id = ANY($1)`, [
-        [comCookieDeDono.id, comCookieEstragado.id],
-      ]);
-      expect(ligacoes.rows.map((linha) => linha.store_customer_id)).toEqual([
-        null,
-        null,
+      const doDono = esquemaDosMeusPedidos.parse(
+        (await meusPedidos(comoDono(donoB))).body,
+      );
+      expect(doDono.pedidos.map((pedido) => pedido.id)).toEqual([
+        comCookieDeDono.id,
       ]);
     },
     ESPERA_DA_OPERACAO,

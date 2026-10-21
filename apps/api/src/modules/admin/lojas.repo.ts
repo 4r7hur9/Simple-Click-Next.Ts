@@ -14,14 +14,17 @@
 
 import type {
   FichaDaLojaNoContrato,
+  ListaDeLojasNoContrato,
   LojaNaListaNoContrato,
 } from "@simpleclick/contracts";
+import { situacaoNaVenda, STATUS_DO_PEDIDO } from "@simpleclick/core";
 
 import {
   exigirUmaLinhaAfetada,
   transacaoAtual,
   type TransacaoDoBanco,
 } from "../../core/db.ts";
+import { ErroDeLimiteAtingido } from "../../core/erro-de-limite.ts";
 import {
   ErroDeApelidoEmUso,
   type LojaGravada,
@@ -173,11 +176,25 @@ interface LojaDaPagina {
   readonly created_at: Date;
   readonly vertical_code: string;
   readonly vertical_label: string;
+  readonly dono_id: string | null;
+  readonly dono_nome: string | null;
+  readonly pedidos: number;
+  readonly faturamento: bigint | number;
 }
 
 type LinhaDaLista =
   | (LojaDaPagina & { readonly total: number })
   | { readonly id: null; readonly total: number };
+
+/** Os status que contam como venda, na régua do painel do dono. */
+const STATUS_DE_VENDA: string[] = STATUS_DO_PEDIDO.filter(
+  (status) =>
+    situacaoNaVenda({
+      status,
+      totalCentavos: 0,
+      aguardandoConfirmacaoWhatsapp: false,
+    }) === "VENDA",
+);
 
 /**
  * As lojas que casam com a busca, na página pedida, e quantas casam ao todo.
@@ -187,36 +204,101 @@ type LinhaDaLista =
  * mesma consulta, inclusive quando o deslocamento pede uma página vazia. Uma
  * janela `count(*) OVER ()` não devolve linha alguma nesse caso e perderia o
  * total; a contagem é a linha à esquerda do `LEFT JOIN` com a página.
+ *
+ * Cada loja traz o primeiro dono e os números de pedidos e faturamento. As
+ * contagens por situação respeitam a busca e o tipo, mas não a situação:
+ * são elas que dão o número de cada aba da lista.
  */
 export async function buscarLojas(busca: BuscaDeLojas): Promise<{
   readonly lojas: readonly LojaNaListaNoContrato[];
   readonly total: number;
+  readonly contagens: ListaDeLojasNoContrato["contagens"];
 }> {
   const trecho = `%${busca.texto}%`;
   const digitos = busca.digitos === "" ? null : `%${busca.digitos}%`;
-  const linhas = await transacaoAtual().$queryRaw<LinhaDaLista[]>`
-    WITH filtradas AS (
+  const tx = transacaoAtual();
+  const linhas = await tx.$queryRaw<LinhaDaLista[]>`
+    WITH vendas AS (
+      SELECT o.store_id,
+             count(*) FILTER (WHERE o.status <> 'CANCELLED')::int AS pedidos,
+             coalesce(sum(o.total_cents) FILTER (
+               WHERE o.status = ANY(${STATUS_DE_VENDA}::text[])), 0)::bigint AS faturamento
+        FROM app.orders o
+       GROUP BY o.store_id
+    ),
+    filtradas AS (
       SELECT s.id::text AS id, s.code, s.name, s.slug, s.status, s.city, s.uf,
-             s.created_at, p.code AS vertical_code, p.label AS vertical_label
+             s.created_at, p.code AS vertical_code, p.label AS vertical_label,
+             d.identity_id::text AS dono_id, d.display_name AS dono_nome,
+             coalesce(v.pedidos, 0) AS pedidos,
+             coalesce(v.faturamento, 0) AS faturamento
         FROM app.stores s
         JOIN app.vertical_presets p ON p.code = s.vertical_code
+        LEFT JOIN vendas v ON v.store_id = s.id
+        LEFT JOIN LATERAL (
+          SELECT m.identity_id, i.display_name, i.email_norm
+            FROM app.store_members m
+            JOIN app.identities i ON i.id = m.identity_id
+           WHERE m.store_id = s.id AND m.role = 'OWNER' AND m.revoked_at IS NULL
+           ORDER BY m.created_at
+           LIMIT 1
+        ) d ON true
        WHERE CASE WHEN ${busca.situacao}::text IS NULL
                   THEN s.deleted_at IS NULL
                   ELSE s.status = ${busca.situacao}::text END
+         AND (${busca.tipo}::text IS NULL OR s.vertical_code = ${busca.tipo}::text)
          AND (${busca.texto} = ''
               OR app.sem_acento(lower(s.name)) LIKE app.sem_acento(${trecho})
               OR lower(s.code) LIKE ${trecho}
               OR (${digitos}::text IS NOT NULL
-                  AND s.doc_number LIKE ${digitos}::text))
+                  AND s.doc_number LIKE ${digitos}::text)
+              OR lower(coalesce(d.email_norm, '')) LIKE ${trecho}
+              OR app.sem_acento(lower(coalesce(d.display_name, ''))) LIKE app.sem_acento(${trecho}))
     ),
     contagem AS (SELECT count(*)::int AS total FROM filtradas),
     pagina AS (
       SELECT * FROM filtradas
-       ORDER BY created_at DESC, code DESC
+       ORDER BY
+         CASE WHEN ${busca.ordem} = 'antigas' THEN created_at END ASC,
+         CASE WHEN ${busca.ordem} = 'nome' THEN app.sem_acento(lower(name)) END ASC,
+         CASE WHEN ${busca.ordem} = 'pedidos' THEN pedidos END DESC,
+         CASE WHEN ${busca.ordem} = 'faturamento' THEN faturamento END DESC,
+         created_at DESC, code DESC
        LIMIT ${busca.limite} OFFSET ${busca.deslocamento}
     )
     SELECT pagina.*, contagem.total
       FROM contagem LEFT JOIN pagina ON true`;
+
+  const porSituacao = await tx.$queryRaw<{ status: string; total: number }[]>`
+    SELECT s.status, count(*)::int AS total
+      FROM app.stores s
+      LEFT JOIN LATERAL (
+        SELECT i.display_name, i.email_norm
+          FROM app.store_members m
+          JOIN app.identities i ON i.id = m.identity_id
+         WHERE m.store_id = s.id AND m.role = 'OWNER' AND m.revoked_at IS NULL
+         ORDER BY m.created_at
+         LIMIT 1
+      ) d ON true
+     WHERE s.deleted_at IS NULL
+       AND (${busca.tipo}::text IS NULL OR s.vertical_code = ${busca.tipo}::text)
+       AND (${busca.texto} = ''
+            OR app.sem_acento(lower(s.name)) LIKE app.sem_acento(${trecho})
+            OR lower(s.code) LIKE ${trecho}
+            OR (${digitos}::text IS NOT NULL
+                AND s.doc_number LIKE ${digitos}::text)
+            OR lower(coalesce(d.email_norm, '')) LIKE ${trecho}
+            OR app.sem_acento(lower(coalesce(d.display_name, ''))) LIKE app.sem_acento(${trecho}))
+     GROUP BY s.status`;
+  const contado = (status: string) =>
+    porSituacao.find((linha) => linha.status === status)?.total ?? 0;
+  const contagens = {
+    todas: porSituacao.reduce((soma, linha) => soma + Number(linha.total), 0),
+    PENDING_APPROVAL: contado("PENDING_APPROVAL"),
+    ACTIVE: contado("ACTIVE"),
+    INACTIVE: contado("INACTIVE"),
+    REJECTED: contado("REJECTED"),
+  };
 
   return {
     lojas: linhas.flatMap((linha) =>
@@ -236,10 +318,17 @@ export async function buscarLojas(busca: BuscaDeLojas): Promise<{
               cidade: linha.city,
               uf: linha.uf,
               criadaEm: linha.created_at.toISOString(),
+              dono:
+                linha.dono_id === null
+                  ? null
+                  : { identidadeId: linha.dono_id, nome: linha.dono_nome },
+              pedidos: Number(linha.pedidos),
+              faturamentoCentavos: Number(linha.faturamento),
             },
           ],
     ),
     total: linhas[0]?.total ?? 0,
+    contagens,
   };
 }
 
@@ -264,8 +353,8 @@ async function apelidosOcupados(
     SELECT lower(slug) AS apelido FROM app.stores
      WHERE lower(slug) = ANY(${minusculos}::text[])
     UNION
-    SELECT lower(host) AS apelido FROM app.store_domains
-     WHERE kind = 'LEGACY_SLUG' AND lower(host) = ANY(${minusculos}::text[])`;
+    SELECT lower(antigo) AS apelido FROM app.stores, unnest(slugs_antigos) AS antigo
+     WHERE lower(antigo) = ANY(${minusculos}::text[])`;
   return new Set(linhas.map((linha) => linha.apelido));
 }
 
@@ -321,7 +410,7 @@ async function gravarLoja(loja: LojaParaGravar): Promise<LojaGravada> {
          street, number, complement, neighborhood, city, uf, zip, created_by)
       SELECT app.proximo_codigo_de_loja(), ${dados.nome},
              ${dados.razaoSocial ?? null}, ${dados.documento},
-             ${tipoDoDocumento}, ${dados.apelido}, 'ACTIVE',
+             ${tipoDoDocumento}, ${dados.apelido}, 'PENDING_APPROVAL',
              p.code, p.schema_version, ${dados.responsavel.telefone},
              ${dados.responsavel.email}, ${dados.endereco.logradouro},
              ${dados.endereco.numero}, ${dados.endereco.complemento ?? null},
@@ -345,6 +434,19 @@ async function gravarLoja(loja: LojaParaGravar): Promise<LojaGravada> {
     INSERT INTO app.store_settings (store_id) VALUES (${gravada.id}::uuid)`;
 
   const responsavelId = await identidadeDoResponsavel(tx, dados.responsavel);
+
+  // O limite de lojas por dono (card #25): a loja nova ocuparia mais uma
+  // vaga do responsável. Passou, a transação inteira é desfeita (409).
+  const [vagas] = await tx.$queryRaw<{ limite: number; uso: number }[]>`
+    SELECT limite, uso FROM app.limite_de_lojas_do_dono(${responsavelId}::uuid)`;
+  // A loja recém-gravada ainda não tem o vínculo do dono: não está na conta.
+  if (vagas !== undefined && Number(vagas.uso) >= Number(vagas.limite)) {
+    throw new ErroDeLimiteAtingido(
+      "lojas",
+      Number(vagas.limite),
+      Number(vagas.uso),
+    );
+  }
   await tx.$executeRaw`
     INSERT INTO app.store_members
       (store_id, identity_id, role, invited_by,
@@ -411,6 +513,7 @@ interface LinhaDaFicha {
   readonly updated_at: Date;
   readonly deleted_at: Date | null;
   readonly purge_after: Date | null;
+  readonly approved_at: Date | null;
   readonly vertical_code: string;
   readonly vertical_label: string;
   readonly tracks_stock: boolean;
@@ -478,7 +581,25 @@ export async function suspensaoEmCurso(
     SELECT created_at, after_data->>'motivo' AS motivo
       FROM app.audit_log
      WHERE store_id = ${lojaId}::uuid
-       AND action = 'LOJA_SUSPENSA'
+       AND action IN ('LOJA_SUSPENSA', 'LOJA_DESATIVADA')
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1`;
+  const linha = linhas[0];
+  if (linha === undefined) return null;
+  return { desde: linha.created_at, motivo: linha.motivo ?? "" };
+}
+
+/** A recusa da loja: quando e por quê, como o último `LOJA_RECUSADA` a gravou. */
+export async function recusaRegistrada(
+  lojaId: string,
+): Promise<{ readonly desde: Date; readonly motivo: string } | null> {
+  const linhas = await transacaoAtual().$queryRaw<
+    { created_at: Date; motivo: string | null }[]
+  >`
+    SELECT created_at, after_data->>'motivo' AS motivo
+      FROM app.audit_log
+     WHERE store_id = ${lojaId}::uuid
+       AND action = 'LOJA_RECUSADA'
      ORDER BY created_at DESC, id DESC
      LIMIT 1`;
   const linha = linhas[0];
@@ -495,6 +616,7 @@ export async function lerFichaDaLoja(
            s.doc_type, s.slug, s.status, s.email, s.phone1, s.zip, s.street,
            s.number, s.complement, s.neighborhood, s.city, s.uf,
            s.created_at, s.updated_at, s.deleted_at, s.purge_after,
+           s.approved_at,
            p.code AS vertical_code, p.label AS vertical_label, p.tracks_stock
       FROM app.stores s
       JOIN app.vertical_presets p ON p.code = s.vertical_code
@@ -504,7 +626,25 @@ export async function lerFichaDaLoja(
 
   const historico = await alteracoesDaLoja(lojaId);
   const suspensao =
-    loja.status === "SUSPENDED" ? await suspensaoEmCurso(lojaId) : null;
+    loja.status === "INACTIVE" ? await suspensaoEmCurso(lojaId) : null;
+  const recusa =
+    loja.status === "REJECTED" ? await recusaRegistrada(lojaId) : null;
+  const donos = await transacaoAtual().$queryRaw<
+    {
+      identity_id: string;
+      display_name: string | null;
+      email_norm: string;
+      aceito: boolean;
+    }[]
+  >`
+    SELECT m.identity_id::text AS identity_id, i.display_name, i.email_norm,
+           m.invite_accepted_at IS NOT NULL AS aceito
+      FROM app.store_members m
+      JOIN app.identities i ON i.id = m.identity_id
+     WHERE m.store_id = ${lojaId}::uuid
+       AND m.role = 'OWNER'
+       AND m.revoked_at IS NULL
+     ORDER BY m.created_at`;
   return {
     id: loja.id,
     codigo: loja.code,
@@ -540,6 +680,17 @@ export async function lerFichaDaLoja(
       suspensao === null
         ? null
         : { desde: suspensao.desde.toISOString(), motivo: suspensao.motivo },
+    recusa:
+      recusa === null
+        ? null
+        : { desde: recusa.desde.toISOString(), motivo: recusa.motivo },
+    aprovadaEm: loja.approved_at?.toISOString() ?? null,
+    donos: donos.map((dono) => ({
+      identidadeId: dono.identity_id,
+      nome: dono.display_name,
+      email: dono.email_norm,
+      conviteAceito: dono.aceito,
+    })),
     retencao:
       loja.status === "DELETED" && loja.deleted_at !== null
         ? {
@@ -777,19 +928,18 @@ async function apelidosDeOutraLoja(
      WHERE lower(slug) = ANY(${minusculos}::text[])
        AND id <> ${lojaId}::uuid
     UNION
-    SELECT lower(host) AS apelido FROM app.store_domains
-     WHERE kind = 'LEGACY_SLUG'
-       AND lower(host) = ANY(${minusculos}::text[])
-       AND store_id <> ${lojaId}::uuid`;
+    SELECT lower(antigo) AS apelido FROM app.stores, unnest(slugs_antigos) AS antigo
+     WHERE lower(antigo) = ANY(${minusculos}::text[])
+       AND id <> ${lojaId}::uuid`;
   return new Set(linhas.map((linha) => linha.apelido));
 }
 
 /**
- * Guarda o antigo como endereço que redireciona e grava o novo.
+ * Guarda o antigo na lista de apelidos que redirecionam e grava o novo.
  *
- * Se o novo é um antigo da PRÓPRIA loja, a linha dele sai de `store_domains`
- * — ele volta a ser o atual. A chave única do banco é a última palavra sobre
- * a corrida com outra troca ou outro cadastro.
+ * Se o novo é um antigo da PRÓPRIA loja, ele sai da lista — volta a ser o
+ * atual. A chave única de `stores_slug_uk` é a última palavra sobre a corrida
+ * com outra troca ou outro cadastro pelo apelido atual.
  */
 async function gravarApelido(
   lojaId: string,
@@ -797,20 +947,18 @@ async function gravarApelido(
 ): Promise<void> {
   const tx = transacaoAtual();
   try {
-    await tx.$executeRaw`
-      DELETE FROM app.store_domains
-       WHERE store_id = ${lojaId}::uuid
-         AND kind = 'LEGACY_SLUG'
-         AND lower(host) = lower(${troca.novo})`;
-    await tx.$executeRaw`
-      INSERT INTO app.store_domains
-        (store_id, host, kind, is_canonical, redirect_to_canonical)
-      VALUES (${lojaId}::uuid, ${troca.antigo}, 'LEGACY_SLUG', false, true)`;
     await exigirUmaLinhaAfetada(
       { recurso: "loja", id: lojaId },
       () =>
         tx.$executeRaw`
-        UPDATE app.stores SET slug = ${troca.novo} WHERE id = ${lojaId}::uuid`,
+        UPDATE app.stores
+           SET slug = ${troca.novo},
+               slugs_antigos = array_append(
+                 array_remove(
+                   array_remove(slugs_antigos, lower(${troca.novo})),
+                   lower(${troca.antigo})),
+                 lower(${troca.antigo}))
+         WHERE id = ${lojaId}::uuid`,
     );
   } catch (erro) {
     if (ehChaveRepetida(erro)) throw new ErroDeApelidoTomado();

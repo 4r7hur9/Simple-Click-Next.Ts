@@ -1,5 +1,6 @@
 import { enderecoDaApi } from "../../../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../../../server/loja-do-painel.ts";
+import { renovarAposGravar } from "../../../../../../../server/renovar-vitrine.ts";
 
 /**
  * Envio do ARQUIVO da foto do produto (T-303, AC-306).
@@ -34,6 +35,8 @@ export async function POST(
     },
   );
   const corpo = await resposta.text();
+  // A vitrine esquece a foto de antes: a nova aparece ao recarregar.
+  renovarAposGravar(sessao.apelido, requisicao.method, resposta.status);
   return new Response(corpo === "" ? null : corpo, {
     status: resposta.status,
     headers: {

@@ -93,7 +93,7 @@ export function negocioDaLoja({
   loja,
   enderecoDoSite,
 }: NegocioDaLojaOpcoes): DadoEstruturado {
-  const endereco = `${enderecoDoSite}/l/${loja.apelido}`;
+  const endereco = `${enderecoDoSite}/loja/${loja.apelido}`;
 
   return semVazios({
     "@context": "https://schema.org",
@@ -110,11 +110,11 @@ export function negocioDaLoja({
     // e lê os dados estruturados de lá. Repetir o catálogo inteiro aqui faria a
     // página da loja carregar o peso do catálogo sem mostrá-lo (AC-415).
     ...(loja.alimentacao
-      ? { hasMenu: `${endereco}/catalogo` }
+      ? { hasMenu: `${endereco}/cardapio` }
       : {
           hasOfferCatalog: {
             "@type": "OfferCatalog",
-            url: `${endereco}/catalogo`,
+            url: `${endereco}/cardapio`,
           },
         }),
     // SEM `openingHours`, e a ausência é decisão. O contrato entrega "aberta
@@ -174,7 +174,7 @@ export function cardapioDaLoja({
   catalogo,
   enderecoDoSite,
 }: CardapioDaLojaOpcoes): DadoEstruturado {
-  const endereco = `${enderecoDoSite}/l/${loja.apelido}/catalogo`;
+  const endereco = `${enderecoDoSite}/loja/${loja.apelido}/cardapio`;
 
   const secoes = catalogo.secoes.map((secao) =>
     semVazios({

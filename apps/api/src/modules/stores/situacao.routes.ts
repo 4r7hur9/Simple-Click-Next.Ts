@@ -28,7 +28,7 @@ export interface OpcoesDaSituacaoDaLoja {
   readonly acesso?: AcessoAoBanco;
   readonly autenticar: (
     requisicao: Request,
-  ) => { readonly identidadeId: string; readonly papel: "OWNER" } | null;
+  ) => { readonly identidadeId: string; readonly papel: "OWNER" | "STAFF" } | null;
   /** Resolve a loja pelo apelido, inclusive a SUSPENSA; nunca a excluída. */
   readonly resolverLoja: (chegada: {
     readonly apelido: string;
@@ -65,7 +65,7 @@ export function criarRotaDaSituacaoDaLoja(
         const { params } = borda.dados(requisicao);
         const usuario = resposta.locals.dono as {
           readonly identidadeId: string;
-          readonly papel: "OWNER";
+          readonly papel: "OWNER" | "STAFF";
         };
         const acesso = opcoes.acesso ?? banco();
         resposta.setHeader("cache-control", "no-store");

@@ -33,6 +33,11 @@ export interface SeletorDePagamentoProps {
   readonly aoEscolher?: ((forma: string) => void) | undefined;
   /** Total do pedido em centavos, usado na dica do troco. */
   readonly totalEmCentavos?: number | undefined;
+  /** O troco como a pessoa digitou ("100" ou "100,00"); sem ele, o campo fica solto. */
+  readonly troco?: string | undefined;
+  readonly aoMudarTroco?: ((valor: string) => void) | undefined;
+  /** Recusa do troco (menor que o total, valor que não é dinheiro). */
+  readonly erroDoTroco?: string | undefined;
 }
 
 export function SeletorDePagamento({
@@ -40,6 +45,9 @@ export function SeletorDePagamento({
   escolhida,
   aoEscolher,
   totalEmCentavos,
+  troco,
+  aoMudarTroco,
+  erroDoTroco,
 }: SeletorDePagamentoProps) {
   const prefixo = useId();
   const [selecionada, setSelecionada] = useState(escolhida ?? formas[0]?.forma);
@@ -76,13 +84,23 @@ export function SeletorDePagamento({
         <Campo
           id={`${prefixo}-troco`}
           name="trocoPara"
-          rotulo="Precisa de troco para quanto?"
+          rotulo="Precisa de troco? Para quanto (R$)"
           dica={
             totalEmCentavos === undefined
-              ? "Deixe em branco se tiver o valor exato."
-              : `Deixe em branco se tiver o valor exato. O pedido está em ${emReaisSimples(totalEmCentavos)}.`
+              ? "Opcional. Escreva a nota que vai usar, ex.: 100. Deixe em branco se tiver o valor exato."
+              : `Opcional. Escreva a nota que vai usar, ex.: 100. O pedido está em ${emReaisSimples(totalEmCentavos)}; deixe em branco se tiver o valor exato.`
           }
+          placeholder="Ex.: 100,00"
           inputMode="decimal"
+          autoComplete="off"
+          {...(troco === undefined
+            ? {}
+            : {
+                value: troco,
+                onChange: (evento: { target: { value: string } }) =>
+                  aoMudarTroco?.(evento.target.value),
+              })}
+          {...(erroDoTroco ? { erro: erroDoTroco } : {})}
         />
       ) : null}
     </fieldset>

@@ -26,6 +26,7 @@ import {
   montar,
   simularApi,
 } from "./apoio-config.tsx";
+import { opcoesDoSeletor } from "./apoio-seletor.ts";
 
 afterEach(desmontar);
 
@@ -90,9 +91,9 @@ const PEDIDO_CRIADO = {
 };
 
 function escolherProduto(tela: HTMLElement, produtoId: string): void {
-  const seletor = [...tela.querySelectorAll("select")].find((s) =>
-    [...s.options].some((o) => o.value === produtoId),
-  );
+  const seletor = [
+    ...tela.querySelectorAll<HTMLButtonElement>('button[role="combobox"]'),
+  ].find((s) => opcoesDoSeletor(s).some((o) => o.valor === produtoId));
   if (seletor === undefined) throw new Error("não achei o seletor de produto");
   digitar(seletor, produtoId);
 }
@@ -141,6 +142,7 @@ describe("o grupo obrigatório impede o item, como na vitrine (AC-708)", () => {
       },
     }));
     const tela = montar(<MontarPedido produtos={[LANCHE, SUCO]} />);
+    clicar(botao(tela, "Cliente novo"));
     digitar(exigir<HTMLInputElement>(tela, "#manual-nome"), "Rita");
     digitar(
       exigir<HTMLInputElement>(tela, "#manual-telefone"),
@@ -238,6 +240,9 @@ describe("o pedido manual é lançado pela loja (AC-707, AC-709)", () => {
   it("@spec:AC-709 sem cadastro: nome e telefone no próprio pedido, e a tela cobra os dois", async () => {
     const chamadas = simularApi(() => ({ status: 201, corpo: PEDIDO_CRIADO }));
     const tela = montar(<MontarPedido produtos={[LANCHE, SUCO]} />);
+    clicar(botao(tela, "Cliente novo"));
+    // Sem guardar na lista: o pedido sai só com nome e telefone.
+    marcar(tela, "Guardar na lista");
     escolherProduto(tela, SUCO.id);
     clicar(botao(tela, "Adicionar"));
 
@@ -267,6 +272,90 @@ describe("o pedido manual é lançado pela loja (AC-707, AC-709)", () => {
       },
     });
     expect(tela.textContent).toContain("Pedido #57 lançado");
+  });
+
+  it("cliente cadastrado: escolhe na lista e o pedido vai com a ficha dele", async () => {
+    const CLIENTE = {
+      id: "77777777-7777-4777-8777-777777777777",
+      nome: "Dona Marta",
+      telefone: "+5585988887777",
+      email: null,
+      temConta: false,
+      totalDePedidos: 3,
+      totalGastoCentavos: 9000,
+      ultimoPedidoEm: "2026-10-10T12:00:00.000Z",
+    };
+    const chamadas = simularApi((chamada) =>
+      chamada.metodo === "GET"
+        ? { status: 200, corpo: { clientes: [CLIENTE] } }
+        : { status: 201, corpo: PEDIDO_CRIADO },
+    );
+    const tela = montar(<MontarPedido produtos={[LANCHE, SUCO]} />);
+    await esperar();
+
+    // Sem escolher ninguém, o pedido não sai e a tela explica.
+    escolherProduto(tela, SUCO.id);
+    clicar(botao(tela, "Adicionar"));
+    const formulario = exigir<HTMLFormElement>(
+      tela,
+      'form[aria-label="Montar pedido manual"]',
+    );
+    await enviar(formulario);
+    expect(tela.textContent).toContain("Escolha um cliente da lista");
+    expect(chamadas.filter((c) => c.metodo === "POST")).toHaveLength(0);
+
+    await esperar();
+    clicar(exigir<HTMLButtonElement>(tela, `[data-cliente="${CLIENTE.id}"]`));
+    expect(tela.textContent).toContain("Dona Marta");
+    expect(tela.textContent).toContain("3 pedidos");
+
+    await enviar(formulario);
+    const lancamento = chamadas.find((c) => c.metodo === "POST");
+    expect(lancamento?.corpo).toMatchObject({
+      cliente: { tipo: "cadastrado", clienteId: CLIENTE.id },
+      entrega: "PICKUP",
+    });
+    expect(tela.textContent).toContain("Pedido #57 lançado");
+  });
+
+  it("cliente novo é guardado na lista antes do pedido, que sai com a ficha criada", async () => {
+    const FICHA = {
+      id: "88888888-8888-4888-8888-888888888888",
+      nome: "Yara Nova",
+      telefone: "+5511960001234",
+      email: null,
+      temConta: false,
+      endereco: null,
+      observacao: null,
+      criadoEm: "2026-10-16T12:00:00.000Z",
+    };
+    const chamadas = simularApi((chamada) =>
+      chamada.url.includes("/clientes") && chamada.metodo === "POST"
+        ? { status: 201, corpo: FICHA }
+        : chamada.metodo === "GET"
+          ? { status: 200, corpo: { clientes: [] } }
+          : { status: 201, corpo: PEDIDO_CRIADO },
+    );
+    const tela = montar(<MontarPedido produtos={[LANCHE, SUCO]} />);
+    clicar(botao(tela, "Cliente novo"));
+    digitar(exigir<HTMLInputElement>(tela, "#manual-nome"), "Yara Nova");
+    digitar(
+      exigir<HTMLInputElement>(tela, "#manual-telefone"),
+      "11 96000-1234",
+    );
+    escolherProduto(tela, SUCO.id);
+    clicar(botao(tela, "Adicionar"));
+
+    await enviar(
+      exigir<HTMLFormElement>(tela, 'form[aria-label="Montar pedido manual"]'),
+    );
+
+    const posts = chamadas.filter((c) => c.metodo === "POST");
+    expect(posts[0]?.url).toContain("/api/painel/clientes");
+    expect(posts[0]?.corpo).toMatchObject({ nome: "Yara Nova" });
+    expect(posts[1]?.corpo).toMatchObject({
+      cliente: { tipo: "cadastrado", clienteId: FICHA.id },
+    });
   });
 
   it("@spec:AC-707 a montagem não tem problema grave de acessibilidade", async () => {

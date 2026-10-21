@@ -84,20 +84,20 @@ describe("suspender tira do ar sem apagar, com o motivo (AC-209)", () => {
     );
 
     expect(resultado).toEqual({ ok: true, mudou: true });
-    expect(banco.gravacoes).toEqual(["status:SUSPENDED"]);
+    expect(banco.gravacoes).toEqual(["status:INACTIVE"]);
     expect(banco.registros).toEqual([
       {
         lojaId: LOJA,
         atorId: ADMIN,
-        acao: "LOJA_SUSPENSA",
+        acao: "LOJA_DESATIVADA",
         antes: { status: "ACTIVE" },
-        depois: { status: "SUSPENDED", motivo: "Mensalidade em atraso" },
+        depois: { status: "INACTIVE", motivo: "Mensalidade em atraso" },
       },
     ]);
   });
 
   it("@spec:AC-209 suspender de novo não grava nem registra; loja excluída e inexistente são recusadas", async () => {
-    const suspensa = repositorio({ ...ATIVA, status: "SUSPENDED" });
+    const suspensa = repositorio({ ...ATIVA, status: "INACTIVE" });
     expect(await suspenderLoja(LOJA, "outro", ADMIN, suspensa.repo)).toEqual({
       ok: true,
       mudou: false,
@@ -124,7 +124,7 @@ describe("reativar devolve a loja ao ar e guarda o período (AC-210)", () => {
   it("@spec:AC-210 a suspensa volta a ativa, e a trilha registra desde quando, até quando e por quê", async () => {
     const desde = new Date("2026-10-01T09:30:00.000Z");
     const banco = repositorio(
-      { ...ATIVA, status: "SUSPENDED" },
+      { ...ATIVA, status: "INACTIVE" },
       { suspensao: { desde, motivo: "Mensalidade em atraso" } },
     );
 
@@ -136,8 +136,8 @@ describe("reativar devolve a loja ao ar e guarda o período (AC-210)", () => {
       {
         lojaId: LOJA,
         atorId: ADMIN,
-        acao: "LOJA_REATIVADA",
-        antes: { status: "SUSPENDED" },
+        acao: "LOJA_ATIVADA",
+        antes: { status: "INACTIVE" },
         depois: {
           status: "ACTIVE",
           suspensaDesde: "2026-10-01T09:30:00.000Z",
@@ -187,7 +187,7 @@ describe("excluir exige o nome e fixa a retenção (AC-211)", () => {
   });
 
   it("@spec:AC-211 confirmada, a loja é excluída com a remoção definitiva marcada para 30 dias depois, e o ato vai para a trilha", async () => {
-    const banco = repositorio({ ...ATIVA, status: "SUSPENDED" });
+    const banco = repositorio({ ...ATIVA, status: "INACTIVE" });
 
     const resultado = await excluirLoja(
       { lojaId: LOJA, confirmacao: "Pastel da Joi", administradorId: ADMIN },
@@ -206,7 +206,7 @@ describe("excluir exige o nome e fixa a retenção (AC-211)", () => {
         lojaId: LOJA,
         atorId: ADMIN,
         acao: "LOJA_EXCLUIDA",
-        antes: { status: "SUSPENDED" },
+        antes: { status: "INACTIVE" },
         depois: { status: "DELETED", removerApos: "2026-11-02T12:00:00.000Z" },
       },
     ]);
@@ -240,7 +240,7 @@ describe("restaurar dentro do prazo, e só nele (AC-211)", () => {
   };
 
   it("@spec:AC-211 dentro do prazo, a loja volta à situação de antes da exclusão — a suspensa volta suspensa", async () => {
-    const banco = repositorio(EXCLUIDA, { antesDaExclusao: "SUSPENDED" });
+    const banco = repositorio(EXCLUIDA, { antesDaExclusao: "INACTIVE" });
 
     const resultado = await restaurarLoja(
       LOJA,
@@ -250,7 +250,7 @@ describe("restaurar dentro do prazo, e só nele (AC-211)", () => {
     );
 
     expect(resultado).toEqual({ ok: true, mudou: true });
-    expect(banco.gravacoes).toEqual(["restauracao:SUSPENDED"]);
+    expect(banco.gravacoes).toEqual(["restauracao:INACTIVE"]);
     expect(banco.registros).toEqual([
       {
         lojaId: LOJA,
@@ -261,7 +261,7 @@ describe("restaurar dentro do prazo, e só nele (AC-211)", () => {
           excluidaEm: "2026-10-03T12:00:00.000Z",
           removerApos: "2026-11-02T12:00:00.000Z",
         },
-        depois: { status: "SUSPENDED" },
+        depois: { status: "INACTIVE" },
       },
     ]);
   });

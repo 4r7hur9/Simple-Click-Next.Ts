@@ -62,6 +62,34 @@ const configuracao: NextConfig = {
       },
     ],
   },
+  // As rotas antigas levam às novas (redirecionamento PERMANENTE), para o link
+  // já compartilhado — WhatsApp, Instagram, cartaz do balcão — não quebrar.
+  // A consulta (`?categoria=`, `?busca=`) segue junto. Vem antes do proxy, que
+  // depois resolve o apelido antigo da loja.
+  async redirects() {
+    return [
+      {
+        source: "/l/:slug/catalogo",
+        destination: "/loja/:slug/cardapio",
+        permanent: true,
+      },
+      {
+        source: "/l/:slug/:caminho*",
+        destination: "/loja/:slug/:caminho*",
+        permanent: true,
+      },
+      {
+        source: "/minha-conta/:caminho*",
+        destination: "/conta/:caminho*",
+        permanent: true,
+      },
+      {
+        source: "/painel/config/aparencia",
+        destination: "/painel/aparencia",
+        permanent: true,
+      },
+    ];
+  },
   // Não anunciar a tecnologia do servidor: informação que só serve a quem
   // procura vulnerabilidade conhecida.
   poweredByHeader: false,

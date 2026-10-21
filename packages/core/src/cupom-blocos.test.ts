@@ -147,6 +147,43 @@ describe("o cupom traz o que a produção precisa, na ordem certa (AC-619)", () 
     expect(guarana?.texto.endsWith("R$ 19,50")).toBe(true);
   });
 
+  it("marca o item vendido no atacado com a faixa e o preço por unidade (card #58)", () => {
+    const pedido = pedidoCompleto();
+    const comAtacado = {
+      ...pedido,
+      itens: pedido.itens.map((item, indice) =>
+        indice === 1
+          ? {
+              ...item,
+              atacado: {
+                quantidadeMinima: 3,
+                unitarioEmCentavos: 650,
+                rotulo: "Caixa",
+              },
+            }
+          : item,
+      ),
+    };
+    for (const larguraMm of [58, 80] as const) {
+      const linhas = textos(
+        diagramarCupom(gerarCupom(comAtacado, { larguraMm })),
+      );
+      const item = posicao(linhas, "3x Guaraná Antarctica");
+      const marca = posicao(linhas, "* ATACADO 3+ un.");
+      expect(marca).toBeGreaterThan(item);
+      expect(linhas.map((linha) => linha.texto).join(" ")).toContain(
+        "R$ 6,50/un.",
+      );
+    }
+    // O varejo não ganha marca nenhuma.
+    const semAtacado = textos(
+      diagramarCupom(gerarCupom(pedidoCompleto(), { larguraMm: 80 })),
+    );
+    expect(semAtacado.some((linha) => linha.texto.includes("ATACADO"))).toBe(
+      false,
+    );
+  });
+
   it("@spec:AC-619 as observações saem destacadas: em negrito e entre linhas duplas", () => {
     const linhas = textos(
       diagramarCupom(gerarCupom(pedidoCompleto(), { larguraMm: 58 })),

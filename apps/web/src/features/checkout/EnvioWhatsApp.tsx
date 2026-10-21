@@ -75,7 +75,7 @@ export function EnvioWhatsApp({
     <Cartao
       className="sc-envio"
       titulo={`Pedido ${codigoDoPedido} registrado`}
-      nivelDoTitulo={2}
+      nivelDoTitulo={3}
     >
       {/* Vem ANTES do botão de propósito: a primeira coisa que o cliente
           precisa saber é que o pedido existe, aconteça o que acontecer com a

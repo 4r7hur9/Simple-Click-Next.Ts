@@ -67,7 +67,7 @@ function montar(uso: UsoDoCarrinho): HTMLElement {
   document.body.append(container);
   raiz = createRoot(container);
   act(() =>
-    raiz?.render(<GavetaCarrinho carrinho={uso} linkDaVitrine="/l/sabor" />),
+    raiz?.render(<GavetaCarrinho carrinho={uso} linkDaVitrine="/loja/sabor" />),
   );
   return container;
 }
@@ -95,10 +95,75 @@ describe("o carrinho mostra o que foi escolhido (AC-500)", () => {
     expect(texto).toContain("R$ 40,00");
   });
 
-  it("@spec:AC-500 o título traz a quantidade TOTAL de itens, não o número de linhas", () => {
+  it("@spec:AC-500 o cabeçalho traz a quantidade TOTAL de itens, não o número de linhas", () => {
     // Duas linhas, três itens. Mostrar "2" faria o número mentir para quem
     // pediu vários iguais.
-    expect(montar(usoCom()).textContent).toContain("(3)");
+    const tela = montar(usoCom());
+    expect(tela.querySelector(".sc-carrinho-janela__selo")?.textContent).toBe(
+      "3 itens",
+    );
+    expect(tela.querySelector("#titulo-do-carrinho")?.textContent).toBe(
+      "Carrinho, 3 itens",
+    );
+  });
+
+  it("cada item mostra o acréscimo das opções e a descrição, sem foto", () => {
+    const tela = montar(
+      usoCom({
+        carrinho: {
+          ...CHEIO,
+          itens: [
+            {
+              id: "i3",
+              nome: "Pastel",
+              quantidade: 1,
+              precoUnitario: "R$ 10,00",
+              totalDaLinha: "R$ 10,00",
+              descricao: "Massa fina, frito na hora.",
+              opcoes: [
+                {
+                  grupoNome: "Adicionais",
+                  opcaoNome: "Catupiry",
+                  acrescimo: "+ R$ 3,00",
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+    const texto = tela.textContent ?? "";
+    expect(texto).toContain("+ R$ 3,00");
+    expect(texto).toContain("Massa fina, frito na hora.");
+    expect(texto).toContain("R$ 10,00 cada");
+    expect(tela.querySelector(".sc-carrinho-janela__itens img")).toBeNull();
+  });
+
+  it("o rodapé tem o resumo e o 'Fechar pedido' na pílula verde", () => {
+    container = document.createElement("div");
+    document.body.append(container);
+    raiz = createRoot(container);
+    let fechou = false;
+    act(() =>
+      raiz?.render(
+        <GavetaCarrinho
+          carrinho={usoCom()}
+          linkDaVitrine="/loja/sabor"
+          aoFechar={() => {
+            fechou = true;
+          }}
+        />,
+      ),
+    );
+    const rodape = container.querySelector(".sc-carrinho-janela__rodape");
+    expect(rodape?.textContent).toContain("Subtotal");
+    expect(rodape?.textContent).toContain("Total");
+    const fechar = rodape?.querySelector<HTMLButtonElement>(
+      ".sc-carrinho-janela__acao",
+    );
+    expect(fechar?.textContent).toContain("Fechar pedido");
+    act(() => fechar?.click());
+    expect(fechou).toBe(true);
   });
 });
 
@@ -172,7 +237,7 @@ describe("os quatro estados da gaveta (AC-501)", () => {
 
     expect(tela.textContent).toContain("carrinho está vazio");
     const link = [...tela.querySelectorAll("a")].find(
-      (a) => a.getAttribute("href") === "/l/sabor",
+      (a) => a.getAttribute("href") === "/loja/sabor",
     );
     expect(link).toBeDefined();
   });

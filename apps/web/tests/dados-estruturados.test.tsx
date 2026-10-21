@@ -76,7 +76,7 @@ function produto(sobrescrita: Partial<ProdutoNaTela> = {}): ProdutoNaTela {
     precoAnterior: null,
     imagem: null,
     disponivel: true,
-    link: "/l/sabor-e-cia/produto/11111111-1111-4111-8111-111111111111",
+    link: "/loja/sabor-e-cia/produto/11111111-1111-4111-8111-111111111111",
     ...sobrescrita,
   };
 }
@@ -94,10 +94,19 @@ function catalogo(produtos: readonly ProdutoNaTela[]): CatalogoNaTela {
     destaques: [],
     abas: [],
     filtroEmVigor: null,
-    linkDeTodas: "/l/sabor-e-cia/catalogo",
+    linkDeTodas: "/loja/sabor-e-cia/cardapio",
     termoBuscado: null,
     buscaSemAcerto: false,
-    linkSemBusca: "/l/sabor-e-cia/catalogo",
+    linkSemBusca: "/loja/sabor-e-cia/cardapio",
+    atacado: {
+      produtos: 0,
+      menorPedidoMinimo: null,
+      ligado: false,
+      link: "/loja/sabor-e-cia/cardapio?atacado=1",
+    },
+    atacadoSemAcerto: false,
+    ordem: "relevancia",
+    ordens: [],
     lojaSemCatalogo: false,
     filtroSemAcerto: false,
   };
@@ -108,7 +117,7 @@ describe("o negócio da loja é descrito no vocabulário do ramo (AC-403)", () =
     const dados = negocioDaLoja({ loja: loja(), enderecoDoSite: SITE });
 
     expect(dados["@type"]).toBe("Restaurant");
-    expect(dados["hasMenu"]).toBe(`${SITE}/l/sabor-e-cia/catalogo`);
+    expect(dados["hasMenu"]).toBe(`${SITE}/loja/sabor-e-cia/cardapio`);
   });
 
   it("@spec:AC-403 loja de roupa vira Store, e NÃO tem cardápio", () => {
@@ -130,8 +139,8 @@ describe("o negócio da loja é descrito no vocabulário do ramo (AC-403)", () =
 
     // Caminho relativo aqui não abre em lugar nenhum: o buscador guarda o
     // endereço fora do contexto da página.
-    expect(dados["@id"]).toBe(`${SITE}/l/sabor-e-cia`);
-    expect(dados["url"]).toBe(`${SITE}/l/sabor-e-cia`);
+    expect(dados["@id"]).toBe(`${SITE}/loja/sabor-e-cia`);
+    expect(dados["url"]).toBe(`${SITE}/loja/sabor-e-cia`);
   });
 
   it("@spec:AC-403 o endereço postal sai como o buscador o entende", () => {
@@ -252,13 +261,13 @@ describe("o produto é descrito com preço (AC-414)", () => {
     imagens: ["https://imagens.exemplo.test/coxinha.jpg"],
     precoCentavos: 750,
     disponivel: true,
-    enderecoDoProduto: `${SITE}/l/sabor-e-cia/produto/abc`,
+    enderecoDoProduto: `${SITE}/loja/sabor-e-cia/produto/abc`,
     enderecoDoSite: SITE,
   });
 
   it("@spec:AC-414 sai como Product, com o endereço próprio", () => {
     expect(dados["@type"]).toBe("Product");
-    expect(dados["@id"]).toBe(`${SITE}/l/sabor-e-cia/produto/abc`);
+    expect(dados["@id"]).toBe(`${SITE}/loja/sabor-e-cia/produto/abc`);
   });
 
   it("@spec:AC-414 a oferta carrega preço, moeda e quem vende", () => {

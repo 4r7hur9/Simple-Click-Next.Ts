@@ -10,6 +10,7 @@
  */
 import {
   CABECALHO_DA_PONTE,
+  CABECALHO_DO_AGENTE_DO_VISITANTE,
   CABECALHO_DO_ENDERECO_DO_VISITANTE,
   TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE,
 } from "@simpleclick/contracts";
@@ -45,6 +46,36 @@ export function enderecoDoVisitante(requisicao: Request): string | undefined {
   return endereco === undefined || endereco === "" ? undefined : endereco;
 }
 
+/**
+ * A prova da ponte e o que a API não enxerga sozinha: o endereço e o
+ * navegador do visitante (o aceite dos termos grava os dois, card #79).
+ *
+ * AC-120: sem isto a API veria só o endereço do site, e todo visitante
+ * dividiria o mesmo balde do limite de tentativas. A API só acredita no
+ * que vem com o segredo da ponte, que nunca vai ao navegador.
+ */
+export function cabecalhosDaPonte(
+  requisicao: Request,
+  fonte: Readonly<Record<string, string | undefined>> = process.env,
+): Record<string, string> {
+  const segredo = fonte["SEGREDO_DA_PONTE"]?.trim() ?? "";
+  const visitante = enderecoDoVisitante(requisicao);
+  if (
+    segredo.length < TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE ||
+    visitante === undefined
+  ) {
+    return {};
+  }
+  const agente = requisicao.headers.get("user-agent")?.trim();
+  return {
+    [CABECALHO_DA_PONTE]: segredo,
+    [CABECALHO_DO_ENDERECO_DO_VISITANTE]: visitante,
+    ...(agente === undefined || agente === ""
+      ? {}
+      : { [CABECALHO_DO_AGENTE_DO_VISITANTE]: agente.slice(0, 300) }),
+  };
+}
+
 /** Os cabeçalhos que a API espera do site. */
 export function cabecalhosParaApi(
   requisicao: Request,
@@ -57,17 +88,8 @@ export function cabecalhosParaApi(
     origin: requisicao.headers.get("origin") ?? new URL(requisicao.url).origin,
     "x-simpleclick-client": "navegador",
   });
-  // AC-120: sem isto a API veria só o endereço do site, e todo visitante
-  // dividiria o mesmo balde do limite de tentativas. A API só acredita no
-  // endereço com o segredo da ponte, que nunca vai ao navegador.
-  const segredo = fonte["SEGREDO_DA_PONTE"]?.trim() ?? "";
-  const visitante = enderecoDoVisitante(requisicao);
-  if (
-    segredo.length >= TAMANHO_MINIMO_DO_SEGREDO_DA_PONTE &&
-    visitante !== undefined
-  ) {
-    cabecalhos.set(CABECALHO_DA_PONTE, segredo);
-    cabecalhos.set(CABECALHO_DO_ENDERECO_DO_VISITANTE, visitante);
+  for (const [nome, valor] of Object.entries(cabecalhosDaPonte(requisicao, fonte))) {
+    cabecalhos.set(nome, valor);
   }
   if (extras.tokenDeRenovacao !== undefined) {
     cabecalhos.set(

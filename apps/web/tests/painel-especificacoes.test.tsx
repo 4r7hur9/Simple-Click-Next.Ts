@@ -25,6 +25,11 @@ import {
 } from "../src/features/painel-catalogo/CamposDeEspecificacao";
 import { EditorEspecificacoes } from "../src/features/painel-catalogo/EditorEspecificacoes";
 import { FormularioProduto } from "../src/features/painel-catalogo/FormularioProduto";
+import {
+  eSeletor,
+  escolherNoSeletor,
+  opcoesDoSeletor,
+} from "./apoio-seletor.ts";
 
 interface Chamada {
   readonly url: string;
@@ -57,6 +62,9 @@ function roteiro(...respostas: (() => Promise<Response>)[]): Chamada[] {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
+      // A configuração do feed (card #38) não faz parte do roteiro: sem ela,
+      // o formulário só não oferece "publicar no feed".
+      if (url === "/api/loja/feed") return new Response(null, { status: 404 });
       chamadas.push({
         url,
         metodo: init?.method ?? "GET",
@@ -99,9 +107,17 @@ async function clicar(elemento: HTMLElement): Promise<void> {
 
 /** Digita como o navegador: o React só ouve o valor que passa pelo setter nativo. */
 async function digitar(
-  campo: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+  campo:
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | HTMLSelectElement
+    | HTMLButtonElement,
   valor: string,
 ): Promise<void> {
+  if (eSeletor(campo)) {
+    escolherNoSeletor(campo, valor);
+    return;
+  }
   const prototipo = Object.getPrototypeOf(campo) as object;
   const setter = Object.getOwnPropertyDescriptor(prototipo, "value")?.set;
   await act(async () => {
@@ -187,10 +203,13 @@ describe("o criador de especificações da categoria (AC-325)", () => {
 
     const formulario = [...tela.querySelectorAll("form")].at(-1) ?? null;
     const [nome, unidade] = [
-      ...(formulario?.querySelectorAll<HTMLInputElement>("input.sc-campo__controle") ??
-        []),
+      ...(formulario?.querySelectorAll<HTMLInputElement>(
+        "input.sc-campo__controle",
+      ) ?? []),
     ];
-    const tipo = formulario?.querySelector("select");
+    const tipo = formulario?.querySelector<HTMLButtonElement>(
+      'button[role="combobox"]',
+    );
     if (!nome || !unidade || !tipo) throw new Error("formulário incompleto");
     await digitar(nome, "Aro");
     await digitar(tipo, "lista");
@@ -251,7 +270,7 @@ describe("ordem, lista e alterações com aviso (AC-326, AC-327, AC-330)", () =>
     const tela = await montar(<EditorEspecificacoes categoriaId="cat-pneus" />);
 
     const campo = tela.querySelector<HTMLInputElement>(
-      'input[placeholder="Acrescentar valor"]',
+      'input[placeholder="Ex.: 16"]',
     );
     if (!campo) throw new Error("sem o campo de nova opção");
     await digitar(campo, "17");
@@ -373,8 +392,8 @@ describe("o produto herda as especificações da categoria (AC-326, AC-327)", ()
     );
 
     expect(
-      [...tela.querySelectorAll("select option")].map(
-        (opcao) => opcao.textContent,
+      opcoesDoSeletor(tela.querySelector('button[role="combobox"]')!).map(
+        (opcao) => opcao.rotulo,
       ),
     ).toEqual(["Escolha…", "13", "14", "15", "16"]);
     expect(conferirEspecificacoes([ARO], { "esp-aro": "17" })).toEqual({
@@ -395,7 +414,7 @@ describe("o produto herda as especificações da categoria (AC-326, AC-327)", ()
       'input[placeholder="Ex.: Pastel de queijo"]',
     );
     const preco = tela.querySelector<HTMLInputElement>(
-      'input[placeholder="19,90"]',
+      'input[placeholder="Ex.: 19,90"]',
     );
     if (!nome || !preco) throw new Error("formulário incompleto");
     await digitar(nome, "Pneu 195/55 R15");
@@ -413,7 +432,7 @@ describe("o produto herda as especificações da categoria (AC-326, AC-327)", ()
     // O resto do preenchimento continua lá.
     expect(nome.value).toBe("Pneu 195/55 R15");
 
-    const aro = tela.querySelector<HTMLSelectElement>("#especificacao-esp-aro");
+    const aro = tela.querySelector<HTMLButtonElement>("#especificacao-esp-aro");
     if (!aro) throw new Error("o Aro deveria ter sido herdado");
     await digitar(aro, "15");
     await enviar(tela.querySelector("form"));

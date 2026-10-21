@@ -8,6 +8,8 @@
  */
 import { z } from "zod";
 
+import { esquemaDoAceiteDoCadastro } from "./legal.ts";
+
 // ---------------------------------------------------------------------------
 // Peças comuns
 // ---------------------------------------------------------------------------
@@ -51,14 +53,25 @@ export const esquemaDoCadastro = z.strictObject({
     .min(2, "Informe seu nome.")
     .max(120, "Nome muito longo."),
   email: esquemaDoEmail,
-  telefone: z
-    .string()
-    .trim()
-    .regex(
-      /^\+[1-9]\d{7,14}$/,
-      "Informe o telefone com código do país, por exemplo +5511912345678.",
-    ),
+  /**
+   * Opcional no cadastro: o pedido pede o telefone quando a conta não tem.
+   * Texto vazio vale como "não informado".
+   */
+  telefone: z.preprocess(
+    (valor) =>
+      typeof valor === "string" && valor.trim() === "" ? undefined : valor,
+    z
+      .string()
+      .trim()
+      .regex(
+        /^\+[1-9]\d{7,14}$/,
+        "Informe o telefone com código do país, por exemplo +5511912345678.",
+      )
+      .optional(),
+  ),
   senha: esquemaDaSenha,
+  /** "Li e aceito os Termos de Uso e a Política de Privacidade" (card #79). */
+  aceitouTermos: esquemaDoAceiteDoCadastro,
 });
 
 export type CadastroDeClienteFinal = z.infer<typeof esquemaDoCadastro>;
@@ -144,6 +157,20 @@ export const esquemaDaSessaoAberta = z.strictObject({
   tokenDeRenovacao: z.string().optional(),
   orientarPara: z.string().optional(),
 });
+
+/**
+ * Cadastro de cliente: a conta nasce com o e-mail já verificado e a sessão
+ * aberta — sem etapa de código nem de link. E-mail que já tem conta volta 409
+ * `email_em_uso` (a pessoa entra com a senha que já tem).
+ */
+export const esquemaDoCadastroComSessao = esquemaDaSessaoAberta.extend({
+  cadastrado: z.literal(true),
+  mensagem: z.string(),
+});
+
+export type CadastroComSessao = z.infer<typeof esquemaDoCadastroComSessao>;
+
+export const MENSAGEM_DE_CONTA_CRIADA = "Conta criada. Você já está conectado.";
 
 /** E-mail e senha do login. */
 export const esquemaDoLogin = z.strictObject({

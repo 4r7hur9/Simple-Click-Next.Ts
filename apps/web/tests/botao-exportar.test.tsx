@@ -17,12 +17,10 @@ import {
   botao,
   clicar,
   desmontar,
-  digitar,
-  enviar,
   exigir,
   montar,
 } from "./apoio-config.tsx";
-import { PERIODOS, assentar, metricasDe } from "./apoio-metricas.ts";
+import { PERIODOS, assentar, escolherNoCalendario, metricasDe } from "./apoio-metricas.ts";
 
 const CSV = "﻿data;numero;cliente\r\n27/09/2026 12:00;1;Ana\r\n";
 const ARQUIVO = "pedidos-loja-teste-2026-09-21-a-2026-09-27.csv";
@@ -131,9 +129,7 @@ describe("a planilha do período em vigor (AC-815)", () => {
     const chamadas = servidor();
     const tela = await abrir();
 
-    digitar(exigir<HTMLInputElement>(tela, 'input[name="de"]'), "2026-09-20");
-    digitar(exigir<HTMLInputElement>(tela, 'input[name="ate"]'), "2026-09-10");
-    await enviar(exigir<HTMLFormElement>(tela, "form[data-intervalo]"));
+    await escolherNoCalendario(tela, "Ontem");
     await assentar();
     expect(tela.querySelector("[data-recusa]")).not.toBeNull();
 

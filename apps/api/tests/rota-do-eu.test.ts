@@ -9,7 +9,7 @@
  */
 import { randomUUID } from "node:crypto";
 
-import { esquemaDoEu } from "@simpleclick/contracts";
+import { esquemaDoEu, permissoesDoPapel } from "@simpleclick/contracts";
 import {
   bancoDoArquivo,
   conectarNoBancoDoArquivo,
@@ -97,7 +97,7 @@ beforeAll(async () => {
   suspensaDaA = await criarLoja({
     nome: "Cantina da Ana",
     dono: donoA,
-    status: "SUSPENDED",
+    status: "INACTIVE",
   });
   excluida = await criarLoja({ nome: "Doceria da Ana", dono: donoA });
   await migrador.query(
@@ -127,25 +127,32 @@ describe("quem sou eu (GET /v1/eu)", () => {
       email: donoA.email,
       nome: "Ana Dona",
       papel: "OWNER",
+      telefone: null,
     });
+    expect(corpoA.papelEfetivo).toBe("DONO");
+    expect(corpoA.adminDaPlataforma).toBe(false);
+    expect(corpoA.lojasDaConta).toEqual(corpoA.lojas);
     expect(corpoA.lojas).toEqual([
       {
         apelido: lojaA.apelido,
         nome: "Açaí da Ana",
         papel: "OWNER",
         situacao: "ACTIVE",
+        permissoes: [...permissoesDoPapel("OWNER")],
       },
       {
         apelido: segundaDaA.apelido,
         nome: "Bazar da Ana",
         papel: "OWNER",
         situacao: "ACTIVE",
+        permissoes: [...permissoesDoPapel("OWNER")],
       },
       {
         apelido: suspensaDaA.apelido,
         nome: "Cantina da Ana",
         papel: "OWNER",
-        situacao: "SUSPENDED",
+        situacao: "INACTIVE",
+        permissoes: [...permissoesDoPapel("OWNER")],
       },
     ]);
 
@@ -201,6 +208,63 @@ describe("quem sou eu (GET /v1/eu)", () => {
       identidade: { id: donoB.id, papel: "ADMIN" },
       lojas: [],
     });
+  });
+
+  it("o papel efetivo sai do que a conta tem: admin, dono, equipe ou cliente — seja qual for a sessão", async () => {
+    // Dono numa sessão de cliente: `lojas` segue a sessão (vazia), mas o
+    // papel efetivo e `lojasDaConta` mostram o que a conta tem.
+    const donoComoCliente = esquemaDoEu.parse(
+      (await eu(`Bearer ${token(donoB.id, "CUSTOMER")}`)).body,
+    );
+    expect(donoComoCliente.lojas).toEqual([]);
+    expect(donoComoCliente.papelEfetivo).toBe("DONO");
+    expect(donoComoCliente.lojasDaConta?.map((l) => l.apelido)).toEqual([
+      lojaB.apelido,
+    ]);
+
+    const equipe = await criarIdentidade({
+      nome: "Eva da Equipe",
+      telefone: "+5511955554444",
+    });
+    await migrador.query(
+      `INSERT INTO app.store_members
+         (store_id, identity_id, role, invite_accepted_at)
+       VALUES ($1, $2, 'STAFF', now())`,
+      [lojaB.id, equipe.id],
+    );
+    const daEquipe = esquemaDoEu.parse(
+      (await eu(`Bearer ${token(equipe.id, "CUSTOMER")}`)).body,
+    );
+    expect(daEquipe.identidade.telefone).toBe("+5511955554444");
+    expect(daEquipe.papelEfetivo).toBe("EQUIPE");
+    expect(daEquipe.lojasDaConta).toEqual([
+      {
+        apelido: lojaB.apelido,
+        nome: "Empório do Bruno",
+        papel: "STAFF",
+        situacao: "ACTIVE",
+        permissoes: [...permissoesDoPapel("STAFF")],
+      },
+    ]);
+
+    const cliente = await criarIdentidade({ nome: "Caio Cliente" });
+    const doCliente = esquemaDoEu.parse(
+      (await eu(`Bearer ${token(cliente.id, "CUSTOMER")}`)).body,
+    );
+    expect(doCliente.papelEfetivo).toBe("CLIENTE");
+    expect(doCliente.lojasDaConta).toEqual([]);
+    expect(doCliente.adminDaPlataforma).toBe(false);
+
+    const admin = await criarIdentidade({ nome: "Ada Admin" });
+    await migrador.query(
+      `INSERT INTO app.platform_admins (identity_id) VALUES ($1)`,
+      [admin.id],
+    );
+    const daAdmin = esquemaDoEu.parse(
+      (await eu(`Bearer ${token(admin.id, "ADMIN")}`)).body,
+    );
+    expect(daAdmin.papelEfetivo).toBe("ADMIN");
+    expect(daAdmin.adminDaPlataforma).toBe(true);
   });
 
   it("@spec:AC-134 token de identidade que não existe responde como token inválido", async () => {

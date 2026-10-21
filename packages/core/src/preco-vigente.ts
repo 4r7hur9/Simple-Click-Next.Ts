@@ -33,6 +33,14 @@ export interface PrecoCadastrado {
    * tela que explica QUAL preço foi usado (AC-310), e ela o recebe daqui.
    */
   readonly rotulo?: string | null;
+  /**
+   * Faixa de atacado COM DESCONTO (card #53, migração 0064): o desconto incide
+   * sobre o preço de varejo vigente, e `valorEmCentavos` é ignorado. Nulo ou
+   * ausente = preço fixo, o atacado antigo.
+   */
+  readonly tipoDeDesconto?: "PERCENTUAL" | "VALOR" | null;
+  /** Percentual inteiro (1 a 99) ou centavos por unidade. */
+  readonly desconto?: number | null;
 }
 
 /** O par (o que se paga, o preço "de"). */

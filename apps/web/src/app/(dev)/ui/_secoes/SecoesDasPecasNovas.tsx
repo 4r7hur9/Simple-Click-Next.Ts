@@ -101,7 +101,7 @@ export function SecoesDasPecasNovas() {
             id="menu-conta"
             itens={[
               {
-                href: "/minha-conta",
+                href: "/conta",
                 icone: <IconeUsuario />,
                 id: "perfil",
                 rotulo: "Meu perfil",

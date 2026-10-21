@@ -23,11 +23,11 @@ describe("armadilha silenciosa do Next 16", () => {
     );
 
     // Um arquivo desses no repositório parece funcionar, passa em revisão e
-    // nunca roda: o endereço da loja simplesmente não resolveria.
+    // nunca roda: o link antigo da loja simplesmente não redirecionaria.
     expect(encontrados).toEqual([]);
   });
 
-  it("@spec:AC-001 a resolução de endereço mora em src/proxy.ts, que é o arquivo lido", async () => {
+  it("@spec:AC-001 o redirecionamento do apelido antigo mora em src/proxy.ts, que é o arquivo lido", async () => {
     expect(existsSync(join(RAIZ_DO_SITE, "src/proxy.ts"))).toBe(true);
 
     const modulo = await import("../src/proxy");

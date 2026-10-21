@@ -20,8 +20,6 @@ WITH excecoes(indice, razao) AS (
      'apelido da loja é chave de roteamento público, resolvida antes de haver contexto'),
     ('stores_code_uk',
      'código da loja é a chave de busca da administração'),
-    ('store_domains_host_uk',
-     'endereço é chave de roteamento; dois inquilinos não podem reivindicar o mesmo host'),
     ('orders_public_token_uk',
      'token de alta entropia do acompanhamento sem login: a busca global É o objetivo'),
     ('print_agents_token_uk',

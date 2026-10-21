@@ -53,7 +53,6 @@ const LOJA: Vitrine["loja"] = {
 const VITRINE: Vitrine = {
   loja: LOJA,
   abertura: { aberta: true, proximaAbertura: null, motivo: "ABERTA" },
-  redirecionarPara: null,
 };
 
 function produtoNoContrato(id: string, nome: string) {
@@ -141,11 +140,11 @@ describe("o mapa lista as páginas da loja (AC-403)", () => {
     );
 
     expect(mapa.map((pagina) => pagina.url)).toEqual([
-      `${SITE}/l/sabor-e-cia`,
-      `${SITE}/l/sabor-e-cia/sobre`,
-      `${SITE}/l/sabor-e-cia/catalogo`,
-      `${SITE}/l/sabor-e-cia/produto/11111111-1111-4111-8111-111111111111`,
-      `${SITE}/l/sabor-e-cia/produto/22222222-2222-4222-8222-222222222222`,
+      `${SITE}/loja/sabor-e-cia`,
+      `${SITE}/loja/sabor-e-cia/sobre`,
+      `${SITE}/loja/sabor-e-cia/cardapio`,
+      `${SITE}/loja/sabor-e-cia/produto/11111111-1111-4111-8111-111111111111`,
+      `${SITE}/loja/sabor-e-cia/produto/22222222-2222-4222-8222-222222222222`,
     ]);
   });
 
@@ -204,9 +203,9 @@ describe("o mapa não conta o que o AC-402 manda não contar", () => {
     // Um mapa que falha inteiro por causa de uma rota faz o buscador desistir
     // das duas páginas que estavam certas.
     expect(mapa.map((pagina) => pagina.url)).toEqual([
-      `${SITE}/l/sabor-e-cia`,
-      `${SITE}/l/sabor-e-cia/sobre`,
-      `${SITE}/l/sabor-e-cia/catalogo`,
+      `${SITE}/loja/sabor-e-cia`,
+      `${SITE}/loja/sabor-e-cia/sobre`,
+      `${SITE}/loja/sabor-e-cia/cardapio`,
     ]);
   });
 });
@@ -242,7 +241,7 @@ describe("o XML sai no formato que o protocolo define", () => {
   it("@spec:AC-403 escapa o que o XML não aceita cru", () => {
     const xml = xmlDoMapa([
       {
-        url: "https://exemplo.test/l/a?x=1&y=2",
+        url: "https://exemplo.test/loja/a?x=1&y=2",
         mudaCom: "weekly",
         prioridade: 1,
       },

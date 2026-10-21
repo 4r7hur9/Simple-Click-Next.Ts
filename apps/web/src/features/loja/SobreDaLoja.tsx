@@ -1,156 +1,219 @@
 /**
- * A página Sobre da loja (AC-421, AC-422, AC-423).
+ * "Sobre a loja" (AC-421, AC-422, AC-423): uma JANELA por cima da página da
+ * loja, e não uma página à parte.
  *
- * CONTEÚDO DE SERVIDOR, sem script. As informações práticas — onde retirar e
- * como falar com a loja — ficam em sanfonas (`details`), que abrem e fecham
- * pelo próprio navegador: funcionam com o script desligado, e o texto está no
- * HTML mesmo fechado, para o buscador e para o Ctrl+F.
+ * Quem lê o Sobre está decidindo se pede — tirá-lo da loja para uma página
+ * nova o afastava do cardápio. Na janela, fechar devolve a pessoa exatamente
+ * onde estava, com o "Ver o cardápio" a um toque.
+ *
+ * O CONTEÚDO É DO SERVIDOR, sem script: só a casca (`JanelaDoSobre`) roda no
+ * navegador, para abrir e fechar. O endereço `/loja/<loja>/sobre` continua
+ * existindo — é a mesma loja com a janela já aberta —, e é por ele que o link
+ * se compartilha e o buscador lê o texto.
  */
-import {
-  IconeInfo,
-  IconeLoja,
-  PALETA_CLARA,
-  Sanfona,
-  TemaDaLoja,
-} from "@simpleclick/ui";
+import type { CSSProperties } from "react";
+import { TemaDaMarca } from "@simpleclick/ui";
 
-interface Endereco {
-  readonly logradouro: string | null;
-  readonly numero: string | null;
-  readonly complemento: string | null;
-  readonly bairro: string | null;
-  readonly cidade: string | null;
-  readonly uf: string | null;
-}
+import { capaPadraoDe } from "../../lib/capa-padrao.ts";
+import { iniciaisDe } from "../../lib/iniciais.ts";
+import {
+  COR_DE_DESTAQUE_PADRAO,
+  type TemaNaTela,
+} from "./ApresentacaoDaLoja.tsx";
+import { diaDaSemanaNoFuso, type EnderecoNaTela } from "./sobre/formatos.ts";
+import { JanelaDoSobre } from "./sobre/JanelaDoSobre.tsx";
+import {
+  ComoReceber,
+  FaleComAGente,
+  FormasDePagamento,
+  HorariosDaLoja,
+  NossaHistoria,
+  OndeEstamos,
+  SeloDaSituacao,
+  type AberturaDoSobre,
+  type EntregaNaTela,
+  type HorarioNaTela,
+} from "./sobre/SecoesDoSobre.tsx";
 
 export interface DadosSobreDaLoja {
   readonly apelido: string;
   readonly nome: string;
+  /** O código do ramo, para a capa padrão quando o dono não enviou a dele. */
+  readonly ramo?: string | null | undefined;
+  readonly boasVindas?: string | null | undefined;
   readonly sobre: string | null;
   readonly logo: string | null;
   readonly capa: string | null;
-  readonly cores: Readonly<Record<string, string>> | null;
-  readonly enderecoParaRetirada: Endereco | null;
+  readonly cores?: Readonly<Record<string, string>> | null | undefined;
+  readonly tema?: TemaNaTela | null | undefined;
+  readonly enderecoParaRetirada: EnderecoNaTela | null;
   readonly whatsappPublico: string | null;
+  readonly formasDeEntrega?: readonly string[] | undefined;
+  readonly fusoHorario?: string | undefined;
 }
 
-function enderecoEmLinhas(endereco: Endereco): string[] {
-  return [
-    [endereco.logradouro, endereco.numero].filter(Boolean).join(", "),
-    endereco.complemento,
-    endereco.bairro,
-    [endereco.cidade, endereco.uf].filter(Boolean).join(" / "),
-  ].filter((linha): linha is string => Boolean(linha));
+/** O que o fechamento da loja diz, SEM a chave PIX. */
+export interface RecebimentoDaLoja {
+  readonly formasDePagamento: readonly string[];
+  readonly entrega: EntregaNaTela;
 }
 
-function numeroDoWhatsApp(numero: string): string {
-  return numero.replace(/\D/g, "");
+export interface SobreDaLojaProps {
+  readonly loja: DadosSobreDaLoja;
+  readonly abertura: AberturaDoSobre;
+  /** A grade da semana; nula quando a API não a mandou. */
+  readonly horario?: HorarioNaTela | null | undefined;
+  /** Pagamento e entrega; nulo quando o fechamento não respondeu. */
+  readonly recebimento?: RecebimentoDaLoja | null | undefined;
+  /** "Cardápio", "Catálogo" — a palavra do ramo. */
+  readonly rotuloDoCatalogo?: string | undefined;
+  /** Nasce aberta: é a rota `/sobre`. */
+  readonly aberta: boolean;
+  /** O instante, para a prova fixar o dia de hoje. */
+  readonly agora?: Date | undefined;
 }
 
-export function SobreDaLoja({ loja }: { readonly loja: DadosSobreDaLoja }) {
+const ID_DO_TITULO = "sobre-da-loja-titulo";
+
+export function SobreDaLoja({
+  loja,
+  abertura,
+  horario = null,
+  recebimento = null,
+  rotuloDoCatalogo = "Cardápio",
+  aberta,
+  agora = new Date(),
+}: SobreDaLojaProps) {
+  const hoje = diaDaSemanaNoFuso(
+    agora,
+    loja.fusoHorario ?? "America/Sao_Paulo",
+  );
+  const catalogo = rotuloDoCatalogo.toLowerCase();
+  // A foto de fundo da vitrine que o dono escolheu manda; depois a capa dele.
+  const fundo = loja.tema?.fundoVitrine ?? loja.capa;
+
   return (
-    <TemaDaLoja
-      corPrincipal={loja.cores?.["primaria"] ?? PALETA_CLARA.primaria}
-      className="sc-pagina-da-loja"
-    >
-      {/* O fundo vai num bloco próprio: o contêiner do tema é `display:
-          contents` e não pinta nada. */}
-      <div className="min-h-screen bg-[var(--cor-superficie)] text-[var(--cor-tinta)]">
-        <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:py-12">
-          <header className="flex flex-wrap items-center justify-between gap-3">
-            <a
-              className="inline-flex min-h-[var(--altura-toque)] items-center font-medium text-[var(--cor-primaria-texto)]"
-              href={`/l/${loja.apelido}`}
-            >
-              ← Voltar para {loja.nome}
-            </a>
-            <a
-              className="sc-botao sc-botao--secundaria sc-botao--pilula"
-              href={`/l/${loja.apelido}/catalogo`}
-            >
-              Ver catálogo
-            </a>
-          </header>
-
-          <article
-            className="mt-6 overflow-hidden rounded-[var(--raio-janela)] bg-[var(--cor-superficie-alta)] shadow-[var(--sombra-larga)]"
-            aria-labelledby="sobre-titulo"
-          >
-            {loja.capa ? (
+    <TemaDaMarca corDestaque={loja.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO}>
+      <JanelaDoSobre
+        apelido={loja.apelido}
+        aberta={aberta}
+        idDoTitulo={ID_DO_TITULO}
+      >
+        <header
+          className={`sc-sobre__hero ${
+            fundo ? "sc-sobre__hero--com-capa" : "sc-sobre__hero--padrao"
+          }`}
+        >
+          {fundo ? (
+            <>
+              {/* A capa é ambiente: o nome da loja já está no título. */}
               <img
-                className="h-48 w-full object-cover sm:h-72"
-                src={loja.capa}
+                className="sc-sobre__fundo"
+                src={fundo}
                 alt=""
                 width={1200}
-                height={420}
-                loading="eager"
+                height={480}
+                loading="lazy"
               />
-            ) : null}
+              <span className="sc-sobre__veu" aria-hidden="true" />
+            </>
+          ) : (
+            <span
+              className="sc-sobre__padrao"
+              style={
+                {
+                  "--capa-url": `url(${capaPadraoDe(loja.ramo)})`,
+                } as CSSProperties
+              }
+              aria-hidden="true"
+            />
+          )}
 
-            <div className="p-5 sm:p-8">
-              <div className="flex flex-wrap items-center gap-4">
-                {loja.logo ? (
-                  <img
-                    className="h-16 w-16 rounded-[var(--raio-cartao)] object-cover shadow-[var(--sombra-larga)]"
-                    src={loja.logo}
-                    alt=""
-                    width={64}
-                    height={64}
-                  />
-                ) : null}
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--cor-primaria-texto)]">
-                    Sobre a loja
-                  </p>
-                  <h1
-                    id="sobre-titulo"
-                    className="mt-1 font-[family-name:var(--fonte-titulo)] text-3xl font-semibold sm:text-4xl"
-                  >
-                    {loja.nome}
-                  </h1>
-                </div>
-              </div>
-
-              <p className="mt-6 max-w-[65ch] whitespace-pre-line text-base leading-7 sm:text-lg sm:leading-8">
-                {loja.sobre ?? `Conheça a história da ${loja.nome}.`}
-              </p>
+          <div className="sc-sobre__identidade">
+            <span className="sc-loja__marca sc-sobre__marca">
+              {loja.logo ? (
+                <img
+                  className="sc-loja__logo"
+                  src={loja.logo}
+                  alt=""
+                  width={72}
+                  height={72}
+                  loading="lazy"
+                />
+              ) : (
+                <span className="sc-loja__iniciais" aria-hidden="true">
+                  {iniciaisDe(loja.nome)}
+                </span>
+              )}
+            </span>
+            <div className="sc-sobre__nome-bloco">
+              <p className="sc-sobre__sobrelinha">Sobre a loja</p>
+              <h2 id={ID_DO_TITULO} className="sc-sobre__nome">
+                <span className="sc-marcador">{loja.nome}</span>
+              </h2>
             </div>
-          </article>
+          </div>
 
-          {loja.enderecoParaRetirada || loja.whatsappPublico ? (
-            <section className="mt-6" aria-label="Informações da loja">
-              {loja.enderecoParaRetirada ? (
-                <Sanfona
-                  titulo="Retirada"
-                  icone={<IconeLoja />}
-                  abertaInicialmente
-                >
-                  <address className="not-italic leading-7">
-                    {enderecoEmLinhas(loja.enderecoParaRetirada).map(
-                      (linha) => (
-                        <span className="block" key={linha}>
-                          {linha}
-                        </span>
-                      ),
-                    )}
-                  </address>
-                </Sanfona>
-              ) : null}
-
-              {loja.whatsappPublico ? (
-                <Sanfona titulo="Fale com a loja" icone={<IconeInfo />}>
-                  <a
-                    className="sc-botao sc-botao--primaria sc-botao--pilula"
-                    href={`https://wa.me/${numeroDoWhatsApp(loja.whatsappPublico)}`}
-                  >
-                    WhatsApp público
-                  </a>
-                </Sanfona>
-              ) : null}
-            </section>
+          {loja.boasVindas ? (
+            <p className="sc-sobre__boas-vindas">{loja.boasVindas}</p>
           ) : null}
-        </main>
-      </div>
-    </TemaDaLoja>
+
+          <div className="sc-sobre__acoes">
+            <SeloDaSituacao abertura={abertura} />
+            <a
+              className="sc-sobre__cardapio"
+              href={`/loja/${loja.apelido}/cardapio`}
+            >
+              Ver o {catalogo}
+              <svg
+                viewBox="0 0 20 20"
+                width="18"
+                height="18"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 10h11M11 5l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </header>
+
+        <div className="sc-sobre__grade">
+          {loja.sobre ? (
+            <NossaHistoria texto={loja.sobre} />
+          ) : (
+            <p className="sc-sobre__sem-historia">
+              Esta loja ainda não contou a história dela por aqui. Os horários,
+              a entrega e o contato estão logo abaixo.
+            </p>
+          )}
+          <HorariosDaLoja horario={horario} abertura={abertura} hoje={hoje} />
+          <ComoReceber
+            formasDeEntrega={loja.formasDeEntrega ?? []}
+            entrega={recebimento?.entrega ?? null}
+            endereco={loja.enderecoParaRetirada}
+          />
+          <FormasDePagamento formas={recebimento?.formasDePagamento ?? []} />
+          <OndeEstamos endereco={loja.enderecoParaRetirada} />
+          <FaleComAGente whatsapp={loja.whatsappPublico} nome={loja.nome} />
+        </div>
+
+        <footer className="sc-sobre__rodape">
+          <p>Pronto para pedir?</p>
+          <a
+            className="sc-sobre__cardapio"
+            href={`/loja/${loja.apelido}/cardapio`}
+          >
+            Ver o {catalogo}
+          </a>
+        </footer>
+      </JanelaDoSobre>
+    </TemaDaMarca>
   );
 }

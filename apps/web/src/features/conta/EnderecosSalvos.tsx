@@ -18,6 +18,7 @@ import {
   Carregando,
   Erro,
   IconeAdicionar,
+  IconeEditar,
   IconeExcluir,
   Selo,
   Vazio,
@@ -43,22 +44,30 @@ export interface EnderecosSalvosProps {
   readonly buscar?: typeof fetch | undefined;
 }
 
+const APELIDOS_RAPIDOS = ["Casa", "Trabalho"] as const;
+
 function NovoEndereco({
   aoSalvar,
   buscar,
+  editando,
 }: {
   readonly aoSalvar: () => void;
   readonly buscar: typeof fetch;
+  /** Preenchido, o formulário troca esse endereço em vez de criar outro. */
+  readonly editando?: EnderecoSalvo | undefined;
 }) {
-  const [rotulo, setRotulo] = useState("");
-  const [logradouro, setLogradouro] = useState("");
-  const [numero, setNumero] = useState("");
-  const [complemento, setComplemento] = useState("");
-  const [bairro, setBairro] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [estado, setEstado] = useState("");
-  const [cep, setCep] = useState("");
-  const [padrao, setPadrao] = useState(false);
+  const [rotulo, setRotulo] = useState(editando?.rotulo ?? "");
+  const [logradouro, setLogradouro] = useState(editando?.logradouro ?? "");
+  const [numero, setNumero] = useState(editando?.numero ?? "");
+  const [complemento, setComplemento] = useState(editando?.complemento ?? "");
+  const [bairro, setBairro] = useState(editando?.bairro ?? "");
+  const [cidade, setCidade] = useState(editando?.cidade ?? "");
+  const [estado, setEstado] = useState(editando?.estado ?? "");
+  const [cep, setCep] = useState(editando?.cep ?? "");
+  const [referencia, setReferencia] = useState(
+    editando?.pontoDeReferencia ?? "",
+  );
+  const [padrao, setPadrao] = useState(editando?.padrao ?? false);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -70,8 +79,7 @@ function NovoEndereco({
     }
     setErro(null);
     setEnviando(true);
-    const resultado = await salvarEnderecoDaConta(
-      {
+    const corpo = {
         rotulo: rotulo.trim() || null,
         logradouro: logradouro.trim(),
         numero: numero.trim() || null,
@@ -80,10 +88,17 @@ function NovoEndereco({
         cidade: cidade.trim() || null,
         estado: estado.trim().toUpperCase() || null,
         cep: cep.trim() || null,
+        pontoDeReferencia: referencia.trim() || null,
         padrao,
-      },
-      buscar,
-    );
+      };
+    const resultado =
+      editando === undefined
+        ? await salvarEnderecoDaConta(corpo, buscar)
+        : await trocarEnderecoDaConta(
+            editando.id,
+            { ...paraSalvar(editando, padrao), ...corpo },
+            buscar,
+          );
     setEnviando(false);
     if (resultado.estado === "salvo") aoSalvar();
     else setErro("Não foi possível salvar. Confira os campos e tente de novo.");
@@ -96,16 +111,31 @@ function NovoEndereco({
       noValidate
       onSubmit={(evento) => void enviar(evento)}
     >
+      <div className="sc-enderecos__apelidos" role="group" aria-label="Apelido rápido">
+        {APELIDOS_RAPIDOS.map((apelido) => (
+          <button
+            key={apelido}
+            type="button"
+            className="sc-enderecos__apelido"
+            aria-pressed={rotulo === apelido}
+            onClick={() => setRotulo(apelido)}
+          >
+            {apelido}
+          </button>
+        ))}
+      </div>
       <Campo
         id="endereco-rotulo"
         rotulo="Nome do endereço (opcional)"
-        dica="Casa, Trabalho…"
+        dica="Só para você reconhecer na lista. Ex.: Casa, Trabalho, casa da mãe."
         value={rotulo}
         onChange={(e) => setRotulo(e.target.value)}
       />
       <Campo
         id="endereco-logradouro"
-        rotulo="Rua"
+        rotulo="Rua ou avenida"
+        placeholder="Ex.: Rua das Flores"
+        autoComplete="address-line1"
         obrigatorio
         value={logradouro}
         onChange={(e) => setLogradouro(e.target.value)}
@@ -115,42 +145,58 @@ function NovoEndereco({
         <Campo
           id="endereco-numero"
           rotulo="Número"
+          placeholder="Ex.: 123"
           value={numero}
           onChange={(e) => setNumero(e.target.value)}
         />
         <Campo
           id="endereco-complemento"
-          rotulo="Complemento"
+          rotulo="Complemento (opcional)"
+          placeholder="Ex.: apto 302, bloco B"
+          autoComplete="address-line2"
           value={complemento}
           onChange={(e) => setComplemento(e.target.value)}
         />
         <Campo
           id="endereco-bairro"
           rotulo="Bairro"
+          dica="A loja usa o bairro para calcular a entrega."
           value={bairro}
           onChange={(e) => setBairro(e.target.value)}
         />
         <Campo
           id="endereco-cidade"
           rotulo="Cidade"
+          autoComplete="address-level2"
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
         />
         <Campo
           id="endereco-estado"
-          rotulo="UF"
+          rotulo="Estado (UF)"
+          placeholder="Ex.: CE"
           maxLength={2}
+          autoComplete="address-level1"
           value={estado}
-          onChange={(e) => setEstado(e.target.value)}
+          onChange={(e) => setEstado(e.target.value.toUpperCase())}
         />
         <Campo
           id="endereco-cep"
-          rotulo="CEP"
+          rotulo="CEP (opcional)"
+          placeholder="Ex.: 60000-000"
           inputMode="numeric"
+          autoComplete="postal-code"
           value={cep}
           onChange={(e) => setCep(e.target.value)}
         />
       </div>
+      <Campo
+        id="endereco-referencia"
+        rotulo="Ponto de referência (opcional)"
+        dica="Algo perto que ajude quem entrega a achar. Ex.: em frente à padaria, portão azul."
+        value={referencia}
+        onChange={(e) => setReferencia(e.target.value)}
+      />
       <label className="sc-enderecos__marcar">
         <input
           type="checkbox"
@@ -161,7 +207,7 @@ function NovoEndereco({
       </label>
       <div>
         <Botao type="submit" carregando={enviando} rotuloDeEspera="Salvando…">
-          Salvar endereço
+          {editando === undefined ? "Salvar endereço" : "Salvar alterações"}
         </Botao>
       </div>
     </form>
@@ -172,6 +218,7 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
   const [estado, setEstado] = useState<Estado>({ tipo: "carregando" });
   const [adicionando, setAdicionando] = useState(false);
   const [apagando, setApagando] = useState<string | null>(null);
+  const [editando, setEditando] = useState<string | null>(null);
   const [falhou, setFalhou] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -264,16 +311,34 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
               }
               data-endereco={endereco.id}
             >
-              <p className="sc-endereco__nome">
+              {editando === endereco.id ? (
+                <NovoEndereco
+                  buscar={buscar}
+                  editando={endereco}
+                  aoSalvar={() => {
+                    setEditando(null);
+                    void carregar();
+                  }}
+                />
+              ) : null}
+              <p className="sc-endereco__nome" hidden={editando === endereco.id}>
                 {endereco.rotulo ?? "Endereço"}
                 {endereco.padrao ? (
                   <Selo tom="sucesso">Padrão — vem preenchido nos pedidos</Selo>
                 ) : null}
               </p>
-              <p className="sc-endereco__linha">
+              <p className="sc-endereco__linha" hidden={editando === endereco.id}>
                 {enderecoEmUmaLinha(endereco)}
               </p>
-              <div className="sc-endereco__acoes">
+              <div className="sc-endereco__acoes" hidden={editando === endereco.id}>
+                <Botao
+                  variante="secundaria"
+                  tamanho="pequeno"
+                  icone={<IconeEditar />}
+                  onClick={() => setEditando(endereco.id)}
+                >
+                  Editar
+                </Botao>
                 {endereco.padrao ? null : (
                   <Botao
                     variante="secundaria"

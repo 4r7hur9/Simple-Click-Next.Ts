@@ -17,7 +17,9 @@ import {
 } from "@simpleclick/contracts";
 
 import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
+import { comInfo, InfoDoPainel, RotuloComInfo } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
+import { Seletor } from "@simpleclick/ui";
 
 const FORMAS = [
   ["PIX", "PIX"],
@@ -126,7 +128,10 @@ export function FormularioPagamento() {
       noValidate
     >
       <fieldset className="space-y-3">
-        <legend className="font-medium">Formas aceitas</legend>
+        <legend className="flex items-center gap-1.5 font-medium">
+          Formas aceitas
+          <InfoDoPainel explicacao="formasDePagamento" nome="Formas aceitas" />
+        </legend>
         {FORMAS.map(([valor, rotulo]) => (
           <label className="flex items-center gap-3" key={valor}>
             <input
@@ -150,58 +155,79 @@ export function FormularioPagamento() {
 
       {aceitaPix ? (
         <fieldset className="space-y-4 rounded-2xl border border-[var(--cor-borda)] p-5">
-          <legend className="px-2 font-medium">Chave PIX</legend>
-          <label className="block">
-            <span>Tipo da chave</span>
-            <select
-              className="sc-campo mt-2 w-full"
+          <legend className="px-2 font-medium">Dados do Pix</legend>
+          <div className="block">
+            <RotuloComInfo
+              para="pix-tipo"
+              explicacao="tipoDaChavePix"
+              nome="Tipo da chave"
+            >
+              Tipo da chave
+            </RotuloComInfo>
+            <Seletor
+              id="pix-tipo"
+              className="mt-2 w-full"
               name="pix.tipo"
               value={dados.pix.tipo}
-              onChange={(evento) => mudarPix("tipo", evento.target.value)}
-              {...atributosDeErro("pix.tipo", erros)}
+              onChange={(valor) => mudarPix("tipo", valor)}
+              {...comInfo("pix-tipo", atributosDeErro("pix.tipo", erros))}
             >
               {TIPOS_DE_CHAVE_PIX.map((tipo) => (
                 <option key={tipo} value={tipo}>
                   {ROTULO_DO_TIPO[tipo]}
                 </option>
               ))}
-            </select>
-          </label>
+            </Seletor>
+          </div>
           <ErroDoCampo campo="pix.tipo" erros={erros} />
-          <label className="block">
-            <span>Chave</span>
+          <div className="block">
+            <RotuloComInfo
+              para="pix-chave"
+              explicacao="chavePix"
+              nome="Chave Pix"
+            >
+              Chave Pix
+            </RotuloComInfo>
             <input
+              id="pix-chave"
               className="sc-campo mt-2 w-full"
               name="pix.chave"
               value={dados.pix.chave}
               placeholder={EXEMPLO_DA_CHAVE[dados.pix.tipo]}
               autoComplete="off"
               onChange={(evento) => mudarPix("chave", evento.target.value)}
-              {...atributosDeErro("pix.chave", erros)}
+              {...comInfo("pix-chave", atributosDeErro("pix.chave", erros))}
             />
-          </label>
+          </div>
           <ErroDoCampo campo="pix.chave" erros={erros} />
-          <label className="block">
-            <span>Nome de quem recebe</span>
+          <div className="block">
+            <RotuloComInfo
+              para="pix-titular"
+              explicacao="titularPix"
+              nome="Nome de quem recebe"
+            >
+              Nome de quem recebe
+            </RotuloComInfo>
             <input
+              id="pix-titular"
               className="sc-campo mt-2 w-full"
               name="pix.titular"
               value={dados.pix.titular}
               onChange={(evento) => mudarPix("titular", evento.target.value)}
-              {...atributosDeErro("pix.titular", erros)}
+              {...comInfo("pix-titular", atributosDeErro("pix.titular", erros))}
             />
-            <span className="mt-2 block text-sm text-[var(--cor-tinta-suave)]">
+            <p className="mt-2 text-sm text-[var(--cor-tinta-suave)]">
               É o nome que o cliente confere antes de pagar. Use o mesmo que o
               banco mostra.
-            </span>
-          </label>
+            </p>
+          </div>
           <ErroDoCampo campo="pix.titular" erros={erros} />
         </fieldset>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-4">
         <button
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           type="submit"
           disabled={secao.salvando}
         >

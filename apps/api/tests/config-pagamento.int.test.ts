@@ -26,6 +26,7 @@ import {
   ORIGEM_DO_PAINEL,
   tokenDoDono,
 } from "./apoio-de-configuracao.ts";
+import { autorizacaoDoComprador } from "./apoio-de-pedidos.ts";
 import { abrirAcessoDaAplicacao, ESPERA_LONGA } from "./apoio-de-isolamento.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { COOKIE_DA_SESSAO } from "../src/core/sessao-do-carrinho.ts";
@@ -238,6 +239,7 @@ describe("trocar a chave não altera pedido já feito (AC-903)", () => {
           .post(`/v1/vitrine/${loja.apelido}/pedidos`)
           .set("Origin", ORIGEM_DO_PAINEL)
           .set("Cookie", cookie?.split(";")[0] ?? "")
+          .set("Authorization", await autorizacaoDoComprador())
           .send({
             contato: { nome: "Ana Paula", telefone: "11988887777" },
             entrega: "PICKUP",

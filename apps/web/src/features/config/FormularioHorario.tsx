@@ -15,6 +15,7 @@
 import type { SecaoDeHorario } from "@simpleclick/contracts";
 
 import { atributosDeErro, ErroDoCampo } from "./ErroDoCampo.tsx";
+import { comInfo, InfoDoPainel, RotuloComInfo } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
 
 const DIAS = [
@@ -92,6 +93,9 @@ const TEXTOS = {
 export function FormularioHorario() {
   const secao = useSecao("horario", SEM_HORARIO, horarioDaApi, TEXTOS);
   const { dados, mudar, erros } = secao;
+  // O "i" da faixa vai uma vez só, na primeira faixa do primeiro dia aberto:
+  // repetido em cada dia, viraria ruído.
+  const primeiroDiaAberto = dados.dias.findIndex((faixas) => faixas.length > 0);
 
   function mudarFaixa(dia: number, indice: number, faixa: Faixa) {
     mudar((anterior) => ({
@@ -153,7 +157,10 @@ export function FormularioHorario() {
       }}
     >
       <fieldset className="space-y-3 rounded-2xl border border-[var(--cor-borda)] p-5">
-        <legend className="px-2 font-medium">Fechar agora</legend>
+        <legend className="flex items-center gap-1.5 px-2 font-medium">
+          Fechar agora
+          <InfoDoPainel explicacao="fecharAgora" nome="Fechar agora" />
+        </legend>
         <label className="flex items-start gap-3">
           <input
             className="mt-1 h-5 w-5"
@@ -178,7 +185,14 @@ export function FormularioHorario() {
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="font-medium">Grade da semana</legend>
+        <legend className="flex items-center gap-1.5 font-medium">
+          Grade da semana
+          <InfoDoPainel explicacao="gradeDaSemana" nome="Grade da semana" />
+        </legend>
+        <p className="text-sm text-[var(--cor-tinta-suave)]">
+          Horários no relógio da sua cidade (o fuso da loja). Até 4 faixas por
+          dia; o dia sem faixa fica fechado.
+        </p>
         <ErroDoCampo campo="semana" erros={erros} />
         {dados.dias.map((faixas, dia) => (
           <div
@@ -201,22 +215,52 @@ export function FormularioHorario() {
                   key={`${DIAS[dia]}-${indice}`}
                   className="mt-3 flex flex-wrap items-end gap-3"
                 >
-                  <label className="block">
-                    <span className="text-sm">Abre</span>
-                    <input
-                      className="sc-campo mt-1 block"
-                      type="time"
-                      name={`${base}.abre`}
-                      value={faixa.abre}
-                      onChange={(evento) =>
-                        mudarFaixa(dia, indice, {
-                          ...faixa,
-                          abre: evento.target.value,
-                        })
-                      }
-                      {...atributosDeErro(`${base}.abre`, erros)}
-                    />
-                  </label>
+                  {dia === primeiroDiaAberto && indice === 0 ? (
+                    <div className="block">
+                      <RotuloComInfo
+                        para={`horario-${dia}-${indice}-abre`}
+                        explicacao="faixaDeHorario"
+                        nome={`Faixa de horário de ${DIAS[dia] ?? ""}`}
+                        className="text-sm"
+                      >
+                        Abre
+                      </RotuloComInfo>
+                      <input
+                        id={`horario-${dia}-${indice}-abre`}
+                        className="sc-campo mt-1 block"
+                        type="time"
+                        name={`${base}.abre`}
+                        value={faixa.abre}
+                        onChange={(evento) =>
+                          mudarFaixa(dia, indice, {
+                            ...faixa,
+                            abre: evento.target.value,
+                          })
+                        }
+                        {...comInfo(
+                          `horario-${dia}-${indice}-abre`,
+                          atributosDeErro(`${base}.abre`, erros),
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <label className="block">
+                      <span className="text-sm">Abre</span>
+                      <input
+                        className="sc-campo mt-1 block"
+                        type="time"
+                        name={`${base}.abre`}
+                        value={faixa.abre}
+                        onChange={(evento) =>
+                          mudarFaixa(dia, indice, {
+                            ...faixa,
+                            abre: evento.target.value,
+                          })
+                        }
+                        {...atributosDeErro(`${base}.abre`, erros)}
+                      />
+                    </label>
+                  )}
                   <label className="block">
                     <span className="text-sm">Fecha</span>
                     <input
@@ -235,7 +279,7 @@ export function FormularioHorario() {
                   </label>
                   <button
                     type="button"
-                    className="sc-botao sc-botao--fantasma"
+                    className="sc-botao sc-botao--secundaria"
                     onClick={() => removerFaixa(dia, indice)}
                   >
                     Remover faixa
@@ -250,7 +294,7 @@ export function FormularioHorario() {
             {faixas.length < 4 ? (
               <button
                 type="button"
-                className="sc-botao sc-botao--fantasma mt-3"
+                className="sc-botao sc-botao--secundaria mt-4"
                 onClick={() => acrescentarFaixa(dia)}
               >
                 {faixas.length === 0
@@ -263,7 +307,10 @@ export function FormularioHorario() {
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="font-medium">Datas especiais</legend>
+        <legend className="flex items-center gap-1.5 font-medium">
+          Datas especiais
+          <InfoDoPainel explicacao="datasEspeciais" nome="Datas especiais" />
+        </legend>
         <p className="text-sm text-[var(--cor-tinta-suave)]">
           Feriados, férias ou um dia com horário diferente. Valem só na data, e
           a grade da semana continua intacta.
@@ -341,12 +388,22 @@ export function FormularioHorario() {
                   </label>
                 </>
               )}
-              <label className="block min-w-48 flex-1">
-                <span className="text-sm">Motivo (aparece na vitrine)</span>
+              <div className="block min-w-48 flex-1">
+                <RotuloComInfo
+                  para={`horario-motivo-${indice}`}
+                  explicacao="motivoDaData"
+                  nome="Motivo da data especial"
+                  className="text-sm"
+                >
+                  Motivo (aparece na vitrine)
+                </RotuloComInfo>
                 <input
+                  id={`horario-motivo-${indice}`}
+                  aria-describedby={`horario-motivo-${indice}-info`}
                   className="sc-campo mt-1 block w-full"
                   value={excecao.motivo ?? ""}
                   maxLength={120}
+                  placeholder="Ex.: Feriado de Natal"
                   onChange={(evento) =>
                     mudarExcecao(indice, {
                       ...excecao,
@@ -354,10 +411,10 @@ export function FormularioHorario() {
                     })
                   }
                 />
-              </label>
+              </div>
               <button
                 type="button"
-                className="sc-botao sc-botao--fantasma"
+                className="sc-botao sc-botao--secundaria"
                 onClick={() =>
                   mudar((anterior) => ({
                     ...anterior,
@@ -377,7 +434,7 @@ export function FormularioHorario() {
         })}
         <button
           type="button"
-          className="sc-botao sc-botao--fantasma"
+          className="sc-botao sc-botao--secundaria"
           onClick={() =>
             mudar((anterior) => ({
               ...anterior,
@@ -400,7 +457,7 @@ export function FormularioHorario() {
 
       <div className="flex flex-wrap items-center gap-4">
         <button
-          className="sc-botao sc-botao--primario"
+          className="sc-botao sc-botao--primaria"
           type="submit"
           disabled={secao.salvando}
         >

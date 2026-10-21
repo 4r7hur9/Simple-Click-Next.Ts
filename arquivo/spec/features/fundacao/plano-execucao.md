@@ -14,19 +14,19 @@
 
 ### Onda 1 — faixa-1 ∥ faixa-2 ∥ faixa-3
 
-#### faixa-1 — branch `spec/fundacao-faixa-1` — worktree `../onp-worktrees/SC-fundacao-faixa-1`
+#### faixa-1 — branch `spec/fundacao-faixa-1` — worktree `worktrees/SC-fundacao-faixa-1`
 
 | tarefa | título                             | modelo            | esforço | arquivos                                                                                                                                                                                                                                                                   |
 | ------ | ---------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-002  | Ambiente local sobe com um comando | `claude-sonnet-5` | high    | `infra/compose/docker-compose.yml`, `infra/compose/docker-compose.ci.yml`, `infra/compose/.env.compose.example`, `infra/traefik/traefik.yml`, `infra/traefik/dynamic/tls.yml`, `infra/traefik/dynamic/middlewares.yml`, `infra/scripts/setup.sh`, `infra/scripts/certs.sh` |
 
-#### faixa-2 — branch `spec/fundacao-faixa-2` — worktree `../onp-worktrees/SC-fundacao-faixa-2`
+#### faixa-2 — branch `spec/fundacao-faixa-2` — worktree `worktrees/SC-fundacao-faixa-2`
 
 | tarefa | título                                     | modelo            | esforço | arquivos                                                                                                        |
 | ------ | ------------------------------------------ | ----------------- | ------- | --------------------------------------------------------------------------------------------------------------- |
 | T-003  | Variáveis de ambiente validadas na partida | `claude-sonnet-5` | low     | `.env.example`, `apps/api/src/core/env.ts`, `apps/api/src/core/env.test.ts`, `infra/scripts/check-ambientes.sh` |
 
-#### faixa-3 — branch `spec/fundacao-faixa-3` — worktree `../onp-worktrees/SC-fundacao-faixa-3`
+#### faixa-3 — branch `spec/fundacao-faixa-3` — worktree `worktrees/SC-fundacao-faixa-3`
 
 | tarefa | título                                                       | modelo            | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------ | ------------------------------------------------------------ | ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -34,19 +34,19 @@
 
 ### Onda 2 — faixa-4 ∥ faixa-5 ∥ faixa-6
 
-#### faixa-4 — branch `spec/fundacao-faixa-4` — worktree `../onp-worktrees/SC-fundacao-faixa-4`
+#### faixa-4 — branch `spec/fundacao-faixa-4` — worktree `worktrees/SC-fundacao-faixa-4`
 
 | tarefa | título                                              | modelo            | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------ | --------------------------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-005  | Guardas estruturais do banco no portão de qualidade | `claude-sonnet-5` | high    | `packages/database/guards/g1_isolamento_ativo.sql`, `packages/database/guards/g2_politica_por_comando.sql`, `packages/database/guards/g3_unica_por_loja.sql`, `packages/database/guards/g4_politica_cita_loja.sql`, `packages/database/guards/g5_indice_cobre_politica.sql`, `packages/database/guards/g6_sem_matview_multi_loja.sql`, `packages/database/guards/g7_view_com_invocador.sql`, `packages/database/guards/g8_pedido_imutavel.sql`, `packages/database/guards/g9_auditoria_sem_alteracao.sql`, `infra/scripts/db-guards.sh`, `.github/workflows/db-guards.yml` |
 
-#### faixa-5 — branch `spec/fundacao-faixa-5` — worktree `../onp-worktrees/SC-fundacao-faixa-5`
+#### faixa-5 — branch `spec/fundacao-faixa-5` — worktree `worktrees/SC-fundacao-faixa-5`
 
 | tarefa | título                                                      | modelo            | esforço | arquivos                                                                                                                         |
 | ------ | ----------------------------------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | T-006  | Caminho único de acesso ao banco com contexto por transação | `claude-sonnet-5` | max     | `apps/api/src/core/db.ts`, `apps/api/src/core/db.test.ts`, `apps/api/src/core/contexto.ts`, `apps/api/src/core/contexto.test.ts` |
 
-#### faixa-6 — branch `spec/fundacao-faixa-6` — worktree `../onp-worktrees/SC-fundacao-faixa-6`
+#### faixa-6 — branch `spec/fundacao-faixa-6` — worktree `worktrees/SC-fundacao-faixa-6`
 
 | tarefa | título                            | modelo            | esforço | arquivos                                                                                                                       |
 | ------ | --------------------------------- | ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -54,19 +54,19 @@
 
 ### Onda 3 — faixa-7 ∥ faixa-8 ∥ faixa-9
 
-#### faixa-7 — branch `spec/fundacao-faixa-7` — worktree `../onp-worktrees/SC-fundacao-faixa-7`
+#### faixa-7 — branch `spec/fundacao-faixa-7` — worktree `worktrees/SC-fundacao-faixa-7`
 
 | tarefa | título                           | modelo            | esforço | arquivos                                                                                                                                                                               |
 | ------ | -------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-008  | Dados de exemplo determinísticos | `claude-sonnet-5` | high    | `packages/database/seed/index.ts`, `packages/database/seed/lojas.ts`, `packages/database/seed/catalogo.ts`, `packages/database/seed/pedidos.ts`, `packages/database/seed/seed.test.ts` |
 
-#### faixa-8 — branch `spec/fundacao-faixa-8` — worktree `../onp-worktrees/SC-fundacao-faixa-8`
+#### faixa-8 — branch `spec/fundacao-faixa-8` — worktree `worktrees/SC-fundacao-faixa-8`
 
 | tarefa | título                           | modelo            | esforço | arquivos                                                                                                       |
 | ------ | -------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
 | T-009  | Construtores de dados para teste | `claude-sonnet-5` | medium  | `packages/testing/src/factories.ts`, `packages/testing/src/factories.test.ts`, `packages/testing/src/index.ts` |
 
-#### faixa-9 — branch `spec/fundacao-faixa-9` — worktree `../onp-worktrees/SC-fundacao-faixa-9`
+#### faixa-9 — branch `spec/fundacao-faixa-9` — worktree `worktrees/SC-fundacao-faixa-9`
 
 | tarefa | título                          | modelo            | esforço | arquivos                                                                             |
 | ------ | ------------------------------- | ----------------- | ------- | ------------------------------------------------------------------------------------ |
@@ -74,19 +74,19 @@
 
 ### Onda 4 — faixa-10 ∥ faixa-11 ∥ faixa-12
 
-#### faixa-10 — branch `spec/fundacao-faixa-10` — worktree `../onp-worktrees/SC-fundacao-faixa-10`
+#### faixa-10 — branch `spec/fundacao-faixa-10` — worktree `worktrees/SC-fundacao-faixa-10`
 
 | tarefa | título                                       | modelo            | esforço | arquivos                                                                                                                                                                                                                                      |
 | ------ | -------------------------------------------- | ----------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-011  | Contrato compartilhado e documento publicado | `claude-sonnet-5` | high    | `packages/contracts/package.json`, `packages/contracts/src/index.ts`, `packages/contracts/src/comum.ts`, `apps/api/src/contracts/gerar.ts`, `apps/api/src/contracts/gerar.test.ts`, `contrato/openapi.json`, `.github/workflows/contrato.yml` |
 
-#### faixa-11 — branch `spec/fundacao-faixa-11` — worktree `../onp-worktrees/SC-fundacao-faixa-11`
+#### faixa-11 — branch `spec/fundacao-faixa-11` — worktree `worktrees/SC-fundacao-faixa-11`
 
 | tarefa | título                                  | modelo            | esforço | arquivos                                                                                                                                                                                                                   |
 | ------ | --------------------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-012  | Registro, erros e verificações de saúde | `claude-sonnet-5` | medium  | `apps/api/src/core/log.ts`, `apps/api/src/core/log.test.ts`, `apps/api/src/core/erros.ts`, `apps/api/src/core/erros.test.ts`, `apps/api/src/modules/health/health.routes.ts`, `apps/api/src/modules/health/health.test.ts` |
 
-#### faixa-12 — branch `spec/fundacao-faixa-12` — worktree `../onp-worktrees/SC-fundacao-faixa-12`
+#### faixa-12 — branch `spec/fundacao-faixa-12` — worktree `worktrees/SC-fundacao-faixa-12`
 
 | tarefa | título                                                         | modelo            | esforço | arquivos                                                                                                                                                                                                                     |
 | ------ | -------------------------------------------------------------- | ----------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -94,19 +94,19 @@
 
 ### Onda 5 — faixa-13 ∥ faixa-14 ∥ faixa-15
 
-#### faixa-13 — branch `spec/fundacao-faixa-13` — worktree `../onp-worktrees/SC-fundacao-faixa-13`
+#### faixa-13 — branch `spec/fundacao-faixa-13` — worktree `worktrees/SC-fundacao-faixa-13`
 
 | tarefa | título                                  | modelo            | esforço | arquivos                                                                                                                      |
 | ------ | --------------------------------------- | ----------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | T-014  | Trabalho em segundo plano com repetição | `claude-sonnet-5` | medium  | `apps/api/src/jobs/fila.ts`, `apps/api/src/jobs/fila.test.ts`, `apps/api/src/jobs/email.job.ts`, `apps/api/src/jobs/index.ts` |
 
-#### faixa-14 — branch `spec/fundacao-faixa-14` — worktree `../onp-worktrees/SC-fundacao-faixa-14`
+#### faixa-14 — branch `spec/fundacao-faixa-14` — worktree `worktrees/SC-fundacao-faixa-14`
 
 | tarefa | título                                        | modelo            | esforço | arquivos                                                                                                                                    |
 | ------ | --------------------------------------------- | ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-015  | Cache com identificação de loja e invalidação | `claude-sonnet-5` | high    | `apps/api/src/core/cache.ts`, `apps/api/src/core/cache.test.ts`, `apps/web/src/server/cache.ts`, `apps/web/src/app/api/revalidate/route.ts` |
 
-#### faixa-15 — branch `spec/fundacao-faixa-15` — worktree `../onp-worktrees/SC-fundacao-faixa-15`
+#### faixa-15 — branch `spec/fundacao-faixa-15` — worktree `worktrees/SC-fundacao-faixa-15`
 
 | tarefa | título                              | modelo            | esforço | arquivos                                                                                                                                                                                                                                                                                                                                                                      |
 | ------ | ----------------------------------- | ----------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -114,19 +114,19 @@
 
 ### Onda 6 — faixa-16 ∥ faixa-17 ∥ faixa-18
 
-#### faixa-16 — branch `spec/fundacao-faixa-16` — worktree `../onp-worktrees/SC-fundacao-faixa-16`
+#### faixa-16 — branch `spec/fundacao-faixa-16` — worktree `worktrees/SC-fundacao-faixa-16`
 
 | tarefa | título                                 | modelo            | esforço | arquivos                                                                                                                                                    |
 | ------ | -------------------------------------- | ----------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-017  | Portão de qualidade local, com ganchos | `claude-sonnet-5` | high    | `Makefile`, `lefthook.yml`, `infra/scripts/verificar.sh`, `infra/scripts/check-segredos.sh`, `infra/scripts/check-sem-middleware.sh`, `docs/verificacao.md` |
 
-#### faixa-17 — branch `spec/fundacao-faixa-17` — worktree `../onp-worktrees/SC-fundacao-faixa-17`
+#### faixa-17 — branch `spec/fundacao-faixa-17` — worktree `worktrees/SC-fundacao-faixa-17`
 
 | tarefa | título                                           | modelo            | esforço | arquivos                                                                                                                     |
 | ------ | ------------------------------------------------ | ----------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | T-018  | Publicação com migração antes da troca de versão | `claude-sonnet-5` | medium  | `infra/railway/pre-deploy.sh`, `infra/railway/README.md`, `apps/api/Dockerfile`, `apps/web/Dockerfile`, `docs/publicacao.md` |
 
-#### faixa-18 — branch `spec/fundacao-faixa-18` — worktree `../onp-worktrees/SC-fundacao-faixa-18`
+#### faixa-18 — branch `spec/fundacao-faixa-18` — worktree `worktrees/SC-fundacao-faixa-18`
 
 | tarefa | título                                            | modelo            | esforço | arquivos                                                                                                                                                                                                                                                                                   |
 | ------ | ------------------------------------------------- | ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -134,7 +134,7 @@
 
 ### Onda 7 — faixa-19
 
-#### faixa-19 — branch `spec/fundacao-faixa-19` — worktree `../onp-worktrees/SC-fundacao-faixa-19`
+#### faixa-19 — branch `spec/fundacao-faixa-19` — worktree `worktrees/SC-fundacao-faixa-19`
 
 | tarefa | título                                  | modelo            | esforço | arquivos                                                                                                                                                                                            |
 | ------ | --------------------------------------- | ----------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -159,7 +159,7 @@ bash .spec/features/fundacao/executar-tarefas.sh
 Cada faixa roda `claude -p` com **janela de contexto limpa**, no seu worktree, com
 `--model` e `--effort` já definidos por tarefa e permissões `acceptEdits`. Os prompts exatos estão
 embutidos no script — quer rodar uma faixa na mão, é só copiá-los de lá.
-Logs: `../onp-worktrees/SC-fundacao-logs/`.
+Logs: `worktrees/SC-fundacao-logs/`.
 
 ### 📣 Acompanhamento — tabela + resumo no chat (a cada 1 min)
 

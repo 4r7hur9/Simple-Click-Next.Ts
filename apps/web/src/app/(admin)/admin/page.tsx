@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
+/**
+ * Home da administração: o painel de crescimento do SimpleClick. Quem pode
+ * ver os números é decidido pela API (papel admin + tabela de administradores).
+ */
+import { DashboardDoAdmin } from "../../../features/admin-dashboard/DashboardDoAdmin.tsx";
 
-/** `/admin` sozinho leva à lista de lojas. */
+export const metadata = { title: "Crescimento | Administração SimpleClick" };
+
 export default function PaginaInicialDaAdministracao() {
-  redirect("/admin/lojas");
+  return <DashboardDoAdmin />;
 }

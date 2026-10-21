@@ -4,7 +4,7 @@
  * POR QUE ELE PRECISA SER ABSOLUTO. Endereço canônico, mapa do site e prévia de
  * compartilhamento não admitem caminho relativo: o buscador guarda o endereço
  * fora do contexto da página, e a rede social busca a imagem de um servidor que
- * não é o nosso. Um `/l/padaria` sozinho não abre em lugar nenhum.
+ * não é o nosso. Um `/loja/padaria` sozinho não abre em lugar nenhum.
  *
  * MORA NO SERVIDOR, e não em `lib`, de propósito. `URL_DO_SITE` não tem o
  * prefixo `NEXT_PUBLIC_`, então ela existe no processo do servidor e é
@@ -43,7 +43,7 @@ export function enderecoDoSite(): string {
  * um — normalmente o errado.
  */
 export function enderecoDaLoja(apelido: string): string {
-  return `${enderecoDoSite()}/l/${apelido}`;
+  return `${enderecoDoSite()}/loja/${apelido}`;
 }
 
 /** O endereço canônico da página institucional da loja. */
@@ -58,5 +58,5 @@ export function enderecoDoProduto(apelido: string, produtoId: string): string {
 
 /** O endereço canônico do catálogo de uma loja. */
 export function enderecoDoCatalogo(apelido: string): string {
-  return `${enderecoDaLoja(apelido)}/catalogo`;
+  return `${enderecoDaLoja(apelido)}/cardapio`;
 }

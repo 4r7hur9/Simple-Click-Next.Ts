@@ -198,8 +198,8 @@ export async function inserirPedido(
      INSERT INTO app.orders
        (store_id, number, code, public_token, status, channel, total_cents,
         subtotal_cents, items_total_cents, placed_at,
-        whatsapp_clicked_at, whatsapp_confirmed_at)
-     SELECT $1, n, 'M' || n, $2, $3, $4, $5, $5, $5, $6, $7, $8 FROM proximo
+        whatsapp_clicked_at, whatsapp_confirmed_at, fulfillment)
+     SELECT $1, n, 'M' || n, $2, $3, $4, $5, $5, $5, $6, $7, $8, $9 FROM proximo
      RETURNING id, number`,
     [
       lojaId,
@@ -210,6 +210,8 @@ export async function inserirPedido(
       colocadoEm,
       clicado,
       confirmado,
+      // Pedido em "Retirada" só existe para retirada (0053, card #25).
+      pedido.status === "READY_FOR_PICKUP" ? "PICKUP" : "DELIVERY",
     ],
   );
   const gravado = rows[0];

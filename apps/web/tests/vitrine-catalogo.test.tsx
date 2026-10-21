@@ -183,15 +183,15 @@ describe("filtrar por categoria mostra só aquela seção (AC-405)", () => {
 
     // O caminho de volta é um LINK para o endereço sem filtro: um toque, sem
     // script, e o buscador o segue.
-    expect(html).toContain(`href="/l/${LOJA}/catalogo"`);
+    expect(html).toContain(`href="/loja/${LOJA}/cardapio"`);
     expect(comoSeLe(html)).toContain("Todas");
   });
 
   it("@spec:AC-405 cada aba é um link de verdade, e não um botão que precisa de script", () => {
     const html = desenharVitrine();
 
-    expect(html).toContain(`href="/l/${LOJA}/catalogo?categoria=bebidas"`);
-    expect(html).toContain(`href="/l/${LOJA}/catalogo?categoria=salgados"`);
+    expect(html).toContain(`href="/loja/${LOJA}/cardapio?categoria=bebidas"`);
+    expect(html).toContain(`href="/loja/${LOJA}/cardapio?categoria=salgados"`);
     expect(html).not.toContain("<button");
     expect(html).not.toContain("onclick");
   });
@@ -253,7 +253,7 @@ describe("os destaques ficam em área própria no topo (AC-406)", () => {
     const html = desenharVitrine();
 
     expect(html).toContain(
-      `href="/l/${LOJA}/produto/44444444-4444-4444-8444-444444444444"`,
+      `href="/loja/${LOJA}/produto/44444444-4444-4444-8444-444444444444"`,
     );
   });
 

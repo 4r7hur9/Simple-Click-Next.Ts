@@ -25,11 +25,13 @@ export type EstadoDosMeusPedidos = Exclude<
 
 export interface MeusPedidosProps {
   readonly leitura: EstadoDosMeusPedidos;
+  /** A lista chegou filtrada: "nenhum pedido" vira "nenhum com esses filtros". */
+  readonly filtrada?: boolean | undefined;
 }
 
 /** Onde o detalhe de um pedido da conta mora. */
 export function caminhoDoMeuPedido(pedidoId: string): string {
-  return `/minha-conta/pedidos/${encodeURIComponent(pedidoId)}`;
+  return `/conta/pedidos/${encodeURIComponent(pedidoId)}`;
 }
 
 function quando(data: string): string {
@@ -47,7 +49,7 @@ function itens(quantidade: number): string {
 }
 
 /** O tom do selo de status: o texto diz o status, a cor só reforça. */
-function tomDoStatus(status: string): TomDeSelo {
+export function tomDoStatus(status: string): TomDeSelo {
   switch (status) {
     case "COMPLETED":
       return "sucesso";
@@ -86,14 +88,22 @@ function CartaoDoPedido({
           {escreverDinheiro(pedido.totalCentavos)}
         </span>
       </p>
-      <Link className="sc-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
-        Ver o pedido nº {pedido.numero}
-      </Link>
+      <div className="sc-minha-conta__acao">
+        <Link className="sc-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
+          Ver o pedido nº {pedido.numero}
+        </Link>
+        <Link
+          className="sc-pedidos__ver"
+          href={`/loja/${encodeURIComponent(pedido.loja.apelido)}/cardapio`}
+        >
+          Pedir de novo
+        </Link>
+      </div>
     </li>
   );
 }
 
-export function MeusPedidos({ leitura }: MeusPedidosProps) {
+export function MeusPedidos({ leitura, filtrada = false }: MeusPedidosProps) {
   if (leitura.estado === "indisponivel") {
     return (
       <Erro
@@ -102,11 +112,20 @@ export function MeusPedidos({ leitura }: MeusPedidosProps) {
         acao={
           <Link
             className="sc-botao sc-botao--secundaria"
-            href="/minha-conta/pedidos"
+            href="/conta/pedidos"
           >
             Tentar de novo
           </Link>
         }
+      />
+    );
+  }
+
+  if (leitura.pedidos.length === 0 && filtrada) {
+    return (
+      <Vazio
+        titulo="Nenhum pedido com esses filtros"
+        descricao="Tire algum filtro para ver mais pedidos."
       />
     );
   }

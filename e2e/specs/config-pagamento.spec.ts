@@ -67,7 +67,7 @@ test("@spec:AC-900 @spec:AC-902 a chave PIX salva no painel aparece no checkout,
     ).toBeVisible();
 
     // DEPOIS: o cliente escolhe PIX e vê a chave e o recebedor.
-    await page.goto(`/l/${apelido}/checkout`);
+    await page.goto(`/loja/${apelido}/checkout`);
     await page
       .getByRole("group", { name: "Forma de pagamento" })
       .getByLabel("PIX")
@@ -153,7 +153,7 @@ test("@spec:AC-905 @spec:AC-906 @spec:AC-907 @spec:AC-908 taxa, entrega grátis,
       page.getByText("Entrega salva. O checkout já usa estes valores."),
     ).toBeVisible();
     // Com um modo só, o fechamento diz qual é, em vez de oferecer escolha.
-    await page.goto(`/l/${apelido}/checkout`);
+    await page.goto(`/loja/${apelido}/checkout`);
     await expect(page.getByText(/Esta loja atende por/)).toContainText(
       "retirar no local",
     );

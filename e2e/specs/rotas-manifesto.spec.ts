@@ -20,7 +20,7 @@ const LOJA = "pastelaria-da-vila";
 test("@spec:AC-016 a apresentação da loja responde e traz o nome", async ({
   page,
 }) => {
-  await page.goto(`/l/${LOJA}`);
+  await page.goto(`/loja/${LOJA}`);
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Pastelaria da Vila",
@@ -42,7 +42,7 @@ test("@spec:AC-415 o catálogo chega PRONTO, sem depender de script", async ({
   });
   const pagina = await contexto.newPage();
 
-  await pagina.goto(`/l/${LOJA}/catalogo`);
+  await pagina.goto(`/loja/${LOJA}/cardapio`);
 
   await expect(pagina.getByText("Pastel de Carne").first()).toBeVisible();
   await expect(pagina.getByText("R$ 7,00").first()).toBeVisible();
@@ -64,7 +64,7 @@ test("@spec:AC-405 filtrar por categoria funciona sem script, pelo endereço", a
   });
   const pagina = await contexto.newPage();
 
-  await pagina.goto(`/l/${LOJA}/catalogo`);
+  await pagina.goto(`/loja/${LOJA}/cardapio`);
   await pagina.getByRole("link", { name: "Bebidas" }).click();
 
   await expect(pagina.getByText("Refrigerante Lata").first()).toBeVisible();
@@ -76,7 +76,7 @@ test("@spec:AC-405 filtrar por categoria funciona sem script, pelo endereço", a
 test("@spec:AC-402 loja inexistente responde a página de indisponível", async ({
   page,
 }) => {
-  await page.goto("/l/loja-que-nunca-existiu");
+  await page.goto("/loja/loja-que-nunca-existiu");
 
   // A página não conta QUAL das duas é — inexistente ou suspensa. Dizer que o
   // endereço já existiu e foi suspenso é informação que serve para mapear

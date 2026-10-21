@@ -54,7 +54,7 @@ beforeAll(async () => {
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
 
   ativa = await criarLoja({ nome: "Sabor da Esquina" });
-  suspensa = await criarLoja({ nome: "Loja Suspensa", status: "SUSPENDED" });
+  suspensa = await criarLoja({ nome: "Loja Suspensa", status: "INACTIVE" });
 
   // Enche a loja com TUDO o que é sensível. Uma loja com os campos vazios
   // provaria só que campo ausente não aparece, que ninguém está em dúvida.
@@ -333,7 +333,7 @@ describe("loja suspensa e inexistente respondem igual (AC-402)", () => {
       const comoTexto = JSON.stringify(visita);
       expect(comoTexto).not.toContain(suspensa.nome);
       expect(comoTexto).not.toContain(suspensa.id);
-      expect(comoTexto).not.toContain("SUSPENDED");
+      expect(comoTexto).not.toContain("INACTIVE");
     },
     ESPERA_LONGA,
   );
@@ -451,6 +451,9 @@ describe("o que é do dono não sai na vitrine (AC-904, P-009)", () => {
         // conjunto para toda loja do ramo, sem nada do dono desta.
         "rotulos",
         "sobre",
+        // `tema` entrou no card #25: cor de destaque e duas imagens que o
+        // dono escolheu para a vitrine. Nada de dado pessoal.
+        "tema",
         "whatsappPublico",
       ]);
     },

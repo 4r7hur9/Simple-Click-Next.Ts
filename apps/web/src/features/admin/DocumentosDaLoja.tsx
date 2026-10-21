@@ -31,7 +31,9 @@ import {
   Campo,
   Carregando,
   Cartao,
+  descritoresDoCampo,
   Erro,
+  Seletor,
   Sucesso,
   Vazio,
 } from "@simpleclick/ui";
@@ -52,6 +54,7 @@ import {
   recusaAntesDeEnviar,
   tamanhoNaTela,
 } from "./documentos-da-loja.ts";
+import { INFO_DO_TIPO_DE_DOCUMENTO } from "./explicacoes.ts";
 import { momentoNaTela } from "./trilha-na-tela.ts";
 
 export type EstadoDosDocumentos =
@@ -194,14 +197,17 @@ export function EnvioDeDocumento({
       <Campo
         id="documento-tipo"
         rotulo="Tipo do documento"
+        info={INFO_DO_TIPO_DE_DOCUMENTO}
         controle={
-          <select
+          <Seletor
             id="documento-tipo"
             name="tipo"
-            className="sc-campo__controle"
             value={tipo}
-            onChange={(evento) => {
-              setTipo(evento.target.value as TipoDeDocumentoDaLoja);
+            aria-describedby={descritoresDoCampo("documento-tipo", {
+              info: true,
+            }).join(" ")}
+            onChange={(valor) => {
+              setTipo(valor as TipoDeDocumentoDaLoja);
               setErro(undefined);
             }}
           >
@@ -210,12 +216,12 @@ export function EnvioDeDocumento({
                 {ROTULOS_DOS_TIPOS_DE_DOCUMENTO[opcao]}
               </option>
             ))}
-          </select>
+          </Seletor>
         }
       />
       <Campo
         id="documento-arquivo"
-        rotulo="Arquivo"
+        rotulo="Arquivo do documento"
         dica={DICAS_DO_ARQUIVO[tipo]}
         erro={erro}
         controle={
@@ -343,7 +349,7 @@ export function ListaDeDocumentos({
   }
 
   return (
-    <ul className="grid gap-3" aria-label="Documentos guardados">
+    <ul className="grid gap-4" aria-label="Documentos guardados">
       {documentos.map((documento) => (
         <li key={documento.id}>
           <Cartao>

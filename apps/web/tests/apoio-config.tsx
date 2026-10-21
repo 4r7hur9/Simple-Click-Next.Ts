@@ -9,6 +9,8 @@ import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { vi } from "vitest";
 
+import { eSeletor, escolherNoSeletor } from "./apoio-seletor.ts";
+
 // Sem esta marca, o React avisa que o ambiente não espera `act` — e o aviso
 // esconde, no meio da saída, o erro que interessa.
 (
@@ -83,11 +85,25 @@ export async function esperar(): Promise<void> {
   });
 }
 
-/** Digita num campo controlado pelo React, como a pessoa digitaria. */
+/**
+ * Digita num campo controlado pelo React, como a pessoa digitaria. No botão de
+ * um Seletor, escolhe a opção de valor `valor`.
+ */
 export function digitar(
-  campo: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+  campo:
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | HTMLSelectElement
+    | HTMLButtonElement,
   valor: string,
 ): void {
+  if (eSeletor(campo)) {
+    escolherNoSeletor(campo, valor);
+    return;
+  }
+  if (campo instanceof HTMLButtonElement) {
+    throw new Error("digitar: o botão não é de um Seletor.");
+  }
   const prototipo =
     campo instanceof HTMLTextAreaElement
       ? HTMLTextAreaElement.prototype

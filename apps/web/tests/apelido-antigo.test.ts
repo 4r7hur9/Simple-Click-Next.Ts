@@ -14,7 +14,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   apelidoDoCaminho,
   caminhoComApelidoNovo,
-  hostComApelidoNovo,
   LembrancaDeApelidos,
 } from "../src/lib/apelido-antigo.ts";
 import {
@@ -22,11 +21,8 @@ import {
   redirecionarApelidoAntigo,
 } from "../src/server/apelido-antigo.ts";
 
-function requisicao(endereco: string, host?: string): NextRequest {
-  return new NextRequest(
-    endereco,
-    host === undefined ? undefined : { headers: { host } },
-  );
+function requisicao(endereco: string): NextRequest {
+  return new NextRequest(endereco);
 }
 
 describe("o endereço antigo da loja (AC-208)", () => {
@@ -36,14 +32,14 @@ describe("o endereço antigo da loja (AC-208)", () => {
     );
 
     const resposta = await redirecionarApelidoAntigo(
-      requisicao("https://simpleclick.app/l/pastel-da-joi/produto/42?de=zap"),
+      requisicao("https://simpleclick.app/loja/pastel-da-joi/produto/42?de=zap"),
       consultar,
       new LembrancaDeApelidos(),
     );
 
     expect(resposta?.status).toBe(307);
     expect(resposta?.headers.get("location")).toBe(
-      "https://simpleclick.app/l/pastelaria-joi/produto/42?de=zap",
+      "https://simpleclick.app/loja/pastelaria-joi/produto/42?de=zap",
     );
     expect(consultar).toHaveBeenCalledWith("pastel-da-joi");
   });
@@ -55,7 +51,7 @@ describe("o endereço antigo da loja (AC-208)", () => {
 
     for (let vez = 0; vez < 3; vez += 1) {
       const resposta = await redirecionarApelidoAntigo(
-        requisicao("https://simpleclick.app/l/pastelaria-joi/catalogo"),
+        requisicao("https://simpleclick.app/loja/pastelaria-joi/cardapio"),
         consultar,
         lembranca,
         () => agora,
@@ -67,7 +63,7 @@ describe("o endereço antigo da loja (AC-208)", () => {
 
     agora += 60_001;
     await redirecionarApelidoAntigo(
-      requisicao("https://simpleclick.app/l/pastelaria-joi"),
+      requisicao("https://simpleclick.app/loja/pastelaria-joi"),
       consultar,
       lembranca,
       () => agora,
@@ -81,7 +77,7 @@ describe("o endereço antigo da loja (AC-208)", () => {
 
     expect(
       await redirecionarApelidoAntigo(
-        requisicao("https://simpleclick.app/l/pastel-da-joi"),
+        requisicao("https://simpleclick.app/loja/pastel-da-joi"),
         consultar,
         lembranca,
       ),
@@ -113,20 +109,8 @@ describe("o endereço antigo da loja (AC-208)", () => {
     );
   });
 
-  it("@spec:AC-208 o apelido também é trocado quando vem no endereço da loja, e as rotas internas do site ficam de fora", async () => {
+  it("@spec:AC-208 as rotas internas do site ficam de fora", async () => {
     const consultar = vi.fn(async () => "pastelaria-joi");
-    const pelaLoja = await redirecionarApelidoAntigo(
-      requisicao(
-        "https://pastel-da-joi.simpleclick.app/catalogo",
-        "pastel-da-joi.simpleclick.app",
-      ),
-      consultar,
-      new LembrancaDeApelidos(),
-    );
-    expect(pelaLoja?.headers.get("location")).toBe(
-      "https://pastelaria-joi.simpleclick.app/catalogo",
-    );
-
     const interna = await redirecionarApelidoAntigo(
       requisicao("https://simpleclick.app/api/loja/pagamento"),
       consultar,
@@ -134,17 +118,10 @@ describe("o endereço antigo da loja (AC-208)", () => {
     );
     expect(interna).toBeNull();
 
-    expect(apelidoDoCaminho("/l/Pastel-Da-Joi/sobre")).toBe("pastel-da-joi");
+    expect(apelidoDoCaminho("/loja/Pastel-Da-Joi/sobre")).toBe("pastel-da-joi");
     expect(apelidoDoCaminho("/painel")).toBeNull();
     expect(
-      caminhoComApelidoNovo("/l/pastel-da-joi", "pastel-da-joi", "novo"),
-    ).toBe("/l/novo");
-    expect(
-      hostComApelidoNovo(
-        "pastel-da-joi.simpleclick.app",
-        "pastel-da-joi",
-        "novo",
-      ),
-    ).toBe("novo.simpleclick.app");
+      caminhoComApelidoNovo("/loja/pastel-da-joi", "pastel-da-joi", "novo"),
+    ).toBe("/loja/novo");
   });
 });

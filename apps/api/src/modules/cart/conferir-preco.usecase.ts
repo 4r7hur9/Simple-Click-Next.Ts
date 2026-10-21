@@ -17,8 +17,10 @@ import {
   estaNaJanelaDeDisponibilidade,
   lerJanelasDeDisponibilidade,
   precoAplicavel,
+  precoValeAgora,
 } from "@simpleclick/core";
 import type {
+  AtacadoDoItem,
   Conferencia,
   ExplicacaoDoPreco,
   ItemParaConferir,
@@ -42,12 +44,165 @@ export interface DeclaracaoDoCliente {
   readonly precosVistos?: Readonly<Record<string, number>>;
 }
 
+/**
+ * A faixa de preço por quantidade que valeu para um item, como o pedido a
+ * congela (card #57). Nula no varejo.
+ */
+export interface FaixaQueValeu {
+  /** A partir de quantas unidades a faixa vale. */
+  readonly quantidadeMinima: number;
+  /** Nulo no atacado antigo, de preço fixo, que não tinha desconto. */
+  readonly tipoDeDesconto: "PERCENTUAL" | "VALOR" | null;
+  readonly desconto: number | null;
+  readonly rotulo: string | null;
+}
+
+/**
+ * O preço de um item com a explicação completa: o tipo, o varejo riscado e o
+ * atacado (faixa que valeu, próxima e quanto falta). É o que a tela precisa
+ * para "faltam 4 peças para o próximo desconto" e o pedido, para o histórico.
+ */
+export interface PrecoDoItemConferido {
+  /** `BASE`, `PROMO` ou `WHOLESALE`. */
+  readonly tipo: string;
+  /**
+   * O preço de varejo por unidade (já com as opções), quando o cobrado é
+   * menor: é o riscado ao lado. Nulo no preço normal.
+   */
+  readonly varejoUnitarioEmCentavos: number | null;
+  readonly faixa: FaixaQueValeu | null;
+  /** O atacado do produto, quando ele tem faixas com desconto valendo. */
+  readonly atacado: AtacadoDoItem | null;
+}
+
+/** A conferência, com o preço explicado de cada item que segue. */
+export interface ConferenciaComAtacado extends Conferencia {
+  /** Por identificador do item do carrinho. */
+  readonly precosDosItens: ReadonlyMap<string, PrecoDoItemConferido>;
+}
+
+/** Os campos de `product_prices` que a regra lê. */
+const CAMPOS_DO_PRECO = {
+  kind: true,
+  label: true,
+  amountCents: true,
+  minQuantity: true,
+  isActive: true,
+  startsAt: true,
+  endsAt: true,
+  discountKind: true,
+  discountValue: true,
+} as const;
+
+/** Uma linha de `product_prices`, como a consulta devolve. */
+interface LinhaDePreco {
+  readonly kind: string;
+  readonly label?: string | null;
+  readonly amountCents: bigint;
+  readonly minQuantity: number;
+  readonly isActive: boolean;
+  readonly startsAt: Date | null;
+  readonly endsAt: Date | null;
+  readonly discountKind?: string | null;
+  readonly discountValue?: bigint | null;
+}
+
+/** O preço escolhido para um item: o número e a explicação. */
+interface PrecoEscolhido {
+  readonly centavos: number | null;
+  readonly explicacao: ExplicacaoDoPreco | null;
+  readonly detalhe: Omit<PrecoDoItemConferido, "varejoUnitarioEmCentavos"> & {
+    /** O varejo por unidade, SEM as opções (elas entram na conferência). */
+    readonly varejoEmCentavos: number | null;
+  };
+}
+
+/**
+ * Qual faixa valeu, a partir do preço que a regra escolheu.
+ *
+ * Faixa com desconto vem pronta da regra. O atacado antigo, de preço fixo, não
+ * diz de qual linha veio: é a linha WHOLESALE sem desconto, valendo agora, com
+ * esse valor e a maior quantidade mínima que a quantidade alcança.
+ */
+function faixaDe(
+  aplicado: PrecoAplicado,
+  regras: readonly PrecoCadastrado[],
+  agora: Date,
+  quantidade: number,
+): FaixaQueValeu | null {
+  if (aplicado.tipo !== "WHOLESALE") return null;
+  const daRegra = aplicado.atacado?.faixaAplicada ?? null;
+  if (
+    daRegra !== null &&
+    daRegra.unitarioEmCentavos === aplicado.unitarioEmCentavos
+  ) {
+    return {
+      quantidadeMinima: daRegra.quantidadeMinima,
+      tipoDeDesconto: daRegra.tipoDeDesconto,
+      desconto: daRegra.desconto,
+      rotulo: daRegra.rotulo,
+    };
+  }
+  const fixa = regras
+    .filter(
+      (p) =>
+        p.tipo === "WHOLESALE" &&
+        (p.tipoDeDesconto ?? null) === null &&
+        p.valorEmCentavos === aplicado.unitarioEmCentavos &&
+        precoValeAgora(p, agora, quantidade),
+    )
+    .sort((a, b) => b.quantidadeMinima - a.quantidadeMinima)[0];
+  if (fixa === undefined) return null;
+  const rotulo = fixa.rotulo?.trim();
+  return {
+    quantidadeMinima: fixa.quantidadeMinima,
+    tipoDeDesconto: null,
+    desconto: null,
+    rotulo: rotulo === undefined || rotulo === "" ? null : rotulo,
+  };
+}
+
+/** Escolhe o preço de um item pela regra do core, com a explicação toda. */
+function escolherPreco(
+  linhas: readonly LinhaDePreco[],
+  agora: Date,
+  quantidade: number,
+): PrecoEscolhido {
+  const regras = linhas.map(comoRegra);
+  const aplicado = precoAplicavel(regras, agora, quantidade);
+  if (aplicado === null) {
+    return {
+      centavos: null,
+      explicacao: null,
+      detalhe: {
+        tipo: "BASE",
+        varejoEmCentavos: null,
+        faixa: null,
+        atacado: null,
+      },
+    };
+  }
+  const varejo = aplicado.anteriorEmCentavos;
+  return {
+    centavos: aplicado.unitarioEmCentavos,
+    explicacao: explicacaoDe(aplicado),
+    detalhe: {
+      tipo: aplicado.tipo,
+      varejoEmCentavos:
+        varejo !== null && varejo > aplicado.unitarioEmCentavos ? varejo : null,
+      faixa: faixaDe(aplicado, regras, agora, quantidade),
+      atacado: aplicado.atacado ?? null,
+    },
+  };
+}
+
 /** Lê do catálogo o estado atual de cada produto do carrinho. */
 async function catalogoAgora(
   tx: TransacaoDoBanco,
   produtoIds: readonly string[],
   quantidades: ReadonlyMap<string, number>,
   agora: Date,
+  precosDosProdutos: Map<string, PrecoEscolhido>,
 ): Promise<ProdutoAgora[]> {
   if (produtoIds.length === 0) return [];
 
@@ -84,16 +239,7 @@ async function catalogoAgora(
 
   const precos = await tx.productPrice.findMany({
     where: { productId: { in: [...produtoIds] }, variantId: null },
-    select: {
-      productId: true,
-      kind: true,
-      label: true,
-      amountCents: true,
-      minQuantity: true,
-      isActive: true,
-      startsAt: true,
-      endsAt: true,
-    },
+    select: { productId: true, ...CAMPOS_DO_PRECO },
   });
   const porProduto = new Map<string, typeof precos>();
   for (const preco of precos) {
@@ -103,7 +249,31 @@ async function catalogoAgora(
   }
 
   return produtos.map((produto) => {
-    const precosDoProduto = porProduto.get(produto.id);
+    let precosDoProduto = porProduto.get(produto.id);
+
+    // Só faixas de atacado, sem preço de varejo na tabela: o varejo é a
+    // projeção gravada no produto, e a faixa incide sobre ele.
+    if (
+      precosDoProduto !== undefined &&
+      precosDoProduto.every((p) => p.discountKind !== null) &&
+      produto.displayPriceCents !== null
+    ) {
+      precosDoProduto = [
+        ...precosDoProduto,
+        {
+          productId: produto.id,
+          kind: "BASE",
+          label: null,
+          amountCents: produto.displayPriceCents,
+          minQuantity: 1,
+          isActive: true,
+          startsAt: null,
+          endsAt: null,
+          discountKind: null,
+          discountValue: null,
+        },
+      ];
+    }
 
     if (precosDoProduto === undefined) {
       // Produto de antes da tabela de preços: vale a projeção gravada nele.
@@ -124,16 +294,17 @@ async function catalogoAgora(
     // A QUANTIDADE ENTRA NA ESCOLHA (AC-310): seis unidades do mesmo produto,
     // somadas por todas as linhas dele, alcançam o preço de atacado que uma
     // unidade não alcança.
-    const aplicado = precoAplicavel(
-      precosDoProduto.map(comoRegra),
+    const escolhido = escolherPreco(
+      precosDoProduto,
       agora,
       quantidades.get(produto.id) ?? 1,
     );
+    precosDosProdutos.set(produto.id, escolhido);
     return {
       produtoId: produto.id,
       nome: produto.name,
-      precoEmCentavos: aplicado?.unitarioEmCentavos ?? null,
-      precoAplicado: explicacaoDe(aplicado),
+      precoEmCentavos: escolhido.centavos,
+      precoAplicado: escolhido.explicacao,
       disponivel: vendeAgora(produto),
     };
   });
@@ -161,31 +332,42 @@ function explicacaoDe(
  * preço e a pessoa clicar. Registrar é o que permite distinguir isso, que é
  * comum, de alguém tentando fechar um pedido de mil reais por um.
  */
-/** Traduz um preço do banco para o vocabulário da regra do core. */
-function comoRegra(linha: {
-  readonly kind: string;
-  readonly label?: string | null;
-  readonly amountCents: bigint;
-  readonly minQuantity: number;
-  readonly isActive: boolean;
-  readonly startsAt: Date | null;
-  readonly endsAt: Date | null;
-}): PrecoCadastrado {
+/**
+ * Traduz um preço do banco para o vocabulário da regra do core.
+ *
+ * A FAIXA COM DESCONTO PRECISA CHEGAR COMO FAIXA. Ela guarda `amount_cents = 0`
+ * (0064); lida sem `discount_kind`, viraria um atacado de preço fixo de ZERO, e
+ * o item sairia de graça.
+ */
+export function comoRegra(linha: LinhaDePreco): PrecoCadastrado {
+  const tipoDeDesconto =
+    linha.discountKind === "PERCENT"
+      ? "PERCENTUAL"
+      : linha.discountKind === "AMOUNT"
+        ? "VALOR"
+        : null;
   return {
     tipo: linha.kind,
     valorEmCentavos: Number(linha.amountCents),
     quantidadeMinima: linha.minQuantity,
-    ativo: linha.isActive,
+    // Tipo de desconto que esta versão não conhece: a linha fica de fora, e
+    // não vira preço fixo de zero.
+    ativo:
+      linha.isActive &&
+      !(
+        linha.discountKind !== undefined &&
+        linha.discountKind !== null &&
+        tipoDeDesconto === null
+      ),
     comecaEm: linha.startsAt,
     terminaEm: linha.endsAt,
     rotulo: linha.label ?? null,
+    tipoDeDesconto,
+    desconto:
+      linha.discountValue === undefined || linha.discountValue === null
+        ? null
+        : Number(linha.discountValue),
   };
-}
-
-/** O preço de uma variante, com a explicação de qual foi usado. */
-interface PrecoDaVariante {
-  readonly centavos: number | null;
-  readonly explicacao: ExplicacaoDoPreco | null;
 }
 
 /**
@@ -202,9 +384,10 @@ interface PrecoDaVariante {
 async function precoDasVariantes(
   tx: TransacaoDoBanco,
   quantidadePorVariante: ReadonlyMap<string, number>,
+  quantidadePorProduto: ReadonlyMap<string, number>,
   agora: Date,
-): Promise<Map<string, PrecoDaVariante>> {
-  const precos = new Map<string, PrecoDaVariante>();
+): Promise<Map<string, PrecoEscolhido>> {
+  const precos = new Map<string, PrecoEscolhido>();
   const variantIds = [...quantidadePorVariante.keys()];
   if (variantIds.length === 0) return precos;
 
@@ -212,41 +395,62 @@ async function precoDasVariantes(
     where: { id: { in: variantIds }, deletedAt: null },
     select: {
       id: true,
+      productId: true,
       isAvailable: true,
       stockQuantity: true,
-      precos: {
-        select: {
-          kind: true,
-          label: true,
-          amountCents: true,
-          minQuantity: true,
-          isActive: true,
-          startsAt: true,
-          endsAt: true,
-        },
-      },
+      precos: { select: CAMPOS_DO_PRECO },
     },
   });
 
+  // As FAIXAS COM DESCONTO moram no produto (0064) e valem para todas as
+  // variações, cada uma sobre o seu próprio preço de varejo.
+  const faixas = await tx.productPrice.findMany({
+    where: {
+      productId: { in: [...new Set(variantes.map((v) => v.productId))] },
+      variantId: null,
+      kind: "WHOLESALE",
+      discountKind: { not: null },
+    },
+    select: { productId: true, ...CAMPOS_DO_PRECO },
+  });
+  const faixasPorProduto = new Map<string, LinhaDePreco[]>();
+  for (const faixa of faixas) {
+    const doProduto = faixasPorProduto.get(faixa.productId) ?? [];
+    doProduto.push(faixa);
+    faixasPorProduto.set(faixa.productId, doProduto);
+  }
+
   for (const variante of variantes) {
-    // O atacado da variante conta as unidades DELA: seis camisetas G alcançam
-    // o preço da G, e não o da P.
-    const aplicado = precoAplicavel(
-      variante.precos.map(comoRegra),
-      agora,
-      quantidadePorVariante.get(variante.id) ?? 1,
+    const doProduto = faixasPorProduto.get(variante.productId) ?? [];
+    // A faixa do produto conta as PEÇAS do produto, somadas em todas as
+    // variações: 6 camisetas P e 4 G são 10 peças para a faixa de 10. O atacado
+    // antigo, de preço fixo na variante, continua contando só as unidades
+    // DELA — seis camisetas G alcançam o preço da G, e não o da P.
+    const quantidade =
+      doProduto.length > 0
+        ? (quantidadePorProduto.get(variante.productId) ?? 1)
+        : (quantidadePorVariante.get(variante.id) ?? 1);
+    precos.set(
+      variante.id,
+      escolherPreco([...variante.precos, ...doProduto], agora, quantidade),
     );
-    precos.set(variante.id, {
-      centavos: aplicado?.unitarioEmCentavos ?? null,
-      explicacao: explicacaoDe(aplicado),
-    });
   }
 
   // A variante que a consulta não devolveu (apagada, ou de outra loja) fica
   // registrada como SEM preço — e não simplesmente ausente do mapa, que a
   // faria cair no preço do produto e seguir por um valor que não é dela.
   for (const id of variantIds) {
-    if (!precos.has(id)) precos.set(id, { centavos: null, explicacao: null });
+    if (!precos.has(id))
+      precos.set(id, {
+        centavos: null,
+        explicacao: null,
+        detalhe: {
+          tipo: "BASE",
+          varejoEmCentavos: null,
+          faixa: null,
+          atacado: null,
+        },
+      });
   }
 
   return precos;
@@ -317,7 +521,7 @@ export async function conferirAntesDeFechar(
   carrinhoId: string,
   declarado: DeclaracaoDoCliente = {},
   agora: Date = new Date(),
-): Promise<Conferencia> {
+): Promise<ConferenciaComAtacado> {
   const tx = transacaoAtual();
 
   const linhas = await tx.cartItem.findMany({
@@ -350,7 +554,7 @@ export async function conferirAntesDeFechar(
   }
 
   const [precoPorVariante, precoPorOpcao] = await Promise.all([
-    precoDasVariantes(tx, quantidadePorVariante, agora),
+    precoDasVariantes(tx, quantidadePorVariante, quantidades, agora),
     precoDasOpcoes(
       tx,
       linhas.flatMap((l) => opcaoIdsDe(l.options)),
@@ -361,10 +565,7 @@ export async function conferirAntesDeFechar(
     const daVariante =
       linha.variantId === null
         ? undefined
-        : (precoPorVariante.get(linha.variantId) ?? {
-            centavos: null,
-            explicacao: null,
-          });
+        : precoPorVariante.get(linha.variantId);
     return {
       itemId: linha.id,
       produtoId: linha.productId,
@@ -374,20 +575,22 @@ export async function conferirAntesDeFechar(
       // `undefined` (e não `null`) quando a linha não tem variante: aí vale o
       // preço do produto. A diferença entre os dois é o que separa "não se
       // aplica" de "procurei e não achei".
-      ...(daVariante === undefined
+      ...(linha.variantId === null
         ? {}
         : {
-            precoBaseEmCentavos: daVariante.centavos,
-            precoAplicado: daVariante.explicacao,
+            precoBaseEmCentavos: daVariante?.centavos ?? null,
+            precoAplicado: daVariante?.explicacao ?? null,
           }),
     };
   });
 
+  const precosDosProdutos = new Map<string, PrecoEscolhido>();
   const catalogo = await catalogoAgora(
     tx,
     itens.map((item) => item.produtoId),
     quantidades,
     agora,
+    precosDosProdutos,
   );
 
   const conferido = conferirCarrinho(
@@ -412,5 +615,28 @@ export async function conferirAntesDeFechar(
     });
   }
 
-  return conferido;
+  // O preço explicado de cada item que segue: a faixa que valeu, o varejo
+  // riscado (com as opções, como o unitário) e quanto falta para a próxima.
+  const linhaPorId = new Map(linhas.map((l) => [l.id, l]));
+  const precosDosItens = new Map<string, PrecoDoItemConferido>();
+  for (const item of conferido.itensQueSeguem) {
+    const linha = linhaPorId.get(item.itemId);
+    const escolhido =
+      linha === undefined
+        ? undefined
+        : linha.variantId === null
+          ? precosDosProdutos.get(linha.productId)
+          : precoPorVariante.get(linha.variantId);
+    if (escolhido === undefined) continue;
+    const { varejoEmCentavos, ...resto } = escolhido.detalhe;
+    precosDosItens.set(item.itemId, {
+      ...resto,
+      varejoUnitarioEmCentavos:
+        varejoEmCentavos === null
+          ? null
+          : varejoEmCentavos + item.acrescimosEmCentavos,
+    });
+  }
+
+  return { ...conferido, precosDosItens };
 }

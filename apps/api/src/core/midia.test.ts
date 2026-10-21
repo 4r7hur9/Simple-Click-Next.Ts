@@ -67,9 +67,13 @@ describe("o serviço de mídia (AC-916)", () => {
     );
     expect(envio?.corpo.get("folder")).toBe("lojas/l1");
     expect(envio?.corpo.get("file")).toBe("data:image/png;base64,iVA=");
+    // O nome é único em cada envio: o mesmo nome no mesmo segundo reaproveitaria
+    // o endereço, e o CDN entregaria a imagem de antes ("a troca não pegou").
+    const publicId = envio?.corpo.get("public_id") ?? "";
+    expect(publicId).toMatch(/^logo-1790424000-[0-9a-f]{8}$/);
     const esperada = createHash("sha1")
       .update(
-        `folder=lojas/l1&public_id=logo-1790424000&timestamp=1790424000${segredoDeTeste}`,
+        `folder=lojas/l1&public_id=${publicId}&timestamp=1790424000${segredoDeTeste}`,
       )
       .digest("hex");
     expect(envio?.corpo.get("signature")).toBe(esperada);
@@ -78,11 +82,32 @@ describe("o serviço de mídia (AC-916)", () => {
         {
           timestamp: "1790424000",
           folder: "lojas/l1",
-          public_id: "logo-1790424000",
+          public_id: publicId,
         },
         segredoDeTeste,
       ),
     ).toBe(esperada);
+  });
+
+  it("@spec:AC-916 dois envios no mesmo segundo ganham endereços diferentes", async () => {
+    const nomes: string[] = [];
+    const armazenamento = armazenamentoNoCloudinary(
+      { nuvem: "minha-nuvem", chave: chaveDeTeste, segredo: segredoDeTeste },
+      async (_endereco, init) => {
+        nomes.push((init?.body as URLSearchParams).get("public_id") ?? "");
+        return Response.json({ secure_url: "https://res.exemplo.test/x.png" });
+      },
+      () => new Date(Date.UTC(2026, 8, 26, 12, 0, 0)),
+    );
+    const envio = {
+      lojaId: "l1",
+      nome: "logo",
+      bytes: Uint8Array.from([0x89, 0x50]),
+      tipoDeConteudo: "image/png",
+    };
+    await armazenamento.guardar(envio);
+    await armazenamento.guardar(envio);
+    expect(new Set(nomes).size).toBe(2);
   });
 
   it("@spec:AC-916 sem credencial, o envio responde indisponível em vez de inventar endereço", async () => {

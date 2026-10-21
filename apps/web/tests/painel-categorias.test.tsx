@@ -14,6 +14,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ListaCategorias } from "../src/features/painel-catalogo/ListaCategorias";
+import { opcoesDoSeletor } from "./apoio-seletor.ts";
 
 interface Chamada {
   readonly url: string;
@@ -305,9 +306,10 @@ describe("apagar pergunta o destino dos produtos (AC-303)", () => {
       "Ocultar a categoria com os produtos",
     );
     // O destino nunca oferece a própria categoria.
-    const opcoes = [...(pergunta?.querySelectorAll("select option") ?? [])].map(
-      (opcao) => opcao.textContent,
-    );
+    const destino = pergunta?.querySelector('button[role="combobox"]');
+    if (!destino)
+      throw new Error("a pergunta deveria ter o Seletor do destino");
+    const opcoes = opcoesDoSeletor(destino).map((opcao) => opcao.rotulo);
     expect(opcoes).toEqual(["Bebidas"]);
 
     await clicar(botao(tela, "Confirmar"));

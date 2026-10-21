@@ -21,6 +21,11 @@
  */
 import { calcularItem, type EscolhaFeita } from "@simpleclick/core";
 
+import {
+  aplicarAtacado,
+  quantidadesPorProduto,
+  type FaixasPorProduto,
+} from "./atacado-do-pedido.ts";
 import type { ItemParaCriar, OpcaoParaCriar } from "./criar-pedido.usecase.ts";
 
 /**
@@ -133,6 +138,14 @@ type ItemConferido =
 export function conferirItemDoPedidoManual(
   pedido: ItemDoPedidoManual,
   produto: ProdutoParaPedidoManual | null,
+  /**
+   * As faixas de atacado do produto e as peças dele no pedido inteiro (card
+   * #57). Ausente = só varejo.
+   */
+  atacado?: {
+    readonly faixas: FaixasPorProduto;
+    readonly quantidadeDoProduto: number;
+  },
 ): ItemConferido {
   if (produto === null) {
     return {
@@ -209,8 +222,16 @@ export function conferirItemDoPedidoManual(
     quantidade: escolha.quantidade,
   }));
 
+  // A FAIXA DE ATACADO incide sobre o varejo de agora, pela quantidade do
+  // produto no pedido todo — a mesma regra do carrinho (card #57).
+  const comAtacado = aplicarAtacado(
+    precoBase,
+    atacado?.quantidadeDoProduto ?? pedido.quantidade,
+    atacado?.faixas.get(produto.id),
+  );
+
   const conta = calcularItem({
-    precoBaseEmCentavos: precoBase,
+    precoBaseEmCentavos: comAtacado.unitarioEmCentavos,
     quantidade: pedido.quantidade,
     grupos: gruposComuns.map((grupo) => ({
       grupoId: grupo.id,
@@ -276,6 +297,14 @@ export function conferirItemDoPedidoManual(
       totalDaLinhaEmCentavos: conta.totalEmCentavos,
       observacao: pedido.observacao?.trim() || null,
       opcoes,
+      ...(comAtacado.faixa === null
+        ? {}
+        : {
+            tipoDePreco: "WHOLESALE",
+            // O varejo riscado vai com as opções, como o unitário cobrado.
+            precoDeVarejoEmCentavos: precoBase + conta.acrescimosEmCentavos,
+            faixaDeAtacado: comAtacado.faixa,
+          }),
     },
   };
 }
@@ -287,14 +316,21 @@ export function conferirItemDoPedidoManual(
 export function precificarItensDoPedidoManual(
   itens: readonly ItemDoPedidoManual[],
   produtos: ReadonlyMap<string, ProdutoParaPedidoManual | null>,
+  /** As faixas de atacado que valem agora, por produto (card #57). */
+  faixas: FaixasPorProduto = new Map(),
 ): ItensPrecificados {
   const precificados: ItemParaCriar[] = [];
   const pendencias: PendenciaDoPedidoManual[] = [];
+  const pecas = quantidadesPorProduto(itens);
 
   for (const pedido of itens) {
     const conferido = conferirItemDoPedidoManual(
       pedido,
       produtos.get(pedido.produtoId) ?? null,
+      {
+        faixas,
+        quantidadeDoProduto: pecas.get(pedido.produtoId) ?? pedido.quantidade,
+      },
     );
     if (conferido.ok) precificados.push(conferido.item);
     else pendencias.push(...conferido.pendencias);

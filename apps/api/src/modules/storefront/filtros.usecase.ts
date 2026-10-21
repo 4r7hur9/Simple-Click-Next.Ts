@@ -70,25 +70,34 @@ export async function filtrosDaVitrine(
 ): Promise<readonly FiltroDeEspecificacao[]> {
   const tx = transacaoAtual();
   const categoria = consulta.categoria ?? null;
-  const linhas = await tx.$queryRaw<LinhaDeFiltro[]>`
-    SELECT pa.product_id AS produto_id,
-           ad.key AS chave,
-           ad.label AS nome,
-           COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
-                    pa.value_date::text) AS valor
+  // AGRUPADO NO BANCO e com o vínculo produto–categoria ligando a definição ao
+  // valor pela chave (loja, produto, definição): numa loja de dez mil
+  // produtos, devolver uma linha por produto e deixar o planejador escolher a
+  // junção sob o isolamento por linha levava segundos (card #74).
+  const linhas = await tx.$queryRaw<Omit<LinhaDeFiltro, "produto_id">[]>`
+    SELECT ad.key AS chave,
+           min(ad.label) AS nome,
+           v.valor
       FROM app.attribute_definitions ad
-      JOIN app.product_attributes pa ON pa.definition_id = ad.id
-      JOIN app.products p ON p.id = pa.product_id
-      JOIN app.product_categories pc
-        ON pc.product_id = p.id AND pc.category_id = ad.category_id
       JOIN app.categories c ON c.id = ad.category_id
+      JOIN app.product_categories pc
+        ON pc.category_id = ad.category_id AND pc.store_id = ad.store_id
+      JOIN app.product_attributes pa
+        ON pa.store_id = pc.store_id
+       AND pa.product_id = pc.product_id
+       AND pa.definition_id = ad.id
+      JOIN app.products p ON p.id = pa.product_id
+      CROSS JOIN LATERAL (
+        SELECT COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
+                        pa.value_date::text) AS valor
+      ) v
      WHERE ad.is_filterable = true
        AND ad.deprecated_at IS NULL
-       AND COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
-                    pa.value_date::text) IS NOT NULL
+       AND v.valor IS NOT NULL
        AND (${categoria}::text IS NULL OR c.slug = ${categoria})
-     ORDER BY ad.sort_order ASC, ad.label ASC,
-              pa.value_num ASC NULLS LAST, valor ASC
+     GROUP BY ad.key, v.valor
+     ORDER BY min(ad.sort_order) ASC, min(ad.label) ASC,
+              min(pa.value_num) ASC NULLS LAST, v.valor ASC
   `;
 
   const porChave = new Map<string, { nome: string; valores: Set<string> }>();
@@ -135,24 +144,34 @@ export async function produtosQueCasamComEspecificacoes(
     new Set(filtraveis.map((linha) => linha.chave)),
   );
   if (aplicaveis.length === 0) return undefined;
+  // Só as especificações pedidas: as outras não decidem quem casa.
+  const chavesPedidas = [
+    ...new Set(aplicaveis.flatMap((filtro) => partesDoFiltro(filtro)?.[0] ?? [])),
+  ];
 
   const linhas = await tx.$queryRaw<LinhaDeFiltro[]>`
     SELECT pa.product_id AS produto_id,
            ad.key AS chave,
            ad.label AS nome,
-           COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
-                    pa.value_date::text) AS valor
+           v.valor
       FROM app.attribute_definitions ad
-      JOIN app.product_attributes pa ON pa.definition_id = ad.id
-      JOIN app.products p ON p.id = pa.product_id
-      JOIN app.product_categories pc
-        ON pc.product_id = p.id AND pc.category_id = ad.category_id
       JOIN app.categories c ON c.id = ad.category_id
+      JOIN app.product_categories pc
+        ON pc.category_id = ad.category_id AND pc.store_id = ad.store_id
+      JOIN app.product_attributes pa
+        ON pa.store_id = pc.store_id
+       AND pa.product_id = pc.product_id
+       AND pa.definition_id = ad.id
+      JOIN app.products p ON p.id = pa.product_id
+      CROSS JOIN LATERAL (
+        SELECT COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
+                        pa.value_date::text) AS valor
+      ) v
      WHERE ad.is_filterable = true
        AND ad.deprecated_at IS NULL
        AND (${categoria}::text IS NULL OR c.slug = ${categoria})
-       AND COALESCE(pa.value_text, pa.value_num::text, pa.value_bool::text,
-                    pa.value_date::text) IS NOT NULL
+       AND v.valor IS NOT NULL
+       AND ad.key = ANY(${chavesPedidas}::text[])
   `;
   const porProduto = new Map<string, Set<string>>();
   for (const linha of linhas) {
@@ -163,4 +182,91 @@ export async function produtosQueCasamComEspecificacoes(
   return [...porProduto]
     .filter(([, valores]) => valoresSatisfazemFiltros(valores, aplicaveis))
     .map(([produtoId]) => produtoId);
+}
+
+// ---------------------------------------------------------------------------
+// Atacado (card #59)
+// ---------------------------------------------------------------------------
+
+/** Um produto com preço de atacado e o pedido mínimo dele (a menor faixa). */
+export interface ProdutoComAtacado {
+  readonly id: string;
+  readonly pedidoMinimo: number;
+}
+
+/**
+ * Os produtos da loja do contexto com AO MENOS UMA faixa de atacado ativa
+ * agora: linha `WHOLESALE` ligada e dentro da janela de vigência. Vale a faixa
+ * nova (com desconto, card #53) e o atacado antigo de preço fixo.
+ *
+ * UMA consulta agrupada, apoiada no índice `product_prices_do_produto_idx`
+ * (loja, produto, tipo, quantidade). O isolamento por linha faz o resto:
+ * produto em rascunho, de outra loja ou de categoria oculta não chega aqui.
+ */
+export async function produtosComAtacado(
+  agora: Date = new Date(),
+): Promise<readonly ProdutoComAtacado[]> {
+  const tx = transacaoAtual();
+  const linhas = await tx.$queryRaw<{ id: string; minimo: number }[]>`
+    SELECT pp.product_id::text AS id, min(pp.min_quantity)::int AS minimo
+      FROM app.product_prices pp
+      JOIN app.products p
+        ON p.id = pp.product_id AND p.store_id = pp.store_id
+     WHERE pp.kind = 'WHOLESALE'
+       AND pp.is_active
+       AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
+       AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})
+       -- Como a regra do core: faixa que não baixa o preço não é atacado
+       -- (desconto em reais >= preço, ou preço fixo >= varejo).
+       AND NOT coalesce(
+             (pp.discount_kind = 'AMOUNT'
+                AND pp.discount_value >= p.display_price_cents)
+             OR (pp.discount_kind IS NULL
+                AND pp.amount_cents >= p.display_price_cents),
+             false)
+     GROUP BY pp.product_id
+  `;
+  return linhas.map((linha) => ({
+    id: linha.id,
+    pedidoMinimo: Number(linha.minimo),
+  }));
+}
+
+/**
+ * Dos produtos com atacado, os que passam no pedido mínimo pedido: quem quer
+ * comprar até N unidades só vê o que já dá atacado com N. Sem limite, todos.
+ */
+export function atacadoDentroDoPedidoMinimo(
+  produtos: readonly ProdutoComAtacado[],
+  pedidoMinimo?: number | undefined,
+): readonly string[] {
+  return produtos
+    .filter(
+      (produto) =>
+        pedidoMinimo === undefined || produto.pedidoMinimo <= pedidoMinimo,
+    )
+    .map((produto) => produto.id);
+}
+
+/**
+ * A faceta de atacado: quantos dos produtos que já casam com a busca e as
+ * especificações (`acertos`, ou o catálogo inteiro quando `undefined`) têm
+ * atacado, e o menor pedido mínimo entre eles — para a tela dizer "Atacado (12)"
+ * antes de o cliente ligar o filtro.
+ */
+export function facetaDeAtacado(
+  produtos: readonly ProdutoComAtacado[],
+  acertos: readonly string[] | undefined,
+): { produtos: number; menorPedidoMinimo: number | null } {
+  const permitidos = acertos === undefined ? undefined : new Set(acertos);
+  const dentro = produtos.filter(
+    (produto) => permitidos === undefined || permitidos.has(produto.id),
+  );
+  return {
+    produtos: dentro.length,
+    menorPedidoMinimo:
+      dentro.length === 0
+        ? null
+        : Math.min(...dentro.map((produto) => produto.pedidoMinimo)),
+  };
 }

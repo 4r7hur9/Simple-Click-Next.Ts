@@ -1,4 +1,12 @@
-/** Cadastro de cliente final (AC-100, AC-101, AC-102). */
+/**
+ * Cadastro de cliente final (AC-100, AC-102), sem confirmação de e-mail.
+ *
+ * A mesma conta serve a cliente, dono, equipe e administração; quem se
+ * cadastra aqui é cliente. A conta nasce com o e-mail marcado como verificado
+ * (organização, não segurança) e quem chama abre a sessão logo em seguida —
+ * por isso o caso de uso devolve o id da conta criada. Dono continua entrando
+ * pelo convite da administração, que tem fluxo próprio.
+ */
 import {
   avaliarPoliticaDeSenha,
   derivarSenha,
@@ -13,81 +21,50 @@ import {
 export interface CadastroDeClienteFinal {
   readonly nome: string;
   readonly email: string;
-  readonly telefone: string;
+  /** Opcional: o pedido pede o telefone quando a conta não tem. */
+  readonly telefone?: string | undefined;
   readonly senha: string;
 }
 
-export interface ConfirmacaoDeCadastro {
-  readonly cadastrado: true;
-  readonly mensagem: string;
-  readonly verificacaoDeEmailPendente: true;
-}
-
-const CONFIRMACAO_DE_CADASTRO: ConfirmacaoDeCadastro = {
-  cadastrado: true,
-  mensagem:
-    "Seus dados foram recebidos. Enviamos instruções para confirmar seu e-mail.",
-  verificacaoDeEmailPendente: true,
-};
-
-/** Registro criado no repositório; `null` mantém a conta pendente de e-mail. */
+/** Registro criado no repositório, já com o e-mail verificado. */
 export interface NovaIdentidade {
   readonly nome: string;
   readonly emailNormalizado: string;
-  readonly telefoneE164: string;
+  readonly telefoneE164: string | null;
   readonly senhaDerivada: string;
-  readonly emailVerificadoEm: null;
 }
 
 /**
  * O adaptador executa o teste de unicidade e a inserção na mesma operação.
- * Assim dois pedidos simultâneos não conseguem criar a mesma conta.
+ * Assim dois pedidos simultâneos não conseguem criar a mesma conta. Devolve o
+ * id da conta criada, ou `null` quando o e-mail já tem conta.
  */
 export interface RepositorioDeIdentidades {
-  criarSeAusente(
+  criarVerificadaSeAusente(
     identidade: NovaIdentidade,
-  ): Promise<{ readonly criada: boolean }>;
-}
-
-/** E-mails diferentes para os dois casos, sem mudar a resposta HTTP. */
-export interface AvisosDeCadastro {
-  enviarVerificacao(dados: {
-    readonly email: string;
-    readonly nome: string;
-  }): Promise<void>;
-  enviarAvisoDeCadastroExistente(dados: {
-    readonly email: string;
-    readonly nome: string;
-  }): Promise<void>;
+  ): Promise<{ readonly identidadeId: string } | null>;
 }
 
 export type ResultadoDoCadastro =
-  | ConfirmacaoDeCadastro
+  | { readonly status: "CRIADA"; readonly identidadeId: string }
+  | { readonly status: "EMAIL_EM_USO" }
   | {
-      readonly cadastrado: false;
+      readonly status: "SENHA_FRACA";
       readonly campos: readonly {
         readonly campo: "senha";
         readonly problema: ProblemaNaSenha;
       }[];
     };
 
-/**
- * Cria a conta sem revelar se o e-mail já era conhecido.
- *
- * A mensagem de sucesso é retornada nos dois caminhos. O aviso específico vai
- * para o dono do endereço, e não para quem submeteu a tentativa.
- */
+/** Cria a conta já verificada, ou diz que o e-mail já tem conta. */
 export async function cadastrarClienteFinal(
   dados: CadastroDeClienteFinal,
-  dependencias: {
-    readonly identidades: RepositorioDeIdentidades;
-    readonly avisos: AvisosDeCadastro;
-  },
+  dependencias: { readonly identidades: RepositorioDeIdentidades },
 ): Promise<ResultadoDoCadastro> {
   const politica = avaliarPoliticaDeSenha(dados.senha);
   if (!politica.valida) {
     return {
-      cadastrado: false,
+      status: "SENHA_FRACA",
       campos: politica.problemas.map((problema) => ({
         campo: "senha" as const,
         problema,
@@ -96,25 +73,14 @@ export async function cadastrarClienteFinal(
   }
 
   const senhaDerivada = await derivarSenha(dados.senha);
-  const resultado = await dependencias.identidades.criarSeAusente({
+  const criada = await dependencias.identidades.criarVerificadaSeAusente({
     nome: dados.nome,
     emailNormalizado: dados.email.trim().toLocaleLowerCase("en"),
-    telefoneE164: dados.telefone,
+    telefoneE164: dados.telefone?.trim() || null,
     senhaDerivada,
-    emailVerificadoEm: null,
   });
 
-  if (resultado.criada) {
-    await dependencias.avisos.enviarVerificacao({
-      email: dados.email,
-      nome: dados.nome,
-    });
-  } else {
-    await dependencias.avisos.enviarAvisoDeCadastroExistente({
-      email: dados.email,
-      nome: dados.nome,
-    });
-  }
-
-  return CONFIRMACAO_DE_CADASTRO;
+  return criada === null
+    ? { status: "EMAIL_EM_USO" }
+    : { status: "CRIADA", identidadeId: criada.identidadeId };
 }

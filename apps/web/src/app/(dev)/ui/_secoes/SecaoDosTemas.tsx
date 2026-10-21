@@ -109,7 +109,7 @@ function Mostruario({ prefixo, nome }: { prefixo: string; nome: string }) {
       <MenuSuspenso
         id={`${prefixo}-menu`}
         itens={[
-          { href: "/minha-conta", id: "perfil", rotulo: "Meu perfil" },
+          { href: "/conta", id: "perfil", rotulo: "Meu perfil" },
           { href: "/sair", id: "sair", perigo: true, rotulo: "Sair" },
         ]}
         rotulo="Minha conta"

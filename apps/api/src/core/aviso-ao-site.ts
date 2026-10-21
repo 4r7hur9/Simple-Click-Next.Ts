@@ -61,6 +61,8 @@ export type AvisarOSite = (aviso: AvisoDeMudanca) => Promise<ResultadoDoAviso>;
 export const TRECHOS_QUE_A_VITRINE_MOSTRA: ReadonlySet<string> = new Set([
   "catalogo",
   "configuracao",
+  // O tema da loja (card #25): cor de destaque, fundo e topo do cardápio.
+  "tema",
 ]);
 
 /** Verbos que alteram. Leitura não muda a loja, e não avisa. */
