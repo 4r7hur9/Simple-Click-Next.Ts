@@ -1,0 +1,951 @@
+{
+  "version": 2,
+  "cardId": "2c01d6fd-4483-40d1-861b-8231d41f9a05",
+  "cardSeq": 101,
+  "savedAt": 1793126581467,
+  "plan": {
+    "title": "SC: inventário de worktrees, preservação e sequência de integração/limpeza",
+    "complexity": "HIGH",
+    "risk": "high",
+    "summary": "Auditoria somente leitura em 27/10/2026: 7 árvores SC (raiz + 6 externas), sem clone/órfão adicional identificado no perímetro pesquisado. Todos os HEAD externos são ancestrais da main publicada ffb0957, porém T-020/T-300/T-507 têm trabalho local e todas contêm .env ignorado. As seis somam 5,55 GiB aparentes; nenhuma remoção está liberada. Plano futuro condicionado à aprovação, preservação comprovada e coordenação com #100.",
+    "discovery": [
+      {
+        "claim": "A raiz está em main, HEAD ffb0957c965ec7440761e36a15edde4f82da8f09. 25 tracked modificados fora do índice e 8 untracked; nenhum staged.",
+        "kind": "fact",
+        "ref": {
+          "path": "/Users/stargrupo/Documents/SC/.git/HEAD"
+        }
+      },
+      {
+        "claim": "git worktree list --porcelain contém SC e T-017/018/020/300/505/507, todos ligados a SC/.git; nenhum registro prunable/locked informado.",
+        "kind": "fact",
+        "ref": {
+          "path": "/Users/stargrupo/Documents/SC/.git/worktrees"
+        }
+      },
+      {
+        "claim": "T-020 tem 21 staged, nenhum unstaged/untracked; nenhum dos 21 blobs locais foi encontrado no histórico alcançável de main. Isso não prova ausência de implementação equivalente.",
+        "kind": "fact",
+        "ref": {
+          "path": "/Users/stargrupo/Documents/sc-worktrees/T-020/apps/web/src/lib/routes.ts",
+          "symbol": "MANIFESTO_DE_TELAS"
+        }
+      },
+      {
+        "claim": "T-300 altera somente .spec/verification/sinais.json: 310 mudanças em cada campo ocorrencias, ultimaVez e gitRev; sem novos campos ou outras alterações estruturais. .spec foi removido de main em 261b06f.",
+        "kind": "fact",
+        "ref": {
+          "path": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json",
+          "symbol": "ocorrencias"
+        }
+      },
+      {
+        "claim": "T-507 tem lockfile modificado e 6 untracked em packages/core. Patch-id do lockfile coincide com be3303b (6d2b7b8cafd73bcb725bc9232250d6607383d077); 4 dos 6 untracked têm blobs históricos em main. Os dois restantes diferem de be3303b apenas nos hunks de formatação observados.",
+        "kind": "fact",
+        "ref": {
+          "path": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core/src/cupom-texto.ts",
+          "symbol": "ModoDaTaxaDeEntrega"
+        }
+      },
+      {
+        "claim": "T-507 provavelmente não exige portar funcionalidade; confirmar equivalência de sintaxe e preservar snapshot antes de encerrar. T-300 é evidência operacional antiga, sem justificativa atual para restaurar .spec.",
+        "kind": "inference"
+      },
+      {
+        "claim": "A stack oferece pnpm typecheck/lint/test:unit/test:int; projetos Vitest unit/web/api-int/db-rls/filas/cache-int/agente. A configuração carrega .env automaticamente e algumas suítes criam bancos/Redis, por isso nenhuma suíte de aplicação foi executada na auditoria somente leitura.",
+        "kind": "fact",
+        "ref": {
+          "path": "vitest.config.ts"
+        }
+      },
+      {
+        "claim": "Scripts de validação da raiz estão em package.json; Node >=24, pnpm >=11. Testes devem ser executados antes e depois de eventual portabilidade, em ambiente de execução autorizado.",
+        "kind": "fact",
+        "ref": {
+          "path": "package.json",
+          "symbol": "test:unit"
+        }
+      },
+      {
+        "claim": "Confirmação de atividade do #100 pendente. board_peers mostra reservas históricas na raiz; não autoriza inferir abandono das worktrees.",
+        "kind": "unknown"
+      },
+      {
+        "claim": "Conteúdo/valor dos .env, sessões e demais ignorados não foi lido. Necessidade de preservação deve ser atestada pelo dono antes de remover qualquer árvore.",
+        "kind": "unknown"
+      },
+      {
+        "claim": "Branches backup/local-14-10 e spec/* contêm histórico potencialmente superado (domínios próprios, gates/spec), mas git cherry não prova equivalência com trabalho consolidado; manter referências e investigar sem merge em bloco.",
+        "kind": "inference"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Preservar trabalho e segredos e manter escopo somente leitura até aprovação de execução específica.",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "Auditoria não executa stage/commit/push/PR/merge/rebase/checkout/reset/stash/clean/prune/remove; diffs, refs e índices mantidos; conteúdo de .env/credenciais não aparece em saídas."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Inventariar todas as árvores encontradas no perímetro, vínculo, commits, arquivos locais/ignorados, atividade e espaço.",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "7 entradas com caminhos absolutos, branch/HEAD, commonGit, tracked/untracked, ignorados por nome, comparação main/remoto e limites de descoberta; outros projetos excluídos explicitamente."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Avaliar trabalho útil sem restaurar funcionalidades removidas nem duplicar #100.",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "Cada arquivo staged T-020, delta T-300, arquivo T-507 e grupo de commits das 4 branches recebe destino: já coberto, portar em proposta separada, arquivar ou investigar, com evidência e dono. #100 confirma fronteira de landing/legal/mobile."
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Preparar integração pequena e validável somente para diferenças úteis confirmadas.",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "Sequência prioriza consolidação #100 e revisão de T-020; cada delta novo exige plano de arquivos exatos aprovado e baseline/testes depois; sem merge das branches históricas em bloco. Commit/push/PR requerem autorização explícita independente."
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Limpeza futura deve ser reversível e autorizada por caminho, com prova de preservação.",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "Antes de cada remoção: backup restaurável verificado do índice/working tree/untracked e refs relevantes, destino dos ignorados atestado, agentes/processos liberados e auditoria atualizada. Preservar raiz .git e branches. Sem force, clean/prune ou release que remova volumes."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "Inventário e plano no card, sem criar arquivos de relatório no repositório.",
+        "Sequência futura condicionada de preservação, avaliação de diferenças, integração seletiva e remoção das seis árvores enumeradas."
+      ],
+      "out": [
+        "Implementação ou mutação Git nesta etapa.",
+        "Remoção da raiz SC, branches, objetos Git, volumes Docker, outros projetos ou diretórios não inventariados.",
+        "Ler/copiar/publicar segredos automaticamente.",
+        "Reabrir cards antigos ou tomar reservas históricas; instalar WorkflowIA (responsabilidade #100)."
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Aprovar este plano não autoriza automaticamente commit/push/PR ou exclusões sem confirmação concreta de caminhos e preservação.",
+        "impact": "Executor apresenta manifesto final e pede autorização específica no momento de execução."
+      },
+      {
+        "text": "Se #100 não confirmar coordenação, tarefas de leitura podem continuar, mas qualquer alteração compartilhada fica bloqueada.",
+        "impact": "Não esperar parado nesta auditoria; marcar dependência para execução."
+      },
+      {
+        "text": "Não há prova de clone/órfão adicional no perímetro; diretórios desconhecidos ou mídia externa podem existir.",
+        "impact": "Qualquer novo caminho entra em nova auditoria, nunca em remoção por wildcard."
+      },
+      {
+        "text": "Usar como destino proposto de backup /Users/stargrupo/Documents/SC-preservacao-101, ainda inexistente/não criado por esta etapa; segredos exigem destino seguro fornecido pelo dono.",
+        "impact": "Backup pode reduzir ganho líquido; sem destino seguro aprovado para ignorados, manter a árvore."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Separar histórico integrado de conteúdo local preservável.",
+        "why": "Todos os HEAD são ancestrais, mas 3 árvores estão sujas e as 6 têm .env.",
+        "alternatives": [
+          "Excluir só por git branch --merged (rejeitada)."
+        ],
+        "impact": "Nenhuma pasta segura para apagar agora."
+      },
+      {
+        "id": "D-2",
+        "decision": "Manter SC/.git e todas as branches; preferir arquivamento a merge de históricos antigos.",
+        "why": "Há 4 branches sem worktree com commits exclusivos e funcionalidades antigas.",
+        "alternatives": [
+          "Merge geral (risco de regressão e duplicação)."
+        ],
+        "impact": "Limpeza das pastas pode ocorrer futuramente sem apagar refs."
+      },
+      {
+        "id": "D-3",
+        "decision": "T-020 merece revisão detalhada; T-300 arquivamento de evidência; T-507 confirmar equivalência e arquivar.",
+        "why": "Blobs de T-020 não equivalentes; T-300 só metadados; T-507 repete implementação be3303b com formatação.",
+        "risks": [
+          "Falsa equivalência semântica."
+        ],
+        "mitigation": "Comparar contrato e testes atuais; qualquer dúvida conserva origem."
+      },
+      {
+        "id": "D-4",
+        "decision": "Nenhum teste de aplicação roda nesta auditoria; baseline e testes posteriores na execução autorizada.",
+        "why": "Não houve mudança de código e Vitest carrega .env/serviços e pode gerar arquivos.",
+        "impact": "Não declarar suíte verde; relatório cobre somente verificações Git e inventário."
+      },
+      {
+        "id": "D-5",
+        "decision": "Não usar release da skill para a futura limpeza automaticamente.",
+        "why": "O release também remove volumes Docker; a solicitação não autoriza isso e não existem registros SC no orquestrador.",
+        "impact": "Escolher procedimento de remoção individual sem força após preservação; qualquer recusa Git bloqueia e exige reavaliação."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Revalidar inventário e preservar os estados locais",
+        "objective": "Revalidar inventário e preservar os estados locais",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [],
+        "requirements": [
+          "R-1",
+          "R-2",
+          "R-5"
+        ],
+        "context": {
+          "summary": "Revalidar inventário e preservar os estados locais",
+          "files": [
+            "/Users/stargrupo/Documents/SC",
+            "/Users/stargrupo/Documents/sc-worktrees/T-017",
+            "/Users/stargrupo/Documents/sc-worktrees/T-018",
+            "/Users/stargrupo/Documents/sc-worktrees/T-020",
+            "/Users/stargrupo/Documents/sc-worktrees/T-300",
+            "/Users/stargrupo/Documents/sc-worktrees/T-505",
+            "/Users/stargrupo/Documents/sc-worktrees/T-507",
+            "/Users/stargrupo/Documents/SC-preservacao-101"
+          ],
+          "evidence": [
+            "Inventário de 27/10: T-020 staged=21; T-507 untracked=6; todas .env."
+          ],
+          "decisions": [
+            "D-1",
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "/Users/stargrupo/Documents/SC",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-017",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-018",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-020",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-300",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-505",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-507",
+              "action": "reuse",
+              "note": "Ler somente; não alterar origem."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/SC-preservacao-101",
+              "action": "create",
+              "note": "Somente na execução autorizada; bundle/patches/manifesto não sensíveis, sem ambientes/credenciais."
+            }
+          ],
+          "changes": [
+            "Reconsultar gerente/#100, pares, registro de worktrees, HEAD, status e refs remotas; capturar hashes de índices e arquivos relevantes.",
+            "Após autorização, salvar bundle das refs relevantes e patches separados staged/unstaged; incluir cópias dos untracked não sensíveis e manifesto com modos/symlinks. Nunca depender só de git diff HEAD.",
+            "Verificar bundle e ensaiar restauração em destino aprovado separado, incluindo separação staged/unstaged. Ignorados relevantes continuam bloqueando remoção até destino seguro atestado pelo dono."
+          ],
+          "contracts": [
+            "Sem mudança de contrato do produto nesta tarefa; qualquer delta de produto exige proposta específica."
+          ],
+          "constraints": [
+            "Futuro: executar somente após autorização correspondente; respeitar board_claim/conflitos e AGENTS.md.",
+            "Não copiar segredos automaticamente; preservar root SC/.git e branches."
+          ],
+          "expected": [
+            "Evidências e decisão registradas no card."
+          ],
+          "forbidden": [
+            "Publicação sem autorização explícita.",
+            "Merge geral, reset, stash, clean, prune, force e release de volumes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-5"
+          ],
+          "tests": [
+            "Revisão de evidências e comparação do estado antes/depois."
+          ],
+          "commands": [
+            "GIT_OPTIONAL_LOCKS=0 git worktree list --porcelain",
+            "GIT_OPTIONAL_LOCKS=0 git status --porcelain=v1 --untracked-files=all",
+            "git ls-remote --heads origin",
+            "git ls-files --others --ignored --exclude-standard --directory"
+          ],
+          "evidence": [
+            "Manifesto com hashes/contagens e resultado real de cada comando."
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Nova divergência, conflito de reserva ou arquivo não inventariado: consultar gerente e atualizar plano."
+          ],
+          "blockedConditions": [
+            "Autorização específica ausente para mutações.",
+            "Mudança concorrente detectada ou evidência de preservação insuficiente."
+          ]
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Decidir destino dos 21 arquivos de T-020 e confirmar T-300/T-507",
+        "objective": "Decidir destino dos 21 arquivos de T-020 e confirmar T-300/T-507",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Decidir destino dos 21 arquivos de T-020 e confirmar T-300/T-507",
+          "files": [
+            "/Users/stargrupo/Documents/sc-worktrees/T-020",
+            "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json",
+            "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core",
+            "apps/web/src/lib/routes.ts",
+            "e2e",
+            "packages/core/src"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-020",
+              "action": "reuse"
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json",
+              "action": "reuse"
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/lib/routes.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "e2e",
+              "action": "reuse"
+            },
+            {
+              "path": "packages/core/src",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Produzir matriz de todos os 21 staged T-020 contra implementação/testes atuais, distinguindo renomeado, substituído e lacuna real; não reaplicar .spec nem infra/scripts/verificar.sh.",
+            "Confirmar via parser/diff que os dois arquivos T-507 sem blob histórico diferem só em formatação (union leading pipe e trailing commas inclusos); preservar resultado e snapshot antigo.",
+            "T-300: registrar 930 campos de metadados alterados e propor arquivamento, sujeito ao dono.",
+            "Se surgir funcionalidade útil, preparar proposta separada com arquivos exatos, testes e autorização; não integrar neste card automaticamente."
+          ],
+          "contracts": [
+            "Sem mudança de contrato do produto nesta tarefa; qualquer delta de produto exige proposta específica."
+          ],
+          "constraints": [
+            "Futuro: executar somente após autorização correspondente; respeitar board_claim/conflitos e AGENTS.md.",
+            "Não copiar segredos automaticamente; preservar root SC/.git e branches."
+          ],
+          "expected": [
+            "Evidências e decisão registradas no card."
+          ],
+          "forbidden": [
+            "Publicação sem autorização explícita.",
+            "Merge geral, reset, stash, clean, prune, force e release de volumes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "Revisão de evidências e comparação do estado antes/depois."
+          ],
+          "commands": [
+            "git -C /Users/stargrupo/Documents/sc-worktrees/T-020 diff --cached --stat",
+            "git log --all --oneline -- apps/web/src/lib/routes.ts",
+            "git show be3303b:packages/core/src/cupom-texto.ts",
+            "git log --oneline -- e2e"
+          ],
+          "evidence": [
+            "Manifesto com hashes/contagens e resultado real de cada comando."
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Nova divergência, conflito de reserva ou arquivo não inventariado: consultar gerente e atualizar plano."
+          ],
+          "blockedConditions": [
+            "Autorização específica ausente para mutações.",
+            "Mudança concorrente detectada ou evidência de preservação insuficiente."
+          ]
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "Avaliar branches locais sem worktree e registrar o que deve permanecer",
+        "objective": "Avaliar branches locais sem worktree e registrar o que deve permanecer",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Avaliar branches locais sem worktree e registrar o que deve permanecer",
+          "files": [
+            "/Users/stargrupo/Documents/SC/.git"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "/Users/stargrupo/Documents/SC/.git",
+              "action": "reuse",
+              "note": "Metadados/ref/histórico somente leitura."
+            }
+          ],
+          "changes": [
+            "Revisar grupos únicos de commits de backup/local-14-10 e spec/admin-lojas, spec/fundacao, spec/vitrine-publica; deduplicar ancestrais compartilhados.",
+            "Comparar patches e funcionalidades com main atual, especialmente domínios próprios removidos e gates/spec. Classificar cada grupo sem assumir que git cherry + exige merge.",
+            "Preservar todas as refs; não condiciona remoção de worktrees alheias se bundle e refs permanecerem intactos."
+          ],
+          "contracts": [
+            "Sem mudança de contrato do produto nesta tarefa; qualquer delta de produto exige proposta específica."
+          ],
+          "constraints": [
+            "Futuro: executar somente após autorização correspondente; respeitar board_claim/conflitos e AGENTS.md.",
+            "Não copiar segredos automaticamente; preservar root SC/.git e branches."
+          ],
+          "expected": [
+            "Evidências e decisão registradas no card."
+          ],
+          "forbidden": [
+            "Publicação sem autorização explícita.",
+            "Merge geral, reset, stash, clean, prune, force e release de volumes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "Revisão de evidências e comparação do estado antes/depois."
+          ],
+          "commands": [
+            "git rev-list --left-right --count spec/vitrine-publica...main",
+            "git cherry main spec/vitrine-publica",
+            "git log --no-merges --oneline main..backup/local-14-10"
+          ],
+          "evidence": [
+            "Manifesto com hashes/contagens e resultado real de cada comando."
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Nova divergência, conflito de reserva ou arquivo não inventariado: consultar gerente e atualizar plano."
+          ],
+          "blockedConditions": [
+            "Investigação bloqueia integração desses commits, mas não auditoria de outras árvores."
+          ]
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "Consolidar decisão de integração com #100 e validar apenas deltas aprovados",
+        "objective": "Consolidar decisão de integração com #100 e validar apenas deltas aprovados",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-2",
+          "T-3"
+        ],
+        "requirements": [
+          "R-3",
+          "R-4"
+        ],
+        "context": {
+          "summary": "Consolidar decisão de integração com #100 e validar apenas deltas aprovados",
+          "files": [
+            "apps/web/src/features/landing",
+            "apps/web/src/features/legal",
+            "package.json",
+            "vitest.config.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-2",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/landing",
+              "action": "reuse",
+              "note": "Estado de responsabilidade #100, sem editar por este plano."
+            },
+            {
+              "path": "apps/web/src/features/legal",
+              "action": "reuse"
+            },
+            {
+              "path": "package.json",
+              "action": "reuse"
+            },
+            {
+              "path": "vitest.config.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Prioridade: #100 concluir organização dos 25 tracked + 8 untracked atuais, com seu próprio escopo/autorização; registrar o HEAD resultante e validações sem duplicar implementação.",
+            "Se T-020/branches tiverem lacuna aprovada, emitir subplano de portabilidade com arquivos exatos e dependência do novo HEAD. Caso contrário, registrar integração adicional dispensada.",
+            "No executor autorizado: baseline antes, mesmos checks depois e testes focados nas diferenças; só então preparar commit/push/PR para aprovação específica. Confirmar remoto por OID antes da limpeza de trabalho recém-integrado."
+          ],
+          "contracts": [
+            "Sem mudança de contrato do produto nesta tarefa; qualquer delta de produto exige proposta específica."
+          ],
+          "constraints": [
+            "Futuro: executar somente após autorização correspondente; respeitar board_claim/conflitos e AGENTS.md.",
+            "Não copiar segredos automaticamente; preservar root SC/.git e branches."
+          ],
+          "expected": [
+            "Evidências e decisão registradas no card."
+          ],
+          "forbidden": [
+            "Publicação sem autorização explícita.",
+            "Merge geral, reset, stash, clean, prune, force e release de volumes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3",
+            "CA-4"
+          ],
+          "tests": [
+            "Na execução futura: typecheck/lint/unit antes e depois; integração/e2e somente se rotas, auth, API ou banco forem alterados no subplano aprovado."
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit"
+          ],
+          "evidence": [
+            "Manifesto com hashes/contagens e resultado real de cada comando."
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Nova divergência, conflito de reserva ou arquivo não inventariado: consultar gerente e atualizar plano."
+          ],
+          "blockedConditions": [
+            "#100 ainda sem confirmação ou trabalho da raiz não consolidado.",
+            "Lacuna nova exige subplano revisado; não adivinhar arquivos de implementação.",
+            "Ausência de autorização explícita para publicação."
+          ]
+        }
+      },
+      {
+        "id": "T-5",
+        "title": "Apresentar manifesto final de limpeza e remover somente caminhos autorizados",
+        "objective": "Apresentar manifesto final de limpeza e remover somente caminhos autorizados",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-4"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Apresentar manifesto final de limpeza e remover somente caminhos autorizados",
+          "files": [
+            "/Users/stargrupo/Documents/sc-worktrees/T-017",
+            "/Users/stargrupo/Documents/sc-worktrees/T-018",
+            "/Users/stargrupo/Documents/sc-worktrees/T-020",
+            "/Users/stargrupo/Documents/sc-worktrees/T-300",
+            "/Users/stargrupo/Documents/sc-worktrees/T-505",
+            "/Users/stargrupo/Documents/sc-worktrees/T-507"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1",
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-017",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-018",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-020",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-300",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-505",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            },
+            {
+              "path": "/Users/stargrupo/Documents/sc-worktrees/T-507",
+              "action": "remove",
+              "note": "Proposta futura; bloqueada até aprovação nominal e prova de preservação."
+            }
+          ],
+          "changes": [
+            "Ordem proposta: T-017, T-018, T-505; depois T-300, T-507; T-020 por último após decisão completa. Revalidar cada caminho individualmente imediatamente antes.",
+            "Manifesto deve informar HEAD/status, destino e prova de restauração de cada conteúdo local/ignorado, liberação de agentes/processos e confirmação de autorização nominal do dono.",
+            "Usar remoção registrada pelo Git sem force somente se aceita e sem trabalho pendente; se recusada por dirty/untracked/ignored, parar e propor procedimento revisto. Não executar clean/reset para contornar.",
+            "Manter branches e SC/.git; não usar release da skill, não remover volumes Docker nem diretório-pai por wildcard.",
+            "Após cada remoção, conferir worktree list, integridade da raiz, refs preservadas, hashes locais e espaço recuperado real."
+          ],
+          "contracts": [
+            "Sem mudança de contrato do produto nesta tarefa; qualquer delta de produto exige proposta específica."
+          ],
+          "constraints": [
+            "Futuro: executar somente após autorização correspondente; respeitar board_claim/conflitos e AGENTS.md.",
+            "Não copiar segredos automaticamente; preservar root SC/.git e branches."
+          ],
+          "expected": [
+            "Evidências e decisão registradas no card."
+          ],
+          "forbidden": [
+            "Publicação sem autorização explícita.",
+            "Merge geral, reset, stash, clean, prune, force e release de volumes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-5"
+          ],
+          "tests": [
+            "Restauração prévia obrigatória; comparação de refs/índices/root status antes/depois; nenhum teste funcional necessário se só pastas redundantes forem removidas."
+          ],
+          "commands": [
+            "GIT_OPTIONAL_LOCKS=0 git worktree list --porcelain",
+            "GIT_OPTIONAL_LOCKS=0 git status --porcelain=v1 --untracked-files=all",
+            "git for-each-ref --format='%(refname) %(objectname)' refs/heads",
+            "du -sk /Users/stargrupo/Documents/sc-worktrees"
+          ],
+          "evidence": [
+            "Manifesto com hashes/contagens e resultado real de cada comando."
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Nova divergência, conflito de reserva ou arquivo não inventariado: consultar gerente e atualizar plano."
+          ],
+          "blockedConditions": [
+            "Qualquer .env, sessão e outro ignorado sem decisão de preservação segura.",
+            "Qualquer agente/processo ativo não liberado.",
+            "Autorização de exclusão por caminho ausente ou recusa do Git sem force.",
+            "Backup não restaurável ou resultado de revisão pendente."
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Perda de índice staged, untracked ou ignorados ao apagar uma worktree integrada.",
+        "probability": "high",
+        "impact": "high",
+        "mitigation": "Preservação completa verificável e aprovação por caminho; sem force.",
+        "detection": "status completo, ls-files ignored, manifesto de arquivos e teste de restauração.",
+        "recovery": "Restaurar snapshot em destino separado, conferir hashes e reconstruir índice; manter original enquanto restauração não foi provada."
+      },
+      {
+        "text": "Reintroduzir domínio próprio, gates/spec ou rotas antigas via merge de branches históricas.",
+        "probability": "high",
+        "impact": "high",
+        "mitigation": "Revisão por diferença útil, respeitar remoção 261b06f e contratos atuais.",
+        "detection": "Diff por arquivo, comparação de contratos, testes antes/depois.",
+        "recovery": "Reverter somente alterações novas aprovadas em ambiente isolado; nunca resetar trabalho compartilhado."
+      },
+      {
+        "text": "Concorrência com #100/agentes invalida inventário.",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Revalidar HEAD/index/status e combinar janela com gerente antes de mutação.",
+        "detection": "Mudança nos snapshots de refs/estado ou reserva nova.",
+        "recovery": "Abortar operação e refazer inventário preservando ambos os estados."
+      },
+      {
+        "text": "Exposição de .env/sessões/chaves em arquivo de backup ou relatório.",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Somente nomes nesta auditoria; dono define armazenamento seguro dos ignorados; não copiar para bundle/patch/upload genérico.",
+        "detection": "Revisar manifesto por nomes sensíveis sem ler valores.",
+        "recovery": "Parar antes de cópia; se exposição ocorrer, dono avalia revogação/rotação sem exibir credenciais."
+      },
+      {
+        "text": "Espaço estimado maior que ganho real e descoberta não exaustiva fora dos limites.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Reportar 5,55 GiB aparentes; medir livre antes/depois e declarar limites.",
+        "detection": "Comparar du com espaço livre e nomes novos.",
+        "recovery": "Não ampliar exclusões para atingir meta de espaço."
+      }
+    ],
+    "tests": {
+      "existing": [
+        "package.json: typecheck, lint, test:unit, test:int",
+        "apps/web/tests/landing.test.tsx",
+        "apps/web/tests/landing-cenas.test.tsx",
+        "apps/web/tests/landing-encaixe.test.ts",
+        "packages/core/src/cupom-texto.test.ts",
+        "e2e/specs/manifesto-cobre-arquivos.spec.ts",
+        "e2e/specs/rotas-manifesto.spec.ts"
+      ],
+      "toCreate": [],
+      "manual": [
+        "Auditoria Git já realizada; comparar snapshots antes/depois da execução futura.",
+        "Teste de restauração de arquivos/índice e verificação do bundle antes de qualquer remoção.",
+        "Revisão do manifesto de preservação de ignorados pelo dono."
+      ],
+      "external": [
+        "Coordenação #100 e gerente",
+        "ls-remote origin para revalidar publicação, sem fetch durante auditoria",
+        "Baseline e pós-mudança exigem ambiente de teste autorizado e isolado; não usar banco compartilhado sem coordenação."
+      ]
+    },
+    "rollback": "Antes de qualquer exclusão futura, criar backup verificável de refs e conteúdo local não sensível, registrar HEAD e separação índice/working tree, conferir restauração em destino separado; ignorados relevantes só após preservação segura atestada pelo dono. Sem prova de restauração, nenhuma remoção. Se nova integração falhar, suspender e desfazer apenas delta autorizado; nunca reset/clean na raiz compartilhada."
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "/Users/stargrupo/Documents/sc-worktrees/T-020/apps/web/src/lib/routes.ts está fora do projeto."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true,
+        "detail": "não informada"
+      }
+    ],
+    "failures": [
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-020/apps/web/src/lib/routes.ts está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-020/apps/web/src/lib/routes.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core/src/cupom-texto.ts está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core/src/cupom-texto.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "symbol-missing",
+        "message": "O símbolo \"test:unit\" não aparece em package.json.",
+        "ref": "package.json"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-017 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-017"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-018 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-018"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-020 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-020"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-300 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-300"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-505 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-505"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-507 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-507"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/SC-preservacao-101 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/SC-preservacao-101"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/SC-preservacao-101 está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/SC-preservacao-101"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-300/.spec/verification/sinais.json"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "path-outside-root",
+        "message": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core está fora do projeto.",
+        "ref": "/Users/stargrupo/Documents/sc-worktrees/T-507/packages/core"
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "item": "estimate",
+        "severity": "minor",
+        "code": "no-estimate",
+        "message": "Estimativa de esforço/custo não informada (opcional)."
+      }
+    ],
+    "evaluatedAt": 1793126581467,
+    "passed": 6,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}
