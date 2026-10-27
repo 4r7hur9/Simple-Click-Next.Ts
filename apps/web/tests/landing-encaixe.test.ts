@@ -50,6 +50,16 @@ describe("encaixe das telas", () => {
     expect(passoDoGesto(M, 7100, 1)).toEqual({ tipo: "fora" });
   });
 
+  it("o rodapé é a última parada: do convite um gesto vai ao fim da página, e volta", () => {
+    // O rodapé (600) é mais baixo que a janela: a parada dele é o fim da
+    // página (7100 + 800 + 600 − 800 = 7700), com o pé do convite em cima.
+    const comRodape: MedidasDasTelas = { ...M, telas: [...M.telas, { topo: 7700, altura: 800 }] };
+    expect(passoDoGesto(comRodape, 7100, 1)).toEqual({ tipo: "ir", y: 7700, indice: 3 });
+    expect(passoDoGesto(comRodape, 7700, 1)).toEqual({ tipo: "fora" });
+    expect(passoDoGesto(comRodape, 7700, -1)).toEqual({ tipo: "ir", y: 7100, indice: 2 });
+    expect(ajusteDaPosicao(comRodape, 7600)).toBe(7700);
+  });
+
   it("parou entre duas telas: encaixa a mais perto", () => {
     expect(ajusteDaPosicao(M, 5100)).toBe(5000);
     expect(ajusteDaPosicao(M, 5700)).toBe(5800);

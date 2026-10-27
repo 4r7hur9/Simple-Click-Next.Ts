@@ -31,6 +31,11 @@
   position: relative;
   isolation: isolate;
   overflow: clip;
+  /* Uma tela inteira, como as de cima (o encaixe para aqui e depois no
+     rodapé): sem a faixa vazia do rodapé aparecendo embaixo. */
+  display: grid;
+  align-content: center;
+  min-block-size: calc(100svh - 4rem - 1px);
   padding-block: clamp(5rem, 10vw, 7rem) clamp(4rem, 8vw, 6rem);
   background: var(--convite-preto);
   color: var(--cor-tinta);
@@ -90,6 +95,7 @@
 .sc-lp-convite__dentro {
   display: grid;
   justify-items: center;
+  inline-size: 100%;
   max-inline-size: var(--lp-largura, 74rem);
   margin-inline: auto;
   padding-inline: var(--lp-respiro, 1rem);
@@ -732,5 +738,12 @@
   90% {
     opacity: 0;
     transform: translateY(-48px);
+  }
+}
+
+/* Janela baixa (notebook de 768px): menos respiro, para o convite caber numa tela. */
+@media (min-width: 48rem) and (max-height: 820px) {
+  .sc-lp-convite {
+    padding-block: clamp(2rem, 6svh, 3.5rem);
   }
 }

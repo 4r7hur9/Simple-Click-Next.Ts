@@ -84,7 +84,8 @@ export function Comparar({ id = "comparar" }: { readonly id?: string }) {
           ))}
         </ul>
 
-        <ul aria-label="As quatro empresas, critério por critério" className="sc-regua__empresas">
+        {/* No celular a lista rola para o lado: com foco, as setas do teclado também a levam. */}
+        <ul aria-label="As quatro empresas, critério por critério" className="sc-regua__empresas" tabIndex={0}>
           {EMPRESAS_DA_COMPARACAO.map((empresa) => (
             <li className="sc-regua__empresa" data-empresa={empresa.chave} key={empresa.chave}>
               <div className="sc-regua__cabeca">

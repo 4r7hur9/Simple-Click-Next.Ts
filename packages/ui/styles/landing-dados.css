@@ -5,9 +5,10 @@
  * comuns das seções de prova (secoes.css: .sc-prova, título, sobrancelha) e
  * dos botões da landing (landing.css: .sc-lp-botao).
  *
- * TRÊS TELAS, cada uma do tamanho da janela menos o topo grudado (4rem) e a
- * folga do `scroll-padding` (1rem): um link para #taxas, #taxas-conta ou
- * #taxas-canais mostra a tela inteira, sem corte. Altura sobrando vira
+ * TRÊS TELAS, cada uma do tamanho da janela menos o topo grudado (4rem e a
+ * borda), como as telas de baixo; o `scroll-margin` desconta a folga do
+ * `scroll-padding`: um link para #taxas, #taxas-conta ou #taxas-canais mostra
+ * a tela inteira, sem corte. Altura sobrando vira
  * respiro (conteúdo centrado); no celular e em tela baixa a tela cresce com o
  * conteúdo, nunca espreme.
  *
@@ -24,7 +25,9 @@
  */
 
 .sc-dados {
-  --dados-tela: calc(100svh - 5rem);
+  /* Do tamanho das telas de baixo (landing-secoes.css): a janela menos o topo
+     grudado (4rem e a borda). */
+  --dados-tela: calc(100svh - 4rem - 1px);
   --dados-respiro: max(clamp(1rem, 4vw, 2rem), env(safe-area-inset-left));
   --dados-vao: clamp(1rem, 2.6svh, 1.5rem);
   --dados-raio: 1.25rem;
@@ -37,6 +40,12 @@
   position: relative;
   isolation: isolate;
   padding-block: 0;
+}
+
+/* A conta do cliente também tem um `.sc-dados` (grade com vão): aqui as três
+   telas ficam coladas, uma embaixo da outra, sem vão entre elas. */
+.sc-prova.sc-dados {
+  display: block;
 }
 
 /* Luz de fundo: uma por tela, alternando o lado. */
@@ -56,7 +65,7 @@
   display: grid;
   align-items: center;
   padding-block: clamp(3rem, 8vw, 4rem);
-  scroll-margin-block-start: -1rem;
+  scroll-margin-block-start: calc(1px - 1rem);
 }
 
 .sc-dados__dentro {
@@ -474,6 +483,22 @@
     background-color var(--transicao-media);
 }
 
+/* As fontes e o "Fontes e metodologia" ficam discretos (letra pequena), mas o
+   alvo do toque tem 44px de altura: uma faixa invisível em volta do texto. */
+.sc-dados__fonte,
+.sc-dados__abrir-fontes {
+  position: relative;
+  z-index: 1;
+}
+
+.sc-dados__fonte::after,
+.sc-dados__abrir-fontes::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block: min(0px, calc((100% - 44px) / 2));
+}
+
 .sc-dados__fonte svg {
   display: inline-block;
   margin-inline-end: 0.3rem;
@@ -497,7 +522,8 @@
 .sc-dados__pe-do-grafico {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 1rem;
+  /* Fontes uma embaixo da outra: o vão deixa os alvos de 44px sem se cobrir. */
+  gap: 1.25rem 1rem;
   margin: 0;
 }
 
@@ -1380,5 +1406,13 @@
 
   .sc-dado3d__placa {
     border-color: CanvasText;
+  }
+}
+
+/* Tablet em pé: a tela já passa da janela e rola por dentro; o título não
+   encosta no topo. */
+@media (min-width: 48rem) and (orientation: portrait) {
+  .sc-dados__tela {
+    padding-block: 1.5rem;
   }
 }

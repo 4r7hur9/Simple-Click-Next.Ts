@@ -7,17 +7,26 @@
  */
 import { useEffect } from "react";
 
+import { detectarCapacidadeDaLanding } from "../capacidade-da-landing.ts";
 import { montarEntradasDasTelas, montarTelasEmEncaixe } from "./telas-em-encaixe.ts";
 
 export function EncaixeDasTelas() {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const raiz = document.querySelector<HTMLElement>(".sc-lp") ?? document.body;
-    const desfazerEntradas = montarEntradasDasTelas(raiz);
-    const desfazerEncaixe = montarTelasEmEncaixe(raiz);
+    let cancelado = false;
+    let desfazer: (() => void) | undefined;
+    void detectarCapacidadeDaLanding().then((nivel) => {
+      if (cancelado || nivel !== "completo" || window.matchMedia("(pointer: coarse)").matches) return;
+      const raiz = document.querySelector<HTMLElement>(".sc-lp") ?? document.body;
+      const desfazerEntradas = montarEntradasDasTelas(raiz);
+      const desfazerEncaixe = montarTelasEmEncaixe(raiz);
+      desfazer = () => {
+        desfazerEncaixe();
+        desfazerEntradas();
+      };
+    });
     return () => {
-      desfazerEncaixe();
-      desfazerEntradas();
+      cancelado = true;
+      desfazer?.();
     };
   }, []);
 

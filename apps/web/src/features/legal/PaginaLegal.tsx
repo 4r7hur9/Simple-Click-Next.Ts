@@ -9,7 +9,7 @@ import {
   ROTAS_LEGAIS,
   VERSAO_DOS_TEXTOS,
 } from "./contato.ts";
-import { RodapeLegal } from "./RodapeLegal.tsx";
+import { RodapeDoSimpleClick } from "./RodapeDoSimpleClick.tsx";
 
 export type Bloco = string | { readonly lista: readonly string[] };
 
@@ -108,7 +108,7 @@ export function PaginaLegal({
         </main>
       </div>
 
-      <RodapeLegal />
+      <RodapeDoSimpleClick />
     </div>
   );
 }

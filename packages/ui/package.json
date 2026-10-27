@@ -17,6 +17,7 @@
     "./styles/sobre.css": "./styles/sobre.css",
     "./styles/landing.css": "./styles/landing.css",
     "./styles/landing-dados.css": "./styles/landing-dados.css",
+    "./styles/landing-rodape.css": "./styles/landing-rodape.css",
     "./styles/vitrine.css": "./styles/vitrine.css",
     "./styles/produto.css": "./styles/produto.css",
     "./styles/fechamento.css": "./styles/fechamento.css",

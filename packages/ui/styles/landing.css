@@ -1172,56 +1172,6 @@ html:has(.sc-lp) body {
   justify-content: center;
 }
 
-.sc-lp-rodape {
-  padding-block: var(--espaco-7)
-    max(var(--espaco-7), calc(env(safe-area-inset-bottom) + var(--espaco-5)));
-  border-block-start: 1px solid var(--cor-borda);
-}
-
-.sc-lp-rodape__dentro {
-  display: grid;
-  gap: var(--espaco-5);
-}
-
-.sc-lp-rodape nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-2) var(--espaco-5);
-}
-
-.sc-lp-rodape nav a {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--altura-toque);
-  color: var(--cor-tinta-suave);
-  text-decoration: none;
-}
-
-.sc-lp-rodape nav a:hover {
-  color: var(--cor-tinta);
-}
-
-.sc-lp-rodape p {
-  margin: 0;
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
-}
-
-@media (min-width: 768px) {
-  .sc-lp-rodape__dentro {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-  }
-
-  .sc-lp-rodape nav {
-    justify-content: flex-end;
-  }
-
-  .sc-lp-rodape p {
-    grid-column: 1 / -1;
-  }
-}
-
 /* --- barra de progresso da leitura (a narrativa anima scaleX) ----------- */
 
 .sc-lp-progresso {
@@ -1445,48 +1395,6 @@ html:has(.sc-lp) body {
     color: var(--cor-primaria-texto);
     vertical-align: -3px;
   }
-}
-
-.sc-lp-fontes {
-  margin-block-start: var(--espaco-5);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
-  line-height: 1.5;
-}
-
-.sc-lp-fontes summary {
-  display: inline-flex;
-  min-block-size: var(--altura-toque);
-  align-items: center;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
-.sc-lp-fontes ul {
-  display: grid;
-  gap: var(--espaco-1);
-  margin: var(--espaco-2) 0;
-  padding-inline-start: var(--espaco-5);
-}
-
-.sc-lp-fontes li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--espaco-1);
-}
-
-.sc-lp-fontes a {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--altura-toque);
-  color: var(--cor-tinta);
-}
-
-.sc-lp-fontes p {
-  max-inline-size: 70ch;
-  margin: var(--espaco-2) 0 0;
 }
 
 /* --- movimento ----------------------------------------------------------

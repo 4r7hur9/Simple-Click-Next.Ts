@@ -81,6 +81,14 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
   text-decoration: underline;
 }
 
+/* Toque: o link é de linha, então o padding vertical de um elemento inline não
+   mexe no texto nem nas linhas vizinhas; só alarga a área clicável até 44px. */
+@media (pointer: coarse) {
+  .sc-cookies__texto a {
+    padding-block: 0.9375rem;
+  }
+}
+
 .sc-cookies__categorias {
   display: grid;
   gap: var(--espaco-2);
@@ -160,7 +168,12 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
 
 .sc-cookies__botao--discreto {
   border-color: transparent;
-  text-decoration: underline;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-cookies__botao--discreto:hover {
+  border-color: transparent;
+  color: var(--cor-primaria-texto);
 }
 
 @media (max-width: 40rem) {
@@ -245,13 +258,13 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
   background: none;
   color: inherit;
   font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  text-decoration: none;
   cursor: pointer;
+  transition: color var(--transicao-rapida);
 }
 
 .sc-rodape-legal__link:hover {
-  color: var(--cor-tinta);
+  color: var(--cor-primaria-texto);
 }
 
 .sc-rodape-legal__link:focus-visible {

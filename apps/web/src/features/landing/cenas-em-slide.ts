@@ -27,6 +27,7 @@ import type gsapPadrao from "gsap";
 import type { SplitText as SplitTextPadrao } from "gsap/SplitText";
 
 import {
+  ancoraDaMesmaPagina,
   cenaDaPosicao,
   criarDetectorDeGesto,
   destinoDoGesto,
@@ -544,11 +545,13 @@ export function montarCenasEmSlide({
     if (cena !== null && cena !== atual) irPara(cena);
   };
 
-  /** Âncoras para as cenas (menu do topo, "Ver como funciona", bolinhas). */
+  /** Âncoras para as cenas (menu do topo, "Ver como funciona", bolinhas, rodapé). */
   const aoClicar = (evento: MouseEvent) => {
     if (!ativo || evento.defaultPrevented || evento.button !== 0) return;
-    const link = evento.target instanceof Element ? evento.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
-    const id = link?.getAttribute("href")?.slice(1);
+    // Cmd/Ctrl/Shift + clique abre outra aba ou janela: não é com a narrativa.
+    if (evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
+    const link = evento.target instanceof Element ? evento.target.closest<HTMLAnchorElement>("a[href*='#']") : null;
+    const id = ancoraDaMesmaPagina(link?.getAttribute("href"), window.location.href);
     const indice = id ? cenas.findIndex((cena) => cena.id === id) : -1;
     if (indice < 0) return;
     evento.preventDefault();

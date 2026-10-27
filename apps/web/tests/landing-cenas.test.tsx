@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { CENAS_DA_NARRATIVA, NarrativaEmCenas } from "../src/features/landing/cenas/Cenas.tsx";
 import {
+  ancoraDaMesmaPagina,
   cenaDaPosicao,
   criarDetectorDeGesto,
   destinoDoGesto,
@@ -60,6 +61,13 @@ describe("para onde um gesto leva", () => {
     expect(destinoDoGesto(MEDIDAS, 5300, -1, 6)).toEqual({ tipo: "voltar", y: 4800, indice: 6 });
   });
 
+  it("encostado na seção seguinte, subir volta ao palco (teclado e roda, sem salto)", () => {
+    expect(destinoDoGesto(MEDIDAS, 5600, -1, 6)).toEqual({ tipo: "voltar", y: 4800, indice: 6 });
+    expect(seguraOGesto(MEDIDAS, 5600, -1)).toBe(true);
+    expect(seguraOGesto(MEDIDAS, 5600, 1)).toBe(false);
+    expect(destinoDoGesto(MEDIDAS, 5700, -1, 6)).toBeNull();
+  });
+
   it("no topo e depois da narrativa, a rolagem é do navegador", () => {
     expect(destinoDoGesto(MEDIDAS, 0, -1, 0)).toBeNull();
     expect(seguraOGesto(MEDIDAS, 0, -1)).toBe(false);
@@ -67,6 +75,21 @@ describe("para onde um gesto leva", () => {
     expect(seguraOGesto(MEDIDAS, 7000, 1)).toBe(false);
     expect(seguraOGesto(MEDIDAS, 5300, 1)).toBe(false);
     expect(seguraOGesto(MEDIDAS, 1600, 1)).toBe(true);
+  });
+});
+
+describe("âncoras da mesma página (menu, bolinhas e rodapé)", () => {
+  const PAGINA = "https://simpleclick.com.br/";
+
+  it("aceita #id e /#id (o rodapé), e recusa outra página", () => {
+    expect(ancoraDaMesmaPagina("#como-funciona", PAGINA)).toBe("como-funciona");
+    expect(ancoraDaMesmaPagina("/#taxas", PAGINA)).toBe("taxas");
+    expect(ancoraDaMesmaPagina("/#taxas", "https://simpleclick.com.br/#inicio")).toBe("taxas");
+    expect(ancoraDaMesmaPagina("/termos#uso", PAGINA)).toBeNull();
+    expect(ancoraDaMesmaPagina("https://outro.site/#taxas", PAGINA)).toBeNull();
+    expect(ancoraDaMesmaPagina("/explorar", PAGINA)).toBeNull();
+    expect(ancoraDaMesmaPagina("#", PAGINA)).toBeNull();
+    expect(ancoraDaMesmaPagina(null, PAGINA)).toBeNull();
   });
 });
 

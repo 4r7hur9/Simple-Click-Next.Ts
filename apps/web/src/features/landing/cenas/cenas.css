@@ -854,11 +854,19 @@
   }
 
   /* No celular quem navega é o dedo arrastando; as bolinhas são só o mapa.
-     Coluna mais curta (alvo de 32px, acima dos 24px do WCAG 2.2 AA) para não
-     pesar ao lado do texto e do aparelho. */
+     Coluna estreita (2rem) para não pesar ao lado do texto e do aparelho, mas
+     cada alvo tem 44px de altura e, com a faixa invisível para dentro da
+     tela, 44px de largura. */
   .sc-lp-indicador__ponto {
     inline-size: 2rem;
-    block-size: 2rem;
+    block-size: 2.75rem;
+  }
+
+  .sc-lp-indicador__ponto::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: -0.75rem 0;
   }
 
   .sc-lp-indicador__trilho {

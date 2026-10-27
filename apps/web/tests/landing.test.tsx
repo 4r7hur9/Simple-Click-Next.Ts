@@ -27,6 +27,7 @@ import {
   emReais,
 } from "../src/features/landing/custo-do-aplicativo.ts";
 import { LandingDoSimpleClick } from "../src/features/landing/LandingDoSimpleClick.tsx";
+import { SELETOR_DAS_TELAS } from "../src/features/landing/secoes/telas-em-encaixe.ts";
 import { TELAS_DO_APP } from "../src/features/landing/telas-do-app.ts";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
@@ -367,9 +368,13 @@ describe("revisão final (#94): leitor de tela, teclado e layout estável", () =
   const ler = (relativo: string) => readFileSync(join(PASTA_DA_LANDING, relativo), "utf8");
 
   it("um rodapé só na página: a landing não abre um segundo contentinfo", () => {
-    // O RodapeLegal (logo depois da landing, em page.tsx) é o rodapé da página.
+    // O RodapeDoSimpleClick (logo depois da landing, em page.tsx) é o rodapé
+    // da página; o antigo bloco "Mais do SimpleClick" saiu (#97).
     expect(html()).not.toMatch(/<footer\b/);
-    expect(html()).toContain('aria-label="Mais do SimpleClick"');
+    expect(html()).not.toContain("sc-lp-rodape");
+    const pagina = readFileSync(join(AQUI, "../src/app/page.tsx"), "utf8");
+    expect(pagina).toMatch(/<RodapeDoSimpleClick \/>/);
+    expect(pagina).not.toMatch(/RodapeLegal/);
   });
 
   it("o que ainda vai entrar na tela continua focável e lido (opacidade, nunca visibility)", () => {
@@ -414,7 +419,10 @@ describe("dados de mercado (#95): três telas, cartões 3D e fontes discretas", 
 
   it("cada tela tem a altura da janela (menos o topo) a partir do tablet e cresce em tela baixa", () => {
     const folha = css();
-    expect(folha).toMatch(/--dados-tela: calc\(100svh - 5rem\)/);
+    // A mesma altura das telas de baixo (landing-secoes.css): janela menos o topo de 4rem e a borda.
+    expect(folha).toMatch(/--dados-tela: calc\(100svh - 4rem - 1px\)/);
+    // A conta do cliente também tem `.sc-dados` (grade com vão): na landing as telas ficam coladas.
+    expect(folha).toMatch(/\.sc-prova\.sc-dados \{\s*display: block;/);
     expect(folha).toMatch(/@media \(min-width: 48rem\) \{\s*\.sc-dados__tela \{\s*min-block-size: var\(--dados-tela\)/);
     expect(folha).toMatch(/@media \(max-height: 37\.5rem\) \{\s*\.sc-dados__tela \{\s*min-block-size: 0/);
   });
@@ -447,6 +455,20 @@ describe("seções depois da narrativa (#96): uma tela cada, com botão e destaq
   it("cada seção é uma tela (data-tela), na ordem, antes do convite", () => {
     const telas = [...caixa().querySelectorAll<HTMLElement>("section[data-tela]")].map((s) => s.id);
     expect(telas).toEqual(SECOES);
+  });
+
+  it("o encaixe conta só as telas da página, não as telas dos aparelhos", () => {
+    // As imagens do iPhone e do notebook também têm data-tela (o nome da tela
+    // do app); se entrassem no encaixe, ele pararia no meio do convite.
+    const telas = [...caixa().querySelectorAll<HTMLElement>(SELETOR_DAS_TELAS)];
+    expect(telas.every((tela) => tela.tagName !== "IMG")).toBe(true);
+    expect(telas.map((tela) => tela.id)).toEqual([
+      "taxas-numeros",
+      "taxas-conta",
+      "taxas-canais",
+      ...SECOES,
+      "comecar",
+    ]);
   });
 
   it("cada seção tem pílula, título com destaque colorido e um botão da landing", () => {
@@ -495,5 +517,15 @@ describe("seções depois da narrativa (#96): uma tela cada, com botão e destaq
     expect(depois).toMatch(/data-armado/);
     expect(css).not.toMatch(/visibility\s*:/);
     expect(css).toMatch(/min-block-size: var\(--tela-altura\)/);
+  });
+
+  it("todas as telas, até o convite, têm a altura da janela; em janela baixa o respiro aperta", () => {
+    const secoes = readFileSync(join(PASTA_DA_LANDING, "secoes/landing-secoes.css"), "utf8");
+    const convite = readFileSync(join(PASTA_DA_LANDING, "secoes/convite-final.css"), "utf8");
+    expect(secoes).toMatch(/--tela-altura: calc\(100svh - var\(--tela-topo\) - 1px\)/);
+    expect(convite).toMatch(/\.sc-lp-convite \{[^}]*min-block-size: calc\(100svh - 4rem - 1px\)/);
+    // Notebook de 768px: as seções cabem numa tela, um gesto basta.
+    expect(secoes).toMatch(/@media \(min-width: 48rem\) and \(max-height: 820px\) \{\s*\.sc-tela \{\s*padding-block/);
+    expect(convite).toMatch(/@media \(min-width: 48rem\) and \(max-height: 820px\) \{\s*\.sc-lp-convite \{\s*padding-block/);
   });
 });

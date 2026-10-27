@@ -185,6 +185,14 @@
   gap: 0.75rem 1.5rem;
 }
 
+/* Janela baixa (notebook de 768px, tablet deitado): menos respiro em cima e
+   embaixo, para a seção caber numa tela só e um gesto bastar. */
+@media (min-width: 48rem) and (max-height: 820px) {
+  .sc-tela {
+    padding-block: clamp(1rem, 3svh, 1.5rem);
+  }
+}
+
 @media (min-width: 56rem) {
   .sc-tela__cabeca--com-acao {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -655,6 +663,14 @@
 
   .sc-regua__cabeca {
     padding-block: 0.625rem 0.5rem;
+  }
+
+  .sc-tela--regua .sc-tela__dentro {
+    gap: 0.875rem;
+  }
+
+  .sc-tela--regua .sc-tela__titulo {
+    font-size: clamp(1.75rem, 0.9rem + 2.2vw, 2.75rem);
   }
 }
 
@@ -1139,6 +1155,31 @@
   }
 }
 
+/* Janela baixa no computador: blocos mais justos, para o mosaico caber inteiro. */
+@media (min-width: 62.5rem) and (max-height: 820px) {
+  .sc-mosaico__blocos {
+    gap: 0.5rem;
+  }
+
+  .sc-mosaico__bloco {
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .sc-mosaico__bloco--grande {
+    padding: 1rem 1.25rem;
+  }
+
+  .sc-mosaico__icone {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+
+  .sc-mosaico__coluna {
+    min-block-size: 2.5rem;
+  }
+}
+
 /* =====================================================================================
  * VOZES (#depoimentos): luz quente, aspas grandes, vidro
  * ===================================================================================== */
@@ -1299,6 +1340,38 @@
 @media (min-width: 62.5rem) {
   .sc-vozes__cabeca {
     max-inline-size: 46rem;
+  }
+}
+
+/* Janela baixa: cartões mais justos, para os três depoimentos caberem na tela. */
+@media (min-width: 48rem) and (max-height: 820px) {
+  .sc-vozes__cartao {
+    padding: 0.875rem 1.125rem;
+  }
+
+  .sc-vozes__cartao figure {
+    gap: 0.5rem;
+  }
+
+  .sc-vozes__cartao--grande {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .sc-vozes__cartao--grande blockquote p {
+    font-size: clamp(1.125rem, 0.8rem + 1vw, 1.5rem);
+  }
+
+  .sc-tela--vozes .sc-tela__titulo {
+    font-size: clamp(2rem, 1rem + 2.6vw, 3rem);
+  }
+
+  .sc-tela--vozes .sc-tela__dentro {
+    gap: 0.875rem;
+  }
+
+  .sc-vozes__avatar {
+    inline-size: 2rem;
+    block-size: 2rem;
   }
 }
 

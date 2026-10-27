@@ -1,0 +1,454 @@
+/*
+ * Rodapé do SimpleClick (card #97): fim da landing e das páginas da marca.
+ *
+ * Fundo grafite com um brilho verde-limão sutil e uma linha de gradiente no
+ * topo. Nenhum link é sublinhado: o retorno do passar e do foco é a cor, um
+ * deslocamento curto e uma seta que surge; o foco do teclado ganha contorno.
+ *
+ * Colunas: 4 a partir de 64rem (marca + Produto + Para lojistas + Empresa),
+ * 2 no tablet e 2 compactas no celular (a marca e a coluna legal ocupam a
+ * linha inteira). Laterais de 1rem no celular a 2rem no computador.
+ */
+
+.sc-rodape {
+  --rodape-largura: 74rem;
+  --rodape-respiro: max(
+    clamp(1rem, 4vw, 2rem),
+    env(safe-area-inset-left),
+    env(safe-area-inset-right)
+  );
+  --rodape-limao: var(--marca-verde-click);
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(3.5rem, 8vw, 6rem)
+    calc(var(--espaco-6) + env(safe-area-inset-bottom));
+  border-block-start: 1px solid color-mix(in oklab, var(--cor-borda) 60%, transparent);
+  background:
+    radial-gradient(
+      48rem 26rem at 8% -6rem,
+      color-mix(in oklab, var(--rodape-limao) 11%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      36rem 20rem at 100% 110%,
+      color-mix(in oklab, var(--marca-verde-digital) 7%, transparent),
+      transparent 70%
+    ),
+    var(--cor-fundo);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+}
+
+/* A linha de gradiente do topo: some nas pontas, acende no meio. */
+.sc-rodape::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 4%,
+    var(--rodape-limao) 32%,
+    var(--marca-verde-digital) 62%,
+    transparent 96%
+  );
+  opacity: 0.75;
+}
+
+/* O aviso de cookies é fixo no pé da tela: enquanto ele existe, o rodapé
+   ganha embaixo a altura dele (medida pelo próprio aviso em
+   --altura-do-aviso-de-cookies) para nada ficar escondido atrás. */
+body:has(.sc-cookies) .sc-rodape {
+  padding-block-end: calc(
+    var(--espaco-6) + env(safe-area-inset-bottom) +
+      var(--altura-do-aviso-de-cookies, 0px)
+  );
+}
+
+.sc-rodape__dentro {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: var(--rodape-largura);
+  margin-inline: auto;
+  padding-inline: var(--rodape-respiro);
+}
+
+.sc-rodape a,
+.sc-rodape button {
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sc-rodape :is(a, button):focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 3px;
+  border-radius: var(--raio-1);
+}
+
+.sc-rodape__so-leitor {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- grade ---------- */
+
+.sc-rodape__grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-6) var(--espaco-4);
+}
+
+.sc-rodape__marca,
+.sc-rodape__coluna--empresa {
+  grid-column: 1 / -1;
+}
+
+.sc-rodape__coluna--empresa .sc-rodape__lista {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--espaco-4);
+}
+
+@media (min-width: 48rem) {
+  .sc-rodape__grade {
+    gap: var(--espaco-7) var(--espaco-6);
+  }
+
+  .sc-rodape__marca,
+  .sc-rodape__coluna--empresa {
+    grid-column: auto;
+  }
+
+  .sc-rodape__coluna--empresa .sc-rodape__lista {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .sc-rodape__grade {
+    grid-template-columns: minmax(18rem, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: var(--espaco-6);
+  }
+
+  .sc-rodape__marca {
+    padding-inline-end: var(--espaco-6);
+  }
+}
+
+/* ---------- coluna da marca ---------- */
+
+.sc-rodape__marca {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--espaco-4);
+}
+
+.sc-rodape__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.02em;
+}
+
+.sc-rodape__simbolo {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--raio-2);
+  background: var(--rodape-limao);
+  color: var(--marca-preto-tecnologico);
+  font-size: 1rem;
+  box-shadow: 0 6px 22px -8px var(--marca-verde-digital);
+  transition: transform var(--transicao-media);
+}
+
+.sc-rodape__logo:hover .sc-rodape__simbolo {
+  transform: rotate(-12deg) scale(1.06);
+}
+
+.sc-rodape__frase {
+  max-inline-size: 26rem;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-base);
+  line-height: 1.6;
+}
+
+.sc-rodape__frase strong {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-medio);
+}
+
+.sc-rodape__chamada {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque-grande);
+  padding: 0 var(--espaco-5);
+  border-radius: var(--raio-completo);
+  background: var(--rodape-limao);
+  color: var(--marca-preto-tecnologico);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-forte);
+  box-shadow: 0 10px 30px -12px var(--marca-verde-digital);
+  transition:
+    transform var(--transicao-rapida),
+    box-shadow var(--transicao-media);
+}
+
+.sc-rodape__chamada svg {
+  transition: transform var(--transicao-media);
+}
+
+.sc-rodape__chamada:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px -12px var(--marca-verde-digital);
+}
+
+.sc-rodape__chamada:hover svg {
+  transform: translateX(3px);
+}
+
+.sc-rodape__contatos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1) var(--espaco-4);
+  margin: var(--espaco-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-rodape__contato {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  color: var(--cor-tinta-suave);
+  overflow-wrap: anywhere;
+  transition: color var(--transicao-rapida);
+}
+
+.sc-rodape__contato-icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: color-mix(in oklab, var(--cor-superficie) 70%, transparent);
+  color: var(--cor-tinta);
+  transition:
+    border-color var(--transicao-rapida),
+    color var(--transicao-rapida),
+    transform var(--transicao-media);
+}
+
+.sc-rodape__contato:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-rodape__contato:hover .sc-rodape__contato-icone {
+  border-color: var(--rodape-limao);
+  color: var(--rodape-limao);
+  transform: translateY(-2px);
+}
+
+.sc-rodape__fora {
+  color: var(--cor-tinta-suave);
+}
+
+/* ---------- colunas de links ---------- */
+
+.sc-rodape__coluna {
+  min-inline-size: 0;
+}
+
+.sc-rodape__titulo {
+  margin: 0 0 var(--espaco-2);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sc-rodape__titulo::after {
+  content: "";
+  display: block;
+  inline-size: 1.5rem;
+  block-size: 2px;
+  margin-block-start: var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background: var(--rodape-limao);
+}
+
+.sc-rodape__lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-rodape__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  max-inline-size: 100%;
+  min-block-size: var(--altura-toque);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-tinta-suave);
+  font: inherit;
+  font-size: var(--texto-sm);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    color var(--transicao-rapida),
+    transform var(--transicao-media);
+}
+
+.sc-rodape__seta {
+  flex: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--transicao-media),
+    transform var(--transicao-media);
+}
+
+.sc-rodape__link:is(:hover, :focus-visible) {
+  color: var(--rodape-limao);
+  transform: translateX(2px);
+}
+
+.sc-rodape__link:is(:hover, :focus-visible) .sc-rodape__seta {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- faixa final ---------- */
+
+.sc-rodape__base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3) var(--espaco-5);
+  align-items: center;
+  margin-block-start: clamp(2.5rem, 6vw, 4rem);
+  padding-block-start: var(--espaco-5);
+  border-block-start: 1px solid var(--cor-borda);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-rodape__direitos {
+  flex: 1 1 18rem;
+  margin: 0;
+}
+
+.sc-rodape__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  letter-spacing: 0.02em;
+}
+
+/* Verde e amarelo, discreto: duas bolinhas, não uma bandeira. */
+.sc-rodape__selo-cores {
+  inline-size: 0.875rem;
+  block-size: 0.5rem;
+  border-radius: var(--raio-completo);
+  background: linear-gradient(90deg, #1fa34a 0 50%, #f2c400 50% 100%);
+}
+
+.sc-rodape__topo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-1) 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida);
+}
+
+.sc-rodape__topo-icone {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  transition:
+    background-color var(--transicao-rapida),
+    color var(--transicao-rapida),
+    transform var(--transicao-media);
+}
+
+.sc-rodape__topo:hover {
+  border-color: var(--rodape-limao);
+}
+
+.sc-rodape__topo:hover .sc-rodape__topo-icone {
+  background: var(--rodape-limao);
+  color: var(--marca-preto-tecnologico);
+  transform: translateY(-2px);
+}
+
+.sc-rodape__topo:focus-visible {
+  border-radius: var(--raio-completo);
+}
+
+@media (max-width: 47.99rem) {
+  .sc-rodape__base {
+    justify-content: space-between;
+  }
+
+  .sc-rodape__direitos {
+    flex-basis: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-rodape *,
+  .sc-rodape *::before,
+  .sc-rodape *::after {
+    transition: none !important;
+  }
+
+  .sc-rodape__link:is(:hover, :focus-visible),
+  .sc-rodape__chamada:hover,
+  .sc-rodape__contato:hover .sc-rodape__contato-icone,
+  .sc-rodape__topo:hover .sc-rodape__topo-icone {
+    transform: none;
+  }
+}

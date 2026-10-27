@@ -12,7 +12,7 @@ import "../features/landing/cenas/tipografia.css";
 import { PALETA_ESCURA } from "@simpleclick/ui";
 import type { Metadata, Viewport } from "next";
 
-import { RodapeLegal } from "../features/legal/RodapeLegal.tsx";
+import { RodapeDoSimpleClick } from "../features/legal/RodapeDoSimpleClick.tsx";
 import { LandingDoSimpleClick } from "../features/landing/LandingDoSimpleClick.tsx";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function PaginaInicial() {
   return (
     <>
       <LandingDoSimpleClick />
-      <RodapeLegal />
+      <RodapeDoSimpleClick />
     </>
   );
 }

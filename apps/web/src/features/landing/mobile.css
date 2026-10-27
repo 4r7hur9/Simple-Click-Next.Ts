@@ -1,0 +1,287 @@
+/* Regras móveis da landing: conteúdo sempre em fluxo e rolagem nativa. */
+@media (pointer: coarse) and (max-width: 899.98px) {
+  html:has(.sc-lp) {
+    scroll-snap-type: y proximity;
+    scroll-padding-block-start: calc(4rem + env(safe-area-inset-top));
+  }
+
+  .sc-lp-momento,
+  .sc-lp [data-tela-de-dados],
+  .sc-lp section[data-tela],
+  .sc-lp-convite,
+  footer.sc-rodape {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    scroll-margin-block-start: calc(4rem + env(safe-area-inset-top));
+  }
+
+  .sc-lp {
+    --lp-respiro: max(1rem, env(safe-area-inset-left));
+    overflow-x: clip;
+    padding-block-end: env(safe-area-inset-bottom);
+  }
+
+  .sc-lp-topo {
+    padding-block-start: env(safe-area-inset-top);
+    background: var(--cor-fundo);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .sc-lp-topo__dentro {
+    gap: 0.5rem;
+    min-block-size: 4rem;
+    padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  }
+
+  .sc-lp-marca {
+    min-inline-size: 0;
+    gap: 0.375rem;
+    font-size: 1rem;
+  }
+
+  .sc-lp-marca__simbolo {
+    flex: none;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+  }
+
+  .sc-lp-topo__acoes {
+    flex: none;
+    gap: 0.375rem;
+  }
+
+  .sc-lp-topo__entrar {
+    min-inline-size: 2.75rem;
+    min-block-size: 2.75rem;
+  }
+
+  .sc-lp-topo__criar {
+    min-block-size: 2.75rem;
+    padding-inline: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Reverte o palco sticky do modo slide: cada cena é um bloco natural. */
+  .sc-lp-narrativa:not([data-modo="fluxo"]) {
+    block-size: auto !important;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__palco {
+    position: relative !important;
+    inset: auto !important;
+    block-size: auto !important;
+    overflow: visible;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__grade {
+    block-size: auto;
+    padding-inline: var(--lp-respiro);
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento {
+    position: relative !important;
+    inset: auto !important;
+    z-index: auto !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 4svh, 2rem);
+    min-block-size: calc(100svh - 4rem - env(safe-area-inset-top));
+    padding: clamp(2.5rem, 7svh, 4rem) 0;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    scroll-snap-align: start;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__texto {
+    max-inline-size: 42rem;
+    max-block-size: none;
+    margin-inline: auto;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-momento__figura {
+    display: grid !important;
+    min-inline-size: 0;
+    padding: 0 0 1rem;
+  }
+
+  .sc-lp-narrativa:not([data-modo="fluxo"]) .sc-lp-narrativa__aparelhos {
+    display: none !important;
+  }
+
+  .sc-lp-indicador {
+    display: none !important;
+  }
+
+  .sc-lp-momento__titulo {
+    font-size: clamp(2rem, 8.8vw, 3rem);
+    line-height: 1.04;
+  }
+
+  .sc-lp-heroi__titulo {
+    font-size: clamp(2.5rem, 11vw, 3.5rem);
+    line-height: 0.98;
+  }
+
+  .sc-lp-heroi__acoes,
+  .sc-lp-convite__acoes {
+    gap: 0.75rem;
+    margin-block-start: 1.5rem;
+  }
+
+  .sc-lp-heroi__acoes .sc-lp-botao,
+  .sc-lp-convite__acoes .sc-lp-botao,
+  .sc-impacto__acao .sc-lp-botao,
+  .sc-tela__acao .sc-lp-botao {
+    min-block-size: 2.75rem;
+  }
+
+  .sc-lp-convite {
+    min-block-size: calc(100svh - 4rem - env(safe-area-inset-top));
+    padding-block: 3rem max(2.5rem, env(safe-area-inset-bottom));
+  }
+
+  .sc-lp-convite__dentro,
+  .sc-tela__dentro,
+  .sc-dados__dentro,
+  .sc-dado3d__vaga,
+  .sc-mosaico,
+  .sc-regua,
+  .sc-vozes {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+
+  .sc-lp-convite__palco {
+    max-inline-size: 100%;
+  }
+
+  .sc-lp-convite__poeira,
+  .sc-lp-convite__fundo::after,
+  .sc-tela__fundo::before {
+    display: none;
+  }
+
+  .sc-dados__tela {
+    min-block-size: auto;
+    padding-block: 2.5rem;
+    scroll-snap-align: start;
+  }
+
+  .sc-dado3d {
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 20%);
+  }
+
+  .sc-lp[data-efeitos="leve"] .sc-dado3d {
+    transform:
+      rotateX(calc(var(--py) * -5deg))
+      rotateY(calc(var(--px) * 5deg)) !important;
+    transition: transform 180ms ease-out;
+  }
+
+  .sc-lp[data-efeitos="leve"] .sc-dado3d__sombra,
+  .sc-lp[data-efeitos="leve"] .sc-dado3d__brilho,
+  .sc-lp[data-efeitos="leve"] .sc-dado3d__luz {
+    display: none;
+  }
+
+  .sc-tela {
+    min-block-size: max(calc(100svh - 4rem), 36rem);
+    padding-block: 2.5rem;
+    scroll-snap-align: start;
+  }
+
+  .sc-tela__dentro {
+    gap: 1.25rem;
+    padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  }
+
+  .sc-mosaico__bloco,
+  .sc-vozes__cartao,
+  .sc-regua__cartao {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sc-rodape {
+    padding-block-end: max(2rem, env(safe-area-inset-bottom));
+    scroll-snap-align: start;
+  }
+
+  .sc-lp :is(button, a, summary) {
+    scroll-margin-block: 5rem;
+  }
+
+  html:has(.sc-lp) .sc-cookies {
+    inset-inline: max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-right));
+    inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
+    max-block-size: min(42svh, calc(100svh - 6rem - env(safe-area-inset-top)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  html:has(.sc-lp) .sc-cookies__botao--discreto {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* Equipamentos fracos recebem o estado final, sem filtros nem animações. */
+@media (pointer: coarse) and (max-width: 899.98px), (prefers-reduced-motion: reduce) {
+  .sc-lp :is(*, *::before, *::after) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .sc-lp :is(.sc-lp-celular, .sc-lp-notebook, .sc-lp-produto, .sc-dado3d, .sc-lp-convite__estrela) {
+    filter: none !important;
+  }
+
+  .sc-lp .sc-lp-convite__luz {
+    background: radial-gradient(55% 35% at 50% 78%, color-mix(in oklab, var(--marca-verde-click) 14%, transparent), transparent 74%);
+  }
+}
+
+@media (max-width: 380px) and (pointer: coarse) {
+  .sc-lp-topo__dentro {
+    padding-inline: max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-right));
+  }
+
+  .sc-lp-marca {
+    font-size: 0.9375rem;
+  }
+
+  .sc-lp-topo__criar {
+    padding-inline: 0.625rem;
+  }
+
+  .sc-lp-comparativo td {
+    grid-template-columns: minmax(5.5rem, 6.5rem) minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-inline: 0.875rem;
+  }
+}
+
+/* Toque: as fontes e o "Fontes e metodologia" mantêm a letra pequena, mas a
+   caixa de verdade tem 44px de altura (no desktop continua como era). */
+@media (pointer: coarse) {
+  .sc-lp .sc-dados__fonte {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-block-size: 44px;
+  }
+
+  .sc-lp .sc-dados__fonte svg {
+    flex: none;
+    margin-inline-end: 0;
+  }
+
+  .sc-lp .sc-dados__abrir-fontes {
+    min-block-size: 44px;
+  }
+
+  .sc-lp .sc-dados__pe-do-grafico {
+    gap: 0 1rem;
+  }
+}

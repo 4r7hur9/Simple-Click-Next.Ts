@@ -23,6 +23,7 @@ import { NarrativaEmCenas } from "./cenas/Cenas.tsx";
 import { Comecar } from "./Comecar.tsx";
 import { LINK_PARA_COMECAR, LINK_PARA_ENTRAR } from "./conteudo.ts";
 import { NarrativaDaLanding } from "./NarrativaDaLanding.tsx";
+import "./mobile.css";
 import { ConviteFinal } from "./secoes/ConviteFinal.tsx";
 import {
   Comparar,
@@ -65,36 +66,6 @@ function Topo() {
   );
 }
 
-/**
- * O fim da landing: marca, atalhos e a nota das fontes. É uma região
- * nomeada (e não `footer`) porque o rodapé da página é o RodapeLegal logo
- * abaixo: dois `contentinfo` confundem quem navega por regiões no leitor de
- * tela.
- */
-function Rodape() {
-  return (
-    <section className="sc-lp-rodape" data-tema="escuro" aria-label="Mais do SimpleClick">
-      <div className="sc-lp-dentro sc-lp-rodape__dentro">
-        <a className="sc-lp-marca" href="/" aria-label="SimpleClick, início">
-          <span className="sc-lp-marca__simbolo" aria-hidden="true">
-            ✦
-          </span>
-          <span>simpleclick</span>
-        </a>
-        <nav aria-label="Rodapé">
-          <a href="/explorar">Explorar lojas</a>
-          <a href={LINK_PARA_COMECAR}>Criar loja</a>
-          <a href={LINK_PARA_ENTRAR}>Entrar</a>
-        </nav>
-        <p>
-          Os números de mercado desta página têm fonte citada ao lado de cada
-          um. Marcas citadas pertencem aos seus donos.
-        </p>
-      </div>
-    </section>
-  );
-}
-
 /** A página inteira. */
 export function LandingDoSimpleClick() {
   return (
@@ -116,7 +87,6 @@ export function LandingDoSimpleClick() {
         <PerguntasFrequentes id="duvidas" />
         <ConviteFinal />
       </main>
-      <Rodape />
       <NarrativaDaLanding />
       <EncaixeDasTelas />
     </div>

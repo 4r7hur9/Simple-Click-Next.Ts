@@ -70,7 +70,7 @@ export function ContaDoAplicativo({
             min={PEDIDOS.minimo}
             onChange={(evento) => setPedidos(Number(evento.target.value))}
             step={PEDIDOS.passo}
-            style={{ "--preenchido": (pedidos - PEDIDOS.minimo) / (PEDIDOS.maximo - PEDIDOS.minimo) } as CSSProperties}
+            style={{ "--preenchido": String((pedidos - PEDIDOS.minimo) / (PEDIDOS.maximo - PEDIDOS.minimo)) } as CSSProperties}
             type="range"
             value={pedidos}
           />
@@ -92,7 +92,7 @@ export function ContaDoAplicativo({
             min={TICKET.minimo}
             onChange={(evento) => setTicket(Number(evento.target.value))}
             step={TICKET.passo}
-            style={{ "--preenchido": (ticket - TICKET.minimo) / (TICKET.maximo - TICKET.minimo) } as CSSProperties}
+            style={{ "--preenchido": String((ticket - TICKET.minimo) / (TICKET.maximo - TICKET.minimo)) } as CSSProperties}
             type="range"
             value={ticket}
           />

@@ -17,6 +17,7 @@
  *
  * Com movimento reduzido nada liga: o CSS já deixa o cartão plano.
  */
+import { detectarCapacidadeDaLanding } from "../capacidade-da-landing.ts";
 import { useEffect, useRef } from "react";
 
 /** Quanto da inclinação máxima (12°, no CSS) cada entrada usa. */
@@ -37,7 +38,22 @@ export function MovimentoDosCartoes() {
   useEffect(() => {
     const palco = ancora.current?.closest<HTMLElement>("[data-cartoes-3d]");
     if (!palco) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelado = false;
+    let desfazer: (() => void) | undefined;
+    void detectarCapacidadeDaLanding().then((nivel) => {
+      if (cancelado || nivel === "estatico") return;
+      desfazer = ligarMovimento(palco, nivel === "leve");
+    });
+    return () => {
+      cancelado = true;
+      desfazer?.();
+    };
+  }, []);
+
+  return <span hidden ref={ancora} />;
+}
+
+function ligarMovimento(palco: HTMLElement, leve: boolean): () => void {
 
     const cartoes = [...palco.querySelectorAll<HTMLElement>(".sc-dado3d")];
     const pendentes = new Map<HTMLElement, { px: number; py: number; x: number; y: number }>();
@@ -113,10 +129,10 @@ export function MovimentoDosCartoes() {
       orientacao !== undefined && !pedePermissao && window.matchMedia("(pointer: coarse)").matches;
     if (comGiro) window.addEventListener("deviceorientation", aoGirar, { passive: true });
 
-    // Entrada e contagem, com o GSAP sob demanda.
+    // Entrada e contagem ficam só no desktop; no celular o tilt é uma resposta ao toque.
     let desfazer: (() => void) | undefined;
     let cancelado = false;
-    void (async () => {
+    if (!leve) void (async () => {
       const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
         import("gsap"),
         import("gsap/ScrollTrigger"),
@@ -178,7 +194,4 @@ export function MovimentoDosCartoes() {
       }
       if (quadro) cancelAnimationFrame(quadro);
     };
-  }, []);
-
-  return <span hidden ref={ancora} />;
 }

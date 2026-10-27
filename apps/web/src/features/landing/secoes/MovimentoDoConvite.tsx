@@ -17,6 +17,7 @@
  * com a seção fora da tela.
  */
 import { useEffect, useRef } from "react";
+import { detectarCapacidadeDaLanding } from "../capacidade-da-landing.ts";
 
 const limitar = (valor: number) => Math.max(-1, Math.min(1, valor));
 
@@ -26,8 +27,22 @@ export function MovimentoDoConvite() {
   useEffect(() => {
     const secao = ancora.current?.closest<HTMLElement>("[data-convite]");
     if (!secao) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelado = false;
+    let desfazer: (() => void) | undefined;
+    void detectarCapacidadeDaLanding().then((nivel) => {
+      if (cancelado || nivel !== "completo") return;
+      desfazer = ligarMovimento(secao);
+    });
+    return () => {
+      cancelado = true;
+      desfazer?.();
+    };
+  }, []);
 
+  return <span ref={ancora} hidden />;
+}
+
+function ligarMovimento(secao: HTMLElement): () => void {
     secao.dataset["convite"] = "armado";
     let visivel = false;
     let quadro = 0;
@@ -85,7 +100,4 @@ export function MovimentoDoConvite() {
       if (quadro) cancelAnimationFrame(quadro);
       secao.dataset["convite"] = "";
     };
-  }, []);
-
-  return <span ref={ancora} hidden />;
 }

@@ -1,16 +1,24 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { abrirPreferenciasDeCookies } from "./consentimento.ts";
 
 /** Link permanente do rodapé que reabre a janela de cookies. */
-export function BotaoPreferenciasDeCookies() {
+export function BotaoPreferenciasDeCookies({
+  className = "sc-rodape-legal__link",
+  children = "Preferências de cookies",
+}: {
+  readonly className?: string;
+  readonly children?: ReactNode;
+}) {
   return (
     <button
       type="button"
-      className="sc-rodape-legal__link"
+      className={className}
       onClick={abrirPreferenciasDeCookies}
     >
-      Preferências de cookies
+      {children}
     </button>
   );
 }

@@ -18,6 +18,7 @@
 import { useEffect } from "react";
 
 import { montarCenasEmSlide } from "./cenas-em-slide.ts";
+import { detectarCapacidadeDaLanding } from "./capacidade-da-landing.ts";
 
 const formatar = (valor: number, casas: number) =>
   valor.toLocaleString("pt-BR", {
@@ -27,12 +28,13 @@ const formatar = (valor: number, casas: number) =>
 
 export function NarrativaDaLanding() {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     let desfazer: (() => void) | undefined;
     let cancelado = false;
 
     void (async () => {
+      const nivel = await detectarCapacidadeDaLanding();
+      // No toque, a página fica no fluxo e o navegador encaixa as cenas.
+      if (cancelado || nivel !== "completo" || window.matchMedia("(pointer: coarse)").matches) return;
       const [{ default: gsap }, { ScrollTrigger }, { SplitText }] = await Promise.all([
         import("gsap"),
         import("gsap/ScrollTrigger"),

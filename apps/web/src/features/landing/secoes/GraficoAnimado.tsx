@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { detectarCapacidadeDaLanding } from "../capacidade-da-landing.ts";
 
 /**
  * Moldura dos gráficos da seção de mercado: desenha as marcas quando o gráfico
@@ -23,10 +24,11 @@ export function GraficoAnimado({
   useEffect(() => {
     const no = ref.current;
     if (!no) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let desfazer: (() => void) | undefined;
     let cancelado = false;
     void (async () => {
+      const nivel = await detectarCapacidadeDaLanding();
+      if (cancelado || nivel !== "completo" || window.matchMedia("(pointer: coarse)").matches) return;
       const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
         import("gsap"),
         import("gsap/ScrollTrigger"),

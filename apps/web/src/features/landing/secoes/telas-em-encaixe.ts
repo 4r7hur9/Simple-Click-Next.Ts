@@ -11,8 +11,11 @@
  * gesto seguinte troca de seção. Ninguém fica preso.
  *
  * Telas: as três de Dados de mercado (`data-tela-de-dados`, card #95), as
- * seções de baixo (`data-tela`) e o convite final. O encaixe só liga com a
- * janela de pelo menos 560 px de altura (como o modo slide das cenas).
+ * seções de baixo (`section[data-tela]`; as imagens dos aparelhos também têm
+ * `data-tela`, com o nome da tela do app, e não contam), o convite final e,
+ * por último, o rodapé: o gesto depois do convite desliza até o fim da
+ * página (o rodapé inteiro), e o de volta, até o convite. O encaixe só liga
+ * com a janela de pelo menos 560 px de altura (como o modo slide das cenas).
  *
  * As ENTRADAS (montarEntradasDasTelas): cada seção chega no estado final; o
  * script só a "arma" (`data-armado`, o CSS esconde as palavras atrás da
@@ -20,7 +23,13 @@
  * aparece. O foco do teclado entrando numa seção armada a mostra pronta
  * (`data-direto`), sem esperar a animação.
  */
-import { criarDetectorDeGesto, direcaoDaTecla, direcaoDoToque, type Direcao } from "../navegacao-por-cenas.ts";
+import {
+  ancoraDaMesmaPagina,
+  criarDetectorDeGesto,
+  direcaoDaTecla,
+  direcaoDoToque,
+  type Direcao,
+} from "../navegacao-por-cenas.ts";
 import {
   ajusteDaPosicao,
   cabeNaJanela,
@@ -31,7 +40,9 @@ import {
   type MedidasDasTelas,
 } from "./encaixe-das-telas.ts";
 
-export const SELETOR_DAS_TELAS = "[data-tela-de-dados], [data-tela], .sc-lp-convite";
+export const SELETOR_DAS_TELAS = "[data-tela-de-dados], section[data-tela], .sc-lp-convite";
+/** O rodapé fica fora da landing (page.tsx), logo depois dela. */
+const SELETOR_DO_RODAPE = "footer.sc-rodape";
 
 /** O deslize entre telas: o tempo da troca de cena. */
 const DURACAO = 1000;
@@ -54,13 +65,22 @@ export function montarTelasEmEncaixe(raiz: HTMLElement): () => void {
   // --- medidas --------------------------------------------------------------------
 
   const medir = () => {
-    telas = [...raiz.querySelectorAll<HTMLElement>(SELETOR_DAS_TELAS)];
+    const rodape = document.querySelector<HTMLElement>(SELETOR_DO_RODAPE);
+    telas = [...raiz.querySelectorAll<HTMLElement>(SELETOR_DAS_TELAS), ...(rodape ? [rodape] : [])];
     const topo = topoDaPagina ? Math.round(topoDaPagina.getBoundingClientRect().height) : 0;
+    const fimDaPagina = document.documentElement.scrollHeight - window.innerHeight;
     medidas = {
       janela: window.innerHeight - topo,
       telas: telas.map((tela) => {
         const caixa = tela.getBoundingClientRect();
-        return { topo: Math.round(caixa.top + window.scrollY - topo), altura: Math.round(caixa.height) };
+        const alto = Math.round(caixa.top + window.scrollY - topo);
+        // O rodapé mais baixo que a janela para no fim da página (não dá para
+        // o alto dele encostar no topo): o convite aparece em cima dele.
+        if (tela === rodape) {
+          const parada = Math.min(alto, Math.max(0, Math.round(fimDaPagina)));
+          return { topo: parada, altura: Math.max(0, alto + Math.round(caixa.height) - parada) };
+        }
+        return { topo: alto, altura: Math.round(caixa.height) };
       }),
     };
   };
@@ -203,12 +223,12 @@ export function montarTelasEmEncaixe(raiz: HTMLElement): () => void {
 
   // --- âncoras e foco ----------------------------------------------------------------
 
-  /** Links para uma seção (menu do topo, "Fazer a minha conta ↓"): ela desliza inteira. */
+  /** Links para uma seção (menu do topo, "Fazer a minha conta ↓", rodapé): ela desliza inteira. */
   const aoClicar = (evento: MouseEvent) => {
     if (!ativo || evento.defaultPrevented || evento.button !== 0) return;
     if (evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
-    const link = evento.target instanceof Element ? evento.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
-    const id = link?.getAttribute("href")?.slice(1);
+    const link = evento.target instanceof Element ? evento.target.closest<HTMLAnchorElement>("a[href*='#']") : null;
+    const id = ancoraDaMesmaPagina(link?.getAttribute("href"), window.location.href);
     const alvo = id ? document.getElementById(id) : null;
     if (!alvo) return;
     const tela = alvo.closest<HTMLElement>(SELETOR_DAS_TELAS) ?? alvo.querySelector<HTMLElement>(SELETOR_DAS_TELAS);
@@ -274,6 +294,8 @@ export function montarTelasEmEncaixe(raiz: HTMLElement): () => void {
   const observador = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(remedir);
   decidir();
   for (const tela of raiz.querySelectorAll<HTMLElement>(SELETOR_DAS_TELAS)) observador?.observe(tela);
+  const rodape = document.querySelector<HTMLElement>(SELETOR_DO_RODAPE);
+  if (rodape) observador?.observe(rodape);
   void document.fonts?.ready.then(remedir);
 
   window.addEventListener("wheel", aoRodar, { passive: false });
@@ -307,9 +329,9 @@ export function montarTelasEmEncaixe(raiz: HTMLElement): () => void {
   };
 }
 
-/** As entradas das seções de baixo (só as `data-tela`; as outras têm as suas). */
+/** As entradas das seções de baixo (só as `section[data-tela]`; as outras têm as suas). */
 export function montarEntradasDasTelas(raiz: HTMLElement): () => void {
-  const telas = [...raiz.querySelectorAll<HTMLElement>("[data-tela]")];
+  const telas = [...raiz.querySelectorAll<HTMLElement>("section[data-tela]")];
   if (telas.length === 0 || typeof IntersectionObserver === "undefined") return () => {};
 
   const chegar = (tela: HTMLElement, direto: boolean) => {
@@ -337,7 +359,7 @@ export function montarEntradasDasTelas(raiz: HTMLElement): () => void {
   }
 
   const aoFocar = (evento: FocusEvent) => {
-    const tela = evento.target instanceof Element ? evento.target.closest<HTMLElement>("[data-tela][data-armado]") : null;
+    const tela = evento.target instanceof Element ? evento.target.closest<HTMLElement>("section[data-tela][data-armado]") : null;
     if (tela) chegar(tela, true);
   };
   raiz.addEventListener("focusin", aoFocar);

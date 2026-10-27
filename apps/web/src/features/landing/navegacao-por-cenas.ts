@@ -89,16 +89,28 @@ export function destinoDoGesto(
       return direcao === -1
         ? { tipo: "voltar", y: posicaoDaCena(medidas, ultima), indice: ultima }
         : null;
+    case "depois":
+      // Encostado na seção seguinte (onde a saída deixa a página): subir
+      // volta ao palco num gesto só, como de qualquer ponto da saída.
+      return direcao === -1 && encostadoNaSaida(medidas, y)
+        ? { tipo: "voltar", y: posicaoDaCena(medidas, ultima), indice: ultima }
+        : null;
     default:
       return null;
   }
+}
+
+/** A página parada no começo da seção seguinte (a borda de baixo da saída). */
+function encostadoNaSaida(medidas: MedidasDaNarrativa, y: number): boolean {
+  return Math.abs(y - fimDaNarrativa(medidas)) <= FOLGA;
 }
 
 /** Se a narrativa deve segurar este gesto (impedir a rolagem do navegador). */
 export function seguraOGesto(medidas: MedidasDaNarrativa, y: number, direcao: Direcao): boolean {
   const zona = zonaDaPosicao(medidas, y);
   if (zona === "cenas") return !(direcao === -1 && y <= medidas.inicio + FOLGA);
-  return zona === "saida" && direcao === -1;
+  if (direcao === 1) return false;
+  return zona === "saida" || (zona === "depois" && encostadoNaSaida(medidas, y));
 }
 
 // --- o gesto --------------------------------------------------------------------
@@ -170,6 +182,28 @@ export function criarDetectorDeGesto({ limiar = 24, pausa = 180 }: OpcoesDoDetec
       usado = true;
     },
   };
+}
+
+// --- âncoras --------------------------------------------------------------------
+
+/**
+ * O id de destino de um link para esta mesma página: `#taxas` e também
+ * `/#taxas` (os links do rodapé, que servem a outras páginas). `null` se o
+ * link leva a outra página ou não tem âncora.
+ */
+export function ancoraDaMesmaPagina(href: string | null | undefined, paginaAtual: string): string | null {
+  if (!href || !href.includes("#")) return null;
+  let destino: URL;
+  let atual: URL;
+  try {
+    atual = new URL(paginaAtual);
+    destino = new URL(href, atual);
+  } catch {
+    return null;
+  }
+  if (destino.origin !== atual.origin || destino.pathname !== atual.pathname || destino.search !== atual.search) return null;
+  const id = decodeURIComponent(destino.hash.slice(1));
+  return id === "" ? null : id;
 }
 
 // --- teclado --------------------------------------------------------------------
