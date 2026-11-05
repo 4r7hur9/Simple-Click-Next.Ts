@@ -1,0 +1,291 @@
+{
+  "versao": 10,
+  "pluginVersao": "0.9.0",
+  "projeto": {
+    "nome": "simpleclick",
+    "stack": "postgresql",
+    "gerenciadorPacotes": "pnpm"
+  },
+  "board": {
+    "tipo": "manual",
+    "statusEntrada": "Pronto p/ agente",
+    "statusEmAndamento": "Em andamento (agente)",
+    "statusConcluida": "Concluída pelo agente — aguardando PR",
+    "statusBloqueada": "Bloqueada (agente)",
+    "statusInterrompida": "Precisa de humano",
+    "statusDividaTecnica": "Backlog",
+    "idPrefixo": "",
+    "observacoes": ""
+  },
+  "git": {
+    "branchBase": "main",
+    "remoto": "origin",
+    "branchesProtegidos": [
+      "main",
+      "master",
+      "develop",
+      "production",
+      "release"
+    ],
+    "padraoBranch": "{tipo}/{id}-{slug}",
+    "pushBranch": true
+  },
+  "comandos": {
+    "instalar": "pnpm install --frozen-lockfile",
+    "typecheck": "pnpm typecheck",
+    "lint": "pnpm lint",
+    "lintArquivo": "pnpm exec eslint --fix {arquivo}",
+    "formatarArquivo": "pnpm exec prettier --write --ignore-unknown {arquivo}",
+    "testeUnitario": "pnpm test:unit",
+    "testeIntegracao": "pnpm test:int",
+    "testeE2E": "pnpm test:e2e",
+    "testeArquivo": "pnpm exec vitest run {arquivo}",
+    "build": "pnpm build",
+    "sast": "semgrep scan --config p/default --error --quiet --metrics=off",
+    "dependencias": "pnpm audit --audit-level high --prod",
+    "segredos": "gitleaks detect --no-banner --redact --log-opts=\"{base}..HEAD\"",
+    "testeArquivos": "pnpm exec vitest run {arquivos}",
+    "testeE2EArquivos": "",
+    "typecheckArquivos": "",
+    "testesRelacionados": "pnpm exec vitest related --run {arquivos}"
+  },
+  "gate": {
+    "timeoutSegundos": 900,
+    "etapas": [
+      {
+        "nome": "typecheck",
+        "comando": "@typecheck",
+        "obrigatoria": true,
+        "custo": "baixo"
+      },
+      {
+        "nome": "lint",
+        "comando": "@lint",
+        "obrigatoria": true,
+        "custo": "baixo"
+      },
+      {
+        "nome": "teste-unitario",
+        "comando": "@testeUnitario",
+        "obrigatoria": true,
+        "custo": "medio"
+      },
+      {
+        "nome": "teste-integracao",
+        "comando": "@testeIntegracao",
+        "obrigatoria": true,
+        "custo": "alto",
+        "pesada": true
+      },
+      {
+        "nome": "teste-e2e",
+        "comando": "@testeE2E",
+        "obrigatoria": true,
+        "custo": "alto",
+        "pesada": true
+      },
+      {
+        "nome": "build",
+        "comando": "@build",
+        "obrigatoria": true,
+        "custo": "medio"
+      },
+      {
+        "nome": "sast",
+        "comando": "@sast",
+        "obrigatoria": false,
+        "custo": "medio"
+      },
+      {
+        "nome": "dependencias",
+        "comando": "@dependencias",
+        "obrigatoria": false,
+        "custo": "medio"
+      },
+      {
+        "nome": "segredos",
+        "comando": "@segredos",
+        "obrigatoria": true,
+        "cacheavel": false,
+        "custo": "baixo"
+      }
+    ],
+    "falharRapido": true,
+    "repetirPorCarga": 1,
+    "paralelismo": 2,
+    "cacheEntreIteracoes": true,
+    "insumosGlobais": []
+  },
+  "hooks": {
+    "lintAoEditar": true,
+    "typecheckAoEditar": false,
+    "timeoutPosEdicaoSegundos": 60
+  },
+  "limites": {
+    "maxIteracoes": 5,
+    "maxRodadasPlano": 3,
+    "maxReaberturasMesmoFinding": 3,
+    "maxFalhasGateSeguidas": 5,
+    "semProgressoPor": 2,
+    "maxBloqueiosDeParada": 4,
+    "esperaSubagenteMin": 180
+  },
+  "severidades": {
+    "bloqueiam": [
+      "urgente",
+      "alto"
+    ],
+    "corrigirNoLoop": [
+      "medio"
+    ],
+    "apenasRegistrar": [
+      "baixo"
+    ]
+  },
+  "revisao": {
+    "operacao": "condicional",
+    "gatilhosOperacao": [
+      "**/dockerfile*",
+      "**/*.dockerfile",
+      "**/containerfile*",
+      "**/docker-compose*",
+      "**/compose.y*ml",
+      "**/.dockerignore",
+      "**/k8s/**",
+      "**/kubernetes/**",
+      "**/helm/**",
+      "**/*.tf",
+      "**/fly.toml",
+      "**/vercel.json",
+      "**/railway.{json,toml}",
+      "**/render.yaml",
+      "**/procfile",
+      "**/.github/workflows/**",
+      "**/.gitlab-ci.yml",
+      "**/db/migrate/**",
+      "**/db/migration/**",
+      "**/alembic/versions/**",
+      "**/migration/**",
+      "**/*.migration.{ts,js,mjs,cjs}",
+      "**/flyway/**",
+      "**/liquibase/**",
+      "**/logger*",
+      "**/logging/**",
+      "**/instrumentation*",
+      "**/sentry*.config.*",
+      "**/env.{ts,mjs,js,cjs}",
+      "**/env/**",
+      "**/workers/**",
+      "**/jobs/**",
+      "**/queues/**",
+      "**/webhooks/**",
+      "**/webhook/**",
+      "**/health{,check,z}.{ts,js,mjs,cjs}",
+      "**/health{,check,z}/**"
+    ]
+  },
+  "provas": {
+    "exigirE2E": "quando-houver-ui",
+    "exigirCI": false,
+    "urlPreview": "",
+    "redFocado": true
+  },
+  "ci": {
+    "ativo": false,
+    "provedor": "github-actions",
+    "workflow": "CI",
+    "fases": [
+      "verificacao"
+    ],
+    "etapas": [
+      "typecheck",
+      "teste-unitario",
+      "teste-integracao",
+      "build"
+    ],
+    "e2e": false,
+    "apps": {},
+    "compartilhado": [
+      "packages/**",
+      "tooling/**",
+      "package.json",
+      "pnpm-workspace.yaml",
+      "turbo.json",
+      "tsconfig*.json"
+    ],
+    "fallback": "local",
+    "timeoutMin": 30,
+    "pollSegundos": 15,
+    "reaproveitar": true,
+    "repetirFalhas": 1,
+    "criterioReaproveitar": "conteudo"
+  },
+  "host": {
+    "janelaBatimentoSegundos": 120,
+    "validadeAmbienteSegundos": 600
+  },
+  "recursos": {
+    "vagasPesadas": 0,
+    "dir": "/tmp/workflow-ia-vagas",
+    "esperaMaxMin": 120,
+    "reservaSegundos": 300
+  },
+  "githooks": {
+    "instalar": true
+  },
+  "interacao": {
+    "perguntarAoHumano": true,
+    "maxDecisoes": 5,
+    "exigirTranscript": true
+  },
+  "protecoes": {
+    "arquivosBloqueados": [
+      ".env",
+      ".env.*",
+      "**/.env",
+      "**/.env.*"
+    ],
+    "excecoesArquivos": [
+      ".env.example",
+      ".env.sample",
+      ".env.template",
+      "**/.env.example",
+      "**/.env.sample",
+      "**/.env.template"
+    ],
+    "diretoriosMigrations": [
+      "prisma/migrations",
+      "migrations",
+      "drizzle",
+      "db/migrations"
+    ],
+    "arquivosSomenteHumano": [
+      ".github/workflows/**",
+      ".husky/**",
+      ".claude/settings.json",
+      ".claude/settings.local.json",
+      ".workflow-ia/config.json",
+      ".workflow-ia/wf"
+    ],
+    "lockfiles": [
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lockb",
+      "bun.lock"
+    ],
+    "padroesTeste": [
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/__tests__/**",
+      "e2e/**",
+      "tests/**",
+      "test/**"
+    ],
+    "padroesE2E": [
+      "e2e/**",
+      "**/e2e/**",
+      "**/*.e2e.*"
+    ]
+  }
+}

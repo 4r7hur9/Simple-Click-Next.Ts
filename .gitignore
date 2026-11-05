@@ -66,3 +66,8 @@ apps/api/.midia-local/
 
 # Relatórios locais de importação: dados da loja e caminhos desta máquina.
 /.rmcode/importacao-winsis/
+
+# Workflow IA (estado local das tasks)
+.workflow-ia/runtime/
+.workflow-ia/tasks/
+.workflow-ia/ci/

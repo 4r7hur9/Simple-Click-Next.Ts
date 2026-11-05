@@ -1,0 +1,18 @@
+# Criado pelo Workflow IA. Sem este arquivo o semgrep usa a lista padrão abaixo; com ele, só o que está aqui.
+:include .gitignore
+
+node_modules/
+build/
+dist/
+vendor/
+.env/
+.venv/
+.tox/
+*.min.js
+.npm/
+.yarn/
+.semgrep
+.semgrep_logs/
+
+# Código do plugin Workflow IA (não é código do projeto)
+.claude/skills/workflow-ia/

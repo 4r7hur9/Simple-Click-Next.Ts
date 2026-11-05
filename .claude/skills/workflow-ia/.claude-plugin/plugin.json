@@ -1,0 +1,22 @@
+{
+  "name": "workflow-ia",
+  "displayName": "Workflow IA",
+  "version": "0.9.0",
+  "description": "Agente full-stack autônomo (Claude Code CLI, Agent SDK e CI): recebe um card do board, extrai o spec, escreve os testes primeiro, implementa, revisa com especialistas (segurança, performance, qualidade, testes e, quando o diff pede, operação/LGPD), corrige em loop com limite de orçamento e entrega o branch com pacote de provas. Abrir PR e fazer merge ficam com o humano.",
+  "author": {
+    "name": "Rodrigo Medeiros (Fabriki Apps)",
+    "email": "dev.rodrigomedeiros@gmail.com"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "workflow",
+    "tdd",
+    "code-review",
+    "security",
+    "performance",
+    "autonomous-agent",
+    "nextjs",
+    "prisma",
+    "postgresql"
+  ]
+}

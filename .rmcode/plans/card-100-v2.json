@@ -1,0 +1,672 @@
+{
+  "version": 2,
+  "cardId": "0599a1ec-0aa8-4df4-afb4-1c837079ca18",
+  "cardSeq": 100,
+  "savedAt": 1793129658153,
+  "plan": {
+    "title": "Refatoração incremental do SimpleClick orientada pelo Arthur Code Harness",
+    "complexity": "CRITICAL",
+    "risk": "critical",
+    "summary": "Aplicar as diretrizes do Arthur Code Harness e auditar/corrigir achados reproduzíveis em fases pequenas por domínio, preservando comportamento e contratos. Nenhum código será alterado antes da revisão e aprovação deste plano.",
+    "discovery": [
+      {
+        "claim": "A raiz do workspace define verificações typecheck, lint, unit, integração, e2e e build.",
+        "kind": "fact",
+        "ref": {
+          "path": "package.json",
+          "symbol": "typecheck"
+        }
+      },
+      {
+        "claim": "O workspace inclui apps/*, packages/* e e2e.",
+        "kind": "fact",
+        "ref": {
+          "path": "pnpm-workspace.yaml",
+          "symbol": "packages"
+        }
+      },
+      {
+        "claim": "O gate instalado configura etapas obrigatórias e opcionais por entradas em etapas.",
+        "kind": "fact",
+        "ref": {
+          "path": ".workflow-ia/config.json",
+          "symbol": "etapas"
+        }
+      },
+      {
+        "claim": "A prévia do Arthur harness propõe bloco delimitado dentro de CLAUDE.md, sem alterar código.",
+        "kind": "fact",
+        "ref": {
+          "path": "CLAUDE.md",
+          "symbol": "Workflow IA"
+        }
+      },
+      {
+        "claim": "Uma implementação única de refatoração ampla aumenta risco de regressão; inventário e lotes por domínio tornam o escopo verificável.",
+        "kind": "inference",
+        "ref": {
+          "path": "package.json",
+          "symbol": "build"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Aplicar Arthur harness como diretrizes, preservando as instruções atuais e sem impor padrões desnecessários.",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "Somente o bloco delimitado do harness é acrescentado em CLAUDE.md e a prévia seguinte não gera diff."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Auditar todos os apps/packages e registrar achados reproduzíveis, impacto, evidência e prioridade antes das correções.",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "Todo achado priorizado tem cenário reproduzível e critério observável; estilo isolado não é tratado como bug."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Corrigir em lotes pequenos com teste de caracterização para refatorações relevantes e sem expansão para código sem relação.",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "Cada lote passa seus testes de regressão e fica vinculado a achado e critério de aceite."
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Preservar contratos entre aplicações/pacotes e separar qualquer breaking change para decisão própria.",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "Typecheck e testes relevantes passam; nenhuma mudança incompatível é implementada implicitamente."
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Relatar comandos, resultados, arquivos, limitações e riscos residuais do gate.",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "Relatório distingue checks aprovados, falhos, não executados e limitações sem revelar segredos."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "Instalar diretrizes Arthur em CLAUDE.md após aprovação.",
+        "Inventariar apps/web, apps/api, apps/agente-impressao e packages/*, com cobertura e falhas reproduzíveis.",
+        "Corrigir achados priorizados por domínio com caracterização e regressão.",
+        "Usar gate Workflow IA instalado e reportar resultados."
+      ],
+      "out": [
+        "Reescrita arquitetural integral, alteração de framework ou dependências sem achado.",
+        "Migrations existentes, produção, .env e segredos.",
+        "Novas funcionalidades ou mudanças visuais não necessárias a correção aprovada.",
+        "Publicação de alterações desta refatoração sem autorização específica."
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "O pedido significa correção de defeitos e riscos comprovados, não reescrever código por estilo.",
+        "impact": "Mudanças funcionais ou contratos incompatíveis exigem decisão própria."
+      },
+      {
+        "text": "O checkout local arthur-code-harness é a referência aprovada; instalação auto mira CLAUDE.md existente.",
+        "impact": "Refazer prévia se a fonte mudar."
+      },
+      {
+        "text": "O gate local permanece configurado; CI está desligado.",
+        "impact": "Testes podem depender de serviços externos."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Aplicar harness em CLAUDE.md com instalador --target auto após aprovação.",
+        "why": "A prévia revisada só acrescenta o bloco delimitado.",
+        "alternatives": [
+          "AGENTS.md",
+          "both"
+        ],
+        "impact": "Diretrizes disponíveis para agentes que leem CLAUDE.md.",
+        "mitigation": "Verificar diff fora dos marcadores."
+      },
+      {
+        "id": "D-2",
+        "decision": "Auditar primeiro e corrigir em lotes sequenciais por domínio, priorizando risco e defeito reproduzível.",
+        "why": "Reduz regressões e permite revisar cada grupo.",
+        "alternatives": [
+          "Refatoração única"
+        ],
+        "impact": "Trabalho entregue por fases.",
+        "mitigation": "Manter backlog priorizado."
+      },
+      {
+        "id": "D-3",
+        "decision": "Não mudar contrato público, schema/migration ou comportamento do produto implicitamente.",
+        "why": "Impacto transversal exige decisão explícita.",
+        "impact": "Achados que precisem dessas mudanças aguardam decisão.",
+        "mitigation": "Documentar impacto e opção compatível."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Aplicar diretrizes Arthur",
+        "objective": "Escrever somente o bloco delimitado com instalador autorizado.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Prévia já revisada e propõe alteração delimitada de CLAUDE.md.",
+          "files": [
+            "CLAUDE.md"
+          ],
+          "evidence": [
+            "Prévia python3 .../scripts/install.py ... --target auto."
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "CLAUDE.md",
+              "action": "modify",
+              "note": "Somente bloco BEGIN/END do harness."
+            }
+          ],
+          "changes": [
+            "Executar --write depois da aprovação do plano."
+          ],
+          "contracts": [],
+          "constraints": [
+            "Não editar bloco manualmente.",
+            "Preservar conteúdo fora dos marcadores."
+          ],
+          "expected": [
+            "Bloco inserido uma vez e nova prévia limpa."
+          ],
+          "forbidden": [
+            "Alterar código."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [],
+          "commands": [
+            "python3 /Users/stargrupo/Documents/arthur-code-harness/scripts/install.py /Users/stargrupo/Documents/SC --target auto --write",
+            "python3 /Users/stargrupo/Documents/arthur-code-harness/scripts/install.py /Users/stargrupo/Documents/SC --target auto"
+          ],
+          "evidence": [
+            "Revisão do diff e prévia limpa."
+          ]
+        },
+        "execution": {
+          "effort": "low",
+          "escalationTriggers": [
+            "Diff fora dos marcadores."
+          ],
+          "blockedConditions": [
+            "Marcadores inconsistentes ou mudança concorrente."
+          ]
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Inventariar defeitos e cobertura",
+        "objective": "Mapear problemas reproduzíveis, contratos, lacunas de teste e linha de base sem corrigir ainda.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Monorepo pnpm com aplicações e pacotes definidos no workspace.",
+          "files": [
+            "package.json",
+            "pnpm-workspace.yaml",
+            "apps/web/package.json",
+            "apps/api/package.json",
+            "apps/agente-impressao/package.json",
+            "packages/core/package.json",
+            "packages/contracts/package.json",
+            "packages/database/package.json"
+          ],
+          "evidence": [
+            "Scripts raiz e manifests de apps/packages."
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/api/",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/agente-impressao/",
+              "action": "reuse"
+            },
+            {
+              "path": "packages/",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Executar baseline e catalogar achados com evidência, impacto, prioridade e candidatos de teste."
+          ],
+          "contracts": [
+            "Mapear tipos compartilhados antes de propor mudanças."
+          ],
+          "constraints": [
+            "Não ler .env nem dados locais.",
+            "Não corrigir nesta fase."
+          ],
+          "expected": [
+            "Backlog priorizado auditável."
+          ],
+          "forbidden": [
+            "Refatoração cosmética ou mudança de contrato."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [
+            "Usar testes existentes para mapear cobertura."
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm test:int",
+            "pnpm test:e2e",
+            "pnpm build"
+          ],
+          "evidence": [
+            "Resultados reais por comando e achados reproduzíveis."
+          ]
+        },
+        "execution": {
+          "effort": "high",
+          "escalationTriggers": [
+            "Risco de perda de dados ou exposição."
+          ],
+          "blockedConditions": [
+            "Serviço indisponível ou falha não reproduzível."
+          ]
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "Corrigir achados aprovados por domínio",
+        "objective": "Corrigir achados priorizados com regressões cobertas, em mudanças isoladas e compatíveis.",
+        "complexity": "HIGH",
+        "risk": "high",
+        "dependsOn": [
+          "T-2"
+        ],
+        "requirements": [
+          "R-3",
+          "R-4"
+        ],
+        "context": {
+          "summary": "Só executar achados catalogados em T-2; domínios são separados por lote.",
+          "files": [
+            "apps/web/",
+            "apps/api/",
+            "apps/agente-impressao/",
+            "packages/core/",
+            "packages/contracts/",
+            "packages/database/",
+            "packages/ui/"
+          ],
+          "evidence": [
+            "Achados e caracterização de T-2."
+          ],
+          "decisions": [
+            "D-2",
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/",
+              "action": "modify",
+              "note": "Somente escopo de achado aprovado."
+            },
+            {
+              "path": "apps/api/",
+              "action": "modify",
+              "note": "Somente escopo de achado aprovado."
+            },
+            {
+              "path": "apps/agente-impressao/",
+              "action": "modify",
+              "note": "Somente escopo de achado aprovado."
+            },
+            {
+              "path": "packages/",
+              "action": "modify",
+              "note": "Somente escopo de achado aprovado."
+            }
+          ],
+          "changes": [
+            "Por achado, adicionar caracterização/regressão e correção mínima."
+          ],
+          "contracts": [
+            "Preservar contratos; incompatibilidade requer plano e decisão separados."
+          ],
+          "constraints": [
+            "Mudanças pequenas, sem abstrações artificiais e com instruções específicas respeitadas."
+          ],
+          "expected": [
+            "Lotes revisáveis ligados a critérios de aceite."
+          ],
+          "forbidden": [
+            "Editar arquivos não ligados ao achado ou migrations existentes."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3",
+            "CA-4"
+          ],
+          "tests": [
+            "Testes de caracterização antes e regressão após, integração nas fronteiras relevantes."
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web test:unit",
+            "pnpm --filter @simpleclick/api test:unit",
+            "pnpm --filter @simpleclick/core test:unit",
+            "pnpm --filter @simpleclick/contracts test:unit"
+          ],
+          "evidence": [
+            "Diff, testes e verificação de contratos por lote."
+          ]
+        },
+        "execution": {
+          "effort": "high",
+          "escalationTriggers": [
+            "Breaking change, migration ou expansão para vários domínios."
+          ],
+          "blockedConditions": [
+            "Sem critério, reprodução ou reserva livre."
+          ]
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "Executar gate final e relatar",
+        "objective": "Validar todas as correções e registrar riscos/limitações.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-3"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Configuração Workflow IA define comandos do gate e CI desligado.",
+          "files": [
+            ".workflow-ia/config.json",
+            "package.json"
+          ],
+          "evidence": [
+            "Doctor listou comandos do gate."
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": ".workflow-ia/config.json",
+              "action": "reuse"
+            },
+            {
+              "path": "package.json",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Executar checks locais e registrar resultados sem revelar valores secretos."
+          ],
+          "contracts": [],
+          "constraints": [
+            "Separar falhas e etapas indisponíveis."
+          ],
+          "expected": [
+            "Relatório completo e rastreável."
+          ],
+          "forbidden": [
+            "Ocultar findings dos scanners."
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5"
+          ],
+          "tests": [
+            "Gate completo e testes focados dos lotes."
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm test:int",
+            "pnpm test:e2e",
+            "pnpm build",
+            "semgrep scan --config p/default --error --quiet --metrics=off",
+            "pnpm audit --audit-level high --prod",
+            "gitleaks detect --no-banner --redact --log-opts=\"{base}..HEAD\""
+          ],
+          "evidence": [
+            "Status real de cada check."
+          ]
+        },
+        "execution": {
+          "effort": "medium",
+          "escalationTriggers": [
+            "Vulnerabilidade crítica ou segredo detectado."
+          ],
+          "blockedConditions": [
+            "Infra externa indisponível."
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "A amplitude induz mudanças cosméticas sem valor.",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Exigir cenário reproduzível e prioridade.",
+        "detection": "Achado sem impacto concreto.",
+        "recovery": "Retirar ou esclarecer antes de implementar."
+      },
+      {
+        "text": "Refatoração altera comportamento/contrato sem cobertura.",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Caracterização e lotes pequenos.",
+        "detection": "Regressão ou diff público.",
+        "recovery": "Reverter lote próprio e replanejar."
+      },
+      {
+        "text": "Testes dependem de serviços externos.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Reportar indisponibilidade separadamente.",
+        "detection": "Comando falha no setup.",
+        "recovery": "Executar checks independentes."
+      }
+    ],
+    "tests": {
+      "existing": [
+        "pnpm typecheck",
+        "pnpm lint",
+        "pnpm test:unit",
+        "pnpm test:int",
+        "pnpm test:e2e",
+        "pnpm build"
+      ],
+      "toCreate": [
+        "Testes [CA-n] de caracterização e regressão para cada achado aprovado."
+      ],
+      "manual": [
+        "Revisar contratos, invariantes e diff de cada lote."
+      ],
+      "external": [
+        "Semgrep p/default, pnpm audit, Gitleaks."
+      ]
+    },
+    "rollback": "Fazer cada achado em lote isolado; em regressão, reverter apenas o lote próprio após conferir alterações e reservas. Não tocar trabalho preexistente nem migrations. A aplicação do harness cria backup e só deve ser revertida em seu bloco se aprovada e executada.",
+    "estimate": {
+      "note": "Esforço dos lotes depende do inventário T-2; estimar cada lote antes de implementá-lo."
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O símbolo \"typecheck\" não aparece em package.json."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "symbol-missing",
+        "message": "O símbolo \"typecheck\" não aparece em package.json.",
+        "ref": "package.json"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "symbol-missing",
+        "message": "O símbolo \"etapas\" não aparece em .workflow-ia/config.json.",
+        "ref": ".workflow-ia/config.json"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "symbol-missing",
+        "message": "O símbolo \"Workflow IA\" não aparece em CLAUDE.md.",
+        "ref": "CLAUDE.md"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web test:unit\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web test:unit"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/api test:unit\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/api test:unit"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/core test:unit\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/core test:unit"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/contracts test:unit\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/contracts test:unit"
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      }
+    ],
+    "evaluatedAt": 1793129658153,
+    "passed": 6,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

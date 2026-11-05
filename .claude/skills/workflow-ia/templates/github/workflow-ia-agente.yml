@@ -1,0 +1,194 @@
+# Workflow IA — agente autônomo no GitHub Actions (headless).
+# Gerado pelo instalador do Workflow IA.
+#
+# Disparo:
+#  - manual: Actions → "Workflow IA — agente" → Run workflow (informe o card)
+#  - automação do board: POST /repos/<owner>/<repo>/dispatches
+#      {"event_type": "workflow-ia-task", "client_payload": {"task": "VST-123", "orcamento_usd": "15"}}
+#
+# O branch da task é publicado pelo job "publicar" quando a task termina com veredito;
+# em seguida as provas (workflow-ia-provas.yml) são disparadas nesse branch.
+#
+# Segurança (em camadas):
+#  - o job do agente roda com token SÓ DE LEITURA do código (contents: read): ele não
+#    consegue fazer push, merge (a API de merge exige contents: write) nem abrir PR;
+#  - o push do branch da task é feito depois, pelo job "publicar", que não executa o
+#    agente: ele valida o nome do branch (nunca a base nem um branch protegido) e
+#    envia sem force;
+#  - os hooks do plugin bloqueiam o resto dentro da sessão;
+#  - --max-budget-usd corta a execução se o custo passar do teto;
+#  - proteja o branch base no GitHub (ruleset exigindo PR): é a garantia final.
+name: Workflow IA — agente
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'ID, URL ou texto do card'
+        required: true
+      orcamento_usd:
+        description: 'Teto de custo desta execução (USD)'
+        required: false
+        default: '20'
+  repository_dispatch:
+    types: [workflow-ia-task]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workflow-ia-${{ github.event.inputs.task || github.event.client_payload.task }}
+  cancel-in-progress: false
+
+jobs:
+  agente:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    env:
+      TASK: ${{ github.event.inputs.task || github.event.client_payload.task }}
+      ORCAMENTO_USD: ${{ github.event.inputs.orcamento_usd || github.event.client_payload.orcamento_usd || '20' }}
+    outputs:
+      branch: ${{ steps.pacote.outputs.branch }}
+      veredito: ${{ steps.pacote.outputs.veredito }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: __BRANCH_BASE__
+          fetch-depth: 0
+          persist-credentials: false
+__SETUP_PM__      - uses: actions/setup-node@v4
+        with:
+          node-version: 22__CACHE__
+      - name: Instalar dependências
+        run: __INSTALAR__
+__E2E_SETUP__      - name: Instalar Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Instalar o plugin Workflow IA
+        env:
+          # Repositório do plugin privado: token com leitura dele (o GITHUB_TOKEN do job não lê outro repositório).
+          GH_TOKEN: ${{ secrets.WORKFLOW_IA_PLUGIN_TOKEN }}
+        run: |
+          if [ -n "$GH_TOKEN" ]; then gh auth setup-git; fi
+          claude plugin marketplace add __MARKETPLACE__
+          claude plugin install workflow-ia@fabriki -y
+      - name: Identidade git
+        run: |
+          git config user.name "workflow-ia[bot]"
+          git config user.email "workflow-ia-bot@users.noreply.github.com"
+      - name: Executar o card
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Token do job: leitura do código + issues (board no GitHub). Não faz push nem merge.
+          GH_TOKEN: ${{ github.token }}
+          # Sinal para as skills e a CLI: no CI, quem publica o branch é o job "publicar".
+          WORKFLOW_IA_CI: "1"
+        run: |
+          claude -p "/workflow-ia:task ${TASK}" \
+            --append-system-prompt "Execução no CI: não faça git push; o workflow publica o branch da task depois que você encerrar." \
+            --permission-mode acceptEdits \
+            --allowedTools "Bash" "Read" "Write" "Edit" "Glob" "Grep" "Skill" "Agent" "TodoWrite" \
+            --max-budget-usd "${ORCAMENTO_USD}" \
+            --output-format stream-json --verbose > "${RUNNER_TEMP}/claude-execucao.jsonl"
+      - name: Empacotar o branch da task
+        id: pacote
+        if: always()
+        run: |
+          # O branch publicado é o registrado pela CLI na task (meta.branch), não o HEAD:
+          # se o agente terminou em outro branch, nada é publicado.
+          INFO="$(node -e '
+            const fs = require("fs"), path = require("path");
+            const dir = ".workflow-ia/tasks";
+            let achado = null;
+            for (const t of fs.existsSync(dir) ? fs.readdirSync(dir) : []) {
+              if (t.includes("@")) continue;
+              try {
+                const e = JSON.parse(fs.readFileSync(path.join(dir, t, "state.json"), "utf8"));
+                if (e.modo === "task" && e.meta && e.meta.branch && (!achado || e.atualizadoEm > achado.atualizadoEm)) achado = e;
+              } catch {}
+            }
+            if (achado) console.log(achado.meta.branch + " " + (achado.veredito || ""));
+          ')"
+          BRANCH="${INFO%% *}"; VEREDITO="${INFO#* }"
+          [ "$VEREDITO" = "$INFO" ] && VEREDITO=""
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "__BRANCH_BASE__" ] \
+             && git rev-parse --verify --quiet "refs/heads/$BRANCH" >/dev/null \
+             && git bundle create "${RUNNER_TEMP}/task.bundle" "__BRANCH_BASE__..refs/heads/$BRANCH"; then
+            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+            echo "veredito=$VEREDITO" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nenhum branch de task com commits novos para publicar."
+          fi
+      - name: Resumo
+        if: always()
+        run: |
+          for f in .workflow-ia/tasks/*/report.md; do
+            [ -f "$f" ] && cat "$f" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Guardar relatório e provas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-ia-${{ github.run_id }}
+          path: |
+            .workflow-ia/tasks/
+            ${{ runner.temp }}/claude-execucao.jsonl
+          include-hidden-files: true
+          retention-days: 30
+      - name: Guardar o branch da task
+        if: always() && steps.pacote.outputs.branch != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-ia-branch-${{ github.run_id }}
+          path: ${{ runner.temp }}/task.bundle
+          retention-days: 7
+
+  publicar:
+    needs: agente
+    # Só com a task encerrada com veredito (CONCLUIDA, BLOQUEADA ou INTERROMPIDA).
+    # Sem veredito (execução cortada), o branch fica só no artefato workflow-ia-branch-<run_id>.
+    if: always() && needs.agente.outputs.branch != '' && needs.agente.outputs.veredito != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    env:
+      BRANCH: ${{ needs.agente.outputs.branch }}
+      VEREDITO: ${{ needs.agente.outputs.veredito }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: __BRANCH_BASE__
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: workflow-ia-branch-${{ github.run_id }}
+          path: ${{ runner.temp }}
+      - name: Publicar o branch da task (sem force, nunca em branch protegido nem existente)
+        run: |
+          if [ "$(node -e 'const c=require("./.workflow-ia/config.json");console.log(c.git?.pushBranch===false?"nao":"sim")')" = "nao" ]; then
+            echo "git.pushBranch=false: nada publicado (o branch está no artefato workflow-ia-branch-${{ github.run_id }})."; exit 0
+          fi
+          PROTEGIDOS="$(node -e 'const c=require("./.workflow-ia/config.json");console.log([c.git?.branchBase||"__BRANCH_BASE__",...(c.git?.branchesProtegidos||["main","master","develop","production","release"])].join(" "))')"
+          for P in $PROTEGIDOS; do
+            if [ "$BRANCH" = "$P" ]; then echo "Branch protegido ($BRANCH): nada publicado."; exit 1; fi
+          done
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "O branch $BRANCH já existe no remoto: nada publicado (sem force). Baixe o artefato workflow-ia-branch-${{ github.run_id }} para integrar à mão."; exit 1
+          fi
+          git fetch "${RUNNER_TEMP}/task.bundle" "refs/heads/${BRANCH}:refs/heads/${BRANCH}"
+          git push origin "refs/heads/${BRANCH}:refs/heads/${BRANCH}"
+          echo "Publicado $BRANCH (veredito $VEREDITO)." >> "$GITHUB_STEP_SUMMARY"
+      - name: Disparar as provas no branch publicado
+        # Push feito com o GITHUB_TOKEN não dispara outros workflows: dispara explicitamente.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f .github/workflows/workflow-ia-provas.yml ]; then
+            gh workflow run workflow-ia-provas.yml --ref "$BRANCH"
+          fi

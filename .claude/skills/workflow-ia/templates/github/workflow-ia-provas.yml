@@ -1,0 +1,31 @@
+# Workflow IA — provas reproduzíveis em cada push de branch de task.
+# Gerado pelo instalador do Workflow IA. Ajuste à vontade: este arquivo é seu.
+# Testes de integração com Testcontainers funcionam direto no ubuntu-latest (Docker disponível).
+name: Workflow IA — provas
+
+on:
+  push:
+    branches: ['feat/**', 'fix/**', 'refactor/**', 'chore/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workflow-ia-provas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+__SETUP_PM__      - uses: actions/setup-node@v4
+        with:
+          node-version: 22__CACHE__
+      - name: Instalar dependências
+        run: __INSTALAR__
+__E2E_SETUP____PASSOS__
+      - name: Segredos (gitleaks)
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source /repo --no-git --no-banner --redact

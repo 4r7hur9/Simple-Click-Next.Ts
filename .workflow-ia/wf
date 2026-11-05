@@ -1,0 +1,28 @@
+#!/bin/sh
+# Atalho da CLI do Workflow IA. Gerado pelo instalador; não edite.
+# Ordem: WORKFLOW_IA_ROOT, caminho registrado pela última sessão, cópia do plugin
+# versionada no repositório (.claude/skills/workflow-ia), caminho da instalação e,
+# se o plugin foi atualizado (a pasta da versão mudou), a versão mais recente ao
+# lado do caminho registrado ou da instalação.
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+valido() { [ -n "$1" ] && [ -f "$1/scripts/wf.mjs" ]; }
+REGISTRADO="$(cat "$RAIZ/.workflow-ia/runtime/plugin-root" 2>/dev/null)"
+INSTALACAO="$HOME/Documents/WorkflowIA"
+PLUGIN=""
+for C in "${WORKFLOW_IA_ROOT:-}" "$REGISTRADO" "$RAIZ/.claude/skills/workflow-ia" "$INSTALACAO"; do
+  if valido "$C"; then PLUGIN="$C"; break; fi
+done
+if [ -z "$PLUGIN" ]; then
+  for BASE in "$REGISTRADO" "$INSTALACAO"; do
+    [ -n "$BASE" ] || continue
+    PASTA="$(dirname "$BASE")"
+    # Versão mais nova em ordem numérica (0.10.0 depois de 0.9.0).
+    PLUGIN="$(ls -1 "$PASTA" 2>/dev/null | sort -t. -k1,1n -k2,2n -k3,3n | while read -r V; do valido "$PASTA/$V" && echo "$PASTA/$V"; done | tail -1)"
+    [ -n "$PLUGIN" ] && break
+  done
+fi
+if [ -z "$PLUGIN" ]; then
+  echo '{"ok":false,"mensagem":"Workflow IA: plugin não encontrado. Rode /workflow-ia:atualizar para versionar a cópia em .claude/skills/workflow-ia, abra uma sessão do Claude Code neste projeto (o hook de início registra o caminho) ou defina WORKFLOW_IA_ROOT."}'
+  exit 2
+fi
+exec node "$PLUGIN/scripts/wf.mjs" --projeto "$RAIZ" "$@"
