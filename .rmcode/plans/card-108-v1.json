@@ -1,0 +1,1746 @@
+{
+  "version": 1,
+  "cardId": "b91513d2-5ae6-4718-9e00-6cbcbdd3c1df",
+  "cardSeq": 108,
+  "savedAt": 1794502072443,
+  "plan": {
+    "title": "Stitch · Catálogo da loja (/cardapio)",
+    "complexity": "HIGH",
+    "risk": "high",
+    "summary": "Redesenha o catálogo da loja nas três larguras do Stitch (lista de 1 coluna no celular, grade de 3 no tablet, três zonas 3/6/3 com barra lateral e região da sacola a partir de 1280px). Entrega categorias com contagem, filtros em gaveta/lateral com chips ativos, cartão em lista e grade, 'Ver mais' acessível, estados vazios corretos (corrige filtro sem acerto), topo curto, e a T-10808: filtro 'em estoque', faixa de preço e ordens 'maior desconto de atacado' e 'lançamentos' no contrato e na API pública da vitrine. Execução sequencial na vez do #108, sem commit.",
+    "discovery": [
+      {
+        "claim": "Com filtro de especificação sem acerto, a web trata como loja sem catálogo e esconde a barra; com categoria escolhida e filtro fora dela, mostra 'categoria não existe mais'.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/catalogo-na-tela.ts",
+          "symbol": "prepararCatalogoEmPaginas",
+          "line": 314
+        }
+      },
+      {
+        "claim": "A API descarta seções sem acerto quando há filtro.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts",
+          "symbol": "resumoDoCatalogo",
+          "line": 250
+        }
+      },
+      {
+        "claim": "A tela troca barra e grade por 'está sendo montado' quando lojaSemCatalogo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+          "symbol": "TelaDoCatalogo",
+          "line": 269
+        }
+      },
+      {
+        "claim": "A consulta do catálogo é um strictObject: parâmetro ou ordem desconhecida devolve 400.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/vitrine.ts",
+          "symbol": "esquemaDaBuscaDoCatalogo",
+          "line": 344
+        }
+      },
+      {
+        "claim": "As ordens aceitas hoje são relevancia, menor-preco, maior-preco e a-z.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/vitrine.ts",
+          "symbol": "esquemaDaOrdemDoCatalogo",
+          "line": 393
+        }
+      },
+      {
+        "claim": "Os filtros são cruzados como listas de ids em acertosDosFiltros e valem para as três rotas do catálogo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/vitrine.routes.ts",
+          "symbol": "acertosDosFiltros",
+          "line": 116
+        }
+      },
+      {
+        "claim": "A ordem por preço é um CASE no ORDER BY da página, com LIMIT/OFFSET e cursor opaco.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts",
+          "symbol": "paginaDoCatalogo",
+          "line": 284
+        }
+      },
+      {
+        "claim": "O cartão só tem o '+' com data-adicionar-produto e o link com data-abre-produto; sizes atual é (max-width: 540px) 50vw, 320px.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/CartaoDeProduto.tsx",
+          "symbol": "CartaoDeProduto",
+          "line": 70
+        }
+      },
+      {
+        "claim": "AbaDeCategoria não tem total e a TV não a lê.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/catalogo.ts",
+          "symbol": "AbaDeCategoria",
+          "line": 105
+        }
+      },
+      {
+        "claim": "O painel de ajustes contém o único formulário de filtros e o teste legado exige que ele fique dentro da barra.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/BarraDeCatalogo.tsx",
+          "symbol": "BarraDeCatalogo",
+          "line": 298
+        }
+      },
+      {
+        "claim": "O erro do 'Ver mais' mostra texto no botão mas não é anunciado por aria-live.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/MaisProdutos.tsx",
+          "symbol": "MaisProdutos",
+          "line": 128
+        }
+      },
+      {
+        "claim": "A grade de produtos tem 2 colunas, 3 a partir de 768px e 4 a partir de 1100px; não há lista de uma coluna nem região de sacola.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/vitrine.css",
+          "symbol": ".sc-vitrine__grade",
+          "line": 1085
+        }
+      },
+      {
+        "claim": "A regra de 'esgotado' da página do produto olha is_available da variação e estoque nulo como não controlado.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/produto.usecase.ts",
+          "line": 299
+        }
+      },
+      {
+        "claim": "O preço do cartão considera promoção vigente e o atacado é calculado sobre ele.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/catalogo.usecase.ts",
+          "symbol": "comoVitrine",
+          "line": 190
+        }
+      },
+      {
+        "claim": "A conta unitária de atacado por faixa está no core.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/core/src/atacado.ts",
+          "symbol": "unitarioNaFaixa",
+          "line": 78
+        }
+      },
+      {
+        "claim": "O gate regenera o openapi.json e reprova se o contrato mudar sem regravar.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/contracts/gerar.ts"
+        }
+      },
+      {
+        "claim": "Testes *.onp.test.tsx em apps/web/tests entram no projeto web do vitest; os de packages/*/src e apps/api/src entram em unit; apps/api/tests em api-int.",
+        "kind": "fact",
+        "ref": {
+          "path": "vitest.config.ts",
+          "line": 133
+        }
+      },
+      {
+        "claim": "Testes de CSS leem a primeira regra que casa.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/painel-produtos.test.tsx",
+          "line": 313
+        }
+      },
+      {
+        "claim": "A capa é consumida só pelo catálogo, pela prévia da aparência e pela apresentação da loja.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/CapaDaVitrine.tsx",
+          "symbol": "CapaDaVitrine",
+          "line": 47
+        }
+      },
+      {
+        "claim": "As peças do #104 (Chip, Gaveta, .sc-campo--busca, .sc-cartao--vitrine) ainda não existem.",
+        "kind": "inference"
+      },
+      {
+        "claim": "Peso real das imagens na lista de uma coluna e comportamento do popover estático ao redimensionar.",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "O catálogo funciona em três larguras: lista de 1 coluna no celular, grade de 3 no tablet e três zonas 3/6/3 com região da sacola a partir de 1280px, sem rolagem lateral.",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "Teste de estrutura e do CSS lido: um só main, região .sc-catalogo__sacola vazia, grid-template-columns 3fr 6fr 3fr em min-width 1280px, barra sticky, reserva com safe-area. Larguras reais no e2e/#114."
+          },
+          {
+            "id": "CA-2",
+            "verify": "Teste do cartão: formato catalogo troca o sizes e mantém data-abre-produto e data-adicionar-produto; formato padrão inalterado."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Categorias mostram a contagem de itens e filtros ligados aparecem como chips removíveis, com um só formulário de filtros por largura.",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "catalogo-abas: contagem por aba e, com busca, a contagem dos acertos."
+          },
+          {
+            "id": "CA-4",
+            "verify": "catalogo-filtros: nenhum id repetido, um só form de filtros, chip remove só o próprio filtro, trocar de categoria descarta filtros, quatro ordens originais intactas."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Paginação, 'Ver mais' e estados vazios corretos: o erro de carregar mais é anunciado, o filtro sem acerto mantém a barra e oferece Limpar filtros, a categoria inexistente mostra o catálogo logo abaixo.",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "catalogo-paginacao: página 2 sem repetir ids, nenhuma chamada acima de 48, erro mantém itens e anuncia por role=status."
+          },
+          {
+            "id": "CA-6",
+            "verify": "catalogo-vazios: filtro sem acerto não vira lojaSemCatalogo nem 'categoria não existe mais', atacado ligado com filtro não diz que a loja não tem atacado, categoria inexistente mostra Vazio e ao menos um cartão; testes legados vitrine-paginada, filtro-atacado e vitrine-busca passam sem mudança."
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "O título do catálogo usa o rótulo do ramo, o topo é curto (voltar, nome, selo de texto, foto ao fundo) e nada do mockup (Detalhes do Produto, OEM, chassi, garantia) aparece; o que funciona hoje não quebra.",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "catalogo-textos e catalogo-regressao: h1 pelo rótulo, ausência dos termos proibidos, banners demo só fora de produção, dados estruturados só sem recorte, loja suspensa notFound, cor da loja, testes legados existentes sem skip/todo, capa-do-catalogo e config-aparencia sem mudança."
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "A vitrine pública aceita o filtro 'em estoque', a faixa de preço (centavos) e as ordens 'maior-desconto-atacado' e 'lancamentos', com isolamento por loja e entrada validada.",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "Contrato: vitrine-consulta.onp.test.ts aceita os campos novos e recusa vazio, negativo, decimal, notação científica, acima do teto, filtro com mais de 20 itens, ordem e parâmetro desconhecidos; openapi.json regravado e contrato:verificar verde."
+          },
+          {
+            "id": "CA-9",
+            "verify": "API (api-int, acesso sc_app): em estoque, faixa inclusiva com promoção, ordens sem repetir entre páginas, desconto igual a atacadoPublico, preço 0/nulo sem 500, isolamento (outra loja, rascunho, apagado, COST, variação apagada), 400 em entrada inválida, EXPLAIN em 10.000 produtos."
+          },
+          {
+            "id": "CA-10",
+            "verify": "Web: conversão reais para centavos com degraus, inversão min/max, valores inválidos ignorados, chips, Ver mais com o recorte, requisição idêntica à de hoje sem os campos e repetição sem os campos quando a API responde 400."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "TelaDoCatalogo.tsx e acoes.ts do cardápio",
+        "features/vitrine/* (inclusive variante compacta de CapaDaVitrine)",
+        "lib/catalogo.ts e server/catalogo-na-tela.ts e server/vitrine.ts",
+        "packages/ui/styles/vitrine.css (bloco novo no fim)",
+        "packages/contracts/src/vitrine.ts e contrato/openapi.json",
+        "apps/api/src/modules/storefront (filtros, catálogo paginado, rotas)",
+        "testes *.onp.test.*"
+      ],
+      "out": [
+        "features/produto/*, lib/produto.ts, server/produto.ts, lib/atacado-na-vitrine.ts (#109)",
+        "features/carrinho/*, features/checkout/*, fechamento.css (#110)",
+        "arquivos do #104 (theme, componentes, tokens, index, icones, layout, globals)",
+        "features/tv/*",
+        "migrations e índices novos",
+        "limitador de taxa da API (pedido ao gerente)",
+        "número de estoque no cartão",
+        "botões −/+ no cartão",
+        "landing '/', .spec/, commit e push"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-10808 A: sem abas da loja no tablet (navegação é do #105).",
+        "impact": "baixo"
+      },
+      {
+        "text": "Q-10809 A: sem 'Dicas de busca'.",
+        "impact": "baixo"
+      },
+      {
+        "text": "Q-10810: mantém o que existe (rolagem automática só na lista única, botão nas seções).",
+        "impact": "baixo"
+      },
+      {
+        "text": "Q-10811 A: mantém 'Limpar a busca', então vitrine-busca.test.tsx não muda.",
+        "impact": "baixo"
+      },
+      {
+        "text": "Q-10812 A: trocar de categoria descarta os filtros de especificação.",
+        "impact": "baixo"
+      },
+      {
+        "text": "As peças do #104 seguem o contrato do design dele (.sc-chip, .sc-chip--ativo, .sc-chips, .sc-cartao--vitrine); se não vierem, valem as classes atuais.",
+        "impact": "médio: plano revisado quando o #104 terminar"
+      },
+      {
+        "text": "O #107 solta o claim de CapaDaVitrine.tsx e vitrine.css antes da vez do #108 (execução sequencial).",
+        "impact": "médio: a T-10807 espera por board_wait_for se ainda houver claim"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "A própria .sc-catalogo-barra vira a coluna lateral sticky a partir de 1280px (sem display: contents), com grade 3fr 6fr 3fr e a região .sc-catalogo__sacola vazia à direita.",
+        "why": "A revisão mostrou que display: contents quebrava o sticky, empurrava os produtos para baixo da lista de categorias e deixava ::after e __vao soltos; manter o painel de filtros dentro da barra preserva o teste legado e o formulário único.",
+        "alternatives": [
+          "display: contents com áreas nomeadas",
+          "aside separado no DOM com segundo formulário (ids duplicados)"
+        ],
+        "impact": "CSS novo no fim de vitrine.css e pouca mudança de DOM",
+        "mitigation": "CSS zera o que o popover herda, role=dialog mantido, teste no manual e no e2e"
+      },
+      {
+        "id": "D-2",
+        "decision": "Filtros e ordens novas entram pelo contrato opcional e a API, sem mudar esquemaDeProdutoNaVitrine; em estoque esconde só esgotados (regra da página do produto); lançamentos = created_at; desconto de atacado calculado em numeric sobre o preço que vale (promoção vigente).",
+        "why": "Decisão do usuário; manter o esquema do produto preserva TV e feed; a regra do core define o unitário.",
+        "alternatives": [
+          "published_at com migration",
+          "em estoque também esconde fora do horário",
+          "ordenar por pedido mínimo"
+        ],
+        "impact": "API pública e openapi.json mudam; ordem de deploy API antes da web",
+        "mitigation": "teste cruzado com atacadoPublico, degraus de reais, EXPLAIN, repetição sem campos novos quando a API responde 400"
+      },
+      {
+        "id": "D-3",
+        "decision": "Cartão ganha a prop formato (faixa padrão, catalogo) em vez de trocar sizes global; só o '+' fica; 'Ver opções' fica até o #109 definir o convite.",
+        "why": "Destaques usa o mesmo cartão e testes fixam o sizes e o texto.",
+        "alternatives": [
+          "trocar o cartão para todos",
+          "criar um segundo componente de cartão"
+        ],
+        "impact": "cartão com duas apresentações",
+        "mitigation": "CSS do formato catalogo escopado por .sc-catalogo"
+      },
+      {
+        "id": "D-4",
+        "decision": "Filtro sem acerto vira estado próprio (filtroSemAcertoNaLista) e a categoria inexistente faz uma segunda leitura do resumo com porSecao.",
+        "why": "Corrige a falha confirmada sem mudar a API e garante que as seções mostrem produtos.",
+        "alternatives": [
+          "mudar a API para manter a seção"
+        ],
+        "impact": "server/catalogo-na-tela.ts e TelaDoCatalogo.tsx",
+        "mitigation": "só no caminho raro"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-0",
+        "title": "Linha de base do gate e das peças do #104",
+        "objective": "Registrar o que já falha antes de editar e conferir os nomes reais das peças do #104.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "O e2e desempenho-vitrine espera sizes com 720px que o cartão atual não tem; precisamos separar falha antiga de regressão.",
+          "files": [
+            "e2e/specs/desempenho-vitrine.spec.ts",
+            "packages/ui/src/index.ts"
+          ],
+          "evidence": [
+            "e2e/specs/desempenho-vitrine.spec.ts:94"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "reuse",
+              "note": "só leitura dos exports do #104"
+            }
+          ],
+          "changes": [
+            "rodar typecheck, lint, test:unit e os testes legados do catálogo e registrar falhas existentes"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não editar nada"
+          ],
+          "expected": [
+            "lista de falhas pré-existentes"
+          ],
+          "forbidden": [
+            "editar arquivos"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit"
+          ],
+          "evidence": [
+            "saída registrada no card_report"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "claim de #107 em vitrine.css ou CapaDaVitrine.tsx ainda ativo"
+          ]
+        }
+      },
+      {
+        "id": "T-10801",
+        "title": "Três zonas, região da sacola e reserva de altura",
+        "objective": "Moldura 3/6/3 com barra lateral sticky e a região .sc-catalogo__sacola vazia, mais reserva de altura para a barra fixa.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-0"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "vitrine.css não tem layout em zonas nem região da sacola; a barra é sticky no topo.",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+            "packages/ui/styles/vitrine.css"
+          ],
+          "evidence": [
+            "packages/ui/styles/vitrine.css:342",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx:235"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify",
+              "note": "main.sc-catalogo, div produtos e região da sacola"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify",
+              "note": "bloco novo no fim, escopado por .sc-catalogo"
+            },
+            {
+              "path": "apps/web/tests/catalogo-layout.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "main.sc-catalogo com capa, barra, div produtos e div sacola vazia",
+            "grade 3fr 6fr 3fr a partir de 1280px com barra sticky, ::after e __vao ocultos",
+            "chave :empty para 3fr 9fr",
+            "padding-block-end com --altura-da-barra-inferior e safe-area"
+          ],
+          "contracts": [
+            "div.sc-catalogo__sacola[data-regiao-da-sacola] vazia para o #110"
+          ],
+          "constraints": [
+            "um só main",
+            "não renomear --altura-da-barra",
+            "CSS novo só no fim do arquivo (testes leem a primeira regra)"
+          ],
+          "expected": [
+            "layout em zonas sem rolagem lateral"
+          ],
+          "forbidden": [
+            "display: contents",
+            "editar features/carrinho"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-layout.onp.test.tsx",
+            "apps/web/tests/painel-produtos.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-layout.onp.test.tsx apps/web/tests/painel-produtos.test.tsx"
+          ],
+          "evidence": [
+            "teste verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "sticky ou altura não funcionam na barra lateral"
+          ],
+          "blockedConditions": [
+            "claim de #107 em vitrine.css"
+          ]
+        }
+      },
+      {
+        "id": "T-10802",
+        "title": "Categorias com contagem (Chip)",
+        "objective": "Abas viram chips-link com contagem por categoria.",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10801"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "AbaDeCategoria não traz total; a TV não a lê.",
+          "files": [
+            "apps/web/src/lib/catalogo.ts",
+            "apps/web/src/server/catalogo-na-tela.ts",
+            "apps/web/src/features/vitrine/AbasDeCategoria.tsx"
+          ],
+          "evidence": [
+            "apps/web/src/lib/catalogo.ts:105",
+            "apps/web/src/features/vitrine/AbasDeCategoria.tsx:26"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/lib/catalogo.ts",
+              "action": "modify",
+              "note": "AbaDeCategoria.total opcional"
+            },
+            {
+              "path": "apps/web/src/server/catalogo-na-tela.ts",
+              "action": "modify",
+              "note": "preenche total nas abas de seção"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/AbasDeCategoria.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-abas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "chip-link com aria-current e contagem visível",
+            "manter regra de esconder com 2 ou menos abas",
+            "manter .sc-vitrine__aba para Ver mais e Limpar a busca"
+          ],
+          "contracts": [],
+          "constraints": [
+            "Todas sem número",
+            "usar .sc-chip do #104 ou a classe atual"
+          ],
+          "expected": [
+            "contagem por aba"
+          ],
+          "forbidden": [
+            "editar features/tv"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-abas.onp.test.tsx",
+            "apps/web/tests/vitrine-catalogo.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-abas.onp.test.tsx apps/web/tests/vitrine-catalogo.test.tsx"
+          ],
+          "evidence": [
+            "teste verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "peça Chip do #104 com contrato diferente sem plano B"
+          ]
+        }
+      },
+      {
+        "id": "T-10803",
+        "title": "Filtros em gaveta e na barra lateral, com chips ativos",
+        "objective": "Um só formulário de filtros: popover abaixo de 1280px e estático na barra lateral a partir dela, com chips dos filtros ligados.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10801",
+          "T-10802"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "O painel de ajustes já tem o formulário único e o teste legado exige que fique dentro da barra.",
+          "files": [
+            "apps/web/src/features/vitrine/BarraDeCatalogo.tsx",
+            "apps/web/src/features/vitrine/FiltroEspecificacao.tsx",
+            "apps/web/src/server/catalogo-na-tela.ts"
+          ],
+          "evidence": [
+            "apps/web/src/features/vitrine/BarraDeCatalogo.tsx:298",
+            "apps/web/tests/vitrine-barra-e-ordem.test.tsx:169"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/vitrine/BarraDeCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/FiltroEspecificacao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/catalogo-na-tela.ts",
+              "action": "modify",
+              "note": "filtrosAtivos"
+            },
+            {
+              "path": "apps/web/src/lib/catalogo.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-filtros.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "painel estático na barra lateral com CSS que zera a herança de popover",
+            "esconder botões Filtrar e fechar na largura do computador",
+            "chips ativos com nome acessível Remover filtro X e contagem de itens",
+            "atacado fica como chip visível na barra"
+          ],
+          "contracts": [
+            "manter #painel-dos-ajustes, popovertarget e form dentro de .sc-catalogo-barra"
+          ],
+          "constraints": [
+            "nenhum id repetido",
+            "role=dialog mantido"
+          ],
+          "expected": [
+            "um formulário por largura"
+          ],
+          "forbidden": [
+            "segunda cópia do formulário"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-filtros.onp.test.tsx",
+            "apps/web/tests/vitrine-barra-e-ordem.test.tsx",
+            "apps/web/tests/vitrine-filtro-especificacao.test.tsx",
+            "apps/web/tests/filtro-atacado.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-filtros.onp.test.tsx apps/web/tests/vitrine-barra-e-ordem.test.tsx apps/web/tests/vitrine-filtro-especificacao.test.tsx apps/web/tests/filtro-atacado.test.tsx"
+          ],
+          "evidence": [
+            "teste verde incluindo axe"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "popover estático não se comporta como lateral"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10804",
+        "title": "Cartão em lista e em grade, preços e estados",
+        "objective": "Lista de 1 coluna no celular e grade de 3 no tablet e computador, com o formato catalogo do cartão.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10801"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "O cartão é compartilhado com Destaques; sizes e proporção atuais são de grade.",
+          "files": [
+            "apps/web/src/features/vitrine/CartaoDeProduto.tsx",
+            "apps/web/src/features/vitrine/GradeDeProdutos.tsx",
+            "apps/web/src/features/vitrine/MaisProdutos.tsx"
+          ],
+          "evidence": [
+            "apps/web/src/features/vitrine/CartaoDeProduto.tsx:70",
+            "apps/web/src/features/vitrine/Destaques.tsx:51"
+          ],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/vitrine/CartaoDeProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/GradeDeProdutos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/MaisProdutos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/CartaoEsgotado.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-cartao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "prop formato faixa|catalogo",
+            "sizes e moldura do formato catalogo",
+            "preço anterior, atacado, selos em texto"
+          ],
+          "contracts": [
+            "data-abre-produto e data-adicionar-produto intactos",
+            "chamadaDoAtacado e eProdutoSimples só consumidos"
+          ],
+          "constraints": [
+            "manter 320x240 e loading lazy (vitrine-acessibilidade.test.ts)",
+            "Ver opções até o #109 definir o convite"
+          ],
+          "expected": [
+            "lista no celular, grade no tablet"
+          ],
+          "forbidden": [
+            "editar features/produto e lib/atacado-na-vitrine.ts",
+            "botões −/+"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-cartao.onp.test.tsx",
+            "apps/web/tests/vitrine-acessibilidade.test.ts",
+            "apps/web/tests/vitrine-atacado.test.tsx",
+            "apps/web/tests/vitrine-catalogo.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-cartao.onp.test.tsx apps/web/tests/vitrine-acessibilidade.test.ts apps/web/tests/vitrine-atacado.test.tsx apps/web/tests/vitrine-catalogo.test.tsx"
+          ],
+          "evidence": [
+            "teste verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10805",
+        "title": "Páginas, 'Ver mais' e busca no servidor",
+        "objective": "Preservar a paginação e tornar o erro do Ver mais anunciado.",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10803",
+          "T-10804"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "O botão mostra o erro em texto mas não há aria-live.",
+          "files": [
+            "apps/web/src/features/vitrine/MaisProdutos.tsx",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts"
+          ],
+          "evidence": [
+            "apps/web/src/features/vitrine/MaisProdutos.tsx:128"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/vitrine/MaisProdutos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-paginacao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "p role=status aria-live=polite com a falha",
+            "sem nova tentativa automática após erro"
+          ],
+          "contracts": [],
+          "constraints": [
+            "24 por seção, 72 na primeira tela, 48 por página, cursor opaco"
+          ],
+          "expected": [
+            "erro anunciado"
+          ],
+          "forbidden": [
+            "pedir o catálogo inteiro"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-paginacao.onp.test.tsx",
+            "apps/web/tests/vitrine-paginada.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-paginacao.onp.test.tsx apps/web/tests/vitrine-paginada.test.tsx"
+          ],
+          "evidence": [
+            "teste verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10806",
+        "title": "Estados vazios: busca, filtro sem acerto e categoria",
+        "objective": "Corrigir o filtro sem acerto e a categoria inexistente.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10805"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "O filtro de especificação sem acerto vira lojaSemCatalogo e esconde a barra; a categoria inexistente mostraria seções sem produtos.",
+          "files": [
+            "apps/web/src/server/catalogo-na-tela.ts",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx"
+          ],
+          "evidence": [
+            "apps/web/src/server/catalogo-na-tela.ts:314",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx:269"
+          ],
+          "decisions": [
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/server/catalogo-na-tela.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/lib/catalogo.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/BuscaProduto.tsx",
+              "action": "modify",
+              "note": "só se precisar de prop"
+            },
+            {
+              "path": "apps/web/tests/catalogo-vazios.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "comFiltro e filtroSemAcertoNaLista; lojaSemCatalogo e atacadoSemAcerto exigem !comFiltro",
+            "Nenhum produto com esse filtro e Limpar filtros mantendo a barra",
+            "segunda leitura do resumo com porSecao quando a categoria não existe"
+          ],
+          "contracts": [
+            "CatalogoNaTela ganha filtroSemAcertoNaLista e linkSemFiltros"
+          ],
+          "constraints": [
+            "testes legados vitrine-paginada, filtro-atacado e vitrine-busca passam sem mudança",
+            "categoria inexistente continua sem 404"
+          ],
+          "expected": [
+            "barra sempre visível com filtro sem acerto"
+          ],
+          "forbidden": [
+            "mudar a API"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-vazios.onp.test.tsx",
+            "apps/web/tests/vitrine-paginada.test.tsx",
+            "apps/web/tests/filtro-atacado.test.tsx",
+            "apps/web/tests/vitrine-busca.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-vazios.onp.test.tsx apps/web/tests/vitrine-paginada.test.tsx apps/web/tests/filtro-atacado.test.tsx apps/web/tests/vitrine-busca.test.tsx"
+          ],
+          "evidence": [
+            "teste verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10807",
+        "title": "Título, topo curto, textos genéricos e regressão",
+        "objective": "Variante compacta da capa, textos genéricos e testes de regressão.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10806"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "A capa é consumida por três telas; a variante nova precisa ser opcional.",
+          "files": [
+            "apps/web/src/features/vitrine/CapaDaVitrine.tsx",
+            "apps/web/src/features/vitrine/BarraDeCatalogo.tsx"
+          ],
+          "evidence": [
+            "apps/web/src/features/vitrine/CapaDaVitrine.tsx:47",
+            "apps/web/tests/selo-de-status.test.tsx:49"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/vitrine/CapaDaVitrine.tsx",
+              "action": "modify",
+              "note": "prop variante completa|compacta"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/BarraDeCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-textos.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/catalogo-regressao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "topo curto com Voltar à vitrine, nome, selo em texto, h1 pelo rótulo e foto ao fundo",
+            "testes de textos proibidos e regressões"
+          ],
+          "contracts": [
+            "capa padrão idêntica à de hoje"
+          ],
+          "constraints": [
+            "capa-do-catalogo e config-aparencia sem mudança",
+            "não editar features/tv"
+          ],
+          "expected": [
+            "topo curto no cardápio"
+          ],
+          "forbidden": [
+            "Detalhes do Produto"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-textos.onp.test.tsx",
+            "apps/web/tests/catalogo-regressao.onp.test.tsx",
+            "apps/web/tests/capa-do-catalogo.test.tsx",
+            "apps/web/tests/selo-de-status.test.tsx",
+            "apps/web/tests/config-aparencia.test.tsx",
+            "apps/web/tests/cardapio-na-tv.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-textos.onp.test.tsx apps/web/tests/catalogo-regressao.onp.test.tsx apps/web/tests/capa-do-catalogo.test.tsx apps/web/tests/selo-de-status.test.tsx apps/web/tests/config-aparencia.test.tsx apps/web/tests/cardapio-na-tv.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "claim de #107 em CapaDaVitrine.tsx ainda ativo"
+          ]
+        }
+      },
+      {
+        "id": "T-10808a",
+        "title": "Contrato: estoque, faixa de preço e ordens novas",
+        "objective": "Estender a consulta e a ordem do catálogo e regravar o openapi.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-10803"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "esquemaDaBuscaDoCatalogo é strict e o gate regenera o openapi.",
+          "files": [
+            "packages/contracts/src/vitrine.ts",
+            "contrato/openapi.json"
+          ],
+          "evidence": [
+            "packages/contracts/src/vitrine.ts:344",
+            "apps/api/src/contracts/gerar.ts"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/contracts/src/vitrine.ts",
+              "action": "modify"
+            },
+            {
+              "path": "contrato/openapi.json",
+              "action": "modify",
+              "note": "regravado por contrato:escrever"
+            },
+            {
+              "path": "packages/contracts/src/vitrine-consulta.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "estoque (enum), precoMin e precoMax (regex de 1 a 9 dígitos, teto 100000000), filtro com limite de 20 itens x 120 caracteres",
+            "ordens maior-desconto-atacado e lancamentos",
+            "descricao das rotas"
+          ],
+          "contracts": [
+            "esquemaDeProdutoNaVitrine não muda"
+          ],
+          "constraints": [
+            "campos opcionais",
+            "TV e feed intocados"
+          ],
+          "expected": [
+            "openapi regravado"
+          ],
+          "forbidden": [
+            "mudar esquemaDeProdutoNaVitrine"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-8"
+          ],
+          "tests": [
+            "packages/contracts/src/vitrine-consulta.onp.test.ts",
+            "apps/web/tests/contrato-tipos.test.ts",
+            "apps/web/tests/api-contrato.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run packages/contracts/src/vitrine-consulta.onp.test.ts apps/web/tests/contrato-tipos.test.ts apps/web/tests/api-contrato.test.ts",
+            "pnpm --filter @simpleclick/api run contrato:escrever",
+            "pnpm --filter @simpleclick/api run contrato:verificar"
+          ],
+          "evidence": [
+            "contrato:verificar verde"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "consumidor do esquema quebra no typecheck"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10808b",
+        "title": "API: filtros e ordens novas",
+        "objective": "Implementar em SQL parametrizado, com RLS, o filtro em estoque, a faixa de preço e as duas ordens.",
+        "complexity": "HIGH",
+        "risk": "high",
+        "dependsOn": [
+          "T-10808a"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Filtros viram listas de ids cruzadas em acertosDosFiltros; ordens são CASE no ORDER BY.",
+          "files": [
+            "apps/api/src/modules/storefront/filtros.usecase.ts",
+            "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts",
+            "apps/api/src/modules/storefront/vitrine.routes.ts"
+          ],
+          "evidence": [
+            "apps/api/src/modules/storefront/vitrine.routes.ts:116",
+            "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts:325",
+            "apps/api/src/modules/storefront/filtros.usecase.ts:206"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/api/src/modules/storefront/filtros.usecase.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/api/src/modules/storefront/vitrine.routes.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/api/tests/vitrine-filtros-e-ordens.onp.int.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/api/tests/apoio-de-isolamento.ts",
+              "action": "reuse",
+              "note": "abrirAcessoDaAplicacao"
+            }
+          ],
+          "changes": [
+            "precoQueValeSql(agora) extraído do ORDER BY e reusado",
+            "produtosEmEstoque e produtosNaFaixaDePreco por tx.$queryRaw com template marcado e store_id = p.store_id",
+            "ordens lancamentos e maior-desconto-atacado em numeric com NULLIF e NULLS LAST",
+            "cruzamento em semAtacado"
+          ],
+          "contracts": [
+            "400 entrada_invalida para entrada fora do contrato"
+          ],
+          "constraints": [
+            "proibido Prisma.raw e $queryRawUnsafe em storefront/",
+            "a ordem entra como parâmetro em CASE WHEN",
+            "sem migration nem índice novo"
+          ],
+          "expected": [
+            "resultado igual a atacadoPublico no desconto"
+          ],
+          "forbidden": [
+            "criar índice ou migration",
+            "expor created_at na resposta"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-9"
+          ],
+          "tests": [
+            "apps/api/tests/vitrine-filtros-e-ordens.onp.int.test.ts",
+            "apps/api/tests/vitrine-catalogo-paginado.int.test.ts",
+            "apps/api/tests/vitrine-filtro-atacado.test.ts",
+            "apps/api/tests/vitrine-sem-dado-sensivel.test.ts"
+          ],
+          "commands": [
+            "pnpm test:int"
+          ],
+          "evidence": [
+            "EXPLAIN em loja de 10.000 produtos guardado"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "EXPLAIN acima de 50 ms",
+            "SQL do desconto diverge do core"
+          ],
+          "blockedConditions": [
+            "banco local indisponível para o api-int"
+          ]
+        }
+      },
+      {
+        "id": "T-10808c",
+        "title": "Web: filtros, ordens e chips novos",
+        "objective": "Levar estoque, faixa de preço e ordens novas da URL até a API, com chips e formulário.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10808b"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "O recorte e a serialização para a API passam por vários arquivos; o esquema estrito exige degradar com 400.",
+          "files": [
+            "apps/web/src/lib/catalogo.ts",
+            "apps/web/src/server/vitrine.ts",
+            "apps/web/src/server/catalogo-na-tela.ts",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts"
+          ],
+          "evidence": [
+            "apps/web/src/server/vitrine.ts:220",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts:48"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/lib/catalogo.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/vitrine.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/catalogo-na-tela.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/FiltroEspecificacao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/BarraDeCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/BuscaProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/catalogo-filtros-novos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "estoque=1, preco-de e preco-ate no endereço, reais para centavos em degraus de reais inteiros",
+            "inversão de min e max, valores inválidos ignorados, teto aplicado",
+            "formulário com Só em estoque e preço mínimo e máximo; chips removíveis",
+            "repetição única sem campos novos quando a API responde 400",
+            "ordenar local da TV mantém a ordem do dono"
+          ],
+          "contracts": [
+            "requisição idêntica à de hoje quando os campos não são usados"
+          ],
+          "constraints": [
+            "rótulo do chip montado do número validado",
+            "campos vazios ignorados"
+          ],
+          "expected": [
+            "filtros novos funcionando por links e formulário GET"
+          ],
+          "forbidden": [
+            "editar features/tv"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-filtros-novos.onp.test.tsx",
+            "apps/web/tests/cardapio-na-tv.test.tsx",
+            "apps/web/tests/vitrine-paginada.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/catalogo-filtros-novos.onp.test.tsx apps/web/tests/cardapio-na-tv.test.tsx apps/web/tests/vitrine-paginada.test.tsx",
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm build"
+          ],
+          "evidence": [
+            "gate completo verde, comparado com a linha de base da T-0"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "API sem os parâmetros novos no ambiente de teste"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "A web sair antes da API: parâmetro novo dá 400 no esquema estrito",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "a web repete uma vez sem os campos novos quando a API responde 400; sem os campos a requisição é idêntica; deploy da API antes",
+        "detection": "teste com dublê de fetch; e2e"
+      },
+      {
+        "text": "SQL do desconto de atacado divergir da regra do core (preço que vale, faixas por variante, divisão inteira)",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "numeric com NULLIF, precoQueValeSql, variant_id IS NULL e teste cruzado com atacadoPublico nos três tipos de faixa e com promoção",
+        "detection": "api-int"
+      },
+      {
+        "text": "Faixa de preço e created_at sem índice e sem limitador de taxa nas rotas públicas",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "degraus de reais no endereço, teto no contrato, EXPLAIN em 10.000 produtos, pedido ao gerente de limitador por IP (fora do card); sem migration própria",
+        "detection": "EXPLAIN guardado; escalar se acima de 50 ms"
+      },
+      {
+        "text": "Barra lateral sticky e painel estático herdarem regras de popover",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "CSS zera a herança, role=dialog mantido, teste manual e e2e de redimensionamento",
+        "detection": "axe e e2e do #114; vitrine-barra-e-ordem"
+      },
+      {
+        "text": "A sacola preencher e os cartões estreitarem de 2 para 3 colunas",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "o #108 só entrega a chave :empty; o critério de espaço liberado e o CLS são do #110 e do #114",
+        "detection": "CLS no e2e"
+      },
+      {
+        "text": "Testes de CSS leem a primeira regra que casa",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "todo CSS novo no fim de vitrine.css, escopado por .sc-catalogo",
+        "detection": "painel-produtos.test.tsx"
+      },
+      {
+        "text": "Falha antiga no e2e (sizes 720px) mascarar regressão",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "T-0 registra a linha de base antes de editar",
+        "detection": "gate comparado"
+      },
+      {
+        "text": "Peças do #104 com nomes diferentes ou claim do #107 ainda ativo",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "plano revisado quando o #104 terminar; classes atuais como plano B; board_wait_for se houver claim",
+        "detection": "T-0 e board_peers"
+      },
+      {
+        "text": "Ordenar por lançamentos expõe ao público a ordem de cadastro do lojista",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "decisão do usuário registrada; created_at não vai na resposta",
+        "detection": "revisão"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/vitrine-barra-e-ordem.test.tsx",
+        "apps/web/tests/vitrine-catalogo.test.tsx",
+        "apps/web/tests/vitrine-paginada.test.tsx",
+        "apps/web/tests/vitrine-busca.test.tsx",
+        "apps/web/tests/filtro-atacado.test.tsx",
+        "apps/web/tests/vitrine-filtro-especificacao.test.tsx",
+        "apps/web/tests/vitrine-acessibilidade.test.ts",
+        "apps/web/tests/painel-produtos.test.tsx",
+        "apps/web/tests/capa-do-catalogo.test.tsx",
+        "apps/web/tests/selo-de-status.test.tsx",
+        "apps/web/tests/cardapio-na-tv.test.tsx",
+        "apps/api/tests/vitrine-catalogo-paginado.int.test.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/catalogo-layout.onp.test.tsx",
+        "apps/web/tests/catalogo-abas.onp.test.tsx",
+        "apps/web/tests/catalogo-filtros.onp.test.tsx",
+        "apps/web/tests/catalogo-cartao.onp.test.tsx",
+        "apps/web/tests/catalogo-paginacao.onp.test.tsx",
+        "apps/web/tests/catalogo-vazios.onp.test.tsx",
+        "apps/web/tests/catalogo-textos.onp.test.tsx",
+        "apps/web/tests/catalogo-regressao.onp.test.tsx",
+        "apps/web/tests/catalogo-filtros-novos.onp.test.tsx",
+        "packages/contracts/src/vitrine-consulta.onp.test.ts",
+        "apps/api/tests/vitrine-filtros-e-ordens.onp.int.test.ts"
+      ],
+      "manual": [
+        "/loja/<loja>/cardapio em 344, 768 e 1280px, tema claro e escuro, com e sem filtros, filtro sem acerto, busca zzzz, categoria inexistente, ?ordem=lancamentos, redimensionar com o painel aberto"
+      ],
+      "external": [
+        "axe por largura, teclado, CLS e peso de imagem no #114"
+      ]
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura + rmcode-revisor-plano-seguranca",
+      "findings": [
+        {
+          "text": "Grade de 12 colunas contradiz áreas de 3 nomes por linha",
+          "severity": "major",
+          "resolution": "Usa grid-template-columns 3fr 6fr 3fr; teste confere esse valor"
+        },
+        {
+          "text": "display: contents quebra o sticky e a lista vertical empurra os produtos",
+          "severity": "major",
+          "resolution": "Abandonado; a própria barra vira a coluna lateral sticky (D-1)"
+        },
+        {
+          "text": "::after e __vao da barra viram itens soltos na grade",
+          "severity": "major",
+          "resolution": "Ocultos a partir de 1280px"
+        },
+        {
+          "text": "Painel estático herda posicionamento de popover e pode ficar no top layer ao redimensionar",
+          "severity": "major",
+          "resolution": "CSS zera a herança; caso coberto no manual e no e2e"
+        },
+        {
+          "text": "Tirar role=dialog piora a gaveta do celular",
+          "severity": "major",
+          "resolution": "role=dialog e aria-labelledby mantidos"
+        },
+        {
+          "text": "Lateral nunca some e contradiz AC-10814",
+          "severity": "major",
+          "resolution": "A lateral sempre tem busca, ordem e filtros de estoque e preço; sem modificador sem-lateral"
+        },
+        {
+          "text": "Atacado fora da gaveta e corte de 1023px do AC-10812",
+          "severity": "major",
+          "resolution": "Chip de atacado fica visível na barra; corte em 1280px por decisão do usuário; desvios registrados"
+        },
+        {
+          "text": "Categoria inexistente mostraria seções sem produtos",
+          "severity": "major",
+          "resolution": "Segunda leitura do resumo com porSecao no caminho raro, com teste que exige cartões"
+        },
+        {
+          "text": "atacadoSemAcerto engana quando o culpado é o filtro",
+          "severity": "major",
+          "resolution": "Exige !comFiltro"
+        },
+        {
+          "text": "Falta regravar contrato/openapi.json",
+          "severity": "major",
+          "resolution": "T-10808a roda contrato:escrever e inclui o arquivo"
+        },
+        {
+          "text": "Ordem de deploy só em texto e web cai se sair antes da API",
+          "severity": "major",
+          "resolution": "Repetição única sem os campos novos quando a API responde 400, com teste"
+        },
+        {
+          "text": "Preço sobre o qual o desconto é medido não estava definido",
+          "severity": "major",
+          "resolution": "precoQueValeSql com promoção vigente, variant_id IS NULL, quantidade 2 ou mais, e teste com promoção"
+        },
+        {
+          "text": "Em estoque não bate com o cartão e a fonte da regra estava errada",
+          "severity": "major",
+          "resolution": "Fonte passa a ser produto.usecase.ts; diferença com o cartão registrada e testada"
+        },
+        {
+          "text": "Filtro de preço em produto com variações",
+          "severity": "major",
+          "resolution": "Produto sem preço único fica fora; teste com variações dos dois lados"
+        },
+        {
+          "text": "BuscaProduto descarta os filtros novos",
+          "severity": "major",
+          "resolution": "Entra na T-10808c e campos vazios são ignorados"
+        },
+        {
+          "text": "CapaDaVitrine.tsx é do #107 sem fila",
+          "severity": "major",
+          "resolution": "Posse passada ao #108 pelo usuário e pelo ASM-10709 do #107; T-10807 espera o claim por board_wait_for"
+        },
+        {
+          "text": "Foto 4:1 numa faixa curta",
+          "severity": "major",
+          "resolution": "object-fit cover, alturas mínimas e capaCelular"
+        },
+        {
+          "text": "Coluna da sacola pode fazer a lista pular (AC-10809)",
+          "severity": "major",
+          "resolution": "O #108 entrega só a chave :empty; critério e CLS ficam com #110 e #114"
+        },
+        {
+          "text": "Teste da T-10802 em arquivo que só nasce na T-10805",
+          "severity": "major",
+          "resolution": "Arquivo próprio catalogo-abas.onp.test.tsx"
+        },
+        {
+          "text": "A TV deixa de seguir a regra da API",
+          "severity": "major",
+          "resolution": "Ordens novas viram a ordem do dono na TV, comentário corrigido e teste"
+        },
+        {
+          "text": "Ordem maior-desconto-atacado com bigint sempre empata e preço 0 dá 500",
+          "severity": "major",
+          "resolution": "Conta em numeric com NULLIF e teste com preço 0 e nulo"
+        },
+        {
+          "text": "Sem limitador de taxa nas rotas públicas e cache com 10^8 chaves de preço",
+          "severity": "major",
+          "resolution": "Degraus de reais, teto no contrato, filtro com limite de 20 itens, EXPLAIN em 10.000 produtos e pedido de limitador ao gerente"
+        },
+        {
+          "text": "Valor acima do teto derruba a tela inteira com 400",
+          "severity": "major",
+          "resolution": "Web limita ao teto, ignora inválidos e repete sem os campos em caso de 400"
+        },
+        {
+          "text": "z.coerce.number aceita 1e3, 0x10 e vazio como 0",
+          "severity": "major",
+          "resolution": "Regex de 1 a 9 dígitos antes da conversão"
+        },
+        {
+          "text": "Risco de Prisma.raw ou $queryRawUnsafe ao extrair precoQueValeSql",
+          "severity": "major",
+          "resolution": "Proibido por escrito e verificado por teste de leitura dos arquivos"
+        },
+        {
+          "text": "Prova de isolamento rasa e fora da RLS",
+          "severity": "major",
+          "resolution": "Testes pelo acesso sc_app com casos de COST, variação apagada, categoria oculta e outra loja"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "11 tarefas sequenciais; maior risco na T-10808b (SQL público) e na T-10801/T-10803 (CSS da barra lateral)."
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O símbolo \".sc-vitrine__grade\" não aparece em packages/ui/styles/vitrine.css."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": false,
+        "detail": "T-10802 e T-10804 podem rodar juntas e alteram o mesmo arquivo (packages/ui/styles/vitrine.css): ordene com dependsOn."
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "symbol-missing",
+        "message": "O símbolo \".sc-vitrine__grade\" não aparece em packages/ui/styles/vitrine.css.",
+        "ref": "packages/ui/styles/vitrine.css"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/api run contrato:escrever\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/api run contrato:escrever"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/api run contrato:verificar\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/api run contrato:verificar"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10802 e T-10804 podem rodar juntas e alteram o mesmo arquivo (packages/ui/styles/vitrine.css): ordene com dependsOn.",
+        "ref": "T-10802"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10803 e T-10804 podem rodar juntas e alteram o mesmo arquivo (packages/ui/styles/vitrine.css): ordene com dependsOn.",
+        "ref": "T-10803"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10804 e T-10808c podem rodar juntas e alteram o mesmo arquivo (packages/ui/styles/vitrine.css): ordene com dependsOn.",
+        "ref": "T-10804"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10805 e T-10808c podem rodar juntas e alteram o mesmo arquivo (apps/web/src/app/(loja)/loja/[slug]/cardapio/acoes.ts, apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx): ordene com dependsOn.",
+        "ref": "T-10805"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10806 e T-10808c podem rodar juntas e alteram o mesmo arquivo (apps/web/src/server/catalogo-na-tela.ts, apps/web/src/lib/catalogo.ts, apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx, apps/web/src/features/vitrine/BuscaProduto.tsx): ordene com dependsOn.",
+        "ref": "T-10806"
+      },
+      {
+        "item": "subtasks",
+        "severity": "critical",
+        "code": "parallel-conflict",
+        "message": "T-10807 e T-10808c podem rodar juntas e alteram o mesmo arquivo (apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx, apps/web/src/features/vitrine/BarraDeCatalogo.tsx): ordene com dependsOn.",
+        "ref": "T-10807"
+      }
+    ],
+    "evaluatedAt": 1794502072443,
+    "passed": 6,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

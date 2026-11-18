@@ -1,0 +1,1591 @@
+{
+  "version": 2,
+  "cardId": "e7fccaae-3d9e-469b-8d3d-caa4eaafd933",
+  "cardSeq": 106,
+  "savedAt": 1794487913965,
+  "plan": {
+    "title": "Stitch · Início e descoberta (/explorar) — #106",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Seções do Início (stories, segmentos, suas lojas, destaques, feed) no topo de /explorar/produtos com Suspense por seção, sessão do servidor nas leituras de produtos (estrelas certas em todas as páginas), sessão vencida explícita, localização arredondada no servidor e apagada ao virar visitante, peças do #104 com classes legadas, sem mockup nem funções A decidir. Executa depois do #104 e #105.",
+    "discovery": [
+      {
+        "claim": "/explorar redireciona para /explorar/produtos sem repassar os parâmetros",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(explorar)/explorar/page.tsx",
+          "symbol": "PaginaInicialDoExplorar"
+        }
+      },
+      {
+        "claim": "conteudoDosProdutos chama buscarProdutosDoFeed sem token: favorito sempre falso",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+          "symbol": "conteudoDosProdutos"
+        }
+      },
+      {
+        "claim": "maisPosts usa conteudoDosProdutos sem token",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(explorar)/explorar/acoes.ts",
+          "symbol": "maisPosts"
+        }
+      },
+      {
+        "claim": "buscarProdutosDoFeed já aceita token na 3ª posição e repete sem token em 401 silenciosamente",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/feed.ts",
+          "symbol": "buscarProdutosDoFeed"
+        }
+      },
+      {
+        "claim": "buscarLojasDoFeed também repete sem token em 401",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/feed.ts",
+          "symbol": "buscarLojasDoFeed"
+        }
+      },
+      {
+        "claim": "buscarStoriesDoFeed repete sem token em 401",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/feed-social.ts",
+          "symbol": "buscarStoriesDoFeed"
+        }
+      },
+      {
+        "claim": "lojasSeguidas transforma 401 em lista vazia",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+          "symbol": "lojasSeguidas"
+        }
+      },
+      {
+        "claim": "consultaDaApi fixa porPagina=POR_PAGINA (24); teste legado exige 24",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/consulta.ts",
+          "symbol": "consultaDaApi"
+        }
+      },
+      {
+        "claim": "lerConsulta aceita lat/lng sem arredondar",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/consulta.ts",
+          "symbol": "lerConsulta"
+        }
+      },
+      {
+        "claim": "localização guardada em sc:feed:local",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/BarraDoFeed.tsx",
+          "symbol": "CHAVE_DO_LOCAL"
+        }
+      },
+      {
+        "claim": "stories vistos guardados em sc:feed:stories-vistos",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/social.ts",
+          "symbol": "CHAVE_DOS_STORIES_VISTOS"
+        }
+      },
+      {
+        "claim": "saídas da conta são server actions com redirect, sem acesso ao localStorage",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/actions/auth.ts",
+          "symbol": "sairDaConta"
+        }
+      },
+      {
+        "claim": "leitura usa cache no-store; só tipos de negócio revalidam (sem sessão)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/feed.ts",
+          "symbol": "buscarTiposDeNegocio"
+        }
+      },
+      {
+        "claim": "recentes: janela de 30 dias e limite 20 aplicados na API",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/feed.ts",
+          "symbol": "JANELA_DOS_RECENTES_EM_DIAS"
+        }
+      },
+      {
+        "claim": "testes legados dependem de classes .sc-feed__categoria/.sc-feed__listas e da grade sem acoes",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/feed-telas.test.tsx"
+        }
+      },
+      {
+        "claim": "stories.css tem cores fixas (49 ocorrências); feed.css só tokens",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/stories.css"
+        }
+      },
+      {
+        "claim": "layout do explorar força data-tema=escuro",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(explorar)/explorar/layout.tsx",
+          "symbol": "LayoutDoExplorar"
+        }
+      },
+      {
+        "claim": "testes de API de favoritos/recentes existem como ponto de partida da prova entre contas",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/tests/favoritos-e-recentes.test.ts"
+        }
+      },
+      {
+        "claim": "peças Chip, Abas, Gaveta, IconeCompartilhar, Cartão vitrine ainda não existem; o #104 cria (contrato em design §5)",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-base-visual/design.md"
+        }
+      },
+      {
+        "claim": "se o #105 extrair a leitura de sc:feed:local para módulo comum, o caminho ainda é desconhecido",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Leituras de produtos com sessão lida no servidor e sessão vencida explícita",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "AC-10613: produto favoritado aparece marcado na página 1 e 3 (fetch falso conferindo authorization)"
+          },
+          {
+            "id": "CA-2",
+            "verify": "AC-10614: 401 marca sessaoVencida e a tela esconde estrelas/mostra Entrar de novo"
+          },
+          {
+            "id": "CA-3",
+            "verify": "AC-10611: duas contas recebem só os próprios dados (web com fetch falso; API com banco em test:int); toda leitura com authorization é no-store; sem unstable_cache/use cache"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Localização com pouca precisão, sem log e apagada ao sair",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "AC-10618: lat/lng com 6 casas chegam à API com 3; fora da faixa descartado; console sem coordenadas; texto de finalidade antes de pedir"
+          },
+          {
+            "id": "CA-5",
+            "verify": "AC-10616/10617: sem local nenhuma distância; com local distância calculada só onde há endereço"
+          },
+          {
+            "id": "CA-6",
+            "verify": "AC-10619: local marcado daConta some ao abrir como visitante; limparDadosLocaisDoFeed apaga as duas chaves"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Seções independentes e estados vazios/erro",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "AC-10605: uma seção falha e as outras renderizam"
+          },
+          {
+            "id": "CA-8",
+            "verify": "AC-10624/10625/10626/10608: sem stories some a faixa; sem produtos aviso útil; API fora 'O feed não carregou' + 'Tentar de novo'; sem tipos só 'Tudo'"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Seção Suas lojas",
+        "acceptance": [
+          {
+            "id": "CA-9",
+            "verify": "AC-10610/10615: favoritas+recentes da conta, sem repetir, até 6, Ver todas"
+          },
+          {
+            "id": "CA-10",
+            "verify": "AC-10612: visitante vê convite e nenhuma URL /v1/conta/ é chamada"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Busca, segmentos reais e filtros",
+        "acceptance": [
+          {
+            "id": "CA-11",
+            "verify": "AC-10606/10607/10609: busca no endereço; chips só tipos reais + Tudo; botão de filtros com contagem"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Destaques e feed paginado",
+        "acceptance": [
+          {
+            "id": "CA-12",
+            "verify": "AC-10620/10621: preço de só com precoOriginalCentavos; atacado só com faixa; abas Recentes e Atacado, sem Mais pedidos"
+          },
+          {
+            "id": "CA-13",
+            "verify": "AC-10622: página 2 pede porPagina=12 e traz o item 13; sem repetidos; Tentar de novo; fim da lista; porPagina do navegador ignorado"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Composição por largura e ações",
+        "acceptance": [
+          {
+            "id": "CA-14",
+            "verify": "AC-10601..10604: ordem das seções no DOM, Ver todas, sem banner, classes de grade, stories.css sem cor fixa"
+          },
+          {
+            "id": "CA-15",
+            "verify": "AC-10623/10631: curtir ✦, favoritar ★, Gaveta do #104, compartilhar com pedir, foco"
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Sem mockup nem funções A decidir; links e metadados",
+        "acceptance": [
+          {
+            "id": "CA-16",
+            "verify": "AC-10627/10628: varredura sem textos proibidos"
+          },
+          {
+            "id": "CA-17",
+            "verify": "AC-10629/10630: /explorar?busca=pão redireciona com busca e lat arredondada; canônico e título sem lat/lng nem conta"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/feed/*",
+        "explorar/page.tsx, _dados.ts, acoes.ts, produtos/, lojas/",
+        "server/feed.ts, server/feed-social.ts",
+        "packages/ui/styles/stories.css (após #104)",
+        "testes apps/web/tests/feed-*.onp.test.ts(x)",
+        "testes da API da T-10611 (liberado pelo gerente, só acrescentar)"
+      ],
+      "out": [
+        "arquivos do #104/#105, features/loja, vitrine, produto, carrinho, conta, .spec",
+        "landing /",
+        "banner de destaque (Q-10603)",
+        "desempate SQL (Q-10612)",
+        "sitemap.ts, lib/routes.ts, tutorial (rota não muda)",
+        "tema do layout do explorar, salvo resposta do gerente",
+        "commit, push, troca de branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "As peças do #104 seguem o contrato do design §5 e aceitam className",
+        "impact": "Se não aceitarem, invólucro local; se quebrar teste legado sem saída, pausa e gerente"
+      },
+      {
+        "text": "Abas de destaques aparecem em todas as larguras",
+        "impact": "Só visual; AC-10621 cita computador"
+      },
+      {
+        "text": "Destaques respeitam tipo, entrega e busca, com ordem recentes",
+        "impact": "Seção coerente com a busca"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Seções como componentes async do servidor em produtos/secoes.tsx, cada uma em Suspense; apresentação síncrona em SecoesDoInicio.tsx; TelaDoFeed ganha slots opcionais inicio e feed",
+        "why": "AC-10605 e testabilidade em jsdom",
+        "alternatives": [
+          "Promise.all como hoje"
+        ],
+        "impact": "Página só espera tipos e token",
+        "mitigation": "sem slots o comportamento atual se mantém"
+      },
+      {
+        "id": "D-2",
+        "decision": "Token sempre de tokenDaSessao no servidor; leituras com authorization no-store; proibido unstable_cache/use cache",
+        "why": "AC-10611/10613",
+        "impact": "estrelas certas"
+      },
+      {
+        "id": "D-3",
+        "decision": "sessaoVencida opcional em LeituraDoFeed/ConteudoDoFeed e no resultado de maisPosts, para produtos, lojas, stories e lojas da conta",
+        "why": "AC-10614",
+        "alternatives": [
+          "tratar como visitante"
+        ],
+        "mitigation": "campo opcional"
+      },
+      {
+        "id": "D-4",
+        "decision": "lojasDaConta com React cache() e argumentos primitivos",
+        "why": "evitar leitura dupla de favoritas",
+        "mitigation": "cache() é por requisição; token como argumento"
+      },
+      {
+        "id": "D-5",
+        "decision": "consultaDaApi com opções fixadas pelo servidor (12 posts, 8 destaques, 6 lojas); padrão 24 mantido",
+        "why": "Q-10609 sem quebrar teste legado e sem dar controle ao navegador"
+      },
+      {
+        "id": "D-6",
+        "decision": "Peças do #104 recebem as classes legadas; testes legados do site não são editados",
+        "why": "arquivos fora da permissão"
+      },
+      {
+        "id": "D-7",
+        "decision": "Arredondar em lerConsulta e buscarLojasDaContaNoFeed; local marcado daConta apagado ao abrir como visitante; limparDadosLocaisDoFeed exportada ao #105",
+        "why": "AC-10618/10619 cobrindo 4 saídas e sessão vencida"
+      },
+      {
+        "id": "D-8",
+        "decision": "Rota A: redirect de /explorar remonta com lerConsulta+enderecoDoFeed; metadados fixos",
+        "why": "Q-10602 A e AC-10629/10630"
+      },
+      {
+        "id": "D-9",
+        "decision": "T-10611 liberada pelo gerente: só acrescentar asserções nos testes da API e criar feed-isolamento-entre-contas.onp.test.ts; tema do layout só com resposta do gerente",
+        "why": "regra de donos de arquivo do gerente"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-10601",
+        "title": "Sessão nos produtos e sessão vencida",
+        "objective": "Estrelas certas em todas as páginas e sessão vencida explícita",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Passar o token do servidor e marcar sessaoVencida",
+          "files": [
+            "apps/web/src/app/(explorar)/explorar/_dados.ts",
+            "apps/web/src/server/feed.ts"
+          ],
+          "evidence": [
+            "conteudoDosProdutos sem token"
+          ],
+          "decisions": [
+            "D-2",
+            "D-3",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/acoes.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/feed.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/feed-social.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/useMaisItens.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/FeedDePosts.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-sessao.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "conteudoDosProdutos(consulta, token)",
+            "sessaoVencida opcional nas leituras com token",
+            "lojasDaConta com cache()"
+          ],
+          "contracts": [
+            "buscarProdutosDoFeed(consulta, buscar, token) mantém assinatura",
+            "LeituraDoFeed ok ganha sessaoVencida?: true"
+          ],
+          "constraints": [
+            "token nunca vem do navegador",
+            "sem unstable_cache"
+          ],
+          "expected": [
+            "página 3 com estrela marcada"
+          ],
+          "forbidden": [
+            "editar testes legados do site"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3"
+          ],
+          "tests": [
+            "apps/web/tests/feed-sessao.onp.test.ts",
+            "apps/web/tests/feed-servidor.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "teste legado de feed-servidor quebra"
+          ],
+          "blockedConditions": [
+            "#104/#105 não concluídos"
+          ]
+        }
+      },
+      {
+        "id": "T-10602",
+        "title": "Localização com pouca precisão e sem log",
+        "objective": "Arredondar no servidor, sem log, apagar ao virar visitante",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10601"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "LGPD da localização",
+          "files": [
+            "apps/web/src/features/feed/consulta.ts",
+            "apps/web/src/features/feed/BarraDoFeed.tsx"
+          ],
+          "evidence": [
+            "lerConsulta sem arredondar"
+          ],
+          "decisions": [
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/consulta.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/BarraDoFeed.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/feed.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/limpar-dados-locais.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/feed-localizacao.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "arredondarLocal em lerConsulta e buscarLojasDaContaNoFeed",
+            "marca daConta e limpeza ao abrir como visitante",
+            "texto de finalidade"
+          ],
+          "contracts": [
+            "limparDadosLocaisDoFeed(): void exportada para o #105"
+          ],
+          "constraints": [
+            "nenhuma coordenada em console"
+          ],
+          "expected": [
+            "URL 6 casas → API 3 casas"
+          ],
+          "forbidden": [
+            "mexer em features/usuario"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4",
+            "CA-5",
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/feed-localizacao.onp.test.ts",
+            "apps/web/tests/feed-telas.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "#105 já mudou a leitura de sc:feed:local"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10603",
+        "title": "Seções independentes e estados",
+        "objective": "Suspense por seção e estados vazio/erro",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10602"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Página só espera tipos e token",
+          "files": [
+            "apps/web/src/features/feed/TelaDoFeed.tsx"
+          ],
+          "evidence": [
+            "Promise.all com 5 leituras"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/Stories.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/loading.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/lojas/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/secoes.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/feed/SecoesDoInicio.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/feed-estados.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "slots inicio e feed em TelaDoFeed",
+            "seções async com Suspense"
+          ],
+          "contracts": [
+            "sem slot feed, conteudo obrigatório e comportamento atual"
+          ],
+          "constraints": [
+            "aba Lojas igual"
+          ],
+          "expected": [
+            "seção falha sozinha"
+          ],
+          "forbidden": [
+            "editar testes legados do site"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7",
+            "CA-8"
+          ],
+          "tests": [
+            "apps/web/tests/feed-estados.onp.test.tsx",
+            "apps/web/tests/feed-telas.test.tsx",
+            "apps/web/tests/feed-social.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "slots exigem mudar teste legado"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10604",
+        "title": "Seção Suas lojas",
+        "objective": "Favoritas e recentes da conta, convite ao visitante",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10603"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "Reusa buscarLojasDaContaNoFeed via lojasDaConta; estende SecoesDoInicio.tsx e produtos/secoes.tsx criados na T-10603",
+          "files": [
+            "apps/web/src/app/(explorar)/explorar/_dados.ts"
+          ],
+          "evidence": [
+            "buscarLojasDaContaNoFeed"
+          ],
+          "decisions": [
+            "D-3",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/SecoesDoInicio.tsx",
+              "action": "create",
+              "note": "nasce na T-10603; esta tarefa acrescenta a seção Suas lojas"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/secoes.tsx",
+              "action": "create",
+              "note": "nasce na T-10603; esta tarefa acrescenta a leitura"
+            },
+            {
+              "path": "apps/web/src/features/feed/Cartoes.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/consulta.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-suas-lojas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "junta favoritas e recentes sem repetir, até 6",
+            "convite ao visitante",
+            "Entrar de novo na sessão vencida"
+          ],
+          "contracts": [
+            "visitante = token undefined"
+          ],
+          "constraints": [
+            "nenhuma chamada /v1/conta/ sem token"
+          ],
+          "expected": [
+            "só as lojas da conta"
+          ],
+          "forbidden": [
+            "inventar horário de aberta"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-9",
+            "CA-10"
+          ],
+          "tests": [
+            "apps/web/tests/feed-suas-lojas.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10605",
+        "title": "Busca, segmentos e filtros",
+        "objective": "Chip do #104, campo de busca e contagem de filtros",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10604"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Troca de peças com classes legadas",
+          "files": [
+            "apps/web/src/features/feed/BarraDoFeed.tsx"
+          ],
+          "evidence": [
+            "categoriasDoFeed"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/BarraDoFeed.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/consulta.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-busca-segmentos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Chip nos segmentos",
+            "botão de filtros com contagem"
+          ],
+          "contracts": [
+            "categoriasDoFeed inalterada"
+          ],
+          "constraints": [
+            "classe sc-feed__categoria mantida"
+          ],
+          "expected": [
+            "só tipos reais + Tudo"
+          ],
+          "forbidden": [
+            "segmentos do mockup"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-11"
+          ],
+          "tests": [
+            "apps/web/tests/feed-busca-segmentos.onp.test.tsx",
+            "apps/web/tests/feed-telas.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Chip sem className"
+          ],
+          "blockedConditions": [
+            "Chip do #104 ausente"
+          ]
+        }
+      },
+      {
+        "id": "T-10606",
+        "title": "Destaques e feed paginado",
+        "objective": "Destaques reais e feed de 12 sem repetir",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10605"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "Tamanhos fixados pelo servidor; estende SecoesDoInicio.tsx e produtos/secoes.tsx criados na T-10603",
+          "files": [
+            "apps/web/src/features/feed/consulta.ts",
+            "apps/web/src/app/(explorar)/explorar/acoes.ts"
+          ],
+          "evidence": [
+            "porPagina 24 fixo"
+          ],
+          "decisions": [
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/_dados.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/acoes.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/FeedDePosts.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/Post.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/Cartoes.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/useMaisItens.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/consulta.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/SecoesDoInicio.tsx",
+              "action": "create",
+              "note": "nasce na T-10603; esta tarefa acrescenta Destaques"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/secoes.tsx",
+              "action": "create",
+              "note": "nasce na T-10603; esta tarefa acrescenta a leitura dos destaques"
+            },
+            {
+              "path": "apps/web/tests/feed-destaques-e-paginas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "consultaDaApi(consulta, opcoes)",
+            "POR_PAGINA_DOS_POSTS=12, POR_PAGINA_DOS_DESTAQUES=8",
+            "abas Recentes e Atacado"
+          ],
+          "contracts": [
+            "padrão porPagina 24 mantido"
+          ],
+          "constraints": [
+            "porPagina/ordem do navegador ignorados"
+          ],
+          "expected": [
+            "página 2 traz item 13"
+          ],
+          "forbidden": [
+            "aba Mais pedidos",
+            "selos"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-12",
+            "CA-13"
+          ],
+          "tests": [
+            "apps/web/tests/feed-destaques-e-paginas.onp.test.tsx",
+            "apps/web/tests/feed-consulta.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Abas do #104 sem suporte a painel"
+          ],
+          "blockedConditions": [
+            "Abas do #104 ausente"
+          ]
+        }
+      },
+      {
+        "id": "T-10607",
+        "title": "Composição por largura",
+        "objective": "Ordem, grade e tokens",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10606"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "CSS por tokens",
+          "files": [
+            "apps/web/src/features/feed/feed.css",
+            "packages/ui/styles/stories.css"
+          ],
+          "evidence": [
+            "49 cores fixas em stories.css"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/feed.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/stories.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-composicao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "grade 1/2-3/3-4 colunas",
+            "stories.css por tokens"
+          ],
+          "contracts": [],
+          "constraints": [
+            "feed.css só seletores do /explorar"
+          ],
+          "expected": [
+            "sem rolagem lateral"
+          ],
+          "forbidden": [
+            "banner",
+            "cor fixa"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-14"
+          ],
+          "tests": [
+            "apps/web/tests/feed-composicao.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest",
+            "navegador 390/1280 manual"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10608",
+        "title": "Ações, Gaveta e teclado",
+        "objective": "Ações atuais com peças do #104",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10607"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Gaveta do #104 nos comentários",
+          "files": [
+            "apps/web/src/features/feed/GavetaDeComentarios.tsx"
+          ],
+          "evidence": [
+            "IconeBrilho e IconeEstrela já usados"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/GavetaDeComentarios.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/Post.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/MidiaDoPost.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/Stories.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-acoes.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Gaveta",
+            "IconeCompartilhar",
+            "foco"
+          ],
+          "contracts": [
+            "compartilhar usa pedir"
+          ],
+          "constraints": [
+            "ações atuais preservadas"
+          ],
+          "expected": [
+            "✦ e ★"
+          ],
+          "forbidden": [
+            "coração"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-15"
+          ],
+          "tests": [
+            "apps/web/tests/feed-acoes.onp.test.tsx",
+            "apps/web/tests/feed-social.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "Gaveta do #104 incompatível com o teste legado"
+          ],
+          "blockedConditions": [
+            "Gaveta do #104 ausente"
+          ]
+        }
+      },
+      {
+        "id": "T-10609",
+        "title": "Nada do mockup nem A decidir",
+        "objective": "Varredura de textos proibidos",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10608"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "Teste de varredura",
+          "files": [
+            "apps/web/src/features/feed/TelaDoFeed.tsx"
+          ],
+          "evidence": [
+            "P-104/P-105"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/feed-sem-mockup.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "teste"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [
+            "nenhum texto proibido"
+          ],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-16"
+          ],
+          "tests": [
+            "apps/web/tests/feed-sem-mockup.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-sem-mockup.onp.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10610",
+        "title": "Links e metadados",
+        "objective": "Redirect com parâmetros e canônico",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10609"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "Rota A",
+          "files": [
+            "apps/web/src/app/(explorar)/explorar/page.tsx"
+          ],
+          "evidence": [
+            "redirect perde parâmetros"
+          ],
+          "decisions": [
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/produtos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/lojas/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/feed-links-e-metadados.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "redirect com lerConsulta+enderecoDoFeed",
+            "metadata title/description/alternates.canonical"
+          ],
+          "contracts": [],
+          "constraints": [
+            "nunca repassar texto cru"
+          ],
+          "expected": [
+            "/explorar?busca=pão mantém busca"
+          ],
+          "forbidden": [
+            "mexer em sitemap/routes/tutorial"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-17"
+          ],
+          "tests": [
+            "apps/web/tests/feed-links-e-metadados.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/feed-",
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm build"
+          ],
+          "evidence": [
+            "saída do vitest e build"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10611",
+        "title": "Isolamento entre contas na API",
+        "objective": "Provar AC-10611 com banco",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Liberada pelo gerente: só acrescentar asserções",
+          "files": [
+            "apps/api/tests/favoritos-e-recentes.test.ts",
+            "apps/api/tests/feed-e-tema.test.ts"
+          ],
+          "evidence": [
+            "T-10611 da spec"
+          ],
+          "decisions": [
+            "D-9"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/api/tests/favoritos-e-recentes.test.ts",
+              "action": "modify",
+              "note": "só acrescentar"
+            },
+            {
+              "path": "apps/api/tests/feed-e-tema.test.ts",
+              "action": "modify",
+              "note": "só acrescentar"
+            },
+            {
+              "path": "apps/api/tests/feed-isolamento-entre-contas.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "conta A → visitante → conta B em /v1/feed/produtos, /v1/conta/favoritos, /v1/conta/recentes; cache-control private, no-store"
+          ],
+          "contracts": [],
+          "constraints": [
+            "só testes",
+            "nenhuma asserção existente enfraquecida"
+          ],
+          "expected": [
+            "A só vê A, B só vê B"
+          ],
+          "forbidden": [
+            "mudar código da API"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "apps/api/tests/feed-isolamento-entre-contas.onp.test.ts",
+            "apps/api/tests/favoritos-e-recentes.test.ts"
+          ],
+          "commands": [
+            "pnpm test:int"
+          ],
+          "evidence": [
+            "saída do test:int"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "banco local fora"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Teste legado quebra com as peças novas",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "classes legadas por className ou invólucro",
+        "detection": "vitest dos legados",
+        "recovery": "pausar e consultar gerente"
+      },
+      {
+        "text": "Contrato real do #104 diferente do design",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "adaptar ao export real",
+        "detection": "typecheck",
+        "recovery": "pausar se peça ausente"
+      },
+      {
+        "text": "Resposta com sessão servida a outra conta",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "no-store, cache() por requisição, proibição de unstable_cache",
+        "detection": "teste de duas contas (web e API)",
+        "recovery": "reverter a leitura"
+      },
+      {
+        "text": "Coordenada vaza em URL/log/metadados",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "arredondar em lerConsulta; metadados fixos",
+        "detection": "testes de localização e metadados"
+      },
+      {
+        "text": "Conflito de feed.css com o #107",
+        "probability": "low",
+        "impact": "low",
+        "mitigation": "só seletores do /explorar",
+        "detection": "diff"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/feed-telas.test.tsx",
+        "apps/web/tests/feed-social.test.tsx",
+        "apps/web/tests/feed-consulta.test.ts",
+        "apps/web/tests/feed-servidor.test.ts",
+        "apps/web/tests/filtro-atacado.test.tsx",
+        "apps/web/tests/vitrine-atacado.test.tsx",
+        "apps/api/tests/favoritos-e-recentes.test.ts",
+        "apps/api/tests/feed-e-tema.test.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/feed-sessao.onp.test.ts",
+        "apps/web/tests/feed-localizacao.onp.test.ts",
+        "apps/web/tests/feed-estados.onp.test.tsx",
+        "apps/web/tests/feed-suas-lojas.onp.test.tsx",
+        "apps/web/tests/feed-busca-segmentos.onp.test.tsx",
+        "apps/web/tests/feed-destaques-e-paginas.onp.test.tsx",
+        "apps/web/tests/feed-composicao.onp.test.tsx",
+        "apps/web/tests/feed-acoes.onp.test.tsx",
+        "apps/web/tests/feed-sem-mockup.onp.test.tsx",
+        "apps/web/tests/feed-links-e-metadados.onp.test.tsx",
+        "apps/api/tests/feed-isolamento-entre-contas.onp.test.ts"
+      ],
+      "manual": [
+        "navegador 390 e 1280px, claro e escuro, logado e visitante",
+        "uma leitura de favoritas por requisição"
+      ],
+      "external": [
+        "pnpm test:int para T-10611"
+      ]
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura + rmcode-revisor-plano-seguranca",
+      "findings": [
+        {
+          "text": "feed de 12 só na página 1; maisPosts continua 24",
+          "severity": "major",
+          "resolution": "tamanho fixado no servidor em conteudoDosProdutos; _dados.ts e acoes.ts na T-10606; teste da página 2 com item 13"
+        },
+        {
+          "text": "D-9 contradiz a spec (T-10611) e apps/api fora da permissão",
+          "severity": "major",
+          "resolution": "gerente liberou: só acrescentar nos testes da API e criar o .onp novo"
+        },
+        {
+          "text": "D-6 permitia editar testes legados fora da permissão",
+          "severity": "major",
+          "resolution": "proibido editar; classes por className ou invólucro; senão pausa"
+        },
+        {
+          "text": "T-10612 de tema não existe na spec",
+          "severity": "major",
+          "resolution": "retirada; perguntado ao gerente"
+        },
+        {
+          "text": "cache() compara por identidade",
+          "severity": "major",
+          "resolution": "argumentos primitivos; dedupe só verificado manualmente"
+        },
+        {
+          "text": "Suspense anulado se a página esperar tudo; contrato de slots indefinido",
+          "severity": "major",
+          "resolution": "página espera só tipos e token; contrato de slots definido em D-1"
+        },
+        {
+          "text": "sessaoVencida incompleto (lojas, stories, lojasSeguidas, useMaisItens)",
+          "severity": "major",
+          "resolution": "D-3 cobre as 4 leituras; useMaisItens e FeedDePosts na T-10601; Suas lojas trata 401 como Entrar de novo"
+        },
+        {
+          "text": "rolagem sem teste de sobreposição",
+          "severity": "major",
+          "resolution": "teste de páginas sobrepostas; desempate fica com ASM-10606"
+        },
+        {
+          "text": "buscarLojasDaContaNoFeed manda local cru",
+          "severity": "major",
+          "resolution": "arredondar também ali"
+        },
+        {
+          "text": "filtros nos destaques indefinidos",
+          "severity": "major",
+          "resolution": "destaques respeitam tipo, entrega e busca, ordem recentes"
+        },
+        {
+          "text": "opções de consultaDaApi não podem vir do navegador",
+          "severity": "major",
+          "resolution": "constantes do servidor; teste com porPagina=500"
+        },
+        {
+          "text": "AC-10619 sem cobertura nas 4 saídas",
+          "severity": "major",
+          "resolution": "marca daConta e limpeza ao abrir como visitante, mais limparDadosLocaisDoFeed para o #105"
+        },
+        {
+          "text": "coordenadas vazando no redirect",
+          "severity": "major",
+          "resolution": "remontar com lerConsulta+enderecoDoFeed; teste de canônico sem lat/lng"
+        },
+        {
+          "text": "prova AC-10611 não roda no gate",
+          "severity": "major",
+          "resolution": "teste web de duas contas e varredura de cache; prova de banco no test:int (ASM-10604)"
+        },
+        {
+          "text": "critérios de navegador não verificáveis no gate",
+          "severity": "major",
+          "resolution": "marcados como verificação manual"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "11 tarefas sequenciais, ~2 a 3 sessões de implementação"
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      }
+    ],
+    "evaluatedAt": 1794487913965,
+    "passed": 7,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

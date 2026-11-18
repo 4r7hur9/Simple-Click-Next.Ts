@@ -1,0 +1,486 @@
+{
+  "version": 5,
+  "cardId": "cd816803-93dd-43e0-a055-28ce284e2c0a",
+  "cardSeq": 110,
+  "savedAt": 1794838771379,
+  "plan": {
+    "complexity": "HIGH",
+    "risk": "critical",
+    "summary": "Retomada do #110: provar o evento sc:abrir-sacola (corrigindo corrida), teste de privacidade, migrar .sc-carrinho-janela para fechamento.css e (bloqueado) limpar vitrine.css.",
+    "discovery": [
+      {
+        "claim": "Coluna já entra por portal na região do #108",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+        }
+      },
+      {
+        "claim": "Região reservada já existe na tela do catálogo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx"
+        }
+      },
+      {
+        "claim": "Classes sc-carrinho-janela usadas em vários componentes",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/GavetaCarrinho.tsx"
+        }
+      },
+      {
+        "claim": "Evento emitido pelo topo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/usuario/SacolaDoTopo.tsx"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Pedido de abrir a sacola atendido com prova",
+        "acceptance": [
+          {
+            "id": "CA-6",
+            "verify": "sacola-abrir.onp.test passa"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Privacidade e sem itens A decidir",
+        "acceptance": [
+          {
+            "id": "CA-23",
+            "verify": "sacola-privacidade.onp.test passa"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Classes antigas migradas e removidas",
+        "acceptance": [
+          {
+            "id": "CA-31",
+            "verify": "sacola-estilos.onp.test passa e grep sem uso"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/carrinho",
+        "features/checkout",
+        "fechamento.css",
+        "testes sacola-* e fechamento-*"
+      ],
+      "out": [
+        "landing",
+        "lib/produto.ts",
+        "arquivos do #104",
+        ".spec",
+        "TelaDoCatalogo.tsx"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Remoção em vitrine.css só após o gerente incluir o #110 na fila",
+        "impact": "T-11009(b) fica bloqueada"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Migrar regras para fechamento.css antes de apagar de vitrine.css, com lista exata",
+        "why": "evitar quebrar páginas que só importam vitrine.css",
+        "alternatives": [
+          "curinga .sc-sacola*"
+        ],
+        "mitigation": "conferir especificidade e imports"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Provar e corrigir abrir a sacola",
+        "objective": "T-11003",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "teste do evento e correção da corrida",
+          "files": [
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "listener em CarrinhoFlutuante"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/sacola-abrir.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "não marcar atendido antes da primeira leitura do resumo",
+            "sem showModal ir a /carrinho da loja"
+          ],
+          "contracts": [
+            "sc:abrir-sacola inalterado"
+          ],
+          "constraints": [
+            "sem segundo ouvinte"
+          ],
+          "expected": [
+            "foco no título da coluna ou diálogo aberto"
+          ],
+          "forbidden": [
+            "destino vindo do detail"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6"
+          ],
+          "tests": [
+            "sacola-abrir.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "conflito de claim"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Teste de privacidade",
+        "objective": "T-11008",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "provas de no-store, DOM sem itens A decidir, SSR vazio",
+          "files": [
+            "apps/web/src/server/fechamento.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/sacola-privacidade.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/server/fechamento.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "casos de varredura de DOM, fetch no-store, console sem dados pessoais"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [
+            "testes verdes"
+          ],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-23"
+          ],
+          "tests": [
+            "sacola-privacidade.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "Migrar classes para fechamento.css",
+        "objective": "T-11009(a)",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "mover regras .sc-carrinho-janela* e decidir .sc-flutuante__gaveta",
+          "files": [
+            "packages/ui/styles/fechamento.css"
+          ],
+          "evidence": [
+            "grep de uso por arquivo"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify"
+            }
+          ],
+          "changes": [
+            "copiar regras usadas, imports onde só vitrine.css é carregado"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não apagar de vitrine.css ainda"
+          ],
+          "expected": [
+            "visual idêntico"
+          ],
+          "forbidden": [
+            "curinga .sc-sacola*"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-31"
+          ],
+          "tests": [
+            "sacola-estilos.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm build",
+            "pnpm test:e2e"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "Apagar classes antigas de vitrine.css",
+        "objective": "T-11009(b)",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-3"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "remover lista exata; bloqueada até o gerente incluir #110 na fila",
+          "files": [
+            "packages/ui/styles/vitrine.css"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            }
+          ],
+          "changes": [
+            "remover vitrine.css linhas 1433-1546 e .sc-sacola__*"
+          ],
+          "contracts": [],
+          "constraints": [
+            "manter .sc-sacola-topo, .sc-sacola-barra, .sc-sacola-coluna"
+          ],
+          "expected": [
+            "grep sem uso"
+          ],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-31"
+          ],
+          "tests": [
+            "sacola-estilos.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm build"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "gerente não incluiu #110 na fila de vitrine.css"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Conflito em vitrine.css com #107/#108/#111",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "board_claim e aguardar o gerente",
+        "detection": "board_peers",
+        "recovery": "git checkout do arquivo"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/sacola-lateral.onp.test.tsx",
+        "apps/web/tests/sacola-barra.onp.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/sacola-abrir.onp.test.tsx",
+        "apps/web/tests/sacola-privacidade.onp.test.tsx"
+      ],
+      "manual": [],
+      "external": [
+        "pnpm test:e2e coluna e barra"
+      ]
+    },
+    "rollback": "Mudanças não commitadas e aditivas: reverter por arquivo com git checkout ou remover os novos; remoção de CSS só em T-4, reversível por git.",
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura",
+      "findings": [
+        {
+          "text": "Itens 1 e 2 já implementados (portal e listener)",
+          "severity": "critical",
+          "resolution": "Removida edição de TelaDoCatalogo; T-1 só prova e corrige a corrida"
+        },
+        {
+          "text": "Inventário incompleto de classes antigas e curinga perigoso",
+          "severity": "major",
+          "resolution": "T-3/T-4 com lista exata e migração antes da remoção"
+        },
+        {
+          "text": "Gate errado",
+          "severity": "major",
+          "resolution": "Usar pnpm typecheck/lint/test:unit/test:int/test:e2e/build"
+        },
+        {
+          "text": "T-11009 bloqueada pela fila de vitrine.css",
+          "severity": "major",
+          "resolution": "Dividida em T-3 (livre) e T-4 (bloqueada)"
+        },
+        {
+          "text": "Casos de teste de abrir/privacidade e IDs CA",
+          "severity": "major",
+          "resolution": "Casos listados e IDs CA-6/CA-23 reservados"
+        }
+      ]
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true,
+        "detail": "não informada"
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz HIGH, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      },
+      {
+        "item": "estimate",
+        "severity": "minor",
+        "code": "no-estimate",
+        "message": "Estimativa de esforço/custo não informada (opcional)."
+      }
+    ],
+    "evaluatedAt": 1794838771379,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

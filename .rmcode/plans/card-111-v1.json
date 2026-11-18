@@ -1,0 +1,1875 @@
+{
+  "version": 1,
+  "cardId": "405d0e7c-44b5-44b0-bc7c-c1943d607d09",
+  "cardSeq": 111,
+  "savedAt": 1794488334197,
+  "plan": {
+    "title": "#111 Stitch · Área do cliente (/conta e pedidos)",
+    "complexity": "HIGH",
+    "risk": "high",
+    "summary": "Redesign visual da área do cliente (/conta, favoritos, pedidos e detalhe, acompanhamento público, dados, endereços, segurança/autenticador) sobre as peças do #104, mais as correções que o card pede: remoção de produto favorito no proxy, proteção 403/415 das ações de /api/conta/*, Sair que sempre apaga os cookies, texto honesto da troca de senha, guarda do aplicativo e motivos de erro sem token. Execução sequencial depois do #110, sem tocar apps/api, banco, contratos, .spec ou arquivos do #104.",
+    "discovery": [
+      {
+        "claim": "O proxy da conta só aceita um segmento depois de favoritos; DELETE favoritos/produtos/<id> cai em 404.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/conta/[...resto]/route.ts",
+          "symbol": "PERMITIDOS",
+          "line": 11
+        }
+      },
+      {
+        "claim": "A tela de favoritos chama DELETE favoritos/produtos/<id> pelo proxy.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/conta/LojasDaConta.tsx",
+          "symbol": "ListaDeProdutosFavoritos",
+          "line": 86
+        }
+      },
+      {
+        "claim": "A API tem DELETE /v1/conta/favoritos/produtos/:produtoId com produtoId UUID.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/feed/feed.routes.ts",
+          "line": 19
+        }
+      },
+      {
+        "claim": "O encaminhamento escreve origin com a origem da própria requisição e força content-type JSON; nada confere Origin/Sec-Fetch-Site/content-type na entrada.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/encaminhar-a-loja.ts",
+          "symbol": "encaminharAConta"
+        }
+      },
+      {
+        "claim": "enderecos/[id] encaminha o id sem validar formato.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/conta/enderecos/[id]/route.ts"
+        }
+      },
+      {
+        "claim": "Na API, o id de endereço é z.uuid().",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/customers/enderecos.routes.ts",
+          "symbol": "esquemaDoEnderecoNaRota",
+          "line": 42
+        }
+      },
+      {
+        "claim": "O BotaoFavoritar (#106) faz POST/DELETE em /api/conta/favoritos/<apelido> sem corpo e sem content-type.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+          "line": 79
+        }
+      },
+      {
+        "claim": "sairDaConta e sairPelaBarra mantêm os cookies se a revogação falhar; pedirEncerramento não tem tempo limite; sairPelaBarra também é usado no painel.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/actions/auth.ts",
+          "symbol": "sairDaConta"
+        }
+      },
+      {
+        "claim": "O token de acesso dura 15 minutos.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/auth/token.ts",
+          "symbol": "DURACAO_DO_TOKEN_DE_ACESSO_EM_SEGUNDOS",
+          "line": 18
+        }
+      },
+      {
+        "claim": "A troca de senha promete desconexão imediata dos outros aparelhos.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/conta/SegurancaDaConta.tsx",
+          "symbol": "TrocarSenha",
+          "line": 47
+        }
+      },
+      {
+        "claim": "PaginaDaConta recebe a prop atual e não a usa; o menu da conta hoje é só a LateralDoUsuario.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/conta/PaginaDaConta.tsx",
+          "symbol": "PaginaDaConta"
+        }
+      },
+      {
+        "claim": "conta.css é global (importado em app/tokens.css) e suas regras .sc-pedidos*/.sc-filtros* também alcançam o painel.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/tokens.css",
+          "line": 12
+        }
+      },
+      {
+        "claim": "O painel usa .sc-pedidos__topo, que recebe regras de conta.css.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/painel-pedidos/QuadroKanban.tsx",
+          "line": 389
+        }
+      },
+      {
+        "claim": "O acompanhamento usa utilitários Tailwind e não usa pedidos.css; o polling é de 5 s.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/pedido/AcompanhamentoDoPedido.tsx",
+          "symbol": "INTERVALO_DO_ACOMPANHAMENTO_MS",
+          "line": 33
+        }
+      },
+      {
+        "claim": "Textos do cliente para o estado vêm de rotuloDoStatus/explicacaoDoStatus; a linha do tempo não marca a etapa atual.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/pedido/LinhaDoTempo.tsx",
+          "symbol": "rotuloDoStatus"
+        }
+      },
+      {
+        "claim": "O motivo de indisponível usa erro.message e vai para o throw da página pública.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/acompanhamento.ts",
+          "symbol": "buscarAcompanhamento",
+          "line": 39
+        }
+      },
+      {
+        "claim": "lib/meus-pedidos também usa erro.message no motivo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/meus-pedidos.ts",
+          "line": 64
+        }
+      },
+      {
+        "claim": "A página pública já tem robots noindex e título sem token; a API faz 404 igual para token mal formado, inexistente e de outra loja.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/pedido/[token]/page.tsx",
+          "symbol": "generateMetadata"
+        }
+      },
+      {
+        "claim": "A página do aplicativo autenticador não confere sessão.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(conta)/conta/seguranca/aplicativo/page.tsx"
+        }
+      },
+      {
+        "claim": "Segundo a doc do Next 16, cookies.delete numa ação do servidor invalida o cache do cliente.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/node_modules/next/dist/docs/01-app/04-glossary.md",
+          "line": 51
+        }
+      },
+      {
+        "claim": "O lint de camadas só deixa features importar packages/ui, contracts e lib; server não importa features.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/config-eslint/fronteiras.js",
+          "symbol": "politicas"
+        }
+      },
+      {
+        "claim": "Os testes da web usam createRoot+act e ajudantes próprios, sem Testing Library.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/apoio-config.tsx"
+        }
+      },
+      {
+        "claim": "Testes e e2e atuais dependem de data-loja, data-pedido, data-total, data-status-atual, data-passo e do primeiro <a> do cartão ser o detalhe.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/meus-pedidos.test.tsx",
+          "line": 100
+        }
+      },
+      {
+        "claim": "O formato oficial do apelido está em contracts.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/admin-cadastro.ts",
+          "symbol": "FORMATO_DO_APELIDO",
+          "line": 21
+        }
+      },
+      {
+        "claim": "Chip, Abas, Gaveta, AvisoFlutuante e BarraInferior ainda não existem em packages/ui; o #104 os cria.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/index.ts"
+        }
+      },
+      {
+        "claim": "O #105 roda antes e mexe em conta/layout.tsx, _token.ts, redirects das páginas de /conta, LateralDoUsuario e usuario.css; o resultado exato só se conhece depois.",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-navegacao-cliente/tasks.md"
+        }
+      },
+      {
+        "claim": "Não há teste de API para PATCH dados, POST senha nem DELETE sessoes/:id com duas contas.",
+        "kind": "inference",
+        "ref": {
+          "path": "apps/api/tests/rotas-da-conta-segura.test.ts"
+        }
+      },
+      {
+        "claim": "Não há fonte para a loja de origem do 'Voltar à loja' em /conta.",
+        "kind": "unknown",
+        "ref": {
+          "path": "apps/web/src/app/(conta)/conta/layout.tsx"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Seções da conta com navegação própria, sem pedir login de novo (AC-11122, AC-11123, AC-11124).",
+        "acceptance": [
+          {
+            "id": "CA-22",
+            "verify": "area-do-cliente-navegacao.onp.test.tsx: seis seções na ordem, um único aria-current=page de seção por largura"
+          },
+          {
+            "id": "CA-23",
+            "verify": "prova do 'Voltar à loja' que o #105 entregar; apelido nunca de parâmetro do endereço (H-11)"
+          },
+          {
+            "id": "CA-24",
+            "verify": "logado não vê Entrar/Criar conta nas telas da conta"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Favoritos legíveis, só da pessoa, com remoção que funciona e estado pendente/erro (AC-11101..11104, AC-11130).",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "a tela mostra só o que a API devolveu para a sessão; isolamento pelo teste de API atual favoritos-e-recentes.test.ts"
+          },
+          {
+            "id": "CA-2",
+            "verify": "blocos produtos, lojas favoritas e recentes com título; cartão com foto, nome, preço, loja e link"
+          },
+          {
+            "id": "CA-3",
+            "verify": "remoção some sem recarregar; falha mantém o item e avisa com Tentar de novo; ponta a ponta pela rota real"
+          },
+          {
+            "id": "CA-4",
+            "verify": "botão com nome do item e estado anunciado, não só cor"
+          },
+          {
+            "id": "CA-30",
+            "verify": "pendente impede clique duplo e erro não apaga o digitado (favoritos, dados, endereços, senha, sessões)"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Lista de pedidos com estado real e filtros no endereço (AC-11105..11107).",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "a tela mostra só os pedidos recebidos; isolamento por apps/api/tests/meus-pedidos.test.ts"
+          },
+          {
+            "id": "CA-6",
+            "verify": "rotuloDoStatus do cliente por estado; cancelado com aparência própria; nenhum import de painel-pedidos"
+          },
+          {
+            "id": "CA-7",
+            "verify": "filtros no endereço só com situacao, periodo e loja"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Detalhe e linha do tempo com etapa atual e atualização de 5 s (AC-11108..11110).",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "alheio e inexistente dão a mesma tela 'Pedido não encontrado'"
+          },
+          {
+            "id": "CA-9",
+            "verify": "aria-current=step na etapa atual; anteriores listadas; desconhecido com texto neutro"
+          },
+          {
+            "id": "CA-10",
+            "verify": "fake timers: nova etapa em até 5 s; falha mantém a última com aviso"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Acompanhamento público só com campos permitidos e sem vazar o código (AC-11111, AC-11112).",
+        "acceptance": [
+          {
+            "id": "CA-11",
+            "verify": "só campos de esquemaDoAcompanhamento, telefone mascarado, noindex, no-store, referrer no-referrer e rel noreferrer"
+          },
+          {
+            "id": "CA-12",
+            "verify": "mesma tela para código mal formado, inexistente e de outra loja; token fora do título, do motivo e da mensagem do erro"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Dados e endereços só da pessoa, com um único padrão (AC-11113, AC-11114).",
+        "acceptance": [
+          {
+            "id": "CA-13",
+            "verify": "tela de dados com e-mail fixo e explicação; isolamento sem prova neste card (H-7)"
+          },
+          {
+            "id": "CA-14",
+            "verify": "um só padrão, confirmação ao apagar e texto do que muda ao apagar o padrão"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Segurança, privacidade e autenticador sem promessa falsa nem vazamento (AC-11115..11118, AC-11121).",
+        "acceptance": [
+          {
+            "id": "CA-15",
+            "verify": "exportar pede senha; excluir pede senha e EXCLUIR; mensagens de recusa exibidas"
+          },
+          {
+            "id": "CA-16",
+            "verify": "histórico de aceites e o que falta aceitar"
+          },
+          {
+            "id": "CA-17",
+            "verify": "texto diz 'em até 15 minutos' e não promete encerramento imediato"
+          },
+          {
+            "id": "CA-18",
+            "verify": "encerrar conexão que a API responde 404 mostra aviso e não muda a lista"
+          },
+          {
+            "id": "CA-21",
+            "verify": "chave e códigos fora de URL, título e storage; remontagem no pageshow persisted; página exige sessão"
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Sair, troca de conta e acesso vencido (AC-11119, AC-11120, AC-11127).",
+        "acceptance": [
+          {
+            "id": "CA-19",
+            "verify": "com revogação falhando (rede, 5xx, tempo), cookies apagados com o domínio e aviso em /entrar?saida=parcial"
+          },
+          {
+            "id": "CA-20",
+            "verify": "toda página de /conta dinâmica e leituras no-store; sair usa cookies.delete; e2e de duas contas no #114"
+          },
+          {
+            "id": "CA-27",
+            "verify": "401 leva uma única vez à entrada; /entrar não volta à conta"
+          }
+        ]
+      },
+      {
+        "id": "R-9",
+        "text": "Proxy da conta com tabela caminho × método e proteção de origem e tipo (AC-11125, AC-11126).",
+        "acceptance": [
+          {
+            "id": "CA-25",
+            "verify": "DELETE favoritos/produtos/<uuid> chega à API; negativos (x/y, %2F, .., sem id, POST, feed/favoritos, metricas, GET/HEAD excluir, enderecos/..) recusados sem chamar a API"
+          },
+          {
+            "id": "CA-26",
+            "verify": "403 para Sec-Fetch-Site != same-origin, Origin null ou estranho; 415 para tipo não JSON ou corpo sem tipo; antes do 401; charset=utf-8 passa"
+          }
+        ]
+      },
+      {
+        "id": "R-10",
+        "text": "Nenhuma função perdida e nada do Stitch como conteúdo (AC-11128, AC-11129).",
+        "acceptance": [
+          {
+            "id": "CA-28",
+            "verify": "testes atuais listados passam sem alteração"
+          },
+          {
+            "id": "CA-29",
+            "verify": "varredura sem CNPJ, telefone fixo, 10x sem juros, cupom, fidelidade, avaliação, Universokar, placa, chassi, googleusercontent, data-tema nas pastas da conta"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/conta/*",
+        "features/pedido/AcompanhamentoDoPedido.tsx e LinhaDoTempo.tsx",
+        "páginas de app/(conta)/conta/* (visual)",
+        "acompanhamento público app/(loja)/loja/[slug]/pedido/[token]/*",
+        "app/api/conta/* e server/protecao-da-conta.ts",
+        "server/actions/auth.ts (Sair)",
+        "lib/acompanhamento.ts e lib/meus-pedidos.ts (motivo fixo)",
+        "packages/ui/styles/conta.css e usuario.css",
+        "testes apps/web/tests/area-do-cliente-*.onp.test.ts(x)",
+        "app/(conta)/entrar/page.tsx só com vaga do gerente"
+      ],
+      "out": [
+        "apps/api, banco, contratos, dependências",
+        ".spec/, landing /, arquivos do #104",
+        "features/carrinho, features/checkout",
+        "pedidos.css (#112) e regras globais .sc-pedidos*/.sc-filtros* usadas pelo painel",
+        "guarda/retorno de /conta e 'Voltar à loja' (#105)",
+        "funções A decidir (fidelidade, cupons, avaliações, selos)",
+        "commit, push, branch, worktree"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "H-1: SecoesDaConta marcada pelo atual; um só menu de seções por largura, decidido no pré-voo pelo que o #105 entregar.",
+        "impact": "Só a montagem da T-11101 muda."
+      },
+      {
+        "text": "H-2: a conta segue o tema claro/escuro pelos tokens; nada força data-tema.",
+        "impact": "Só CSS."
+      },
+      {
+        "text": "H-3: lista de pedidos sem polling; só o detalhe atualiza a cada 5 s.",
+        "impact": "Um efeito a mais em MeusPedidos se mudar."
+      },
+      {
+        "text": "H-4/H-5/H-6: visão geral mantém métricas; texto Favoritar; dados como hoje.",
+        "impact": "Ajustes de texto ou blocos."
+      },
+      {
+        "text": "H-7: os testes onp provam tela e proxy; AC-11113, AC-11117 e AC-11118 ficam sem prova de isolamento neste card.",
+        "impact": "Card de segurança recomendado."
+      },
+      {
+        "text": "H-10: regras .sc-pedidos*/.sc-filtros* de conta.css ficam como estão; a conta passa a usar classes novas.",
+        "impact": "Limpeza futura combinada com o #112."
+      },
+      {
+        "text": "H-11: 'Voltar à loja' depende de fonte que o #105 entregar.",
+        "impact": "CA-23 pode ficar pendente."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Consumir só as peças do #104; se faltar uma, não criar aqui.",
+        "why": "P-108 e dono de arquivo do #104.",
+        "impact": "Tarefas de tela dependem do #104.",
+        "mitigation": "Conferir no T-11100 e parar com board_message."
+      },
+      {
+        "id": "D-2",
+        "decision": "Proxy antes das telas (T-11109 logo após o pré-voo).",
+        "why": "A remoção de produto só funciona com a tabela nova; o teste de favoritos precisa da rota real.",
+        "impact": "Favoritos ganham prova de ponta a ponta."
+      },
+      {
+        "id": "D-3",
+        "decision": "Guarda recusarAcaoDeFora no web: Sec-Fetch-Site manda; Origin como reserva contra enderecoDoSite() e a origem da requisição; sem os dois, passa; 415 pelo tipo antes do ; e pelo corpo real.",
+        "why": "Fecha o CSRF que o SameSite=Lax com domínio compartilhado não cobre, sem quebrar o BotaoFavoritar.",
+        "impact": "Só /api/conta/*.",
+        "mitigation": "Teste manual com o Origin real; x-forwarded não entra."
+      },
+      {
+        "id": "D-4",
+        "decision": "Não editar encaminhar-a-loja.ts.",
+        "why": "É compartilhado com painel e loja.",
+        "impact": "Outras rotas vão como recomendação ao card de segurança."
+      },
+      {
+        "id": "D-5",
+        "decision": "Sair sempre apaga os cookies; falha leva a /entrar?saida=parcial com aviso; encerrarTodasAsSessoes não muda.",
+        "why": "AC-11119; o aviso diz o risco certo (a conexão deste navegador pode seguir aberta no servidor).",
+        "impact": "Painel também muda no caso de falha.",
+        "mitigation": "Pedir no T-11100; sem vaga, needs_input."
+      },
+      {
+        "id": "D-6",
+        "decision": "Sem ilha de bfcache na conta; AC-11120 se apoia na invalidação do cache do cliente por cookies.delete (doc do Next 16) e no no-store; ilha só no aplicativo autenticador.",
+        "why": "O Sair é navegação do App Router; a ilha geral não resolveria e recarregaria à toa.",
+        "impact": "Prova final no e2e do #114."
+      },
+      {
+        "id": "D-7",
+        "decision": "Não renomear nem remover .sc-pedidos*/.sc-filtros* de conta.css; usar classes novas.",
+        "why": "O painel recebe essas regras globais.",
+        "impact": "Aviso ao #112."
+      },
+      {
+        "id": "D-8",
+        "decision": "Sem pedidos.css: estilos do acompanhamento em conta.css (global).",
+        "why": "features/pedido não usa pedidos.css.",
+        "impact": "Remove a dependência do #112 prevista no tasks.md."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-11100",
+        "title": "Pré-voo e vagas",
+        "objective": "Conferir o que #104/#105/#106/#110 entregaram e pedir as vagas de arquivo antes de editar.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-1",
+          "R-8",
+          "R-9"
+        ],
+        "context": {
+          "summary": "Execução sequencial; o #105 mexe antes em arquivos da conta.",
+          "files": [
+            "packages/ui/src/index.ts",
+            "apps/web/src/app/(conta)/conta/_token.ts",
+            "apps/web/src/app/(conta)/conta/layout.tsx",
+            "apps/web/src/app/_usuario/sessao.tsx",
+            "apps/web/src/server/actions/auth.ts",
+            "apps/web/src/lib/quem-esta-logado.ts"
+          ],
+          "evidence": [
+            "Chip/Abas/AvisoFlutuante ausentes de index.ts",
+            "T-10502/T-10508 do #105"
+          ],
+          "decisions": [
+            "D-1",
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "reuse",
+              "note": "só leitura"
+            }
+          ],
+          "changes": [
+            "board_peers, board_notes, board_claim",
+            "board_message ao gerente pedindo app/(conta)/entrar/page.tsx e confirmando auth.ts, app/api/conta/*, lib/acompanhamento.ts, lib/meus-pedidos.ts",
+            "aviso ao #112 e ao #105"
+          ],
+          "contracts": [],
+          "constraints": [
+            "nenhuma edição"
+          ],
+          "expected": [
+            "lista das peças e assinaturas",
+            "linha de base dos testes"
+          ],
+          "forbidden": [
+            "editar qualquer arquivo"
+          ]
+        },
+        "validation": {
+          "acceptance": [],
+          "tests": [],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests"
+          ],
+          "evidence": [
+            "saída da linha de base"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [
+            "peça do #104 ausente ou com outra assinatura"
+          ],
+          "blockedConditions": [
+            "#104 ou #105 não concluídos"
+          ]
+        }
+      },
+      {
+        "id": "T-11109",
+        "title": "Proxy da conta: tabela caminho × método e proteção 403/415",
+        "objective": "Remoção de produto favorito funcionando e ações de /api/conta/* recusadas de fora.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-11100"
+        ],
+        "requirements": [
+          "R-9"
+        ],
+        "context": {
+          "summary": "PERMITIDOS só aceita um segmento; nada confere origem; enderecos/[id] sem validação.",
+          "files": [
+            "apps/web/src/app/api/conta/[...resto]/route.ts",
+            "apps/web/src/app/api/conta/enderecos/route.ts",
+            "apps/web/src/app/api/conta/enderecos/[id]/route.ts",
+            "apps/web/src/server/encaminhar-a-loja.ts",
+            "apps/web/src/server/endereco-do-site.ts"
+          ],
+          "evidence": [
+            "route.ts:11 PERMITIDOS",
+            "BotaoFavoritar.tsx:79 sem corpo"
+          ],
+          "decisions": [
+            "D-2",
+            "D-3",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/server/protecao-da-conta.ts",
+              "action": "create",
+              "note": "recusarAcaoDeFora"
+            },
+            {
+              "path": "apps/web/src/app/api/conta/[...resto]/route.ts",
+              "action": "modify",
+              "note": "tabela caminho × método"
+            },
+            {
+              "path": "apps/web/src/app/api/conta/enderecos/route.ts",
+              "action": "modify",
+              "note": "guarda"
+            },
+            {
+              "path": "apps/web/src/app/api/conta/enderecos/[id]/route.ts",
+              "action": "modify",
+              "note": "guarda + UUID estrito"
+            },
+            {
+              "path": "apps/web/src/server/endereco-do-site.ts",
+              "action": "reuse",
+              "note": "enderecoDoSite"
+            },
+            {
+              "path": "packages/contracts/src/admin-cadastro.ts",
+              "action": "reuse",
+              "note": "FORMATO_DO_APELIDO"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "favoritos/produtos/<uuid> só DELETE",
+            "favoritos/<apelido> com FORMATO_DO_APELIDO",
+            "UUID 8-4-4-4-12 em sessoes e enderecos",
+            "método fora da tabela (inclui HEAD) → 404 sem encaminhar",
+            "guarda antes do 401"
+          ],
+          "contracts": [
+            "recusarAcaoDeFora(requisicao: Request): Promise<Response | null> — 403 {erro:'origem_recusada'}, 415 {erro:'tipo_nao_suportado'}"
+          ],
+          "constraints": [
+            "não editar encaminhar-a-loja.ts",
+            "não confiar em x-forwarded-*",
+            "Sec-Fetch-Site só same-origin"
+          ],
+          "expected": [
+            "remoção de produto favorito responde sucesso",
+            "chamadores reais seguem funcionando"
+          ],
+          "forbidden": [
+            "mudar apps/api",
+            "liberar caminho com .+"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-25",
+            "CA-26"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+            "apps/web/tests/feed-telas.test.tsx",
+            "apps/web/tests/novo-aceite.test.tsx",
+            "apps/web/tests/conta-enderecos.test.tsx",
+            "apps/web/tests/fechamento-pagina.test.tsx",
+            "apps/web/tests/checkout-na-janela.test.tsx",
+            "apps/web/tests/config-entrega.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+            "pnpm exec vitest related --run apps/web/src/app/api/conta/[...resto]/route.ts",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "fetch simulado sem chamada nos negativos"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "chamador real com método fora da tabela",
+            "Origin real do Traefik fora das origens aceitas"
+          ],
+          "blockedConditions": [
+            "gerente não confirma app/api/conta/*"
+          ]
+        }
+      },
+      {
+        "id": "T-11101",
+        "title": "Moldura e seções da conta",
+        "objective": "Seções da conta com a atual marcada, hub no celular e visão geral no visual novo.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11109"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "PaginaDaConta recebe atual e não usa; LateralDoUsuario é do #105.",
+          "files": [
+            "apps/web/src/features/conta/PaginaDaConta.tsx",
+            "apps/web/src/features/conta/VisaoGeralDaConta.tsx",
+            "apps/web/src/app/(conta)/conta/page.tsx",
+            "packages/ui/styles/conta.css"
+          ],
+          "evidence": [
+            "PaginaDaConta atual não usado",
+            "VisaoGeralDaConta.tsx:343 usa .sc-pedidos__*"
+          ],
+          "decisions": [
+            "D-1",
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/conta/SecoesDaConta.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/conta/PaginaDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/conta/VisaoGeralDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify",
+              "note": ".sc-minha-conta*, .sc-secoes-da-conta*, .sc-meus-pedidos*"
+            },
+            {
+              "path": "packages/ui/styles/usuario.css",
+              "action": "modify",
+              "note": "só referências mortas avisadas pelo #110"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-navegacao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "nav aria-label 'Seções da conta' com seis links e aria-current=page pelo atual",
+            "um só menu de seções por largura",
+            "métricas mantidas"
+          ],
+          "contracts": [
+            "SecoesDaConta({ atual: PaginaDaMinhaConta })"
+          ],
+          "constraints": [
+            "componente de servidor",
+            "sem data-tema forçado",
+            "não alterar regras .sc-pedidos*/.sc-filtros* existentes"
+          ],
+          "expected": [
+            "seis seções com a atual anunciada"
+          ],
+          "forbidden": [
+            "editar LateralDoUsuario sem vaga do #105",
+            "importar itemAtivo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-22",
+            "CA-23",
+            "CA-24"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-navegacao.onp.test.tsx",
+            "apps/web/tests/inicio-da-conta.test.tsx",
+            "apps/web/tests/lateral-do-usuario.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-navegacao.onp.test.tsx apps/web/tests/inicio-da-conta.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "o #105 deixou menu de conta em todas as larguras"
+          ],
+          "blockedConditions": [
+            "#104 sem tokens"
+          ]
+        }
+      },
+      {
+        "id": "T-11102",
+        "title": "Favoritos",
+        "objective": "Blocos separados, remoção com pendente e erro, nome acessível.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11101"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Sem pendente, nome sem item, API fora vira vazio.",
+          "files": [
+            "apps/web/src/features/conta/LojasDaConta.tsx",
+            "apps/web/src/app/(conta)/conta/favoritos/page.tsx"
+          ],
+          "evidence": [
+            "LojasDaConta.tsx remover"
+          ],
+          "decisions": [
+            "D-1",
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/conta/LojasDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/favoritos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/conta/chamar-conta.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+              "action": "reuse",
+              "note": "só uso"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-favoritos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "ordem produtos, lojas favoritas, recentes",
+            "botão Tirar <nome> dos favoritos com carregando",
+            "AvisoFlutuante com Tentar de novo",
+            "Erro quando a API cai"
+          ],
+          "contracts": [],
+          "constraints": [
+            "sem contagem pública, nota, cupom, selo"
+          ],
+          "expected": [
+            "remoção real funciona"
+          ],
+          "forbidden": [
+            "editar BotaoFavoritar"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-4",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-favoritos.onp.test.tsx",
+            "apps/web/tests/feed-telas.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-favoritos.onp.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "AvisoFlutuante com outra assinatura"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11103",
+        "title": "Lista de pedidos e filtros",
+        "objective": "Cartões com estado real, cancelado distinto, filtros no endereço com Chip.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11102"
+        ],
+        "requirements": [
+          "R-3",
+          "R-2"
+        ],
+        "context": {
+          "summary": "FiltrosDePedidos usa .sc-filtros* de conta.css; testes dependem de data-*.",
+          "files": [
+            "apps/web/src/features/conta/MeusPedidos.tsx",
+            "apps/web/src/features/conta/FiltrosDePedidos.tsx",
+            "apps/web/src/app/(conta)/conta/pedidos/page.tsx",
+            "apps/web/src/app/(conta)/conta/pedidos/loading.tsx"
+          ],
+          "evidence": [
+            "meus-pedidos.test.tsx:100-172"
+          ],
+          "decisions": [
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/conta/MeusPedidos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/conta/FiltrosDePedidos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/loading.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/lib/conta-do-cliente.ts",
+              "action": "reuse",
+              "note": "lerFiltro, filtrarPedidos, lojasDosPedidos"
+            },
+            {
+              "path": "apps/web/src/lib/meus-pedidos.ts",
+              "action": "reuse",
+              "note": "agruparPedidosPorLoja"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-pedidos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "situação com Chip href",
+            "selo com rotuloDoStatus de LinhaDoTempo e tomDoStatus de MeusPedidos"
+          ],
+          "contracts": [],
+          "constraints": [
+            "manter data-loja, data-pedido, data-total, data-meus-pedidos e o primeiro <a> do cartão"
+          ],
+          "expected": [],
+          "forbidden": [
+            "importar de painel-pedidos",
+            "polling na lista"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6",
+            "CA-7",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-pedidos.onp.test.tsx",
+            "apps/web/tests/meus-pedidos.test.tsx",
+            "apps/web/tests/conta-do-cliente.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-pedidos.onp.test.tsx apps/web/tests/meus-pedidos.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Chip sem href"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11104",
+        "title": "Detalhe do pedido e linha do tempo",
+        "objective": "Etapa atual marcada, atualização de 5 s mantida, não encontrado igual.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11103"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "LinhaDoTempo não marca a atual; [id] cai no not-found raiz; motivo com erro.message.",
+          "files": [
+            "apps/web/src/features/pedido/AcompanhamentoDoPedido.tsx",
+            "apps/web/src/features/pedido/LinhaDoTempo.tsx",
+            "apps/web/src/app/(conta)/conta/pedidos/[id]/page.tsx",
+            "apps/web/src/lib/meus-pedidos.ts"
+          ],
+          "evidence": [
+            "acompanhamento-pedido.test.tsx",
+            "e2e/specs/acompanhamento.spec.ts"
+          ],
+          "decisions": [
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/pedido/AcompanhamentoDoPedido.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/pedido/LinhaDoTempo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/[id]/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/[id]/not-found.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/lib/meus-pedidos.ts",
+              "action": "modify",
+              "note": "motivo fixo"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify"
+            }
+          ],
+          "changes": [
+            "aria-current=step",
+            "rel noopener noreferrer no wa.me",
+            "referrer no-referrer no metadata",
+            "throw com código fixo"
+          ],
+          "contracts": [],
+          "constraints": [
+            "INTERVALO_DO_ACOMPANHAMENTO_MS = 5000 e o laço perguntar intactos",
+            "historico[].motivo continua texto"
+          ],
+          "expected": [],
+          "forbidden": [
+            "pedidos.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-8",
+            "CA-9",
+            "CA-10"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-pedidos.onp.test.tsx",
+            "apps/web/tests/acompanhamento-pedido.test.tsx",
+            "apps/web/tests/botao-ja-enviei.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-pedidos.onp.test.tsx apps/web/tests/acompanhamento-pedido.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "gerente não confirma lib/meus-pedidos.ts"
+          ]
+        }
+      },
+      {
+        "id": "T-11105",
+        "title": "Acompanhamento público por código",
+        "objective": "Visual novo sem vazar o código e só com campos permitidos.",
+        "complexity": "LOW",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11104"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Já noindex e no-store; motivo usa erro.message.",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/pedido/[token]/page.tsx",
+            "apps/web/src/app/(loja)/loja/[slug]/pedido/[token]/not-found.tsx",
+            "apps/web/src/lib/acompanhamento.ts",
+            "packages/contracts/src/acompanhamento.ts"
+          ],
+          "evidence": [
+            "acompanhamento.ts:39"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/pedido/[token]/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/pedido/[token]/not-found.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/lib/acompanhamento.ts",
+              "action": "modify",
+              "note": "motivo fixo"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-acompanhamento.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "referrer no-referrer",
+            "throw com código fixo",
+            "visual"
+          ],
+          "contracts": [],
+          "constraints": [
+            "moldura da loja é do #105",
+            "só campos de esquemaDoAcompanhamento"
+          ],
+          "expected": [],
+          "forbidden": [
+            "mudar o contrato"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-11",
+            "CA-12"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-acompanhamento.onp.test.tsx",
+            "apps/web/tests/acompanhamento-loja-suspensa.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-acompanhamento.onp.test.tsx apps/web/tests/acompanhamento-loja-suspensa.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "gerente não confirma lib/acompanhamento.ts"
+          ]
+        }
+      },
+      {
+        "id": "T-11106",
+        "title": "Dados e endereços",
+        "objective": "Visual novo com pendente e erro claros; um só padrão.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11105"
+        ],
+        "requirements": [
+          "R-6",
+          "R-2"
+        ],
+        "context": {
+          "summary": "EnderecosSalvos sem pendente em padrão/apagar.",
+          "files": [
+            "apps/web/src/features/conta/DadosDaConta.tsx",
+            "apps/web/src/features/conta/EnderecosSalvos.tsx"
+          ],
+          "evidence": [
+            "conta-enderecos.test.tsx"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/conta/DadosDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/conta/EnderecosSalvos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/dados/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/enderecos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-perfil.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "pendente em Usar como padrão e Apagar",
+            "texto do que muda ao apagar o padrão"
+          ],
+          "contracts": [],
+          "constraints": [
+            "manter data-endereco"
+          ],
+          "expected": [],
+          "forbidden": [
+            "mudar lib/enderecos-da-conta.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-13",
+            "CA-14",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-perfil.onp.test.tsx",
+            "apps/web/tests/conta-enderecos.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-perfil.onp.test.tsx apps/web/tests/conta-enderecos.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11107",
+        "title": "Segurança, privacidade e aplicativo autenticador",
+        "objective": "Texto honesto da senha, zona de risco, guarda do aplicativo e chave fora do bfcache.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11106"
+        ],
+        "requirements": [
+          "R-7",
+          "R-2"
+        ],
+        "context": {
+          "summary": "TrocarSenha promete imediato; aplicativo sem sessão.",
+          "files": [
+            "apps/web/src/features/conta/SegurancaDaConta.tsx",
+            "apps/web/src/features/conta/PrivacidadeDaConta.tsx",
+            "apps/web/src/app/(conta)/conta/seguranca/page.tsx",
+            "apps/web/src/app/(conta)/conta/seguranca/aplicativo/page.tsx",
+            "apps/web/src/app/(conta)/conta/seguranca/aplicativo/AtivacaoDoAplicativo.tsx",
+            "apps/web/src/features/auth/TotpForm.tsx"
+          ],
+          "evidence": [
+            "SegurancaDaConta.tsx:47",
+            "telas-de-acesso.test.tsx:449"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/conta/SegurancaDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/conta/PrivacidadeDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/seguranca/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/seguranca/aplicativo/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/seguranca/aplicativo/AtivacaoDoAplicativo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/auth/TotpForm.tsx",
+              "action": "reuse",
+              "note": "só teste"
+            },
+            {
+              "path": "packages/ui/styles/conta.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-seguranca.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "'os outros aparelhos saem em até 15 minutos'",
+            "pendente no Encerrar",
+            "aplicativo exige sessão pela guarda do #105",
+            "remontar TotpForm por key no pageshow persisted"
+          ],
+          "contracts": [],
+          "constraints": [
+            "manter 'Sair deste dispositivo', 'Encerrar todas as sessões', 'Não foi possível encerrar a sessão.', botão Sair e href do aplicativo"
+          ],
+          "expected": [],
+          "forbidden": [
+            "editar TotpForm.tsx"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-15",
+            "CA-16",
+            "CA-17",
+            "CA-18",
+            "CA-21",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-seguranca.onp.test.tsx",
+            "apps/web/tests/telas-de-acesso.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-seguranca.onp.test.tsx apps/web/tests/telas-de-acesso.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "TotpForm grava chave em storage ou URL"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11108",
+        "title": "Sair, troca de conta e acesso vencido",
+        "objective": "Sair sempre apaga os cookies, com aviso certo; provas de troca de conta e acesso vencido.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-11107"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "auth.ts mantém cookies na falha; sairPelaBarra serve também o painel.",
+          "files": [
+            "apps/web/src/server/actions/auth.ts",
+            "apps/web/src/app/(conta)/entrar/page.tsx",
+            "apps/web/src/server/session-cookie.ts",
+            "apps/web/src/lib/conta-do-cliente.ts"
+          ],
+          "evidence": [
+            "auth.ts sairDaConta/sairPelaBarra",
+            "e2e/specs/cadastro.spec.ts espera /entrar$ no sucesso"
+          ],
+          "decisions": [
+            "D-5",
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/server/actions/auth.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/entrar/page.tsx",
+              "action": "modify",
+              "note": "só com vaga do gerente"
+            },
+            {
+              "path": "apps/web/src/server/session-cookie.ts",
+              "action": "reuse",
+              "note": "dominioDoCookieDeSessao"
+            },
+            {
+              "path": "apps/web/tests/area-do-cliente-sessao.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "AbortSignal.timeout em pedirEncerramento",
+            "sairDaConta e sairPelaBarra apagam cookies sempre; falha → /entrar?saida=parcial",
+            "Aviso em /entrar com saida=parcial"
+          ],
+          "contracts": [
+            "/entrar?saida=parcial"
+          ],
+          "constraints": [
+            "sucesso igual a hoje",
+            "encerrarTodasAsSessoes igual"
+          ],
+          "expected": [],
+          "forbidden": [
+            "mudar auth.ts sem a vaga de entrar/page.tsx"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-19",
+            "CA-20",
+            "CA-27"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-sessao.onp.test.ts",
+            "apps/web/tests/telas-de-acesso.test.tsx",
+            "apps/web/tests/lateral-do-usuario.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/area-do-cliente-sessao.onp.test.ts apps/web/tests/telas-de-acesso.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "o #105 mudou a assinatura das ações de sair"
+          ],
+          "blockedConditions": [
+            "vaga de app/(conta)/entrar/page.tsx negada"
+          ]
+        }
+      },
+      {
+        "id": "T-11110",
+        "title": "Regressão, varredura de conteúdo e prova onp",
+        "objective": "Provar que nada se perdeu e nada do Stitch virou conteúdo.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11108"
+        ],
+        "requirements": [
+          "R-10"
+        ],
+        "context": {
+          "summary": "Fecha o card com testes atuais intactos e verify do ONP.",
+          "files": [
+            "apps/web/tests/meus-pedidos.test.tsx",
+            "apps/web/tests/acompanhamento-pedido.test.tsx",
+            "apps/web/tests/conta-enderecos.test.tsx",
+            "apps/web/tests/lateral-do-usuario.test.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/area-do-cliente-conteudo.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "varredura sem diferenciar maiúsculas nas pastas da conta e do acompanhamento"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não alterar testes atuais"
+          ],
+          "expected": [
+            "gate verde"
+          ],
+          "forbidden": [
+            "editar teste legado"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-28",
+            "CA-29"
+          ],
+          "tests": [
+            "apps/web/tests/area-do-cliente-conteudo.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm test:int",
+            "pnpm test:e2e",
+            "pnpm build",
+            "node ~/.claude/skills/onp-spec-driven/scripts/onp-spec.mjs verify"
+          ],
+          "evidence": [
+            "saída do gate",
+            "audit da feature stitch-area-do-cliente"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [
+            "teste legado quebra por mudança visual"
+          ],
+          "blockedConditions": [
+            "ambiente sem banco ou navegador para test:int/test:e2e"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Guarda 403 recusa ações legítimas atrás do Traefik.",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Sec-Fetch-Site primeiro; Origin só contra enderecoDoSite() e a origem da requisição; teste manual com o Origin real.",
+        "detection": "teste manual e e2e das ações da conta",
+        "recovery": "reverter protecao-da-conta.ts e a chamada nas rotas"
+      },
+      {
+        "text": "Tabela nova quebra um chamador de /api/conta/* não mapeado.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "teste positivo por chamador real e regressão de feed, aceite, endereços e fechamento",
+        "detection": "testes listados",
+        "recovery": "acrescentar a linha na tabela"
+      },
+      {
+        "text": "Mudança visual quebra teste legado ou e2e (data-*, textos, ordem de links).",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "lista de ganchos intocáveis; parar e avisar o gerente",
+        "detection": "regressão em cada tarefa"
+      },
+      {
+        "text": "Mexer em regras globais de conta.css muda o painel.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "D-7: classes novas, regras antigas intactas, aviso ao #112",
+        "detection": "olhar /painel/pedidos antes e depois"
+      },
+      {
+        "text": "Sair muda também no painel (sairPelaBarra) no caso de falha.",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "teste do caso do painel e aviso ao #112",
+        "detection": "area-do-cliente-sessao.onp.test.ts"
+      },
+      {
+        "text": "Dois menus de conta com aria-current ao mesmo tempo.",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "regra de um menu por largura decidida no pré-voo",
+        "detection": "teste de navegação"
+      },
+      {
+        "text": "Peças do #104 com outra assinatura.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "conferir no T-11100 e parar sem criar peça",
+        "detection": "typecheck"
+      },
+      {
+        "text": "Prova de isolamento parecer feita pela tela.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "H-7 explícita; AC-11113/11117/11118 sem prova de isolamento e recomendação de card",
+        "detection": "revisão do relatório"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/meus-pedidos.test.tsx",
+        "apps/web/tests/acompanhamento-pedido.test.tsx",
+        "apps/web/tests/acompanhamento-loja-suspensa.test.tsx",
+        "apps/web/tests/conta-enderecos.test.tsx",
+        "apps/web/tests/lateral-do-usuario.test.tsx",
+        "apps/web/tests/inicio-da-conta.test.tsx",
+        "apps/web/tests/conta-do-cliente.test.ts",
+        "apps/web/tests/menu-lateral.test.tsx",
+        "apps/web/tests/sessao-servidor.test.ts",
+        "apps/web/tests/telas-de-acesso.test.tsx",
+        "apps/web/tests/feed-telas.test.tsx",
+        "apps/web/tests/novo-aceite.test.tsx",
+        "apps/web/tests/botao-ja-enviei.test.tsx",
+        "apps/web/tests/fechamento-pagina.test.tsx",
+        "apps/web/tests/checkout-na-janela.test.tsx",
+        "apps/web/tests/config-entrega.test.tsx",
+        "apps/api/tests/meus-pedidos.test.ts",
+        "apps/api/tests/favoritos-e-recentes.test.ts",
+        "apps/api/tests/enderecos-do-cliente.int.test.ts",
+        "apps/api/tests/rotas-da-conta-segura.test.ts",
+        "apps/api/tests/lgpd-conta.test.ts",
+        "apps/api/tests/acompanhamento-nao-enumeravel.test.ts",
+        "e2e/specs/acompanhamento.spec.ts",
+        "e2e/specs/cadastro.spec.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+        "apps/web/tests/area-do-cliente-navegacao.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-favoritos.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-pedidos.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-acompanhamento.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-perfil.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-seguranca.onp.test.tsx",
+        "apps/web/tests/area-do-cliente-sessao.onp.test.ts",
+        "apps/web/tests/area-do-cliente-conteudo.onp.test.ts"
+      ],
+      "manual": [
+        "390 e 1280 px, claro e escuro, em /conta, favoritos, pedidos, detalhe, dados, endereços, segurança e link público",
+        "remover produto favorito de verdade",
+        "ações da conta com o Origin real atrás do Traefik",
+        "POST de outra origem → 403",
+        "Sair com a API parada → aviso em /entrar"
+      ],
+      "external": [
+        "e2e com duas contas e troca de conta: #114"
+      ]
+    },
+    "rollback": "Sem migração nem dado: reverter os arquivos da tarefa com git checkout -- <arquivos> (nada commitado). Proxy: reverter route.ts e apagar protecao-da-conta.ts volta ao PERMITIDOS antigo. Sair: reverter auth.ts volta ao comportamento atual.",
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura + rmcode-revisor-plano-seguranca",
+      "findings": [
+        {
+          "text": "Renomear .sc-pedidos quebra VisaoGeralDaConta e muda o painel (regras globais).",
+          "severity": "major",
+          "resolution": "D-7/H-10: regras antigas intactas, classes novas, VisaoGeralDaConta na T-11101, aviso ao #112."
+        },
+        {
+          "text": ".sc-filtros da conta está em conta.css, não no #112.",
+          "severity": "major",
+          "resolution": "Premissa corrigida; regras ficam e a conta passa a usar Chip."
+        },
+        {
+          "text": "Favoritos antes do proxy deixa a remoção sem prova real.",
+          "severity": "major",
+          "resolution": "D-2: T-11109 logo após o pré-voo e prova de ponta a ponta na T-11102."
+        },
+        {
+          "text": "sairPelaBarra também serve o painel; pré-voo não conferia auth.ts/sessao.tsx.",
+          "severity": "major",
+          "resolution": "Pré-voo confere os dois; caso do painel testado; aviso ao #112."
+        },
+        {
+          "text": "Aviso do AC-11119 depende de entrar/page.tsx sem vaga; mudar auth.ts sem o aviso deixa a tarefa pela metade.",
+          "severity": "major",
+          "resolution": "Vaga pedida no T-11100; auth.ts só muda junto com o aviso; sem vaga, needs_input."
+        },
+        {
+          "text": "'Voltar à loja' sem fonte de dados.",
+          "severity": "major",
+          "resolution": "H-11: fica com o #105; só prova aqui, sem heurística."
+        },
+        {
+          "text": "H-7 dava AC-11113/11117/11118 como provados pela API, mas não há teste.",
+          "severity": "major",
+          "resolution": "Marcados sem prova de isolamento; card de segurança recomendado."
+        },
+        {
+          "text": "enderecos/[id] aceita '..' e atinge /v1/conta/.",
+          "severity": "major",
+          "resolution": "UUID estrito → 404 e testes negativos."
+        },
+        {
+          "text": "Regra 415 frágil (charset, corpo em partes).",
+          "severity": "major",
+          "resolution": "Tipo antes do ;, minúsculo, e decisão pelo corpo real via clone()."
+        },
+        {
+          "text": "Detalhes do 403: same-site, none, Origin null, x-forwarded, ordem com o 401.",
+          "severity": "major",
+          "resolution": "Só same-origin; Origin null → 403; sem x-forwarded; guarda antes do 401; ausência dos dois documentada."
+        },
+        {
+          "text": "Ilha pageshow não resolve o AC-11120 e recarrega à toa.",
+          "severity": "major",
+          "resolution": "D-6: removida; prova pela invalidação de cookies.delete (doc do Next 16) e no-store; ilha só no aplicativo."
+        },
+        {
+          "text": "Chave e códigos TOTP voltam pelo bfcache.",
+          "severity": "major",
+          "resolution": "AtivacaoDoAplicativo remonta o TotpForm em pageshow persisted; teste."
+        },
+        {
+          "text": "Aviso de saída parcial descrevia o risco errado; pedirEncerramento sem tempo limite.",
+          "severity": "major",
+          "resolution": "Texto novo e AbortSignal.timeout."
+        },
+        {
+          "text": "Token em log: meus-pedidos também usa erro.message; throw com motivo.",
+          "severity": "major",
+          "resolution": "Motivos fixos nas duas libs, throw com código fixo; logs de acesso como recomendação."
+        },
+        {
+          "text": "Guarda de origem também afeta o fechamento (#110).",
+          "severity": "major",
+          "resolution": "Chamador positivo salvarEnderecoDaConta e regressão de fechamento/checkout/config-entrega."
+        },
+        {
+          "text": "POST favoritos/produtos sem chamador; apelido fora do formato oficial.",
+          "severity": "major",
+          "resolution": "Só DELETE; FORMATO_DO_APELIDO; 'produtos' reservado como recomendação."
+        },
+        {
+          "text": "SecoesDaConta por itemAtivo duplicava a fonte; dois menus com aria-current.",
+          "severity": "major",
+          "resolution": "Marcação pelo atual (servidor) e um menu por largura."
+        },
+        {
+          "text": "Guarda do aplicativo deve usar a assinatura do #105.",
+          "severity": "major",
+          "resolution": "Conferida no pré-voo e usada na T-11107."
+        },
+        {
+          "text": "Ganchos data-* e textos dos testes não estavam protegidos.",
+          "severity": "major",
+          "resolution": "Lista de ganchos intocáveis no plano."
+        },
+        {
+          "text": "wa.me sem noreferrer; método fora da tabela; UUID frouxo.",
+          "severity": "major",
+          "resolution": "rel e referrer no-referrer; 404 sem encaminhar; UUID 8-4-4-4-12."
+        },
+        {
+          "text": "Varredura de conteúdo pode dar falso positivo fora das pastas.",
+          "severity": "major",
+          "resolution": "Busca limitada às pastas da conta e do acompanhamento; revisão do dono segue como prova principal."
+        }
+      ]
+    },
+    "estimate": {
+      "note": "11 subtarefas sequenciais, 9 arquivos de teste novos; maior esforço em T-11109, T-11101 e T-11108."
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz HIGH, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      }
+    ],
+    "evaluatedAt": 1794488334197,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

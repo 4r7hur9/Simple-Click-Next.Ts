@@ -1,0 +1,1665 @@
+{
+  "version": 4,
+  "cardId": "97eb7510-a6bc-486c-8f14-c83b4e480801",
+  "cardSeq": 109,
+  "savedAt": 1794488331973,
+  "plan": {
+    "title": "#109 Stitch · Detalhe do produto (T-10901…T-10911) v4",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Redesenha o detalhe do produto (janela sobre o catálogo) com as peças/tokens do #104 e a linguagem do #108: galeria foto+vídeo, seções do ramo intercalando eixos e grupos, pílulas, subtotal coerente com atacado, indisponibilidade sem promessa de reposição, folha no celular e duas colunas, foco de volta. Sem regra comercial, contrato ou API novos. Bloqueado até #104 e #108 entregues e aprovação do gerente. T-10912 fora (Q-10904); T-10910 condicionada.",
+    "discovery": [
+      {
+        "claim": "prepararProduto repassa imagens e descarta midias, tipo do grupo e precoAnteriorCentavos da variação; aplica guarda precoAnterior > preco só no produto",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/produto.ts",
+          "symbol": "prepararProduto"
+        }
+      },
+      {
+        "claim": "ProdutoNaTela sem midias; GrupoNaTela sem tipo; VariacaoNaTela sem precoAnterior",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/produto.ts",
+          "symbol": "ProdutoNaTela"
+        }
+      },
+      {
+        "claim": "GrupoNaTela/ProdutoNaTela montados à mão em testes e MontarPedido: campos novos opcionais",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/produtos-do-balcao.test.ts"
+        }
+      },
+      {
+        "claim": "Contrato traz midias opcional, tipo do grupo e precoAnteriorCentavos da variação",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/vitrine.ts",
+          "symbol": "esquemaDoProduto"
+        }
+      },
+      {
+        "claim": "Mídia pública tem capa nullable",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/midia.ts",
+          "symbol": "esquemaDaMidiaPublica"
+        }
+      },
+      {
+        "claim": "blocos.detalheProduto por ramo; seeds com foto e fotos; ramos sem descricao; eletrônicos com especificacoes antes de variacoes",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/vertical.ts",
+          "symbol": "esquemaDeComposicaoDoRamo"
+        }
+      },
+      {
+        "claim": "explicar() promete reposição no ESGOTADO",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/produto.ts",
+          "symbol": "explicar"
+        }
+      },
+      {
+        "claim": "Inicial de escolhaDeEixo marca a padrão sem olhar disponivel; variacao é null sem variações; gruposComuns exclui eixos; adicionar() vai a eixos[0] quando falta variação",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+          "symbol": "EscolhasDoProduto"
+        }
+      },
+      {
+        "claim": "MatrizDeVariacao desenha todos os eixos num fragmento e a lista simples quando não há eixos; esconde grupo só se a única variação estiver disponível",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+          "symbol": "MatrizDeVariacao"
+        }
+      },
+      {
+        "claim": "BotaoAdicionar só tem aVenda, que oculta a quantidade (teste legado cobre)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/produto/BotaoAdicionar.tsx",
+          "symbol": "BotaoAdicionar"
+        }
+      },
+      {
+        "claim": "TabelaDoAtacado marca a faixa por reduce próprio",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/produto/TabelaDoAtacado.tsx",
+          "symbol": "TabelaDoAtacado"
+        }
+      },
+      {
+        "claim": "unitarioNoAtacado fica com a última faixa compatível na ordem do array",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/atacado-na-vitrine.ts",
+          "symbol": "unitarioNoAtacado"
+        }
+      },
+      {
+        "claim": "calcularItem confere mínimo por grupo; pendências na ordem dos grupos",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/core/src/item-total.ts",
+          "symbol": "calcularItem"
+        }
+      },
+      {
+        "claim": "API manda disponivel false + ESGOTADO quando todas as variações acabaram",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/produto.usecase.ts"
+        }
+      },
+      {
+        "claim": "Árvore do detalhe é cliente e renderizada no servidor",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/produto/JanelaDoProduto.tsx",
+          "symbol": "JanelaDoProduto"
+        }
+      },
+      {
+        "claim": "Teste legado exige label/input, 'Indisponível' no eixo, convite padrão do SeloDePreco, strings de regra e sumiço da quantidade sem aVenda",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/produto-pagina.test.tsx"
+        }
+      },
+      {
+        "claim": "Teste legado cobre unitarioNoAtacado e linhasDoAtacado",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/vitrine-atacado.test.tsx"
+        }
+      },
+      {
+        "claim": "e2e legado desatualizado (.sc-produto__foto, 'Alguma observação?')",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/produto-detalhe.spec.ts"
+        }
+      },
+      {
+        "claim": "TelaDoCatalogo desenha JanelaDoProduto e tem loja.blocos",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+          "symbol": "TelaDoCatalogo"
+        }
+      },
+      {
+        "claim": "page.tsx usa produto.imagens",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/produto/[id]/page.tsx"
+        }
+      },
+      {
+        "claim": "Peças do #104 ainda não existem",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/index.ts"
+        }
+      },
+      {
+        "claim": "sc-produto__palco/__miniaturas só no CSS",
+        "kind": "inference",
+        "ref": {
+          "path": "packages/ui/styles/produto.css"
+        }
+      },
+      {
+        "claim": "Nomes finais do #104 e convite do #108",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Galeria foto+vídeo",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "[CA-1] @spec:AC-10901 2 fotos + 1 vídeo na ordem, '2 de 3', setas e ←/→, alt e nome acessível"
+          },
+          {
+            "id": "CA-2",
+            "verify": "[CA-2] @spec:AC-10902 sem autoplay, muted, 'Reproduzir vídeo'; sem capa preload metadata"
+          },
+          {
+            "id": "CA-3",
+            "verify": "[CA-3] @spec:AC-10903 sem mídia mostra inicial na moldura fixa"
+          },
+          {
+            "id": "CA-4",
+            "verify": "[CA-4] @spec:AC-10933 imagens intacto, midias acrescentado; sem midias usa imagens"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Cabeçalho e blocos do ramo",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "[CA-5] @spec:AC-10904 'De X por Y' nos três casos (sem variações, variação resolvida com guarda do anterior, pendente com convite)"
+          },
+          {
+            "id": "CA-6",
+            "verify": "[CA-6] @spec:AC-10905 secoesDeEscolha segue a ordem do ramo (roupas, lanchonete, bebidas, eletrônicos); foto e fotos"
+          },
+          {
+            "id": "CA-7",
+            "verify": "[CA-7] @spec:AC-10906 sem dado, desconhecido, aplicacao e compatibilidade não renderizam"
+          },
+          {
+            "id": "CA-8",
+            "verify": "[CA-8] @spec:AC-10907 lista vazia mantém galeria, nome, preço, descrição e todos os grupos"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Escolhas claras",
+        "acceptance": [
+          {
+            "id": "CA-9",
+            "verify": "[CA-9] @spec:AC-10908 regra em palavras (strings atuais), sem alerta antes de tentar"
+          },
+          {
+            "id": "CA-10",
+            "verify": "[CA-10] @spec:AC-10909 foco no primeiro pendente na ordem da tela: grupo comum obrigatório antes do eixo; 2 eixos com o 1º escolhido"
+          },
+          {
+            "id": "CA-11",
+            "verify": "[CA-11] @spec:AC-10910 trocar variação troca cabeçalho, tabela e total"
+          },
+          {
+            "id": "CA-12",
+            "verify": "[CA-12] @spec:AC-10911 R$ 20 + '+ R$ 3,00' x2 = R$ 46,00 e volta"
+          },
+          {
+            "id": "CA-13",
+            "verify": "[CA-13] @spec:AC-10912 limite bloqueia e anuncia"
+          },
+          {
+            "id": "CA-14",
+            "verify": "[CA-14] @spec:AC-10913 conviteAEscolher como prop explícita; padrão do SeloDePreco intacto"
+          },
+          {
+            "id": "CA-15",
+            "verify": "[CA-15] @spec:AC-10914 observação condicional com limite"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Quantidade, atacado e subtotal",
+        "acceptance": [
+          {
+            "id": "CA-16",
+            "verify": "[CA-16] @spec:AC-10915 faixa marcada = faixaNoAtacado (maior aplicável), linha = unitarioEmCentavos, subtotal = total do botão; faixas fora de ordem"
+          },
+          {
+            "id": "CA-17",
+            "verify": "[CA-17] @spec:AC-10916 12→11 volta ao varejo"
+          },
+          {
+            "id": "CA-18",
+            "verify": "[CA-18] @spec:AC-10917 sem variação: sem subtotal, com convite"
+          },
+          {
+            "id": "CA-19",
+            "verify": "[CA-19] @spec:AC-10918 1–99, aria-live, 48px"
+          },
+          {
+            "id": "CA-20",
+            "verify": "[CA-20] @spec:AC-10919 nao-fecha avisa e não fecha"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Indisponibilidade",
+        "acceptance": [
+          {
+            "id": "CA-21",
+            "verify": "[CA-21] @spec:AC-10920 'Esgotado' na lista, 'Indisponível' no eixo, disabled"
+          },
+          {
+            "id": "CA-22",
+            "verify": "[CA-22] @spec:AC-10921 padrão esgotada não abre marcada (com e sem eixos); variação resolvida esgotada com produto à venda: bloqueio e nada enviado"
+          },
+          {
+            "id": "CA-23",
+            "verify": "[CA-23] @spec:AC-10922 adicional 'Acabou'"
+          },
+          {
+            "id": "CA-24",
+            "verify": "[CA-24] @spec:AC-10923 motivo certo, sem quantidade, loja fechada vence; bloqueio ignorado com !aVenda"
+          },
+          {
+            "id": "CA-25",
+            "verify": "[CA-25] @spec:AC-10924 sem Avise-me, reposição ou estoque"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Responsivo e acessível",
+        "acceptance": [
+          {
+            "id": "CA-26",
+            "verify": "[CA-26] @spec:AC-10925 e2e 390px"
+          },
+          {
+            "id": "CA-27",
+            "verify": "[CA-27] @spec:AC-10926 e2e 768/1280px"
+          },
+          {
+            "id": "CA-28",
+            "verify": "[CA-28] @spec:AC-10927 e2e 344px sem rolagem horizontal"
+          },
+          {
+            "id": "CA-29",
+            "verify": "[CA-29] @spec:AC-10929 foco volta ao gatilho; link direto ao cartão"
+          },
+          {
+            "id": "CA-30",
+            "verify": "[CA-30] @spec:AC-10930 reduce-motion behavior auto"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Sem regressão; confirmação única",
+        "acceptance": [
+          {
+            "id": "CA-31",
+            "verify": "[CA-31] @spec:AC-10931 SSR com produtoInicial"
+          },
+          {
+            "id": "CA-32",
+            "verify": "[CA-32] @spec:AC-10932 back/replaceState"
+          },
+          {
+            "id": "CA-33",
+            "verify": "[CA-33] @spec:AC-10934 eProdutoSimples inalterada"
+          },
+          {
+            "id": "CA-34",
+            "verify": "[CA-34] @spec:AC-10935 item igual; uma confirmação (se D-10 aprovada)"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/produto/*",
+        "packages/ui/styles/produto.css",
+        "lib/produto.ts",
+        "server/produto.ts",
+        "lib/atacado-na-vitrine.ts (faixaNoAtacado; unitarioNoAtacado passa a usá-la)",
+        "TelaDoCatalogo.tsx (uma prop)",
+        "testes *.onp.test.tsx e e2e *.onp.spec.ts"
+      ],
+      "out": [
+        "T-10912 (Q-10904)",
+        "compartilhar/favoritar (Q-10909)",
+        "código/estoque (Q-10907)",
+        "A decidir",
+        "arquivos do #104, features/carrinho, features/checkout, .spec/, packages/contracts, API, vitrine.css",
+        "cartão do #108",
+        "editar e2e legado sem autorização",
+        "commit/push/branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-10901 janela mantida",
+        "impact": "Página própria mudaria T-10908/T-10909"
+      },
+      {
+        "text": "Q-10905 convite 'Escolher <rótulo>'/'Escolher opções' ou o do #108",
+        "impact": "Texto"
+      },
+      {
+        "text": "Q-10906 vídeo por ação, mudo",
+        "impact": "Atributo"
+      },
+      {
+        "text": "Q-10908 subtotal com variação resolvida",
+        "impact": "Condição"
+      },
+      {
+        "text": "D-4 enviada ao gerente",
+        "impact": "Leitura literal filtraria descrição"
+      },
+      {
+        "text": "Nomes do #104 conforme o design dele",
+        "impact": "Revisar plano após o #104"
+      },
+      {
+        "text": "T-10910 só com aprovação",
+        "impact": "Senão sai"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Dialog próprio: folha ≤767px, duas colunas ≥768px",
+        "why": "SSR, link e rolagem; Gaveta sem tela cheia/SSR",
+        "alternatives": [
+          "página",
+          "Gaveta"
+        ],
+        "impact": "CSS e marcação",
+        "mitigation": "Mesmos tokens"
+      },
+      {
+        "id": "D-2",
+        "decision": "Radio/checkbox em label com visual do Chip",
+        "why": "Semântica e legado",
+        "alternatives": [
+          "componente Chip"
+        ],
+        "impact": "Nenhum na semântica",
+        "mitigation": "Mesmas classes"
+      },
+      {
+        "id": "D-3",
+        "decision": "Cabeçalho em 3 casos (sem variações/resolvida com guarda/pendente); tabela por faixaNoAtacado (maior quantidadeMinima ≤ q, usada também por unitarioNoAtacado, linhas em ordem crescente); linha/botão = calcularItem",
+        "why": "AC-10915, igual ao core preco-aplicavel",
+        "impact": "Mesmo resultado para faixas em ordem",
+        "mitigation": "vitrine-atacado.test e faixas-de-atacado.test na verificação"
+      },
+      {
+        "id": "D-4",
+        "decision": "Blocos ordenam; ocultam só sem dado; nunca aplicacao/compatibilidade",
+        "why": "Grupo obrigatório escondido trava a compra",
+        "impact": "blocos-do-ramo.ts",
+        "mitigation": "Pergunta ao gerente"
+      },
+      {
+        "id": "D-5",
+        "decision": "Preço desenhado por EscolhasDoProduto com prop informacoes",
+        "why": "Preço reativo; árvore já cliente",
+        "impact": "Header sem preço",
+        "mitigation": "matchMedia em efeito"
+      },
+      {
+        "id": "D-6",
+        "decision": "conviteAEscolher em lib/produto.ts como prop explícita do SeloDePreco",
+        "why": "AC-10913",
+        "impact": "Contrato ao #108",
+        "mitigation": "Reaproveitar o do #108"
+      },
+      {
+        "id": "D-7",
+        "decision": "ESGOTADO = 'Este item acabou.'",
+        "why": "AC-10924",
+        "impact": "Grep 'repuser' no baseline"
+      },
+      {
+        "id": "D-12",
+        "decision": "Seções do ramo: cada eixo via MatrizDeVariacao com eixos=[eixo]; lista simples na seção variacoes/grade/volume; calcularItem só com grupos comuns na ordem da tela; lista única de pendências na ordem das seções; alerta dentro do fieldset pendente",
+        "why": "Ordem do ramo sem criar pendência falsa de eixo",
+        "impact": "MatrizDeVariacao entra na T-10903",
+        "mitigation": "CA-10 com dois cenários"
+      },
+      {
+        "id": "D-13",
+        "decision": "Padrão esgotada não abre marcada (variacaoManual e escolhaDeEixo); bloqueio só com variação resolvida esgotada e produto à venda; !aVenda vence; variação única sempre escondida",
+        "why": "AC-10921 sem duplicar frase nem quebrar legado da quantidade",
+        "impact": "Prop opcional",
+        "mitigation": "Testes separados"
+      },
+      {
+        "id": "D-14",
+        "decision": "Gatilho guardado no clique; foco devolvido no close; link direto cai em [data-abre-produto=id]",
+        "why": "Safari e SSR",
+        "impact": "JanelaDoProduto",
+        "mitigation": "isConnected"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-10901",
+        "title": "Baseline e dados da tela",
+        "objective": "Campos opcionais, conviteAEscolher, texto do esgotado",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-1",
+          "R-3",
+          "R-5"
+        ],
+        "context": {
+          "summary": "Baseline do gate e grep 'repuser'",
+          "files": [
+            "apps/web/src/lib/produto.ts",
+            "apps/web/src/server/produto.ts"
+          ],
+          "evidence": [
+            "prepararProduto"
+          ],
+          "decisions": [
+            "D-6",
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/lib/produto.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/produto.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/detalhe-do-produto.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "MidiaNaTela; midias?",
+            "GrupoNaTela.tipo?",
+            "VariacaoNaTela.precoAnterior? com a guarda do produto",
+            "conviteAEscolher"
+          ],
+          "contracts": [
+            "campos opcionais; imagens intacto"
+          ],
+          "constraints": [
+            "não editar contracts"
+          ],
+          "expected": [
+            "CA-4, CA-14, CA-25"
+          ],
+          "forbidden": [
+            "campo obrigatório novo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4",
+            "CA-14",
+            "CA-25"
+          ],
+          "tests": [
+            "apps/web/tests/detalhe-do-produto.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/detalhe-do-produto.onp.test.tsx apps/web/tests/produto-pagina.test.tsx apps/web/tests/painel-disponibilidade.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "baseline"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "baseline com falha fora do escopo"
+          ],
+          "blockedConditions": [
+            "#104 não entregue",
+            "#108 não encerrado",
+            "gerente não aprovou"
+          ]
+        }
+      },
+      {
+        "id": "T-10902",
+        "title": "Galeria com foto e vídeo",
+        "objective": "GaleriaDoProduto",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10901"
+        ],
+        "requirements": [
+          "R-1",
+          "R-6"
+        ],
+        "context": {
+          "summary": "Ideia de MidiaDoPost",
+          "files": [
+            "apps/web/src/features/produto/DetalheDoProduto.tsx",
+            "packages/ui/styles/produto.css"
+          ],
+          "evidence": [
+            "capa nullable"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/GaleriaDoProduto.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/produto/DetalheDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/produto.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/MidiaDoPost.tsx",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "scroll-snap, 'n de m', setas 48px, ←/→",
+            "video preload metadata, muted, poster opcional",
+            "matchMedia em efeito"
+          ],
+          "contracts": [
+            "{ midias, nome }"
+          ],
+          "constraints": [
+            "ícones do @simpleclick/ui"
+          ],
+          "expected": [
+            "CA-1..3, CA-30"
+          ],
+          "forbidden": [
+            "autoplay",
+            "editar MidiaDoPost"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/detalhe-do-produto.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/detalhe-do-produto.onp.test.tsx"
+          ],
+          "evidence": [
+            "screenshots"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "host fora de remotePatterns"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10903",
+        "title": "Preço em três casos, seções do ramo e pendências",
+        "objective": "blocosDoDetalhe, secoesDeEscolha, lista única de pendências",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10902"
+        ],
+        "requirements": [
+          "R-2",
+          "R-3"
+        ],
+        "context": {
+          "summary": "D-3, D-4, D-5, D-12",
+          "files": [
+            "apps/web/src/features/produto/DetalheDoProduto.tsx",
+            "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+            "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+            "apps/web/src/features/produto/SeloDePreco.tsx"
+          ],
+          "evidence": [
+            "MatrizDeVariacao fragmento único"
+          ],
+          "decisions": [
+            "D-3",
+            "D-4",
+            "D-5",
+            "D-12"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/blocos-do-ramo.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/produto/DetalheDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+              "action": "modify",
+              "note": "âncora por eixo e na lista; prop pendente; esconde variação única"
+            },
+            {
+              "path": "apps/web/src/features/produto/SeloDePreco.tsx",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "secoesDeEscolha(lista, eixos, gruposComuns, temListaSimples)",
+            "calcularItem só com grupos comuns na ordem da tela",
+            "pendenciasNaOrdem substitui faltaVariacao→eixos[0]",
+            "cabeçalho em 3 casos"
+          ],
+          "contracts": [
+            "DetalheDoProduto.blocos?"
+          ],
+          "constraints": [
+            "lista vazia = tela atual"
+          ],
+          "expected": [
+            "CA-5..8, CA-10, CA-11"
+          ],
+          "forbidden": [
+            "eixo em calcularItem",
+            "esconder grupo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6",
+            "CA-7",
+            "CA-8",
+            "CA-10",
+            "CA-11"
+          ],
+          "tests": [
+            "apps/web/tests/detalhe-do-produto.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/detalhe-do-produto.onp.test.tsx apps/web/tests/produto-pagina.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "leitura literal do AC-10905"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10904",
+        "title": "Composição do ramo até a janela",
+        "objective": "Prop blocosDoDetalhe",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10903"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Uma prop",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+            "apps/web/src/features/produto/JanelaDoProduto.tsx"
+          ],
+          "evidence": [
+            "loja.blocos"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/JanelaDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/janela-do-produto.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "blocosDoDetalhe?",
+            "stub de showModal/close"
+          ],
+          "contracts": [
+            "prop opcional"
+          ],
+          "constraints": [
+            "claim após #108; avisar #110"
+          ],
+          "expected": [
+            "CA-6 na janela"
+          ],
+          "forbidden": [
+            "outras mudanças"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6"
+          ],
+          "tests": [
+            "janela-do-produto.onp.test.tsx (criado nesta tarefa)"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/janela-do-produto.onp.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "haiku",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "TelaDoCatalogo reservado"
+          ]
+        }
+      },
+      {
+        "id": "T-10905",
+        "title": "Pílulas, acréscimo e limite",
+        "objective": "Visual do Chip, rótulo na pendência, acréscimo, limite",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10904"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Strings preservadas",
+          "files": [
+            "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+            "apps/web/src/features/produto/SelecaoDeOpcoes.tsx",
+            "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+            "packages/ui/styles/produto.css"
+          ],
+          "evidence": [
+            "legado"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/SelecaoDeOpcoes.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/produto.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/escolhas-do-produto.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "pílulas via :has(input:checked)",
+            "pendência de variação cita o rótulo"
+          ],
+          "contracts": [
+            "classes e strings"
+          ],
+          "constraints": [
+            "ItemEscolhido igual"
+          ],
+          "expected": [
+            "CA-9, 12, 13, 15"
+          ],
+          "forbidden": [
+            "enfraquecer legado"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-9",
+            "CA-12",
+            "CA-13",
+            "CA-15"
+          ],
+          "tests": [
+            "apps/web/tests/escolhas-do-produto.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/escolhas-do-produto.onp.test.tsx apps/web/tests/produto-pagina.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "classes do Chip diferentes"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10906",
+        "title": "Quantidade, atacado e subtotal",
+        "objective": "faixaNoAtacado e subtotal coerente",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10905"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "D-3",
+          "files": [
+            "apps/web/src/lib/atacado-na-vitrine.ts",
+            "apps/web/src/features/produto/BotaoAdicionar.tsx",
+            "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+            "apps/web/src/features/produto/TabelaDoAtacado.tsx",
+            "packages/ui/styles/produto.css"
+          ],
+          "evidence": [
+            "laço por ordem do array"
+          ],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/lib/atacado-na-vitrine.ts",
+              "action": "modify",
+              "note": "faixaNoAtacado; unitarioNoAtacado a usa; linhas em ordem crescente"
+            },
+            {
+              "path": "apps/web/src/features/produto/BotaoAdicionar.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/TabelaDoAtacado.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/produto.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/quantidade-e-atacado.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "subtotal sem aria-live",
+            "passo 48px"
+          ],
+          "contracts": [
+            "calcularItem inalterado; aria-labels"
+          ],
+          "constraints": [],
+          "expected": [
+            "CA-16..20; legados de atacado verdes"
+          ],
+          "forbidden": [
+            "regra comercial nova"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-16",
+            "CA-17",
+            "CA-18",
+            "CA-19",
+            "CA-20"
+          ],
+          "tests": [
+            "apps/web/tests/quantidade-e-atacado.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/quantidade-e-atacado.onp.test.tsx apps/web/tests/produto-pagina.test.tsx apps/web/tests/faixas-de-atacado.test.tsx apps/web/tests/vitrine-atacado.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "legado de atacado falha"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10907",
+        "title": "Indisponibilidade clara",
+        "objective": "D-13",
+        "complexity": "LOW",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10906"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "ASM-10906 conferido",
+          "files": [
+            "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+            "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+            "apps/web/src/features/produto/SelecaoDeOpcoes.tsx",
+            "apps/web/src/features/produto/BotaoAdicionar.tsx"
+          ],
+          "evidence": [
+            "escolhaDeEixo inicial"
+          ],
+          "decisions": [
+            "D-13"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/MatrizDeVariacao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/SelecaoDeOpcoes.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/BotaoAdicionar.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/produto-indisponivel.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "inicial só da padrão disponível",
+            "bloqueio só com aVenda"
+          ],
+          "contracts": [
+            "MotivoNaTela"
+          ],
+          "constraints": [
+            "sem Avise-me"
+          ],
+          "expected": [
+            "CA-21..25"
+          ],
+          "forbidden": [
+            "mudar disponivel"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-21",
+            "CA-22",
+            "CA-23",
+            "CA-24",
+            "CA-25"
+          ],
+          "tests": [
+            "apps/web/tests/produto-indisponivel.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/produto-indisponivel.onp.test.tsx apps/web/tests/produto-pagina.test.tsx apps/web/tests/painel-disponibilidade.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10908",
+        "title": "Janela responsiva e acessível",
+        "objective": "Folha/colunas, D-14, reduce-motion, tokens",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10907"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "design.md seção 3; #114/Q-10408",
+          "files": [
+            "apps/web/src/features/produto/JanelaDoProduto.tsx",
+            "apps/web/src/features/produto/DetalheDoProduto.tsx",
+            "packages/ui/styles/produto.css"
+          ],
+          "evidence": [
+            "classes mortas"
+          ],
+          "decisions": [
+            "D-1",
+            "D-14"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/JanelaDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/DetalheDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/produto.css",
+              "action": "modify"
+            }
+          ],
+          "changes": [
+            "≤767px folha + barra 72px + safe-area",
+            "≥768px duas colunas, rodapé sticky",
+            "foco devolvido"
+          ],
+          "contracts": [
+            "seletores data-*"
+          ],
+          "constraints": [
+            "sem peça comum"
+          ],
+          "expected": [
+            "CA-29, CA-30"
+          ],
+          "forbidden": [
+            "vitrine.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-29",
+            "CA-30"
+          ],
+          "tests": [
+            "janela-do-produto.onp.test.tsx (criado na T-10904)"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/janela-do-produto.onp.test.tsx"
+          ],
+          "evidence": [
+            "screenshots"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "sticky no dialog"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10909",
+        "title": "Sem regressão de link e '+'",
+        "objective": "Provas",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10908"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Casos no teste da janela criado na T-10904",
+          "files": [
+            "apps/web/src/features/produto/JanelaDoProduto.tsx",
+            "apps/web/src/app/(loja)/loja/[slug]/produto/[id]/page.tsx"
+          ],
+          "evidence": [
+            "page.tsx usa imagens"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/JanelaDoProduto.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/produto/[id]/page.tsx",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "casos SSR, back/replaceState, eProdutoSimples"
+          ],
+          "contracts": [
+            "eProdutoSimples"
+          ],
+          "constraints": [],
+          "expected": [
+            "CA-31..33"
+          ],
+          "forbidden": [
+            "alterar eProdutoSimples"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-31",
+            "CA-32",
+            "CA-33"
+          ],
+          "tests": [
+            "janela-do-produto.onp.test.tsx (criado na T-10904)"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/janela-do-produto.onp.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10910",
+        "title": "Confirmação única (condicionada)",
+        "objective": "AvisoFlutuante único",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10909"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Só com aprovação do gerente",
+          "files": [
+            "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+            "apps/web/src/features/produto/JanelaDoProduto.tsx"
+          ],
+          "evidence": [
+            "confirmação dupla"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/produto/EscolhasDoProduto.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/produto/JanelaDoProduto.tsx",
+              "action": "modify"
+            }
+          ],
+          "changes": [
+            "remove só o recado de sucesso; AvisoFlutuante"
+          ],
+          "contracts": [
+            "ItemParaEnviar"
+          ],
+          "constraints": [
+            "recados de erro e 409 mantidos"
+          ],
+          "expected": [
+            "CA-34"
+          ],
+          "forbidden": [
+            "features/carrinho"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-34"
+          ],
+          "tests": [
+            "janela-do-produto.onp.test.tsx (criado na T-10904)"
+          ],
+          "commands": [
+            "pnpm exec vitest run apps/web/tests/janela-do-produto.onp.test.tsx apps/web/tests/produto-pagina.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "gerente não aprovou D-10"
+          ]
+        }
+      },
+      {
+        "id": "T-10911",
+        "title": "e2e por largura e gate",
+        "objective": "Gate verde ou falha preexistente reportada",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10910"
+        ],
+        "requirements": [
+          "R-6",
+          "R-7"
+        ],
+        "context": {
+          "summary": "e2e legado só com autorização",
+          "files": [
+            "e2e/specs/produto-detalhe.spec.ts"
+          ],
+          "evidence": [
+            "gate obrigatório"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/detalhe-do-produto.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/specs/produto-detalhe.spec.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "344/390/768/1280px"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não mascarar falha"
+          ],
+          "expected": [
+            "gate verde"
+          ],
+          "forbidden": [
+            "--no-verify",
+            "skip"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-26",
+            "CA-27",
+            "CA-28"
+          ],
+          "tests": [
+            "e2e/specs/detalhe-do-produto.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm test:int",
+            "pnpm test:e2e",
+            "pnpm build"
+          ],
+          "evidence": [
+            "gate"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "e2e não sobe"
+          ],
+          "blockedConditions": [
+            "falha preexistente sem decisão"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Peças do #104 diferentes",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Pré-requisito e revisão do plano",
+        "detection": "typecheck"
+      },
+      {
+        "text": "Quebrar legados/e2e",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Classes, labels, strings preservadas; legados por tarefa",
+        "detection": "vitest"
+      },
+      {
+        "text": "Divergência faixa × unitário × total",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "faixaNoAtacado único + teste de ouro",
+        "detection": "quantidade-e-atacado.onp"
+      },
+      {
+        "text": "Eixo em calcularItem trava a compra",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "D-12 explícito + CA-10",
+        "detection": "escolhas e detalhe .onp"
+      },
+      {
+        "text": "Typecheck por campos novos",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Campos opcionais",
+        "detection": "pnpm typecheck"
+      },
+      {
+        "text": "e2e legado vermelho",
+        "probability": "high",
+        "impact": "medium",
+        "mitigation": "Baseline e decisão do gerente",
+        "detection": "baseline"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/produto-pagina.test.tsx",
+        "apps/web/tests/painel-disponibilidade.test.tsx",
+        "apps/web/tests/faixas-de-atacado.test.tsx",
+        "apps/web/tests/vitrine-atacado.test.tsx",
+        "e2e/specs/produto-detalhe.spec.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/detalhe-do-produto.onp.test.tsx",
+        "apps/web/tests/escolhas-do-produto.onp.test.tsx",
+        "apps/web/tests/quantidade-e-atacado.onp.test.tsx",
+        "apps/web/tests/produto-indisponivel.onp.test.tsx",
+        "apps/web/tests/janela-do-produto.onp.test.tsx",
+        "e2e/specs/detalhe-do-produto.onp.spec.ts"
+      ],
+      "manual": [
+        "344/390/768/1280px claro e escuro, teclado, Esc, reduce-motion"
+      ],
+      "external": [
+        "#114: axe e teclado"
+      ]
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura (2 rodadas)",
+      "findings": [
+        {
+          "text": "R1: #104 ausente do repo",
+          "severity": "critical",
+          "resolution": "Pré-requisito e blockedCondition da T-10901"
+        },
+        {
+          "text": "R1: e2e legado já quebrado",
+          "severity": "critical",
+          "resolution": "Baseline + autorização do gerente"
+        },
+        {
+          "text": "R1: D-5 premissa errada",
+          "severity": "major",
+          "resolution": "Reescrita"
+        },
+        {
+          "text": "R1: cabeçalho misturava adicionais/anterior do produto",
+          "severity": "major",
+          "resolution": "D-3 três casos"
+        },
+        {
+          "text": "R1: tabela com conta própria",
+          "severity": "major",
+          "resolution": "faixaNoAtacado"
+        },
+        {
+          "text": "R1: campos obrigatórios quebram typecheck",
+          "severity": "major",
+          "resolution": "Opcionais"
+        },
+        {
+          "text": "R1: D-4 × AC-10905",
+          "severity": "major",
+          "resolution": "Pergunta ao gerente"
+        },
+        {
+          "text": "R1: ordem não intercalava eixos",
+          "severity": "major",
+          "resolution": "D-12"
+        },
+        {
+          "text": "R1: T-10907 sem mecanismo",
+          "severity": "major",
+          "resolution": "D-13"
+        },
+        {
+          "text": "R1: foco sem mecanismo",
+          "severity": "major",
+          "resolution": "D-14 + CA-29"
+        },
+        {
+          "text": "R2: eixos em calcularItem criariam pendência eterna",
+          "severity": "major",
+          "resolution": "calcularItem só com grupos comuns"
+        },
+        {
+          "text": "R2: faltaVariacao→eixos[0] pula pendência anterior",
+          "severity": "major",
+          "resolution": "Lista única de pendências na ordem das seções; CA-10 com 2 cenários"
+        },
+        {
+          "text": "R2: MatrizDeVariacao fora da T-10903 e sem API por eixo",
+          "severity": "major",
+          "resolution": "eixos=[eixo]; arquivo na T-10903; alerta dentro do fieldset"
+        },
+        {
+          "text": "R2: produto sem variações mostraria convite",
+          "severity": "major",
+          "resolution": "Cabeçalho em três casos"
+        },
+        {
+          "text": "R2: escolhaDeEixo inicial ignora disponivel",
+          "severity": "major",
+          "resolution": "Inicial confere padrao.disponivel"
+        },
+        {
+          "text": "R2: bloqueio duplicava !aVenda e contrariava legado da quantidade",
+          "severity": "major",
+          "resolution": "Bloqueio só com aVenda; !aVenda vence"
+        },
+        {
+          "text": "R2: faixas fora de ordem × laço atual",
+          "severity": "major",
+          "resolution": "faixaNoAtacado = maior aplicável, usada por unitarioNoAtacado; linhas ordenadas"
+        },
+        {
+          "text": "R2: guarda do precoAnterior da variação",
+          "severity": "minor",
+          "resolution": "Mesma guarda do produto"
+        },
+        {
+          "text": "R2: vitrine-atacado.test fora da verificação",
+          "severity": "minor",
+          "resolution": "Incluído na T-10906"
+        },
+        {
+          "text": "R2: variação única esgotada duplicava aviso",
+          "severity": "minor",
+          "resolution": "Variação única sempre escondida"
+        },
+        {
+          "text": "R2: grep 'repuser'",
+          "severity": "minor",
+          "resolution": "No baseline da T-10901"
+        },
+        {
+          "text": "R1: tarefas sem prova, convite do #108, D-10, strings, vídeo sem capa",
+          "severity": "minor",
+          "resolution": "Testes por tarefa; reaproveitar convite; T-10910 condicionada; strings preservadas; preload metadata"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "11 tarefas pequenas sequenciais"
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [],
+    "evaluatedAt": 1794488331973,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

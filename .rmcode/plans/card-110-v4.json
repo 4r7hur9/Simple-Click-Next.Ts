@@ -1,0 +1,358 @@
+{
+  "version": 4,
+  "cardId": "cd816803-93dd-43e0-a055-28ce284e2c0a",
+  "cardSeq": 110,
+  "savedAt": 1794838627906,
+  "plan": {
+    "complexity": "MEDIUM",
+    "risk": "medium",
+    "summary": "Retomada do #110: integrar a coluna na TelaDoCatalogo, ouvir sc:abrir-sacola, criar testes faltantes (abrir, privacidade), migrar classes sc-carrinho-janela e limpar vitrine.css.",
+    "discovery": [
+      {
+        "claim": "Coluna reservada pelo #108 ainda vazia",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx"
+        }
+      },
+      {
+        "claim": "ColunaDaSacola existe",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/ColunaDaSacola.tsx"
+        }
+      },
+      {
+        "claim": "FechamentoDaCompra usa classes sc-carrinho-janela",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx"
+        }
+      },
+      {
+        "claim": "Evento sc:abrir-sacola emitido em carrinho-do-navegador",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/carrinho-do-navegador.ts"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Sacola lateral e evento de abrir funcionando",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "sacola-lateral e sacola-abrir .onp.test passam"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Privacidade e nada de A decidir",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "sacola-privacidade.onp.test passa"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Limpeza de vitrine.css",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "grep sem uso das classes antigas e sacola-estilos.onp.test passa"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/carrinho",
+        "features/checkout",
+        "fechamento.css",
+        "TelaDoCatalogo.tsx",
+        "testes"
+      ],
+      "out": [
+        "landing",
+        "lib/produto.ts",
+        "arquivos do #104",
+        ".spec"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "#109 libera TelaDoCatalogo.tsx antes da integração",
+        "impact": "senão aguardar via board_wait_for"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Migrar sc-carrinho-janela para fechamento.css antes de remover de vitrine.css",
+        "why": "evitar quebrar o fechamento"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Integrar coluna e ouvir evento",
+        "objective": "T-11001/T-11003",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "montar ColunaDaSacola e listener",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/sacola-abrir.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [
+            "sacola-abrir.onp.test.tsx"
+          ],
+          "commands": [
+            "npm test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "#109 ainda reserva TelaDoCatalogo.tsx"
+          ]
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Privacidade e limpeza de CSS",
+        "objective": "T-11008/T-11009",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-2",
+          "R-3"
+        ],
+        "context": {
+          "summary": "teste de privacidade, migrar classes, limpar vitrine.css",
+          "files": [
+            "packages/ui/styles/vitrine.css"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/sacola-privacidade.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2",
+            "CA-3"
+          ],
+          "tests": [
+            "sacola-privacidade.onp.test.tsx",
+            "sacola-estilos.onp.test.ts"
+          ],
+          "commands": [
+            "npm test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "#107/#108 ainda editando vitrine.css"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Conflito em vitrine.css e TelaDoCatalogo.tsx com #107/#109",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "board_peers e board_claim antes de editar"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/sacola-lateral.onp.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/sacola-abrir.onp.test.tsx",
+        "apps/web/tests/sacola-privacidade.onp.test.tsx"
+      ],
+      "manual": [
+        "visual em desktop e celular"
+      ],
+      "external": []
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O comando de validação \"npm test\" não existe no package.json."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": false,
+        "detail": "Mudança CRITICAL exige rollback ou estratégia de recuperação."
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": false,
+        "detail": "T-1 não descreve as alterações esperadas."
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true,
+        "detail": "não informada"
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz MEDIUM, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"npm test\" não existe no package.json.",
+        "ref": "npm test"
+      },
+      {
+        "item": "risks",
+        "severity": "critical",
+        "code": "no-rollback",
+        "message": "Mudança CRITICAL exige rollback ou estratégia de recuperação."
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-1 não descreve as alterações esperadas.",
+        "ref": "T-1"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-2 não descreve as alterações esperadas.",
+        "ref": "T-2"
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "item": "estimate",
+        "severity": "minor",
+        "code": "no-estimate",
+        "message": "Estimativa de esforço/custo não informada (opcional)."
+      }
+    ],
+    "evaluatedAt": 1794838627906,
+    "passed": 4,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

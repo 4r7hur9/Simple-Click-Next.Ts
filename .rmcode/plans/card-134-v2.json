@@ -1,0 +1,979 @@
+{
+  "version": 2,
+  "cardId": "e008d016-0a42-46e5-9fa8-4e92e208dbb2",
+  "cardSeq": 134,
+  "savedAt": 1794935261152,
+  "plan": {
+    "title": "#134 Segurança: proteção de origem, limite de chamadas e testes com duas contas",
+    "complexity": "MEDIUM",
+    "risk": "high",
+    "summary": "Estender a guarda de origem do #111 (recusarAcaoDeFora) às rotas de escrita de /api/loja/* e /api/auth/* do site; pôr limitador por IP (limitarTentativas, 429+Retry-After, configurável) nas 3 rotas públicas do catálogo da vitrine na API, com prova da ponte para o servidor do site; e escrever testes de API com duas contas para dados, sessões, senha, favoritos, endereços e pedidos.",
+    "discovery": [
+      {
+        "claim": "A guarda do #111 recusa escrita de fora com 403 (Sec-Fetch-Site/Origin) e corpo não JSON com 415; GET/HEAD passam; sem os dois cabeçalhos passa.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/protecao-da-conta.ts",
+          "symbol": "recusarAcaoDeFora"
+        }
+      },
+      {
+        "claim": "/api/auth POST atende formulários sem JS (form-urlencoded) e ações JSON da sessão.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/auth/[...action]/route.ts",
+          "symbol": "POST"
+        }
+      },
+      {
+        "claim": "Formulários de acesso leem requisicao.formData() (verificar-email, reenviar, recuperar-senha, definir-senha).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/formularios-de-acesso.ts",
+          "symbol": "responderFormularioDeAcesso"
+        }
+      },
+      {
+        "claim": "Ações JSON da ponte de identidade são lista fechada ACOES_DE_SESSAO.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/sessao.ts",
+          "symbol": "ACOES_DE_SESSAO"
+        }
+      },
+      {
+        "claim": "O servidor do site chama /api/auth/renovar sem Origin/Sec-Fetch-Site e sem corpo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/renovar-acesso.ts",
+          "symbol": "trocar"
+        }
+      },
+      {
+        "claim": "Rotas de imagem e mídia encaminham bytes crus com o content-type do arquivo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/loja/imagem/[tipo]/route.ts",
+          "symbol": "PUT"
+        }
+      },
+      {
+        "claim": "Mídia aceita POST/PUT/DELETE de vídeos, capa, ordem e stories.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/loja/midia/[...caminho]/route.ts",
+          "symbol": "PERMITIDOS"
+        }
+      },
+      {
+        "claim": "Seções do dono aceitam PUT JSON.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/loja/[secao]/route.ts",
+          "symbol": "PUT"
+        }
+      },
+      {
+        "claim": "Comentários aceitam POST/PUT/DELETE.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/api/loja/comentarios/[[...caminho]]/route.ts",
+          "symbol": "PERMITIDOS"
+        }
+      },
+      {
+        "claim": "As telas mandam content-type application/json nas escritas JSON.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/config/useSecao.ts"
+        }
+      },
+      {
+        "claim": "Limitador existente com porOrigem, enderecoInformado e 429 + Retry-After.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/core/limite.ts",
+          "symbol": "limitarTentativas"
+        }
+      },
+      {
+        "claim": "Cache do limite sob demanda com prazo configurável.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/core/limite.ts",
+          "symbol": "cacheDoLimiteSobDemanda"
+        }
+      },
+      {
+        "claim": "aplicar(...).catch(proximo): erro do Redis vira next(erro) (500) se não tratado.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/core/limite.ts",
+          "symbol": "limitarTentativas"
+        }
+      },
+      {
+        "claim": "Endereço do visitante só vale com o segredo da ponte.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/auth/limite-da-identidade.ts",
+          "symbol": "enderecoInformadoPelaPonte"
+        }
+      },
+      {
+        "claim": "Rotas públicas do catálogo: /:apelido/catalogo, /catalogo/resumo, /catalogo/produtos.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/vitrine.routes.ts",
+          "symbol": "criarRotasDaVitrine"
+        }
+      },
+      {
+        "claim": "Padrão de middleware desligado nas provas e ligado em main.ts.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/app.ts",
+          "symbol": "OpcoesDoApp"
+        }
+      },
+      {
+        "claim": "main.ts compõe criarApp com exigirAceite e lê o ambiente.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/main.ts",
+          "symbol": "iniciarApi"
+        }
+      },
+      {
+        "claim": "O site lê o catálogo pelo servidor, com cache do Next e sem a prova da ponte.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/vitrine.ts",
+          "symbol": "buscarCatalogo"
+        }
+      },
+      {
+        "claim": "Cabeçalhos da ponte só saem com segredo válido e endereço do visitante.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/chamada-de-identidade.ts",
+          "symbol": "cabecalhosDaPonte"
+        }
+      },
+      {
+        "claim": "Apoio de provas da identidade: montarApi, entrar, comCookie, refreshDa, cacheDoLimiteDeProva.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/tests/apoio-das-rotas-de-identidade.ts",
+          "symbol": "montarApi"
+        }
+      },
+      {
+        "claim": "Teste do #111 que serve de modelo para o da guarda.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/area-do-cliente-proxy.onp.test.ts"
+        }
+      },
+      {
+        "claim": "AC-11113/11117/11118 só têm teste de tela; não há teste de API com @spec desses IDs.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/area-do-cliente-seguranca.onp.test.tsx"
+        }
+      },
+      {
+        "claim": "Encerrar sessão filtra por family_id; o isolamento depende da RLS.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/conta/conta.routes.ts"
+        }
+      },
+      {
+        "claim": "Mandar o IP do visitante no fetch cacheado do Next fragmentaria o cache (headers entram na chave).",
+        "kind": "inference"
+      },
+      {
+        "claim": "Rotas de escrita de /api/catalogo, /api/painel e /api/admin também não conferem origem.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/encaminhar-ao-painel.ts"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Rotas de escrita de /api/loja/* e /api/auth/* do site recusam pedido de outro site (403) e, nas rotas JSON, corpo não JSON (415), reaproveitando a guarda do #111, sem quebrar os fluxos do próprio site.",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "Teste de rota: Sec-Fetch-Site cross-site/same-site/none ou Origin alheio/null em PUT/POST/DELETE de loja/[secao], tema, feed, comentarios, aprovacao, imagem, midia e auth (login e recuperar-senha) → 403 e nenhuma chamada à API."
+          },
+          {
+            "id": "CA-2",
+            "verify": "Teste: rotas JSON (loja/[secao], tema, feed, comentarios, aprovacao, auth/login) com text/plain ou form-urlencoded → 415 sem chamada."
+          },
+          {
+            "id": "CA-3",
+            "verify": "Teste: mesma origem passa — JSON nas rotas JSON, form-urlencoded nos formulários de acesso, image/png em imagem, vídeo em midia, renovar do servidor (só cookie + sec-fetch-mode) e POST sem corpo."
+          },
+          {
+            "id": "CA-4",
+            "verify": "Teste: a recusa vem antes da leitura da sessão (403 mesmo sem cookie) e os testes do #111 continuam verdes."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Limitador por IP nas rotas públicas do catálogo da vitrine na API, 429 com Retry-After, valores configuráveis.",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "Integração: com limite N, a (N+1)ª chamada a /catalogo, /catalogo/resumo ou /catalogo/produtos do mesmo IP → 429, Retry-After inteiro ≥ 1 e corpo {erro:'muitas_tentativas'}; /v1/vitrine/:apelido e /produto/:id não são limitados."
+          },
+          {
+            "id": "CA-6",
+            "verify": "Teste: outro IP tem balde próprio; endereço informado sem a prova da ponte é ignorado; prova válida + IP conta no IP do visitante; prova válida sem IP não conta."
+          },
+          {
+            "id": "CA-7",
+            "verify": "Teste: Redis falhando → catálogo responde 200 (falha aberta no cache, disjuntor), sem 500."
+          },
+          {
+            "id": "CA-8",
+            "verify": "Teste: LIMITE_DO_CATALOGO_POR_MINUTO lido do ambiente (padrão 120, 0 desliga); sem SEGREDO_DA_PONTE válido ou REDIS_URL o limite não liga e o arranque registra o motivo."
+          },
+          {
+            "id": "CA-9",
+            "verify": "Teste web: buscarCatalogo e lerDaVitrine mandam a prova da ponte com segredo válido e nada sem ele; cabecalhosDaPonte sem visitante continua {}."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Testes de integração com duas contas: A não lê nem altera dados, sessões, favoritos, endereços e pedidos de B (AC-11113, AC-11117, AC-11118, e AC-11101/11114/11105/11108).",
+        "acceptance": [
+          {
+            "id": "CA-10",
+            "verify": "[CA-10] @spec:AC-11113: A lê/edita só os próprios dados; campo de outra identidade no corpo não muda B; B relê intacto."
+          },
+          {
+            "id": "CA-11",
+            "verify": "[CA-11] @spec:AC-11117: A troca a senha → outras famílias de A param de renovar (401), sessão atual de A segue, sessões de B renovam."
+          },
+          {
+            "id": "CA-12",
+            "verify": "[CA-12] @spec:AC-11118: A encerra a família de B → 404 igual ao de UUID inexistente; lista de A só tem as de A; refresh de B ainda renova."
+          },
+          {
+            "id": "CA-13",
+            "verify": "[CA-13] @spec:AC-11101 / @spec:AC-11114: A não vê nem altera/apaga favoritos e endereços de B (404 igual ao inexistente); B relê intacto; um só padrão."
+          },
+          {
+            "id": "CA-14",
+            "verify": "[CA-14] @spec:AC-11105 / @spec:AC-11108: A lista só os próprios pedidos; detalhe do pedido de B → mesmo 404 do inexistente."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "Guarda de origem nas escritas de /api/loja/* e /api/auth/* do web",
+        "Limitador por IP em /v1/vitrine/:apelido/catalogo, /catalogo/resumo, /catalogo/produtos",
+        "Prova da ponte nas leituras do catálogo feitas pelo servidor do site",
+        "Testes de API com duas contas"
+      ],
+      "out": [
+        "/api/catalogo/**, /api/painel/**, /api/admin/** (avisado ao gerente para card próprio)",
+        "Contagem por visitante das leituras do catálogo feitas pelo site (exige mudar a estratégia de cache)",
+        "Migrações, .spec/, landing, commit/push"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "O card cita AC-11113/11117/11118, mas descreve favoritos/endereços/pedidos (AC-11101/11114/11105/11108). Cobrimos os dois conjuntos.",
+        "impact": "Mais testes; nenhum conflito."
+      },
+      {
+        "text": "Pedido, sacola e sair não passam por /api/loja nem /api/auth (ações do servidor e /api/conta).",
+        "impact": "Se algum passar, entra na mesma guarda e na conferência manual."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Extrair recusarOrigemDeFora (403) de recusarAcaoDeFora; rotas JSON usam recusarAcaoDeFora, formulários de acesso e rotas de bytes só recusarOrigemDeFora.",
+        "why": "415 quebraria o formulário sem JS e o envio de imagem/vídeo; a parte de origem cobre o CSRF delas.",
+        "alternatives": [
+          "Opção de tipo de corpo em recusarAcaoDeFora"
+        ],
+        "impact": "protecao-da-conta.ts ganha uma exportação; comportamento do #111 intacto."
+      },
+      {
+        "id": "D-2",
+        "decision": "A guarda roda depois do 404 de caminho e antes da leitura do cookie e da ida à API.",
+        "why": "Pedido de fora dá 403 até sem sessão (mesma regra do #111)."
+      },
+      {
+        "id": "D-3",
+        "decision": "Middleware novo limite-do-catalogo.ts sobre limitarTentativas (porOrigem, prefixo sc:limite:catalogo) na frente das 3 rotas do catálogo, via OpcoesDaVitrine.limiteDoCatalogo; desligado quando não informado, ligado em main.ts.",
+        "why": "Reaproveita o mecanismo existente; não muda as provas atuais (mesmo padrão de exigirAceite).",
+        "alternatives": [
+          "express-rate-limit (dependência nova)"
+        ]
+      },
+      {
+        "id": "D-4",
+        "decision": "Pedido com prova da ponte: com IP do visitante conta nele; sem IP não conta. O site manda só a prova nas leituras do catálogo.",
+        "why": "O IP do visitante no fetch cacheado fragmentaria o cache do Next; sem prova, o site inteiro cairia num balde só.",
+        "mitigation": "Risco aceito e registrado; card próprio sugerido ao gerente."
+      },
+      {
+        "id": "D-5",
+        "decision": "Falha aberta na camada do cache com disjuntor de 30 s e registro sem IP uma vez por janela; prazo do cache 300 ms.",
+        "why": "Catálogo público não pode cair com o Redis; limitarTentativas faria next(erro) → 500.",
+        "mitigation": "Disjuntor evita tempestade de conexões; registro para alerta."
+      },
+      {
+        "id": "D-6",
+        "decision": "LIMITE_DO_CATALOGO_POR_MINUTO (padrão 120, 0 desliga), janela 60 s, espera 60 s ×2 até 10 min, memoriaMs 1 h.",
+        "why": "Valores razoáveis e configuráveis; IP compartilhado não acumula castigo o dia todo."
+      },
+      {
+        "id": "D-7",
+        "decision": "Testes com duas contas em arquivo novo com apoio novo (apoio-duas-contas.ts).",
+        "why": "Os testes existentes não exportam preparo e favoritos-e-recentes.test.ts já foi alterado por outro card."
+      },
+      {
+        "id": "D-8",
+        "decision": "main.ts só liga o limite com REDIS_URL, SEGREDO_DA_PONTE válido e limite > 0; senão registra o motivo no arranque.",
+        "why": "Sem segredo, o site inteiro cairia no balde do IP do servidor dele e a vitrine ficaria indisponível."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Guarda de origem em /api/loja e /api/auth (web)",
+        "objective": "Aplicar a guarda do #111 nas rotas de escrita de /api/loja/* e /api/auth/* sem quebrar fluxos legítimos.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "recusarAcaoDeFora já existe; dividir em origem + corpo e aplicar por tipo de rota.",
+          "files": [
+            "apps/web/src/server/protecao-da-conta.ts",
+            "apps/web/src/app/api/auth/[...action]/route.ts",
+            "apps/web/src/app/api/loja/[secao]/route.ts"
+          ],
+          "evidence": [
+            "apps/web/src/server/protecao-da-conta.ts recusarAcaoDeFora",
+            "apps/web/tests/area-do-cliente-proxy.onp.test.ts"
+          ],
+          "decisions": [
+            "D-1",
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/server/protecao-da-conta.ts",
+              "action": "modify",
+              "note": "exporta recusarOrigemDeFora; recusarAcaoDeFora usa ela + checagem de JSON"
+            },
+            {
+              "path": "apps/web/src/app/api/auth/[...action]/route.ts",
+              "action": "modify",
+              "note": "formulário → recusarOrigemDeFora; ação JSON → recusarAcaoDeFora"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/[secao]/route.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/tema/route.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/feed/route.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/comentarios/[[...caminho]]/route.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/aprovacao/route.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/imagem/[tipo]/route.ts",
+              "action": "modify",
+              "note": "só origem"
+            },
+            {
+              "path": "apps/web/src/app/api/loja/midia/[...caminho]/route.ts",
+              "action": "modify",
+              "note": "só origem"
+            },
+            {
+              "path": "apps/web/tests/protecao-de-origem-loja-e-auth.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Guarda depois do 404 de caminho e antes de sessaoParaEncaminhar/leitura de cookie",
+            "Rotas só de leitura não mudam"
+          ],
+          "contracts": [
+            "403 {erro:'origem_recusada'} e 415 {erro:'tipo_nao_suportado'}, como no #111"
+          ],
+          "constraints": [
+            "Não usar x-forwarded-*",
+            "Não enfraquecer os testes do #111"
+          ],
+          "expected": [
+            "Escrita de fora recusada sem ir à API",
+            "Fluxos do site inalterados"
+          ],
+          "forbidden": [
+            "Mexer em /api/conta/*, /api/catalogo, /api/painel, /api/admin"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-4"
+          ],
+          "tests": [
+            "apps/web/tests/protecao-de-origem-loja-e-auth.test.ts",
+            "apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+            "apps/web/tests/ponte-de-identidade.test.ts",
+            "apps/web/tests/rotas-de-imagem.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest web"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "Teste antigo passa a dar 415 por corpo string sem content-type: ajustar o teste para JSON, nunca afrouxar a guarda",
+            "Algum fluxo do site sem content-type JSON"
+          ],
+          "blockedConditions": [
+            "Arquivo reservado por outro card"
+          ]
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Limitador por IP no catálogo da vitrine (API)",
+        "objective": "429 + Retry-After por IP nas 3 rotas do catálogo, configurável, com falha aberta e prova da ponte.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Reaproveita limitarTentativas; composição em main.ts por causa das fronteiras de módulo.",
+          "files": [
+            "apps/api/src/core/limite.ts",
+            "apps/api/src/modules/storefront/vitrine.routes.ts",
+            "apps/api/src/main.ts"
+          ],
+          "evidence": [
+            "apps/api/src/core/limite.ts limitarTentativas",
+            "apps/api/src/modules/auth/limite-da-identidade.ts enderecoInformadoPelaPonte"
+          ],
+          "decisions": [
+            "D-3",
+            "D-4",
+            "D-5",
+            "D-6",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/api/src/modules/storefront/limite-do-catalogo.ts",
+              "action": "create",
+              "note": "limitarCatalogo({cache, regra, ehDaPonte, enderecoInformado, proxiesConfiaveis, agora}); cache embrulhado com falha aberta e disjuntor"
+            },
+            {
+              "path": "apps/api/src/modules/storefront/limite-do-catalogo.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/api/src/modules/storefront/vitrine.routes.ts",
+              "action": "modify",
+              "note": "OpcoesDaVitrine.limiteDoCatalogo? antes da borda das 3 rotas"
+            },
+            {
+              "path": "apps/api/src/app.ts",
+              "action": "modify",
+              "note": "repassa via opcoes.vitrine"
+            },
+            {
+              "path": "apps/api/src/main.ts",
+              "action": "modify",
+              "note": "monta com REDIS_URL, SEGREDO_DA_PONTE e LIMITE_DO_CATALOGO_POR_MINUTO; registra quando desligado"
+            },
+            {
+              "path": "apps/api/src/modules/auth/limite-da-identidade.ts",
+              "action": "modify",
+              "note": "exporta requisicaoDaPonte(segredo)"
+            },
+            {
+              "path": "apps/api/src/core/env.ts",
+              "action": "modify",
+              "note": "LIMITE_DO_CATALOGO_POR_MINUTO opcional"
+            },
+            {
+              "path": "apps/api/tests/vitrine-limite-do-catalogo.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Middleware antes da validação",
+            "Prefixo sc:limite:catalogo"
+          ],
+          "contracts": [
+            "429 {erro:'muitas_tentativas', escopo:'origem', esperaSegundos} + Retry-After (formato de responderExcesso)"
+          ],
+          "constraints": [
+            "storefront não importa auth",
+            "Sem migração",
+            "Sem dependência nova"
+          ],
+          "expected": [
+            "Chamada direta abusiva recebe 429",
+            "Provas atuais inalteradas (limite desligado por padrão)"
+          ],
+          "forbidden": [
+            "Falhar fechado no catálogo",
+            "Logar IP"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6",
+            "CA-7",
+            "CA-8"
+          ],
+          "tests": [
+            "apps/api/src/modules/storefront/limite-do-catalogo.test.ts",
+            "apps/api/tests/vitrine-limite-do-catalogo.test.ts",
+            "apps/api/src/core/env.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm test:int",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "env.test.ts ou documento de contrato exige listar a variável/429",
+            "Fronteira de módulo recusa a importação"
+          ],
+          "blockedConditions": [
+            "Banco de teste não sobe"
+          ]
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "Prova da ponte nas leituras do catálogo (web)",
+        "objective": "O servidor do site se identifica à API nas leituras do catálogo, sem fragmentar o cache.",
+        "complexity": "LOW",
+        "risk": "medium",
+        "dependsOn": [
+          "T-2"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Só a prova (constante), nunca o IP, no fetch cacheado.",
+          "files": [
+            "apps/web/src/server/vitrine.ts",
+            "apps/web/src/server/chamada-de-identidade.ts"
+          ],
+          "evidence": [
+            "apps/web/src/server/chamada-de-identidade.ts cabecalhosDaPonte"
+          ],
+          "decisions": [
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/server/chamada-de-identidade.ts",
+              "action": "modify",
+              "note": "provaDaPonte(fonte) separada; cabecalhosDaPonte inalterada no resultado"
+            },
+            {
+              "path": "apps/web/src/server/vitrine.ts",
+              "action": "modify",
+              "note": "buscarCatalogo e lerDaVitrine mandam a prova"
+            },
+            {
+              "path": "apps/web/tests/vitrine-prova-da-ponte.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Cabeçalho da prova nas 2 funções de leitura do catálogo"
+          ],
+          "contracts": [
+            "CABECALHO_DA_PONTE de @simpleclick/contracts"
+          ],
+          "constraints": [
+            "Não mandar o IP do visitante nessas leituras"
+          ],
+          "expected": [
+            "Site não é limitado pelo IP do servidor"
+          ],
+          "forbidden": [
+            "Prova em fetch do navegador"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-9"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-prova-da-ponte.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "saída do vitest web"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "Testes existentes de vitrine.ts comparam cabeçalhos exatos"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "Testes de API com duas contas",
+        "objective": "Provar que A não lê nem altera dados, sessões, favoritos, endereços e pedidos de B.",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Arquivo e apoio novos, credencial de requisição (RLS), sem editar testes de outros cards.",
+          "files": [
+            "apps/api/tests/apoio-das-rotas-de-identidade.ts",
+            "apps/api/tests/enderecos-do-cliente.int.test.ts",
+            "apps/api/tests/meus-pedidos.test.ts"
+          ],
+          "evidence": [
+            "apps/api/tests/rotas-da-conta-segura.test.ts"
+          ],
+          "decisions": [
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/api/tests/apoio-duas-contas.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/api/tests/conta-duas-contas.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/api/tests/apoio-das-rotas-de-identidade.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Títulos '[CA-n] @spec:AC-…'"
+          ],
+          "contracts": [],
+          "constraints": [
+            "Sem BYPASSRLS",
+            "Não editar favoritos-e-recentes.test.ts"
+          ],
+          "expected": [
+            "Testes verdes que falhariam sem o isolamento"
+          ],
+          "forbidden": [
+            "Conferir só status sem reler o dado de B"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10",
+            "CA-11",
+            "CA-12",
+            "CA-13",
+            "CA-14"
+          ],
+          "tests": [
+            "apps/api/tests/conta-duas-contas.test.ts"
+          ],
+          "commands": [
+            "bash infra/scripts/up.sh core test",
+            "pnpm test:int"
+          ],
+          "evidence": [
+            "saída do vitest api-int"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "Teste revela vazamento real entre contas: parar e avisar o gerente"
+          ],
+          "blockedConditions": [
+            "Banco de teste não sobe"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Teste antigo com corpo string sem content-type passa a dar 415.",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "Ajustar o teste para JSON (o navegador real manda).",
+        "detection": "vitest web"
+      },
+      {
+        "text": "Produção sem SEGREDO_DA_PONTE deixaria o site inteiro num balde.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "D-8: não liga sem segredo válido e registra.",
+        "detection": "log vitrine.limite_do_catalogo_desligado",
+        "recovery": "LIMITE_DO_CATALOGO_POR_MINUTO=0 e reiniciar a API"
+      },
+      {
+        "text": "Redis lento ou fora.",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "Prazo 300 ms, falha aberta, disjuntor 30 s.",
+        "detection": "log vitrine.catalogo_sem_limite"
+      },
+      {
+        "text": "Guarda recusa um fluxo legítimo do site não mapeado.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "Conferência de cada chamada do site e testes de mesma origem (CA-3).",
+        "detection": "403/415 nos logs do site; teste manual no :3000",
+        "recovery": "Reverter a linha da guarda na rota afetada (mudança local por rota)"
+      },
+      {
+        "text": "Abuso de filtros pelo próprio site não conta por visitante.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Risco aceito; card próprio sugerido ao gerente.",
+        "detection": "métricas da API"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/area-do-cliente-proxy.onp.test.ts",
+        "apps/api/src/core/limite.redis.test.ts",
+        "apps/api/tests/enderecos-do-cliente.int.test.ts",
+        "apps/api/tests/meus-pedidos.test.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/protecao-de-origem-loja-e-auth.test.ts",
+        "apps/web/tests/vitrine-prova-da-ponte.test.ts",
+        "apps/api/src/modules/storefront/limite-do-catalogo.test.ts",
+        "apps/api/tests/vitrine-limite-do-catalogo.test.ts",
+        "apps/api/tests/conta-duas-contas.test.ts"
+      ],
+      "manual": [
+        "No :3000: login, cadastro, sair, sacola/pedido, salvar seção e imagem no painel"
+      ],
+      "external": []
+    },
+    "rollback": "Sem migração nem dado alterado. Limite do catálogo: LIMITE_DO_CATALOGO_POR_MINUTO=0 (ou tirar SEGREDO_DA_PONTE do limite) desliga sem deploy de código; reverter o código = remover a opção limiteDoCatalogo em main.ts. Guarda de origem: cada rota chama a guarda numa linha; reverter = remover a chamada da rota afetada (git checkout do arquivo). Testes novos são aditivos.",
+    "review": {
+      "by": "rmcode-revisor-plano-seguranca",
+      "findings": [
+        {
+          "text": "Isenção da ponte sem IP deixa abuso de filtros pelo site sem limite.",
+          "severity": "major",
+          "resolution": "Risco aceito e registrado (D-4); contar por visitante exige mudar a estratégia de cache: card próprio sugerido ao gerente."
+        },
+        {
+          "text": "/api/catalogo, /api/painel e /api/admin também sem guarda de origem.",
+          "severity": "major",
+          "resolution": "Fora do escopo pedido; registrado e avisado ao gerente para card próprio."
+        },
+        {
+          "text": "Sem SEGREDO_DA_PONTE o site cai num balde só e a vitrine fica indisponível.",
+          "severity": "major",
+          "resolution": "D-8: limite só liga com segredo válido e Redis; registra o motivo no arranque."
+        },
+        {
+          "text": "limitarTentativas faz next(erro) → 500 com Redis fora.",
+          "severity": "major",
+          "resolution": "D-5: falha aberta no embrulho do cache, sem next duplo; teste CA-7."
+        },
+        {
+          "text": "Tempestade de conexões com Redis fora.",
+          "severity": "major",
+          "resolution": "Disjuntor de 30 s, prazo 300 ms, registro uma vez por janela sem IP."
+        },
+        {
+          "text": "Memória de 24 h castiga IP compartilhado.",
+          "severity": "major",
+          "resolution": "memoriaMs 1 h (D-6)."
+        },
+        {
+          "text": "AC-11118 depende da RLS; teste só de status não prova.",
+          "severity": "major",
+          "resolution": "Credencial de requisição, 404 igual ao inexistente, refresh de B ainda renova (CA-12)."
+        },
+        {
+          "text": "Isolamento sem reler o dado de B.",
+          "severity": "major",
+          "resolution": "Cada CA de R-3 exige B reler intacto; AC-11117 sem prometer queda imediata."
+        },
+        {
+          "text": "Testes existentes não exportam preparo.",
+          "severity": "major",
+          "resolution": "Apoio novo apoio-duas-contas.ts (D-7)."
+        },
+        {
+          "text": "Faltam testes de same-site e Origin null em formulário e imagem.",
+          "severity": "major",
+          "resolution": "Incluídos em CA-1."
+        },
+        {
+          "text": "renovar pelo servidor: simular pedido real.",
+          "severity": "major",
+          "resolution": "CA-3 usa só cookie + sec-fetch-mode."
+        },
+        {
+          "text": "cabecalhosDaPonte não pode passar a mandar prova sem IP.",
+          "severity": "major",
+          "resolution": "provaDaPonte separada e teste de regressão (CA-9)."
+        },
+        {
+          "text": "requisicaoDaPonte precisa das mesmas travas.",
+          "severity": "major",
+          "resolution": "Segredo curto → falso; timingSafeEqual (T-3/T-2)."
+        },
+        {
+          "text": "Limite 0 desliga sem aviso.",
+          "severity": "major",
+          "resolution": "Registro no arranque (D-8, CA-8)."
+        },
+        {
+          "text": "Cache contador imita o Lua.",
+          "severity": "major",
+          "resolution": "Semântica real já provada em limite.redis.test.ts; o teste novo prova só a ligação nas rotas."
+        }
+      ]
+    },
+    "estimate": {
+      "note": "4 subtarefas, ~1 sessão"
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz MEDIUM, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      }
+    ],
+    "evaluatedAt": 1794935261152,
+    "passed": 7,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

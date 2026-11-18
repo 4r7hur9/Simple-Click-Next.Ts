@@ -1,0 +1,1571 @@
+{
+  "version": 3,
+  "cardId": "1359c4d9-ee3d-4fbf-bf1e-398d1375e376",
+  "cardSeq": 104,
+  "savedAt": 1794488628649,
+  "plan": {
+    "title": "#104 Stitch · Base visual (T-10401…T-10410)",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Tokens do redesign (3 valores escuros do Stitch, escala tipográfica, toque 48px do cliente, brilho e estrela), Plus Jakarta Sans via next/font com a landing congelada nas fontes antigas, peças novas no packages/ui (Chip, FaixaDeChips, Abas, Gaveta, AvisoFlutuante, BarraInferior, BotaoMarcavel, CTA, busca, cartão de vitrine, ícones), foco da loja com 3:1 também nas superfícies, seção no catálogo /ui, testes *.onp.test.* da spec e um e2e.",
+    "discovery": [
+      {
+        "claim": "Três blocos de tema escuro e dois claros declaram as cores semânticas",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/theme.css"
+        }
+      },
+      {
+        "claim": "Espelho TS da paleta escura usado no cálculo de contraste",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tokens.ts",
+          "symbol": "PALETA_ESCURA"
+        }
+      },
+      {
+        "claim": "Medidas espelhadas (altura de toque 2.75rem)",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tokens.ts",
+          "symbol": "MEDIDAS"
+        }
+      },
+      {
+        "claim": "O teste legado lê os blocos por indexOf e compara com NOME_NO_CSS",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/tests/tokens.test.ts",
+          "symbol": "valoresDoBloco"
+        }
+      },
+      {
+        "claim": "Space Grotesk e Inter entram por next/font em --fonte-titulo-da-marca e --fonte-corpo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/layout.tsx",
+          "symbol": "tituloDaMarca"
+        }
+      },
+      {
+        "claim": "Teste legado AC-942 exige o import de Inter e Space_Grotesk",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/tipografia-identidade.test.ts"
+        }
+      },
+      {
+        "claim": "A landing usa var(--fonte-titulo) e tem um topo com classe raiz própria",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/landing/LandingDoSimpleClick.tsx"
+        }
+      },
+      {
+        "claim": "legal.css (rodapé e cookies, também em /) usa var(--fonte-corpo) direto",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/legal.css"
+        }
+      },
+      {
+        "claim": "Stories 'Moderno' lê --fonte-titulo-da-marca do documentElement",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/stories/fontes.ts",
+          "symbol": "familiasDoEditor"
+        }
+      },
+      {
+        "claim": "Botao tem variante, forma pilula, carregando com disabled real e aria-busy",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/botao.tsx",
+          "symbol": "Botao"
+        }
+      },
+      {
+        "claim": "Campo liga o erro por aria-describedby e role=alert",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/campo.tsx",
+          "symbol": "Campo"
+        }
+      },
+      {
+        "claim": "Dialogo renderiza <dialog open> sem showModal",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/dialogo.tsx",
+          "symbol": "Dialogo"
+        }
+      },
+      {
+        "claim": "Os ícones ✦ e ★ existem com preenchido; IconeEstrela espalha props depois do objeto",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/icones.ts",
+          "symbol": "IconeEstrela"
+        }
+      },
+      {
+        "claim": "TemaDaMarca força data-tema=escuro e aplica marcaDaLoja(cor).variaveis",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tema-da-marca.tsx",
+          "symbol": "TemaDaMarca"
+        }
+      },
+      {
+        "claim": "O foco da loja só é ajustado contra paleta.fundo",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tema-loja.tsx",
+          "symbol": "calcularTemaDaLoja"
+        }
+      },
+      {
+        "claim": "ajustarParaContraste aceita um único fundo",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/contraste.ts",
+          "symbol": "ajustarParaContraste"
+        }
+      },
+      {
+        "claim": "--cor-sobre-marca escolhe só entre grafite e branco",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/marca-da-loja.ts",
+          "symbol": "marcaDaLoja"
+        }
+      },
+      {
+        "claim": "A página /ui é Server Component, e um teste roda axe exigindo zero violações",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/vitrine-ui-a11y.test.tsx"
+        }
+      },
+      {
+        "claim": "O HTML do /ui não pode conter badge/pill/rounded-full e mantém 8 data-cor-oficial",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/vitrine-identidade.test.tsx"
+        }
+      },
+      {
+        "claim": "globals.css não pode conter --raio-completo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/css-global.test.ts"
+        }
+      },
+      {
+        "claim": "tokens.css não pode ter cor literal",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/tailwind-identidade.test.ts"
+        }
+      },
+      {
+        "claim": "O projeto web do vitest tem jsdom (por comentário de ambiente) e preparo-navegador; o packages/ui não tem jsdom",
+        "kind": "fact",
+        "ref": {
+          "path": "vitest.config.ts"
+        }
+      },
+      {
+        "claim": "Feed, legal e landing importam lucide-react direto",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/Post.tsx"
+        }
+      },
+      {
+        "claim": "--cor-borda é usado em ~140 regras, muitas de contorno",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/componentes.css"
+        }
+      },
+      {
+        "claim": "forma=pilula é usada no painel e na conta",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/conta/SeletorDoPeriodoDaConta.tsx"
+        }
+      },
+      {
+        "claim": "Os e2e usam axe-core injetado",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/a11y-vitrine.spec.ts"
+        }
+      },
+      {
+        "claim": "Custom property com var() declarada em :root é resolvida na raiz",
+        "kind": "inference"
+      },
+      {
+        "claim": "Esc com CloseWatcher pode fechar o dialog sem um cancel cancelável; o jsdom não prova foco preso",
+        "kind": "inference"
+      },
+      {
+        "claim": "Ainda não verificado: se os stories 'Moderno' gravados mudam de fonte, o que depende da renderização ao vivo",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Tokens do redesign na fonte única, com espelho TS e tema claro intacto",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "base-visual-tokens.onp.test.ts: sem b2f800 no site e no pacote (AC-10401)"
+          },
+          {
+            "id": "CA-2",
+            "verify": "3 blocos escuros = PALETA_ESCURA (AC-10402)"
+          },
+          {
+            "id": "CA-3",
+            "verify": "escala --tipo-* igual ao TS no celular e no computador, ≥12px (AC-10403)"
+          },
+          {
+            "id": "CA-4",
+            "verify": "contraste 4,5/3 contra #0b0f0d, #161c19, #1f2722 e #000 (AC-10404)"
+          },
+          {
+            "id": "CA-20",
+            "verify": ":root e [data-tema=claro] = PALETA_CLARA, e tokens novos iguais (AC-10420)"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Plus Jakarta Sans global por next/font; landing congelada em Space Grotesk e Inter; viewportFit cover",
+        "acceptance": [
+          {
+            "id": "CA-21",
+            "verify": "fonte-base-visual.onp.test.ts: Plus_Jakarta_Sans, legadas com preload false e as 4 classes no html, regra da landing redefine as 4 variáveis, viewportFit cover"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Curtir ✦ e favoritar ★ com aria-pressed; ícones só do pacote",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "icones-de-acao: ✦ em contorno e preenchido, nunca Heart (AC-10405)"
+          },
+          {
+            "id": "CA-6",
+            "verify": "aria-pressed e nome fixo; estrela com --cor-estrela (AC-10406)"
+          },
+          {
+            "id": "CA-7",
+            "verify": "IconeCompartilhar exportado; catraca do lucide só diminui (AC-10407)"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Peças com estados coerentes",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "botao-e-campo: estados, carregando bloqueia, CTA pílula de 48px (AC-10408)"
+          },
+          {
+            "id": "CA-9",
+            "verify": "busca: rótulo presente, erro ligado, altura do cliente (AC-10409)"
+          },
+          {
+            "id": "CA-10",
+            "verify": "chip-e-abas: aria-pressed ou aria-current, Tab alcança todos (AC-10410)"
+          },
+          {
+            "id": "CA-11",
+            "verify": "abas: setas, Home e End, roving tabindex (AC-10411)"
+          },
+          {
+            "id": "CA-12",
+            "verify": "gaveta: showModal, Esc/cancel fecha, foco volta ao gatilho (AC-10412)"
+          },
+          {
+            "id": "CA-13",
+            "verify": "aviso: duas regiões vivas, ≥5s, pausa, fechar (AC-10413)"
+          },
+          {
+            "id": "CA-14",
+            "verify": "barra-inferior: nav aria-label, aria-current=page, rótulos, safe-area (AC-10414)"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "As peças seguem a cor da loja, com contraste e foco visível",
+        "acceptance": [
+          {
+            "id": "CA-15",
+            "verify": "componentes.css sem --cor-marca (AC-10415)"
+          },
+          {
+            "id": "CA-16",
+            "verify": "no escuro: em-primaria ≥4,5 sobre primaria e primaria-texto ≥4,5 sobre #000 para amostras e cores médias e escuras; <3 gera aviso e sugestão (AC-10416)"
+          },
+          {
+            "id": "CA-17",
+            "verify": "foco ≥3 sobre fundo, superficie e superficieAlta de cada tema (mais #000 no escuro), por loja; outline-offset 2px; sem tabindex positivo (AC-10417)"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Catálogo /ui com cada peça nova e prova em navegador",
+        "acceptance": [
+          {
+            "id": "CA-18",
+            "verify": "catalogo-base-visual.onp.test.tsx: secao-base-visual com as peças e estados nos temas, um único aviso flutuante; os legados vitrine-ui-a11y/identidade/estados verdes (AC-10418)"
+          },
+          {
+            "id": "CA-19",
+            "verify": "e2e base-visual.onp.spec.ts: 344/768/1280 sem rolagem lateral, axe sem violação séria, reduced-motion sem box-shadow no CTA e sem pulso, foco da gaveta (AC-10419)"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "tokens e tema",
+        "fonte e layout raiz",
+        "peças novas no packages/ui",
+        "variantes de Botao, Campo e Cartao",
+        "foco da loja (contraste.ts, tema-loja.tsx)",
+        "seção no /ui",
+        "testes .onp e e2e"
+      ],
+      "out": [
+        "aplicar as peças nas telas (#105–#111)",
+        "features/* do apps/web",
+        "arquivos da landing",
+        "stories.css e features/stories",
+        "Dialogo modal (Q-10408)",
+        "tokens de camada (Q-10507)",
+        "editar .spec além do status",
+        "commit, push e branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-10403: o mockup do celular é a referência",
+        "impact": "valores de raio e brilho saem do celular"
+      },
+      {
+        "text": "Marcável com nome fixo e aria-pressed (WAI-ARIA)",
+        "impact": "#106/#107/#109 passam nome fixo"
+      },
+      {
+        "text": "--tipo-rotulo-sm em 12/16px",
+        "impact": "cumpre o AC-10403"
+      },
+      {
+        "text": "Testes jsdom em apps/web/tests com // @vitest-environment jsdom",
+        "impact": "os caminhos divergem da design §8; o audit casa por @spec"
+      },
+      {
+        "text": "'Claro adaptado' = paleta clara intacta",
+        "impact": "AC-10420 mantido"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Tons escuros do Stitch em superficie-alta, tinta-suave e sucesso; --cor-borda mantido",
+        "why": "escolha do usuário; a divisória do Stitch (1,25:1) apagaria contornos",
+        "impact": "a landing e o painel escuro mudam levemente"
+      },
+      {
+        "id": "D-2",
+        "decision": "Jakarta nas variáveis atuais; legadas com preload false e classes no html; landing congelada redefinindo 4 variáveis em body:has(.sc-lp-topo)",
+        "why": "o usuário quer a landing congelada; legal.css lê --fonte-corpo direto e --fonte-titulo chega resolvida de :root",
+        "alternatives": [
+          "editar arquivos da landing (proibido)"
+        ],
+        "mitigation": "avisar o #106; --fonte-legada-titulo disponível"
+      },
+      {
+        "id": "D-3",
+        "decision": "Brilho com tokens sem cor (--brilho-forma, --brilho-forca) e color-mix na regra .sc-botao--cta; reduced-motion zera box-shadow na própria regra",
+        "why": "custom property com var() em :root resolve na raiz; trecho com data-tema herdaria os 35%"
+      },
+      {
+        "id": "D-4",
+        "decision": "Modificador novo .sc-botao--cta (prop cta)",
+        "why": "a pílula é usada no painel e na conta; a Q-10405 restringe ao cliente"
+      },
+      {
+        "id": "D-5",
+        "decision": "Contrato server/client: Chip, FaixaDeChips, BarraInferior, Botao, Campo e Cartao só markup; Abas, Gaveta, AvisoFlutuante e BotaoMarcavel com 'use client'",
+        "why": "o #105 usa a barra em layout de servidor com componenteDeLink"
+      },
+      {
+        "id": "D-6",
+        "decision": "BarraInferior: rotulo obrigatório, componenteDeLink, item com href+atributos ou aoAcionar, oculta (inert), embutida, --altura-da-barra-inferior; viewportFit cover",
+        "why": "pedidos do #105 e AC-10414"
+      },
+      {
+        "id": "D-7",
+        "decision": "Gaveta: preventDefault no cancel e aoFechar em onCancel e onClose; gatilho guardado antes do showModal",
+        "why": "manter o estado controlado sincronizado"
+      },
+      {
+        "id": "D-8",
+        "decision": "AvisoFlutuante com duas regiões vivas sempre montadas; só um no /ui",
+        "why": "anúncio confiável sem duplicar"
+      },
+      {
+        "id": "D-9",
+        "decision": "Pulso por data-pulso só na transição (BotaoMarcavel)",
+        "why": "um botão que já chega marcado do SSR não pode pulsar ao carregar"
+      },
+      {
+        "id": "D-10",
+        "decision": "ajustarParaContrasteContraTodos(cor, fundos, minimo) em contraste.ts, usada no --cor-foco de calcularTemaDaLoja contra fundo, superficie e superficieAlta (e #000 no escuro)",
+        "why": "o AC-10417 pede 3:1 contra a superfície; ajustar em sequência com função de fundo único pode desfazer o ajuste",
+        "mitigation": "o teste legado só confere o piso; parar se algum fixar valor"
+      },
+      {
+        "id": "D-11",
+        "decision": "Catraca do lucide: lista fixa de arquivos legados que só diminui; regex sobre qualquer string",
+        "why": "feed e legal são de outros donos; a landing está congelada"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-10401",
+        "title": "Tokens do redesign e prova de sincronia",
+        "objective": "Valores escuros, escala tipográfica, toque, brilho, estrela e espelho TS",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "theme.css e tokens.ts",
+          "files": [
+            "packages/ui/styles/theme.css",
+            "packages/ui/src/tokens.ts"
+          ],
+          "evidence": [
+            "valoresDoBloco em tokens.test.ts"
+          ],
+          "decisions": [
+            "D-1",
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/styles/theme.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/tokens.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/tests/base-visual-tokens.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "3 valores nos 3 blocos escuros",
+            "--tipo-* e --peso-negrito/extra",
+            "--altura-toque-cliente, --brilho-forma/forca e --cor-estrela nos 4 blocos"
+          ],
+          "contracts": [
+            "PALETA_ESCURA, ESCALA_TIPOGRAFICA, MEDIDAS.alturaToqueCliente, COR_DA_ESTRELA_NO_ESCURO"
+          ],
+          "constraints": [
+            "tema claro intacto",
+            "não alterar tokens.test.ts"
+          ],
+          "expected": [
+            "tokens.test.ts e o teste novo verdes"
+          ],
+          "forbidden": [
+            "cor literal fora de theme.css e tokens.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-4",
+            "CA-20"
+          ],
+          "tests": [
+            "packages/ui/tests/base-visual-tokens.onp.test.ts",
+            "packages/ui/tests/tokens.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "teste legado fixa valor escuro antigo"
+          ],
+          "blockedConditions": [
+            "outro card reserva theme.css"
+          ]
+        }
+      },
+      {
+        "id": "T-10402",
+        "title": "Família da fonte",
+        "objective": "Plus Jakarta Sans global, landing congelada, viewportFit cover, escala no Tailwind",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10401"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "layout raiz e CSS global",
+          "files": [
+            "apps/web/src/app/layout.tsx",
+            "apps/web/src/app/globals.css",
+            "apps/web/src/app/tokens.css"
+          ],
+          "evidence": [
+            "legal.css usa --fonte-corpo"
+          ],
+          "decisions": [
+            "D-2",
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/layout.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/globals.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/tokens.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/tipografia-identidade.test.ts",
+              "action": "modify",
+              "note": "o AC-942 passa a provar a família da marca (Jakarta)"
+            },
+            {
+              "path": "apps/web/tests/fonte-base-visual.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Plus_Jakarta_Sans nas variáveis atuais",
+            "legadas com preload false e as classes no html",
+            "regra da landing com 4 variáveis",
+            "viewportFit cover"
+          ],
+          "contracts": [
+            "--fonte-legada-titulo, --fonte-legada-corpo"
+          ],
+          "constraints": [
+            "sem --raio-completo em globals.css nem literal em tokens.css"
+          ],
+          "expected": [
+            "css-global e tailwind-identidade verdes"
+          ],
+          "forbidden": [
+            "editar arquivos da landing ou de features/stories"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-21",
+            "CA-3"
+          ],
+          "tests": [
+            "apps/web/tests/fonte-base-visual.onp.test.ts",
+            "apps/web/tests/tipografia-identidade.test.ts",
+            "apps/web/tests/css-global.test.ts",
+            "apps/web/tests/tailwind-identidade.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit",
+            "pnpm typecheck"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "Plus_Jakarta_Sans indisponível no next/font desta versão"
+          ],
+          "blockedConditions": [
+            "build offline sem acesso ao Google Fonts"
+          ]
+        }
+      },
+      {
+        "id": "T-10403",
+        "title": "Ícones de ação e botão marcável",
+        "objective": "IconeCompartilhar e ícones faltantes, marcado/aria-pressed, BotaoMarcavel com pulso na transição, estrela amarela",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10402"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "icones.ts e botao.tsx",
+          "files": [
+            "packages/ui/src/icones.ts",
+            "packages/ui/src/botao.tsx"
+          ],
+          "evidence": [
+            "IconeEstrela espalha props"
+          ],
+          "decisions": [
+            "D-9",
+            "D-11"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/icones.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/botao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/botao-marcavel.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/componentes.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/tests/icones-de-acao.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/botao-marcavel.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "IconeCompartilhar (Share2)",
+            "prop marcado",
+            "BotaoMarcavel",
+            "catraca do lucide"
+          ],
+          "contracts": [
+            "Botao.marcado",
+            "BotaoMarcavel",
+            "IconeCompartilhar"
+          ],
+          "constraints": [
+            "props novas opcionais"
+          ],
+          "expected": [
+            "feed-social.test continua verde (.lucide-star)"
+          ],
+          "forbidden": [
+            "Heart",
+            "Material Symbols"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6",
+            "CA-7"
+          ],
+          "tests": [
+            "packages/ui/tests/icones-de-acao.onp.test.tsx",
+            "apps/web/tests/botao-marcavel.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "a catraca reprova por import novo de outro card"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10404",
+        "title": "CTA, botão e campo nos estados do redesign",
+        "objective": "sc-botao--cta com 48px e brilho, Campo com busca e rotuloOculto, reduced-motion na própria regra",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10403"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "botao.tsx, campo.tsx e componentes.css",
+          "files": [
+            "packages/ui/src/botao.tsx",
+            "packages/ui/src/campo.tsx",
+            "packages/ui/styles/componentes.css"
+          ],
+          "evidence": [
+            "a pílula é usada no painel"
+          ],
+          "decisions": [
+            "D-3",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/botao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/campo.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/componentes.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/tests/botao-e-campo.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "prop cta",
+            "props busca e rotuloOculto",
+            "reduced-motion: .sc-botao--cta box-shadow none"
+          ],
+          "contracts": [
+            "Botao.cta",
+            "Campo.busca",
+            "Campo.rotuloOculto"
+          ],
+          "constraints": [
+            ".sc-botao--pilula intacta",
+            "--cor-borda-forte nos contornos novos"
+          ],
+          "expected": [
+            "pecas.test e componentes.test verdes"
+          ],
+          "forbidden": [
+            "mudar --altura-toque"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-8",
+            "CA-9",
+            "CA-17"
+          ],
+          "tests": [
+            "packages/ui/tests/botao-e-campo.onp.test.tsx",
+            "packages/ui/tests/pecas.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10405",
+        "title": "Chip e Abas",
+        "objective": "Chip, FaixaDeChips e Abas com teclado",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10404"
+        ],
+        "requirements": [
+          "R-4",
+          "R-5"
+        ],
+        "context": {
+          "summary": "peças novas",
+          "files": [
+            "packages/ui/src/index.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/chip.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/abas.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/componentes.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/chip-e-abas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Chip, FaixaDeChips e Abas"
+          ],
+          "contracts": [
+            "Chip{ativo,contagem,desabilitado,aoAlternar|href,componenteDeLink}",
+            "Abas{id,abas,ativa,ativaInicial,aoTrocar,rotulo}"
+          ],
+          "constraints": [
+            "sem tabindex positivo",
+            "ativo com borda --cor-primaria-texto"
+          ],
+          "expected": [],
+          "forbidden": [
+            "--cor-marca em componentes.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10",
+            "CA-11",
+            "CA-15"
+          ],
+          "tests": [
+            "apps/web/tests/chip-e-abas.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10406",
+        "title": "Gaveta e aviso flutuante",
+        "objective": "Gaveta modal de verdade e AvisoFlutuante acessível",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10405"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "peças client",
+          "files": [
+            "packages/ui/src/index.ts"
+          ],
+          "evidence": [
+            "GavetaDeComentarios faz showModal próprio"
+          ],
+          "decisions": [
+            "D-7",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/gaveta.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/aviso-flutuante.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/componentes.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/gaveta-e-aviso.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Gaveta",
+            "AvisoFlutuante"
+          ],
+          "contracts": [
+            "Gaveta{id,aberta,titulo,lado,aoFechar,rodape,embutida}",
+            "AvisoFlutuante{tom,mensagem,duracao,acao,aoFechar}"
+          ],
+          "constraints": [
+            "duracao ≥5000",
+            "não rouba o foco"
+          ],
+          "expected": [],
+          "forbidden": [
+            "depender do Dialogo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-12",
+            "CA-13"
+          ],
+          "tests": [
+            "apps/web/tests/gaveta-e-aviso.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10407",
+        "title": "Barra inferior e cartão de vitrine",
+        "objective": "BarraInferior no contrato do #105 e Cartao com superficie=vitrine",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10406"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "pedidos do #105",
+          "files": [
+            "packages/ui/src/cartao.tsx"
+          ],
+          "evidence": [
+            "features/painel/MenuLateral.tsx usa aria-label Atalhos"
+          ],
+          "decisions": [
+            "D-5",
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/barra-inferior.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/cartao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/componentes.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/theme.css",
+              "action": "modify",
+              "note": "--altura-da-barra-inferior"
+            },
+            {
+              "path": "packages/ui/tests/barra-inferior.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "BarraInferior",
+            "Cartao.superficie"
+          ],
+          "contracts": [
+            "BarraInferior{rotulo,itens,componenteDeLink,oculta,embutida}",
+            "--altura-da-barra-inferior"
+          ],
+          "constraints": [
+            "rotulo obrigatório",
+            "safe-area"
+          ],
+          "expected": [],
+          "forbidden": [
+            "tokens de camada"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-14"
+          ],
+          "tests": [
+            "packages/ui/tests/barra-inferior.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "o #105 pede mudança de contrato"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10408",
+        "title": "Cor da loja e foco",
+        "objective": "Foco da loja com 3:1 contra todos os fundos do tema e prova transversal",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10407"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "contraste.ts e calcularTemaDaLoja",
+          "files": [
+            "packages/ui/src/tema-loja.tsx",
+            "packages/ui/src/contraste.ts"
+          ],
+          "evidence": [
+            "ajustarParaContraste aceita um fundo só"
+          ],
+          "decisions": [
+            "D-10"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/src/contraste.ts",
+              "action": "modify",
+              "note": "ajustarParaContrasteContraTodos"
+            },
+            {
+              "path": "packages/ui/src/tema-loja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/src/index.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/tests/cor-da-loja-nas-pecas.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "função de ajuste contra vários fundos (o de menor contraste, conferir todos, até 3 passes, tinta extrema de último recurso)",
+            "--cor-foco usando a função"
+          ],
+          "contracts": [
+            "ajustarParaContrasteContraTodos(cor, fundos, minimo): Ajuste",
+            "calcularTemaDaLoja mantém a assinatura"
+          ],
+          "constraints": [
+            "o preenchimento continua sendo a cor do dono",
+            "no claro, comparar com a PALETA_CLARA; #000 só no escuro"
+          ],
+          "expected": [
+            "tema-loja.test e marca-da-loja.test verdes"
+          ],
+          "forbidden": [
+            "afrouxar teste legado"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-15",
+            "CA-16",
+            "CA-17"
+          ],
+          "tests": [
+            "packages/ui/tests/cor-da-loja-nas-pecas.onp.test.ts",
+            "packages/ui/tests/tema-loja.test.tsx",
+            "packages/ui/tests/marca-da-loja.test.ts",
+            "packages/ui/tests/contraste.test.ts"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "teste legado fixa o valor exato do foco"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10409",
+        "title": "Seção da base visual no /ui",
+        "objective": "Catálogo com cada peça nova em cada estado e tema",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10408"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "página server e demos client",
+          "files": [
+            "apps/web/src/app/(dev)/ui/page.tsx"
+          ],
+          "evidence": [
+            "vitrine-ui-a11y exige zero violações"
+          ],
+          "decisions": [
+            "D-5",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(dev)/ui/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(dev)/ui/_secoes/SecaoDaBaseVisual.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/app/(dev)/ui/_secoes/DemosDaBaseVisual.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/app/(dev)/ui/_secoes/SecoesDaMarca.tsx",
+              "action": "modify",
+              "note": "texto da fonte"
+            },
+            {
+              "path": "apps/web/tests/catalogo-base-visual.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "secao-base-visual em claro, escuro e TemaDaMarca; um único aviso flutuante"
+          ],
+          "contracts": [],
+          "constraints": [
+            "ids e rótulos de nav únicos",
+            "sem badge/pill/rounded-full",
+            "8 data-cor-oficial"
+          ],
+          "expected": [
+            "vitrine-ui-a11y, vitrine-identidade e vitrine-ui-estados verdes"
+          ],
+          "forbidden": [
+            "dados do Stitch, Universokar, imagens externas"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-18"
+          ],
+          "tests": [
+            "apps/web/tests/catalogo-base-visual.onp.test.tsx",
+            "apps/web/tests/vitrine-ui-a11y.test.tsx",
+            "apps/web/tests/vitrine-identidade.test.tsx",
+            "apps/web/tests/vitrine-ui-estados.test.tsx"
+          ],
+          "commands": [
+            "pnpm test:unit"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "violação de axe que exige mudar peça de outro dono"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10410",
+        "title": "Prova em navegador",
+        "objective": "Larguras, axe, foco da gaveta e movimento reduzido no /ui",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10409"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "padrão do a11y-vitrine.spec",
+          "files": [
+            "e2e/specs/a11y-vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/base-visual.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "344/768/1280, axe, Esc e foco da gaveta, reduced-motion (box-shadow calculado do CTA)"
+          ],
+          "contracts": [],
+          "constraints": [
+            "combinar com o #114"
+          ],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-19"
+          ],
+          "tests": [
+            "e2e/specs/base-visual.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "ambiente e2e (API e banco) indisponível: registrar e seguir"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Os tons escuros mudam a landing e o painel escuro",
+        "probability": "high",
+        "impact": "low",
+        "mitigation": "aceito pelo usuário; axe e e2e",
+        "detection": "vitrine-ui-a11y e e2e"
+      },
+      {
+        "text": "Stories 'Moderno' passa a desenhar em Jakarta",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "avisar o #106; --fonte-legada-titulo disponível",
+        "detection": "revisão do #106"
+      },
+      {
+        "text": "viewportFit cover põe barras fixas sob o indicador do iPhone",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "o #105 ajusta as barras; o #114 valida"
+      },
+      {
+        "text": "O ajuste do foco muda o valor para algumas cores de loja",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "só sobe o contraste; os testes legados conferem o piso",
+        "detection": "tema-loja.test"
+      },
+      {
+        "text": "Os cookies sobem por nav[aria-label=Atalhos], e a barra nova usa outro rótulo",
+        "probability": "high",
+        "impact": "low",
+        "mitigation": ".sc-barra-inferior como gancho; troca do seletor com o #105"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "packages/ui/tests/tokens.test.ts",
+        "packages/ui/tests/pecas.test.tsx",
+        "packages/ui/tests/tema-loja.test.tsx",
+        "packages/ui/tests/contraste.test.ts",
+        "apps/web/tests/vitrine-ui-a11y.test.tsx",
+        "apps/web/tests/vitrine-identidade.test.tsx",
+        "apps/web/tests/css-global.test.ts",
+        "apps/web/tests/tailwind-identidade.test.ts"
+      ],
+      "toCreate": [
+        "packages/ui/tests/base-visual-tokens.onp.test.ts",
+        "apps/web/tests/fonte-base-visual.onp.test.ts",
+        "packages/ui/tests/icones-de-acao.onp.test.tsx",
+        "apps/web/tests/botao-marcavel.onp.test.tsx",
+        "packages/ui/tests/botao-e-campo.onp.test.tsx",
+        "apps/web/tests/chip-e-abas.onp.test.tsx",
+        "apps/web/tests/gaveta-e-aviso.onp.test.tsx",
+        "packages/ui/tests/barra-inferior.onp.test.tsx",
+        "packages/ui/tests/cor-da-loja-nas-pecas.onp.test.ts",
+        "apps/web/tests/catalogo-base-visual.onp.test.tsx",
+        "e2e/specs/base-visual.onp.spec.ts"
+      ],
+      "manual": [
+        "/ui no navegador em 344, 768 e 1280px, claro e escuro"
+      ],
+      "external": []
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura (2 rodadas)",
+      "findings": [
+        {
+          "text": "--sombra-brilho em :root não segue a cor da loja",
+          "severity": "major",
+          "resolution": "D-3: tokens sem cor e color-mix na regra da peça"
+        },
+        {
+          "text": "tokens novos faltando em [data-tema=claro]",
+          "severity": "major",
+          "resolution": "a T-10401 declara nos 2 blocos claros, e o AC-10420 compara"
+        },
+        {
+          "text": "o congelamento da fonte vaza por --fonte-corpo",
+          "severity": "major",
+          "resolution": "D-2: 4 variáveis"
+        },
+        {
+          "text": "Stories 'Moderno' muda de fonte",
+          "severity": "major",
+          "resolution": "risco registrado; aviso ao #106"
+        },
+        {
+          "text": "a pílula é usada no painel",
+          "severity": "major",
+          "resolution": "D-4: .sc-botao--cta"
+        },
+        {
+          "text": "a Gaveta dessincroniza",
+          "severity": "major",
+          "resolution": "D-7 e e2e de foco"
+        },
+        {
+          "text": "o AC-10416 com --cor-sobre-marca reprova",
+          "severity": "major",
+          "resolution": "mede --cor-em-primaria e --cor-primaria-texto"
+        },
+        {
+          "text": "foco da loja não medido nas superfícies",
+          "severity": "major",
+          "resolution": "D-10"
+        },
+        {
+          "text": "ambiente jsdom indefinido",
+          "severity": "major",
+          "resolution": "apps/web/tests com // @vitest-environment jsdom"
+        },
+        {
+          "text": "ids duplicados e handlers no /ui server",
+          "severity": "major",
+          "resolution": "prefixo por tema e DemosDaBaseVisual client"
+        },
+        {
+          "text": "contrato server/client indefinido",
+          "severity": "major",
+          "resolution": "D-5"
+        },
+        {
+          "text": "aviso com troca de role",
+          "severity": "major",
+          "resolution": "D-8"
+        },
+        {
+          "text": "pulso no carregamento",
+          "severity": "major",
+          "resolution": "D-9"
+        },
+        {
+          "text": "reduced-motion não tira o brilho (inclusive em trecho com data-tema)",
+          "severity": "major",
+          "resolution": "D-3: box-shadow none na própria regra .sc-botao--cta dentro do media"
+        },
+        {
+          "text": "campo: altura e superfície globais",
+          "severity": "major",
+          "resolution": "só em .sc-campo--busca"
+        },
+        {
+          "text": "spec sem as decisões",
+          "severity": "major",
+          "resolution": "não posso editar a spec além do status; recado ao gerente e card_report"
+        },
+        {
+          "text": "teste legado AC-942 e ID de Q errado",
+          "severity": "major",
+          "resolution": "mantém @spec:AC-942 provando a família; Q-10401"
+        },
+        {
+          "text": "o cookie depende da nav Atalhos",
+          "severity": "major",
+          "resolution": "gancho .sc-barra-inferior; risco com o #105"
+        },
+        {
+          "text": "a T-10408 não é viável com ajuste de fundo único em sequência; contraste.ts fora da lista",
+          "severity": "major",
+          "resolution": "D-10: ajustarParaContrasteContraTodos em contraste.ts, incluído nos arquivos"
+        },
+        {
+          "text": "os critérios com #000 reprovam no tema claro",
+          "severity": "major",
+          "resolution": "#000 só no escuro; claro contra a PALETA_CLARA"
+        },
+        {
+          "text": "faltam as classes das fontes legadas no html",
+          "severity": "minor",
+          "resolution": "as 4 classes no html e o teste confere"
+        },
+        {
+          "text": "os testes jsdom precisam declarar o ambiente",
+          "severity": "minor",
+          "resolution": "primeira linha // @vitest-environment jsdom"
+        },
+        {
+          "text": "a regex do lucide tem brecha",
+          "severity": "minor",
+          "resolution": "regex sobre qualquer string"
+        },
+        {
+          "text": "regiões vivas demais no /ui",
+          "severity": "minor",
+          "resolution": "um único AvisoFlutuante de demonstração"
+        },
+        {
+          "text": "SecoesDaMarca com o texto da fonte antiga",
+          "severity": "minor",
+          "resolution": "a T-10409 atualiza"
+        },
+        {
+          "text": "IconeEstrela sobrescreve className",
+          "severity": "minor",
+          "resolution": "concatenar"
+        },
+        {
+          "text": "o parser não lê bloco em @media; divisória sem prova",
+          "severity": "minor",
+          "resolution": "parser ancorado e checagem nos seletores das peças novas"
+        },
+        {
+          "text": "escopo do AC-10401",
+          "severity": "minor",
+          "resolution": "apps/web/src, apps/web/public e packages/ui/{src,styles}"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "10 tarefas sequenciais; ~1 sessão longa"
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [],
+    "evaluatedAt": 1794488628649,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

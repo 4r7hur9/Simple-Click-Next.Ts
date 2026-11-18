@@ -1,0 +1,1654 @@
+{
+  "version": 6,
+  "cardId": "671fc7be-1502-477a-8f01-713d3d8685e5",
+  "cardSeq": 114,
+  "savedAt": 1794928734929,
+  "plan": {
+    "title": "#114 Stitch · Validação visual e regressão",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Provas transversais do redesign Stitch em navegador real (Playwright *.onp.spec.ts) e por declaração (vitest *.onp.test.*): jornada de compra, regressão dos e2e antigos (só seletores/textos), acessibilidade por tela×largura×tema, teclado, contraste do verde único e toque 48px, movimento reduzido e área segura, estados e imagens, catálogo grande (1.000), capturas + manifesto de diferenças e auditoria dos dados do Stitch. Sem código de produção nem .spec/; achados vão ao gerente.",
+    "discovery": [
+      {
+        "claim": "Playwright tem projetos publico (Desktop Chrome) e celular (344x882), fullyParallel, retries 0, reporter list, site 3100/API 3101, build standalone com timeout 600s",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/playwright.config.ts",
+          "symbol": "ENDERECO_DO_SITE"
+        }
+      },
+      {
+        "claim": "Portão do Workflow IA roda pnpm test:e2e com timeoutSegundos 900",
+        "kind": "fact",
+        "ref": {
+          "path": ".workflow-ia/config.json"
+        }
+      },
+      {
+        "claim": "Raiz roda test:e2e por turbo; a task tem outputs e cache, e o pacote e2e não depende de apps/web no grafo (replay de cache possível)",
+        "kind": "fact",
+        "ref": {
+          "path": "turbo.json"
+        }
+      },
+      {
+        "claim": "Loja de teste e2e-lanchonete tem um único produto simples (sem variação, adicional, atacado nem foto)",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/fixtures/loja-de-teste.ts",
+          "symbol": "garantirLojaDeTeste"
+        }
+      },
+      {
+        "claim": "Sessão no e2e é cookie sc_access com JWT HS256 forjado; tokenDoDono fixa role OWNER",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/fixtures/painel.ts",
+          "symbol": "tokenDoDono"
+        }
+      },
+      {
+        "claim": "A compra identifica o cliente pelo cookie de acesso, aceitando qualquer papel",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/auth/cliente-da-compra.ts",
+          "symbol": "clienteDaCompra"
+        }
+      },
+      {
+        "claim": "Conta com aceite legal pendente recebe 403 aceite_pendente e o site abre a JanelaDeNovoAceite",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/legal/JanelaDeNovoAceite.tsx",
+          "symbol": "JanelaDeNovoAceite"
+        }
+      },
+      {
+        "claim": "fazerPedidoNaVitrine preenche 'Seu nome', campo que sumiu (fechamento exige conta); usado por acompanhamento.spec.ts e painel-pedidos.spec.ts",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/fixtures/pedido-operacao.ts",
+          "symbol": "fazerPedidoNaVitrine"
+        }
+      },
+      {
+        "claim": "TemaDaMarca não fixa mais tema (card #131): a loja segue o aparelho",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tema-da-marca.tsx",
+          "symbol": "TemaDaMarca"
+        }
+      },
+      {
+        "claim": "axe-core é injetado a partir de apps/web/node_modules/axe-core/axe.js com reducedMotion reduce",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/a11y-vitrine.spec.ts"
+        }
+      },
+      {
+        "claim": "Rede móvel emulada por CDP já existe como padrão",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/desempenho-vitrine.spec.ts",
+          "symbol": "comoRobo"
+        }
+      },
+      {
+        "claim": "Cálculo de contraste exportado pelo pacote de UI",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/contraste.ts",
+          "symbol": "relacaoDeContraste"
+        }
+      },
+      {
+        "claim": "Toque mínimo do cliente é 48px (--altura-toque-cliente: 3rem)",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/theme.css",
+          "symbol": "--altura-toque-cliente"
+        }
+      },
+      {
+        "claim": "Área segura das barras do #105 já é conferida por declaração",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/barras-fixas.onp.test.ts"
+        }
+      },
+      {
+        "claim": "Padrão do cookie sc_consentimento e larguras 344/390/768/1024/1280 no e2e do #105",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/navegacao-do-cliente.onp.spec.ts",
+          "symbol": "jaEscolheuOsCookies"
+        }
+      },
+      {
+        "claim": "WhatsApp interceptado no e2e",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/fixtures/intercepts.ts",
+          "symbol": "interceptarWhatsApp"
+        }
+      },
+      {
+        "claim": "Motor ONP só executa vitest (web/unit); e2e/**/*.onp.spec.ts conta como teste mas não como prova",
+        "kind": "fact",
+        "ref": {
+          "path": "onpspec.config.json"
+        }
+      },
+      {
+        "claim": "Constituição: P-102 (#b2f800), P-103 (CDNs), P-104 (chassi/placa) com buscas; P-105/P-106 sem linha de verificação",
+        "kind": "fact",
+        "ref": {
+          "path": ".spec/constituicao.md"
+        }
+      },
+      {
+        "claim": "Export do Stitch traz CNPJ 00.000.000/0001-00, wa.me/5511999999999, PRIMEIRACOMPRA, '10x sem juros', Av. Paulista; nada disso foi achado no código",
+        "kind": "fact",
+        "ref": {
+          "path": ".spec/features/stitch-validacao-visual/design.md"
+        }
+      },
+      {
+        "claim": "e2e antigos quebram: .sc-produto__foto, 'Alguma observação?', 'Adicionado ao carrinho', 'Seu nome', 'Ver catálogo' não existem mais",
+        "kind": "inference"
+      },
+      {
+        "claim": "tema-loja.tsx do pacote ainda redefine --cor-primaria (exportado, fora das telas)",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/tema-loja.tsx"
+        }
+      },
+      {
+        "claim": "Tempo atual da suíte e2e inteira no portão",
+        "kind": "unknown"
+      },
+      {
+        "claim": "Carga demo (brasa-burger, bazar-casa-e-cia etc.) presente no banco de desenvolvimento usado pelo e2e",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Capturas por tela/largura/tema e manifesto de diferenças contra o Stitch (AC-11401, AC-11402, AC-11403)",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "capturas-redesign.onp.spec.ts gera PNG + fragmento JSON (tela, largura, tema, loja, data) para cada combinação e confere existência e tamanho > 0"
+          },
+          {
+            "id": "CA-2",
+            "verify": "diferencas-do-redesign.onp.test.ts: toda linha tem classe ∈ {justificada, pendente, regressao}, motivo com código existente em .spec/ e pendente aponta Q com status aberta"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Jornada de compra com resultado igual (AC-11404 a AC-11407)",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "jornada-de-compra.onp.spec.ts: busca acha só os esperados e vazio tem saída; variação+adicional somam no preço e obrigatório bloqueia; sacola mantém itens/atacado/total após recarregar e não vaza para outra sessão; pedido logado ganha código, acompanhamento abre e WhatsApp leva o texto"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "e2e antigos continuam provando o mesmo (AC-11408)",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "e2e antigos da seção 5 + painel-pedidos verdes com 0 pulados; regressao-e2e-antigos.onp.test.ts trava contagem mínima de expect, asserções-chave e ausência de skip/fixme/only/expect(true)"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Acessibilidade, estouro lateral e movimento nas telas (AC-11409, AC-11413, AC-11415)",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "acessibilidade-redesign.onp.spec.ts: axe sem violação séria/crítica com regras mínimas avaliadas; loja muda entre claro e escuro; scrollWidth ≤ clientWidth em 344 e 640; animações ≤ 200ms sem repetição com movimento reduzido"
+          },
+          {
+            "id": "CA-6",
+            "verify": "movimento-e-area-segura.onp.test.ts: todo CSS de tela do cliente com animation/transition tem bloco prefers-reduced-motion; barras fixas não cobertas pelo #105 declaram env(safe-area-inset-bottom)"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Teclado e foco (AC-11410, propostas AC-11024/AC-11028 do #110)",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "teclado-redesign.onp.spec.ts: jornada só com teclado e foco visível; janela do produto e sacola modal prendem foco, Esc fecha e foco volta ao gatilho; coluna da sacola alcançável"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Verde único legível em todas as lojas e toque ≥ 48px (AC-11411, AC-11412, P-106)",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "contraste-das-lojas.onp.test.ts: nada em apps/web/src nem no CSS das telas redefine --cor-primaria; --cor-em-primaria sobre o verde ≥ 4,5 em cada bloco de tema"
+          },
+          {
+            "id": "CA-9",
+            "verify": "toque-e-contraste-redesign.onp.spec.ts: em cada loja o verde pintado é #B7FF00 com texto ≥ 4,5; alvos ≥ 48px salvo link em texto corrido"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Estados vazio/erro/carregamento e imagens (AC-11416, AC-11417)",
+        "acceptance": [
+          {
+            "id": "CA-10",
+            "verify": "estados-redesign.onp.spec.ts: mensagem + ação nos estados, sem detalhe técnico, carregamento anunciado; substituto de foto, CLS < 0,1, alt e lazy fora da dobra"
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Catálogo grande de 1.000 produtos (AC-11418, AC-11419)",
+        "acceptance": [
+          {
+            "id": "CA-11",
+            "verify": "catalogo-grande.onp.spec.ts: cartões no DOM < 1.000 e CLS < 0,1 reprovam; medianas de abertura e de busca/filtro (5 medidas) vão ao relatório"
+          }
+        ]
+      },
+      {
+        "id": "R-9",
+        "text": "Propostas de navegador do #112 e #113 (painel e admin)",
+        "acceptance": [
+          {
+            "id": "CA-12",
+            "verify": "painel-e-admin-redesign.onp.spec.ts: sem estouro e axe em 344/768/1280; chips rolam na horizontal; confirmação fecha com Esc e devolve foco; marcas dos gráficos ≥ 3:1"
+          }
+        ]
+      },
+      {
+        "id": "R-10",
+        "text": "Dados do Stitch e auditoria da onda (AC-11420, AC-11421)",
+        "acceptance": [
+          {
+            "id": "CA-13",
+            "verify": "dados-do-stitch.onp.test.ts não acha CNPJ fictício, 5511999999999, PRIMEIRACOMPRA, 'sem juros', Av. Paulista, b2f800 nem CDNs no código das telas; capturas checam o texto pintado; matriz.md lista cada critério como provado/pendente/sem prova"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "e2e/specs/*.onp.spec.ts novos",
+        "fixtures novas do #114 em e2e/fixtures/",
+        "apps/web/tests/*.onp.test.ts novos",
+        "ajuste de seletor/texto nos e2e antigos da compra e em e2e/fixtures/pedido-operacao.ts (autorizado pelo gerente)",
+        "evidências em .rmcode/capturas/114/"
+      ],
+      "out": [
+        "código de produção (achados vão ao gerente)",
+        ".spec/ (só leitura)",
+        "e2e/playwright.config.ts, turbo.json e .workflow-ia/config.json",
+        "baseline de pixels",
+        "commit, push, branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-11401: larguras 344/390/768/1024/1280 e zoom 200% = 640px",
+        "impact": "outra escolha muda só a tabela de larguras em redesign.ts"
+      },
+      {
+        "text": "Q-11402: sem baseline de pixels; comparação lado a lado com manifesto",
+        "impact": "mudança visual não intencional só é pega na revisão do dono"
+      },
+      {
+        "text": "Q-11405: relatório do Playwright é evidência à parte do motor ONP",
+        "impact": "critérios de navegador aparecem 'sem prova' no audit e a matriz mostra o relatório ao lado"
+      },
+      {
+        "text": "Q-11408: evidências em .rmcode/capturas/114/ (convenção do board), consolidadas só no T-13",
+        "impact": "durante o portão nada suja a árvore (test-results/ é ignorado)"
+      },
+      {
+        "text": "Capturas usam lojas da carga demo presentes no banco de desenvolvimento",
+        "impact": "sem a carga, a fixture falha com mensagem clara (não pula)"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Cada teste roda nos dois projetos e escolhe as larguras por testInfo.project.name (celular 344/390; publico 768/1024/1280/640), um test.step por largura",
+        "why": "evita test.skip (pulado reprova a rodada) e captura duplicada, sem mexer no playwright.config",
+        "mitigation": "tabela por arquivo no plano (ex.: teclado celular=sacola modal, publico=coluna)"
+      },
+      {
+        "id": "D-2",
+        "decision": "Fixtures novas exclusivas (redesign.ts sem banco; redesign-lojas.ts e catalogo-grande.ts com banco, idempotentes, com trava, sem apagar durante a suíte); a lista das lojas da carga demo usadas por capturas e contraste mora em redesign-lojas.ts",
+        "why": "fullyParallel entre projetos; loja-de-teste.ts é compartilhada; T-6 e T-10 consomem a mesma lista",
+        "impact": "loja-de-teste.ts e painel.ts intocados"
+      },
+      {
+        "id": "D-3",
+        "decision": "Cliente por JWT forjado com papel CUSTOMER (tokenDoCliente em redesign-lojas.ts), uma identidade nova por teste, sem telefone/endereço e com aceites legais vigentes; um caso pelo login real com código do e-mail",
+        "why": "clienteDaCompra aceita o cookie; telefone/endereço salvos mudariam a tela dos outros testes; aceite pendente abriria a JanelaDeNovoAceite"
+      },
+      {
+        "id": "D-4",
+        "decision": "Tempos (2,5s/200ms) só no relatório; reprovam só cartões no DOM < 1.000 e CLS < 0,1",
+        "why": "decisão do usuário; máquina disputada torna tempo instável"
+      },
+      {
+        "id": "D-5",
+        "decision": "Evidências por fragmento em testInfo.outputPath; o T-13 roda capturas-redesign de novo logo antes de copiar para .rmcode/capturas/114",
+        "why": "dois projetos e vários workers escreveriam o mesmo arquivo; .rmcode/capturas não está no .gitignore; cada execução do Playwright limpa test-results/"
+      },
+      {
+        "id": "D-6",
+        "decision": "Manifesto de diferenças em JSON puro lido por fs no vitest",
+        "why": "o vitest do projeto web roda no portão unitário sem e2e; JSON não arrasta tsc nem @playwright/test para apps/web"
+      },
+      {
+        "id": "D-7",
+        "decision": "Regressão dos antigos travada por contagem mínima (≥) de expect/expect.soft/expect.poll + lista de asserções-chave + proibição de skip/fixme/only/expect(true)",
+        "why": "contagem exata quebraria qualquer card futuro; só contagem seria burlável"
+      },
+      {
+        "id": "D-8",
+        "decision": "Orçamento de tempo: medir a suíte atual primeiro; cada arquivo novo ≤ 90s por projeto; se o total ameaçar 900s, reduzir axe a 344 e 1280 e avisar o gerente. Execuções filtradas e medidas chamam o Playwright direto no pacote e2e (sem turbo) com --reporter=list,json e PLAYWRIGHT_JSON_OUTPUT_NAME; a suíte inteira usa pnpm test:e2e --force",
+        "why": "portão de 900s inclui build de até 600s; o turbo pode devolver replay de cache e consumir o filtro; o config só tem reporter list"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-0",
+        "title": "Medir a suíte e2e atual e fixar orçamento",
+        "objective": "Saber quanto tempo sobra no portão de 900s",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Rodar a suíte atual uma vez, sem cache do turbo, e anotar duração por arquivo",
+          "files": [
+            "e2e/playwright.config.ts",
+            ".workflow-ia/config.json",
+            "turbo.json"
+          ],
+          "evidence": [
+            "timeoutSegundos 900",
+            "turbo test:e2e com cache"
+          ],
+          "decisions": [
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/playwright.config.ts",
+              "action": "reuse",
+              "note": "só leitura"
+            },
+            {
+              "path": "e2e/package.json",
+              "action": "reuse",
+              "note": "script test:e2e"
+            }
+          ],
+          "changes": [
+            "nenhum arquivo alterado; rodar no pacote e2e 'PLAYWRIGHT_JSON_OUTPUT_NAME=<arquivo> playwright test --reporter=list,json' e anotar a duração por arquivo"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não alterar config",
+            "não aceitar replay de cache do turbo como medida"
+          ],
+          "expected": [
+            "duração por arquivo anotada"
+          ],
+          "forbidden": [
+            "mudar playwright.config, turbo.json ou .workflow-ia/config.json"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": [
+            "duração total e por arquivo"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "suíte atual já passa de 900s"
+          ],
+          "blockedConditions": [
+            "Postgres/Redis fora do ar"
+          ]
+        }
+      },
+      {
+        "id": "T-1",
+        "title": "Fixtures do #114",
+        "objective": "Base comum: telas, larguras, axe, estouro, lojas da jornada/vazia, lista de lojas da carga demo, cliente de teste e catálogo grande",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-0"
+        ],
+        "requirements": [
+          "R-2",
+          "R-4",
+          "R-6",
+          "R-7",
+          "R-8"
+        ],
+        "context": {
+          "summary": "Copiar padrões de painel.ts (tokenDoDono, trava, idempotência) e navegacao-do-cliente.onp.spec.ts (cookie)",
+          "files": [
+            "e2e/fixtures/painel.ts",
+            "e2e/fixtures/loja-de-teste.ts",
+            "e2e/specs/a11y-vitrine.spec.ts",
+            "e2e/specs/navegacao-do-cliente.onp.spec.ts",
+            "apps/api/src/core/aceites-legais.ts"
+          ],
+          "evidence": [
+            "tokenDoDono",
+            "garantirLojaDeTeste",
+            "clienteDaCompra"
+          ],
+          "decisions": [
+            "D-1",
+            "D-2",
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/fixtures/redesign.ts",
+              "action": "create",
+              "note": "telas, larguras por projeto, cookie, prepararPagina, rodarAxe, semEstouroLateral"
+            },
+            {
+              "path": "e2e/fixtures/redesign-lojas.ts",
+              "action": "create",
+              "note": "e2e-jornada, e2e-vazia, LOJAS_DA_CARGA_DEMO, tokenDoCliente, criarClienteDeTeste"
+            },
+            {
+              "path": "e2e/fixtures/catalogo-grande.ts",
+              "action": "create",
+              "note": "1.000 produtos, só montagem"
+            },
+            {
+              "path": "e2e/fixtures/painel.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "helpers puros e de banco",
+            "aceites vigentes gravados para cada cliente",
+            "lista das lojas da carga demo com conferência de presença e mensagem clara"
+          ],
+          "contracts": [
+            "criarClienteDeTeste(nome) -> { identidadeId, email, cookies }",
+            "larguras(projeto) -> number[]",
+            "LOJAS_DA_CARGA_DEMO: apelidos de ramos diferentes"
+          ],
+          "constraints": [
+            "idempotente por apelido com trava consultiva",
+            "nunca apagar loja durante a suíte"
+          ],
+          "expected": [
+            "typecheck verde"
+          ],
+          "forbidden": [
+            "editar loja-de-teste.ts ou painel.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm typecheck"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "API recusa o JWT de cliente forjado"
+          ],
+          "blockedConditions": [
+            "schema de produto/variação/atacado diferente do esperado"
+          ]
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "T-11404 Jornada de compra e2e",
+        "objective": "Provar busca, preço com opções, sacola e pedido iguais",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Loja e2e-jornada com valores fixos; cliente novo por teste; WhatsApp interceptado",
+          "files": [
+            "e2e/fixtures/intercepts.ts",
+            "e2e/specs/detalhe-do-produto.onp.spec.ts"
+          ],
+          "evidence": [
+            "interceptarWhatsApp"
+          ],
+          "decisions": [
+            "D-3",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/jornada-de-compra.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "casos AC-11404..AC-11407, duas contas (#111), um caso por login real"
+          ],
+          "contracts": [],
+          "constraints": [
+            "títulos [CA-n] @spec:AC-114xx",
+            "valores esperados fixos",
+            "rodar filtrado no pacote e2e: playwright test specs/jornada-de-compra.onp.spec.ts --reporter=list,json"
+          ],
+          "expected": [
+            "verde nos dois projetos"
+          ],
+          "forbidden": [
+            "test.skip",
+            "usar e2e-lanchonete para dados novos"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "e2e/specs/jornada-de-compra.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": [
+            "relatório json"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "resultado diferente do esperado = possível regressão de produto: relatar"
+          ],
+          "blockedConditions": [
+            "fechamento indisponível no layout novo"
+          ]
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "T-11405 Regressão dos e2e antigos",
+        "objective": "Antigos verdes com seletores novos, sem enfraquecer",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Medir a linha de base de expect por arquivo ANTES de editar; ajustar só seletor/texto; fazerPedidoNaVitrine passa a criar cliente com display_name = nomeDoCliente",
+          "files": [
+            "e2e/fixtures/pedido-operacao.ts"
+          ],
+          "evidence": [
+            "fazerPedidoNaVitrine"
+          ],
+          "decisions": [
+            "D-7",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/vitrine.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/produto-detalhe.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/produto-opcoes.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/carrinho.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/checkout.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/acompanhamento.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/a11y-vitrine.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/teclado-vitrine.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/desempenho-vitrine.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/sobre-da-loja.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/specs/painel-pedidos.spec.ts",
+              "action": "modify"
+            },
+            {
+              "path": "e2e/fixtures/pedido-operacao.ts",
+              "action": "modify",
+              "note": "assinatura mantida; cria cliente e põe cookie"
+            },
+            {
+              "path": "apps/web/tests/regressao-e2e-antigos.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "só seletores e textos",
+            "fechamento com login de teste",
+            "trava de regressão por declaração"
+          ],
+          "contracts": [
+            "fazerPedidoNaVitrine(page, opções) inalterada para quem chama"
+          ],
+          "constraints": [
+            "toque 44px antigo pode subir para 48, nunca descer",
+            "rodar filtrado pelo caminho exato de cada arquivo (specs/vitrine.spec.ts … specs/painel-pedidos.spec.ts), nunca por substring"
+          ],
+          "expected": [
+            "0 pulados"
+          ],
+          "forbidden": [
+            "remover/relaxar asserção",
+            "skip/fixme/only",
+            "expect(true)"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [
+            "apps/web/tests/regressao-e2e-antigos.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web regressao-e2e-antigos",
+            "pnpm test:e2e --force"
+          ],
+          "evidence": [
+            "relatório json com passou/falhou/pulou"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "asserção antiga contradiz comportamento novo: relatar ao gerente e provar o equivalente na jornada"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "T-11406/T-11409 Acessibilidade, estouro e movimento por tela",
+        "objective": "axe, estouro lateral, tema claro/escuro e animações",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "Regras mínimas do design §6 precisam ter rodado; movimento reduzido antes do axe",
+          "files": [
+            "e2e/specs/a11y-vitrine.spec.ts",
+            "e2e/specs/base-visual.onp.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/acessibilidade-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "loop tela × largura do projeto × tema com axe, estouro lateral, troca de tema e medida de animações"
+          ],
+          "contracts": [],
+          "constraints": [
+            "disparar interação antes de medir animação",
+            "não repetir AC-10419 do #104",
+            "rodar filtrado: playwright test specs/acessibilidade-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "0 violações sérias/críticas"
+          ],
+          "forbidden": [
+            "desligar regra do axe"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5"
+          ],
+          "tests": [
+            "e2e/specs/acessibilidade-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "violação real de produto: relatar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-5",
+        "title": "T-11407 Teclado e foco",
+        "objective": "Jornada pelo teclado; modais prendem e devolvem foco",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-2"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Contrato de teclado do #110 (design §66-105)",
+          "files": [
+            ".spec/features/stitch-sacola-fechamento/design.md"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/teclado-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "celular=sacola modal 390, publico=coluna 1280; sequência de Tab registra papel, nome e foco visível"
+          ],
+          "contracts": [],
+          "constraints": [
+            "títulos [CA-n] @spec:AC-11410",
+            "rodar filtrado: playwright test specs/teclado-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "foco preso, Esc fecha, foco volta"
+          ],
+          "forbidden": [
+            "test.skip"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [
+            "e2e/specs/teclado-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-6",
+        "title": "T-11408 Verde único, contraste e toque",
+        "objective": "Verde #B7FF00 legível em todas as lojas; alvos ≥ 48px",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "Não repetir pares de tokens do #104 (AC-10404); varredura exclui packages/ui/src/tema-loja.tsx; lojas vêm de LOJAS_DA_CARGA_DEMO (T-1)",
+          "files": [
+            "packages/ui/src/contraste.ts",
+            "packages/ui/styles/theme.css"
+          ],
+          "evidence": [
+            "relacaoDeContraste",
+            "--altura-toque-cliente"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/contraste-das-lojas.onp.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/specs/toque-e-contraste-redesign.onp.spec.ts",
+              "action": "create",
+              "note": "browser.newContext({ hasTouch: true })"
+            }
+          ],
+          "changes": [
+            "vitest lê theme.css e varre apps/web/src e o CSS das telas por redefinição de --cor-primaria; calcula contraste com relacaoDeContraste",
+            "spec percorre LOJAS_DA_CARGA_DEMO, lê cores pintadas e mede alvos com getBoundingClientRect em contexto hasTouch"
+          ],
+          "contracts": [],
+          "constraints": [
+            "@principle:P-106 no título",
+            "rodar filtrado: playwright test specs/toque-e-contraste-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "contraste ≥ 4,5 e alvos ≥ 48px"
+          ],
+          "forbidden": [
+            "repetir pares de tokens do #104"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-8",
+            "CA-9"
+          ],
+          "tests": [
+            "apps/web/tests/contraste-das-lojas.onp.test.ts",
+            "e2e/specs/toque-e-contraste-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web contraste-das-lojas",
+            "pnpm test:e2e --force"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-7",
+        "title": "T-11409 Movimento reduzido e área segura (declaração)",
+        "objective": "CSS declara movimento reduzido e área segura",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "Cobrir só as barras que barras-fixas.onp.test.ts não cobre",
+          "files": [
+            "apps/web/tests/barras-fixas.onp.test.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/movimento-e-area-segura.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "vitest lê os CSS das telas do cliente (packages/ui/styles e apps/web/src/features) e cobra bloco prefers-reduced-motion onde há animation/transition",
+            "cobra env(safe-area-inset-bottom) nas barras fixas fora de barras-fixas.onp.test.ts"
+          ],
+          "contracts": [],
+          "constraints": [
+            "títulos [CA-n] @spec:AC-11413/AC-11414"
+          ],
+          "expected": [
+            "lista de arquivos sem regra vazia"
+          ],
+          "forbidden": [
+            "duplicar asserções do #105"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/movimento-e-area-segura.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web movimento-e-area-segura"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "CSS sem regra de movimento reduzido: relatar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-8",
+        "title": "T-11410 Estados e imagens",
+        "objective": "Vazio, erro, carregamento e fotos",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "page.route para 500/404/atraso; loja e2e-vazia",
+          "files": [
+            "e2e/specs/desempenho-vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/estados-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "spec provoca vazio (e2e-vazia, busca sem resultado, sacola vazia, conta nova), erro (page.route 500/404) e atraso; mede CLS por PerformanceObserver e confere alt/lazy e substituto de foto"
+          ],
+          "contracts": [],
+          "constraints": [
+            "CLS medido após rede parada e fonts.ready",
+            "rodar filtrado: playwright test specs/estados-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "mensagem e ação em cada estado"
+          ],
+          "forbidden": [
+            "test.skip"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10"
+          ],
+          "tests": [
+            "e2e/specs/estados-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-9",
+        "title": "Propostas do #112 e #113 (painel e admin)",
+        "objective": "Larguras, axe, chips, confirmação e contraste de gráfico",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-9"
+        ],
+        "context": {
+          "summary": "Sessões de dono e admin pelos fixtures existentes",
+          "files": [
+            "e2e/fixtures/painel.ts",
+            "e2e/fixtures/admin.ts"
+          ],
+          "evidence": [
+            "entrarComoDono"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/painel-e-admin-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "spec entra como dono e como admin pelos fixtures existentes e mede estouro, axe, rolagem dos chips, Esc/foco da confirmação e contraste das marcas dos gráficos"
+          ],
+          "contracts": [],
+          "constraints": [
+            "títulos com @spec:AC-11319/AC-11326/AC-11329 e os do #112",
+            "rodar filtrado: playwright test specs/painel-e-admin-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "sem estouro em 344"
+          ],
+          "forbidden": [
+            "editar admin-lojas.spec.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-12"
+          ],
+          "tests": [
+            "e2e/specs/painel-e-admin-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10",
+        "title": "T-11402 Capturas por tela, largura e tema",
+        "objective": "PNG + fragmento por combinação e texto pintado sem dados do Stitch",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-4"
+        ],
+        "requirements": [
+          "R-1",
+          "R-10"
+        ],
+        "context": {
+          "summary": "Lojas de LOJAS_DA_CARGA_DEMO; escrever em testInfo.outputPath",
+          "files": [
+            "e2e/playwright.config.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1",
+            "D-2",
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/capturas-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "spec captura cada tela × largura × tema em testInfo.outputPath, grava fragmento JSON e lê innerText procurando os dados do Stitch"
+          ],
+          "contracts": [
+            "fragmento {tela, largura, tema, loja, data, referencia}"
+          ],
+          "constraints": [
+            "fonts.ready e movimento reduzido antes de capturar",
+            "rodar filtrado: playwright test specs/capturas-redesign.onp.spec.ts"
+          ],
+          "expected": [
+            "um PNG não vazio por combinação"
+          ],
+          "forbidden": [
+            "ferramentas browser_*"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-13"
+          ],
+          "tests": [
+            "e2e/specs/capturas-redesign.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": [
+            "PNGs"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "carga demo ausente"
+          ]
+        }
+      },
+      {
+        "id": "T-11",
+        "title": "T-11403 Manifesto de diferenças",
+        "objective": "Diferenças classificadas com motivo; forma conferida",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-10"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Ler capturas ao lado de ~/Downloads/stitch_referencia/*/screen.png; rubrica design §3",
+          "files": [
+            ".spec/features/stitch-validacao-visual/design.md",
+            ".spec/constituicao.md"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/fixtures/diferencas-do-redesign.json",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/diferencas-do-redesign.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "JSON com as diferenças lidas lado a lado com o Stitch",
+            "vitest lê o JSON por fs e confere classe, motivo existente em .spec e Q aberta"
+          ],
+          "contracts": [
+            "linha {tela, largura, tema, loja, classe, motivo, descricao}"
+          ],
+          "constraints": [
+            "teste não afirma completude"
+          ],
+          "expected": [
+            "toda diferença classificada"
+          ],
+          "forbidden": [
+            "importar de e2e/ em TS"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [
+            "apps/web/tests/diferencas-do-redesign.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web diferencas-do-redesign"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "diferença classe regressão: relatar ao gerente"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-12",
+        "title": "T-11411 Catálogo grande",
+        "objective": "1.000 produtos sem desenhar tudo e estável",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "Rede lenta como comoRobo; 5 medidas, mediana no relatório",
+          "files": [
+            "e2e/specs/desempenho-vitrine.spec.ts"
+          ],
+          "evidence": [
+            "comoRobo"
+          ],
+          "decisions": [
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/catalogo-grande.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "spec abre o catálogo 5 vezes (rede lenta no celular), conta cartões no DOM, mede CLS e anexa medianas de abertura e de busca/filtro ao relatório"
+          ],
+          "contracts": [],
+          "constraints": [
+            "test.setTimeout explícito dentro do orçamento",
+            "rodar filtrado: playwright test specs/catalogo-grande.onp.spec.ts"
+          ],
+          "expected": [
+            "cartões < 1.000 e CLS < 0,1"
+          ],
+          "forbidden": [
+            "reprovar por tempo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-11"
+          ],
+          "tests": [
+            "e2e/specs/catalogo-grande.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm test:e2e --force"
+          ],
+          "evidence": [
+            "medianas anexadas ao relatório"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "catálogo desenha tudo: relatar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-13",
+        "title": "T-11412/T-11401 Dados do Stitch, auditoria e matriz",
+        "objective": "Varredura de dados fictícios, verify/audit e evidências consolidadas",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-2",
+          "T-3",
+          "T-5",
+          "T-6",
+          "T-7",
+          "T-8",
+          "T-9",
+          "T-10",
+          "T-11",
+          "T-12"
+        ],
+        "requirements": [
+          "R-10"
+        ],
+        "context": {
+          "summary": "Strings do export levantadas na investigação; audit só lê .spec",
+          "files": [
+            ".spec/constituicao.md",
+            "onpspec.config.json"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/dados-do-stitch.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "vitest varre o código das telas pelos dados fictícios do export",
+            "rodar capturas-redesign de novo logo antes de copiar os fragmentos para .rmcode/capturas/114 e escrever matriz.md"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não editar .spec"
+          ],
+          "expected": [
+            "matriz com provado/pendente/sem prova"
+          ],
+          "forbidden": [
+            "contar teste pulado como prova"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-13"
+          ],
+          "tests": [
+            "apps/web/tests/dados-do-stitch.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web dados-do-stitch",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            ".rmcode/capturas/114/matriz.md"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Suíte e2e passa do portão de 900s",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "T-0 mede; orçamento por arquivo; corte da matriz de axe",
+        "detection": "duração no relatório json"
+      },
+      {
+        "text": "Turbo devolve replay de cache e a rodada parece verde sem executar",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "Playwright direto no pacote e2e para execuções filtradas; suíte inteira com --force",
+        "detection": "duração ~0s ou 'cache hit' no log"
+      },
+      {
+        "text": "Corrida entre projetos/workers no banco e nos arquivos de evidência",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "lojas exclusivas idempotentes com trava, cliente por teste, fragmentos por teste",
+        "detection": "falha intermitente ao rodar 2x"
+      },
+      {
+        "text": "Ajuste nos e2e antigos enfraquece prova sem perceber",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "regressao-e2e-antigos.onp.test.ts com linha de base medida antes",
+        "detection": "vitest no portão unitário"
+      },
+      {
+        "text": "Testes revelam defeitos de produção que este card não pode corrigir, deixando o e2e vermelho",
+        "probability": "high",
+        "impact": "medium",
+        "mitigation": "relatar ao gerente com evidência; não relaxar o teste",
+        "detection": "falhas com causa de produto"
+      },
+      {
+        "text": "Medidas de animação/CLS instáveis",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "fonts.ready, rede parada, interação antes de medir; tempos só em relatório",
+        "detection": "rodar 2x"
+      },
+      {
+        "text": "Carga demo ausente no banco",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "falha com mensagem clara e comando da carga",
+        "detection": "beforeAll"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "e2e/specs/navegacao-do-cliente.onp.spec.ts",
+        "e2e/specs/detalhe-do-produto.onp.spec.ts",
+        "e2e/specs/base-visual.onp.spec.ts",
+        "apps/web/tests/barras-fixas.onp.test.ts"
+      ],
+      "toCreate": [
+        "e2e/specs/jornada-de-compra.onp.spec.ts",
+        "e2e/specs/acessibilidade-redesign.onp.spec.ts",
+        "e2e/specs/teclado-redesign.onp.spec.ts",
+        "e2e/specs/toque-e-contraste-redesign.onp.spec.ts",
+        "e2e/specs/estados-redesign.onp.spec.ts",
+        "e2e/specs/painel-e-admin-redesign.onp.spec.ts",
+        "e2e/specs/capturas-redesign.onp.spec.ts",
+        "e2e/specs/catalogo-grande.onp.spec.ts",
+        "apps/web/tests/regressao-e2e-antigos.onp.test.ts",
+        "apps/web/tests/contraste-das-lojas.onp.test.ts",
+        "apps/web/tests/movimento-e-area-segura.onp.test.ts",
+        "apps/web/tests/diferencas-do-redesign.onp.test.ts",
+        "apps/web/tests/dados-do-stitch.onp.test.ts"
+      ],
+      "manual": [
+        "revisão do dono das capturas e do manifesto (AC-11403)",
+        "área segura no simulador iOS com sim_* (opcional, Q-11409)"
+      ],
+      "external": [
+        "Postgres e Redis locais",
+        "carga demo no banco de desenvolvimento"
+      ]
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura",
+      "findings": [
+        {
+          "text": "R1: premissa falsa — TemaDaMarca já não fixa escuro (#131)",
+          "severity": "critical",
+          "resolution": "Achado removido; o teste afirma que a loja muda entre claro e escuro"
+        },
+        {
+          "text": "R1: JanelaDeNovoAceite e banner de cookies cobririam a jornada",
+          "severity": "critical",
+          "resolution": "Cliente nasce com aceites vigentes; cookie sc_consentimento no redesign.ts (D-3)"
+        },
+        {
+          "text": "R1: portão de 900s sem orçamento",
+          "severity": "critical",
+          "resolution": "T-0 mede; orçamento por arquivo e corte da matriz (D-8)"
+        },
+        {
+          "text": "R1: cliente compartilhado contamina telefone/endereço",
+          "severity": "major",
+          "resolution": "Identidade nova por teste (D-3)"
+        },
+        {
+          "text": "R1: pedido-operacao.ts muda contrato; painel-pedidos.spec.ts usa",
+          "severity": "major",
+          "resolution": "Assinatura mantida, cria cliente com nomeDoCliente; painel-pedidos no T-3"
+        },
+        {
+          "text": "R1: login de cliente indefinido",
+          "severity": "major",
+          "resolution": "tokenDoCliente em fixture nova + um caso por login real"
+        },
+        {
+          "text": "R1: escritores concorrentes e .rmcode/capturas fora do gitignore",
+          "severity": "major",
+          "resolution": "Fragmentos em testInfo.outputPath; consolidação só no T-13 (D-5)"
+        },
+        {
+          "text": "R1: vitest não pode depender do e2e nem importar de e2e/",
+          "severity": "major",
+          "resolution": "Manifesto em JSON lido por fs (D-6)"
+        },
+        {
+          "text": "R1: contagem exata de expect burlável e frágil",
+          "severity": "major",
+          "resolution": "Contagem mínima + asserções-chave + proibições (D-7)"
+        },
+        {
+          "text": "R1: divisão por projeto sem tabela",
+          "severity": "major",
+          "resolution": "Tabela por arquivo; test.step por largura (D-1)"
+        },
+        {
+          "text": "R1: toque emulado, animação/CLS frágeis, tema-loja.tsx, convenção [CA-n], catálogo apagado",
+          "severity": "minor",
+          "resolution": "hasTouch no contexto; fonts.ready/rede parada; varredura limitada; títulos; só montagem"
+        },
+        {
+          "text": "R2 (v5): filtro '-- x' via turbo pode não chegar ao playwright",
+          "severity": "major",
+          "resolution": "Execuções filtradas chamam o Playwright direto no pacote e2e (D-8, constraints de T-2…T-12)"
+        },
+        {
+          "text": "R2: cache do turbo pode dar replay sem rodar",
+          "severity": "major",
+          "resolution": "Suíte inteira com pnpm test:e2e --force; risco registrado"
+        },
+        {
+          "text": "R2: relatório json não sai do config (só list)",
+          "severity": "major",
+          "resolution": "--reporter=list,json + PLAYWRIGHT_JSON_OUTPUT_NAME na CLI (T-0, D-8)"
+        },
+        {
+          "text": "R2: fragmentos de T-10 apagados por execuções seguintes",
+          "severity": "major",
+          "resolution": "T-13 roda capturas de novo antes de copiar; T-13 depende de T-10 (D-5)"
+        },
+        {
+          "text": "R2: T-6 dependia das lojas definidas em T-10",
+          "severity": "major",
+          "resolution": "LOJAS_DA_CARGA_DEMO em redesign-lojas.ts (T-1, D-2)"
+        },
+        {
+          "text": "R2: filtros por substring no T-3 pegam arquivos a mais",
+          "severity": "major",
+          "resolution": "Caminho exato de cada arquivo"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "14 subtarefas (T-0…T-13); ~4–6 h de agente, dominadas pelas rodadas de e2e (build do site até 10 min por rodada)"
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [],
+    "evaluatedAt": 1794928734929,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

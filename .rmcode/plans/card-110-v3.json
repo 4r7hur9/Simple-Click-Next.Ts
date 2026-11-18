@@ -1,0 +1,1675 @@
+{
+  "version": 3,
+  "cardId": "cd816803-93dd-43e0-a055-28ce284e2c0a",
+  "cardSeq": 110,
+  "savedAt": 1794502326558,
+  "plan": {
+    "title": "#110 Stitch · Sacola lateral, barra móvel e fechamento",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Redesign da sacola e do fechamento sobre as peças do #104 (tokens, Plus Jakarta Sans, Gaveta, AvisoFlutuante, BarraInferior, Chip, Abas). No computador, coluna lateral não modal por portal na região [data-regiao-da-sacola] do #108; no celular e no tablet, barra fixa que abre um diálogo modal. A linha ganha foto, atacado e falha reversível. No fechamento entram o visual novo, o total como estimativa, a revisão depois de 409 e o envio único: UUID, trava síncrona e uma tentativa pendente guardada na ilha, que reenvia o mesmo corpo com a mesma chave e só é descartada com resposta definitiva ou troca de conta. Conta trocada não herda dados. Os estilos antigos saem de vitrine.css. API, banco, contratos, lib/ e server/ não mudam. Execução sequencial, depois do #109 e com aval do gerente.",
+    "discovery": [
+      {
+        "claim": "A sacola é montada uma vez, no fim de TelaDoCatalogo; cardápio, produto, carrinho, checkout e prévia usam a mesma tela",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+          "symbol": "TelaDoCatalogo",
+          "line": 380
+        }
+      },
+      {
+        "claim": "A prévia da Aparência também renderiza TelaDoCatalogo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/previa/[parte]/page.tsx",
+          "symbol": "TelaDoCatalogo",
+          "line": 45
+        }
+      },
+      {
+        "claim": "As rotas do catálogo importam fechamento.css depois de vitrine.css",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/page.tsx",
+          "symbol": "TelaDoCatalogo",
+          "line": 7
+        }
+      },
+      {
+        "claim": "useCarrinho só existe com o diálogo aberto; contagem e total vêm de outra busca; o serviço é memorizado com carregarProduto, que muda de identidade a cada renderização do servidor",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+          "symbol": "ConteudoDaGaveta",
+          "line": 206
+        }
+      },
+      {
+        "claim": "useCarrinho busca só ao montar; a falha em mudarQuantidade põe situacao em erro e mantém os itens (o teste antigo exige isso)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/useCarrinho.ts",
+          "symbol": "useCarrinho",
+          "line": 106
+        }
+      },
+      {
+        "claim": "O teste antigo monta UsoDoCarrinho inteiro só com situacao, carrinho, erro, mudarQuantidade e recarregar: campo novo obrigatório quebra o typecheck",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/carrinho-gaveta.test.tsx",
+          "symbol": "GavetaCarrinho",
+          "line": 54
+        }
+      },
+      {
+        "claim": "Com situacao erro, GavetaCarrinho troca a lista pela tela de erro",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/GavetaCarrinho.tsx",
+          "symbol": "GavetaCarrinho",
+          "line": 140
+        }
+      },
+      {
+        "claim": "SacolaDeExemplo, no catálogo /ui (fora do #110), importa SacolaFlutuante",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(dev)/ui/catalogo/SacolaDeExemplo.tsx",
+          "symbol": "SacolaFlutuante",
+          "line": 5
+        }
+      },
+      {
+        "claim": "A conferência não traz foto; a foto está em ProdutoNaTela.imagens",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/carrinho-do-navegador.ts",
+          "symbol": "ConferenciaNaTela",
+          "line": 215
+        }
+      },
+      {
+        "claim": "Formato da imagem: url, texto, largura e altura",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/produto.ts",
+          "symbol": "ImagemNaTela",
+          "line": 37
+        }
+      },
+      {
+        "claim": "A chave é Date.now + Math.random, uma por montagem",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+          "symbol": "novaChave",
+          "line": 148
+        }
+      },
+      {
+        "claim": "A trava de envio lê o estado do React; qualquer falha reconfere; a confirmação de mudança não volta a falso; o corpo é remontado a cada envio",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+          "symbol": "FechamentoDaCompra",
+          "line": 321
+        }
+      },
+      {
+        "claim": "O servidor procura o pedido por loja e chave, sem olhar a conta, ANTES de ler o carrinho: a mesma chave devolve o pedido gravado e ignora o corpo novo",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/orders/pedidos.routes.ts",
+          "symbol": "pedidoDaChaveDeFechamento",
+          "line": 331
+        }
+      },
+      {
+        "claim": "O contrato aceita uma chave de 8 a 64 caracteres (não exige entropia)",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/carrinho.ts",
+          "symbol": "chaveDeIdempotencia",
+          "line": 326
+        }
+      },
+      {
+        "claim": "Depois do 401, o acesso abre sem aoEntrar",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/PassoDoFechamento.tsx",
+          "symbol": "aoPrecisarDeConta",
+          "line": 142
+        }
+      },
+      {
+        "claim": "Existe um evento global de acesso concluído",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/auth/JanelaDeAcesso.tsx",
+          "symbol": "EVENTO_ACESSO_CONCLUIDO",
+          "line": 63
+        }
+      },
+      {
+        "claim": "ContaDoComprador não tem id",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/preparo-do-fechamento.ts",
+          "symbol": "ContaDoComprador",
+          "line": 48
+        }
+      },
+      {
+        "claim": "A taxa de entrega é única por loja",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/checkout/preparo-do-fechamento.ts",
+          "symbol": "EntregaDaLojaNaTela",
+          "line": 32
+        }
+      },
+      {
+        "claim": "O aviso de carrinho é um CustomEvent sem detalhe",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/carrinho-do-navegador.ts",
+          "symbol": "AVISO_DE_CARRINHO_MUDOU",
+          "line": 128
+        }
+      },
+      {
+        "claim": "A trava de rolagem depende de sc-flutuante__gaveta (produto.css:960)",
+        "kind": "inference",
+        "ref": {
+          "path": "packages/ui/styles/produto.css"
+        }
+      },
+      {
+        "claim": "legal.css:45,52 e usuario.css:449 deslocam .sc-sacola__area",
+        "kind": "inference",
+        "ref": {
+          "path": "packages/ui/styles/legal.css"
+        }
+      },
+      {
+        "claim": "O passo 'pedir' do tutorial aponta para .sc-sacola",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/tutorial/passos.ts",
+          "symbol": "alvos",
+          "line": 185
+        }
+      },
+      {
+        "claim": "resumo-do-pedido exige 'Total R$ …' contíguo e paridade dt/dd; fechamento-pagina:329-330 exige reconferência e o alerta só com o motivo depois de nao-pode; config-entrega e o e2e dependem dos rótulos de receber",
+        "kind": "inference",
+        "ref": {
+          "path": "apps/web/tests/resumo-do-pedido.test.tsx"
+        }
+      },
+      {
+        "claim": "sacola-e-banners testa posicao-da-sacola.ts",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/sacola-e-banners.test.tsx",
+          "symbol": "deFracao",
+          "line": 10
+        }
+      },
+      {
+        "claim": "No jsdom, matchMedia é um dublê que nunca casa",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/preparo-navegador.ts",
+          "symbol": "consultaQueNaoCasa",
+          "line": 17
+        }
+      },
+      {
+        "claim": "Contrato proposto da Gaveta do #104 (design §5)",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-base-visual/design.md"
+        }
+      },
+      {
+        "claim": "Contrato do #108 (mensagem de 12/11): div.sc-catalogo__sacola[data-regiao-da-sacola], vazia, último filho de main.sc-catalogo; 3/6/3 a partir de 1280px; :empty sem espaço; display:none abaixo disso; reserva de max(7rem, --altura-da-barra-inferior) + área segura",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-catalogo/tasks.md"
+        }
+      },
+      {
+        "claim": "O #105 (T-10507) mexe em lib/carrinho-do-navegador.ts, SacolaFlutuante e CarrinhoFlutuante para a sacola do topo",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-navegacao-cliente/tasks.md"
+        }
+      },
+      {
+        "claim": "API final das peças do #104 e a decisão do #105 sobre as barras (Q-10502) e a constante sc:abrir-sacola",
+        "kind": "unknown"
+      },
+      {
+        "claim": "A coluna preenche a região :empty só depois da busca no navegador: salto de layout no computador com itens",
+        "kind": "inference"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "US-11001: coluna lateral não modal no computador",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "AC-11001: com 2 itens e forma coluna, aparecem 'Sua sacola', a contagem, as linhas (foto, nome, quantidade, preço), o subtotal da conferência, 'Fechar pedido' e 'calculada no fechamento'"
+          },
+          {
+            "id": "CA-2",
+            "verify": "AC-11002: montar e atualizar a coluna não chama prepararFechamento; nada de telefone, endereço ou PIX; o preparo só começa no toque (exceção: a rota /checkout)"
+          },
+          {
+            "id": "CA-3",
+            "verify": "AC-11003: vazia, ou depois de remover o último item, a região fica :empty"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "US-11002: barra fixa no celular e no tablet",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "AC-11004: na forma barra, com 3 itens, aparecem '3 itens', o subtotal e 'Ver sacola'; o toque abre o diálogo; vazia, não há barra"
+          },
+          {
+            "id": "CA-5",
+            "verify": "AC-11005: o fechamento.css declara a área segura na barra, o deslocamento acima dos cookies e uma barra fixa por vez; a reserva de espaço segue o #108"
+          },
+          {
+            "id": "CA-6",
+            "verify": "AC-11006: um aviso externo atualiza a contagem e o total, e role=status/aria-live=polite anuncia sem mexer no activeElement"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "US-11003: ajustar os itens",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "AC-11007: +, − e Remover mostram os valores do serviço; − desabilitado em 1; 'Remover <nome> da sacola'"
+          },
+          {
+            "id": "CA-8",
+            "verify": "AC-11008: aparecem a variação, os adicionais, o atacado e o varejo riscado"
+          },
+          {
+            "id": "CA-9",
+            "verify": "AC-11009: na falha, a linha continua visível com a quantidade anterior, aparece um aviso e 'Tentar de novo' repete a mudança"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "US-11004: como receber e pagar",
+        "acceptance": [
+          {
+            "id": "CA-10",
+            "verify": "AC-11010: 2 rádios ('Receber em casa' e 'Retirar no local', decisão do usuário); uma forma só vira frase única; nenhuma forma, aviso e envio bloqueado"
+          },
+          {
+            "id": "CA-11",
+            "verify": "AC-11011: a taxa da loja entra no total; abaixo do mínimo, a tela diz quanto falta e bloqueia; dá para cadastrar um endereço novo sem sair"
+          },
+          {
+            "id": "CA-12",
+            "verify": "AC-11012: só as formas da loja; PIX copiável; troco no dinheiro; nenhum campo de cartão"
+          },
+          {
+            "id": "CA-13",
+            "verify": "AC-11013: o 422 aparece no campo certo e o resto continua preenchido"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "US-11005: total, envio único e conta",
+        "acceptance": [
+          {
+            "id": "CA-14",
+            "verify": "AC-11014: subtotal da conferência; nota de estimativa fora do <dl> (o rótulo 'Total' não muda); o pedido criado mostra os valores gravados"
+          },
+          {
+            "id": "CA-15",
+            "verify": "AC-11015: AvisoDeMudanca antes do formulário; depois de 409 com mudança nova, a confirmação é pedida de novo"
+          },
+          {
+            "id": "CA-16",
+            "verify": "AC-11016: todo corpo leva subtotalVistoCentavos e totalVistoCentavos; o 409 leva a uma nova revisão"
+          },
+          {
+            "id": "CA-17",
+            "verify": "AC-11017 (parte do cliente): 2 submits geram 1 chamada; aria-busy e desabilitado; voltar, X e Esc (inclusive 2 Esc seguidos) não perdem a tentativa; depois de falha de rede, o reenvio leva a mesma chave e o mesmo corpo. A devolução do mesmo pedido pelo servidor já é provada por apps/api/tests/pedido-idempotente.test.ts"
+          },
+          {
+            "id": "CA-18",
+            "verify": "AC-11018: UUID v4; chave nova depois de uma resposta definitiva seguida de fechar, de outra conta ou de outra loja; a chave não aparece em storage, URL, DOM, console nem mensagens"
+          },
+          {
+            "id": "CA-19",
+            "verify": "AC-11019 (parte do cliente): o nao-pode não gera um segundo envio e mostra 'não foi possível concluir'; a parte do servidor fica no teste da API ou no e2e do #114"
+          },
+          {
+            "id": "CA-20",
+            "verify": "AC-11020: sem conta, o acesso abre e a sacola continua; com outra conta (depois de 401, ou sem 401 pelo EVENTO_ACESSO_CONCLUIDO, ou antes de reenviar uma tentativa pendente), dados e chave são refeitos e nenhum corpo leva dados ou chave da conta anterior"
+          },
+          {
+            "id": "CA-21",
+            "verify": "AC-11021: com a loja fechada, nenhum pedido, o horário de abertura aparece (fora do alerta do motivo) e a sacola fica"
+          },
+          {
+            "id": "CA-22",
+            "verify": "AC-11022: sucesso → tela com o número e o próximo passo → barra e coluna vazias"
+          },
+          {
+            "id": "CA-23",
+            "verify": "AC-11023: no DOM, nada de cupom, desconto, parcela, boleto, previsão ou 'compra segura'"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "US-11006: teclado, segurança e rotas",
+        "acceptance": [
+          {
+            "id": "CA-24",
+            "verify": "AC-11024: showModal; Esc fecha os dois passos e a sacola continua; o foco volta ao gatilho e, sem ele, ao h1; nome 'Sua sacola' ou 'Fechar pedido'"
+          },
+          {
+            "id": "CA-25",
+            "verify": "AC-11025: carrinhoAberto e fechamentoAberto abrem no passo certo; sem preparo, o link do checkout"
+          },
+          {
+            "id": "CA-26",
+            "verify": "AC-11026: o renderToString sai sem itens nem dados; key por apelido isola as lojas"
+          },
+          {
+            "id": "CA-27",
+            "verify": "AC-11027: depois de sucesso, 401 e falha de rede, nada de endereço, telefone, PIX ou chave em console, storage, URL ou DOM"
+          },
+          {
+            "id": "CA-28",
+            "verify": "AC-11028: aside sem role=dialog, aria-modal nem inert; Esc não faz nada; 'Ir para a sacola' é o primeiro focável do body"
+          },
+          {
+            "id": "CA-29",
+            "verify": "AC-11029: o evento foca o título da coluna ou abre o diálogo; vazia, anuncia; com dialog[open], ignora; nunca chama preparar; ignora o detail"
+          },
+          {
+            "id": "CA-30",
+            "verify": "AC-11030: coluna → barra com o foco em 'Ver sacola'; diálogo da sacola → coluna com o foco no título; o foco nunca fica no body"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Os estilos da sacola saem de vitrine.css e vão para fechamento.css",
+        "acceptance": [
+          {
+            "id": "CA-31",
+            "verify": "vitrine.css sem .sc-sacola, .sc-flutuante e .sc-carrinho-janela; toda classe desses blocos usada em features/carrinho e checkout tem regra em fechamento.css; o ponto de 1280px de forma-da-sacola.ts bate com a media query do #108"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features/carrinho/*",
+        "features/checkout/*",
+        "packages/ui/styles/fechamento.css",
+        "TelaDoCatalogo.tsx (key por apelido)",
+        "vitrine.css (só remover os blocos da sacola, depois de #107/#108)",
+        "testes *.onp.test.*",
+        "só as strings esperadas em carrinho-gaveta.test.tsx e fechamento-pagina.test.tsx (decisão do usuário)"
+      ],
+      "out": [
+        "API, banco, contratos, lib/carrinho-do-navegador.ts (exceto o D-4 aprovado), lib/produto.ts, lib/atacado-na-vitrine.ts, server/*, checkout/acoes.ts e metadados da rota checkout",
+        "arquivos do #104",
+        "legal.css, usuario.css, passos.ts, produto.css, (dev)/ui/catalogo/SacolaDeExemplo.tsx (só aviso aos donos)",
+        "config-entrega, checkout-na-janela, resumo-do-pedido e e2e (não são editados)",
+        "cupom, fidelidade, parcelamento, boleto, previsão, selos, economia de atacado, taxa por bairro",
+        "commit, push, branch, .spec/"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-11001: coluna fixa e não modal",
+        "impact": "Se virar gaveta modal, a coluna segue o CA-24"
+      },
+      {
+        "text": "Q-11003: a barra substitui o botão arrastável no catálogo; a posição guardada é apagada; SacolaFlutuante.tsx fica no repositório enquanto o /ui a usar",
+        "impact": "Se o botão ficar, a T-11002 não o troca"
+      },
+      {
+        "text": "Q-11002: sem X na coluna",
+        "impact": "Botão novo"
+      },
+      {
+        "text": "Q-11004: o fechamento é um diálogo modal em todos os tamanhos; no computador, o voltar fecha o diálogo e foca a coluna",
+        "impact": "Tarefa nova"
+      },
+      {
+        "text": "Q-11005, Q-11006 e Q-11013: sem economia de atacado; 'Fechar pedido'; no computador, anúncio só para leitor de tela; no celular, AvisoFlutuante",
+        "impact": "Só texto e aviso"
+      },
+      {
+        "text": "Q-11012: token de toque do #104",
+        "impact": "Só CSS"
+      },
+      {
+        "text": "AC-11011: taxa única da loja",
+        "impact": "Taxa por bairro exige API"
+      },
+      {
+        "text": "AC-11030: o diálogo que alarga só fecha no passo da sacola",
+        "impact": "Nenhum"
+      },
+      {
+        "text": "Decisão do usuário (12/11): 'Sua sacola' e 'Sua sacola está vazia' entram, trocando só a string em carrinho-gaveta e fechamento-pagina; os rótulos de receber ficam",
+        "impact": "e2e carrinho.spec.ts:54 a cargo do #114, que será avisado"
+      },
+      {
+        "text": "Salto de layout da coluna aceito como risco medido; o #108 já definiu a zona :empty",
+        "impact": "Acima de 0,1, levar ao gerente: reservar a zona contraria o AC-11003"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Uma ilha só (CarrinhoFlutuante), no fim de TelaDoCatalogo, com key={loja.apelido}. Um useCarrinho no topo, com o serviço memorizado só pelo apelido e o carregarProduto guardado num ref, alimenta a coluna, a barra, o diálogo, a contagem e o total. Com a barra e o diálogo fechado, só a conferência (contagem e total); com a coluna visível ou o diálogo aberto, os detalhes (itens e produtos com cache). A coluna vai por createPortal para [data-regiao-da-sacola]. A forma vem de useSyncExternalStore com matchMedia e a constante PONTO_DA_COLUNA ('barra' no servidor e sem matchMedia). Um ref ignora só o aviso disparado pelo servico.mudarQuantidade da própria ilha; o aviso do pedido criado é ouvido",
+        "why": "Uma fonte e uma busca; sem refazer N ações a cada renderização do servidor; a barra não some com o display:none do #108",
+        "impact": "CarrinhoFlutuante vira o orquestrador",
+        "mitigation": "Região vazia do #108; teste de nova renderização e de contagem de chamadas"
+      },
+      {
+        "id": "D-2",
+        "decision": "Diálogo modal com a Gaveta do #104 (baixo no celular e no tablet; direita no fechamento do computador), se ela tiver abertura controlada, título trocável e Esc cancelável. Se não tiver, o <dialog> nativo com os tokens do #104, mantendo sc-flutuante__gaveta. O contador 'tentativa' sobe só quando o diálogo fecha, e nunca enquanto a tela do pedido criado está aberta. A tentativa pendente (D-5) mora na ilha: fechar, voltar ou dar Esc durante o envio nunca a perde, e ao reabrir com ela pendente a tela recupera o resultado antes de mostrar o formulário",
+        "why": "Partir da peça do #104 sem depender de ela desmontar o conteúdo nem de o Esc ser cancelável",
+        "impact": "Os testes provam o comportamento",
+        "mitigation": "Conferir no início da T-11002"
+      },
+      {
+        "id": "D-3",
+        "decision": "Ficam as classes usadas por testes e por outros cards. Entram sc-sacola-coluna, sc-sacola-barra e a classe gancho sc-sacola. Todo o CSS da sacola vai para fechamento.css",
+        "why": "Não quebrar testes, a trava de rolagem nem o tutorial"
+      },
+      {
+        "id": "D-4",
+        "decision": "sc:abrir-sacola: reaproveitar a constante do #105; se ela não existir, a T-11003 espera o gerente (constante em lib/carrinho-do-navegador.ts ou em features/carrinho/pedido-de-abrir.ts). O ouvinte ignora o detail, só abre a sacola e nunca chama preparar",
+        "why": "Uma fonte só; o PIX não desce sem toque"
+      },
+      {
+        "id": "D-5",
+        "decision": "chave-do-fechamento.ts: randomUUID ou um UUID v4 feito com getRandomValues; sem os dois, null e o envio é recusado. A tentativa pendente ({ chave, corpo enviado, conta normalizada, promessa }) vive num ref da ilha, por loja. Uma falha de rede guarda a tentativa e trava a edição; 'Tentar de novo' reconfere primeiro e prepara de novo para comparar a conta. Se o carrinho ainda tem itens, o pedido não saiu: a tentativa é descartada e a edição volta, com chave nova. Se o carrinho está vazio, o reenvio é exato (mesma chave e mesmo corpo) para recuperar o pedido. Se a conta mudou, a tentativa é descartada sem reenviar. Ela só é descartada com resposta definitiva (criado, 409 ou 422) ou com troca de conta. Um ref síncrono trava o envio duplo",
+        "why": "O servidor ignora o corpo quando a chave já foi usada e não amarra a chave à conta (pedidos.routes.ts:331); o carrinho é convertido na mesma transação do pedido"
+      },
+      {
+        "id": "D-6",
+        "decision": "UsoDoCarrinho ganha falhaAoMudar? e tentarDeNovo? OPCIONAIS, e a ausência vale 'sem falha'. situacao e erro ficam iguais. A Gaveta e a Coluna olham falhaAoMudar primeiro",
+        "why": "Cumprir o AC-11009 sem quebrar o tipo de usoCom no teste antigo nem o useCarrinho.test.tsx"
+      },
+      {
+        "id": "D-7",
+        "decision": "Só leitura: acoes.ts, server/*, lib/produto.ts, lib/atacado-na-vitrine.ts, lib/carrinho-do-navegador.ts (salvo o D-4) e SacolaDeExemplo.tsx; nenhum campo novo no preparo",
+        "why": "Restrição do card e matriz de donos"
+      },
+      {
+        "id": "D-8",
+        "decision": "ver-pela-conferencia.ts: verConferencia() para a contagem e o total, e verDetalhes() com itens e produtos em cache por id; foto = imagens[0]; sem foto, nenhum <img>",
+        "why": "Ter a foto sem multiplicar chamadas"
+      },
+      {
+        "id": "D-9",
+        "decision": "Conta: o e-mail é comparado com trim().toLowerCase(), só em memória; na dúvida (nulo, ausente ou diferente), conta como outra conta. O 401 trava o envio; aoEntrar, e também o EVENTO_ACESSO_CONCLUIDO, preparam de novo em silêncio. Mesma conta destrava; outra conta faz geracaoDaConta subir e refaz o formulário (a key é o contador), a chave e a tentativa pendente; uma falha deixa o envio travado, com Entrar e sem laço",
+        "why": "AC-11013 e AC-11020; a chave da conta A não vai com o cookie da conta B"
+      },
+      {
+        "id": "D-10",
+        "decision": "Textos: 'Sua sacola', 'Sua sacola está vazia', 'Fechar pedido' (o título do passo do fechamento passa de 'Finalizar pedido' para ele, sem testes dependentes) e 'Ver sacola'. A estimativa fica fora do <dl>; o rótulo 'Total' e o alerta do motivo não mudam",
+        "why": "Decisão do usuário e o AC-11024; os testes antigos ficam intactos"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-11009",
+        "title": "Levar os estilos da sacola de vitrine.css para fechamento.css",
+        "objective": "Mover .sc-sacola*, .sc-flutuante* e .sc-carrinho-janela* sem mudança visual",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Depois de #107 e #108; o #108 confirmou que não remove",
+          "files": [
+            "packages/ui/styles/vitrine.css",
+            "packages/ui/styles/fechamento.css"
+          ],
+          "evidence": [
+            "~94 seletores entre as linhas ~1492 e 1948"
+          ],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/sacola-estilos.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Confirmar #107 e #108 terminados",
+            "grep dos blocos e de quais páginas importam cada folha (o /ui inclusive)",
+            "recortar e colar na mesma ordem"
+          ],
+          "contracts": [
+            "Os nomes não mudam"
+          ],
+          "constraints": [
+            "Nenhum valor visual muda"
+          ],
+          "expected": [
+            "vitrine.css sem os blocos"
+          ],
+          "forbidden": [
+            "Mexer em legal.css, usuario.css ou produto.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-31"
+          ],
+          "tests": [
+            "sacola-estilos.onp.test.ts: '[CA-31] @spec:AC-11004'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-estilos.onp.test.ts",
+            "pnpm exec prettier --check packages/ui/styles/vitrine.css packages/ui/styles/fechamento.css"
+          ],
+          "evidence": [
+            "Captura antes e depois, cardápio e /ui"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [
+            "Rota ou página /ui que usa um bloco e não importa fechamento.css"
+          ],
+          "blockedConditions": [
+            "#107 ou #108 não terminaram"
+          ]
+        }
+      },
+      {
+        "id": "T-11004",
+        "title": "Linha da sacola, foto e falha reversível",
+        "objective": "Linha do Stitch, serviço em duas camadas e falha que não apaga a lista",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11009"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "verPelaConferencia hoje vive em CarrinhoFlutuante",
+          "files": [
+            "apps/web/src/features/carrinho/LinhaCarrinho.tsx",
+            "apps/web/src/features/carrinho/useCarrinho.ts",
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+            "apps/web/src/features/carrinho/GavetaCarrinho.tsx"
+          ],
+          "evidence": [
+            "useCarrinho.ts:68-74,106-113",
+            "carrinho-gaveta.test.tsx:54-63,137"
+          ],
+          "decisions": [
+            "D-6",
+            "D-8"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/carrinho/ver-pela-conferencia.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/useCarrinho.ts",
+              "action": "modify",
+              "note": "campos opcionais falhaAoMudar e tentarDeNovo; foto opcional"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/LinhaCarrinho.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/GavetaCarrinho.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/atacado-na-linha.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/sacola-linha.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "foto = imagens[0]"
+          ],
+          "contracts": [
+            "ServicoDoCarrinho e o item da API não mudam"
+          ],
+          "constraints": [
+            "Só consumir lib/produto.ts"
+          ],
+          "expected": [
+            "Sem foto, nenhum <img>"
+          ],
+          "forbidden": [
+            "Editar useCarrinho.test.tsx"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7",
+            "CA-8",
+            "CA-9"
+          ],
+          "tests": [
+            "sacola-linha.onp.test.tsx: '[CA-7] @spec:AC-11007', '[CA-8] @spec:AC-11008', '[CA-9] @spec:AC-11009'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-linha.onp.test.tsx apps/web/tests/carrinho-gaveta.test.tsx apps/web/tests/carrinho-atacado.test.tsx apps/web/tests/precos-na-tela.test.tsx apps/web/src/features/carrinho/useCarrinho.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Mudar o item (avisar o #109)"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11001",
+        "title": "Coluna lateral da sacola no computador",
+        "objective": "ColunaDaSacola por portal, useCarrinho único no topo e o atalho 'Ir para a sacola'",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11004"
+        ],
+        "requirements": [
+          "R-1",
+          "R-6"
+        ],
+        "context": {
+          "summary": "Contrato da região do #108; a ilha fica no fim",
+          "files": [
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+            "apps/web/src/features/carrinho/GavetaCarrinho.tsx",
+            "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+            "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx"
+          ],
+          "evidence": [
+            "CarrinhoFlutuante.tsx:206,208,263-277,355",
+            "TelaDoCatalogo.tsx:380-387"
+          ],
+          "decisions": [
+            "D-1",
+            "D-3",
+            "D-10"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/carrinho/forma-da-sacola.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/ColunaDaSacola.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/GavetaCarrinho.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify",
+              "note": "só o texto do vazio"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/cardapio/TelaDoCatalogo.tsx",
+              "action": "modify",
+              "note": "key={loja.apelido}"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/carrinho-gaveta.test.tsx",
+              "action": "modify",
+              "note": "só strings"
+            },
+            {
+              "path": "apps/web/tests/fechamento-pagina.test.tsx",
+              "action": "modify",
+              "note": "só a string do vazio"
+            },
+            {
+              "path": "apps/web/tests/sacola-lateral.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Ler o diff de #105, #108 e #109 e preservar as integrações (por exemplo, a contagem do topo)",
+            "Atalho num nó posto com document.body.prepend",
+            "Ids por superfície"
+          ],
+          "contracts": [
+            "[data-regiao-da-sacola] do #108",
+            "Props sem dado pessoal"
+          ],
+          "constraints": [
+            "Sem role=dialog, aria-modal nem inert"
+          ],
+          "expected": [
+            "Região :empty quando vazia"
+          ],
+          "forbidden": [
+            "Pôr a ilha dentro da região"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-28"
+          ],
+          "tests": [
+            "sacola-lateral.onp.test.tsx: '[CA-1] @spec:AC-11001', '[CA-2] @spec:AC-11002', '[CA-3] @spec:AC-11003', '[CA-28] @spec:AC-11028'; nova renderização com outro carregarProduto não chama ver(); contagem de conferirCarrinho"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-lateral.onp.test.tsx apps/web/tests/carrinho-gaveta.test.tsx apps/web/tests/fechamento-pagina.test.tsx apps/web/tests/checkout-na-janela.test.tsx",
+            "pnpm typecheck",
+            "pnpm exec eslint apps/web/src/features/carrinho apps/web/src/features/checkout"
+          ],
+          "evidence": [
+            "1440px claro e escuro; CLS"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Região diferente do contrato",
+            "CLS acima de 0,1"
+          ],
+          "blockedConditions": [
+            "#108 ou #109 não terminaram"
+          ]
+        }
+      },
+      {
+        "id": "T-11002",
+        "title": "Barra fixa e diálogo modal",
+        "objective": "BarraDaSacola no catálogo, diálogo do D-2, troca de forma e foco de reserva",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11001"
+        ],
+        "requirements": [
+          "R-2",
+          "R-6"
+        ],
+        "context": {
+          "summary": "Gaveta do #104; barras do #105",
+          "files": [
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "produto.css:960",
+            "legal.css:45,52",
+            "passos.ts:185",
+            "SacolaDeExemplo.tsx:5"
+          ],
+          "decisions": [
+            "D-2",
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/carrinho/BarraDaSacola.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify",
+              "note": "deixa de usar SacolaFlutuante; diálogo; tentativa; troca de forma; foco de reserva no h1"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/SacolaFlutuante.tsx",
+              "action": "reuse",
+              "note": "continua no repositório para o /ui; remoção só com aval do gerente"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/posicao-da-sacola.ts",
+              "action": "reuse",
+              "note": "CHAVE_DA_POSICAO"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify",
+              "note": "barra, área segura, cookies, empilhamento"
+            },
+            {
+              "path": "apps/web/tests/sacola-barra.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Conferir gaveta.tsx contra o D-2",
+            "rg SacolaFlutuante apps/web/src (só o /ui)"
+          ],
+          "contracts": [
+            "Peças do #104 como vierem"
+          ],
+          "constraints": [
+            "Uma barra por vez; sem animação"
+          ],
+          "expected": [
+            "Barra no celular; Esc fecha e devolve o foco"
+          ],
+          "forbidden": [
+            "Editar packages/ui/src/*, legal.css, usuario.css, passos.ts ou (dev)/ui"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4",
+            "CA-5",
+            "CA-24",
+            "CA-30"
+          ],
+          "tests": [
+            "sacola-barra.onp.test.tsx: '[CA-4] @spec:AC-11004', '[CA-5] @spec:AC-11005', '[CA-24] @spec:AC-11024', '[CA-30] @spec:AC-11030'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-barra.onp.test.tsx apps/web/tests/sacola-e-banners.test.tsx apps/web/tests/checkout-na-janela.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "390px e 768px, claro e escuro, com cookies"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Gaveta e nativo não servem",
+            "Altura da barra do #105 ausente"
+          ],
+          "blockedConditions": [
+            "#104 ou #105 não terminaram"
+          ]
+        }
+      },
+      {
+        "id": "T-11003",
+        "title": "Anúncio e pedido de abrir",
+        "objective": "Anunciar sem roubar o foco e atender sc:abrir-sacola",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11002"
+        ],
+        "requirements": [
+          "R-2",
+          "R-6"
+        ],
+        "context": {
+          "summary": "A confirmação é do #110 (AC-10935)",
+          "files": [
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "JanelaDoProduto.tsx:223"
+          ],
+          "decisions": [
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/sacola-abrir.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Anunciar só com aviso externo",
+            "dialog[open] → ignorar"
+          ],
+          "contracts": [
+            "Evento sem detail"
+          ],
+          "constraints": [
+            "Nunca chamar preparar"
+          ],
+          "expected": [
+            "Anúncio sem mover o foco"
+          ],
+          "forbidden": [
+            "Constante duplicada sem aval"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6",
+            "CA-29"
+          ],
+          "tests": [
+            "sacola-abrir.onp.test.tsx: '[CA-6] @spec:AC-11006', '[CA-29] @spec:AC-11029'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-abrir.onp.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "high",
+          "escalationTriggers": [
+            "Gerente recusa as duas saídas do D-4"
+          ],
+          "blockedConditions": [
+            "Constante ausente e sem resposta do gerente"
+          ]
+        }
+      },
+      {
+        "id": "T-11005",
+        "title": "Receber e pagar",
+        "objective": "Visual do Stitch sem mudar as regras",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11003"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "As regras já existem",
+          "files": [
+            "apps/web/src/features/checkout/FechamentoDaCompra.tsx"
+          ],
+          "evidence": [
+            "FechamentoDaCompra.tsx:733-801,926-938"
+          ],
+          "decisions": [
+            "D-10"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/SeletorDeEndereco.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/CamposDeEndereco.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/SeletorDePagamento.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/CaixaPix.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/fechamento.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/fechamento-receber-pagar.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Chip ou Abas só com semântica de rádio"
+          ],
+          "contracts": [
+            "Rótulos e ids entrega-* não mudam"
+          ],
+          "constraints": [
+            "Sem cupom, parcela, cartão nem selos"
+          ],
+          "expected": [
+            "Testes antigos sem edição"
+          ],
+          "forbidden": [
+            "Editar config-entrega, checkout-na-janela ou o e2e"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10",
+            "CA-11",
+            "CA-12",
+            "CA-13"
+          ],
+          "tests": [
+            "fechamento-receber-pagar.onp.test.tsx: '[CA-10] @spec:AC-11010' a '[CA-13] @spec:AC-11013'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/fechamento-receber-pagar.onp.test.tsx apps/web/tests/config-entrega.test.tsx apps/web/tests/checkout-na-janela.test.tsx apps/web/tests/troco-no-fechamento.test.ts apps/web/tests/caixa-pix.test.tsx"
+          ],
+          "evidence": [
+            "390px e 1440px"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [
+            "Rótulo ou id do e2e precisaria mudar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11006",
+        "title": "Total, revisão e envio único com tentativa pendente",
+        "objective": "Estimativa, revisão depois de 409, UUID, ref de envio e tentativa pendente na ilha (D-5)",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11005"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "O servidor ignora o corpo quando a chave já foi usada; o carrinho é convertido na mesma transação",
+          "files": [
+            "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "FechamentoDaCompra.tsx:148,221,243,321,358-374,400-407",
+            "pedidos.routes.ts:331"
+          ],
+          "decisions": [
+            "D-5",
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/checkout/chave-do-fechamento.ts",
+              "action": "create",
+              "note": "novaChaveDoFechamento e os tipos de TentativaPendente"
+            },
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify",
+              "note": "recebe e entrega a tentativa por props (aoMudarEnvio); falha de rede trava a edição; 409 reconfere e pede confirmação de novo"
+            },
+            {
+              "path": "apps/web/src/features/checkout/ResumoDoPedido.tsx",
+              "action": "modify",
+              "note": "nota fora do <dl>"
+            },
+            {
+              "path": "apps/web/src/features/checkout/AvisoDeMudanca.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify",
+              "note": "ref da tentativa por loja; ao reabrir, recupera"
+            },
+            {
+              "path": "apps/web/tests/fechamento-total-idempotencia.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "O alerta do nao-pode continua com o texto do motivo"
+          ],
+          "contracts": [
+            "PedidoParaEnviar sem mudança"
+          ],
+          "constraints": [
+            "A chave nunca vai para log, storage, URL, atributo ou key"
+          ],
+          "expected": [
+            "resumo-do-pedido e fechamento-pagina verdes"
+          ],
+          "forbidden": [
+            "Cair em Math.random ou Date.now",
+            "Mudar o corpo num reenvio com a mesma chave"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-14",
+            "CA-15",
+            "CA-16",
+            "CA-17",
+            "CA-18",
+            "CA-19"
+          ],
+          "tests": [
+            "fechamento-total-idempotencia.onp.test.tsx: '[CA-14] @spec:AC-11014' a '[CA-19] @spec:AC-11019'; inclui 2 Esc durante o envio, fechar e reabrir com pendente, falha de rede → carrinho vazio → mesmo corpo e chave, falha de rede → carrinho com itens → chave nova"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/fechamento-total-idempotencia.onp.test.tsx apps/web/tests/resumo-do-pedido.test.tsx apps/web/tests/aviso-de-mudanca.test.tsx apps/web/tests/fechamento-pagina.test.tsx apps/web/tests/checkout-na-janela.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Precisar de API (Q-11007, Q-11008)"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11007",
+        "title": "Conta trocada, loja fechada e pedido criado",
+        "objective": "D-9, loja fechada que guarda a sacola, pedido criado com os valores",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11006"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "401 sem aoEntrar; conta sem id; EVENTO_ACESSO_CONCLUIDO existe",
+          "files": [
+            "apps/web/src/features/checkout/PassoDoFechamento.tsx",
+            "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+            "apps/web/src/features/checkout/EnvioWhatsApp.tsx"
+          ],
+          "evidence": [
+            "PassoDoFechamento.tsx:117-123,142-144,169",
+            "JanelaDeAcesso.tsx:63"
+          ],
+          "decisions": [
+            "D-9",
+            "D-10"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/checkout/PassoDoFechamento.tsx",
+              "action": "modify",
+              "note": "título 'Fechar pedido'; nova preparação silenciosa; geração da conta"
+            },
+            {
+              "path": "apps/web/src/features/checkout/FechamentoDaCompra.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/checkout/EnvioWhatsApp.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/server/conta-do-fechamento.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/fechamento-conta-loja.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "O horário da loja fechada fica fora do alerta do motivo"
+          ],
+          "contracts": [
+            "PreparoDoFechamento sem campo novo"
+          ],
+          "constraints": [
+            "A loja fechada não esvazia a sacola"
+          ],
+          "expected": [
+            "Sucesso → código na tela → barra e coluna vazias"
+          ],
+          "forbidden": [
+            "Editar server/ ou acoes.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-20",
+            "CA-21",
+            "CA-22"
+          ],
+          "tests": [
+            "fechamento-conta-loja.onp.test.tsx: '[CA-20] @spec:AC-11020' (401; troca sem 401; falha de rede seguida de troca de conta, sem reenviar a chave antiga), '[CA-21] @spec:AC-11021', '[CA-22] @spec:AC-11022'"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/fechamento-conta-loja.onp.test.tsx apps/web/tests/fechamento-loja-fechada.test.ts apps/web/tests/envio-whatsapp.test.tsx apps/web/tests/checkout-na-janela.test.tsx apps/web/tests/fechamento-pagina.test.tsx"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "Precisar de id da conta"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11008",
+        "title": "Rotas, privacidade e nada de 'A decidir'",
+        "objective": "Provar rotas, a ausência de dados e da chave, e as funções ocultas",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11007"
+        ],
+        "requirements": [
+          "R-5",
+          "R-6"
+        ],
+        "context": {
+          "summary": "Tarefa de prova",
+          "files": [
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "CarrinhoFlutuante.tsx:309-313"
+          ],
+          "decisions": [
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/sacola-privacidade.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify",
+              "note": "só se um teste revelar falha"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/checkout/acoes.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Exceção do /checkout registrada no relatório"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [
+            "Nada oculto aparece no DOM"
+          ],
+          "forbidden": [
+            "Editar .spec/"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-23",
+            "CA-25",
+            "CA-26",
+            "CA-27"
+          ],
+          "tests": [
+            "sacola-privacidade.onp.test.tsx: '[CA-23] @spec:AC-11023', '[CA-25] @spec:AC-11025', '[CA-26] @spec:AC-11026', '[CA-27] @spec:AC-11027' (a chave na lista de valores proibidos)"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-privacidade.onp.test.tsx",
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm test:unit",
+            "pnpm format:check"
+          ],
+          "evidence": [
+            "Audit filtrado sem erro estrutural"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [
+            "format:check falha só por .spec/verification"
+          ],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "API das peças do #104 diferente da proposta",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "D-2, com o diálogo nativo como saída",
+        "detection": "gaveta.tsx e typecheck",
+        "recovery": "Nativo com tokens"
+      },
+      {
+        "text": "#105, #108 ou #109 alteraram arquivos da sacola",
+        "probability": "high",
+        "impact": "medium",
+        "mitigation": "Ler o diff antes da T-11001 e preservar",
+        "detection": "git diff e os testes",
+        "recovery": "Avisar o dono"
+      },
+      {
+        "text": "CLS quando a coluna preenche a zona :empty",
+        "probability": "high",
+        "impact": "medium",
+        "mitigation": "Medir; acima de 0,1, levar ao gerente (reservar a zona com o #108 contraria o AC-11003)",
+        "detection": "PerformanceObserver ou Lighthouse",
+        "recovery": "Decisão do usuário"
+      },
+      {
+        "text": "Ponto de troca divergente entre matchMedia e CSS",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "Constante única PONTO_DA_COLUNA e teste que lê a media query do #108",
+        "detection": "sacola-estilos.onp.test.ts",
+        "recovery": "Ajustar a constante"
+      },
+      {
+        "text": "Referências fora dos meus arquivos: passos.ts, legal.css, usuario.css, SacolaDeExemplo.tsx, e2e carrinho.spec.ts:54",
+        "probability": "high",
+        "impact": "low",
+        "mitigation": "Classe gancho; SacolaFlutuante mantida; cookies em fechamento.css; avisos ao gerente, ao #111 e ao #114",
+        "detection": "rg e typecheck",
+        "recovery": "Os donos limpam"
+      },
+      {
+        "text": "Regressão no fluxo do pedido ou pedido em dobro",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "Tentativa pendente (D-5), CA-16 a CA-20 e todos os testes antigos a cada tarefa, mais o fluxo manual",
+        "detection": "vitest e navegador",
+        "recovery": "git restore dos arquivos da tarefa"
+      },
+      {
+        "text": "A borda da API aceita chave fraca (8 a 64 caracteres)",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "O cliente sempre usa UUID; aviso ao gerente para um card de API",
+        "detection": "Revisão",
+        "recovery": "Fora do #110"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/carrinho-gaveta.test.tsx",
+        "apps/web/tests/carrinho-atacado.test.tsx",
+        "apps/web/tests/precos-na-tela.test.tsx",
+        "apps/web/tests/checkout-na-janela.test.tsx",
+        "apps/web/tests/fechamento-pagina.test.tsx",
+        "apps/web/tests/fechamento-loja-fechada.test.ts",
+        "apps/web/tests/troco-no-fechamento.test.ts",
+        "apps/web/tests/config-entrega.test.tsx",
+        "apps/web/tests/aviso-de-mudanca.test.tsx",
+        "apps/web/tests/resumo-do-pedido.test.tsx",
+        "apps/web/tests/caixa-pix.test.tsx",
+        "apps/web/tests/envio-whatsapp.test.tsx",
+        "apps/web/tests/sacola-e-banners.test.tsx",
+        "apps/web/src/features/carrinho/useCarrinho.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/sacola-estilos.onp.test.ts",
+        "apps/web/tests/sacola-linha.onp.test.tsx",
+        "apps/web/tests/sacola-lateral.onp.test.tsx",
+        "apps/web/tests/sacola-barra.onp.test.tsx",
+        "apps/web/tests/sacola-abrir.onp.test.tsx",
+        "apps/web/tests/fechamento-receber-pagar.onp.test.tsx",
+        "apps/web/tests/fechamento-total-idempotencia.onp.test.tsx",
+        "apps/web/tests/fechamento-conta-loja.onp.test.tsx",
+        "apps/web/tests/sacola-privacidade.onp.test.tsx"
+      ],
+      "manual": [
+        "Navegador em 390, 768 e 1440px, claro e escuro: coluna, barra, diálogo, foco, fechamento até o pedido, /carrinho, /checkout, prévia e /ui",
+        "CLS do catálogo com itens"
+      ],
+      "external": [
+        "apps/api/tests/pedido-idempotente.test.ts (parte do servidor do AC-11017 e do AC-11019)",
+        "e2e carrinho.spec.ts e checkout.spec.ts (#114)"
+      ]
+    },
+    "rollback": "Nada é commitado sem o usuário. Para desfazer uma tarefa: git restore dos arquivos dela e remoção dos criados. A T-11009 só move CSS: git restore de vitrine.css e fechamento.css.",
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura + rmcode-revisor-plano-seguranca (rodadas 1 e 2",
+      "findings": [
+        {
+          "text": "R1: testes antigos quebrariam com os textos novos",
+          "severity": "critical",
+          "resolution": "Decisão do usuário: só strings em carrinho-gaveta e fechamento-pagina; rótulos de receber mantidos; estimativa como nota"
+        },
+        {
+          "text": "R1: 'um estado e uma busca' era falso",
+          "severity": "critical",
+          "resolution": "D-1/D-8: useCarrinho no topo e serviço em duas camadas"
+        },
+        {
+          "text": "R1: ilha dentro da região esconderia a barra",
+          "severity": "critical",
+          "resolution": "D-1: portal só da coluna"
+        },
+        {
+          "text": "R1: foco de reserva, voltar no computador, D-6, tutorial, integração do #105, D-4, D-9, ordem do matchMedia, atalho, prévia, acimaDaAcao",
+          "severity": "major",
+          "resolution": "Incorporados na v2 (T-11001/T-11002/T-11003, D-3, D-4, D-9)"
+        },
+        {
+          "text": "R1: falha de rede, desmontagem da Gaveta, janela do 401, sair no meio do envio, e-mail como key, falta de crypto, privacidade, evento, D-7",
+          "severity": "major",
+          "resolution": "Incorporados na v2 (D-2, D-5, D-9, CA-17/18/20/27/29)"
+        },
+        {
+          "text": "R2: remover SacolaFlutuante quebra (dev)/ui/catalogo/SacolaDeExemplo.tsx",
+          "severity": "critical",
+          "resolution": "SacolaFlutuante fica no repositório (reuse); a remoção só com aval do gerente; rg na T-11002"
+        },
+        {
+          "text": "R2: falhaAoMudar e tentarDeNovo obrigatórios quebram o usoCom do teste antigo",
+          "severity": "critical",
+          "resolution": "D-6: campos opcionais; useCarrinho.test.tsx na verificação"
+        },
+        {
+          "text": "R2: tentativa subindo no sucesso apaga a tela do pedido; o autoignorar engolia o aviso do pedido",
+          "severity": "major",
+          "resolution": "D-2: a tentativa sobe só ao fechar; D-1: o autoignorar fica restrito ao mudarQuantidade; teste sucesso → código → barra vazia"
+        },
+        {
+          "text": "R2: Esc durante o envio sem contrato; o Chrome deixa fechar no segundo Esc",
+          "severity": "major",
+          "resolution": "D-2/D-5: a tentativa pendente vive na ilha e sobrevive a fechar; ao reabrir, recupera; teste com 2 Esc"
+        },
+        {
+          "text": "R2: serviço recriado a cada renderização do servidor dispara recargas completas",
+          "severity": "major",
+          "resolution": "D-1: memo só pelo apelido, carregarProduto num ref, detalhes só com a coluna ou o diálogo; teste de nova renderização"
+        },
+        {
+          "text": "R2: CLS garantido e ponto de troca duplicado",
+          "severity": "major",
+          "resolution": "Risco aceito com medição e gatilho; PONTO_DA_COLUNA único e teste contra a media query do #108"
+        },
+        {
+          "text": "R2: AC-11017/AC-11019 dependem do servidor",
+          "severity": "minor",
+          "resolution": "CA-17/CA-19 só com a parte do cliente; a do servidor fica em pedido-idempotente.test.ts e no e2e do #114"
+        },
+        {
+          "text": "R2: restrições de resumo-do-pedido e fechamento-pagina e o título 'Fechar pedido'",
+          "severity": "minor",
+          "resolution": "D-10: nota fora do <dl>, alerta intacto, título 'Fechar pedido'; testes na verificação"
+        },
+        {
+          "text": "S2: chave guardada pode entregar o pedido de A para B sem 401",
+          "severity": "major",
+          "resolution": "D-5/D-9: antes de reenviar, preparar de novo e comparar a conta; ouvir EVENTO_ACESSO_CONCLUIDO; teste em CA-20"
+        },
+        {
+          "text": "S2: reenvio com o formulário editado devolve o pedido com os dados antigos",
+          "severity": "major",
+          "resolution": "D-5: edição travada depois de falha; reconferir decide entre o reenvio exato (carrinho vazio) e a chave nova (carrinho com itens); teste"
+        },
+        {
+          "text": "S2: a chave pendente se perde ao fechar ou voltar",
+          "severity": "major",
+          "resolution": "D-5: a tentativa pendente fica num ref da ilha até resposta definitiva ou troca de conta; teste"
+        },
+        {
+          "text": "S2: normalização do e-mail",
+          "severity": "minor",
+          "resolution": "D-9: trim().toLowerCase(); na dúvida, outra conta"
+        },
+        {
+          "text": "S2: a chave fora do DOM e a borda da API fraca",
+          "severity": "minor",
+          "resolution": "Chave na lista proibida do CA-27; aviso ao gerente sobre a API"
+        }
+      ]
+    },
+    "estimate": {
+      "note": "9 tarefas sequenciais; cerca de 3 a 4 sessões"
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz HIGH, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      }
+    ],
+    "evaluatedAt": 1794502326558,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

@@ -1,0 +1,2011 @@
+{
+  "version": 3,
+  "cardId": "a5301709-dbb9-4d77-96fb-b99664e10865",
+  "cardSeq": 105,
+  "savedAt": 1794502113213,
+  "plan": {
+    "title": "#105 Stitch · Navegação do cliente (topo, barra inferior, rodapé)",
+    "complexity": "CRITICAL",
+    "risk": "medium",
+    "summary": "Substitui a lateral do usuário nas molduras do cliente (explorar, loja, conta) por topo + menu da conta + barra inferior (peça BarraInferior do #104), unifica o validador de retorno pós-login em lib/ (normalização e redução de segredo/lat-lng), leva o destino em todas as saídas sem sessão de /conta e da verificação em duas etapas, adiciona indicador de localização com consentimento (LGPD) e cidade do endereço padrão lida no servidor, sacola no topo pelo evento sc:abrir-sacola, convivência das barras fixas e área segura, rodapé enxuto com prova de links, Referrer-Policy e cenários e2e para o #114. Arquivos novos da navegação ficam em apps/web/src/features/usuario/ (pasta existente e autorizada). Execução sequencial depois do #104, sem commit.",
+    "discovery": [
+      {
+        "claim": "O validador forte de retorno mora em features/auth.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/auth/destino-seguro.ts",
+          "symbol": "destinoSeguro"
+        }
+      },
+      {
+        "claim": "enderecoComRetorno só recusa // e o próprio destino.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/quem-esta-logado.ts",
+          "symbol": "enderecoComRetorno"
+        }
+      },
+      {
+        "claim": "destinoDepoisDeSair é um terceiro validador usado pelo redirect de sairPelaBarra.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/quem-esta-logado.ts",
+          "symbol": "destinoDepoisDeSair"
+        }
+      },
+      {
+        "claim": "A regra de fronteira trata apps/web/src/features/** como uma camada só; web-server e web-lib só importam lib/, contratos e core.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/config-eslint/fronteiras.js",
+          "symbol": "politicas"
+        }
+      },
+      {
+        "claim": "As molduras do cliente montam LateralDaSessao e RodapeLegal; a da loja também JanelaDeAcesso.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/layout.tsx",
+          "symbol": "MolduraDaLoja"
+        }
+      },
+      {
+        "claim": "LateralDaSessao lê a sessão no servidor e monta o Tutorial do cliente.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/_usuario/sessao.tsx",
+          "symbol": "LateralDaSessao"
+        }
+      },
+      {
+        "claim": "tokenOuEntrar redireciona para /entrar sem destino.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(conta)/conta/_token.ts",
+          "symbol": "tokenOuEntrar"
+        }
+      },
+      {
+        "claim": "A recuperação usa uma string só (orientarPara ?? redirecionarPara).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/auth/CodigoDeRecuperacaoForm.tsx",
+          "symbol": "CodigoDeRecuperacaoForm"
+        }
+      },
+      {
+        "claim": "caminhoAtual() da janela usa destinoSeguro(pathname+search); a redução dentro do validador cobre a janela.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/auth/JanelaDeAcesso.tsx",
+          "symbol": "abrirJanelaDeAcesso"
+        }
+      },
+      {
+        "claim": "O feed grava sc:feed:local sem consentimento e pede a localização sozinho com ordem=distancia.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/BarraDoFeed.tsx",
+          "symbol": "CHAVE_DO_LOCAL"
+        }
+      },
+      {
+        "claim": "enderecoDoFeed descarta filtros incompatíveis e inclui lat/lng; lerConsulta recebe (aba, ParametrosDaPagina).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/consulta.ts",
+          "symbol": "enderecoDoFeed"
+        }
+      },
+      {
+        "claim": "Componentes do feed montam /entrar?proximo= à mão.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+          "symbol": "TelaDoFeed"
+        }
+      },
+      {
+        "claim": "A chave dos stories vistos é sc:feed:stories-vistos.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/social.ts",
+          "symbol": "CHAVE_DOS_STORIES_VISTOS"
+        }
+      },
+      {
+        "claim": "temConsentimento e consentimentoAtual existem, com a data da escolha.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/legal/consentimento.ts",
+          "symbol": "temConsentimento"
+        }
+      },
+      {
+        "claim": "Padrão de leitura no servidor de /v1/conta/enderecos com no-store e timeout.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/conta-do-fechamento.ts",
+          "symbol": "lerContaQueFecha"
+        }
+      },
+      {
+        "claim": "A contagem do carrinho é chamada do navegador com aviso por evento.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/lib/carrinho-do-navegador.ts",
+          "symbol": "contarItensDoCarrinho"
+        }
+      },
+      {
+        "claim": "CarrinhoFlutuante só desenha .sc-sacola com contagem > 0.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+          "symbol": "CarrinhoFlutuante"
+        }
+      },
+      {
+        "claim": "O tutorial escolhe o primeiro alvo visível; 'rever' aponta para .sc-usuario-lateral.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/tutorial/passos.ts",
+          "symbol": "PASSOS_DO_TUTORIAL"
+        }
+      },
+      {
+        "claim": "CSS do feed e da loja dependem da lateral para deslocar barras grudadas.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/usuario.css",
+          "symbol": "--altura-da-barra"
+        }
+      },
+      {
+        "claim": "O aviso de cookies sobe com seletores ligados a nav[aria-label=Atalhos] e à lateral.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/legal.css",
+          "symbol": ".sc-cookies"
+        }
+      },
+      {
+        "claim": "RodapeLegal usa outra expressão para sumir na TV.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/legal/RodapeLegal.tsx",
+          "symbol": "RodapeLegal"
+        }
+      },
+      {
+        "claim": "next.config.ts não define headers().",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/next.config.ts",
+          "symbol": "configuracao"
+        }
+      },
+      {
+        "claim": "MenuSuspenso não aceita next/link, aria-current nem data-*.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/menu-suspenso.tsx",
+          "symbol": "MenuSuspenso"
+        }
+      },
+      {
+        "claim": "A versão legal do servidor é a data da revisão.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/legal.ts",
+          "symbol": "VERSAO_DOS_DOCUMENTOS_LEGAIS"
+        }
+      },
+      {
+        "claim": "A pasta features/usuario existe e foi autorizada; os arquivos novos da navegação ficam nela.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/usuario/LateralDoUsuario.tsx",
+          "symbol": "LateralDoUsuario"
+        }
+      },
+      {
+        "claim": "Há saídas de sessão fora dos botões Sair: sairDaConta na segurança, exclusão da conta e o Sair do painel.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/actions/conta.ts",
+          "symbol": "sairDepoisDeExcluirAConta"
+        }
+      },
+      {
+        "claim": "Contrato da BarraInferior do #104 (plano READY): rotulo obrigatório, componenteDeLink, itens href+atributos ou aoAcionar, oculta; não é 'use client'; classe estável .sc-barra-inferior; ainda não existe no código.",
+        "kind": "inference"
+      },
+      {
+        "claim": "Área segura, teclado virtual e foco encoberto só se medem em navegador.",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Validador único de retorno em lib/ com normalização e redução de segredo e coordenada (AC-10513, AC-10514).",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "retorno-ao-destino.onp.test.ts: casos hostis (//evil.com, /\\evil, %0d%0a, tab, /api/x, /./api/x, /conta/../api/x, /./entrar, /Entrar, %252F%252Fevil, /%2F/evil, /%5Cevil, https:evil.com, //evil.com@site, fragmento, >512) devolvem undefined."
+          },
+          {
+            "id": "CA-2",
+            "verify": "enderecoComRetorno, destinoDepoisDeSair e comDestino usam destinoSeguro; '/' e null sem proximo."
+          },
+          {
+            "id": "CA-3",
+            "verify": "/loja|/l/x/pedido/<token> (%74oken, barra dupla, com busca) vira /loja/x; lat/lng somem; janela de acesso na rota do token e os 5 links do feed sem token nem lat/lng."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Saídas sem sessão de /conta, escolher-loja e verificação levam e respeitam o destino (AC-10511, AC-10512).",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "retorno-na-conta.onp.test.tsx: guardas redirecionam para /entrar?proximo=<caminho> (id codificado, sem ?estado=, aplicativo com guarda)."
+          },
+          {
+            "id": "CA-5",
+            "verify": "Nenhum redirect/replace para '/entrar' sem destino em apps/web/src/app/(conta)."
+          },
+          {
+            "id": "CA-6",
+            "verify": "Verificação mantém o destino nas 3 saídas; orientarPara validado tem prioridade; valores inválidos caem no destino do papel."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Regras puras de navegação (AC-10501, AC-10503, AC-10515, AC-10524, AC-10525).",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "navegacao-do-cliente.onp.test.tsx: tabela rota→item com exatamente um ativo."
+          },
+          {
+            "id": "CA-8",
+            "verify": "Matriz dos 5 papéis sem /painel e /admin indevidos em menu, barra e abas."
+          },
+          {
+            "id": "CA-9",
+            "verify": "Abas do feed mantêm filtros compatíveis."
+          },
+          {
+            "id": "CA-10",
+            "verify": "Topo, barra e RodapeLegal somem em /loja/x/tv por caminhoSemBarra."
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Topo com marca, localização, busca, sacola, menu da conta e abas (AC-10501, AC-10502, AC-10504, AC-10511, AC-10516).",
+        "acceptance": [
+          {
+            "id": "CA-11",
+            "verify": "topo-do-cliente.onp.test.tsx: marca → /explorar; abas links com um aria-current; avatar sem aria-current."
+          },
+          {
+            "id": "CA-12",
+            "verify": "Busca foca #sc-feed-busca ou leva a /explorar/produtos#sc-feed-busca."
+          },
+          {
+            "id": "CA-13",
+            "verify": "Menu: itens do papel; Entrar com data-abre-acesso na loja; Ver tutorial dispara EVENTO_VER_TUTORIAL; Sair limpa dados locais e chama sair."
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Barra inferior com cinco destinos (AC-10503, AC-10504, AC-10520).",
+        "acceptance": [
+          {
+            "id": "CA-14",
+            "verify": "barra-inferior-do-cliente.onp.test.tsx: rotulo 'Navegação principal', 5 itens, um aria-current."
+          },
+          {
+            "id": "CA-15",
+            "verify": "Visitante: Favoritos, Pedidos e Perfil vão a /entrar?proximo=..."
+          },
+          {
+            "id": "CA-16",
+            "verify": "tecladoAberto liga oculta; some a partir de 64rem."
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Localização com consentimento, cidade do servidor e textos legais (AC-10505 a AC-10508, Q-10509).",
+        "acceptance": [
+          {
+            "id": "CA-17",
+            "verify": "Rótulos por situação e nome acessível com o valor."
+          },
+          {
+            "id": "CA-18",
+            "verify": "Grava só com funcionais dados a partir de INICIO_DA_LOCALIZACAO; arredonda; apaga ao recusar, nos três Sair e ao abrir como visitante com a marca sc:aparelho:teve-conta (cobre exclusão da conta, Sair da segurança e do painel e sessão vencida), apagando sc:feed:local e sc:feed:stories-vistos; sem getCurrentPosition ao montar."
+          },
+          {
+            "id": "CA-19",
+            "verify": "Em /explorar, trocar a localização faz router.replace com a coordenada nova."
+          },
+          {
+            "id": "CA-20",
+            "verify": "cidade-do-topo devolve exatamente {cidade, uf} do padrão; falha/401 → null sem redirect; no-store."
+          },
+          {
+            "id": "CA-21",
+            "verify": "Privacidade e cookies citam a localização aproximada."
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Sacola no topo (AC-10509, AC-10510).",
+        "acceptance": [
+          {
+            "id": "CA-22",
+            "verify": "sacola-do-topo.onp.test.tsx: 'Sacola, 3 itens'; vazia sem número; atualiza por evento; HTML do servidor sem número."
+          },
+          {
+            "id": "CA-23",
+            "verify": "sc:abrir-sacola abre o CarrinhoFlutuante; sem ouvinte vai a /loja/<apelido>/carrinho da prop."
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Molduras com a navegação nova (AC-10504, AC-10511, AC-10515, AC-10516, AC-10526).",
+        "acceptance": [
+          {
+            "id": "CA-24",
+            "verify": "molduras-do-cliente.onp.test.tsx: topo, barra e rodapé sem a lateral; papel da sessão; JanelaDeAcesso mantida."
+          },
+          {
+            "id": "CA-25",
+            "verify": "Passos do tutorial com alvo na navegação nova."
+          },
+          {
+            "id": "CA-26",
+            "verify": "Itens são next/link e não mexem no carrinho; e2e confere a sacola ao voltar."
+          }
+        ]
+      },
+      {
+        "id": "R-9",
+        "text": "Barras fixas sem cobrir conteúdo (AC-10517 a AC-10521).",
+        "acceptance": [
+          {
+            "id": "CA-27",
+            "verify": "barras-fixas.onp.test.ts: reserva com --altura-da-barra-inferior + safe-area e scroll-padding-block."
+          },
+          {
+            "id": "CA-28",
+            "verify": "Abaixo de 64rem a barra some com .sc-sacola ou .sc-produto__acao."
+          },
+          {
+            "id": "CA-29",
+            "verify": "Cookies (legal.css, gancho .sc-barra-inferior) e .sc-aviso-flutuante acima da barra."
+          },
+          {
+            "id": "CA-30",
+            "verify": "Sobrescritas de --sc-feed-topo, --altura-da-barra e .sc-sacola__area declaradas."
+          }
+        ]
+      },
+      {
+        "id": "R-10",
+        "text": "Rodapé enxuto com links reais (AC-10522, AC-10523, AC-10524).",
+        "acceptance": [
+          {
+            "id": "CA-31",
+            "verify": "rodape-do-cliente.onp.test.tsx: cada href casa com um page.tsx."
+          },
+          {
+            "id": "CA-32",
+            "verify": "Sem cupom, carteira, fidelidade, central de ajuda, Entrega Flash, Suporte 24h, CNPJ, razão social."
+          }
+        ]
+      },
+      {
+        "id": "R-11",
+        "text": "Referrer-Policy (AC-10514, Q-10508).",
+        "acceptance": [
+          {
+            "id": "CA-33",
+            "verify": "referrer-policy.onp.test.ts: headers() devolve strict-origin-when-cross-origin para /:path*."
+          }
+        ]
+      },
+      {
+        "id": "R-12",
+        "text": "Cenários de navegador propostos ao #114.",
+        "acceptance": [
+          {
+            "id": "CA-34",
+            "verify": "e2e/specs/navegacao-do-cliente.onp.spec.ts com os cenários; roda se o ambiente e2e estiver disponível."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "lib/destino-seguro.ts e reexportação em features/auth",
+        "retorno ao destino em app/(conta)/**",
+        "arquivos novos da navegação em apps/web/src/features/usuario/",
+        "server/cidade-do-topo.ts",
+        "sessao.tsx e as 3 molduras",
+        "features/legal/* e legal.css",
+        "features/tutorial/passos.ts",
+        "next.config.ts",
+        "mudanças mínimas listadas em arquivos do #106, #110 e CodigoDeRecuperacaoForm",
+        "testes *.onp.test.* e e2e"
+      ],
+      "out": [
+        "landing / e RodapeDoSimpleClick",
+        ".spec/",
+        "arquivos do #104",
+        "features/conta, features/loja, features/painel",
+        "painel, admin",
+        "feed.css, vitrine.css, produto.css, usuario.css",
+        "lat/lng na URL do feed (#106)",
+        "remoção de LateralDoUsuario (#111)",
+        "commit, push, troca de branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-10501: Lojas → /explorar/lojas.",
+        "impact": "Muda só a tabela de regras."
+      },
+      {
+        "text": "Q-10502: a barra da página substitui a barra inferior.",
+        "impact": "Empilhar exigiria somar alturas."
+      },
+      {
+        "text": "Q-10503/Q-10504: cidade padrão + localização aproximada; sacola só na loja.",
+        "impact": "Outras alternativas exigem API nova."
+      },
+      {
+        "text": "Q-10508: strict-origin-when-cross-origin.",
+        "impact": "1 linha."
+      },
+      {
+        "text": "O #104 entrega BarraInferior, --altura-da-barra-inferior e viewportFit cover.",
+        "impact": "Sem isso a T-10505 pausa."
+      },
+      {
+        "text": "Texto legal muda sem nova versão de aceite.",
+        "impact": "Pendência jurídica no card_report."
+      },
+      {
+        "text": "AC-10522 provado só para os links do rodapé enxuto.",
+        "impact": "Divergência registrada."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Validador único em lib/destino-seguro.ts com normalização por URL, mesma origem, recusa de %2f/%5c/%00 e controle, ./.. resolvidos antes de conferir /api/ e telas de acesso, sem fragmento; features/auth reexporta.",
+        "why": "Fronteira e regras divergentes.",
+        "impact": "Todos herdam a regra.",
+        "mitigation": "Só quando lat/lng forem removidos."
+      },
+      {
+        "id": "D-2",
+        "decision": "Redução de segredo e de lat/lng dentro do validador; enderecoComRetorno mantém '/' e null; destinoDepoisDeSair = destinoSeguro restrito a /loja/.",
+        "why": "Um ponto cobre janela, entrar e verificação.",
+        "impact": "Quem entra pelo acompanhamento volta à loja."
+      },
+      {
+        "id": "D-3",
+        "decision": "Abas do topo são links com aria-current, não o Abas (tablist) do #104.",
+        "why": "Navegação entre páginas."
+      },
+      {
+        "id": "D-4",
+        "decision": "Avatar nunca recebe aria-current; em Perfil no computador o link do menu leva aria-current.",
+        "why": "Evita duplicar o Perfil da barra."
+      },
+      {
+        "id": "D-5",
+        "decision": "MenuDaConta próprio com popover nativo e classes próprias; ICONES_DO_USUARIO movido para features/usuario/icones-do-usuario.ts.",
+        "why": "MenuSuspenso não atende; usuario.css só carrega com a lateral.",
+        "mitigation": "Dublê de popover no jsdom."
+      },
+      {
+        "id": "D-6",
+        "decision": "LateralDoUsuario e usuario.css ficam no código e saem das molduras.",
+        "why": "Rollback simples."
+      },
+      {
+        "id": "D-7",
+        "decision": "Sobrescrever --sc-feed-topo, --altura-da-barra e .sc-sacola__area por body:has(.sc-topo-cliente) em apps/web/src/features/usuario/navegacao.css.",
+        "why": "Donos dos CSS vêm depois."
+      },
+      {
+        "id": "D-8",
+        "decision": "Cidade em server/cidade-do-topo.ts: cache() do React, no-store, 2,5 s, só cliente, só padrao=true, exatamente {cidade, uf}.",
+        "why": "LGPD."
+      },
+      {
+        "id": "D-9",
+        "decision": "apps/web/src/features/usuario/local-do-aparelho.ts: grava só com funcionais desde INICIO_DA_LOCALIZACAO; arredonda; limparDadosLocaisDoCliente apaga sc:feed:local e sc:feed:stories-vistos nos três Sair e, para qualquer outra saída (Sair da segurança, exclusão da conta, Sair do painel, sessão vencida), pela marca sc:aparelho:teve-conta: gravada quando o topo monta logado, faz a limpeza quando o topo monta como visitante.",
+        "why": "Consentimento antigo não falava de localização; saídas do servidor não limpam o aparelho; a marca não depende de cada botão."
+      },
+      {
+        "id": "D-10",
+        "decision": "sc:abrir-sacola com detail.atendido; recuo pela prop; dedupe em lib/contagem-da-sacola.ts.",
+        "why": "Mesma sacola, sem chamadas duplicadas."
+      },
+      {
+        "id": "D-11",
+        "decision": "Referrer-Policy por headers() no next.config.ts.",
+        "why": "Hoje não há política."
+      },
+      {
+        "id": "D-12",
+        "decision": "useSearchParams do topo dentro de Suspense; parâmetros convertidos para ParametrosDaPagina.",
+        "why": "Pré-render do layout."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-10501",
+        "title": "Validador único de retorno em lib/",
+        "objective": "Uma regra só para o destino pós-login.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Move e endurece o validador; links do feed usam comDestino.",
+          "files": [
+            "apps/web/src/features/auth/destino-seguro.ts",
+            "apps/web/src/lib/quem-esta-logado.ts",
+            "apps/web/src/features/auth/JanelaDeAcesso.tsx"
+          ],
+          "evidence": [
+            "destinoSeguro compara prefixos no texto cru"
+          ],
+          "decisions": [
+            "D-1",
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/lib/destino-seguro.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/auth/destino-seguro.ts",
+              "action": "modify",
+              "note": "reexportação"
+            },
+            {
+              "path": "apps/web/src/lib/quem-esta-logado.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/TelaDoFeed.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/feed/Post.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/feed/PostDeLoja.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/feed/GavetaDeComentarios.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/auth/JanelaDeAcesso.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/retorno-ao-destino.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "normalizar por URL",
+            "reduzir segredo e lat/lng",
+            "'/' e null sem proximo"
+          ],
+          "contracts": [
+            "destinoSeguro(valor: unknown): string | undefined",
+            "destinoDosParametros({get})",
+            "comDestino(tela, destino?)"
+          ],
+          "constraints": [
+            "lib/ não importa features/",
+            "não editar JanelaDeAcesso.tsx"
+          ],
+          "expected": [
+            "um validador só"
+          ],
+          "forbidden": [
+            "relaxar casos recusados hoje"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3"
+          ],
+          "tests": [
+            "apps/web/tests/retorno-ao-destino.onp.test.ts",
+            "apps/web/tests/destino-seguro.test.ts",
+            "apps/web/tests/destino-pos-login.test.ts",
+            "apps/web/tests/lateral-do-usuario.test.tsx",
+            "apps/web/tests/janela-de-acesso.test.tsx",
+            "apps/web/tests/fronteiras-projeto.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/retorno-ao-destino.onp.test.ts apps/web/tests/destino-seguro.test.ts apps/web/tests/destino-pos-login.test.ts apps/web/tests/lateral-do-usuario.test.tsx apps/web/tests/janela-de-acesso.test.tsx",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "teste existente só passa relaxando o validador"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10502",
+        "title": "Retorno ao destino em /conta, escolher-loja e verificação",
+        "objective": "Toda saída sem sessão leva o destino.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10501"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Guardas com comDestino e saídas da verificação.",
+          "files": [
+            "apps/web/src/app/(conta)/conta/_token.ts",
+            "apps/web/src/app/(conta)/entrar/verificacao/page.tsx",
+            "apps/web/src/features/auth/CodigoDeRecuperacaoForm.tsx"
+          ],
+          "evidence": [
+            "guardas enumeradas; aplicativo sem guarda"
+          ],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(conta)/conta/_token.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/dados/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/pedidos/[id]/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/enderecos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/favoritos/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/seguranca/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/seguranca/aplicativo/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/escolher-loja/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/escolher-loja/nova/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/entrar/verificacao/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/auth/CodigoDeRecuperacaoForm.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/retorno-na-conta.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "redirect(comDestino('/entrar', caminho))",
+            "verificação com destino",
+            "orientarPara > destino > redirecionarPara"
+          ],
+          "contracts": [
+            "tokenOuEntrar(caminho: string)",
+            "aoCriarSessao({ orientarPara?, redirecionarPara })"
+          ],
+          "constraints": [
+            "só as guardas"
+          ],
+          "expected": [
+            "nenhuma saída sem destino"
+          ],
+          "forbidden": [
+            "mudar lógica das páginas"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4",
+            "CA-5",
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/retorno-na-conta.onp.test.tsx",
+            "apps/web/tests/telas-de-acesso.test.tsx",
+            "apps/web/tests/escolher-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/retorno-na-conta.onp.test.tsx apps/web/tests/telas-de-acesso.test.tsx apps/web/tests/escolher-loja.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10503",
+        "title": "Regras puras da navegação",
+        "objective": "Tabela rota→item, papéis, abas do feed, sem barra.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10501"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Funções puras.",
+          "files": [
+            "apps/web/src/lib/quem-esta-logado.ts",
+            "apps/web/src/features/feed/consulta.ts",
+            "apps/web/src/features/legal/RodapeLegal.tsx"
+          ],
+          "evidence": [
+            "itemAtivo por prefixo"
+          ],
+          "decisions": [
+            "D-4",
+            "D-12"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/regras-da-navegacao.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/legal/RodapeLegal.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/feed/consulta.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/navegacao-do-cliente.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "tabela §2.2",
+            "visitante → comDestino"
+          ],
+          "contracts": [
+            "itemPrincipalAtivo(caminho): item | null"
+          ],
+          "constraints": [
+            "papel só da sessão"
+          ],
+          "expected": [
+            "um ativo por rota"
+          ],
+          "forbidden": [
+            "itens novos por papel"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7",
+            "CA-8",
+            "CA-9",
+            "CA-10"
+          ],
+          "tests": [
+            "apps/web/tests/navegacao-do-cliente.onp.test.tsx",
+            "apps/web/tests/legal.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/navegacao-do-cliente.onp.test.tsx apps/web/tests/legal.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10504",
+        "title": "Topo do cliente e menu da conta",
+        "objective": "Topo e menu da conta.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10503"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "Ilha do navegador.",
+          "files": [
+            "apps/web/src/features/usuario/LateralDoUsuario.tsx",
+            "packages/ui/src/menu-suspenso.tsx"
+          ],
+          "evidence": [
+            "ICONES_DO_USUARIO na lateral"
+          ],
+          "decisions": [
+            "D-3",
+            "D-4",
+            "D-5",
+            "D-12"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/TopoDoCliente.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/usuario/MenuDaConta.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/usuario/navegacao.css",
+              "action": "create",
+              "note": "criado aqui; T-10505 e T-10509 acrescentam regras"
+            },
+            {
+              "path": "apps/web/src/features/usuario/icones-do-usuario.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/usuario/LateralDoUsuario.tsx",
+              "action": "modify",
+              "note": "reexporta ICONES_DO_USUARIO"
+            },
+            {
+              "path": "apps/web/tests/topo-do-cliente.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "abas como Link",
+            "busca foca #sc-feed-busca",
+            "menu com Entrar, Ver tutorial, Sair"
+          ],
+          "contracts": [
+            "TopoDoCliente({ usuario, loja?, cidade, sair })"
+          ],
+          "constraints": [
+            "nunca --cor-marca*"
+          ],
+          "expected": [
+            "topo nas três molduras"
+          ],
+          "forbidden": [
+            "Entrega Flash, CNPJ"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-11",
+            "CA-12",
+            "CA-13"
+          ],
+          "tests": [
+            "apps/web/tests/topo-do-cliente.onp.test.tsx",
+            "apps/web/tests/lateral-do-usuario.test.tsx",
+            "apps/web/tests/css-da-loja-sem-verde-fixo.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/topo-do-cliente.onp.test.tsx apps/web/tests/lateral-do-usuario.test.tsx apps/web/tests/css-da-loja-sem-verde-fixo.test.ts"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [
+            "useSearchParams no layout quebrar o build"
+          ],
+          "blockedConditions": [
+            "tokens do #104 ausentes"
+          ]
+        }
+      },
+      {
+        "id": "T-10505",
+        "title": "Barra inferior do cliente",
+        "objective": "Cinco destinos com a BarraInferior do #104.",
+        "complexity": "LOW",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10504"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Contrato do #104; acrescenta regras à navegacao.css criada na T-10504.",
+          "files": [
+            "apps/web/src/features/usuario/LateralDoUsuario.tsx"
+          ],
+          "evidence": [
+            "contrato por board_message do #104"
+          ],
+          "decisions": [
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/BarraInferiorDoCliente.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/usuario/navegacao.css",
+              "action": "create",
+              "note": "mesmo arquivo da T-10504 (já criado na execução sequencial): acrescenta o esconder a partir de 64rem"
+            },
+            {
+              "path": "apps/web/tests/barra-inferior-do-cliente.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "BarraInferior rotulo componenteDeLink oculta",
+            "tecladoAberto puro"
+          ],
+          "contracts": [
+            "BarraInferior do #104"
+          ],
+          "constraints": [
+            "nunca 'Atalhos'"
+          ],
+          "expected": [
+            "uma navegação por largura"
+          ],
+          "forbidden": [
+            "barra própria"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-14",
+            "CA-15",
+            "CA-16"
+          ],
+          "tests": [
+            "apps/web/tests/barra-inferior-do-cliente.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/barra-inferior-do-cliente.onp.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [
+            "contrato real diferente"
+          ],
+          "blockedConditions": [
+            "BarraInferior não exportada"
+          ]
+        }
+      },
+      {
+        "id": "T-10506",
+        "title": "Indicador de localização no topo",
+        "objective": "Rótulo, consentimento, cidade e textos.",
+        "complexity": "MEDIUM",
+        "risk": "high",
+        "dependsOn": [
+          "T-10504"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "LGPD.",
+          "files": [
+            "apps/web/src/features/feed/BarraDoFeed.tsx",
+            "apps/web/src/features/legal/consentimento.ts",
+            "apps/web/src/server/conta-do-fechamento.ts",
+            "apps/web/src/features/legal/textos/politica-de-privacidade.ts",
+            "apps/web/src/features/legal/textos/cookies.ts",
+            "apps/web/src/features/legal/contato.ts",
+            "apps/web/src/features/feed/social.ts"
+          ],
+          "evidence": [
+            "gravação sem consentimento; pedido automático; saídas de sessão fora dos botões"
+          ],
+          "decisions": [
+            "D-8",
+            "D-9"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/LocalizacaoDoTopo.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/usuario/local-do-aparelho.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/server/cidade-do-topo.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/feed/BarraDoFeed.tsx",
+              "action": "modify",
+              "note": "mínimo #106"
+            },
+            {
+              "path": "apps/web/src/features/legal/textos/politica-de-privacidade.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/legal/textos/cookies.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/legal/contato.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/legal/consentimento.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/localizacao-do-topo.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "finalidade antes da permissão",
+            "router.replace em /explorar",
+            "apagar ao recusar",
+            "marca sc:aparelho:teve-conta"
+          ],
+          "contracts": [
+            "lerCidadeDoTopo(): Promise<{cidade, uf} | null>",
+            "limparDadosLocaisDoCliente(): void"
+          ],
+          "constraints": [
+            "sem 'use cache'",
+            "não mudar VERSAO_DA_POLITICA"
+          ],
+          "expected": [
+            "só cidade e UF no navegador"
+          ],
+          "forbidden": [
+            "geocodificação externa"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-17",
+            "CA-18",
+            "CA-19",
+            "CA-20",
+            "CA-21"
+          ],
+          "tests": [
+            "apps/web/tests/localizacao-do-topo.onp.test.tsx",
+            "apps/web/tests/consentimento.test.ts",
+            "apps/web/tests/feed-telas.test.tsx",
+            "apps/web/tests/legal.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/localizacao-do-topo.onp.test.tsx apps/web/tests/consentimento.test.ts apps/web/tests/feed-telas.test.tsx apps/web/tests/legal.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "high",
+          "escalationTriggers": [
+            "feed-telas depender do pedido automático"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10507",
+        "title": "Sacola no topo da loja",
+        "objective": "Contagem anunciada que abre a mesma sacola.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10504"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Evento sc:abrir-sacola.",
+          "files": [
+            "apps/web/src/lib/carrinho-do-navegador.ts",
+            "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx"
+          ],
+          "evidence": [
+            "contagem só no navegador"
+          ],
+          "decisions": [
+            "D-10"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/SacolaDoTopo.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/lib/contagem-da-sacola.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/lib/carrinho-do-navegador.ts",
+              "action": "modify",
+              "note": "mínimo #110"
+            },
+            {
+              "path": "apps/web/src/features/carrinho/CarrinhoFlutuante.tsx",
+              "action": "modify",
+              "note": "mínimo #110"
+            },
+            {
+              "path": "apps/web/tests/sacola-do-topo.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "'Sacola, N itens'",
+            "recuo pela prop"
+          ],
+          "contracts": [
+            "EVENTO_ABRIR_SACOLA = 'sc:abrir-sacola'"
+          ],
+          "constraints": [
+            "nunca contar no servidor"
+          ],
+          "expected": [
+            "uma chamada por mudança"
+          ],
+          "forbidden": [
+            "endereço vindo do detail"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-22",
+            "CA-23"
+          ],
+          "tests": [
+            "apps/web/tests/sacola-do-topo.onp.test.tsx",
+            "apps/web/tests/carrinho-gaveta.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/sacola-do-topo.onp.test.tsx apps/web/tests/carrinho-gaveta.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10508",
+        "title": "Montagem nas molduras e troca da lateral",
+        "objective": "Molduras com a navegação nova.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10505",
+          "T-10506",
+          "T-10507"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "NavegacaoDaSessao substitui LateralDaSessao.",
+          "files": [
+            "apps/web/src/app/_usuario/sessao.tsx",
+            "apps/web/src/app/(loja)/loja/[slug]/layout.tsx",
+            "apps/web/src/app/(explorar)/explorar/layout.tsx",
+            "apps/web/src/app/(conta)/conta/layout.tsx",
+            "apps/web/src/features/tutorial/passos.ts",
+            "apps/web/src/features/usuario/UsuarioNoMenu.tsx"
+          ],
+          "evidence": [
+            "Tutorial junto da lateral"
+          ],
+          "decisions": [
+            "D-6",
+            "D-8",
+            "D-9"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/_usuario/sessao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/layout.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(explorar)/explorar/layout.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(conta)/conta/layout.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/tutorial/passos.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/usuario/UsuarioNoMenu.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/molduras-do-cliente.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Promise.all(usuario, cidade só cliente)",
+            "Tutorial pela navegação",
+            "alvos explícitos"
+          ],
+          "contracts": [
+            "NavegacaoDaSessao({ loja? })"
+          ],
+          "constraints": [
+            "painel e admin intactos"
+          ],
+          "expected": [
+            "lateral fora das molduras"
+          ],
+          "forbidden": [
+            "apagar LateralDoUsuario ou usuario.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-24",
+            "CA-25",
+            "CA-26"
+          ],
+          "tests": [
+            "apps/web/tests/molduras-do-cliente.onp.test.tsx",
+            "apps/web/tests/tutorial.test.tsx",
+            "apps/web/tests/janela-de-acesso.test.tsx",
+            "apps/web/tests/lateral-do-usuario.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/molduras-do-cliente.onp.test.tsx apps/web/tests/tutorial.test.tsx apps/web/tests/janela-de-acesso.test.tsx apps/web/tests/lateral-do-usuario.test.tsx",
+            "pnpm typecheck"
+          ],
+          "evidence": [
+            "saída do vitest",
+            "prints 390 e 1280 px"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "effort": "medium",
+          "escalationTriggers": [
+            "build falhar no layout"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10509",
+        "title": "Barras fixas, camadas e área segura",
+        "objective": "Nada encoberto no celular.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10508"
+        ],
+        "requirements": [
+          "R-9"
+        ],
+        "context": {
+          "summary": "Deslocamento por variável; uma barra por vez; acrescenta regras à navegacao.css criada na T-10504.",
+          "files": [
+            "packages/ui/styles/legal.css",
+            "packages/ui/styles/usuario.css",
+            "packages/ui/styles/vitrine.css",
+            "apps/web/src/features/feed/feed.css",
+            "packages/ui/styles/produto.css"
+          ],
+          "evidence": [
+            "variáveis ligadas à lateral"
+          ],
+          "decisions": [
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/usuario/navegacao.css",
+              "action": "create",
+              "note": "mesmo arquivo da T-10504 (já criado na execução sequencial): acrescenta topo sticky, reserva, scroll-padding e sobrescritas"
+            },
+            {
+              "path": "packages/ui/styles/legal.css",
+              "action": "modify",
+              "note": "cookies acima da barra; gancho .sc-barra-inferior"
+            },
+            {
+              "path": "apps/web/tests/barras-fixas.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "topo sticky",
+            "reserva com safe-area",
+            "scroll-padding-block",
+            "uma barra por vez",
+            "z-index locais"
+          ],
+          "contracts": [
+            "--altura-da-barra-inferior do #104"
+          ],
+          "constraints": [
+            "não editar feed.css, vitrine.css, produto.css, usuario.css"
+          ],
+          "expected": [
+            "uma barra fixa embaixo"
+          ],
+          "forbidden": [
+            "z-index acima de 1000"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-27",
+            "CA-28",
+            "CA-29",
+            "CA-30"
+          ],
+          "tests": [
+            "apps/web/tests/barras-fixas.onp.test.ts",
+            "apps/web/tests/legal.test.tsx",
+            "apps/web/tests/css-global.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/barras-fixas.onp.test.ts apps/web/tests/legal.test.tsx apps/web/tests/css-global.test.ts"
+          ],
+          "evidence": [
+            "prints 344, 390, 768, 1024 px"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "medium",
+          "escalationTriggers": [
+            "sobreposição só resolvível no CSS de outro dono"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10510",
+        "title": "Rodapé do cliente (enxuto)",
+        "objective": "Links reais, sem promessas.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10509"
+        ],
+        "requirements": [
+          "R-10"
+        ],
+        "context": {
+          "summary": "Q-10506 = enxuto.",
+          "files": [
+            "apps/web/src/features/legal/RodapeLegal.tsx",
+            "apps/web/src/features/legal/contato.ts",
+            "packages/ui/styles/legal.css"
+          ],
+          "evidence": [
+            "ROTAS_LEGAIS"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/legal/RodapeLegal.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/legal.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/rodape-do-cliente.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "visual com tokens novos"
+          ],
+          "contracts": [
+            "ROTAS_LEGAIS inalterado"
+          ],
+          "constraints": [
+            "não tocar RodapeDoSimpleClick"
+          ],
+          "expected": [
+            "todo link com page.tsx"
+          ],
+          "forbidden": [
+            "cupom, fidelidade, Entrega Flash, CNPJ"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-31",
+            "CA-32"
+          ],
+          "tests": [
+            "apps/web/tests/rodape-do-cliente.onp.test.tsx",
+            "apps/web/tests/legal.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/rodape-do-cliente.onp.test.tsx apps/web/tests/legal.test.tsx"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "low",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10511",
+        "title": "Referrer-Policy",
+        "objective": "Política de referência no site.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-11"
+        ],
+        "context": {
+          "summary": "headers() no next.config.ts.",
+          "files": [
+            "apps/web/next.config.ts"
+          ],
+          "evidence": [
+            "sem headers()"
+          ],
+          "decisions": [
+            "D-11"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/next.config.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/referrer-policy.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "async headers() com '/:path*'"
+          ],
+          "contracts": [
+            "Referrer-Policy: strict-origin-when-cross-origin"
+          ],
+          "constraints": [
+            "ler o guia de headers do Next 16 antes"
+          ],
+          "expected": [
+            "cabeçalho em todas as rotas"
+          ],
+          "forbidden": [
+            "mexer em redirects()"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-33"
+          ],
+          "tests": [
+            "apps/web/tests/referrer-policy.onp.test.ts",
+            "apps/web/tests/cache-do-site.test.ts"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/referrer-policy.onp.test.ts apps/web/tests/cache-do-site.test.ts"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "low",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10512",
+        "title": "Cenários de navegador propostos ao #114",
+        "objective": "Prova em navegador do que o vitest só declara.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10509",
+          "T-10510"
+        ],
+        "requirements": [
+          "R-12"
+        ],
+        "context": {
+          "summary": "Playwright em e2e/specs.",
+          "files": [
+            "e2e/playwright.config.ts"
+          ],
+          "evidence": [
+            "testDir ./specs"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/navegacao-do-cliente.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "larguras 344/390/768/1024/1280",
+            "barra some com a sacola",
+            "cookies acima",
+            "foco não encoberto",
+            "sacola ao voltar",
+            "Referrer-Policy na rota do token"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não duplicar o #114"
+          ],
+          "expected": [
+            "spec pronta"
+          ],
+          "forbidden": [
+            "dados do Stitch"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-34"
+          ],
+          "tests": [
+            "e2e/specs/navegacao-do-cliente.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm test:e2e"
+          ],
+          "evidence": [
+            "resultado do e2e ou motivo de não rodar"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "effort": "low",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "ambiente e2e indisponível: entregar a spec e declarar"
+          ]
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Contrato real da BarraInferior diferente.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Ler packages/ui/src/barra-inferior.tsx antes da T-10505.",
+        "detection": "typecheck",
+        "recovery": "card_report paused (dependency)."
+      },
+      {
+        "text": "Tirar a lateral desloca barras grudadas.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "D-7 e conferência em 390 e 1280 px.",
+        "detection": "screenshot e e2e",
+        "recovery": "Voltar as molduras a LateralDaSessao."
+      },
+      {
+        "text": "Open redirect ou vazamento de token/coordenada.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "Validador único com casos hostis.",
+        "detection": "retorno-ao-destino.onp.test.ts"
+      },
+      {
+        "text": "LGPD: coordenada sem consentimento, dados que ficam no aparelho após sair ou excluir a conta, endereço completo.",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "D-8, D-9 (marca sc:aparelho:teve-conta) e testes.",
+        "detection": "localizacao-do-topo.onp.test.tsx"
+      },
+      {
+        "text": "Mudanças mínimas em arquivos do #106/#110.",
+        "probability": "medium",
+        "impact": "low",
+        "mitigation": "Mecânicas e listadas.",
+        "detection": "board_message"
+      },
+      {
+        "text": "Texto legal sem nova versão de aceite.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Pendência jurídica; D-9.",
+        "detection": "card_report"
+      },
+      {
+        "text": "Chamada extra por moldura.",
+        "probability": "high",
+        "impact": "low",
+        "mitigation": "Só cliente, paralela, cache(), no-store, 2,5 s."
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/destino-seguro.test.ts",
+        "apps/web/tests/destino-pos-login.test.ts",
+        "apps/web/tests/lateral-do-usuario.test.tsx",
+        "apps/web/tests/janela-de-acesso.test.tsx",
+        "apps/web/tests/telas-de-acesso.test.tsx",
+        "apps/web/tests/legal.test.tsx",
+        "apps/web/tests/consentimento.test.ts",
+        "apps/web/tests/tutorial.test.tsx",
+        "apps/web/tests/carrinho-gaveta.test.tsx",
+        "apps/web/tests/feed-telas.test.tsx",
+        "apps/web/tests/fronteiras-projeto.test.ts",
+        "apps/web/tests/css-da-loja-sem-verde-fixo.test.ts",
+        "apps/web/tests/mapa-do-site.test.ts"
+      ],
+      "toCreate": [
+        "apps/web/tests/retorno-ao-destino.onp.test.ts",
+        "apps/web/tests/retorno-na-conta.onp.test.tsx",
+        "apps/web/tests/navegacao-do-cliente.onp.test.tsx",
+        "apps/web/tests/topo-do-cliente.onp.test.tsx",
+        "apps/web/tests/barra-inferior-do-cliente.onp.test.tsx",
+        "apps/web/tests/localizacao-do-topo.onp.test.tsx",
+        "apps/web/tests/sacola-do-topo.onp.test.tsx",
+        "apps/web/tests/molduras-do-cliente.onp.test.tsx",
+        "apps/web/tests/barras-fixas.onp.test.ts",
+        "apps/web/tests/rodape-do-cliente.onp.test.tsx",
+        "apps/web/tests/referrer-policy.onp.test.ts",
+        "e2e/specs/navegacao-do-cliente.onp.spec.ts"
+      ],
+      "manual": [
+        "/explorar, /loja/<slug>/cardapio com itens, /conta/pedidos sem sessão → entrar → volta, 390 e 1280 px, tema claro e escuro"
+      ],
+      "external": [
+        "e2e e simulador do #114"
+      ]
+    },
+    "rollback": "Sem migração nem API: reverter os arquivos listados (git checkout dos caminhos) ou voltar as 3 molduras a LateralDaSessao (componente mantido). O validador segue reexportado pelo mesmo caminho em features/auth.",
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura + rmcode-revisor-plano-seguranca (rodada 1 e re",
+      "findings": [
+        {
+          "text": "Recuperação de acesso perde o destino.",
+          "severity": "major",
+          "resolution": "T-10502 muda aoCriarSessao para { orientarPara?, redirecionarPara } validados."
+        },
+        {
+          "text": "Token e lat/lng vazam pela JanelaDeAcesso e pelos links do feed.",
+          "severity": "major",
+          "resolution": "D-2 no validador e comDestino nos 5 links (T-10501)."
+        },
+        {
+          "text": "Contrato antigo da barra.",
+          "severity": "major",
+          "resolution": "T-10505 usa rotulo, componenteDeLink e oculta do #104."
+        },
+        {
+          "text": "viewport nas molduras redundante; landing também muda.",
+          "severity": "major",
+          "resolution": "Removido; viewportFit no app/layout.tsx do #104 (registrado)."
+        },
+        {
+          "text": "Validador sem normalização; faltavam casos hostis.",
+          "severity": "major",
+          "resolution": "D-1 e CA-1/CA-3."
+        },
+        {
+          "text": "Consentimento antigo valendo para localização.",
+          "severity": "major",
+          "resolution": "D-9 com INICIO_DA_LOCALIZACAO."
+        },
+        {
+          "text": "Pedido automático de localização no feed.",
+          "severity": "major",
+          "resolution": "Mudança mínima no BarraDoFeed e CA-18."
+        },
+        {
+          "text": "Limpeza ao sair divergente e parcial.",
+          "severity": "major",
+          "resolution": "limparDadosLocaisDoCliente nos três Sair; combinado com o #106."
+        },
+        {
+          "text": "Rerrevisão: saídas sem botão (sairDaConta na segurança, exclusão da conta, Sair do painel, sessão vencida) não limpavam o aparelho e stories vistos ficavam.",
+          "severity": "major",
+          "resolution": "D-9: marca sc:aparelho:teve-conta gravada com sessão; ao montar como visitante limpa as duas chaves; CA-18 cobre a exclusão da conta."
+        },
+        {
+          "text": "Rerrevisão: caminhos antigos features/navegacao/ no plano.",
+          "severity": "major",
+          "resolution": "Todos os arquivos com caminho completo em apps/web/src/features/usuario/ no plano e no JSON; fronteira confirmada (features/** é uma camada só)."
+        },
+        {
+          "text": "Coordenada na URL do feed.",
+          "severity": "major",
+          "resolution": "Fora do escopo (#106), avisado."
+        },
+        {
+          "text": "enderecoComRetorno('/') quebraria teste.",
+          "severity": "major",
+          "resolution": "CA-2."
+        },
+        {
+          "text": "destinoDepoisDeSair terceiro validador.",
+          "severity": "major",
+          "resolution": "D-2."
+        },
+        {
+          "text": "Guardas da T-10502 incompletas.",
+          "severity": "major",
+          "resolution": "Enumeradas; aplicativo com guarda; CA-5 amplo."
+        },
+        {
+          "text": "AC-10522 x Q-10506.",
+          "severity": "major",
+          "resolution": "Divergência registrada."
+        },
+        {
+          "text": "Tutorial por evento e alvos no popover.",
+          "severity": "major",
+          "resolution": "EVENTO_VER_TUTORIAL e alvos visíveis (CA-25)."
+        },
+        {
+          "text": "CSS que some com a lateral.",
+          "severity": "major",
+          "resolution": "D-5 e D-7."
+        },
+        {
+          "text": "useSearchParams sem Suspense.",
+          "severity": "major",
+          "resolution": "D-12."
+        },
+        {
+          "text": "Cidade na TV e prévia.",
+          "severity": "major",
+          "resolution": "D-8 só cliente; prévia igual a hoje."
+        },
+        {
+          "text": "ACs sem prova.",
+          "severity": "major",
+          "resolution": "CA-19, CA-20, CA-22, CA-8/CA-24, CA-26 e e2e."
+        },
+        {
+          "text": "cidade sem padrão e sem teste de chaves.",
+          "severity": "major",
+          "resolution": "D-8 e CA-20."
+        },
+        {
+          "text": "Recuo do evento da sacola.",
+          "severity": "major",
+          "resolution": "D-10 e CA-23."
+        },
+        {
+          "text": "Teste de Referrer-Policy só da config.",
+          "severity": "major",
+          "resolution": "e2e na rota do token."
+        },
+        {
+          "text": "Versão legal.",
+          "severity": "major",
+          "resolution": "Pendência jurídica."
+        },
+        {
+          "text": "Popover no jsdom, script de prints, dependsOn da T-10511.",
+          "severity": "major",
+          "resolution": "Dublê; script no card_report; T-10511 independente."
+        }
+      ]
+    },
+    "estimate": {
+      "note": "12 subtarefas sequenciais; ~40 arquivos (12 testes novos)."
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [],
+    "evaluatedAt": 1794502113213,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

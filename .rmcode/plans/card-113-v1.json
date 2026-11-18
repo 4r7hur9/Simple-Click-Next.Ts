@@ -1,0 +1,1841 @@
+{
+  "version": 1,
+  "cardId": "3059decc-dd04-4615-816b-605d7e8e31a5",
+  "cardSeq": 113,
+  "savedAt": 1794919461140,
+  "plan": {
+    "title": "Stitch · Administração da plataforma (visual proposto)",
+    "complexity": "MEDIUM",
+    "risk": "medium",
+    "summary": "Retoque visual das telas de /admin com as peças do #104 (Chip, FaixaDeChips) e os padrões do #112, sem mudar acesso, ponte, contratos, trilha, cache nem dado pessoal. As provas de regressão de acesso, ponte e varredura (T-11301) vêm primeiro e fixam o que a reforma não pode afrouxar. O código já usa Tabela, Selo, Cartao, Aviso e os estados comuns; a mudança visual real é pequena (chips de filtro, cabeçalhos, tom dos atos, toque). Só features/admin*, app/(admin) e testes *.onp.test.*; sem commit.",
+    "discovery": [
+      {
+        "claim": "A casca web da administração só desenha menu e conteúdo; não autoriza nada. O contador de pendentes vem de lojasPendentesDeAprovacao a cada requisição.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(admin)/admin/layout.tsx",
+          "symbol": "LayoutDaAdministracao"
+        }
+      },
+      {
+        "claim": "lojasPendentesDeAprovacao recebe `buscar` por parâmetro, usa cache no-store e devolve 0 em qualquer falha ou resposta não ok (401, 403).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/pendentes-da-administracao.ts",
+          "symbol": "lojasPendentesDeAprovacao"
+        }
+      },
+      {
+        "claim": "A ponte repassa só uma lista fechada de caminhos; fora dela 404, sem cookie 401, resposta com cache-control no-store e três cabeçalhos do documento repassados.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/admin-api.ts",
+          "symbol": "encaminharParaAdministracao"
+        }
+      },
+      {
+        "claim": "caminhoPermitido é exportado e testável sem rede; CAMINHOS_DA_ADMINISTRACAO é a lista fechada.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/admin-api.ts",
+          "symbol": "caminhoPermitido"
+        }
+      },
+      {
+        "claim": "lerDaApi converte 401 e 403 em MENSAGEM_DE_SESSAO_DA_ADMINISTRACAO e 404 em nao-encontrada, sem repetir id nem termo.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/apresentacao.ts",
+          "symbol": "lerDaApi"
+        }
+      },
+      {
+        "claim": "Os filtros por situação são um componente próprio de pílulas (nav com aria-label e botões aria-pressed), não o Chip do #104.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/PilulasDeFiltro.tsx",
+          "symbol": "PilulasDeFiltro"
+        }
+      },
+      {
+        "claim": "Chip (botão com aria-pressed e contagem) e FaixaDeChips (grupo com rótulo; nav só com navegacao) existem no pacote de UI.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/chip.tsx",
+          "symbol": "FaixaDeChips"
+        }
+      },
+      {
+        "claim": "A lista de lojas já usa Aviso, Cartao, Erro, Selo, Tabela e Seletor do pacote; a consulta vai e volta do endereço por consultaDoEndereco e enderecoDaLista.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/ListaLojas.tsx",
+          "symbol": "TabelaDeLojas"
+        }
+      },
+      {
+        "claim": "O teste atual da lista de lojas procura nav[aria-label=\"Filtrar por situação\"] e button[aria-pressed]; com FaixaDeChips o contêiner vira grupo e o seletor deste teste precisa mudar.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/admin-lista-lojas.test.tsx"
+        }
+      },
+      {
+        "claim": "A janela de confirmação é um dialog nativo aberto com showModal(), com Esc via onCancel; o Dialogo do pacote não é trocado (Q-10408).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/JanelaDeConfirmacao.tsx",
+          "symbol": "JanelaDeConfirmacao"
+        }
+      },
+      {
+        "claim": "Recusar usa tom perigo no confirmar; os demais atos de aprovação usam primária. Os atos de aprovação são dois passos com janela.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/AtosDeAprovacao.tsx",
+          "symbol": "atosDisponiveis"
+        }
+      },
+      {
+        "claim": "Excluir usa tom perigo; suspender, reativar e restaurar usam primária; o endereço de cada ato sai de enderecoDoAto e o texto da consequência de consequenciasDoAto. O símbolo corpoDoAto citado no design.md não existe: o corpo enviado é provado capturando o fetch.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/AcoesLoja.tsx",
+          "symbol": "enderecoDoAto"
+        }
+      },
+      {
+        "claim": "Limites de loja salvam por PATCH sem confirmação; o corpo vem de corpoDosLimites.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/LimitesDaLoja.tsx",
+          "symbol": "corpoDosLimites"
+        }
+      },
+      {
+        "claim": "A validação do cadastro da loja mora em validarEdicao.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/edicao-da-loja.ts",
+          "symbol": "validarEdicao"
+        }
+      },
+      {
+        "claim": "Os gráficos do início existem como GraficoDeLinha, GraficoDeColunas e BarrasHorizontais; a mensagem de sessão do início mora no hook de métricas.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin-dashboard/graficos.tsx",
+          "symbol": "GraficoDeLinha"
+        }
+      },
+      {
+        "claim": "A trilha na tela tem rótulos de ato e valorNaTela; valor já mascarado não pode ser reformatado.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/admin/trilha-na-tela.ts",
+          "symbol": "valorNaTela"
+        }
+      },
+      {
+        "claim": "O verify roda só os projetos vitest web e unit sobre arquivos .onp.test; por isso as provas desta feature ficam em apps/web/tests.",
+        "kind": "fact",
+        "ref": {
+          "path": "onpspec.config.json"
+        }
+      },
+      {
+        "claim": "Já existe apoio de teste para varredura de arquivos (arquivos, ler, RAIZ_WEB, ESTILOS) e para montar telas com fetch simulado (montar, simularApi, desmontar).",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/apoio-painel-lojista.ts",
+          "symbol": "arquivos"
+        }
+      },
+      {
+        "claim": "Hoje não há hexadecimal solto, use cache, unstable_cache nem console. em features/admin*, admin-dashboard e app/(admin) (conferido por busca); a varredura apenas trava esse estado.",
+        "kind": "inference",
+        "ref": {
+          "path": "apps/web/src/features/admin/ListaLojas.tsx"
+        }
+      },
+      {
+        "claim": "DIVERGÊNCIA com o AC-11308: três arquivos fora da lista permitida já importam símbolos de packages/contracts/src/admin-*.ts (FORMATO_DO_APELIDO em app/api/conta, esquemaDaSituacaoParaODono e SituacaoParaODonoNoContrato em features/config/AvisoDeSuspensao.tsx, esquemaDasFuncionalidadesParaODono em features/config/NavegacaoDaConfiguracao.tsx). São contratos 'para o dono'. A varredura precisa de lista de exceções explícita.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/config/AvisoDeSuspensao.tsx"
+        }
+      },
+      {
+        "claim": "O menu da administração é do #112: já em pílula, com prova AC-11211 que mantém os mesmos itens.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/painel/MenuDaAdministracao.tsx",
+          "symbol": "secoesDaAdministracao"
+        }
+      },
+      {
+        "claim": "O token de altura de toque existe no tema (--altura-toque, --altura-toque-grande); o valor final depende da Q-10405 do #104.",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/theme.css"
+        }
+      },
+      {
+        "claim": "Os testes de API de administração (projeto api-int) ficam fora do verify; servem de portão manual para a gravação na trilha.",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/tests/admin-gestao.test.ts"
+        }
+      },
+      {
+        "claim": "Como o resultado visual fica em telas largas e estreitas (344, 768, 1280) não é verificável sem navegador/e2e do #114.",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Provar por teste, ANTES de mudar tela, que a reforma não afrouxa acesso, ponte e varredura de segurança (US-11301, US-11302).",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "admin-acesso.onp.test.tsx: cada uma das sete mensagens de sessão aparece com 401 e com 403, sem dado de loja ou conta; ficha com id existente e inexistente dá o mesmo DOM e sem o id."
+          },
+          {
+            "id": "CA-2",
+            "verify": "lojasPendentesDeAprovacao com `buscar` falso: 401, 403, falha e sem cookie dão 0; sucesso dá o total; a chamada leva cache no-store."
+          },
+          {
+            "id": "CA-3",
+            "verify": "admin-ponte.onp.test.ts: caminho fora da lista 404, sem cookie 401, resposta no-store, três cabeçalhos do documento repassados, sem tocar a rede (buscar falso)."
+          },
+          {
+            "id": "CA-4",
+            "verify": "admin-varredura.onp.test.ts: sem use cache nem unstable_cache, sem console., títulos fixos, imports de contratos admin-* só nas pastas permitidas mais a lista de exceções explícita."
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Listas de lojas e de contas com chips do #104, cabeçalho, quatro estados e situação em Selo com texto, sem campo pessoal novo e sem termo de busca em título, link ou mensagem (US-11304, US-11302).",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "admin-listas.onp.test.tsx: chips como botões aria-pressed dentro de grupo rotulado, com contagem; quatro estados com texto atual; consultaDoEndereco/enderecoDaLista ida e volta; sem seleção em lote; Selo com nome por extenso nas cinco situações."
+          },
+          {
+            "id": "CA-6",
+            "verify": "admin-dados.onp.test.tsx: render com busca por e-mail não repete o termo no title, em href externo nem na mensagem de vazio; cada tela só mostra os campos pessoais do inventário do design.md seção 4."
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Ficha da loja e da conta organizadas: cinco abas como páginas com aria-current, selo com texto, limite de lojas do dono na ficha da conta (US-11305).",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "admin-fichas.onp.test.tsx: AbasDaLoja com cinco links e aria-current na atual; cabeçalho com nome, situação em Selo e ato disponível; ficha da conta com bloco do limite e a mesma regra de edição."
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Atos sensíveis continuam com confirmação, motivo, nome na exclusão, mesmo endereço e corpo, e tom reconhecível sem depender só da cor (US-11303).",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "admin-atos.onp.test.tsx: aprovar, ativar e desativar não chamam a rede no primeiro clique e chamam só no confirmar; recusar e suspender sem motivo não enviam e mostram aviso; excluir com nome diferente deixa o confirmar desabilitado."
+          },
+          {
+            "id": "CA-9",
+            "verify": "admin-atos.onp.test.tsx: para cada um dos oito atos o fetch capturado tem o mesmo método, endereço e corpo de hoje; só recusar e excluir usam variante perigo e todos têm o texto da consequência; JanelaDeConfirmacao chama showModal() e não há controle de seleção em lote."
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "Formulários, documentos e funcionalidades com as peças comuns; erro no campo certo; link do documento só no clique; funcionalidades pedem motivo (US-11306).",
+        "acceptance": [
+          {
+            "id": "CA-10",
+            "verify": "admin-formularios.onp.test.tsx: campo inválido recebe aria-describedby/erro anunciado em nova loja e cadastro; validarEdicao inalterada; funcionalidades não enviam sem motivo."
+          },
+          {
+            "id": "CA-11",
+            "verify": "admin-documentos-seguro.onp.test.tsx: nenhum href com /arquivos/, sem iframe/object/botão de copiar; o link nasce no clique (POST .../link); estados carregando, vazio e erro com as peças comuns."
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Início e auditoria legíveis: tokens, texto equivalente nos gráficos, ato sensível destacado por texto, valor mascarado preservado (US-11307).",
+        "acceptance": [
+          {
+            "id": "CA-12",
+            "verify": "admin-inicio-auditoria.onp.test.tsx: gráficos com role=img e aria-label; cartões sem cor literal; linha de ato sensível com texto de destaque; valor '…1234' aparece como veio."
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Teclado, toque, tokens e tema claro (US-11308).",
+        "acceptance": [
+          {
+            "id": "CA-13",
+            "verify": "admin-teclado.onp.test.tsx: Tab/Enter/Espaço/Esc nos chips, na janela de confirmação e nos atos; a janela devolve o foco ao botão que a abriu."
+          },
+          {
+            "id": "CA-14",
+            "verify": "admin-varredura.onp.test.ts: sem hexadecimal solto nem b2f800 em features/admin*, admin-dashboard e app/(admin); controles usam var(--altura-toque*) e nenhum medida própria; nenhuma folha da administração troca data-tema e theme.css não muda o claro."
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Critérios que dependem de navegador ficam como proposta ao #114, sem criar teste aqui (US-11304, US-11307, US-11308).",
+        "acceptance": [
+          {
+            "id": "CA-15",
+            "verify": "Recado ao #114 e ao gerente listando AC-11319, AC-11326 (contraste 3:1) e AC-11329 (alvo de toque medido) como AC_SEM_PROVA; nenhum arquivo e2e criado ou editado."
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "apps/web/src/features/admin/*",
+        "apps/web/src/features/admin-dashboard/*",
+        "apps/web/src/app/(admin)/**",
+        "testes novos apps/web/tests/admin-*.onp.test.ts(x)",
+        "ajuste de seletor em apps/web/tests/admin-lista-lojas.test.tsx"
+      ],
+      "out": [
+        ".spec/ (inclui corrigir o texto do AC-11308: avisar o gerente)",
+        "features/painel* (#112), packages/ui/* (#104, #111), legal.css (Q-11310)",
+        "API, contratos, banco, server/admin-api.ts e pendentes-da-administracao.ts (só leitura)",
+        "funções 'A decidir' (#115–#126), selo de loja verificada (#118), tema escuro, gráficos novos com endpoint, confirmação nova nos limites",
+        "commit, push, PR, worktree, troca de branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-11301 a Q-11313 seguem a hipótese conservadora: administração entra depois do cliente; tema claro mantido (e escuro herdado dos tokens); tabela confortável; sem gráfico novo; ficha em páginas sem variante própria de celular; limites sem confirmação nova; tom de perigo só em recusar e excluir; JanelaDeConfirmacao mantida.",
+        "impact": "Se o dono responder diferente, só T-11306, T-11309 e T-11311 mudam; nenhuma tarefa de segurança depende dessas respostas."
+      },
+      {
+        "text": "A prova de API segue nos testes atuais de apps/api (api-int, fora do verify); roda-los é opcional e depende de banco local.",
+        "impact": "A gravação na trilha (AC-11314) fica provada só pelo portão atual; se o banco não subir, registrar como não rodado."
+      },
+      {
+        "text": "Os chips da lista usam Chip/FaixaDeChips do #104; o destaque de atenção das lojas pendentes é feito por className com tokens --cor-atencao*, sem editar CSS do pacote.",
+        "impact": "Se o visual do destaque não ficar bom sem CSS do pacote, pedir ao #104 em vez de editar packages/ui."
+      },
+      {
+        "text": "A varredura do AC-11308 usa lista de exceções explícita (as três encontradas) porque o texto literal da spec reprova o código atual.",
+        "impact": "O gerente deve decidir se a spec é corrigida; a prova só impede novas importações."
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Regressão primeiro: T-11301 só cria testes (nenhum código de produção) e deve passar verde contra o código atual.",
+        "why": "Fixa o comportamento de acesso e de dado pessoal antes de qualquer retoque; uma falha depois aponta a tarefa que quebrou.",
+        "impact": "Passa a haver teste de acesso e ponte desde o início.",
+        "mitigation": "Conferir cada asserção contra o texto da spec e do código."
+      },
+      {
+        "id": "D-2",
+        "decision": "Trocar PilulasDeFiltro por Chip + FaixaDeChips (grupo rotulado) e atualizar um seletor em tests/admin-lista-lojas.test.tsx.",
+        "why": "Reuso da peça do #104 em vez de chip próprio; semântica correta (filtro é grupo, categoria é nav).",
+        "impact": "Muda role do contêiner dos filtros; o nome acessível e aria-pressed ficam iguais.",
+        "mitigation": "className com tokens; conferir no navegador; pedir ao #104 se faltar."
+      },
+      {
+        "id": "D-3",
+        "decision": "A JanelaDeConfirmacao não é trocada pelo Dialogo; só ganha toque/tokens na T-11311.",
+        "why": "O Dialogo não é modal e a Q-10408 do #104 está aberta.",
+        "impact": "Mantém showModal, foco preso e Esc.",
+        "mitigation": "Reusar as classes sc-dialogo já em uso."
+      },
+      {
+        "id": "D-4",
+        "decision": "Varredura de imports de contrato admin-* usa lista de exceções nomeada (três arquivos hoje) e acusa qualquer arquivo novo.",
+        "why": "A regra literal da spec reprovaria o código atual; as exceções são contratos para o dono.",
+        "impact": "Critério provável e honesto; spec precisa de ajuste pelo gerente.",
+        "mitigation": "Teste falha com mensagem clara; qualquer nova exceção exige editar o teste."
+      },
+      {
+        "id": "D-5",
+        "decision": "Atos sensíveis ficam como estão no tom (perigo só em recusar e excluir) e ganham prova de texto da consequência; limites sem confirmação nova.",
+        "why": "Q-11312 e Q-11313 abertas; a spec diz que a regra atual é preservada.",
+        "impact": "Zero mudança de comportamento.",
+        "mitigation": "Teste escrito pela tabela do design.md; mudar uma linha quando houver resposta."
+      },
+      {
+        "id": "D-6",
+        "decision": "Sem arquivos novos de produção: nenhuma peça é criada na administração; o que faltar vira pedido ao #104 por board_message.",
+        "why": "ASM-11302: peças são do #104.",
+        "impact": "Menos superfície e menos conflito.",
+        "mitigation": "Listar no relatório o que faltou."
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-11301",
+        "title": "Provas de regressão de acesso, ponte e varredura (primeiro)",
+        "objective": "Criar três arquivos de teste que travam o acesso fechado, a ponte e as regras de segurança do código, sem mudar produção.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Tudo é leitura do código atual. Reaproveita montar/simularApi/desmontar e arquivos/ler. A varredura de contratos precisa listar símbolos exportados de packages/contracts/src/admin-*.ts e procurar importadores fora da lista permitida, com as três exceções conhecidas.",
+          "files": [
+            "apps/web/src/server/admin-api.ts",
+            "apps/web/src/server/pendentes-da-administracao.ts",
+            "apps/web/src/features/admin/apresentacao.ts",
+            "apps/web/src/features/admin/DocumentosDaLoja.tsx"
+          ],
+          "evidence": [
+            "admin-api.ts#caminhoPermitido",
+            "pendentes-da-administracao.ts#lojasPendentesDeAprovacao",
+            "apresentacao.ts#lerDaApi"
+          ],
+          "decisions": [
+            "D-1",
+            "D-4"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/admin-acesso.onp.test.tsx",
+              "action": "create",
+              "note": "sete mensagens de sessão com 401/403; ficha existente x inexistente; contador de pendentes"
+            },
+            {
+              "path": "apps/web/tests/admin-ponte.onp.test.ts",
+              "action": "create",
+              "note": "caminhoPermitido e encaminharParaAdministracao com buscar falso"
+            },
+            {
+              "path": "apps/web/tests/admin-varredura.onp.test.ts",
+              "action": "create",
+              "note": "cache, console, títulos fixos, hex, b2f800, contratos admin-*, data-tema"
+            },
+            {
+              "path": "apps/web/src/server/admin-api.ts",
+              "action": "reuse",
+              "note": "só leitura"
+            },
+            {
+              "path": "apps/web/src/server/pendentes-da-administracao.ts",
+              "action": "reuse",
+              "note": "só leitura"
+            },
+            {
+              "path": "apps/web/src/features/admin/apresentacao.ts",
+              "action": "reuse",
+              "note": "só leitura"
+            },
+            {
+              "path": "apps/web/src/features/admin/DocumentosDaLoja.tsx",
+              "action": "reuse",
+              "note": "só leitura"
+            },
+            {
+              "path": "apps/web/tests/apoio-painel-lojista.ts",
+              "action": "reuse",
+              "note": "arquivos, ler, RAIZ_WEB"
+            }
+          ],
+          "changes": [
+            "Importar as sete constantes de mensagem pelos nomes exportados e provar o texto literal da spec com 401 e 403 em cada tela.",
+            "lojasPendentesDeAprovacao: mockar next/headers (cookie) e passar buscar falso para 401, 403, rejeição e sucesso; afirmar cache no-store.",
+            "Ponte: caminho fora da lista 404, sem cookie 401, cabeçalhos content-disposition, x-content-type-options e content-security-policy repassados, cache-control no-store; sem tocar a rede.",
+            "Varredura: títulos fixos (sem template com dado), sem console., sem use cache/unstable_cache, sem hex solto nem b2f800, sem data-tema; contratos admin-* só nas pastas permitidas + 3 exceções nomeadas."
+          ],
+          "contracts": [
+            "Não alterar nenhuma exportação de produção."
+          ],
+          "constraints": [
+            "Nenhum código de produção muda.",
+            "Título de cada teste: [CA-n] @spec:AC-113xx …",
+            "Os testes devem passar contra o código de hoje."
+          ],
+          "expected": [
+            "Três arquivos novos, verdes."
+          ],
+          "forbidden": [
+            "Editar server/*",
+            "Congelar a lista CAMINHOS_DA_ADMINISTRACAO inteira"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-3",
+            "CA-4"
+          ],
+          "tests": [
+            "apps/web/tests/admin-acesso.onp.test.tsx",
+            "apps/web/tests/admin-ponte.onp.test.ts",
+            "apps/web/tests/admin-varredura.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-acesso.onp.test.tsx tests/admin-ponte.onp.test.ts tests/admin-varredura.onp.test.ts",
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-"
+          ],
+          "evidence": [
+            "saída do vitest com os três arquivos verdes e os 11 testes admin atuais verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "varredura reprova código atual de forma não prevista",
+            "mock de next/headers não funciona no jsdom"
+          ],
+          "blockedConditions": [
+            "spec e código divergem sem hipótese possível — avisar o gerente"
+          ]
+        }
+      },
+      {
+        "id": "T-11302",
+        "title": "Moldura da administração: pedido ao #112 e conferência",
+        "objective": "Confirmar com o #112 o estado do menu da administração e travar por teste que o layout não ganha guarda nem cache.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11301"
+        ],
+        "requirements": [
+          "R-1",
+          "R-7"
+        ],
+        "context": {
+          "summary": "O #112 já entregou o menu em pílula e a prova AC-11211. Esta tarefa não edita o menu (é do #112) nem o layout sem necessidade; confere e registra.",
+          "files": [
+            "apps/web/src/app/(admin)/admin/layout.tsx",
+            "apps/web/src/features/painel/MenuDaAdministracao.tsx"
+          ],
+          "evidence": [
+            "layout.tsx#LayoutDaAdministracao",
+            "MenuDaAdministracao.tsx#secoesDaAdministracao"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(admin)/admin/layout.tsx",
+              "action": "reuse",
+              "note": "só conferir: contador por requisição, sem guarda nova; muda só se faltar token de toque"
+            },
+            {
+              "path": "apps/web/src/features/painel/MenuDaAdministracao.tsx",
+              "action": "reuse",
+              "note": "dono é o #112; só leitura"
+            }
+          ],
+          "changes": [
+            "Enviar board_message ao #112 pedindo qualquer ajuste de moldura/menu que a administração precisar e confirmando o estado atual.",
+            "Acrescentar ao admin-varredura (T-11301) a asserção de que layout.tsx não tem use cache nem guarda de acesso."
+          ],
+          "contracts": [],
+          "constraints": [
+            "Não editar features/painel/*",
+            "Não adicionar guarda no layout"
+          ],
+          "expected": [
+            "Conferência registrada; nenhuma edição de produção, ou só ajuste mínimo no layout."
+          ],
+          "forbidden": [
+            "Editar MenuDaAdministracao.tsx, estilo-do-menu.ts, usuario.css, legal.css"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2",
+            "CA-14"
+          ],
+          "tests": [
+            "apps/web/tests/painel-lojista-moldura.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/painel-lojista-moldura.onp.test.tsx tests/admin-varredura.onp.test.ts"
+          ],
+          "evidence": [
+            "AC-11211 do #112 verde"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "o #112 pede mudança no layout.tsx"
+          ],
+          "blockedConditions": [
+            "#112 ainda reserva arquivos de moldura em conflito"
+          ]
+        }
+      },
+      {
+        "id": "T-11303",
+        "title": "Lista de lojas",
+        "objective": "Aplicar Chip/FaixaDeChips nos filtros, manter os quatro estados e o Selo com nome da situação, sem seleção em lote.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11302"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "PilulasDeFiltro vira wrapper de Chip/FaixaDeChips mantendo a API (rotulo, pilulas, valor, aoEscolher) para servir também a lista de contas. O cabeçalho de página fica em app/(admin)/admin/lojas/page.tsx.",
+          "files": [
+            "apps/web/src/features/admin/ListaLojas.tsx",
+            "apps/web/src/features/admin/PilulasDeFiltro.tsx",
+            "apps/web/src/app/(admin)/admin/lojas/page.tsx",
+            "apps/web/tests/admin-lista-lojas.test.tsx",
+            "packages/ui/src/chip.tsx"
+          ],
+          "evidence": [
+            "ListaLojas.tsx#TabelaDeLojas",
+            "PilulasDeFiltro.tsx#PilulasDeFiltro",
+            "chip.tsx#FaixaDeChips"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/PilulasDeFiltro.tsx",
+              "action": "modify",
+              "note": "usar Chip e FaixaDeChips; destaque de atenção por className com tokens"
+            },
+            {
+              "path": "apps/web/src/features/admin/ListaLojas.tsx",
+              "action": "modify",
+              "note": "ajustes pequenos de cabeçalho/estados; preservar consultaDoEndereco, enderecoDaLista e MENSAGEM_DE_SESSAO"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/lojas/page.tsx",
+              "action": "modify",
+              "note": "cabeçalho de página nos tokens; título fixo"
+            },
+            {
+              "path": "apps/web/tests/admin-lista-lojas.test.tsx",
+              "action": "modify",
+              "note": "só o seletor do contêiner dos filtros (de nav para grupo com o mesmo aria-label)"
+            },
+            {
+              "path": "apps/web/tests/admin-listas.onp.test.tsx",
+              "action": "create",
+              "note": "provas CA-5"
+            },
+            {
+              "path": "packages/ui/src/chip.tsx",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "PilulasDeFiltro renderiza FaixaDeChips com o rótulo e um Chip por filtro (ativo, contagem, aoAlternar).",
+            "Preservar o destaque de lojas pendentes por texto/contagem, não só por cor.",
+            "Sem checkbox de seleção em lote."
+          ],
+          "contracts": [
+            "Props de PilulasDeFiltro iguais às atuais.",
+            "Mensagens de estado e de sessão iguais."
+          ],
+          "constraints": [
+            "Sem hex solto; sem CSS novo no pacote",
+            "Busca continua só no endereço, nunca em title/href/vazio"
+          ],
+          "expected": [
+            "Chips do #104 nas duas listas após T-11304; nenhum comportamento de dados muda."
+          ],
+          "forbidden": [
+            "Editar packages/ui",
+            "Trocar a consulta por Server Component"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/admin-listas.onp.test.tsx",
+            "apps/web/tests/admin-lista-lojas.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-lista-lojas.test.tsx tests/admin-listas.onp.test.tsx tests/admin-varredura.onp.test.ts"
+          ],
+          "evidence": [
+            "testes verdes; captura em 344/768/1280 como conferência manual"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "Chip não aceita o destaque necessário",
+            "teste atual quebra por razão além do seletor"
+          ],
+          "blockedConditions": [
+            "precisa editar packages/ui — pedir ao #104"
+          ]
+        }
+      },
+      {
+        "id": "T-11304",
+        "title": "Lista e ficha de contas",
+        "objective": "Mesmos padrões da lista de lojas para contas e ficha da conta, sem campo pessoal novo.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11303"
+        ],
+        "requirements": [
+          "R-2",
+          "R-3"
+        ],
+        "context": {
+          "summary": "ListaDeContas usa PilulasDeFiltro (já migrada). FichaDaConta mantém contato, lojas e o limite de lojas com a mesma regra de edição.",
+          "files": [
+            "apps/web/src/features/admin/ListaDeContas.tsx",
+            "apps/web/src/features/admin/FichaDaConta.tsx",
+            "apps/web/src/app/(admin)/admin/contas/page.tsx",
+            "apps/web/src/app/(admin)/admin/contas/[id]/page.tsx"
+          ],
+          "evidence": [
+            "ListaDeContas.tsx#TabelaDeContas",
+            "FichaDaConta.tsx"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/ListaDeContas.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/FichaDaConta.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/contas/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/contas/[id]/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/admin-dados.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Cabeçalho e estados nos mesmos padrões; e-mail e telefone só onde já aparecem.",
+            "Título da página fixo."
+          ],
+          "contracts": [
+            "Regra do limite de lojas e corpo do PATCH iguais."
+          ],
+          "constraints": [
+            "Não acrescentar campo pessoal (inventário seção 4 do design.md)",
+            "Leitura de contas continua não auditada (Q-11307 fora)"
+          ],
+          "expected": [
+            "Contas com a mesma linguagem de lojas."
+          ],
+          "forbidden": [
+            "Acrescentar campo",
+            "Mudar API ou contrato"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6",
+            "CA-7"
+          ],
+          "tests": [
+            "apps/web/tests/admin-dados.onp.test.tsx",
+            "apps/web/tests/admin-gestao.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-gestao.test.tsx tests/admin-dados.onp.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "teste atual da gestão quebra"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11305",
+        "title": "Cabeçalho e abas da ficha da loja",
+        "objective": "Manter as cinco abas como links de página com aria-current, cabeçalho com nome, situação em Selo e ato disponível.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11304"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "As abas são navegação, não o componente Abas do pacote (painel único). AbasDaLoja pode entrar na fila do #118; checar claim.",
+          "files": [
+            "apps/web/src/features/admin/CabecalhoDaFicha.tsx",
+            "apps/web/src/features/admin/AbasDaLoja.tsx",
+            "apps/web/src/features/admin/ProvedorDaFicha.tsx",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/layout.tsx"
+          ],
+          "evidence": [
+            "AbasDaLoja.tsx#ABAS_DA_LOJA",
+            "ProvedorDaFicha.tsx#ProvedorDaFicha"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/CabecalhoDaFicha.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/AbasDaLoja.tsx",
+              "action": "modify",
+              "note": "tokens e toque; checar claim do #118 antes"
+            },
+            {
+              "path": "apps/web/src/features/admin/ProvedorDaFicha.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/lojas/[id]/layout.tsx",
+              "action": "reuse",
+              "note": "só se precisar de ajuste de layout"
+            },
+            {
+              "path": "apps/web/tests/admin-fichas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Selo com nome por extenso usando NOME_DA_SITUACAO e TOM_DA_SITUACAO.",
+            "Sem selo de loja verificada."
+          ],
+          "contracts": [
+            "Cada aba continua uma rota própria."
+          ],
+          "constraints": [
+            "Nenhuma aba vira painel único",
+            "Sem selo do #118"
+          ],
+          "expected": [
+            "Cabeçalho e abas nos tokens."
+          ],
+          "forbidden": [
+            "Usar o componente Abas do pacote"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [
+            "apps/web/tests/admin-fichas.onp.test.tsx",
+            "apps/web/tests/admin-ficha-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-fichas.onp.test.tsx tests/admin-ficha-loja.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "#118 já reserva AbasDaLoja.tsx"
+          ],
+          "blockedConditions": [
+            "conflito de claim com #118 — avisar por board_message"
+          ]
+        }
+      },
+      {
+        "id": "T-11306",
+        "title": "Resumo da loja e ações sensíveis",
+        "objective": "Retocar o resumo e os blocos de atos sem alterar passos, endereços, corpos nem trilha, e provar o contrato ato → passos → tom.",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11305"
+        ],
+        "requirements": [
+          "R-4",
+          "R-3"
+        ],
+        "context": {
+          "summary": "É a tarefa mais sensível: a tabela da seção 5 do design.md é o contrato. Primeiro clique sem rede, motivo na recusa e na suspensão, nome na exclusão, endereço e corpo iguais. Rodar admin-acoes-loja e admin-gestao antes e depois.",
+          "files": [
+            "apps/web/src/features/admin/ResumoDaLoja.tsx",
+            "apps/web/src/features/admin/MetricasDaLoja.tsx",
+            "apps/web/src/features/admin/EquipeDaLoja.tsx",
+            "apps/web/src/features/admin/BarraDeUso.tsx",
+            "apps/web/src/features/admin/LimitesDaLoja.tsx",
+            "apps/web/src/features/admin/AtosDeAprovacao.tsx",
+            "apps/web/src/features/admin/AcoesLoja.tsx",
+            "apps/web/src/features/admin/JanelaDeConfirmacao.tsx"
+          ],
+          "evidence": [
+            "AtosDeAprovacao.tsx#atosDisponiveis",
+            "AcoesLoja.tsx#enderecoDoAto",
+            "AcoesLoja.tsx#consequenciasDoAto",
+            "LimitesDaLoja.tsx#corpoDosLimites"
+          ],
+          "decisions": [
+            "D-3",
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/ResumoDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/MetricasDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/EquipeDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/BarraDeUso.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/LimitesDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/AtosDeAprovacao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/AcoesLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/JanelaDeConfirmacao.tsx",
+              "action": "reuse",
+              "note": "mantida; ajuste de toque só na T-11311"
+            },
+            {
+              "path": "apps/web/tests/admin-atos.onp.test.tsx",
+              "action": "create",
+              "note": "escrever PRIMEIRO, verde contra o código atual, depois retocar"
+            }
+          ],
+          "changes": [
+            "Criar admin-atos.onp.test.tsx primeiro e confirmar verde.",
+            "Retoque visual (tokens, espaçamento, texto da consequência visível) sem mexer em lógica.",
+            "Tom: perigo só em recusar e excluir; os demais com nome e consequência em texto."
+          ],
+          "contracts": [
+            "enderecoDoAto, método e corpo de cada ato iguais aos de hoje.",
+            "Limites salvam sem confirmação nova (Q-11312)."
+          ],
+          "constraints": [
+            "JanelaDeConfirmacao não é trocada pelo Dialogo",
+            "Nenhuma ação em lote",
+            "Nada de rede antes do segundo clique"
+          ],
+          "expected": [
+            "Oito atos provados por teste de tela."
+          ],
+          "forbidden": [
+            "Alterar endereços, corpos, validações ou o conteúdo da trilha"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-8",
+            "CA-9"
+          ],
+          "tests": [
+            "apps/web/tests/admin-atos.onp.test.tsx",
+            "apps/web/tests/admin-acoes-loja.test.tsx",
+            "apps/web/tests/admin-gestao.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-acoes-loja.test.tsx tests/admin-gestao.test.tsx tests/admin-atos.onp.test.tsx"
+          ],
+          "evidence": [
+            "portão atual verde antes e depois",
+            "opcional: pnpm --filter api exec vitest run tests/admin-gestao.test.ts tests/aprovacao-e-limites.test.ts se o banco local subir"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "teste atual de ato quebra",
+            "precisa mudar endereço, corpo ou passos"
+          ],
+          "blockedConditions": [
+            "mudar tom exige decisão do dono (Q-11313)"
+          ]
+        }
+      },
+      {
+        "id": "T-11307",
+        "title": "Cadastro, endereço e tipo de negócio da loja",
+        "objective": "Aplicar as peças comuns nos formulários de cadastro com erro junto do campo e anunciado, sem mudar validações.",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11306"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "CadastroDaLoja mora em FichaLoja.tsx (na fila do #118). Regras de validação ficam em validarEdicao.",
+          "files": [
+            "apps/web/src/features/admin/DadosDaLoja.tsx",
+            "apps/web/src/features/admin/FichaLoja.tsx",
+            "apps/web/src/features/admin/EnderecoDaLoja.tsx",
+            "apps/web/src/features/admin/SeletorVertical.tsx",
+            "apps/web/src/features/admin/edicao-da-loja.ts",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/cadastro/page.tsx"
+          ],
+          "evidence": [
+            "FichaLoja.tsx#CadastroDaLoja",
+            "edicao-da-loja.ts#validarEdicao"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/DadosDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/FichaLoja.tsx",
+              "action": "modify",
+              "note": "checar fila do #118"
+            },
+            {
+              "path": "apps/web/src/features/admin/EnderecoDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/SeletorVertical.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/edicao-da-loja.ts",
+              "action": "reuse",
+              "note": "regras intactas"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/lojas/[id]/cadastro/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/admin-formularios.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Erro com Campo (aria-describedby) e anunciado.",
+            "Título fixo da página."
+          ],
+          "contracts": [
+            "PUT/PATCH e corpos iguais."
+          ],
+          "constraints": [
+            "Sem dado pessoal novo",
+            "validarEdicao intacta"
+          ],
+          "expected": [
+            "Formulários nos tokens."
+          ],
+          "forbidden": [
+            "Mudar regra de validação"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10"
+          ],
+          "tests": [
+            "apps/web/tests/admin-formularios.onp.test.tsx",
+            "apps/web/tests/admin-endereco-da-loja.test.tsx",
+            "apps/web/tests/admin-tipo-de-negocio.test.tsx",
+            "apps/web/tests/admin-ficha-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-endereco-da-loja.test.tsx tests/admin-tipo-de-negocio.test.tsx tests/admin-ficha-loja.test.tsx tests/admin-formularios.onp.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "#118 reserva FichaLoja.tsx"
+          ],
+          "blockedConditions": [
+            "conflito de claim com #118"
+          ]
+        }
+      },
+      {
+        "id": "T-11308",
+        "title": "Nova loja, documentos e funcionalidades",
+        "objective": "Retoque visual com as peças comuns mantendo link do documento só no clique e motivo nas funcionalidades.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11307"
+        ],
+        "requirements": [
+          "R-5"
+        ],
+        "context": {
+          "summary": "Documentos é a tela de maior sensibilidade de dado pessoal: sem href renderizado, sem iframe/object, sem copiar. DocumentosDaLoja.tsx está na fila do #118.",
+          "files": [
+            "apps/web/src/features/admin/FormularioNovaLoja.tsx",
+            "apps/web/src/features/admin/formulario-da-loja.ts",
+            "apps/web/src/features/admin/DocumentosDaLoja.tsx",
+            "apps/web/src/features/admin/documentos-da-loja.ts",
+            "apps/web/src/features/admin/FuncionalidadesDaLoja.tsx"
+          ],
+          "evidence": [
+            "DocumentosDaLoja.tsx#MENSAGEM_DE_SESSAO_DOS_DOCUMENTOS",
+            "FuncionalidadesDaLoja.tsx#MENSAGEM_DE_SESSAO_DAS_FUNCIONALIDADES"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/FormularioNovaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/formulario-da-loja.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/features/admin/DocumentosDaLoja.tsx",
+              "action": "modify",
+              "note": "checar fila do #118"
+            },
+            {
+              "path": "apps/web/src/features/admin/documentos-da-loja.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/features/admin/FuncionalidadesDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/admin-documentos-seguro.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Estados carregando, vazio e erro com as peças comuns.",
+            "Prova de que o HTML não contém href /arquivos/ e de que o link nasce no clique."
+          ],
+          "contracts": [
+            "Endereços de documentos e funcionalidades iguais."
+          ],
+          "constraints": [
+            "Sem pré-visualização nem botão de copiar",
+            "Motivo obrigatório nas funcionalidades"
+          ],
+          "expected": [
+            "Telas nos tokens e provas verdes."
+          ],
+          "forbidden": [
+            "Colocar link de documento no HTML renderizado"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-10",
+            "CA-11"
+          ],
+          "tests": [
+            "apps/web/tests/admin-documentos-seguro.onp.test.tsx",
+            "apps/web/tests/admin-documentos.test.tsx",
+            "apps/web/tests/admin-funcionalidades.test.tsx",
+            "apps/web/tests/admin-nova-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-documentos.test.tsx tests/admin-funcionalidades.test.tsx tests/admin-nova-loja.test.tsx tests/admin-documentos-seguro.onp.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "teste de documentos atual quebra"
+          ],
+          "blockedConditions": [
+            "conflito de claim com #118"
+          ]
+        }
+      },
+      {
+        "id": "T-11309",
+        "title": "Início (dashboard)",
+        "objective": "Retoque visual dos cartões e gráficos do início com tokens, mantendo role=img e aria-label.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11308"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "Só retoque; gráfico novo exige card próprio. Reusa SeletorDePeriodo.",
+          "files": [
+            "apps/web/src/features/admin-dashboard/DashboardDoAdmin.tsx",
+            "apps/web/src/features/admin-dashboard/CartaoDeNumero.tsx",
+            "apps/web/src/features/admin-dashboard/graficos.tsx",
+            "apps/web/src/features/admin-dashboard/useMetricasDoAdmin.ts",
+            "apps/web/src/app/(admin)/admin/page.tsx"
+          ],
+          "evidence": [
+            "graficos.tsx#GraficoDeLinha",
+            "useMetricasDoAdmin.ts"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin-dashboard/DashboardDoAdmin.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin-dashboard/CartaoDeNumero.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin-dashboard/graficos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin-dashboard/useMetricasDoAdmin.ts",
+              "action": "reuse",
+              "note": "texto da mensagem de sessão intacto"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/page.tsx",
+              "action": "modify",
+              "note": "cabeçalho; título fixo"
+            },
+            {
+              "path": "apps/web/tests/admin-inicio-auditoria.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Cores só por var(--cor-*).",
+            "Manter texto equivalente nos gráficos."
+          ],
+          "contracts": [
+            "Endereço /api/admin/metricas igual."
+          ],
+          "constraints": [
+            "Sem gráfico novo",
+            "Sem verde novo"
+          ],
+          "expected": [
+            "Início nos tokens."
+          ],
+          "forbidden": [
+            "Criar endpoint ou card de gráfico"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-12"
+          ],
+          "tests": [
+            "apps/web/tests/admin-inicio-auditoria.onp.test.tsx",
+            "apps/web/tests/admin-dashboard.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-dashboard.test.tsx tests/admin-inicio-auditoria.onp.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "precisa de dado que o endpoint atual não traz"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11310",
+        "title": "Histórico da loja e auditoria",
+        "objective": "Destacar o ato sensível por texto além da cor e preservar valores mascarados.",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-11309"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "A trilha só é apresentada; trilha.ts da API não muda. valorNaTela não pode reformatar o que já veio mascarado.",
+          "files": [
+            "apps/web/src/features/admin/HistoricoDaLoja.tsx",
+            "apps/web/src/features/admin/ListaDaTrilha.tsx",
+            "apps/web/src/features/admin/HistoricoDeAuditoria.tsx",
+            "apps/web/src/features/admin/trilha-na-tela.ts",
+            "apps/web/src/app/(admin)/admin/auditoria/page.tsx",
+            "apps/web/src/app/(admin)/admin/lojas/[id]/historico/page.tsx"
+          ],
+          "evidence": [
+            "trilha-na-tela.ts#valorNaTela",
+            "trilha-na-tela.ts#rotuloDoAto"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/HistoricoDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/ListaDaTrilha.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/HistoricoDeAuditoria.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/admin/trilha-na-tela.ts",
+              "action": "reuse",
+              "note": "só leitura, a menos que falte texto de destaque"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/auditoria/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/app/(admin)/admin/lojas/[id]/historico/page.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/admin-inicio-auditoria.onp.test.tsx",
+              "action": "modify",
+              "note": "acrescentar provas de AC-11327"
+            }
+          ],
+          "changes": [
+            "Linha sensível com texto de destaque (por exemplo etiqueta) além da cor.",
+            "Filtros e período como nas listas, chips do #104."
+          ],
+          "contracts": [
+            "Conteúdo da trilha igual."
+          ],
+          "constraints": [
+            "Valor mascarado como veio",
+            "Título fixo"
+          ],
+          "expected": [
+            "Auditoria legível."
+          ],
+          "forbidden": [
+            "Alterar apps/api trilha.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-12"
+          ],
+          "tests": [
+            "apps/web/tests/admin-inicio-auditoria.onp.test.tsx",
+            "apps/web/tests/admin-auditoria.test.tsx"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-auditoria.test.tsx tests/admin-inicio-auditoria.onp.test.tsx"
+          ],
+          "evidence": [
+            "testes verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "valorNaTela precisa mudar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11311",
+        "title": "Teclado, toque, tokens e tema claro",
+        "objective": "Provas transversais de teclado, foco devolvido, token de toque, cor solta e tema; ajustes mínimos de toque em JanelaDeConfirmacao e PilulasDeFiltro.",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11310"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Depois de todas as telas. O valor do alvo de toque é do #104 (Q-10405); aqui só se usa o token. O tema claro não muda (Q-11304 aberta).",
+          "files": [
+            "apps/web/src/features/admin/JanelaDeConfirmacao.tsx",
+            "apps/web/src/features/admin/PilulasDeFiltro.tsx"
+          ],
+          "evidence": [
+            "JanelaDeConfirmacao.tsx#JanelaDeConfirmacao",
+            "theme.css --altura-toque"
+          ],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/admin/JanelaDeConfirmacao.tsx",
+              "action": "modify",
+              "note": "só se faltar foco devolvido ou toque; showModal e Esc intactos"
+            },
+            {
+              "path": "apps/web/src/features/admin/PilulasDeFiltro.tsx",
+              "action": "modify",
+              "note": "só ajuste de toque"
+            },
+            {
+              "path": "apps/web/tests/admin-teclado.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/admin-varredura.onp.test.ts",
+              "action": "modify",
+              "note": "acrescentar toque por token e tema"
+            },
+            {
+              "path": "packages/ui/styles/theme.css",
+              "action": "reuse",
+              "note": "só leitura"
+            }
+          ],
+          "changes": [
+            "Provar Tab, Enter, Espaço e Esc; foco devolvido ao botão que abriu a janela.",
+            "Varredura de min-h/h fixos sem token nos controles."
+          ],
+          "contracts": [
+            "JanelaDeConfirmacao mantém props e showModal()."
+          ],
+          "constraints": [
+            "Sem valor de toque próprio",
+            "Sem mudar data-tema"
+          ],
+          "expected": [
+            "Provas transversais verdes."
+          ],
+          "forbidden": [
+            "Trocar a janela pelo Dialogo"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-13",
+            "CA-14"
+          ],
+          "tests": [
+            "apps/web/tests/admin-teclado.onp.test.tsx",
+            "apps/web/tests/admin-varredura.onp.test.ts"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-"
+          ],
+          "evidence": [
+            "todos os testes admin verdes"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "foco não volta ao abrir pelo jsdom"
+          ],
+          "blockedConditions": [
+            "Q-10405 muda o token de toque"
+          ]
+        }
+      },
+      {
+        "id": "T-11312",
+        "title": "Prova em navegador (proposta ao #114)",
+        "objective": "Registrar como proposta ao #114 as provas de 344/768/1280px, contraste 3:1 e alvo de toque; sem criar teste.",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11311"
+        ],
+        "requirements": [
+          "R-8"
+        ],
+        "context": {
+          "summary": "A implementação é do #114; até lá os critérios de navegador ficam AC_SEM_PROVA (ASM-11307).",
+          "files": [
+            "e2e/specs/admin-lojas.spec.ts"
+          ],
+          "evidence": [
+            "e2e/specs/admin-lojas.spec.ts existe e é do #114"
+          ],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/admin-lojas.spec.ts",
+              "action": "reuse",
+              "note": "só leitura; não editar"
+            }
+          ],
+          "changes": [
+            "board_message ao #114 e ao gerente com AC-11319, AC-11326 e AC-11329 e as larguras 344/768/1280."
+          ],
+          "contracts": [],
+          "constraints": [
+            "Não criar nem editar teste e2e"
+          ],
+          "expected": [
+            "Recado enviado e listado no relatório do card."
+          ],
+          "forbidden": [
+            "Editar e2e"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-15"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter @simpleclick/web exec vitest run tests/admin-",
+            "pnpm typecheck",
+            "pnpm lint"
+          ],
+          "evidence": [
+            "gate final: typecheck e testes web verdes; lint comparado com os 42 erros pré-existentes de .claude/skills/workflow-ia"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "A reforma solta dado pessoal em lista, título, URL ou cache.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "T-11301 primeiro, com varreduras; busca continua só no endereço; títulos fixos.",
+        "detection": "admin-varredura e admin-dados.",
+        "recovery": "reverter a tarefa; nenhuma tarefa toca contrato, API ou banco."
+      },
+      {
+        "text": "Confirmação enfraquecida ao retocar os atos.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "admin-atos criado verde antes de mexer; passos e endereços intactos.",
+        "detection": "admin-atos e os 11 testes admin atuais.",
+        "recovery": "git revert da tarefa T-11306 pela pessoa que autorizar."
+      },
+      {
+        "text": "Conflito de arquivo com #112, #118, #104 ou #111.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "board_peers antes de cada tarefa; board_message; não editar features/painel nem packages/ui.",
+        "detection": "retorno do board_claim.",
+        "recovery": "soltar a reserva e pedir ao dono."
+      },
+      {
+        "text": "A varredura de contratos admin-* reprova código existente.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "lista de exceções nomeada (D-4) e aviso ao gerente sobre o texto da spec.",
+        "detection": "teste com mensagem clara."
+      },
+      {
+        "text": "Chip sem tom de atenção deixa a fila de pendentes pouco visível.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "contagem em texto e className com tokens; pedir ao #104 se faltar.",
+        "detection": "conferência manual em 344/768/1280."
+      },
+      {
+        "text": "Prova de API fora do verify.",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "testes atuais de apps/api como portão manual; informar no relatório se não rodarem.",
+        "detection": "relatório do card."
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/admin-acoes-loja.test.tsx",
+        "apps/web/tests/admin-auditoria.test.tsx",
+        "apps/web/tests/admin-dashboard.test.tsx",
+        "apps/web/tests/admin-documentos.test.tsx",
+        "apps/web/tests/admin-endereco-da-loja.test.tsx",
+        "apps/web/tests/admin-ficha-loja.test.tsx",
+        "apps/web/tests/admin-funcionalidades.test.tsx",
+        "apps/web/tests/admin-gestao.test.tsx",
+        "apps/web/tests/admin-lista-lojas.test.tsx",
+        "apps/web/tests/admin-nova-loja.test.tsx",
+        "apps/web/tests/admin-tipo-de-negocio.test.tsx",
+        "apps/web/tests/painel-lojista-moldura.onp.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/admin-acesso.onp.test.tsx",
+        "apps/web/tests/admin-ponte.onp.test.ts",
+        "apps/web/tests/admin-varredura.onp.test.ts",
+        "apps/web/tests/admin-listas.onp.test.tsx",
+        "apps/web/tests/admin-dados.onp.test.tsx",
+        "apps/web/tests/admin-fichas.onp.test.tsx",
+        "apps/web/tests/admin-atos.onp.test.tsx",
+        "apps/web/tests/admin-formularios.onp.test.tsx",
+        "apps/web/tests/admin-documentos-seguro.onp.test.tsx",
+        "apps/web/tests/admin-inicio-auditoria.onp.test.tsx",
+        "apps/web/tests/admin-teclado.onp.test.tsx"
+      ],
+      "manual": [
+        "Abrir /admin, /admin/lojas, uma ficha e /admin/auditoria em 344, 768 e 1280px e conferir rolagem lateral, foco visível e chips."
+      ],
+      "external": [
+        "apps/api/tests/admin-gestao.test.ts, aprovacao-e-limites.test.ts e vertical-somente-admin.test.ts (api-int, exigem banco local)",
+        "e2e/specs/admin-lojas.spec.ts e admin-documentos.spec.ts (portão do #114)"
+      ]
+    },
+    "estimate": {
+      "note": "12 tarefas sequenciais; 11 arquivos de teste novos; sem migração nem mudança de contrato."
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O arquivo apps/web/tests/admin-inicio-auditoria.onp.test.tsx não existe no repositório."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz MEDIUM, mas o card foi classificado como CRITICAL: valem as exigências de CRITICAL."
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "file-missing",
+        "message": "O arquivo apps/web/tests/admin-inicio-auditoria.onp.test.tsx não existe no repositório.",
+        "ref": "apps/web/tests/admin-inicio-auditoria.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "file-missing",
+        "message": "O arquivo apps/web/tests/admin-varredura.onp.test.ts não existe no repositório.",
+        "ref": "apps/web/tests/admin-varredura.onp.test.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-acesso.onp.test.tsx tests/admin-ponte.onp.test.ts tests/admin-varredura.onp.test.ts\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-acesso.onp.test.tsx tests/admin-ponte.onp.test.ts tests/admin-varredura.onp.test.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/painel-lojista-moldura.onp.test.tsx tests/admin-varredura.onp.test.ts\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/painel-lojista-moldura.onp.test.tsx tests/admin-varredura.onp.test.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-lista-lojas.test.tsx tests/admin-listas.onp.test.tsx tests/admin-varredura.onp.test.ts\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-lista-lojas.test.tsx tests/admin-listas.onp.test.tsx tests/admin-varredura.onp.test.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-gestao.test.tsx tests/admin-dados.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-gestao.test.tsx tests/admin-dados.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-fichas.onp.test.tsx tests/admin-ficha-loja.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-fichas.onp.test.tsx tests/admin-ficha-loja.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-acoes-loja.test.tsx tests/admin-gestao.test.tsx tests/admin-atos.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-acoes-loja.test.tsx tests/admin-gestao.test.tsx tests/admin-atos.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-endereco-da-loja.test.tsx tests/admin-tipo-de-negocio.test.tsx tests/admin-ficha-loja.test.tsx tests/admin-formularios.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-endereco-da-loja.test.tsx tests/admin-tipo-de-negocio.test.tsx tests/admin-ficha-loja.test.tsx tests/admin-formularios.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-documentos.test.tsx tests/admin-funcionalidades.test.tsx tests/admin-nova-loja.test.tsx tests/admin-documentos-seguro.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-documentos.test.tsx tests/admin-funcionalidades.test.tsx tests/admin-nova-loja.test.tsx tests/admin-documentos-seguro.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-dashboard.test.tsx tests/admin-inicio-auditoria.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-dashboard.test.tsx tests/admin-inicio-auditoria.onp.test.tsx"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/web exec vitest run tests/admin-auditoria.test.tsx tests/admin-inicio-auditoria.onp.test.tsx\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/web exec vitest run tests/admin-auditoria.test.tsx tests/admin-inicio-auditoria.onp.test.tsx"
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      }
+    ],
+    "evaluatedAt": 1794919461140,
+    "passed": 6,
+    "total": 8,
+    "effectiveComplexity": "CRITICAL",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

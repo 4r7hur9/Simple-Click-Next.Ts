@@ -1,0 +1,1012 @@
+{
+  "version": 1,
+  "cardId": "65938a77-b2df-4910-b279-78876123e902",
+  "cardSeq": 112,
+  "savedAt": 1794918809246,
+  "plan": {
+    "title": "Stitch · Painel do lojista",
+    "complexity": "HIGH",
+    "risk": "medium",
+    "summary": "Aplicar tokens e peças da base visual (#104) ao painel do lojista sem mudar funções, rotas, permissões ou contratos; 12 tarefas sequenciais.",
+    "discovery": [
+      {
+        "claim": "Menu lateral compartilhado com a administração",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/painel/MenuLateral.tsx",
+          "symbol": "MenuLateral"
+        }
+      },
+      {
+        "claim": "Classes do menu centralizadas",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/painel/estilo-do-menu.ts",
+          "symbol": "classeDoItem"
+        }
+      },
+      {
+        "claim": "Tutorial acha o menu por data-tema",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/tutorial/passos.ts"
+        }
+      },
+      {
+        "claim": "Gaveta e chip locais na barra de filtros",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/painel-filtros/BarraDeFiltros.tsx",
+          "symbol": "Gaveta"
+        }
+      },
+      {
+        "claim": "Peças do UI disponíveis",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/chip.tsx",
+          "symbol": "Chip"
+        }
+      },
+      {
+        "claim": "Gaveta do UI exige id e fica no DOM",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/gaveta.tsx",
+          "symbol": "Gaveta"
+        }
+      },
+      {
+        "claim": "Abas do UI",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/abas.tsx",
+          "symbol": "Abas"
+        }
+      },
+      {
+        "claim": "Classes .sc-pedidos/.sc-filtros também em conta.css (global)",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/conta.css"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Moldura e menu na linguagem nova sem mudar quem vê o quê",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "teste compara menu com tabela papel→itens e permissaoDoCaminho; admin sem regressão"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Listas, catálogo, clientes e pedidos com tokens e peças novas mantendo busca, filtros e ações",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "testes onp por área; conta não muda"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Aparência, config, métricas, equipe, cadastro, tutorial, feed/stories/comentários restilizados",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "testes onp e varredura de cor literal"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "features do painel",
+        "estilos pedidos/filtros/cadastro/stories/seletor-de-cor",
+        "testes onp"
+      ],
+      "out": [
+        "packages/ui/src",
+        "landing",
+        "features/admin",
+        "conta.css",
+        "rota de prévia",
+        "commit/push"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-11207/09/10/11 e Dialogo mantêm comportamento atual",
+        "impact": "só visual muda"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Seletores compartilhados com conta.css não são alterados; renomear só no painel",
+        "why": "CSS da conta é global",
+        "alternatives": [
+          "editar conta.css"
+        ],
+        "impact": "evita regressão na conta"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "Moldura, menu, avisos",
+        "objective": "T-11201",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "menu compartilhado com admin",
+          "files": [
+            "apps/web/src/features/painel/MenuLateral.tsx"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel/MenuLateral.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/painel/estilo-do-menu.ts",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-moldura.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "tokens",
+            "data-tutorial=menu-do-painel"
+          ],
+          "contracts": [
+            "PropsDoMenuLateral intacta"
+          ],
+          "constraints": [
+            "admin sem regressão"
+          ],
+          "expected": [],
+          "forbidden": [
+            "packages/ui/src"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [
+            "painel-lojista-moldura"
+          ],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "falta token"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "Filtros, chips, gaveta",
+        "objective": "T-11202",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "trocar por Chip/Gaveta do UI",
+          "files": [
+            "apps/web/src/features/painel-filtros/BarraDeFiltros.tsx"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel-filtros/BarraDeFiltros.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/filtros.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-listas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "id e rotuloDoFechar na Gaveta",
+            "FaixaDeChips"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [
+            "painel-lojista-listas"
+          ],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "Catálogo",
+        "objective": "T-11203",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-2"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "listas e formulários",
+          "files": [
+            "apps/web/src/features/painel-catalogo/ListaProdutos.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel-catalogo/ListaProdutos.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-catalogo.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "Clientes",
+        "objective": "T-11204",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-3"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "pedidos.css compartilhado",
+          "files": [
+            "apps/web/src/features/painel-clientes/ListaClientes.tsx"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel-clientes/ListaClientes.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/pedidos.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-clientes.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-5",
+        "title": "Pedidos",
+        "objective": "T-11205",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-4"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "quadro, cupom",
+          "files": [
+            "apps/web/src/features/painel-pedidos/QuadroKanban.tsx"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel-pedidos/QuadroKanban.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-pedidos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [
+            "cupom sem tema"
+          ],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "etapa sem token"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-6",
+        "title": "Aparência e prévia",
+        "objective": "T-11206",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "cor da loja só na prévia",
+          "files": [
+            "apps/web/src/features/config/FormularioAparencia.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/config/FormularioAparencia.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-aparencia.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": [
+            "server/previa.ts"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-7",
+        "title": "Configurações",
+        "objective": "T-11207",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-6"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "formulários",
+          "files": [
+            "apps/web/src/features/painel/MolduraDaConfiguracao.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/painel/MolduraDaConfiguracao.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-config.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-8",
+        "title": "Métricas e início",
+        "objective": "T-11208",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-7"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "dashboard; consumidores na conta",
+          "files": [
+            "apps/web/src/features/dashboard/CartoesDoPainel.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/dashboard/CartoesDoPainel.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-metricas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-9",
+        "title": "Equipe e escolha de loja",
+        "objective": "T-11209",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-8"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "equipe",
+          "files": [
+            "apps/web/src/features/equipe/PainelDaEquipe.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/equipe/PainelDaEquipe.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-equipe.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10",
+        "title": "Cadastro, aprovação, tutorial",
+        "objective": "T-11210",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-9"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "cadastro.css compartilhado com /cadastrar",
+          "files": [
+            "apps/web/src/features/tutorial/passos.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/tutorial/passos.ts",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/cadastro.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-primeiros-passos.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [
+            "só classes novas em cadastro.css"
+          ],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11",
+        "title": "Feed, stories, comentários",
+        "objective": "T-11211",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "stories.css em fila com #106",
+          "files": [
+            "apps/web/src/features/stories-painel/TelaDeStories.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/stories-painel/TelaDeStories.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "packages/ui/styles/stories.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/painel-lojista-conteudo.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-12",
+        "title": "Consistência transversal",
+        "objective": "T-11212",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-11"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "varredura de cor literal em tsx e css",
+          "files": [
+            "apps/web/src/features/config/SeletorDeCor.tsx"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/painel-lojista-consistencia.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter web test"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "CSS compartilhado com conta/admin",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "prefixos do painel, testes da conta e admin",
+        "detection": "testes e verificação visual"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/menu-lateral.test.tsx",
+        "apps/web/tests/gaveta-e-aviso.onp.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/painel-lojista-*.onp.test.tsx"
+      ],
+      "manual": [
+        "344/768/1280px claro e escuro"
+      ],
+      "external": []
+    },
+    "review": {
+      "by": "rmcode-revisor-plano-arquitetura",
+      "findings": [
+        {
+          "text": "seletores compartilhados com conta.css",
+          "severity": "major",
+          "resolution": "não alterar; renomear no painel"
+        },
+        {
+          "text": "Gaveta do UI muda comportamento",
+          "severity": "major",
+          "resolution": "id, rotulo, matchMedia, testes"
+        },
+        {
+          "text": "regressão da administração no menu",
+          "severity": "major",
+          "resolution": "CA com snapshot e assinatura intacta"
+        },
+        {
+          "text": "contrato data-tutorial indefinido",
+          "severity": "major",
+          "resolution": "data-tutorial=menu-do-painel na T-1"
+        },
+        {
+          "text": "consumidores na conta",
+          "severity": "major",
+          "resolution": "só classes novas e testes"
+        },
+        {
+          "text": "T-12 só varria tsx",
+          "severity": "major",
+          "resolution": "varrer CSS também"
+        }
+      ]
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O comando de validação \"pnpm --filter web test\" não existe no package.json."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": false,
+        "detail": "T-3 não descreve as alterações esperadas."
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true,
+        "detail": "não informada"
+      }
+    ],
+    "failures": [
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter web test\" não existe no package.json.",
+        "ref": "pnpm --filter web test"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-3 não descreve as alterações esperadas.",
+        "ref": "T-3"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-4 não descreve as alterações esperadas.",
+        "ref": "T-4"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-5 não descreve as alterações esperadas.",
+        "ref": "T-5"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-6 não descreve as alterações esperadas.",
+        "ref": "T-6"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-7 não descreve as alterações esperadas.",
+        "ref": "T-7"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-8 não descreve as alterações esperadas.",
+        "ref": "T-8"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-9 não descreve as alterações esperadas.",
+        "ref": "T-9"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-10 não descreve as alterações esperadas.",
+        "ref": "T-10"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-11 não descreve as alterações esperadas.",
+        "ref": "T-11"
+      },
+      {
+        "item": "context",
+        "severity": "major",
+        "code": "subtask-no-changes",
+        "message": "T-12 não descreve as alterações esperadas.",
+        "ref": "T-12"
+      },
+      {
+        "item": "estimate",
+        "severity": "minor",
+        "code": "no-estimate",
+        "message": "Estimativa de esforço/custo não informada (opcional)."
+      }
+    ],
+    "evaluatedAt": 1794918809246,
+    "passed": 6,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

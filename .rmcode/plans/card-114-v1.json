@@ -1,0 +1,1089 @@
+{
+  "version": 1,
+  "cardId": "671fc7be-1502-477a-8f01-713d3d8685e5",
+  "cardSeq": 114,
+  "savedAt": 1794920763394,
+  "plan": {
+    "title": "Stitch · Validação visual e regressão",
+    "complexity": "MEDIUM",
+    "risk": "medium",
+    "summary": "Cria provas transversais (e2e Playwright e vitest onp) para o redesign: jornada de compra, acessibilidade, teclado, contraste, movimento, estados, catálogo grande, capturas, manifesto e auditoria de dados do Stitch. Só arquivos de teste e fixtures; produção intocada.",
+    "discovery": [
+      {
+        "claim": "Config do Playwright tem projetos publico e celular (344x882), fullyParallel, screenshot só na falha",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/playwright.config.ts"
+        }
+      },
+      {
+        "claim": "Existe e2e onp do #104 com larguras 344/768/1280 e fonts.ready",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/base-visual.onp.spec.ts"
+        }
+      },
+      {
+        "claim": "Loja de teste do e2e e seu montador",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/fixtures/loja-de-teste.ts",
+          "symbol": "garantirLojaDeTeste"
+        }
+      },
+      {
+        "claim": "Padrão axe no navegador herdado",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/a11y-vitrine.spec.ts"
+        }
+      },
+      {
+        "claim": "Rede móvel emulada por CDP (comoRobo) para medir tempo",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/desempenho-vitrine.spec.ts"
+        }
+      },
+      {
+        "claim": "Cálculo de contraste reutilizável",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/src/contraste.ts",
+          "symbol": "relacaoDeContraste"
+        }
+      },
+      {
+        "claim": "Testes antigos da rede de regressão existem",
+        "kind": "fact",
+        "ref": {
+          "path": "e2e/specs/checkout.spec.ts"
+        }
+      },
+      {
+        "claim": "Motor onp só lê vitest; provas de navegador não contam no verify",
+        "kind": "inference",
+        "ref": {
+          "path": ".spec/features/stitch-validacao-visual/design.md"
+        }
+      },
+      {
+        "claim": "Loja de teste pode não ter variação/atacado; precisa conferir ao implementar",
+        "kind": "unknown"
+      },
+      {
+        "claim": "Seletores finais das telas dos cards #105–#111 dependem do código entregue",
+        "kind": "unknown"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Capturas e manifesto de diferenças por tela/largura/tema",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "spec gera capturas nas 5 larguras e 2 temas; teste vitest valida classe/motivo/pendente do manifesto"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Jornada de compra e regressão dos testes antigos",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "jornada e2e verde com valores fixos; lista da seção 5 roda com 0 pulados"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Acessibilidade, teclado, contraste, toque, movimento e área segura",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "axe sem violação nas telas×larguras; Tab/Esc/foco nas gavetas; contraste das lojas ≥4,5; reduced-motion e safe-area declarados"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "Estados, imagens, catálogo grande e auditoria dos dados do Stitch",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "estados com page.route; catálogo grande em loja dedicada (mediana de 5); busca de dados fictícios no texto das telas retorna vazio"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "e2e/specs/*.onp.spec.ts novos",
+        "e2e/fixtures novos",
+        "apps/web/tests/*.onp.test.* novos"
+      ],
+      "out": [
+        "código de produção",
+        "pasta .spec",
+        "configuração do Playwright",
+        "commit/push"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "Q-11401…Q-11412 seguem as propostas da spec",
+        "impact": "se o dono mudar larguras/N/baseline, ajustar constantes de fixture"
+      },
+      {
+        "text": "Loja e2e-catalogo-grande criada e limpa pela fixture, nunca a e2e-lanchonete",
+        "impact": "evita interferir nos testes paralelos"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Telas e lojas, larguras e temas ficam em um único fixture",
+        "why": "um lugar para mudar quando o dono responder Q-11401/03/04"
+      },
+      {
+        "id": "D-2",
+        "decision": "Prova de navegador não entra no motor; relatório do Playwright vira evidência à parte",
+        "why": "Q-11405 proposta A, sem tocar no motor",
+        "mitigation": "matriz marca tipo de prova"
+      },
+      {
+        "id": "D-3",
+        "decision": "Não alterar loja-de-teste.ts compartilhada; criar variação/atacado em fixture própria ou pedir ao gerente",
+        "why": "outros cenários dependem dela"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-1",
+        "title": "T-11401 conferir matriz",
+        "objective": "Confirmar que a matriz e estratégia do design.md batem com o que será provado; relatar lacunas ao gerente",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Documento já existe; sem edição em .spec",
+          "files": [
+            ".spec/features/stitch-validacao-visual/design.md"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": ".spec/features/stitch-validacao-visual/design.md",
+              "action": "reuse",
+              "note": "só leitura"
+            }
+          ],
+          "changes": [
+            "Registrar via board_message divergências"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não editar .spec"
+          ],
+          "expected": [],
+          "forbidden": [
+            "editar .spec"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [],
+          "commands": [],
+          "evidence": [
+            "mensagem ao gerente"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-2",
+        "title": "T-11404 jornada de compra e2e",
+        "objective": "Cenário descoberta→catálogo→produto com variação→sacola→pedido→acompanhamento→WhatsApp",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-1"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Reusa loja de teste sem alterá-la",
+          "files": [
+            "e2e/fixtures/loja-de-teste.ts"
+          ],
+          "evidence": [
+            "e2e/specs/checkout.spec.ts"
+          ],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/jornada-de-compra.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/fixtures/loja-de-teste.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Cenário com valores fixos",
+            "Título [CA-n] @spec:AC-11404…11407"
+          ],
+          "contracts": [],
+          "constraints": [
+            "sem editar fixture compartilhada"
+          ],
+          "expected": [
+            "pedido com código"
+          ],
+          "forbidden": [
+            "relaxar asserções"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [
+            "jornada-de-compra.onp.spec.ts"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e jornada-de-compra"
+          ],
+          "evidence": [
+            "relatório Playwright"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "loja sem variação/atacado"
+          ],
+          "blockedConditions": [
+            "ambiente sem banco"
+          ]
+        }
+      },
+      {
+        "id": "T-3",
+        "title": "T-11405 rede de regressão",
+        "objective": "Rodar os 10 e2e antigos e reportar passou/falhou/pulou",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-2"
+        ],
+        "requirements": [
+          "R-2"
+        ],
+        "context": {
+          "summary": "Execução e relato; falha de seletor é dos cards donos",
+          "files": [
+            "e2e/specs/vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/vitrine.spec.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "e2e/specs/carrinho.spec.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Executar e relatar"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não editar testes antigos"
+          ],
+          "expected": [
+            "0 pulados"
+          ],
+          "forbidden": [
+            "pular ou relaxar"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-2"
+          ],
+          "tests": [],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e"
+          ],
+          "evidence": [
+            "contagem de pulados"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "ambiente sem banco"
+          ]
+        }
+      },
+      {
+        "id": "T-4",
+        "title": "T-11406 acessibilidade e larguras",
+        "objective": "axe por tela×largura e estouro lateral; papéis no jsdom",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-3"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Telas listadas no fixture",
+          "files": [
+            "e2e/specs/a11y-vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/acessibilidade-redesign.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/acessibilidade-redesign.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "e2e/fixtures/telas-do-redesign.ts",
+              "action": "reuse",
+              "note": "criado em T-9"
+            }
+          ],
+          "changes": [
+            "axe com regras mínimas e movimento reduzido"
+          ],
+          "contracts": [],
+          "constraints": [
+            "sem dependência nova"
+          ],
+          "expected": [
+            "sem violação"
+          ],
+          "forbidden": [
+            "desligar regra"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "acessibilidade-redesign"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e acessibilidade-redesign",
+            "pnpm exec vitest run --project web acessibilidade-redesign"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "violação em produção: relatar ao gerente"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-5",
+        "title": "T-11407 teclado e foco",
+        "objective": "Tab/Esc/foco devolvido na sacola e janela do produto",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-4"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Depende de diálogo modal real (Q-10408)",
+          "files": [
+            "e2e/specs/teclado-vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/teclado-redesign.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Sequência de Tab com papel/nome"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [
+            "foco preso e devolvido"
+          ],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "teclado-redesign"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e teclado-redesign"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [
+            "diálogo não modal: relatar"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-6",
+        "title": "T-11408 contraste das lojas e toque",
+        "objective": "Contraste real por loja e alvos de toque",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-5"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Usa relacaoDeContraste",
+          "files": [
+            "packages/ui/src/contraste.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/contraste-das-lojas.onp.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/specs/toque-redesign.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/src/contraste.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "@principle:P-106 só rastreabilidade"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não repetir pares de tokens do #104"
+          ],
+          "expected": [
+            "≥4,5"
+          ],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "contraste-das-lojas"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web contraste-das-lojas"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-7",
+        "title": "T-11409 movimento reduzido e área segura",
+        "objective": "Declarações CSS de reduced-motion e safe-area",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-6"
+        ],
+        "requirements": [
+          "R-3"
+        ],
+        "context": {
+          "summary": "Lê CSS das telas; prova manual no simulador à parte",
+          "files": [
+            "packages/ui/styles/vitrine.css"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/movimento-e-area-segura.onp.test.ts",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "Conferir animation/transition com regra reduce"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3"
+          ],
+          "tests": [
+            "movimento-e-area-segura"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web movimento-e-area-segura"
+          ],
+          "evidence": [
+            "capturas do simulador"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-8",
+        "title": "T-11410 estados e imagens",
+        "objective": "Vazio, erro, carregamento, foto ausente/quebrada, CLS<0,1",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-7"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "page.route para falhas e atrasos",
+          "files": [
+            "e2e/fixtures/intercepts.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/estados-redesign.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/fixtures/estados-do-redesign.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/fixtures/intercepts.ts",
+              "action": "reuse"
+            }
+          ],
+          "changes": [
+            "PerformanceObserver layout-shift"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [
+            "estados-redesign"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e estados-redesign"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-9",
+        "title": "T-11402 capturas por tela, largura e tema",
+        "objective": "Capturar telas nas 5 larguras e 2 temas, fixture único de telas",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-8"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Capturas fora do git (Q-11408)",
+          "files": [
+            "e2e/specs/base-visual.onp.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-1"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/specs/capturas-redesign.onp.spec.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/fixtures/telas-do-redesign.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "fonts.ready e movimento reduzido antes de capturar"
+          ],
+          "contracts": [
+            "telas-do-redesign exporta TELAS, LARGURAS, TEMAS, LOJAS"
+          ],
+          "constraints": [
+            "sem baseline de pixels"
+          ],
+          "expected": [],
+          "forbidden": [
+            "copiar dados do Stitch"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [
+            "capturas-redesign"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e capturas-redesign"
+          ],
+          "evidence": [
+            "pasta de capturas"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10",
+        "title": "T-11403 manifesto de diferenças",
+        "objective": "Manifesto tipado e teste da forma",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-9"
+        ],
+        "requirements": [
+          "R-1"
+        ],
+        "context": {
+          "summary": "Classes justificada/pendente/regressão",
+          "files": [
+            "e2e/fixtures/telas-do-redesign.ts"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/fixtures/diferencas-do-redesign.ts",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/diferencas-do-redesign.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "valida classe, motivo existente, pendente→Q aberta"
+          ],
+          "contracts": [],
+          "constraints": [
+            "não afirma completude"
+          ],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1"
+          ],
+          "tests": [
+            "diferencas-do-redesign"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web diferencas-do-redesign"
+          ],
+          "evidence": []
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-11",
+        "title": "T-11411 catálogo grande",
+        "objective": "Loja dedicada com N produtos; tempo/CLS/INP em 5 repetições",
+        "complexity": "HIGH",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "Fixture cria e limpa a loja",
+          "files": [
+            "e2e/specs/desempenho-vitrine.spec.ts"
+          ],
+          "evidence": [],
+          "decisions": [
+            "D-3"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "e2e/fixtures/catalogo-grande.ts",
+              "action": "create"
+            },
+            {
+              "path": "e2e/specs/catalogo-grande.onp.spec.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "mediana de 5; cartões no DOM < N"
+          ],
+          "contracts": [],
+          "constraints": [
+            "nunca e2e-lanchonete"
+          ],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [
+            "catalogo-grande"
+          ],
+          "commands": [
+            "pnpm --filter @simpleclick/e2e test:e2e catalogo-grande"
+          ],
+          "evidence": [
+            "medianas"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [
+            "limpeza falha no banco"
+          ],
+          "blockedConditions": [
+            "ambiente sem banco"
+          ]
+        }
+      },
+      {
+        "id": "T-12",
+        "title": "T-11412 dados do Stitch e auditoria",
+        "objective": "Busca de dados fictícios no texto das telas; verify e audit",
+        "complexity": "MEDIUM",
+        "risk": "low",
+        "dependsOn": [
+          "T-11"
+        ],
+        "requirements": [
+          "R-4"
+        ],
+        "context": {
+          "summary": "CNPJ, telefone, 10x sem juros, 45 min etc.",
+          "files": [
+            "apps/web/tests"
+          ],
+          "evidence": [],
+          "decisions": []
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/dados-do-stitch.onp.test.ts",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "lista de termos proibidos"
+          ],
+          "contracts": [],
+          "constraints": [],
+          "expected": [],
+          "forbidden": []
+        },
+        "validation": {
+          "acceptance": [
+            "CA-4"
+          ],
+          "tests": [
+            "dados-do-stitch"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web dados-do-stitch"
+          ],
+          "evidence": [
+            "onp-spec verify/audit"
+          ]
+        },
+        "execution": {
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Seletores das telas mudam entre cards",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "seletores por papel/nome e fixture único",
+        "detection": "e2e falha"
+      },
+      {
+        "text": "Ambiente sem banco impede e2e",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "relatar como não rodado",
+        "detection": "erro de conexão"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "e2e/specs/checkout.spec.ts",
+        "e2e/specs/a11y-vitrine.spec.ts"
+      ],
+      "toCreate": [
+        "jornada-de-compra",
+        "acessibilidade-redesign",
+        "teclado-redesign",
+        "estados-redesign",
+        "catalogo-grande",
+        "capturas-redesign",
+        "contraste-das-lojas",
+        "movimento-e-area-segura",
+        "diferencas-do-redesign",
+        "dados-do-stitch"
+      ],
+      "manual": [
+        "área segura no simulador iOS"
+      ],
+      "external": []
+    }
+  },
+  "gate": {
+    "status": "NEEDS_REFINEMENT",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": false,
+        "detail": "O arquivo e2e/fixtures/telas-do-redesign.ts não existe no repositório."
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": false,
+        "detail": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": false,
+        "detail": "T-1 não diz como validar (tests ou commands)."
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true,
+        "detail": "não informada"
+      }
+    ],
+    "failures": [
+      {
+        "item": "requirements",
+        "severity": "minor",
+        "code": "classification-divergence",
+        "message": "O plano diz MEDIUM, mas o card foi classificado como HIGH: valem as exigências de HIGH."
+      },
+      {
+        "item": "evidence",
+        "severity": "critical",
+        "code": "file-missing",
+        "message": "O arquivo e2e/fixtures/telas-do-redesign.ts não existe no repositório.",
+        "ref": "e2e/fixtures/telas-do-redesign.ts"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e jornada-de-compra\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e jornada-de-compra"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e acessibilidade-redesign\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e acessibilidade-redesign"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e teclado-redesign\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e teclado-redesign"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e estados-redesign\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e estados-redesign"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e capturas-redesign\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e capturas-redesign"
+      },
+      {
+        "item": "evidence",
+        "severity": "major",
+        "code": "command-unknown",
+        "message": "O comando de validação \"pnpm --filter @simpleclick/e2e test:e2e catalogo-grande\" não existe no package.json.",
+        "ref": "pnpm --filter @simpleclick/e2e test:e2e catalogo-grande"
+      },
+      {
+        "item": "acceptance",
+        "severity": "major",
+        "code": "subtask-no-validation",
+        "message": "T-1 não diz como validar (tests ou commands).",
+        "ref": "T-1"
+      },
+      {
+        "item": "decisions",
+        "severity": "critical",
+        "code": "review-missing",
+        "message": "HIGH/CRITICAL exige a revisão adversarial (agente revisor) antes da aprovação."
+      },
+      {
+        "item": "estimate",
+        "severity": "minor",
+        "code": "no-estimate",
+        "message": "Estimativa de esforço/custo não informada (opcional)."
+      }
+    ],
+    "evaluatedAt": 1794920763394,
+    "passed": 5,
+    "total": 8,
+    "effectiveComplexity": "HIGH",
+    "reviewRequired": true,
+    "reviewGuard": true
+  }
+}

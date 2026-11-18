@@ -1,0 +1,1056 @@
+{
+  "version": 2,
+  "cardId": "9c2dd611-136e-4a60-b150-70b646be88b7",
+  "cardSeq": 107,
+  "savedAt": 1794488033141,
+  "plan": {
+    "title": "#107 Stitch · Vitrine da loja (/loja/[slug])",
+    "complexity": "MEDIUM",
+    "risk": "medium",
+    "summary": "Redesenhar o conteúdo principal da página pública da loja (/loja/<apelido> e /sobre) seguindo as telas 'Vitrine da loja' do Stitch, com os dados de cada loja e a cor da loja (TemaDaMarca). Partir das peças do #104 (Chip, IconeCompartilhar, IconeEstrela, AvisoFlutuante, tokens, Plus Jakarta Sans). Ocultar as funções 'A decidir' e trocar o atendimento técnico por 'Fale com a loja no WhatsApp'. A execução é sequencial, depois do #104 e do #105.",
+    "discovery": [
+      {
+        "claim": "TelaDaLoja é um componente de servidor assíncrono que busca vitrine, fechamento, resumo do catálogo (12 por seção, até 48), usuário e favoritas, e monta ApresentacaoDaLoja, PostsDaLoja, SobreDaLoja e EntradaDaLoja",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/TelaDaLoja.tsx",
+          "symbol": "TelaDaLoja"
+        }
+      },
+      {
+        "claim": "TelaDaLoja repassa ao Sobre só RecebimentoDaLoja (formas de pagamento e entrega), sem a chave PIX",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/SobreDaLoja.tsx",
+          "symbol": "RecebimentoDaLoja"
+        }
+      },
+      {
+        "claim": "A prévia da Aparência desenha a mesma TelaDaLoja com o rascunho e importa vitrine.css, produto.css e fechamento.css",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/previa/[parte]/page.tsx",
+          "symbol": "PreviaDaLoja"
+        }
+      },
+      {
+        "claim": "O layout da loja importa narrativa.css e sobre.css; vitrine.css não é carregada na página pública",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/layout.tsx",
+          "symbol": "MolduraDaLoja"
+        }
+      },
+      {
+        "claim": "ApresentacaoDaLoja desenha painel com fundo (e versão de celular), véu, capa padrão do ramo, logo ou iniciais, nome, boas-vindas, Sobre resumido, CTA do catálogo e o footer sc-loja__detalhes, que só aparece com entrega ou endereço (temDetalhes)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+          "symbol": "ApresentacaoDaLoja"
+        }
+      },
+      {
+        "claim": "SituacaoDaLoja mostra 'Aberta agora', 'Fechada agora · próxima abertura', 'horário não informado' e a explicação da exceção",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+          "symbol": "SituacaoDaLoja"
+        }
+      },
+      {
+        "claim": "O selo usa atributosDoSelo (pílula clara ou escura, com contraste)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/SeloDeStatus.tsx",
+          "symbol": "atributosDoSelo"
+        }
+      },
+      {
+        "claim": "EntradaDaLoja anima os blocos .sc-loja__identidade, .sc-loja__chamada e .sc-loja__detalhes dentro de [data-narrativa=\"apresentacao\"]",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/EntradaDaLoja.tsx",
+          "symbol": "EntradaDaLoja"
+        }
+      },
+      {
+        "claim": "enderecoNoMapa e numeroDoWhatsApp já existem e são reusáveis",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/sobre/formatos.ts",
+          "symbol": "enderecoNoMapa"
+        }
+      },
+      {
+        "claim": "Os nomes das formas de pagamento (PIX→Pix etc.) estão num mapa interno não exportado, usado por FormasDePagamento",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/sobre/SecoesDoSobre.tsx",
+          "symbol": "FormasDePagamento"
+        }
+      },
+      {
+        "claim": "FaleComAGente monta o link wa.me só com número público",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/loja/sobre/SecoesDoSobre.tsx",
+          "symbol": "FaleComAGente"
+        }
+      },
+      {
+        "claim": "Favoritar a loja só aparece dentro de PostsDaLoja, que retorna null sem produtos; PostsDaLoja importa feed.css",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/PostsDaLoja.tsx",
+          "symbol": "PostsDaLoja"
+        }
+      },
+      {
+        "claim": "BotaoFavoritar favorita a loja sozinho (sem alternar externo), com a variante 'seguir' e sem contador",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+          "symbol": "BotaoFavoritar"
+        }
+      },
+      {
+        "claim": "Destaques recebe ProdutoNaTela, retorna null sem itens e usa classes de vitrine.css",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/Destaques.tsx",
+          "symbol": "Destaques"
+        }
+      },
+      {
+        "claim": "prepararProduto converte o produto do contrato em ProdutoNaTela",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/server/catalogo-na-tela.ts",
+          "symbol": "prepararProduto"
+        }
+      },
+      {
+        "claim": "O resumo traz secoes com total por seção e proximoCursor, além de destaques",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/contracts/src/vitrine.ts",
+          "symbol": "esquemaDaSecaoNoResumo"
+        }
+      },
+      {
+        "claim": "O total por seção vem de product_categories (N:N), então o mesmo produto pode contar em mais de uma seção; somar os totais superconta",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/api/src/modules/storefront/catalogo-paginado.usecase.ts",
+          "symbol": "totalPorSecao"
+        }
+      },
+      {
+        "claim": "vitrine.css define regras para .sc-pagina-da-loja (fundo e altura mínima), já aplicadas na prévia",
+        "kind": "fact",
+        "ref": {
+          "path": "packages/ui/styles/vitrine.css",
+          "symbol": ".sc-pagina-da-loja"
+        }
+      },
+      {
+        "claim": "CapaDaVitrine é usada só pelo topo do /cardapio (TelaDoCatalogo); o #108 a assumiu (variante compacta)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/features/vitrine/CapaDaVitrine.tsx",
+          "symbol": "CapaDaVitrine"
+        }
+      },
+      {
+        "claim": "Testes antigos dependem de classes sc-loja__* (painel, fundo, situacao, entrar, detalhes) e de narrativa.css",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/tests/apresentacao-da-loja.test.tsx"
+        }
+      },
+      {
+        "claim": "O dev /ui/capas usa ApresentacaoDaLoja e as classes sc-loja__painel, sc-loja__padrao e sc-loja__trama",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(dev)/ui/capas/page.tsx"
+        }
+      },
+      {
+        "claim": "As peças Chip (href, aria-current), IconeCompartilhar, AvisoFlutuante e Botao marcável ainda não existem: o #104 vai criá-las com os nomes de .spec/features/stitch-base-visual/design.md §5",
+        "kind": "unknown"
+      },
+      {
+        "claim": "A descrição para buscadores diz 'Peça em {loja} pelo WhatsApp' mesmo sem WhatsApp (Q-10711)",
+        "kind": "fact",
+        "ref": {
+          "path": "apps/web/src/app/(loja)/loja/[slug]/page.tsx",
+          "symbol": "generateMetadata"
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Identidade da loja no desenho do Stitch, com os dados e a cor da própria loja e fallback de iniciais e capa padrão",
+        "acceptance": [
+          {
+            "id": "CA-1",
+            "verify": "vitrine-loja-identidade.onp.test.tsx: h1 com o nome, logo, foto do computador e do celular, véu e --cor-marca da loja; sem logo nem foto: iniciais e data-capa-padrao do ramo (AC-10701, AC-10702, AC-10703)"
+          }
+        ]
+      },
+      {
+        "id": "R-2",
+        "text": "Situação da loja em texto: aberta, fechada com e sem próxima abertura, exceção",
+        "acceptance": [
+          {
+            "id": "CA-2",
+            "verify": "vitrine-loja-situacao.onp.test.tsx: os 4 cenários; fechada não contém 'Aberta agora' e mostra o aviso de ver o catálogo e voltar depois (AC-10704 a AC-10707)"
+          }
+        ]
+      },
+      {
+        "id": "R-3",
+        "text": "Condições de compra só com dado, pagamento pelo nome e sem chave PIX, mapa só com endereço que dá para achar, sempre um link para /sobre",
+        "acceptance": [
+          {
+            "id": "CA-3",
+            "verify": "vitrine-loja-condicoes.onp.test.tsx: loja sem dado não tem cartão; 'Pix' aparece e a chave de exemplo não está no HTML; 'Abrir no mapa' só com rua ou cidade; href /loja/<apelido>/sobre sempre presente (AC-10708, AC-10709, AC-10711, AC-10720)"
+          }
+        ]
+      },
+      {
+        "id": "R-4",
+        "text": "WhatsApp só com número público e texto genérico ('Fale com a loja no WhatsApp'), na identidade e num cartão no fim",
+        "acceptance": [
+          {
+            "id": "CA-4",
+            "verify": "vitrine-loja-condicoes.onp.test.tsx: com número, link wa.me só com dígitos e texto genérico; sem número, nenhum wa.me; sem placa, chassi, técnico, minutos nem 'agora' (AC-10710)"
+          }
+        ]
+      },
+      {
+        "id": "R-5",
+        "text": "CTA do catálogo com o rótulo do ramo, como link real, e contagem só quando exata; destaques só com itens",
+        "acceptance": [
+          {
+            "id": "CA-5",
+            "verify": "vitrine-loja-destaques.onp.test.tsx: 'Ver o cardápio completo' e 'Ver o catálogo completo' apontam para /cardapio; '(N itens)' só quando nenhuma seção veio cortada; sem destaques, nada de #destaques nem do título (AC-10712, AC-10713)"
+          }
+        ]
+      },
+      {
+        "id": "R-6",
+        "text": "Faixa de chips por links e seções empilhadas no HTML; publicações preservadas; Sobre como janela com endereço próprio",
+        "acceptance": [
+          {
+            "id": "CA-6",
+            "verify": "vitrine-loja-publicacoes.onp.test.tsx: chips são <a> para #destaques, #publicacoes e /sobre; todo o conteúdo está no HTML estático, sem role=tabpanel escondido; publicações aparecem só com produto; /sobre continua com canônico próprio, por leitura do fonte (AC-10714, AC-10715, AC-10721)"
+          }
+        ]
+      },
+      {
+        "id": "R-7",
+        "text": "Funções 'A decidir' e promessas sem base ficam ocultas; a prévia usa a mesma composição; Favoritar sem contador, também sem publicações",
+        "acceptance": [
+          {
+            "id": "CA-7",
+            "verify": "vitrine-loja-guardas.onp.test.tsx: o HTML não tem nota, avaliações, verificada, mais vendidos, parcelas, x sem juros, NF-e, compra protegida, placa, chassi nem contagem de favoritos; a prévia e a rota usam TelaDaLoja e PerfilDaLoja (leitura do fonte); o Favoritar aparece sem posts e sem número (AC-10717, AC-10718, AC-10719)"
+          }
+        ]
+      },
+      {
+        "id": "R-8",
+        "text": "Compartilhar a loja: nativo, com cópia do link e aviso como reserva, e invisível sem JS",
+        "acceptance": [
+          {
+            "id": "CA-8",
+            "verify": "vitrine-loja-identidade.onp.test.tsx: o HTML do servidor não contém o botão; em jsdom, depois de montar, o clique chama navigator.share com a URL da loja ou, sem share, clipboard.writeText e mostra o aviso 'Link copiado'"
+          }
+        ]
+      }
+    ],
+    "scope": {
+      "in": [
+        "apps/web/src/app/(loja)/loja/[slug]/TelaDaLoja.tsx",
+        "apps/web/src/features/loja/* (ApresentacaoDaLoja, EntradaDaLoja, novos PerfilDaLoja, CondicoesDaLoja, ContatoDaLoja, BotaoCompartilharLoja, export em sobre/SecoesDoSobre)",
+        "packages/ui/styles/narrativa.css (posse liberada pelo gerente, exceto o visual de sc-secao e sc-pagina-dupla)",
+        "packages/ui/styles/vitrine.css (regras do perfil, 1º da fila)",
+        "apps/web/src/features/feed/feed.css (depois do #106, sob .sc-pagina-da-loja)",
+        "testes apps/web/tests/vitrine-loja-*.onp.test.tsx e ajustes declarados em testes antigos"
+      ],
+      "out": [
+        "CapaDaVitrine.tsx (topo do /cardapio, do #108)",
+        "SeloDeStatus.tsx, Destaques.tsx, catalogo-na-tela.ts (só reuso)",
+        "layout.tsx da loja (#105), TelaDoCatalogo.tsx, arquivos do #104, .spec/",
+        "page.tsx da loja (meta description, Q-10711)",
+        "API ou contrato para a contagem exata",
+        "avaliações, selos, mais vendidos, parcelamento, garantia, mapa embutido",
+        "commit, push e troca de branch"
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "O #104 entrega Chip (com href e aria-current), IconeCompartilhar, IconeEstrela, AvisoFlutuante e tokens com os nomes do design.md §5 do #104",
+        "impact": "Se os nomes mudarem, ajusto os imports quando o gerente avisar; se a peça não existir, uso classes locais e aviso o gerente"
+      },
+      {
+        "text": "Q-10703: cada bloco aparece sempre que há dado, sem regra por ramo",
+        "impact": "Não liga o perfil a blocos.vitrine, que governa o catálogo"
+      },
+      {
+        "text": "Q-10706: 'Abrir no mapa' no cartão de endereço da vitrine (link externo, sem chave de API)",
+        "impact": "Reusa enderecoNoMapa"
+      },
+      {
+        "text": "Q-10707: 'Garantia e trocas' é descartado",
+        "impact": "Nenhum bloco novo"
+      },
+      {
+        "text": "A contagem de itens conta os IDs únicos do resumo e só aparece quando nenhuma seção veio cortada",
+        "impact": "Loja grande mostra só o texto até existir um total na API (#108)"
+      }
+    ],
+    "blockingQuestions": [],
+    "decisions": [
+      {
+        "id": "D-1",
+        "decision": "Os estilos sc-loja__* evoluem em narrativa.css, mantendo os nomes de classe que os testes e a EntradaDaLoja usam",
+        "why": "A folha já carrega no layout da loja e é a casa das classes; o gerente liberou a posse",
+        "impact": "Os /ui de dev (capas, catalogo) e as classes sc-secao e sc-pagina-dupla não podem mudar",
+        "mitigation": "Não tocar em sc-secao e sc-pagina-dupla; conferir /ui/capas e '/' no navegador"
+      },
+      {
+        "id": "D-2",
+        "decision": "Criar PerfilDaLoja síncrono; TelaDaLoja só busca os dados",
+        "why": "renderToStaticMarkup não desenha componente assíncrono; é preciso provar a ordem e a omissão dos blocos",
+        "impact": "A rota, o /sobre e a prévia continuam chamando TelaDaLoja"
+      },
+      {
+        "id": "D-3",
+        "decision": "Reusar Destaques e prepararProduto sem editar, e importar vitrine.css no PerfilDaLoja",
+        "why": "Mesmo cartão de produto do catálogo; iguala as folhas da prévia e da página pública (AC-10718)",
+        "impact": "A página /loja passa a carregar vitrine.css, já em cache para quem vai ao /cardapio",
+        "mitigation": "Elas já valem na prévia; conferência visual nos dois temas"
+      },
+      {
+        "id": "D-4",
+        "decision": "A contagem de itens conta os IDs únicos do resumo e só aparece quando o resumo está completo",
+        "why": "product_categories é N:N, então somar totais superconta; o usuário pediu contagem real",
+        "impact": "Loja com mais de 12 por seção ou 48 no total não mostra o número"
+      },
+      {
+        "id": "D-5",
+        "decision": "CondicoesDaLoja recebe só RecebimentoDaLoja",
+        "why": "A chave PIX nunca pode chegar ao HTML (critério legado 904)",
+        "impact": "Teste com chave de exemplo"
+      },
+      {
+        "id": "D-6",
+        "decision": "Chips por links (âncoras e /sobre), não abas por script",
+        "why": "Resposta do usuário à Q-10701/02; conteúdo inteiro no HTML sem JS (AC-10721)",
+        "impact": "Usa Chip com href do #104"
+      },
+      {
+        "id": "D-7",
+        "decision": "BotaoCompartilharLoja como client component que só aparece depois de montar",
+        "why": "Resposta do usuário à Q-10705; sem JS não deve haver botão morto",
+        "impact": "Usa IconeCompartilhar e AvisoFlutuante do #104"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "T-10701",
+        "title": "PerfilDaLoja síncrono",
+        "objective": "Extrair a composição para um componente síncrono testável, sem mudança visual",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "TelaDaLoja busca os dados e passa tudo pronto ao PerfilDaLoja",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/TelaDaLoja.tsx"
+          ],
+          "evidence": [
+            "TelaDaLoja.tsx monta ApresentacaoDaLoja, PostsDaLoja, SobreDaLoja e EntradaDaLoja"
+          ],
+          "decisions": [
+            "D-2",
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/app/(loja)/loja/[slug]/TelaDaLoja.tsx",
+              "action": "modify",
+              "note": "só busca e chama PerfilDaLoja"
+            },
+            {
+              "path": "apps/web/src/features/loja/PerfilDaLoja.tsx",
+              "action": "create",
+              "note": "as tarefas seguintes continuam editando este arquivo"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-perfil.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Mover o JSX para PerfilDaLoja, que recebe loja, abertura, horario, recebimento, posts, resumo, usuário logado, favorita e acoes"
+          ],
+          "contracts": [
+            "PerfilDaLoja recebe recebimento: RecebimentoDaLoja | null, nunca o fechamento inteiro"
+          ],
+          "constraints": [
+            "A guarda de leitura do fonte em sobre-da-loja.test.tsx continua passando"
+          ],
+          "expected": [
+            "HTML igual ao de antes"
+          ],
+          "forbidden": [
+            "Editar previa/[parte]/page.tsx e sobre/page.tsx"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-perfil.onp.test.tsx",
+            "apps/web/tests/sobre-da-loja.test.tsx",
+            "apps/web/tests/previa-da-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm exec vitest run --project web apps/web/tests/vitrine-loja-perfil apps/web/tests/sobre-da-loja apps/web/tests/previa-da-loja"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "a guarda do PIX exigir mudança no teste antigo"
+          ],
+          "blockedConditions": [
+            "#104 ou #105 não concluídos"
+          ]
+        }
+      },
+      {
+        "id": "T-10702",
+        "title": "Identidade, situação e ações no desenho do Stitch",
+        "objective": "Recompor capa, logo ou iniciais, nome, descrição, selo, Favoritar, ícone de WhatsApp, Compartilhar e CTA com contagem",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10701"
+        ],
+        "requirements": [
+          "R-1",
+          "R-2",
+          "R-5",
+          "R-8"
+        ],
+        "context": {
+          "summary": "ApresentacaoDaLoja preserva os nomes sc-loja__* e os textos da situação; as peças vêm do #104. O PerfilDaLoja (criado na T-10701) calcula a contagem e passa as props novas",
+          "files": [
+            "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+            "packages/ui/styles/narrativa.css"
+          ],
+          "evidence": [
+            "SituacaoDaLoja",
+            "atributosDoSelo",
+            "BotaoFavoritar"
+          ],
+          "decisions": [
+            "D-1",
+            "D-4",
+            "D-7"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/src/features/loja/BotaoCompartilharLoja.tsx",
+              "action": "create"
+            },
+            {
+              "path": "packages/ui/styles/narrativa.css",
+              "action": "modify",
+              "note": "só sc-loja__*"
+            },
+            {
+              "path": "apps/web/src/features/vitrine/SeloDeStatus.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/features/feed/BotaoFavoritar.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-identidade.onp.test.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-situacao.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Painel com foto (celular e computador), véu e capa padrão",
+            "Linha de ações com BotaoFavoritar variante 'seguir', link de WhatsApp só com número e BotaoCompartilharLoja",
+            "CTA 'Ver o {rótulo} completo' + '(N itens)' só quando a contagem é exata",
+            "Props novas opcionais: contagemDeItens, whatsappPublico, favoritar",
+            "No PerfilDaLoja (da T-10701): calcular contagemDeItens (IDs únicos, só com o resumo completo) e passar favoritar e whatsappPublico"
+          ],
+          "contracts": [
+            "ApresentacaoDaLojaProps continua aceitando a chamada atual (props novas opcionais), para /ui/capas e os testes antigos"
+          ],
+          "constraints": [
+            "Texto sobre a cor verde da marca é escuro",
+            "Sem cor literal (AC-014)",
+            "Não mudar sc-secao nem sc-pagina-dupla"
+          ],
+          "expected": [
+            "Testes antigos apresentacao-da-loja, selo-de-status e capa-padrao passam ou mudam com a equivalência declarada"
+          ],
+          "forbidden": [
+            "Copiar texto ou números da Universokar",
+            "Editar SeloDeStatus.tsx ou CapaDaVitrine.tsx"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-1",
+            "CA-2",
+            "CA-5",
+            "CA-8"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-identidade.onp.test.tsx",
+            "apps/web/tests/vitrine-loja-situacao.onp.test.tsx",
+            "apps/web/tests/apresentacao-da-loja.test.tsx",
+            "apps/web/tests/selo-de-status.test.tsx",
+            "apps/web/tests/vitrine-acessibilidade.test.ts",
+            "apps/web/tests/css-da-loja-sem-verde-fixo.test.ts"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm exec vitest run --project web apps/web/tests/vitrine-loja- apps/web/tests/apresentacao-da-loja apps/web/tests/selo-de-status apps/web/tests/vitrine-acessibilidade apps/web/tests/css-da-loja-sem-verde-fixo"
+          ],
+          "evidence": [
+            "capturas em 390 e 1280 px, claro e escuro"
+          ]
+        },
+        "execution": {
+          "model": "opus",
+          "escalationTriggers": [
+            "peça do #104 com nome ou props diferentes",
+            "contraste do selo pedir mudança em SeloDeStatus"
+          ],
+          "blockedConditions": [
+            "Chip, IconeCompartilhar ou AvisoFlutuante inexistentes depois do #104"
+          ]
+        }
+      },
+      {
+        "id": "T-10703",
+        "title": "Condições de compra e contato",
+        "objective": "Cartões de entrega e retirada, endereço com mapa e pagamento; cartão 'Fale com a loja no WhatsApp'; link para /sobre sempre presente",
+        "complexity": "MEDIUM",
+        "risk": "medium",
+        "dependsOn": [
+          "T-10702"
+        ],
+        "requirements": [
+          "R-3",
+          "R-4"
+        ],
+        "context": {
+          "summary": "O bloco de detalhes sai do painel e vira cartões abaixo dele, dentro de [data-narrativa=\"apresentacao\"]; o PerfilDaLoja os monta",
+          "files": [
+            "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+            "apps/web/src/features/loja/sobre/formatos.ts",
+            "apps/web/src/features/loja/sobre/SecoesDoSobre.tsx"
+          ],
+          "evidence": [
+            "enderecoNoMapa",
+            "numeroDoWhatsApp",
+            "FormasDePagamento"
+          ],
+          "decisions": [
+            "D-5"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/loja/CondicoesDaLoja.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/loja/ContatoDaLoja.tsx",
+              "action": "create"
+            },
+            {
+              "path": "apps/web/src/features/loja/sobre/SecoesDoSobre.tsx",
+              "action": "modify",
+              "note": "exportar nomeDaFormaDePagamento, sem mudar o render"
+            },
+            {
+              "path": "apps/web/src/features/loja/ApresentacaoDaLoja.tsx",
+              "action": "modify",
+              "note": "remover sc-loja__detalhes do painel"
+            },
+            {
+              "path": "apps/web/src/features/loja/EntradaDaLoja.tsx",
+              "action": "modify",
+              "note": "BLOCOS passa a incluir .sc-loja__condicoes"
+            },
+            {
+              "path": "apps/web/src/features/loja/sobre/formatos.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "packages/ui/styles/narrativa.css",
+              "action": "modify"
+            },
+            {
+              "path": "apps/web/tests/apresentacao-da-loja.test.tsx",
+              "action": "modify",
+              "note": "equivalência declarada: entrega e endereço passam aos cartões de condições"
+            },
+            {
+              "path": "apps/web/tests/entrada-da-loja.test.tsx",
+              "action": "modify",
+              "note": "só se o seletor mudar"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-condicoes.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Cartões só com dado; nomes por extenso",
+            "Endereço com 'Abrir no mapa' só quando enderecoNoMapa não é nulo",
+            "ContatoDaLoja com texto genérico, link wa.me só com dígitos, target _blank e rel noopener",
+            "Link 'Horários, pagamento e contato' para /sobre sempre presente, com data-abre-sobre",
+            "No PerfilDaLoja: inserir CondicoesDaLoja depois da apresentação e ContatoDaLoja no fim"
+          ],
+          "contracts": [
+            "CondicoesDaLoja({ formasDeEntrega, endereco, recebimento: RecebimentoDaLoja | null, apelido })"
+          ],
+          "constraints": [
+            "Nenhum teste antigo enfraquecido: cada asserção movida tem uma equivalente"
+          ],
+          "expected": [
+            "A chave de exemplo 'chave-pix-secreta@exemplo.test' fora do HTML"
+          ],
+          "forbidden": [
+            "Passar o fechamento inteiro",
+            "Prometer prazo de resposta"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-3",
+            "CA-4"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-condicoes.onp.test.tsx",
+            "apps/web/tests/apresentacao-da-loja.test.tsx",
+            "apps/web/tests/entrada-da-loja.test.tsx",
+            "apps/web/tests/sobre-da-loja.test.tsx"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm exec vitest run --project web apps/web/tests/vitrine-loja-condicoes apps/web/tests/apresentacao-da-loja apps/web/tests/entrada-da-loja apps/web/tests/sobre-da-loja"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "teste antigo que só passa enfraquecido"
+          ],
+          "blockedConditions": []
+        }
+      },
+      {
+        "id": "T-10704",
+        "title": "Faixa de chips e destaques",
+        "objective": "Faixa de chips por links e destaques reusados, só com itens",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10703"
+        ],
+        "requirements": [
+          "R-5",
+          "R-6"
+        ],
+        "context": {
+          "summary": "O PerfilDaLoja (da T-10701) monta a faixa e a seção #destaques com Destaques e prepararProduto, e importa vitrine.css",
+          "files": [
+            "apps/web/src/features/vitrine/Destaques.tsx",
+            "apps/web/src/server/catalogo-na-tela.ts"
+          ],
+          "evidence": [
+            "Destaques retorna null sem itens"
+          ],
+          "decisions": [
+            "D-3",
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/vitrine/Destaques.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/src/server/catalogo-na-tela.ts",
+              "action": "reuse"
+            },
+            {
+              "path": "packages/ui/styles/vitrine.css",
+              "action": "modify",
+              "note": "só regras sob .sc-pagina-da-loja .sc-loja__destaques"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-destaques.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "No PerfilDaLoja: Chip com href para #destaques (só se houver destaques), #publicacoes (só se houver posts) e /sobre",
+            "No PerfilDaLoja: seção id=destaques com Destaques e import de @simpleclick/ui/styles/vitrine.css"
+          ],
+          "contracts": [
+            "Chip do #104 com href e aria-current"
+          ],
+          "constraints": [
+            "Não editar Destaques nem prepararProduto (#108)"
+          ],
+          "expected": [
+            "Sem destaques, o chip e a seção não aparecem"
+          ],
+          "forbidden": [
+            "Abas por script"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-5",
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-destaques.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/vitrine-loja-destaques"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [
+            "vitrine.css mudar o /cardapio"
+          ],
+          "blockedConditions": [
+            "#108 ocupando vitrine.css antes da vez do #107"
+          ]
+        }
+      },
+      {
+        "id": "T-10705",
+        "title": "Publicações e Sobre na nova composição",
+        "objective": "Publicações em seção ancorada, título no estilo Stitch, Sobre como janela",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10704"
+        ],
+        "requirements": [
+          "R-6"
+        ],
+        "context": {
+          "summary": "PostsDaLoja é reusado no PerfilDaLoja; feed.css só sob .sc-pagina-da-loja, depois do #106",
+          "files": [
+            "apps/web/src/features/feed/PostsDaLoja.tsx",
+            "apps/web/src/features/feed/feed.css"
+          ],
+          "evidence": [
+            "PostsDaLoja retorna null sem produtos"
+          ],
+          "decisions": [
+            "D-6"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/src/features/feed/feed.css",
+              "action": "modify",
+              "note": "regras sob .sc-pagina-da-loja .sc-feed--perfil"
+            },
+            {
+              "path": "apps/web/src/features/feed/PostsDaLoja.tsx",
+              "action": "reuse"
+            },
+            {
+              "path": "apps/web/tests/vitrine-loja-publicacoes.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "No PerfilDaLoja: envolver PostsDaLoja em <section id=\"publicacoes\"> só quando há posts",
+            "ContatoDaLoja no fim"
+          ],
+          "contracts": [],
+          "constraints": [
+            "O /explorar não muda; os testes do feed seguem iguais"
+          ],
+          "expected": [
+            "Todo o conteúdo no HTML estático"
+          ],
+          "forbidden": [
+            "Editar PostsDaLoja.tsx (#106)"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-6"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-publicacoes.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm exec vitest run --project web apps/web/tests/vitrine-loja-publicacoes apps/web/tests/feed"
+          ],
+          "evidence": [
+            "saída do vitest"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": [
+            "#106 não concluído (feed.css)"
+          ]
+        }
+      },
+      {
+        "id": "T-10706",
+        "title": "Guardas de conteúdo, prévia e favoritar",
+        "objective": "Provar que funções ocultas, promessas e dados de outro ramo não aparecem e que a prévia usa a mesma composição",
+        "complexity": "LOW",
+        "risk": "low",
+        "dependsOn": [
+          "T-10705"
+        ],
+        "requirements": [
+          "R-7"
+        ],
+        "context": {
+          "summary": "Só teste",
+          "files": [
+            "apps/web/src/app/(loja)/loja/[slug]/previa/[parte]/page.tsx"
+          ],
+          "evidence": [
+            "A prévia chama TelaDaLoja"
+          ],
+          "decisions": [
+            "D-2"
+          ]
+        },
+        "implementation": {
+          "files": [
+            {
+              "path": "apps/web/tests/vitrine-loja-guardas.onp.test.tsx",
+              "action": "create"
+            }
+          ],
+          "changes": [
+            "Render de PerfilDaLoja completo e regex dos termos proibidos; leitura do fonte da prévia e da rota"
+          ],
+          "contracts": [],
+          "constraints": [
+            "Título '[CA-n] @spec:AC-107xx'"
+          ],
+          "expected": [
+            "Sem termos ocultos"
+          ],
+          "forbidden": [
+            "Editar a prévia"
+          ]
+        },
+        "validation": {
+          "acceptance": [
+            "CA-7"
+          ],
+          "tests": [
+            "apps/web/tests/vitrine-loja-guardas.onp.test.tsx"
+          ],
+          "commands": [
+            "pnpm typecheck",
+            "pnpm lint",
+            "pnpm exec vitest run --project web apps/web/",
+            "pnpm format:check"
+          ],
+          "evidence": [
+            "gate verde"
+          ]
+        },
+        "execution": {
+          "model": "sonnet",
+          "escalationTriggers": [],
+          "blockedConditions": []
+        }
+      }
+    ],
+    "risks": [
+      {
+        "text": "Peças do #104 com nomes ou props diferentes do design §5",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Revisar o plano quando o gerente avisar que o #104 terminou",
+        "detection": "typecheck"
+      },
+      {
+        "text": "Mudança em narrativa.css alterar os not-found (sc-secao, sc-pagina-dupla), o /ui ou a landing",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "Editar só sc-loja__*",
+        "detection": "diff de narrativa.css e conferência visual de /ui/capas, not-found e '/'"
+      },
+      {
+        "text": "Chave PIX vazar no HTML",
+        "probability": "low",
+        "impact": "high",
+        "mitigation": "Só RecebimentoDaLoja chega aos componentes; teste com chave de exemplo",
+        "detection": "CA-3 e sobre-da-loja.test.tsx"
+      },
+      {
+        "text": "Testes antigos enfraquecidos ao mover blocos",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "Cada asserção movida ganha uma equivalente, declarada na tarefa",
+        "detection": "revisão do diff dos testes"
+      },
+      {
+        "text": "vitrine.css na página pública mudar o fundo ou a altura",
+        "probability": "low",
+        "impact": "low",
+        "mitigation": "As regras já valem na prévia; conferência em claro e escuro",
+        "detection": "capturas"
+      },
+      {
+        "text": "Contagem de itens errada",
+        "probability": "low",
+        "impact": "medium",
+        "mitigation": "IDs únicos, só com o resumo completo",
+        "detection": "CA-5"
+      }
+    ],
+    "tests": {
+      "existing": [
+        "apps/web/tests/apresentacao-da-loja.test.tsx",
+        "apps/web/tests/selo-de-status.test.tsx",
+        "apps/web/tests/entrada-da-loja.test.tsx",
+        "apps/web/tests/sobre-da-loja.test.tsx",
+        "apps/web/tests/previa-da-loja.test.tsx",
+        "apps/web/tests/vitrine-acessibilidade.test.ts",
+        "apps/web/tests/css-da-loja-sem-verde-fixo.test.ts",
+        "apps/web/tests/capa-padrao.test.tsx"
+      ],
+      "toCreate": [
+        "apps/web/tests/vitrine-loja-perfil.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-identidade.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-situacao.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-condicoes.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-destaques.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-publicacoes.onp.test.tsx",
+        "apps/web/tests/vitrine-loja-guardas.onp.test.tsx"
+      ],
+      "manual": [
+        "/loja/<apelido> em 390 e 1280 px, claro e escuro, com e sem JS",
+        "/loja/<apelido>/sobre e /previa/vitrine",
+        "/ui/capas, not-found da loja e landing '/' sem mudança"
+      ],
+      "external": [
+        "axe, 344 px e contraste por loja: #114"
+      ]
+    },
+    "estimate": {
+      "note": "6 tarefas sequenciais, só UI; sem API nem banco"
+    }
+  },
+  "gate": {
+    "status": "READY",
+    "checklist": [
+      {
+        "id": "requirements",
+        "label": "Requisitos e escopo definidos",
+        "ok": true
+      },
+      {
+        "id": "evidence",
+        "label": "Arquivos e contratos verificados no repositório",
+        "ok": true
+      },
+      {
+        "id": "decisions",
+        "label": "Decisões arquiteturais essenciais resolvidas",
+        "ok": true
+      },
+      {
+        "id": "subtasks",
+        "label": "Subtarefas e dependências definidas",
+        "ok": true
+      },
+      {
+        "id": "acceptance",
+        "label": "Critérios de aceitação e testes definidos",
+        "ok": true
+      },
+      {
+        "id": "risks",
+        "label": "Riscos e regressões avaliados",
+        "ok": true
+      },
+      {
+        "id": "context",
+        "label": "Contexto de execução preparado",
+        "ok": true
+      },
+      {
+        "id": "estimate",
+        "label": "Estimativa de esforço e custo registrada (opcional)",
+        "ok": true,
+        "optional": true
+      }
+    ],
+    "failures": [],
+    "evaluatedAt": 1794488033141,
+    "passed": 8,
+    "total": 8,
+    "effectiveComplexity": "MEDIUM"
+  }
+}
