@@ -1,0 +1,167 @@
+{
+  "feature": "stitch-detalhe-produto",
+  "timestamp": "2026-11-16T14:04:58.240Z",
+  "gitRev": "ca12320",
+  "command": "rm -f .spec/raw/vitest-onp.json && pnpm exec vitest run --project web --project unit --passWithNoTests --reporter=json --outputFile=.spec/raw/vitest-onp.json .onp.test",
+  "reporter": "vitest-json",
+  "exitCode": 0,
+  "testsParsed": 732,
+  "results": {
+    "AC-10901": {
+      "status": "pass",
+      "testName": "galeria [CA-1] @spec:AC-10901 mostra a posição, troca por setas e pelo teclado, e dá texto às fotos [CA-1] @spec:AC-10901 mostra a posição, troca por setas e pelo teclado, e dá texto às fotos",
+      "method": "vitest-json"
+    },
+    "AC-10902": {
+      "status": "pass",
+      "testName": "galeria [CA-2] @spec:AC-10902 o vídeo nasce parado, mudo e com botão para reproduzir [CA-2] @spec:AC-10902 o vídeo nasce parado, mudo e com botão para reproduzir",
+      "method": "vitest-json"
+    },
+    "AC-10903": {
+      "status": "pass",
+      "testName": "galeria [CA-3] @spec:AC-10903 sem mídia mostra a inicial do nome no lugar da galeria [CA-3] @spec:AC-10903 sem mídia mostra a inicial do nome no lugar da galeria",
+      "method": "vitest-json"
+    },
+    "AC-10904": {
+      "status": "pass",
+      "testName": "cabeçalho e preço [CA-5] @spec:AC-10904 sem variações, o preço e o anterior são lidos como 'De … por …' [CA-5] @spec:AC-10904 sem variações, o preço e o anterior são lidos como 'De … por …'",
+      "method": "vitest-json"
+    },
+    "AC-10905": {
+      "status": "pass",
+      "testName": "blocos do ramo [CA-6] @spec:AC-10905 a lista do ramo ordena as seções (lanchonete: ingredientes antes de adicionais) [CA-6] @spec:AC-10905 a lista do ramo ordena as seções (lanchonete: ingredientes antes de adicionais)",
+      "method": "vitest-json"
+    },
+    "AC-10906": {
+      "status": "pass",
+      "testName": "blocos do ramo [CA-7] @spec:AC-10906 bloco sem dado, desconhecido, aplicacao e compatibilidade não aparecem [CA-7] @spec:AC-10906 bloco sem dado, desconhecido, aplicacao e compatibilidade não aparecem",
+      "method": "vitest-json"
+    },
+    "AC-10907": {
+      "status": "pass",
+      "testName": "blocos do ramo [CA-8] @spec:AC-10907 sem lista do ramo nada some: variações primeiro, depois todos os grupos [CA-8] @spec:AC-10907 sem lista do ramo nada some: variações primeiro, depois todos os grupos",
+      "method": "vitest-json"
+    },
+    "AC-10908": {
+      "status": "pass",
+      "testName": "regra em palavras [CA-9] @spec:AC-10908 cada grupo diz a regra desde a abertura, sem alerta antes de tentar [CA-9] @spec:AC-10908 cada grupo diz a regra desde a abertura, sem alerta antes de tentar",
+      "method": "vitest-json"
+    },
+    "AC-10909": {
+      "status": "pass",
+      "testName": "pendência com foco, na ordem da tela [CA-10] @spec:AC-10909 um grupo obrigatório ACIMA do eixo é o primeiro pendente [CA-10] @spec:AC-10909 um grupo obrigatório ACIMA do eixo é o primeiro pendente",
+      "method": "vitest-json"
+    },
+    "AC-10910": {
+      "status": "pass",
+      "testName": "faixa, unitário e subtotal [CA-11] @spec:AC-10910 trocar a variação troca o preço, a tabela e o total [CA-11] @spec:AC-10910 trocar a variação troca o preço, a tabela e o total",
+      "method": "vitest-json"
+    },
+    "AC-10911": {
+      "status": "pass",
+      "testName": "adicionais [CA-12] @spec:AC-10911 o acréscimo vem com sinal e o total muda na hora, e volta ao desmarcar [CA-12] @spec:AC-10911 o acréscimo vem com sinal e o total muda na hora, e volta ao desmarcar",
+      "method": "vitest-json"
+    },
+    "AC-10912": {
+      "status": "pass",
+      "testName": "adicionais [CA-13] @spec:AC-10912 no limite as demais ficam desabilitadas e o limite é anunciado [CA-13] @spec:AC-10912 no limite as demais ficam desabilitadas e o limite é anunciado",
+      "method": "vitest-json"
+    },
+    "AC-10913": {
+      "status": "pass",
+      "testName": "dados da tela [CA-14] @spec:AC-10913 o convite usa o rótulo do ramo só quando falta a variação [CA-14] @spec:AC-10913 o convite usa o rótulo do ramo só quando falta a variação",
+      "method": "vitest-json"
+    },
+    "AC-10914": {
+      "status": "pass",
+      "testName": "observação [CA-15] @spec:AC-10914 só existe quando a loja aceita, com limite e dica visíveis [CA-15] @spec:AC-10914 só existe quando a loja aceita, com limite e dica visíveis",
+      "method": "vitest-json"
+    },
+    "AC-10915": {
+      "status": "pass",
+      "testName": "faixa, unitário e subtotal [CA-16] @spec:AC-10915 de 11 para 12 a faixa, o unitário, o subtotal e o botão andam juntos [CA-16] @spec:AC-10915 de 11 para 12 a faixa, o unitário, o subtotal e o botão andam juntos",
+      "method": "vitest-json"
+    },
+    "AC-10916": {
+      "status": "pass",
+      "testName": "faixa, unitário e subtotal [CA-17] @spec:AC-10916 voltar abaixo da faixa devolve o preço de varejo [CA-17] @spec:AC-10916 voltar abaixo da faixa devolve o preço de varejo",
+      "method": "vitest-json"
+    },
+    "AC-10917": {
+      "status": "pass",
+      "testName": "faixa, unitário e subtotal [CA-18] @spec:AC-10917 sem variação escolhida não há linha de subtotal, há convite [CA-18] @spec:AC-10917 sem variação escolhida não há linha de subtotal, há convite",
+      "method": "vitest-json"
+    },
+    "AC-10918": {
+      "status": "pass",
+      "testName": "quantidade [CA-19] @spec:AC-10918 fica entre 1 e 99, é anunciada, e os botões têm 48 px [CA-19] @spec:AC-10918 fica entre 1 e 99, é anunciada, e os botões têm 48 px",
+      "method": "vitest-json"
+    },
+    "AC-10919": {
+      "status": "pass",
+      "testName": "cardápio que mudou [CA-20] @spec:AC-10919 o 409 avisa que mudou, não fecha a janela e não confirma [CA-20] @spec:AC-10919 o 409 avisa que mudou, não fecha a janela e não confirma",
+      "method": "vitest-json"
+    },
+    "AC-10920": {
+      "status": "pass",
+      "testName": "o que acabou fica visível e desabilitado [CA-21] @spec:AC-10920 no eixo, a variação esgotada vem desabilitada com texto; as outras seguem escolhíveis [CA-21] @spec:AC-10920 no eixo, a variação esgotada vem desabilitada com texto; as outras seguem escolhíveis",
+      "method": "vitest-json"
+    },
+    "AC-10921": {
+      "status": "pass",
+      "testName": "a padrão esgotada não compra [CA-22] @spec:AC-10921 com eixos, a padrão esgotada não abre marcada: botão desabilitado e frase, até escolher outra [CA-22] @spec:AC-10921 com eixos, a padrão esgotada não abre marcada: botão desabilitado e frase, até escolher outra",
+      "method": "vitest-json"
+    },
+    "AC-10922": {
+      "status": "pass",
+      "testName": "o que acabou fica visível e desabilitado [CA-23] @spec:AC-10922 adicional esgotado fica desabilitado com 'Acabou' e o produto segue à venda [CA-23] @spec:AC-10922 adicional esgotado fica desabilitado com 'Acabou' e o produto segue à venda",
+      "method": "vitest-json"
+    },
+    "AC-10923": {
+      "status": "pass",
+      "testName": "produto fora de venda [CA-24] @spec:AC-10923 ESGOTADO: botão desabilitado, sem quantidade e com o motivo certo [CA-24] @spec:AC-10923 ESGOTADO: botão desabilitado, sem quantidade e com o motivo certo",
+      "method": "vitest-json"
+    },
+    "AC-10924": {
+      "status": "pass",
+      "testName": "dados da tela [CA-25] @spec:AC-10924 o esgotado não promete reposição nem mostra estoque [CA-25] @spec:AC-10924 o esgotado não promete reposição nem mostra estoque",
+      "method": "vitest-json"
+    },
+    "AC-10929": {
+      "status": "pass",
+      "testName": "fechar e foco [CA-29] @spec:AC-10929 fechar devolve o foco ao cartão de onde a pessoa veio [CA-29] @spec:AC-10929 fechar devolve o foco ao cartão de onde a pessoa veio",
+      "method": "vitest-json"
+    },
+    "AC-10930": {
+      "status": "pass",
+      "testName": "galeria [CA-30] @spec:AC-10930 com reduzir movimento a troca de mídia é direta [CA-30] @spec:AC-10930 com reduzir movimento a troca de mídia é direta",
+      "method": "vitest-json"
+    },
+    "AC-10931": {
+      "status": "pass",
+      "testName": "composição e link direto [CA-31] @spec:AC-10931 o link direto traz a janela aberta com o conteúdo pronto, sem script [CA-31] @spec:AC-10931 o link direto traz a janela aberta com o conteúdo pronto, sem script",
+      "method": "vitest-json"
+    },
+    "AC-10932": {
+      "status": "pass",
+      "testName": "fechar e foco [CA-32] @spec:AC-10932 aberta pelo cartão, fechar desfaz a entrada do histórico (voltar) [CA-32] @spec:AC-10932 aberta pelo cartão, fechar desfaz a entrada do histórico (voltar)",
+      "method": "vitest-json"
+    },
+    "AC-10933": {
+      "status": "pass",
+      "testName": "dados da tela [CA-4] @spec:AC-10933 prepararProduto mantém imagens e acrescenta midias na ordem do dono [CA-4] @spec:AC-10933 prepararProduto mantém imagens e acrescenta midias na ordem do dono",
+      "method": "vitest-json"
+    },
+    "AC-10934": {
+      "status": "pass",
+      "testName": "o \"+\" do cartão [CA-33] @spec:AC-10934 só o produto simples entra direto; com escolha obrigatória abre a janela [CA-33] @spec:AC-10934 só o produto simples entra direto; com escolha obrigatória abre a janela",
+      "method": "vitest-json"
+    },
+    "AC-10935": {
+      "status": "pass",
+      "testName": "item enviado [CA-34] @spec:AC-10935 adicionar envia os mesmos campos de sempre [CA-34] @spec:AC-10935 adicionar envia os mesmos campos de sempre",
+      "method": "vitest-json"
+    }
+  },
+  "principles": {}
+}

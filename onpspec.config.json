@@ -1,0 +1,33 @@
+{
+  "specDir": ".spec",
+  "testGlobs": [
+    "apps/**/*.onp.test.ts",
+    "apps/**/*.onp.test.tsx",
+    "packages/**/*.onp.test.ts",
+    "packages/**/*.onp.test.tsx",
+    "e2e/**/*.onp.spec.ts"
+  ],
+  "srcGlobs": [],
+  "ignoreGlobs": [
+    "node_modules/**",
+    "**/node_modules/**",
+    ".git/**",
+    "**/.next/**",
+    "**/dist/**",
+    "build/**",
+    "coverage/**",
+    ".turbo/**",
+    "**/.turbo/**",
+    ".spec/**",
+    "arquivo/**",
+    "worktrees/**"
+  ],
+  "testCommand": "rm -f .spec/raw/vitest-onp.json && pnpm exec vitest run --project web --project unit --passWithNoTests --reporter=json --outputFile=.spec/raw/vitest-onp.json .onp.test",
+  "reporter": "vitest-json",
+  "reporterOutputFile": ".spec/raw/vitest-onp.json",
+  "paralelo": {
+    "maxParalelas": 1,
+    "model": "claude-opus-5-5",
+    "esforco": "alto"
+  }
+}
