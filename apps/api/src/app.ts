@@ -99,6 +99,8 @@ import {
   type OpcoesDaImpressaoAutomatica,
 } from "./modules/printing/impressao-automatica.routes.ts";
 import { cacheDoLimiteSobDemanda } from "./core/limite.ts";
+import { cacheDoLimiteDoAmbiente } from "./modules/auth/limite-da-identidade.ts";
+import { criarLimitadorDoCatalogo } from "./modules/storefront/limite-do-catalogo.ts";
 import { normalizarConfiguracaoDeImpressao } from "./modules/stores/impressao-config.usecase.ts";
 import { horarioDaLoja } from "./modules/stores/horarios.usecase.ts";
 import {
@@ -697,7 +699,15 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // nenhuma justamente por ser a borda — é o único lugar que enxerga os dois.
   app.use(
     PREFIXO_DA_VITRINE,
-    criarRotasDaVitrine({ lerHorario: horarioDaLoja, ...opcoes.vitrine }),
+    criarRotasDaVitrine({
+      lerHorario: horarioDaLoja,
+      ...opcoes.vitrine,
+      limiteDoCatalogo:
+        opcoes.vitrine?.limiteDoCatalogo ??
+        criarLimitadorDoCatalogo(
+          cacheDoLimiteDoAmbiente(process.env.REDIS_URL),
+        ),
+    }),
   );
 
   // O apelido antigo de uma loja leva ao atual (AC-208): o site pergunta aqui

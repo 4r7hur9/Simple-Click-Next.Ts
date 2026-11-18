@@ -14,10 +14,11 @@
  * escorregar de uma loja para outra no meio do caminho.
  */
 
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 import type { HorarioDaLoja } from "@simpleclick/core";
 import {
   atacadoLigado,
+  estoqueLigado,
   esquemaDaBuscaDoCatalogo,
   esquemaDaConsultaDaPagina,
   esquemaDaConsultaDoResumo,
@@ -32,6 +33,7 @@ import { validar } from "../../core/validar.ts";
 import { catalogoDaVitrine } from "./catalogo.usecase.ts";
 import {
   paginaDoCatalogo,
+  produtosNaFaixaDePreco,
   resumoDoCatalogo,
 } from "./catalogo-paginado.usecase.ts";
 import {
@@ -47,6 +49,7 @@ import {
   facetaDeAtacado,
   filtrosDaVitrine,
   produtosComAtacado,
+  produtosEmEstoque,
   produtosQueCasamComEspecificacoes,
 } from "./filtros.usecase.ts";
 import { identificarLoja, lojaDaVitrine } from "./resolver-loja.usecase.ts";
@@ -71,6 +74,8 @@ export interface OpcoesDaVitrine {
   readonly agora?: () => Date;
   /** Como obter o horário da loja que já está no contexto. */
   readonly lerHorario: (agora: Date) => Promise<HorarioDaLoja>;
+  /** Limite por IP para as três consultas públicas de catálogo. */
+  readonly limiteDoCatalogo?: RequestHandler;
 }
 
 /** Os filtros do catálogo, como chegam na consulta. */
@@ -80,6 +85,11 @@ interface FiltrosDaConsulta {
   readonly filtro?: string | string[] | undefined;
   readonly atacado?: string | undefined;
   readonly pedidoMinimo?: number | undefined;
+  /** `?estoque=1`: só o que não está esgotado (card #108). */
+  readonly estoque?: string | undefined;
+  /** Faixa de preço em centavos, como TEXTO de dígitos (o contrato valida). */
+  readonly precoMin?: string | undefined;
+  readonly precoMax?: string | undefined;
 }
 
 /**
@@ -126,7 +136,29 @@ async function acertosDosFiltros(query: FiltrosDaConsulta, agora: Date) {
     categoria: query.categoria,
     filtros: filtrosSelecionados,
   });
-  const semAtacado = cruzarAcertos(porTexto, porEspecificacao);
+  // Estoque e faixa de preço (card #108) entram DEPOIS da busca de texto de
+  // propósito: `cruzarAcertos` mantém a ordem da primeira lista pedida, e a
+  // relevância da busca não pode se perder. Como o atacado, ficam no resultado
+  // "sem o próprio chip" da faceta de atacado.
+  const porEstoque = estoqueLigado(query.estoque)
+    ? await produtosEmEstoque()
+    : undefined;
+  const porFaixa =
+    query.precoMin === undefined && query.precoMax === undefined
+      ? undefined
+      : await produtosNaFaixaDePreco(
+          {
+            minimo: query.precoMin === undefined ? undefined : Number(query.precoMin),
+            maximo: query.precoMax === undefined ? undefined : Number(query.precoMax),
+          },
+          agora,
+        );
+  const semAtacado = cruzarAcertos(
+    porTexto,
+    porEspecificacao,
+    porEstoque,
+    porFaixa,
+  );
   // Atacado (card #59): a faceta conta sobre o resultado SEM o próprio filtro,
   // para o número não sumir ao ligar o chip.
   let lidos: Awaited<ReturnType<typeof produtosComAtacado>> | undefined;
@@ -233,6 +265,9 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
   rotas.get(
     "/:apelido/catalogo",
     bordaDoCatalogo,
+    ...(opcoes.limiteDoCatalogo === undefined
+      ? []
+      : [opcoes.limiteDoCatalogo]),
     async (req, res, proximo) => {
       try {
         const { params, query } = bordaDoCatalogo.dados(req);
@@ -286,6 +321,9 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
   rotas.get(
     "/:apelido/catalogo/resumo",
     bordaDoResumo,
+    ...(opcoes.limiteDoCatalogo === undefined
+      ? []
+      : [opcoes.limiteDoCatalogo]),
     async (req, res, proximo) => {
       try {
         const { params, query } = bordaDoResumo.dados(req);
@@ -339,6 +377,9 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
   rotas.get(
     "/:apelido/catalogo/produtos",
     bordaDaPagina,
+    ...(opcoes.limiteDoCatalogo === undefined
+      ? []
+      : [opcoes.limiteDoCatalogo]),
     async (req, res, proximo) => {
       try {
         const { params, query } = bordaDaPagina.dados(req);

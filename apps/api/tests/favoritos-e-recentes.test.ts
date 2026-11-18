@@ -371,3 +371,42 @@ describe("recentes com janela", () => {
     ESPERA_DA_ADMINISTRACAO,
   );
 });
+
+describe("isolamento entre duas contas (card #106, AC-10611)", () => {
+  it("cada conta recebe só as próprias favoritas, recentes e estrelas", async () => {
+    const a = await criarIdentidade();
+    const b = await criarIdentidade();
+    const comoA = sessao(a.id, "CUSTOMER");
+    const comoB = sessao(b.id, "CUSTOMER");
+
+    await http.post(`/v1/conta/favoritos/${doceria.apelido}`, {}, comoA);
+    await http.post(`/v1/conta/favoritos/produtos/${bolo}`, {}, comoA);
+    await http.post(`/v1/conta/recentes/${doceria.apelido}`, {}, comoA);
+    await http.post(`/v1/conta/favoritos/${roupas.apelido}`, {}, comoB);
+    await http.post(`/v1/conta/favoritos/produtos/${camiseta}`, {}, comoB);
+    await http.post(`/v1/conta/recentes/${roupas.apelido}`, {}, comoB);
+
+    const favA = await http.get("/v1/conta/favoritos", comoA);
+    const favB = await http.get("/v1/conta/favoritos", comoB);
+    expect(apelidos(favA.body.lojas)).toEqual([doceria.apelido]);
+    expect(apelidos(favB.body.lojas)).toEqual([roupas.apelido]);
+
+    const recA = await http.get("/v1/conta/recentes", comoA);
+    const recB = await http.get("/v1/conta/recentes", comoB);
+    expect(apelidos(recA.body.lojas)).toEqual([doceria.apelido]);
+    expect(apelidos(recB.body.lojas)).toEqual([roupas.apelido]);
+
+    const estrelas = async (como: ReturnType<typeof sessao>) =>
+      (
+        (await http.get("/v1/feed/produtos", como)).body.produtos as {
+          id: string;
+          favorito: boolean;
+        }[]
+      )
+        .filter((p) => p.favorito)
+        .map((p) => p.id)
+        .sort();
+    expect(await estrelas(comoA)).toEqual([bolo]);
+    expect(await estrelas(comoB)).toEqual([camiseta]);
+  });
+});

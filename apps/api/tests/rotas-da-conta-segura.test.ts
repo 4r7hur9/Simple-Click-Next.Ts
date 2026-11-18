@@ -9,6 +9,7 @@
  */
 import type { Express } from "express";
 import type pg from "pg";
+import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -93,6 +94,111 @@ async function clienteComAplicativo() {
 }
 
 describe("sessões e recuperação de senha", () => {
+  it(
+    "[CA-3] @spec:AC-11117 trocar a senha revoga as outras sessões da conta, mantém a atual e não afeta outra conta",
+    async () => {
+      const emailA = await clienteVerificado(app, caixa, emailNovo());
+      const sessaoAtualDeA = await entrar(app, emailA);
+      const outraSessaoDeA = await entrar(app, emailA);
+      const emailB = await clienteVerificado(app, caixa, emailNovo());
+      const sessaoDeB = await entrar(app, emailB);
+
+      const trocada = await request(app)
+        .post("/v1/conta/senha")
+        .set("Origin", "https://site.exemplo.test")
+        .set(comBearer(sessaoAtualDeA))
+        .send({ atual: FRASE_DA_PROVA, nova: OUTRA_FRASE_DA_PROVA });
+      expect(trocada.status).toBe(204);
+
+      // A conexão atual continua válida; a conexão de B não foi tocada.
+      expect(
+        (
+          await request(app)
+            .get("/v1/conta/dados")
+            .set(comBearer(sessaoAtualDeA))
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app).get("/v1/conta/dados").set(comBearer(sessaoDeB))
+        ).status,
+      ).toBe(200);
+      // O access token já emitido segue até o vencimento natural; a tela não
+      // promete expulsão imediata do outro aparelho.
+      expect(
+        (
+          await request(app)
+            .get("/v1/conta/dados")
+            .set(comBearer(outraSessaoDeA))
+        ).status,
+      ).toBe(200);
+
+      // O refresh revogado não pode criar um token novo.
+      expect(
+        (
+          await enviar(
+            app,
+            "/renovar",
+            undefined,
+            comCookie(refreshDa(outraSessaoDeA)),
+          )
+        ).status,
+      ).toBe(401);
+      expect(
+        (
+          await enviar(
+            app,
+            "/renovar",
+            undefined,
+            comCookie(refreshDa(sessaoDeB)),
+          )
+        ).status,
+      ).toBe(200);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "[CA-4] @spec:AC-11118 A não encerra a sessão de B e a lista de A contém somente as conexões de A",
+    async () => {
+      const emailA = await clienteVerificado(app, caixa, emailNovo());
+      const sessaoDeA = await entrar(app, emailA);
+      const emailB = await clienteVerificado(app, caixa, emailNovo());
+      const sessaoDeB = await entrar(app, emailB);
+
+      const listaDeA = await request(app)
+        .get("/v1/conta/sessoes")
+        .set(comBearer(sessaoDeA));
+      const listaDeB = await request(app)
+        .get("/v1/conta/sessoes")
+        .set(comBearer(sessaoDeB));
+      expect(listaDeA.status).toBe(200);
+      expect(listaDeB.status).toBe(200);
+      expect(listaDeA.body.sessoes).toHaveLength(1);
+      expect(listaDeB.body.sessoes).toHaveLength(1);
+      const idDeB = String(listaDeB.body.sessoes[0].id);
+      expect(listaDeA.body.sessoes.map((s: { id: string }) => s.id)).not.toContain(
+        idDeB,
+      );
+
+      const tentativaDeA = await request(app)
+        .delete(`/v1/conta/sessoes/${idDeB}`)
+        .set("Origin", "https://site.exemplo.test")
+        .set(comBearer(sessaoDeA));
+      expect(tentativaDeA.status).toBe(404);
+      expect(tentativaDeA.body).toEqual({ erro: "nao_encontrada" });
+
+      const renovadaDeB = await enviar(
+        app,
+        "/renovar",
+        undefined,
+        comCookie(refreshDa(sessaoDeB)),
+      );
+      expect(renovadaDeB.status).toBe(200);
+    },
+    ESPERA_LONGA,
+  );
+
   it(
     "@spec:AC-113 encerrar todas derruba as sessões dos dois dispositivos na próxima renovação",
     async () => {

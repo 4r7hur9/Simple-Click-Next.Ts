@@ -233,6 +233,43 @@ export async function produtosComAtacado(
 }
 
 /**
+ * Os produtos que NÃO estão esgotados (card #108): a loja pode filtrar o que dá
+ * para pedir sem ter de ler "Esgotado" em cada cartão.
+ *
+ * A regra é a da PÁGINA DO PRODUTO (`produto.usecase.ts`, `esgotado`): esgotado é
+ * o produto indisponível, ou o que TEM variações vivas e nenhuma delas está
+ * disponível (indisponível, ou com estoque zerado). Estoque nulo é "não controla
+ * estoque", e não zero. Produto SEM variações nunca é esgotado por causa delas.
+ *
+ * "Fora do horário" NÃO é esgotado: o produto tem estoque, só não vende agora, e
+ * continua na lista (a janela de venda depende do fuso da loja e é lida em
+ * código, não em SQL). O isolamento por loja, rascunho e apagado vem das
+ * políticas de linha; as junções repetem `store_id` como segunda trava.
+ */
+export async function produtosEmEstoque(): Promise<readonly string[]> {
+  const linhas = await transacaoAtual().$queryRaw<{ id: string }[]>`
+    SELECT p.id::text AS id
+      FROM app.products p
+     WHERE p.is_available
+       AND NOT (
+         EXISTS (
+           SELECT 1 FROM app.product_variants v
+            WHERE v.product_id = p.id
+              AND v.store_id = p.store_id
+              AND v.deleted_at IS NULL)
+         AND NOT EXISTS (
+           SELECT 1 FROM app.product_variants v
+            WHERE v.product_id = p.id
+              AND v.store_id = p.store_id
+              AND v.deleted_at IS NULL
+              AND v.is_available
+              AND (v.stock_quantity IS NULL OR v.stock_quantity > 0))
+       )
+  `;
+  return linhas.map((linha) => linha.id);
+}
+
+/**
  * Dos produtos com atacado, os que passam no pedido mínimo pedido: quem quer
  * comprar até N unidades só vê o que já dá atacado com N. Sem limite, todos.
  */

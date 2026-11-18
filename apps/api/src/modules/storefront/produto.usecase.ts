@@ -102,6 +102,7 @@ export interface ProdutoDaVitrine {
   readonly imagens: readonly ImagemDoProduto[];
   /** Fotos e vídeos na ordem do dono (card #46). */
   readonly midias: readonly MidiaPublica[];
+  readonly especificacoes: readonly EspecificacaoPublica[];
   readonly precoCentavos: number | null;
   readonly precoAnteriorCentavos: number | null;
   /**
@@ -360,6 +361,7 @@ export async function produtoDaVitrine(
           ],
     ),
     midias: await midiasDoProduto(produto.id, produto.imagens),
+    especificacoes: await especificacoesDoProduto(produto.id),
     precoCentavos,
     precoAnteriorCentavos: semVariantes
       ? precosDoProduto.length > 0
@@ -486,4 +488,80 @@ async function midiasDoProduto(
       (a, b) => a.ordem - b.ordem || a.desempate - b.desempate || a.criada - b.criada,
     )
     .map((item) => item.midia);
+}
+
+/** Uma especificação cadastrada pela loja, pronta para ler. */
+export interface EspecificacaoPublica {
+  readonly chave: string;
+  readonly nome: string;
+  readonly valor: string;
+}
+
+/**
+ * Compatibilidade veicular, placa e chassi nunca vão para a vitrine pública
+ * (P-104), mesmo que a loja os tenha cadastrado como especificação.
+ */
+const ESPECIFICACAO_PROIBIDA = /compatib|placa|chassi|aplica[cç]/i;
+
+function valorLegivel(
+  linha: {
+    readonly valueText: string | null;
+    readonly valueNum: { toString(): string } | null;
+    readonly valueBool: boolean | null;
+    readonly valueDate: Date | null;
+  },
+  unidade: string | null,
+): string | null {
+  if (linha.valueText !== null) {
+    const texto = linha.valueText.trim();
+    return texto === "" ? null : texto;
+  }
+  if (linha.valueNum !== null) {
+    const numero = Number(linha.valueNum.toString());
+    if (!Number.isFinite(numero)) return null;
+    const escrito = numero.toLocaleString("pt-BR", { maximumFractionDigits: 6 });
+    return unidade ? `${escrito} ${unidade}` : escrito;
+  }
+  if (linha.valueBool !== null) return linha.valueBool ? "Sim" : "Não";
+  if (linha.valueDate !== null) {
+    return linha.valueDate.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+  }
+  return null;
+}
+
+/**
+ * As especificações que a loja cadastrou para o produto (card #109, T-10912).
+ * Roda na transação da loja, que já isola por tenant (RLS); o filtro por
+ * produto é o único que falta. Definição aposentada, valor vazio e as
+ * proibidas ficam de fora.
+ */
+async function especificacoesDoProduto(
+  produtoId: string,
+): Promise<EspecificacaoPublica[]> {
+  const linhas = await transacaoAtual().productAttribute.findMany({
+    where: { productId: produtoId, definicao: { deprecatedAt: null } },
+    select: {
+      valueText: true,
+      valueNum: true,
+      valueBool: true,
+      valueDate: true,
+      definicao: {
+        select: { key: true, label: true, unit: true, sortOrder: true },
+      },
+    },
+  });
+  return linhas
+    .sort(
+      (a, b) =>
+        a.definicao.sortOrder - b.definicao.sortOrder ||
+        a.definicao.label.localeCompare(b.definicao.label, "pt-BR"),
+    )
+    .flatMap((linha) => {
+      const { key, label, unit } = linha.definicao;
+      if (ESPECIFICACAO_PROIBIDA.test(key) || ESPECIFICACAO_PROIBIDA.test(label)) {
+        return [];
+      }
+      const valor = valorLegivel(linha, unit);
+      return valor === null ? [] : [{ chave: key, nome: label, valor }];
+    });
 }

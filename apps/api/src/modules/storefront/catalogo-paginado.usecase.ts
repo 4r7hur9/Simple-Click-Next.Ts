@@ -298,8 +298,8 @@ export async function paginaDoCatalogo(
   const posicao = lerCursor(cursor);
   const apelido = categoria === "" ? null : categoria;
 
-  // O preço do cartão, em SQL. Só é calculado quando a ordem é por preço: o
-  // CASE não avalia a subconsulta nas outras ordens.
+  // O preço do cartão, em SQL. Só é calculado quando a ordem usa preço: o CASE
+  // não avalia a subconsulta nas outras ordens.
   //
   // A LISTA COMEÇA PELOS VÍNCULOS, e não pelos produtos: com categoria, o
   // índice (loja, categoria, ordem) entrega só os dela; sem categoria, cada
@@ -320,42 +320,71 @@ export async function paginaDoCatalogo(
       FROM lista l
       JOIN app.products p ON p.id = l.product_id
       LEFT JOIN acerto r ON r.id = p.id
+      -- O preço que vale, UMA vez por produto e só nas ordens que o usam. É por
+      -- produto (sonda o índice de preços) e NÃO uma agregação da loja inteira:
+      -- a agregação depende de estatística do banco, e numa loja que acabou de
+      -- importar o catálogo (sem ANALYZE) o planejador a refazia por produto.
+      LEFT JOIN LATERAL (
+        SELECT CASE WHEN ${ordem} IN
+                 ('menor-preco', 'maior-preco', 'maior-desconto-atacado')
+               THEN (
+        -- >>> preco que vale
+        SELECT CASE WHEN count(*) = 0 THEN p.display_price_cents
+                    ELSE coalesce(
+                      min(pp.amount_cents) FILTER (
+                        WHERE pp.kind = 'PROMO' AND pp.is_active
+                          AND pp.min_quantity <= 1
+                          AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
+                          AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})),
+                      min(pp.amount_cents) FILTER (
+                        WHERE pp.kind = 'BASE' AND pp.is_active
+                          AND pp.min_quantity <= 1
+                          AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
+                          AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})))
+               END
+          FROM app.product_prices pp
+         WHERE pp.product_id = p.id
+           AND pp.store_id = p.store_id
+           AND pp.variant_id IS NULL
+        -- <<< preco que vale
+               ) END AS varejo
+      ) pr ON true
+      -- O maior desconto de atacado, em fração do varejo, só nessa ordem. A
+      -- conta é em numeric (com bigint a divisão cortaria a fração) e o divisor
+      -- nunca é zero. Mesma regra de unitarioNaFaixa (packages/core).
+      LEFT JOIN LATERAL (
+        SELECT CASE WHEN ${ordem} = 'maior-desconto-atacado' THEN (
+          SELECT max((pr.varejo - u.unitario)::numeric / NULLIF(pr.varejo, 0))
+            FROM app.product_prices w
+           CROSS JOIN LATERAL (
+             SELECT CASE w.discount_kind
+                      WHEN 'PERCENT'
+                        THEN (pr.varejo * (100 - w.discount_value) + 50) / 100
+                      WHEN 'AMOUNT' THEN pr.varejo - w.discount_value
+                      ELSE w.amount_cents
+                    END AS unitario) u
+           WHERE w.product_id = p.id
+             AND w.store_id = p.store_id
+             AND w.variant_id IS NULL
+             AND w.kind = 'WHOLESALE'
+             AND w.is_active
+             AND w.min_quantity >= 2
+             AND (w.starts_at IS NULL OR w.starts_at <= ${agora})
+             AND (w.ends_at IS NULL OR w.ends_at > ${agora})
+             AND pr.varejo > 0
+             AND u.unitario >= 1
+             AND u.unitario < pr.varejo
+        ) END AS desconto
+      ) de ON true
      WHERE (NOT ${filtrando} OR r.id IS NOT NULL)
      ORDER BY
-       CASE WHEN ${ordem} = 'menor-preco' THEN (
-         SELECT CASE WHEN count(*) = 0 THEN p.display_price_cents
-                     ELSE coalesce(
-                       min(pp.amount_cents) FILTER (
-                         WHERE pp.kind = 'PROMO' AND pp.is_active
-                           AND pp.min_quantity <= 1
-                           AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
-                           AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})),
-                       min(pp.amount_cents) FILTER (
-                         WHERE pp.kind = 'BASE' AND pp.is_active
-                           AND pp.min_quantity <= 1
-                           AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
-                           AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})))
-                END
-           FROM app.product_prices pp
-          WHERE pp.product_id = p.id AND pp.variant_id IS NULL
-       ) END ASC NULLS LAST,
-       CASE WHEN ${ordem} = 'maior-preco' THEN (
-         SELECT CASE WHEN count(*) = 0 THEN p.display_price_cents
-                     ELSE coalesce(
-                       min(pp.amount_cents) FILTER (
-                         WHERE pp.kind = 'PROMO' AND pp.is_active
-                           AND pp.min_quantity <= 1
-                           AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
-                           AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})),
-                       min(pp.amount_cents) FILTER (
-                         WHERE pp.kind = 'BASE' AND pp.is_active
-                           AND pp.min_quantity <= 1
-                           AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
-                           AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})))
-                END
-           FROM app.product_prices pp
-          WHERE pp.product_id = p.id AND pp.variant_id IS NULL
-       ) END DESC NULLS LAST,
+       CASE WHEN ${ordem} = 'menor-preco' THEN pr.varejo END ASC NULLS LAST,
+       CASE WHEN ${ordem} = 'maior-preco' THEN pr.varejo END DESC NULLS LAST,
+       CASE WHEN ${ordem} = 'maior-desconto-atacado' THEN de.desconto END
+         DESC NULLS LAST,
+       -- Lançamentos: o cadastro mais recente primeiro; o desempate é fixo.
+       CASE WHEN ${ordem} = 'lancamentos' THEN p.created_at END DESC,
+       CASE WHEN ${ordem} = 'lancamentos' THEN p.id END DESC,
        CASE WHEN ${ordem} = 'a-z' THEN lower(app.sem_acento(p.name)) END ASC,
        CASE WHEN ${ordenarPelosAcertos} AND ${ordem} = 'relevancia'
             THEN r.pos END ASC,
@@ -382,6 +411,69 @@ export async function paginaDoCatalogo(
     total,
     proximoCursor: proximoCursor(posicao, linhas.length, total),
   };
+}
+
+/**
+ * Os produtos cujo preço que vale cai na faixa pedida, em CENTAVOS e com os
+ * dois limites INCLUSIVOS (card #108). `undefined` num limite é "sem limite".
+ *
+ * SÓ ENTRA PRODUTO DE PREÇO ÚNICO: sem variação, ou com variações do mesmo
+ * preço. Produto "Ver opções" (variações de preços diferentes) não entra por um
+ * preço que o cartão não mostra — e o preço de exibição dele, que o trecho
+ * abaixo usa quando não há linha de preço do produto, não é um preço único.
+ *
+ * O trecho `preco que vale` é IDÊNTICO ao da ordenação por preço, acima: o
+ * cartão, a ordem e o filtro precisam concordar. `preco-que-vale.onp.test.ts`
+ * confere que as duas REGRAS (promoção vigente, senão preço base vigente) são o
+ * mesmo texto. Aqui os preços são AGREGADOS numa leitura só, porque o filtro
+ * olha todos os produtos e a conta por produto custava o dobro (59 ms contra 29
+ * ms em 10.000 produtos); na página, com ordenação, a conta é por produto e usa
+ * o índice, que não depende de estatística do banco. Sem `agora` fixo a promoção
+ * pode virar entre uma leitura e outra, então a rota passa o mesmo instante.
+ */
+export async function produtosNaFaixaDePreco(
+  limites: {
+    readonly minimo?: number | undefined;
+    readonly maximo?: number | undefined;
+  },
+  agora: Date = new Date(),
+): Promise<readonly string[]> {
+  const minimo = limites.minimo ?? null;
+  const maximo = limites.maximo ?? null;
+  const linhas = await transacaoAtual().$queryRaw<{ id: string }[]>`
+    WITH precos AS (
+        -- >>> preco que vale
+        SELECT pp.store_id, pp.product_id,
+               coalesce(
+                 min(pp.amount_cents) FILTER (
+                   WHERE pp.kind = 'PROMO' AND pp.is_active
+                     AND pp.min_quantity <= 1
+                     AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
+                     AND (pp.ends_at IS NULL OR pp.ends_at > ${agora})),
+                 min(pp.amount_cents) FILTER (
+                   WHERE pp.kind = 'BASE' AND pp.is_active
+                     AND pp.min_quantity <= 1
+                     AND (pp.starts_at IS NULL OR pp.starts_at <= ${agora})
+                     AND (pp.ends_at IS NULL OR pp.ends_at > ${agora}))
+               ) AS valor
+          FROM app.product_prices pp
+         WHERE pp.variant_id IS NULL
+         GROUP BY pp.store_id, pp.product_id
+        -- <<< preco que vale
+    )
+    SELECT p.id::text AS id
+      FROM app.products p
+      LEFT JOIN precos pc ON pc.product_id = p.id AND pc.store_id = p.store_id
+     CROSS JOIN LATERAL (
+       SELECT CASE WHEN pc.product_id IS NULL THEN p.display_price_cents
+                   ELSE pc.valor END AS varejo
+     ) pr
+     WHERE (NOT p.has_variants OR p.price_min_cents = p.price_max_cents)
+       AND pr.varejo IS NOT NULL
+       AND (${minimo}::bigint IS NULL OR pr.varejo >= ${minimo}::bigint)
+       AND (${maximo}::bigint IS NULL OR pr.varejo <= ${maximo}::bigint)
+  `;
+  return linhas.map((linha) => linha.id);
 }
 
 async function contarLista(
