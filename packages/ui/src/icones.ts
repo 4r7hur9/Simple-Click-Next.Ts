@@ -86,6 +86,12 @@ import {
   RotateCw,
   ZoomIn,
   ZoomOut,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Volume2,
+  VolumeX,
+  Mail,
 } from "lucide-react";
 
 /**
@@ -317,12 +323,16 @@ export function IconeEstrela({
   preenchido = false,
   ...props
 }: IconeMarcavelProps) {
+  const { className, ...resto } = props;
   const marcado: IconeProps & { "data-preenchido"?: true } = {
     size: TAMANHO_DO_ICONE,
     strokeWidth: TRACO_DO_ICONE,
     fill: preenchido ? "currentColor" : "none",
     ...(preenchido ? { "data-preenchido": true as const } : {}),
-    ...props,
+    ...resto,
+    // A classe fica SOMADA à de quem chama: `sc-icone-estrela` é o gancho do
+    // CSS que pinta a estrela preenchida com `--cor-estrela`.
+    className: ["sc-icone-estrela", className].filter(Boolean).join(" "),
   };
   return createElement(Star, marcado);
 }
@@ -381,3 +391,22 @@ export const IconeAproximar = /* @__PURE__ */ comPadrao(
   "IconeAproximar",
 );
 export const IconeAfastar = /* @__PURE__ */ comPadrao(ZoomOut, "IconeAfastar");
+
+// Ações das telas do cliente (card #104): as telas largam o `lucide-react`
+// direto e passam a pedir o ícone pelo nome daqui.
+/** Compartilhar um produto ou uma loja. Decorativo: o nome vem do botão. */
+export const IconeCompartilhar = /* @__PURE__ */ comPadrao(
+  Share2,
+  "IconeCompartilhar",
+);
+export const IconeAnterior = /* @__PURE__ */ comPadrao(
+  ChevronLeft,
+  "IconeAnterior",
+);
+export const IconeProximo = /* @__PURE__ */ comPadrao(
+  ChevronRight,
+  "IconeProximo",
+);
+export const IconeSom = /* @__PURE__ */ comPadrao(Volume2, "IconeSom");
+export const IconeSemSom = /* @__PURE__ */ comPadrao(VolumeX, "IconeSemSom");
+export const IconeEmail = /* @__PURE__ */ comPadrao(Mail, "IconeEmail");

@@ -131,37 +131,6 @@
   gap: var(--espaco-2);
 }
 
-.sc-filtros__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  min-height: 2rem;
-  padding: 0 var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
-  background: transparent;
-  color: var(--cor-tinta);
-  font: inherit;
-  font-size: var(--texto-sm);
-  cursor: pointer;
-}
-
-.sc-filtros__chip:hover {
-  border-color: var(--cor-tinta);
-}
-
-.sc-filtros__chip[aria-pressed="true"] {
-  background-color: var(--cor-primaria);
-  border-color: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-  font-weight: 600;
-}
-
-.sc-filtros__chip:focus-visible {
-  outline: 2px solid var(--cor-foco);
-  outline-offset: 2px;
-}
-
 @media (min-width: 48rem) {
   .sc-filtros__campos,
   .sc-filtros__ordem {
@@ -181,85 +150,5 @@
 
   .sc-filtros__botao-filtros {
     display: none;
-  }
-}
-
-/* A gaveta de baixo (celular). */
-.sc-gaveta {
-  position: fixed;
-  inset: auto 0 0 0;
-  width: 100%;
-  max-width: none;
-  max-height: 85dvh;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--cor-borda);
-  border-bottom: 0;
-  border-radius: var(--raio-janela) var(--raio-janela) 0 0;
-  background-color: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
-  overflow: hidden;
-  animation: sc-gaveta-subir var(--transicao-media) both;
-}
-
-.sc-gaveta::backdrop {
-  background-color: var(--cor-sobreposicao);
-}
-
-.sc-gaveta__miolo {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  max-height: 85dvh;
-}
-
-.sc-gaveta__cabeca,
-.sc-gaveta__rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espaco-3);
-  padding: var(--espaco-4);
-}
-
-.sc-gaveta__cabeca {
-  border-bottom: 1px solid var(--cor-borda);
-}
-
-.sc-gaveta__cabeca h2 {
-  margin: 0;
-  font-size: var(--texto-lg);
-}
-
-.sc-gaveta__rodape {
-  border-top: 1px solid var(--cor-borda);
-}
-
-.sc-gaveta__corpo {
-  display: grid;
-  gap: var(--espaco-4);
-  padding: var(--espaco-4);
-  overflow-y: auto;
-}
-
-@keyframes sc-gaveta-subir {
-  from {
-    transform: translateY(2rem);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-
-@media (min-width: 48rem) {
-  .sc-gaveta {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sc-gaveta {
-    animation: none;
   }
 }

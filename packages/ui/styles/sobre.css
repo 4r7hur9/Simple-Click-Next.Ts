@@ -469,7 +469,7 @@ html:has(.sc-sobre-janela[open]) {
   aspect-ratio: 1;
   border-radius: 50%;
   background: var(--marca-grafite);
-  color: var(--cor-marca-texto);
+  color: var(--cor-marca);
 }
 
 .sc-sobre__modo-texto {
@@ -563,7 +563,7 @@ html:has(.sc-sobre-janela[open]) {
 
 .sc-sobre__whatsapp svg {
   flex: none;
-  color: var(--cor-marca-texto);
+  color: var(--cor-marca);
 }
 
 .sc-sobre__whatsapp:hover {

@@ -42,7 +42,9 @@
   padding: 0 var(--espaco-2);
   border-radius: var(--raio-completo);
   background-color: var(--cor-primaria-suave);
-  color: var(--cor-em-primaria);
+  /* Sobre o verde SUAVE a letra é o verde de texto (escuro no claro, vivo no
+     escuro): a letra de cima do verde cheio sumia no suave do tema escuro. */
+  color: var(--cor-primaria-texto);
   font-size: var(--texto-xs);
 }
 

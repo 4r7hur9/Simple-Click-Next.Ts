@@ -3,12 +3,18 @@ import {
   CONTRASTE_MINIMO_GRAFICO,
   CONTRASTE_MINIMO_TEXTO,
   ajustarParaContraste,
+  ajustarParaContrasteContraTodos,
   emHex,
   lerCor,
   relacaoDeContraste,
   textoLegivelSobre,
 } from "./contraste";
-import { PALETAS, TINTAS_EXTREMAS, type NomeDoTema } from "./tokens";
+import {
+  COR_DE_FUNDO_DA_LOJA,
+  PALETAS,
+  TINTAS_EXTREMAS,
+  type NomeDoTema,
+} from "./tokens";
 
 /**
  * Identidade visual da loja aplicada sem quebrar o sistema (AC-015).
@@ -102,10 +108,22 @@ export function calcularTemaDaLoja(
     );
   }
 
-  // O anel de foco é elemento gráfico: o piso dele é 3:1, não 4,5:1.
-  const foco = ajustarParaContraste(
+  // O anel de foco é elemento gráfico: o piso dele é 3:1, não 4,5:1. E ele
+  // precisa ser visto sobre o fundo da página E sobre as superfícies em que as
+  // peças ficam (cartão, campo, barra), e no escuro também sobre o preto da
+  // vitrine: ajustar só contra o fundo deixaria o anel apagado no cartão.
+  const fundosDoFoco =
+    tema === "escuro"
+      ? [
+          paleta.fundo,
+          paleta.superficie,
+          paleta.superficieAlta,
+          COR_DE_FUNDO_DA_LOJA,
+        ]
+      : [paleta.fundo, paleta.superficie, paleta.superficieAlta];
+  const foco = ajustarParaContrasteContraTodos(
     corPrincipal,
-    paleta.fundo,
+    fundosDoFoco,
     CONTRASTE_MINIMO_GRAFICO,
   );
 

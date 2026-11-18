@@ -2,9 +2,11 @@
  * O título com o nome da loja na loja pública.
  *
  * Decisão do dono: o nome é SEMPRE em caixa alta onde ele é título (página
- * inicial da loja, topo do cardápio e Sobre). A página inicial e o Sobre
- * mantêm o tamanho grande de origem; só o topo do cardápio é menor, de 2rem
- * no celular a 3rem no computador, em até duas linhas.
+ * inicial da loja, topo do cardápio e Sobre). O Sobre mantém o tamanho grande
+ * de origem; o topo do cardápio vai de 2rem no celular a 3rem no computador,
+ * em até duas linhas. Na página inicial (layout do Stitch, card #129) o nome é
+ * MÉDIO, ao lado do logo no cartão da loja, e quebra a palavra comprida em vez
+ * de estourar o cartão.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -36,9 +38,17 @@ describe("o nome da loja como título", () => {
     );
   });
 
-  it("a página inicial da loja mantém o tamanho grande", () => {
-    expect(regra(folha("narrativa"), ".sc-loja__nome")).toContain(
-      "font-size: clamp(2.25rem, 9vw, 4.25rem);",
+  it("a página inicial da loja usa o nome médio do Stitch, sem estourar o cartão", () => {
+    const css = folha("narrativa");
+    const nome = regra(css, ".sc-loja__nome");
+    // ~22px no celular a 28px no computador (headline-lg do Stitch).
+    expect(nome).toContain(
+      "font-size: clamp(1.375rem, 1rem + 1.2vw, 1.75rem);",
+    );
+    // Nome comprido quebra dentro da coluna, e a coluna pode encolher.
+    expect(nome).toContain("overflow-wrap: anywhere;");
+    expect(regra(css, ".sc-loja__identidade")).toContain(
+      "grid-template-columns: auto minmax(0, 1fr);",
     );
   });
 

@@ -40,6 +40,19 @@ export type BotaoProps = Omit<
   carregando?: boolean | undefined;
   /** Texto que o leitor de tela ouve enquanto a ação corre. */
   rotuloDeEspera?: string | undefined;
+  /**
+   * Botão que liga e desliga (curtir, favoritar). Presente, vira
+   * `aria-pressed` com esse estado: o NOME do botão não muda ("Curtir"), só o
+   * estado muda, que é como o leitor de tela anuncia "Curtir, marcado".
+   */
+  marcado?: boolean | undefined;
+  /**
+   * Botão principal das telas do cliente (card #104): pílula verde de texto
+   * escuro, alvo de toque de 48px e brilho (que some com movimento reduzido).
+   * Existe separado de `forma="pilula"` porque a pílula também é usada no
+   * painel e na conta, e o redesign não mexe nelas.
+   */
+  cta?: boolean | undefined;
   desabilitado?: boolean | undefined;
   className?: string | undefined;
 };
@@ -53,6 +66,8 @@ export function Botao({
   icone,
   soIcone = false,
   carregando = false,
+  marcado,
+  cta = false,
   rotuloDeEspera = "Enviando…",
   desabilitado = false,
   className,
@@ -69,12 +84,17 @@ export function Botao({
       // antes de a primeira resposta voltar, e o pedido nasce duplicado.
       disabled={bloqueado}
       aria-busy={carregando || undefined}
+      // Só quando `marcado` vem: um `aria-pressed` passado direto por quem
+      // chama (o painel faz isso) não pode ser apagado por um indefinido.
+      {...(marcado !== undefined ? { "aria-pressed": marcado } : {})}
       className={[
         "sc-botao",
         `sc-botao--${variante}`,
         tamanho !== "normal" && `sc-botao--${tamanho}`,
         forma === "pilula" && "sc-botao--pilula",
         soIcone && "sc-botao--so-icone",
+        marcado !== undefined && "sc-botao--marcavel",
+        cta && "sc-botao--cta",
         className,
       ]
         .filter(Boolean)

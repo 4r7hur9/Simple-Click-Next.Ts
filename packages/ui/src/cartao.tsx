@@ -15,7 +15,15 @@ import type { EstadoDaTela } from "./estados";
 /** Nível do título dentro da hierarquia da página. */
 export type NivelDeTitulo = 2 | 3 | 4 | 5 | 6;
 
+/**
+ * `padrao` é a moldura de bloco do painel. `vitrine` é a superfície das telas
+ * do cliente (card #104): mais escura que o fundo dos controles, sem sombra, e
+ * sem papel interativo: se o cartão inteiro é link, só UM elemento é focável.
+ */
+export type SuperficieDoCartao = "padrao" | "vitrine";
+
 export type CartaoProps = {
+  superficie?: SuperficieDoCartao | undefined;
   titulo?: string | undefined;
   nivelDoTitulo?: NivelDeTitulo | undefined;
   /** Linha curta abaixo do título, em tinta suave. */
@@ -44,6 +52,7 @@ export type CartaoProps = {
 
 /** A moldura com o estado da tela dentro dela, ou o conteúdo quando pronto. */
 export function Cartao({
+  superficie = "padrao",
   titulo,
   nivelDoTitulo = 3,
   descricao,
@@ -71,7 +80,13 @@ export function Cartao({
 
   return (
     <section
-      className={["sc-cartao", className].filter(Boolean).join(" ")}
+      className={[
+        "sc-cartao",
+        superficie === "vitrine" && "sc-cartao--vitrine",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-busy={estado === "carregando" || undefined}
     >
       {temCabecalho && (

@@ -76,8 +76,8 @@
   inset-inline-end: 0;
   display: grid;
   place-items: center;
-  min-inline-size: 2.75rem;
-  min-block-size: 2.75rem;
+  min-inline-size: var(--altura-toque);
+  min-block-size: var(--altura-toque);
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -484,8 +484,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--espaco-2);
-  min-inline-size: 2.75rem;
-  min-block-size: 2.75rem;
+  min-inline-size: var(--altura-toque);
+  min-block-size: var(--altura-toque);
   padding-inline: 0.875rem;
   border: 1px solid var(--borda-leve);
   border-radius: var(--raio-completo);
@@ -510,30 +510,6 @@
   outline-offset: 2px;
 }
 
-.sc-catalogo-barra__botao--largo {
-  display: none;
-}
-
-.sc-catalogo-barra__botao--estreito {
-  padding: 0;
-}
-
-/* A busca compacta: só no computador; no celular ela mora atrás da lupa. */
-.sc-catalogo-barra__busca {
-  display: none;
-}
-
-.sc-catalogo-barra__ponto {
-  position: absolute;
-  inset-block-start: 0.5rem;
-  inset-inline-end: 0.5rem;
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  border-radius: 50%;
-  background: var(--cor-marca);
-  box-shadow: 0 0 0 2px var(--cor-fundo);
-}
-
 .sc-catalogo-barra__selo {
   display: inline-grid;
   place-items: center;
@@ -546,13 +522,6 @@
   font-size: var(--texto-xs);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-}
-
-.sc-catalogo-barra__botao--estreito .sc-catalogo-barra__selo {
-  position: absolute;
-  inset-block-start: -0.25rem;
-  inset-inline-end: -0.25rem;
-  box-shadow: 0 0 0 2px var(--cor-fundo);
 }
 
 /* O chip "Atacado" (card #59): link que liga e desliga o filtro. Aparece nas
@@ -665,26 +634,6 @@
 .sc-painel__fechar:focus-visible {
   outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
-}
-
-.sc-painel__so-largo {
-  display: none;
-}
-
-/* A busca do celular: um painel que desce do alto, com o campo e o fechar. */
-.sc-painel--busca {
-  inset: 0 0 auto;
-  padding: max(var(--espaco-3), env(safe-area-inset-top)) var(--espaco-3)
-    var(--espaco-3);
-  border-radius: 0 0 var(--raio-janela) var(--raio-janela);
-}
-
-.sc-painel--busca:popover-open {
-  animation: sc-painel-desce 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.sc-painel--busca .sc-painel__topo {
-  margin: 0;
 }
 
 .sc-catalogo-barra__ordens {
@@ -1256,15 +1205,15 @@
 }
 
 /* O "+" é desenho, e não botão: o cartão inteiro já é o link. */
-/* O "+": um link próprio, de 44px, no canto de baixo do cartão. */
+/* O "+": um link próprio, com o alvo de toque do cliente (48px), no canto de baixo do cartão. */
 .sc-vitrine__mais {
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
   display: grid;
   place-items: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
   border-radius: 50%;
   background: var(--cor-marca);
   color: var(--cor-sobre-marca);
@@ -1405,7 +1354,7 @@
   block-size: 3.5rem;
   border-radius: 50%;
   background: var(--marca-grafite);
-  color: var(--cor-marca-texto);
+  color: var(--cor-marca);
 }
 
 .sc-vitrine__sem-resultado-titulo {
@@ -1420,136 +1369,6 @@
   margin: 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
-}
-
-/* --- a sacola flutuante ----------------------------------------------------
- *
- * Um botão grafite com a sacola em verde-click, a contagem e o total, que a
- * pessoa arrasta para onde quiser. Só existe com item dentro (o componente
- * decide). A ÁREA é o retângulo onde ela pode ficar: a tela menos uma margem e
- * a área segura do aparelho — o componente só mede este elemento invisível.
- */
-
-.sc-sacola__area {
-  position: fixed;
-  inset: max(var(--espaco-4), env(safe-area-inset-top))
-    max(var(--espaco-4), env(safe-area-inset-right))
-    max(var(--espaco-4), env(safe-area-inset-bottom))
-    max(var(--espaco-4), env(safe-area-inset-left));
-  z-index: -1;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.sc-sacola__area--acima-da-acao {
-  inset-block-end: calc(
-    var(--altura-da-acao, 5.75rem) +
-      max(var(--espaco-4), env(safe-area-inset-bottom))
-  );
-}
-
-.sc-sacola {
-  position: fixed;
-  inset-block-end: max(1rem, env(safe-area-inset-bottom));
-  inset-inline-end: max(1rem, env(safe-area-inset-right));
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-2);
-  /* No celular, 48px: alvo confortável sem cobrir o cardápio. */
-  min-inline-size: 3rem;
-  min-block-size: 3rem;
-  margin: 0;
-  padding: 0.25rem;
-  border: none;
-  border-radius: var(--raio-completo);
-  background: var(--marca-grafite);
-  color: var(--marca-branco);
-  font: inherit;
-  box-shadow:
-    0 16px 32px -12px
-      color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--marca-branco) 10%, transparent);
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  animation: sc-sacola-entra 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
-
-/* Posicionada pelo script: a posição vem do `left`/`top` em linha. */
-.sc-sacola--posicionada {
-  inset-block-end: auto;
-  inset-inline-end: auto;
-  transition:
-    left 160ms ease-out,
-    top 160ms ease-out,
-    transform var(--transicao-media),
-    box-shadow var(--transicao-media);
-}
-
-.sc-sacola:has(.sc-sacola__total) {
-  padding-inline-end: 0.75rem;
-}
-
-.sc-sacola:hover {
-  box-shadow:
-    0 20px 40px -12px
-      color-mix(in srgb, var(--marca-preto-tecnologico) 70%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 40%, transparent);
-}
-
-.sc-sacola--arrastando,
-.sc-sacola--posicionada.sc-sacola--arrastando {
-  cursor: grabbing;
-  transform: scale(1.06);
-  transition: transform var(--transicao-rapida);
-}
-
-.sc-sacola:focus-visible {
-  outline: 3px solid var(--cor-marca-texto);
-  outline-offset: 3px;
-}
-
-.sc-sacola__icone {
-  position: relative;
-  display: grid;
-  flex: none;
-  place-items: center;
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
-  border-radius: 50%;
-  background: var(--cor-marca);
-  color: var(--cor-sobre-marca);
-}
-
-.sc-sacola__contagem {
-  position: absolute;
-  inset-block-start: -0.3rem;
-  inset-inline-end: -0.3rem;
-  display: grid;
-  place-items: center;
-  min-inline-size: 1.375rem;
-  block-size: 1.375rem;
-  padding-inline: 0.3rem;
-  border-radius: var(--raio-completo);
-  background: var(--marca-branco);
-  color: var(--marca-preto-tecnologico);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 0 0 2px var(--marca-grafite);
-  animation: sc-selo-pula 450ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
-}
-
-.sc-sacola__total {
-  color: var(--cor-marca-texto);
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-sm);
-  font-weight: 700;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 
 /*
@@ -1677,7 +1496,7 @@
 }
 
 .sc-carrinho-janela__selo strong {
-  color: var(--cor-marca-texto);
+  color: var(--cor-marca);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1692,7 +1511,7 @@
   border: none;
   border-radius: 50%;
   background: var(--marca-grafite);
-  color: var(--cor-marca-texto);
+  color: var(--cor-marca);
   cursor: pointer;
   transition: background var(--transicao-rapida);
 }
@@ -2020,13 +1839,6 @@
   cursor: pointer;
 }
 
-@keyframes sc-sacola-entra {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-}
-
 @keyframes sc-selo-pula {
   0% {
     transform: scale(0.4);
@@ -2046,12 +1858,6 @@
 @keyframes sc-gaveta-entra-do-lado {
   from {
     transform: translateX(100%);
-  }
-}
-
-@keyframes sc-painel-desce {
-  from {
-    transform: translateY(-100%);
   }
 }
 
@@ -2126,26 +1932,6 @@
 }
 
 @media (min-width: 768px) {
-  /* No computador a sacola volta ao tamanho cheio. */
-  .sc-sacola {
-    min-inline-size: 3.5rem;
-    min-block-size: 3.5rem;
-    padding: 0.375rem;
-  }
-
-  .sc-sacola:has(.sc-sacola__total) {
-    padding-inline-end: 1rem;
-  }
-
-  .sc-sacola__icone {
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
-  }
-
-  .sc-sacola__total {
-    font-size: 1rem;
-  }
-
   .sc-pagina-da-loja {
     --respiro-lateral: var(--espaco-6);
   }
@@ -2190,14 +1976,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .sc-catalogo-barra__botao--largo {
-    display: inline-flex;
-  }
-
-  .sc-catalogo-barra__botao--estreito {
-    display: none;
-  }
-
   .sc-banners__seta {
     display: grid;
   }
@@ -2236,32 +2014,8 @@
     inline-size: 16rem;
   }
 
-  .sc-painel__so-estreito {
-    display: none;
-  }
-
-  .sc-painel__so-largo {
-    display: inline;
-  }
-
   .sc-flutuante__gaveta {
     max-block-size: min(85dvh, 44rem);
-  }
-
-  .sc-catalogo-barra__busca {
-    display: block;
-    flex: none;
-    inline-size: 13rem;
-    transition: inline-size var(--transicao-media);
-  }
-
-  .sc-catalogo-barra__busca:focus-within {
-    inline-size: 18rem;
-  }
-
-  .sc-catalogo-barra__busca .sc-vitrine__busca {
-    max-inline-size: none;
-    margin: 0;
   }
 }
 
@@ -2273,12 +2027,6 @@
       position-area: bottom span-left;
       position-try-fallbacks: flip-inline;
     }
-  }
-}
-
-@media (min-width: 1024px) {
-  .sc-sacola__area--acima-da-acao {
-    inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
   }
 }
 
@@ -2305,9 +2053,7 @@
   .sc-vitrine__mais,
   .sc-catalogo-barra__botao,
   .sc-banners__seta,
-  .sc-banners__ponto::before,
-  .sc-sacola,
-  .sc-sacola--posicionada {
+  .sc-banners__ponto::before {
     transition: none;
   }
 
@@ -2317,14 +2063,10 @@
 
   .sc-vitrine__cartao:hover .sc-vitrine__foto,
   .sc-vitrine__cartao:hover .sc-vitrine__mais,
-  .sc-vitrine__aba:active,
-  .sc-sacola--arrastando,
-  .sc-sacola--posicionada.sc-sacola--arrastando {
+  .sc-vitrine__aba:active {
     transform: none;
   }
 
-  .sc-sacola,
-  .sc-sacola__contagem,
   .sc-painel:popover-open,
   .sc-flutuante__gaveta[open] {
     animation: none;
@@ -2370,4 +2112,1198 @@
 
 .sc-vitrine__ver-mais .sc-vitrine__aba {
   border-color: var(--cor-borda);
+}
+
+/* --- catálogo Stitch (#108) -------------------------------------------------
+ *
+ * A composição do catálogo no layout Stitch (cards #108 e #130). TUDO escopado
+ * por `.sc-catalogo` (ou pelas classes só dele) e colocado no FIM das regras do
+ * catálogo: os testes de CSS leem a primeira regra que casa
+ * (`painel-produtos.test.tsx`), e o bloco não pode ficar na frente das regras
+ * de base.
+ *
+ *   celular  (< 768px)      cabeçalho em cartão com a busca; pílulas das
+ *                           categorias grudadas no topo, com "Ordenar" e
+ *                           "Filtrar" embaixo; LISTA de cartões escuros, foto
+ *                           à esquerda e a pílula "+ Adicionar"
+ *   tablet   (768-1279px)   o mesmo cabeçalho; pílulas e botões numa linha;
+ *                           grade de três cartões; filtros numa gaveta de baixo
+ *   computador (>= 1280px)  três zonas 3/6/3: o painel "Filtros" à esquerda, a
+ *                           busca e a ordem num cartão em cima da grade, e a
+ *                           sacola lateral (conteúdo do #110) à direita
+ */
+
+.sc-catalogo {
+  gap: var(--espaco-4);
+  /* Reserva para a barra fixa de baixo (#105/#110): a lista nunca termina por
+     baixo dela. `--altura-da-barra-inferior` vem do #104/#105; sem ela, 7rem. */
+  padding-block-start: var(--espaco-4);
+  padding-block-end: calc(
+    max(7rem, var(--altura-da-barra-inferior, 0px) + var(--espaco-5)) +
+      env(safe-area-inset-bottom)
+  );
+}
+
+/* --- o cabeçalho (#130) ---------------------------------------------------- */
+
+.sc-catalogo-topo {
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3);
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+}
+
+.sc-catalogo-topo__linha {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-inline-size: 0;
+}
+
+.sc-catalogo-topo__voltar,
+.sc-catalogo-topo__sobre {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  text-decoration: none;
+}
+
+.sc-catalogo-topo__sobre {
+  margin-inline-start: auto;
+  border: 1px solid var(--borda-leve);
+  background: transparent;
+}
+
+.sc-catalogo-topo__voltar:hover,
+.sc-catalogo-topo__sobre:hover {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-catalogo-topo__voltar:focus-visible,
+.sc-catalogo-topo__sobre:focus-visible,
+.sc-catalogo-topo__marca:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* O texto do voltar fica para o leitor de tela: a seta já diz o que é. */
+.sc-catalogo-topo__voltar-texto {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sc-catalogo-topo__logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--raio-cartao);
+  overflow: hidden;
+  background: var(--cor-superficie-alta);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-catalogo-topo__logo svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+.sc-catalogo-topo__logo picture {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.sc-catalogo-topo__logo-foto {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.sc-catalogo-topo__identidade {
+  display: grid;
+  flex: 1;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.sc-catalogo-topo__nome-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-1) var(--espaco-2);
+  min-inline-size: 0;
+}
+
+.sc-catalogo-topo__nome {
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.0625rem, 0.9rem + 1vw, 1.875rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+/* O nome é link e alvo de toque de 48px (card #132): a caixa cresce para
+   cima e para baixo sem mudar a altura da linha (margem negativa igual). */
+.sc-catalogo-topo__marca {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  margin-block: calc((1lh - var(--altura-toque)) / 2);
+  border-radius: var(--raio-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.sc-catalogo-topo__marca:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.sc-catalogo-topo__situacao {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--raio-completo);
+  font-size: var(--texto-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sc-catalogo-topo__situacao--aberta {
+  background: color-mix(in srgb, var(--cor-primaria) 16%, transparent);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-catalogo-topo__situacao--fechada {
+  background: var(--cor-erro-suave);
+  color: var(--cor-erro);
+}
+
+.sc-catalogo-topo__ponto {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.sc-catalogo-topo__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--espaco-2);
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-catalogo-topo__meta > span + span::before {
+  content: "·";
+  margin-inline-end: var(--espaco-2);
+}
+
+.sc-catalogo-topo__busca .sc-vitrine__busca,
+.sc-catalogo__ferramentas .sc-vitrine__busca {
+  max-inline-size: none;
+  margin-inline: 0;
+}
+
+.sc-catalogo-topo__busca .sc-vitrine__busca-campo,
+.sc-catalogo__ferramentas .sc-vitrine__busca-campo {
+  min-block-size: 3rem;
+  padding-inline: 1rem 3.25rem;
+  border-color: var(--borda-leve);
+  background: var(--cor-fundo);
+}
+
+/* --- a barra: pílulas, "Ordenar" e "Filtrar" ------------------------------- */
+
+.sc-catalogo .sc-catalogo-barra {
+  padding-block: var(--espaco-2);
+}
+
+.sc-catalogo .sc-catalogo-barra__conteudo {
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-3);
+}
+
+/* O título "Filtros" é só do painel lateral do computador. */
+.sc-catalogo-barra__cabeca {
+  display: none;
+}
+
+/* No celular, as pílulas ocupam a linha e os botões vão para a de baixo. */
+.sc-catalogo .sc-vitrine__abas {
+  flex: 1 1 100%;
+}
+
+.sc-catalogo .sc-catalogo-barra__vao {
+  display: none;
+}
+
+.sc-catalogo .sc-catalogo-barra__acoes {
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  margin-inline-start: 0;
+}
+
+.sc-catalogo .sc-catalogo-barra__botao {
+  border-color: transparent;
+  background: var(--cor-superficie);
+}
+
+.sc-catalogo .sc-catalogo-barra__botao:hover {
+  border-color: var(--cor-borda);
+}
+
+.sc-catalogo .sc-catalogo-barra__chip--ligado,
+.sc-catalogo .sc-catalogo-barra__chip--ligado:hover {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+/* A contagem da pílula entre parênteses, como na referência. */
+.sc-catalogo .sc-vitrine__abas .sc-chip__contagem::before {
+  content: "(";
+}
+
+.sc-catalogo .sc-vitrine__abas .sc-chip__contagem::after {
+  content: ")";
+}
+
+.sc-catalogo .sc-vitrine__abas .sc-chip {
+  /* Bloco de contenção dos textos só para o leitor de tela (`.sc-so-leitor`,
+     posição absoluta): sem ele, os das pílulas fora da tela escapam da lista
+     rolável e a PÁGINA passa a rolar na horizontal no celular. */
+  position: relative;
+  gap: var(--espaco-1);
+}
+
+/* A lista rola por dentro; a página nunca. */
+.sc-catalogo .sc-vitrine__abas-lista {
+  position: relative;
+}
+
+.sc-catalogo__produtos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+}
+
+/* A busca e a ordem em cima da grade: só no computador. */
+.sc-catalogo__ferramentas {
+  display: none;
+}
+
+.sc-catalogo__ordenar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: 3rem;
+  padding-inline: var(--espaco-4);
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-completo);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+}
+
+.sc-catalogo__ordenar:hover {
+  border-color: var(--cor-borda);
+}
+
+.sc-catalogo__ordenar:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-catalogo__ordenar-rotulo {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Os filtros ligados: chips que se removem e o total encontrado. */
+.sc-catalogo__ativos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2) var(--espaco-4);
+}
+
+.sc-catalogo__ativos-lista {
+  margin: 0;
+  list-style: none;
+}
+
+.sc-catalogo__encontrados {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* A região da sacola só existe no computador; o #110 a preenche. */
+.sc-catalogo__sacola {
+  display: none;
+}
+
+/* --- as seções: título simples, sem marcador (#130) ------------------------ */
+
+.sc-catalogo .sc-vitrine__secoes {
+  gap: var(--espaco-6);
+  margin-block-start: 0;
+}
+
+.sc-catalogo .sc-vitrine__secao {
+  gap: var(--espaco-3);
+}
+
+.sc-catalogo .sc-vitrine__secao-topo {
+  align-items: baseline;
+}
+
+.sc-catalogo .sc-vitrine__secao-nome {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--cor-tinta);
+  font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  /* O título não fica por baixo da barra grudada ao rolar. */
+  scroll-margin-block-start: calc(var(--altura-da-barra) + 6rem);
+}
+
+.sc-catalogo .sc-vitrine__secao-contagem {
+  font-weight: var(--peso-medio);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Tablet: a barra numa linha só; filtros e ordem são a folha de baixo, como no
+   celular. O CSS de base (a partir de 768px) os trocaria por menu suspenso. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .sc-catalogo .sc-vitrine__abas {
+    flex: 1 1 0;
+  }
+
+  .sc-catalogo .sc-catalogo-barra__acoes {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  .sc-catalogo .sc-painel--ajustes,
+  .sc-catalogo .sc-painel--ordem {
+    inset: auto 0 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    max-block-size: 85svh;
+    margin: 0;
+    padding: var(--espaco-4) var(--espaco-4)
+      calc(var(--espaco-5) + env(safe-area-inset-bottom));
+    border: none;
+    border-radius: var(--raio-janela) var(--raio-janela) 0 0;
+    position-area: none;
+    position-try-fallbacks: none;
+  }
+
+  .sc-catalogo .sc-painel--ajustes:popover-open,
+  .sc-catalogo .sc-painel--ordem:popover-open {
+    animation: sc-gaveta-sobe 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .sc-catalogo .sc-painel--ajustes::backdrop,
+  .sc-catalogo .sc-painel--ordem::backdrop {
+    background: color-mix(
+      in srgb,
+      var(--marca-preto-tecnologico) 50%,
+      transparent
+    );
+  }
+}
+
+@media (min-width: 768px) {
+  .sc-catalogo-topo {
+    padding: var(--espaco-4);
+  }
+
+  .sc-catalogo-topo__logo {
+    inline-size: 4rem;
+    block-size: 4rem;
+  }
+
+  .sc-catalogo-topo__logo svg {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sc-catalogo {
+    display: grid;
+    grid-template-columns: 3fr 6fr 3fr;
+    grid-template-areas:
+      "capa capa capa"
+      "lateral produtos sacola";
+    align-items: start;
+    gap: var(--espaco-5);
+    max-inline-size: 90rem;
+  }
+
+  .sc-catalogo > * {
+    min-inline-size: 0;
+  }
+
+  .sc-catalogo > .sc-catalogo-topo {
+    grid-area: capa;
+    padding: var(--espaco-4) var(--espaco-5);
+  }
+
+  /* No computador, a busca sai do cabeçalho e vai para cima da grade. */
+  .sc-catalogo-topo__busca {
+    display: none;
+  }
+
+  .sc-catalogo__ferramentas {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-3);
+    padding: var(--espaco-3);
+    border: 1px solid var(--borda-leve);
+    border-radius: var(--raio-grande);
+    background: var(--cor-superficie);
+  }
+
+  .sc-catalogo > .sc-catalogo__produtos {
+    grid-area: produtos;
+  }
+
+  .sc-catalogo > .sc-catalogo__sacola {
+    display: block;
+    grid-area: sacola;
+    position: sticky;
+    inset-block-start: var(--espaco-4);
+  }
+
+  /* Sem sacola, os produtos ocupam a zona dela: sem coluna fantasma. */
+  .sc-catalogo:has(> .sc-catalogo__sacola:empty) {
+    grid-template-columns: 3fr 9fr;
+    grid-template-areas:
+      "capa capa"
+      "lateral produtos";
+  }
+
+  .sc-catalogo > .sc-catalogo__sacola:empty {
+    display: none;
+  }
+
+  /* Loja sem catálogo não tem barra: o vazio usa a largura toda. */
+  .sc-catalogo:not(:has(> .sc-catalogo-barra)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "capa"
+      "produtos";
+  }
+
+  /* --- a barra vira o painel lateral "Filtros" --------------------------- */
+  .sc-catalogo > .sc-catalogo-barra,
+  .sc-pagina-da-loja:has(.sc-barra[data-recolhida])
+    .sc-catalogo
+    > .sc-catalogo-barra {
+    grid-area: lateral;
+    align-self: start;
+    inset-block-start: var(--espaco-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-4);
+    margin-inline: 0;
+    padding: var(--espaco-4);
+    border: 1px solid var(--borda-leve);
+    border-radius: var(--raio-grande);
+    background: var(--cor-superficie);
+  }
+
+  .sc-catalogo > .sc-catalogo-barra::after {
+    display: none;
+  }
+
+  .sc-catalogo .sc-catalogo-barra__conteudo {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: var(--espaco-4);
+  }
+
+  .sc-catalogo-barra__cabeca {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2);
+    margin: 0;
+    font-family: var(--fonte-titulo);
+    font-size: var(--texto-lg);
+    font-weight: 800;
+  }
+
+  .sc-catalogo-barra__cabeca svg {
+    color: var(--cor-primaria-texto);
+  }
+
+  .sc-catalogo .sc-vitrine__abas,
+  .sc-catalogo .sc-catalogo-barra__acoes {
+    flex: none;
+  }
+
+  .sc-catalogo .sc-vitrine__abas-lista {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.125rem;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .sc-catalogo .sc-vitrine__abas-lista li {
+    flex: none;
+  }
+
+  /* Na lateral, cada categoria é uma linha inteira, com a contagem à direita. */
+  .sc-catalogo .sc-vitrine__abas-lista .sc-chip {
+    inline-size: 100%;
+    justify-content: space-between;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .sc-catalogo .sc-vitrine__abas-lista .sc-chip:hover {
+    background: var(--cor-superficie-alta);
+  }
+
+  .sc-catalogo .sc-vitrine__abas-lista .sc-chip--ativo,
+  .sc-catalogo .sc-vitrine__abas-lista .sc-chip--ativo:hover {
+    border-color: var(--cor-primaria);
+    background: var(--cor-primaria);
+    color: var(--cor-em-primaria);
+  }
+
+  .sc-catalogo .sc-vitrine__abas .sc-chip__contagem::before,
+  .sc-catalogo .sc-vitrine__abas .sc-chip__contagem::after {
+    content: none;
+  }
+
+  /* Nenhum botão de painel: o filtro já está aberto na lateral e a ordem
+     fica em cima da grade. O chip de atacado continua. */
+  .sc-catalogo .sc-catalogo-barra__botao--ordem,
+  .sc-catalogo .sc-catalogo-barra__botao--filtro {
+    display: none;
+  }
+
+  .sc-catalogo .sc-catalogo-barra__chip {
+    align-self: flex-start;
+  }
+
+  /* O painel do filtro fica estático, dentro da lateral. O da ordem continua
+     sendo o menu suspenso, pendurado no "Ordenar" de cima da grade. */
+  .sc-catalogo .sc-painel--ajustes {
+    display: block;
+    position: static;
+    inset: auto;
+    inline-size: auto;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: var(--espaco-4) 0 0;
+    border: 0;
+    border-block-start: 1px solid var(--borda-leve);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+    animation: none;
+    position-area: none;
+    position-try-fallbacks: none;
+  }
+
+  .sc-catalogo .sc-painel--ajustes:popover-open {
+    animation: none;
+  }
+
+  .sc-catalogo .sc-painel--ajustes .sc-painel__topo {
+    display: none;
+  }
+
+  .sc-catalogo .sc-painel--ajustes .sc-filtro__acoes {
+    position: static;
+    justify-content: stretch;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .sc-catalogo .sc-painel--ajustes .sc-filtro__acoes .sc-botao {
+    flex: 1;
+  }
+
+  /* As especificações em pílulas pequenas, como as marcas da referência,
+     mas com o alvo de toque do cliente (48px, card #132). */
+  .sc-catalogo .sc-painel--ajustes .sc-filtro__opcao {
+    min-block-size: var(--altura-toque);
+    padding-inline: var(--espaco-3);
+    border-color: transparent;
+    background: var(--cor-superficie-alta);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-forte);
+  }
+
+  .sc-catalogo .sc-painel--ajustes .sc-filtro__opcao:has(input:checked) {
+    border-color: var(--cor-primaria);
+    background: var(--cor-primaria);
+    color: var(--cor-em-primaria);
+  }
+
+  .sc-catalogo .sc-painel--ajustes .sc-filtro__opcao input {
+    accent-color: var(--cor-primaria);
+  }
+
+  /* "Só em estoque" como caixa de marcar, sem pílula, como na referência. */
+  .sc-catalogo
+    .sc-painel--ajustes
+    .sc-filtro__grupo:has(input[name="estoque"])
+    .sc-filtro__opcao {
+    padding-inline: 0;
+    font-size: var(--texto-sm);
+    border-color: transparent;
+    background: transparent;
+    color: var(--cor-tinta);
+  }
+
+  .sc-catalogo .sc-filtro__preco {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sc-catalogo .sc-filtro__preco .sc-filtro__nome {
+    grid-column: 1 / -1;
+  }
+
+  .sc-catalogo .sc-filtro__numero {
+    inline-size: 100%;
+    min-inline-size: 0;
+    border-radius: var(--raio-completo);
+  }
+}
+
+/* --- o cartão do catálogo (#108, #130) ---------------------------------------
+ *
+ * O cartão escuro da referência. Celular: LISTA de uma coluna, foto pequena à
+ * esquerda, nome, chamada e o preço grande à direita, e a pílula "+ Adicionar"
+ * no canto de baixo. Tablet e computador: grade de três colunas, foto em cima,
+ * o preço numa caixa mais escura e "+ Adicionar" na largura do cartão. Só o
+ * formato `catalogo` do cartão (`sc-vitrine__cartao--catalogo`) muda.
+ */
+
+.sc-catalogo .sc-vitrine__grade {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-3);
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: var(--espaco-3);
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__link {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__moldura {
+  flex: none;
+  inline-size: 6rem;
+  aspect-ratio: 1;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__texto {
+  align-self: stretch;
+  gap: 0.125rem;
+  padding-inline: 0;
+  /* Espaço para a pílula "+ Adicionar", que fica no canto de baixo. */
+  padding-block-end: 3.25rem;
+}
+
+.sc-catalogo .sc-vitrine__cartao--esgotado .sc-vitrine__texto {
+  padding-block-end: 0;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__nome {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__chamada {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__pe {
+  min-block-size: 0;
+  margin-block-start: var(--espaco-1);
+  padding: 0;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__preco {
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__preco--variavel {
+  font-size: var(--texto-base);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__preco-anterior {
+  font-size: var(--texto-sm);
+}
+
+/* A pílula "+ Adicionar": o mesmo link do "+", com o rótulo visível. */
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__mais {
+  inset-block-end: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  inline-size: auto;
+  min-inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: var(--texto-sm);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__mais svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.sc-catalogo .sc-vitrine__cartao--catalogo:hover .sc-vitrine__mais {
+  transform: none;
+  filter: brightness(1.05);
+}
+
+@media (min-width: 768px) {
+  .sc-catalogo .sc-vitrine__grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--espaco-4);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo {
+    flex-direction: column;
+    gap: var(--espaco-3);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__link {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__moldura {
+    inline-size: 100%;
+    aspect-ratio: 1;
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__texto {
+    padding-block-end: 0;
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__chamada {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  /* O preço na caixa mais escura, como na referência. */
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__pe {
+    margin-block-start: auto;
+    padding: var(--espaco-2) var(--espaco-3);
+    border-radius: var(--raio-cartao);
+    background: var(--cor-fundo);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__texto {
+    gap: var(--espaco-1);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__nome {
+    margin-block-end: var(--espaco-1);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__chamada {
+    margin-block-end: var(--espaco-2);
+  }
+
+  .sc-catalogo .sc-vitrine__cartao--catalogo .sc-vitrine__mais {
+    position: static;
+    inline-size: 100%;
+  }
+}
+
+/* --- filtros novos: estoque e faixa de preço, e o aviso de degradação (#108) -- */
+
+.sc-filtro__preco {
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.sc-filtro__campo {
+  display: grid;
+  gap: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-filtro__numero {
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-fundo);
+  color: var(--cor-tinta);
+  font: inherit;
+}
+
+.sc-filtro__numero:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-catalogo__aviso {
+  margin: 0;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* --- a página da loja, abaixo do cartão (#107, #129 Stitch) ---------------
+ * A página da loja reaproveita `Destaques` do catálogo, no formato "grade".
+ * Tudo aqui fica sob `.sc-pagina-da-loja` para não tocar no /cardapio.
+ */
+.sc-pagina-da-loja .sc-loja__destaques,
+.sc-pagina-da-loja .sc-loja__chips,
+.sc-pagina-da-loja .sc-loja__publicacoes {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 76rem;
+  margin-inline: auto;
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left));
+}
+
+/* A faixa de seções: uma barra-cartão com as pílulas; a primeira em verde. */
+.sc-pagina-da-loja .sc-loja__chips {
+  inline-size: calc(100% - 2 * max(var(--espaco-4), env(safe-area-inset-left)));
+  max-inline-size: calc(76rem - 2 * var(--espaco-4));
+  margin-block: var(--espaco-6) var(--espaco-2);
+  padding: var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+}
+
+.sc-pagina-da-loja .sc-loja__chips .sc-chip {
+  border-color: transparent;
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-pagina-da-loja .sc-loja__chips .sc-chip:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-pagina-da-loja .sc-loja__chips .sc-chip:first-child {
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-pagina-da-loja .sc-loja__destaques {
+  margin-block-start: var(--espaco-5);
+}
+
+.sc-pagina-da-loja .sc-loja__destaques .sc-vitrine__secao-nome {
+  padding: 0;
+  background: none;
+  color: var(--cor-tinta);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* A grade dos destaques: cartões escuros, 2 colunas no celular e 3 depois. */
+.sc-vitrine__grade-destaques {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__cartao {
+  box-sizing: border-box;
+  padding: var(--espaco-2) var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-1);
+  transition: background var(--transicao-rapida);
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__cartao:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__moldura {
+  border-radius: 0.75rem;
+  background: var(--cor-fundo);
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__texto {
+  padding-inline: var(--espaco-1);
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__chamada {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__preco {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.sc-vitrine__grade-destaques .sc-vitrine__mais {
+  inset-block-end: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  box-shadow: 0 2px 12px
+    color-mix(in srgb, var(--cor-primaria) 30%, transparent);
+}
+
+.sc-pagina-da-loja .sc-loja__publicacoes {
+  margin-block-start: var(--espaco-7);
+}
+
+/* As publicações: grade compacta de até seis (2 colunas no celular, 3 depois). */
+.sc-loja__secao-cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-4);
+  margin-block-end: var(--espaco-4);
+}
+
+.sc-loja__secao-titulo {
+  margin: 0;
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.sc-loja__ver-todas {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-block-size: 2.75rem;
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-negrito);
+  text-decoration: none;
+}
+
+.sc-loja__ver-todas:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.sc-loja__ver-todas:focus-visible,
+.sc-loja__publicacao:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-loja__publicacoes-grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-loja__publicacao {
+  display: flex;
+  block-size: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2) var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  text-decoration: none;
+  box-shadow: var(--sombra-1);
+  transition: background var(--transicao-rapida);
+}
+
+.sc-loja__publicacao:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.sc-loja__publicacao-foto {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--cor-fundo);
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-titulo);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.sc-loja__publicacao-foto img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.sc-loja__publicacao-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
+  padding-inline: var(--espaco-1);
+}
+
+.sc-loja__publicacao-nome {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-negrito);
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.sc-loja__publicacao-preco {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--espaco-2);
+  font-family: var(--fonte-titulo);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-loja__publicacao-preco s {
+  color: var(--cor-tinta-suave);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-normal);
+}
+
+@media (min-width: 48rem) {
+  .sc-vitrine__grade-destaques {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--espaco-4);
+  }
+
+  .sc-vitrine__grade-destaques .sc-vitrine__cartao {
+    padding: var(--espaco-3) var(--espaco-3) var(--espaco-4);
+  }
+
+  .sc-vitrine__grade-destaques .sc-vitrine__texto {
+    padding-inline: var(--espaco-2);
+  }
+
+  .sc-vitrine__grade-destaques .sc-vitrine__mais {
+    inset-block-end: var(--espaco-4);
+    inset-inline-end: var(--espaco-4);
+  }
+
+  .sc-loja__publicacoes-grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--espaco-4);
+  }
+
+  .sc-loja__publicacao {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--espaco-3);
+    padding: var(--espaco-2);
+  }
+
+  .sc-loja__publicacao-foto {
+    flex: none;
+    inline-size: 5.5rem;
+    aspect-ratio: 1;
+  }
 }

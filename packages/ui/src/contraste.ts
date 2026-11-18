@@ -8,6 +8,8 @@
  * sistema descobre se o texto por cima dela ainda dá para ler (AC-015).
  */
 
+import { TINTAS_EXTREMAS } from "./tokens";
+
 /** Cor em componentes de 0 a 255, do jeito que o sRGB entrega. */
 export type Rgb = {
   readonly vermelho: number;
@@ -244,4 +246,61 @@ export function ajustarParaContraste(
     relacao: relacaoDeContraste(final, fundo),
     ajustada: true,
   };
+}
+
+const PASSADAS_CONTRA_VARIOS_FUNDOS = 3;
+
+/**
+ * Ajusta a cor para alcançar o contraste mínimo contra VÁRIOS fundos ao mesmo
+ * tempo (o anel de foco precisa ser visto sobre o fundo da página e sobre a
+ * superfície em que a peça está).
+ *
+ * `ajustarParaContraste` aceita um fundo só, e ajustar um depois do outro pode
+ * desfazer o ajuste anterior. Aqui a conta é: ajusta contra o fundo que MENOS
+ * contrasta, confere todos, e repete (até três passadas). Se ainda não servir,
+ * recorre à tinta extrema (branco ou preto) que melhor atende o pior fundo.
+ *
+ * `relacao` é a menor relação entre os fundos, que é o que decide a leitura.
+ */
+export function ajustarParaContrasteContraTodos(
+  cor: Cor,
+  fundos: readonly Cor[],
+  minimo: number = CONTRASTE_MINIMO_TEXTO,
+): Ajuste {
+  if (fundos.length === 0) {
+    throw new Error("É preciso informar ao menos um fundo.");
+  }
+
+  const menorRelacao = (candidata: Cor): number =>
+    Math.min(...fundos.map((fundo) => relacaoDeContraste(candidata, fundo)));
+  const pior = (candidata: Cor): Cor =>
+    fundos.reduce((atual, fundo) =>
+      relacaoDeContraste(candidata, fundo) <
+      relacaoDeContraste(candidata, atual)
+        ? fundo
+        : atual,
+    );
+
+  const original = emHex(cor);
+  let atual: string = original;
+  for (let passada = 0; passada < PASSADAS_CONTRA_VARIOS_FUNDOS; passada += 1) {
+    if (menorRelacao(atual) >= minimo) {
+      return {
+        cor: atual,
+        relacao: menorRelacao(atual),
+        ajustada: atual !== original,
+      };
+    }
+    atual = ajustarParaContraste(atual, pior(atual), minimo).cor;
+  }
+  if (menorRelacao(atual) >= minimo) {
+    return { cor: atual, relacao: menorRelacao(atual), ajustada: true };
+  }
+
+  // Último recurso: o extremo (branco ou preto) que melhor serve ao pior fundo.
+  const extremos = [TINTAS_EXTREMAS.clara, TINTAS_EXTREMAS.escura] as const;
+  const melhor = extremos.reduce((a, b) =>
+    menorRelacao(b) > menorRelacao(a) ? b : a,
+  );
+  return { cor: melhor, relacao: menorRelacao(melhor), ajustada: true };
 }

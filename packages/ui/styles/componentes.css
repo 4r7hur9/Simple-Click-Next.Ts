@@ -44,6 +44,15 @@
   display: contents;
 }
 
+/* O verde-click como LETRA só se lê no escuro. A loja segue o tema do
+   aparelho (card #131), então o texto "na cor da marca" usa o verde de texto
+   do tema: #3f7900 no claro e o próprio verde-click no escuro. Repetido em
+   `[data-tema]` para o trecho com tema fixo calcular o valor dele. */
+.sc-tema-loja,
+.sc-tema-loja [data-tema] {
+  --cor-marca-texto: var(--cor-primaria-texto);
+}
+
 /* Texto que só o leitor de tela recebe. */
 .sc-so-leitor {
   position: absolute;
@@ -1281,4 +1290,634 @@
   .sc-botao:not([disabled]):active {
     transform: none;
   }
+}
+
+/* ==========================================================================
+ * BASE VISUAL DO REDESIGN STITCH (card #104)
+ *
+ * As peças novas e as variantes novas das antigas moram aqui, no fim, para a
+ * ordem do arquivo decidir empates de especificidade. Regra de cor: peça comum
+ * lê só `--cor-primaria*` e `--cor-foco`; dentro da loja esses valores já vêm
+ * com a cor do dono. Nenhuma regra daqui lê as variáveis de marca da loja
+ * (`--cor-marca`, `--cor-sobre-marca`, `--cor-marca-texto`): fora do envelope
+ * elas valem o verde, que sobre branco não se lê.
+ * ========================================================================== */
+
+/* --- botão marcável, pulso e estrela ------------------------------------- */
+
+.sc-botao--marcavel[aria-pressed="true"] {
+  border-color: var(--cor-primaria-texto);
+}
+
+/* A estrela de favorito preenchida: amarela no escuro, cor do texto no claro
+   (`--cor-estrela`). Sobre o botão principal ela herda a letra do botão. */
+.sc-icone-estrela[data-preenchido] {
+  color: var(--cor-estrela);
+}
+
+.sc-botao--primaria .sc-icone-estrela[data-preenchido] {
+  color: inherit;
+}
+
+/* O pulso do curtir: decorativo, curto, só na transição. */
+.sc-botao--marcavel[data-pulso] svg {
+  animation: sc-pulso 360ms ease-out;
+}
+
+@keyframes sc-pulso {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.28);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-botao--marcavel[data-pulso] svg {
+    animation: none;
+  }
+}
+
+/* --- botão principal do cliente (CTA) ------------------------------------ */
+
+/* Pílula verde de texto escuro, 48px de alto e brilho. O brilho nasce de dois
+   valores sem cor (`--brilho-forma`, `--brilho-forca`) e a cor entra AQUI, por
+   `color-mix` sobre `--cor-primaria`: dentro da loja ela já é a cor do dono.
+   `.sc-botao--pilula` não muda (o painel a usa). */
+.sc-botao--cta {
+  min-height: var(--altura-toque-cliente);
+  padding-inline: var(--espaco-5);
+  border-radius: var(--raio-completo);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--tipo-rotulo-lg-peso);
+  letter-spacing: var(--tipo-rotulo-lg-espaco);
+}
+
+.sc-botao--cta.sc-botao--primaria,
+.sc-botao--cta.sc-botao--primaria:not([disabled]):hover {
+  box-shadow: var(--brilho-forma)
+    color-mix(in srgb, var(--cor-primaria) var(--brilho-forca), transparent);
+}
+
+.sc-botao--cta[disabled] {
+  box-shadow: none;
+}
+
+/* --- campo de busca ------------------------------------------------------ */
+
+.sc-campo__busca {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sc-campo__busca-icone {
+  position: absolute;
+  inset-inline-start: var(--espaco-4);
+  color: var(--cor-tinta-suave);
+  pointer-events: none;
+}
+
+/* Superfície alta, contorno de controle (3:1) e pílula. A divisória fina
+   (`--cor-borda`) nunca contorna controle. O anel de foco externo é o de
+   sempre; a borda na cor principal SOMA a ele, e não o substitui. */
+.sc-campo--busca .sc-campo__controle {
+  min-height: var(--altura-toque-cliente);
+  padding-inline-start: calc(var(--espaco-4) + 1.25rem + var(--espaco-2));
+  border-color: var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-campo--busca .sc-campo__controle:focus-visible {
+  border-color: var(--cor-primaria-texto);
+}
+
+.sc-campo--busca .sc-campo__controle[disabled] {
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+}
+
+/* --- movimento reduzido: o que é só enfeite sai -------------------------- */
+
+/* O brilho sai na PRÓPRIA regra da peça: redefinir `--brilho-forca` só na raiz
+   não alcança um trecho com `data-tema`, que declara o valor dele. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-botao--cta.sc-botao--primaria,
+  .sc-botao--cta.sc-botao--primaria:not([disabled]):hover {
+    box-shadow: none;
+  }
+
+  .sc-botao:not([disabled]):active {
+    transform: none;
+  }
+}
+
+/* --- chip e faixa de chips ----------------------------------------------- */
+
+/* A faixa rola na horizontal sem barra visível; todo chip segue alcançável pelo
+   Tab, porque o navegador rola a faixa até o que recebe foco. O respiro de 4px
+   é do anel de foco (2px de traço + 2px de vão), que o `overflow` cortaria. */
+.sc-chips {
+  display: flex;
+  gap: var(--espaco-2);
+  padding: var(--espaco-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-padding-inline: var(--espaco-4);
+}
+
+.sc-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: var(--altura-toque);
+  padding: var(--espaco-1) var(--espaco-4);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-family: inherit;
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--tipo-rotulo-lg-peso);
+  line-height: var(--tipo-rotulo-lg-altura);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--transicao-rapida),
+    border-color var(--transicao-rapida);
+}
+
+.sc-chip:hover:not([aria-disabled="true"], [disabled]) {
+  border-color: var(--cor-tinta);
+}
+
+/* O chip ativo: fundo na cor principal e letra escura (ou a da loja). */
+.sc-chip--ativo,
+.sc-chip--ativo:hover:not([aria-disabled="true"], [disabled]) {
+  border-color: var(--cor-primaria-texto);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-chip--desabilitado,
+.sc-chip[disabled] {
+  border-color: var(--cor-borda);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  cursor: not-allowed;
+}
+
+.sc-chip__contagem {
+  font-size: var(--tipo-corpo-sm-tamanho);
+  font-weight: var(--peso-medio);
+  opacity: 0.8;
+}
+
+.sc-chip:focus-visible,
+.sc-abas__aba:focus-visible,
+.sc-abas__painel:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* --- abas ---------------------------------------------------------------- */
+
+.sc-abas__lista {
+  display: flex;
+  gap: var(--espaco-1);
+  padding-inline: var(--espaco-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-block-end: 1px solid var(--cor-borda);
+}
+
+.sc-abas__lista::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-abas__aba {
+  flex: 0 0 auto;
+  min-height: var(--altura-toque);
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 0;
+  border-radius: var(--raio-botao) var(--raio-botao) 0 0;
+  background-color: transparent;
+  color: var(--cor-tinta-suave);
+  font-family: inherit;
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--tipo-rotulo-lg-peso);
+  cursor: pointer;
+}
+
+.sc-abas__aba:hover {
+  color: var(--cor-tinta);
+}
+
+/* A aba ativa tem o traço na cor principal. No claro e na loja o traço usa o
+   tom já conferido para ser lido sobre o fundo (`--cor-primaria-texto`). */
+.sc-abas__aba[aria-selected="true"] {
+  color: var(--cor-tinta);
+  box-shadow: inset 0 -3px 0 var(--cor-primaria-texto);
+}
+
+.sc-abas__painel {
+  padding-block-start: var(--espaco-4);
+}
+
+.sc-abas__painel[hidden] {
+  display: none;
+}
+
+/* --- gaveta (janela modal de baixo ou da direita) ------------------------ */
+
+/* `.sc-gaveta-modal`, e não `.sc-gaveta`: o painel já tem uma `.sc-gaveta` em
+   `filtros.css` que some a partir de 48rem. */
+.sc-gaveta-modal {
+  position: fixed;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--cor-borda);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta);
+  overflow: hidden;
+  animation: sc-gaveta-modal-entrar var(--transicao-media) both;
+}
+
+.sc-gaveta-modal::backdrop {
+  background-color: var(--cor-sobreposicao);
+}
+
+/* Fechada, o `<dialog>` some sozinho; o `display` só vale aberta. */
+.sc-gaveta-modal:not([open]) {
+  display: none;
+}
+
+.sc-gaveta-modal--baixo {
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 85dvh;
+  border-bottom: 0;
+  border-radius: var(--raio-janela) var(--raio-janela) 0 0;
+}
+
+.sc-gaveta-modal--direita {
+  inset: 0 0 0 auto;
+  width: min(26rem, 100%);
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-inline-end: 0;
+  border-radius: var(--raio-janela) 0 0 var(--raio-janela);
+}
+
+/* Aberta e parada na página (catálogo `/ui`). */
+.sc-gaveta-modal--embutida {
+  position: static;
+  inset: auto;
+  width: 100%;
+  max-width: 26rem;
+  height: auto;
+  max-height: 26rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+  animation: none;
+}
+
+.sc-gaveta-modal__painel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: inherit;
+  height: 100%;
+}
+
+.sc-gaveta-modal__cabeca,
+.sc-gaveta-modal__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+}
+
+.sc-gaveta-modal__cabeca {
+  border-block-end: 1px solid var(--cor-borda);
+}
+
+.sc-gaveta-modal__titulo {
+  margin: 0;
+  font-size: var(--tipo-titulo-md-tamanho);
+  line-height: var(--tipo-titulo-md-altura);
+  font-weight: var(--tipo-titulo-md-peso);
+  letter-spacing: var(--tipo-titulo-md-espaco);
+}
+
+.sc-gaveta-modal__fechar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--altura-toque);
+  min-height: var(--altura-toque);
+  padding: 0;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-gaveta-modal__fechar:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-gaveta-modal__corpo {
+  padding: var(--espaco-4);
+  overflow-y: auto;
+}
+
+/* O rodapé respeita a área segura: sem ela, o botão cai sob o indicador de
+   início do iPhone. */
+.sc-gaveta-modal__rodape {
+  border-block-start: 1px solid var(--cor-borda);
+  padding-block-end: calc(var(--espaco-4) + env(safe-area-inset-bottom, 0px));
+}
+
+@keyframes sc-gaveta-modal-entrar {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (min-width: 48rem) {
+  .sc-gaveta-modal--direita {
+    animation-name: sc-gaveta-modal-entrar-lateral;
+  }
+}
+
+@keyframes sc-gaveta-modal-entrar-lateral {
+  from {
+    transform: translateX(2rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-gaveta-modal {
+    animation: none;
+  }
+}
+
+/* --- aviso flutuante ----------------------------------------------------- */
+
+/* Fixo no pé da tela, acima da área segura. Quem tem barra fixa embaixo
+   informa o deslocamento em `--deslocamento-do-aviso`. */
+.sc-aviso-flutuante {
+  position: fixed;
+  inset-inline: var(--espaco-4);
+  inset-block-end: calc(
+    var(--espaco-4) + var(--deslocamento-do-aviso, 0px) +
+      env(safe-area-inset-bottom, 0px)
+  );
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.sc-aviso-flutuante--embutido {
+  position: static;
+  inset: auto;
+  align-items: flex-start;
+}
+
+.sc-aviso-flutuante__cartao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  width: 100%;
+  max-width: 28rem;
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+  pointer-events: auto;
+  animation: sc-aviso-subir var(--transicao-media) both;
+}
+
+.sc-aviso-flutuante__cartao--sucesso .sc-aviso-flutuante__icone {
+  color: var(--cor-sucesso);
+}
+
+.sc-aviso-flutuante__cartao--erro {
+  border-color: var(--cor-erro);
+}
+
+.sc-aviso-flutuante__cartao--erro .sc-aviso-flutuante__icone {
+  color: var(--cor-erro);
+}
+
+.sc-aviso-flutuante__cartao--atencao .sc-aviso-flutuante__icone {
+  color: var(--cor-atencao);
+}
+
+.sc-aviso-flutuante__cartao--info .sc-aviso-flutuante__icone {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-aviso-flutuante__icone {
+  flex-shrink: 0;
+}
+
+.sc-aviso-flutuante__mensagem {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--tipo-corpo-md-tamanho);
+  line-height: var(--tipo-corpo-md-altura);
+}
+
+.sc-aviso-flutuante__acao,
+.sc-aviso-flutuante__fechar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-completo);
+  background-color: transparent;
+  color: var(--cor-primaria-texto);
+  font-family: inherit;
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--tipo-rotulo-lg-peso);
+  cursor: pointer;
+}
+
+.sc-aviso-flutuante__fechar {
+  min-width: var(--altura-toque);
+  padding-inline: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-aviso-flutuante__acao:focus-visible,
+.sc-aviso-flutuante__fechar:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@keyframes sc-aviso-subir {
+  from {
+    transform: translateY(0.75rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-aviso-flutuante__cartao {
+    animation: none;
+  }
+}
+
+/* --- cartão de vitrine --------------------------------------------------- */
+
+.sc-cartao--vitrine {
+  padding: var(--espaco-4);
+  background-color: var(--cor-superficie);
+  box-shadow: none;
+}
+
+/* --- barra de navegação inferior ----------------------------------------- */
+
+/* Fixa no pé da tela, com a área segura do aparelho como respiro. A altura é
+   `--altura-da-barra-inferior` (a lista) mais a área segura (o padding). */
+.sc-barra-inferior {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 25;
+  padding-block-end: env(safe-area-inset-bottom, 0px);
+  border-block-start: 1px solid var(--cor-borda);
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+}
+
+.sc-barra-inferior--embutida {
+  position: static;
+  z-index: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  overflow: hidden;
+}
+
+/* Teclado virtual aberto: sai da tela e do Tab (o `inert` vem do componente). */
+.sc-barra-inferior[data-oculta] {
+  display: none;
+}
+
+.sc-barra-inferior__lista {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  min-height: var(--altura-da-barra-inferior);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-barra-inferior__celula {
+  display: flex;
+  min-width: 0;
+}
+
+.sc-barra-inferior__item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-1);
+  min-width: 0;
+  padding: var(--espaco-2) var(--espaco-1);
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--cor-tinta-suave);
+  font-family: inherit;
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--tipo-rotulo-sm-peso);
+  line-height: var(--tipo-rotulo-sm-altura);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sc-barra-inferior__rotulo {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-barra-inferior__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* A pílula do ícone encolhe junto com a célula: com cinco itens numa barra
+     estreita, uma largura mínima fixa a faria estourar. */
+  width: 3.5rem;
+  max-width: 100%;
+  padding-block: var(--espaco-1);
+  border-radius: var(--raio-completo);
+}
+
+.sc-barra-inferior__item:hover {
+  color: var(--cor-tinta);
+}
+
+/* A página atual: o ícone numa pílula da cor principal (letra escura) e o
+   rótulo na tinta cheia. O texto continua dizendo onde se está. */
+.sc-barra-inferior__item--ativo {
+  color: var(--cor-tinta);
+}
+
+.sc-barra-inferior__item--ativo .sc-barra-inferior__icone {
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-barra-inferior__item:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -4px;
 }

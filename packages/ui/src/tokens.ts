@@ -96,16 +96,16 @@ export const PALETA_CLARA: PaletaDeCores = {
 export const PALETA_ESCURA: PaletaDeCores = {
   fundo: "#0b0f0d",
   superficie: "#161c19",
-  superficieAlta: "#202823",
+  superficieAlta: "#1f2722",
   tinta: "#ffffff",
-  tintaSuave: "#a8b1ab",
+  tintaSuave: "#9ba39f",
   borda: "#3d4742",
   bordaForte: "#7a857e",
   primaria: "#b7ff00",
   emPrimaria: "#0b0f0d",
   primariaSuave: "#293514",
   primariaTexto: "#b7ff00",
-  sucesso: "#69d597",
+  sucesso: "#2ee59d",
   emSucesso: "#0d1015",
   sucessoSuave: "#12281c",
   erro: "#ff938c",
@@ -162,6 +162,7 @@ export const MEDIDAS = Object.freeze({
   sombraLarga: "0 8px 24px rgb(11 15 13 / 8%)",
   alturaToque: "2.75rem",
   alturaToqueGrande: "3rem",
+  alturaToqueCliente: "3rem",
 });
 
 /** Nome no CSS de cada medida. */
@@ -175,7 +176,128 @@ export const NOME_NO_CSS_DAS_MEDIDAS: Readonly<
   sombraLarga: "--sombra-larga",
   alturaToque: "--altura-toque",
   alturaToqueGrande: "--altura-toque-grande",
+  alturaToqueCliente: "--altura-toque-cliente",
 };
+
+// ---------------------------------------------------------------------------
+// Escala tipográfica, estrela e brilho do redesign (card #104)
+// ---------------------------------------------------------------------------
+
+/** Os papéis da escala: cada um tem tamanho, altura, peso e espaçamento. */
+export type PapelTipografico =
+  | "tituloXl"
+  | "tituloLg"
+  | "tituloMd"
+  | "tituloSm"
+  | "corpoLg"
+  | "corpoMd"
+  | "corpoSm"
+  | "rotuloLg"
+  | "rotuloSm"
+  | "preco";
+
+export type TipoDoPapel = {
+  readonly tamanho: string;
+  readonly altura: string;
+  readonly peso: string;
+  readonly espaco: string;
+};
+
+/**
+ * Nome base de cada papel no CSS. O CSS declara quatro valores por papel:
+ * `<base>-tamanho`, `<base>-altura`, `<base>-peso` e `<base>-espaco`.
+ */
+export const NOME_NO_CSS_DA_ESCALA: Readonly<Record<PapelTipografico, string>> =
+  {
+    tituloXl: "--tipo-titulo-xl",
+    tituloLg: "--tipo-titulo-lg",
+    tituloMd: "--tipo-titulo-md",
+    tituloSm: "--tipo-titulo-sm",
+    corpoLg: "--tipo-corpo-lg",
+    corpoMd: "--tipo-corpo-md",
+    corpoSm: "--tipo-corpo-sm",
+    rotuloLg: "--tipo-rotulo-lg",
+    rotuloSm: "--tipo-rotulo-sm",
+    preco: "--tipo-preco",
+  };
+
+/** A escala do celular (a base). */
+export const ESCALA_TIPOGRAFICA: Readonly<
+  Record<PapelTipografico, TipoDoPapel>
+> = Object.freeze({
+  tituloXl: {
+    tamanho: "1.875rem",
+    altura: "2.25rem",
+    peso: "800",
+    espaco: "-0.02em",
+  },
+  tituloLg: {
+    tamanho: "1.375rem",
+    altura: "1.75rem",
+    peso: "700",
+    espaco: "-0.02em",
+  },
+  tituloMd: {
+    tamanho: "1.25rem",
+    altura: "1.625rem",
+    peso: "700",
+    espaco: "-0.01em",
+  },
+  tituloSm: {
+    tamanho: "1.0625rem",
+    altura: "1.375rem",
+    peso: "600",
+    espaco: "0",
+  },
+  corpoLg: { tamanho: "1rem", altura: "1.5rem", peso: "400", espaco: "0" },
+  corpoMd: { tamanho: "0.875rem", altura: "1.25rem", peso: "400", espaco: "0" },
+  corpoSm: {
+    tamanho: "0.75rem",
+    altura: "1rem",
+    peso: "400",
+    espaco: "0.01em",
+  },
+  rotuloLg: {
+    tamanho: "0.9375rem",
+    altura: "1.25rem",
+    peso: "700",
+    espaco: "0.01em",
+  },
+  rotuloSm: {
+    tamanho: "0.75rem",
+    altura: "1rem",
+    peso: "700",
+    espaco: "0.04em",
+  },
+  preco: {
+    tamanho: "1.375rem",
+    altura: "1.625rem",
+    peso: "800",
+    espaco: "-0.03em",
+  },
+});
+
+/** Os dois títulos que crescem a partir de 1024px: só tamanho e altura mudam. */
+export const ESCALA_TIPOGRAFICA_COMPUTADOR = Object.freeze({
+  tituloXl: { tamanho: "2.5rem", altura: "3rem" },
+  tituloLg: { tamanho: "1.75rem", altura: "2.125rem" },
+});
+
+/** Piso de tamanho de texto, em pixels (1rem = 16px). */
+export const TAMANHO_MINIMO_DE_TEXTO_EM_PX = 12;
+
+/**
+ * A estrela de favorito preenchida é amarela no tema escuro. No claro ela usa a
+ * cor do texto (`currentcolor`): o amarelo sobre branco dá só 1,41:1.
+ */
+export const COR_DA_ESTRELA_NO_ESCURO = "#ffd600";
+
+/** Brilho do botão principal do cliente: forma e força, sem cor (ver CSS). */
+export const BRILHO_DO_CTA = Object.freeze({
+  forma: "0 0 24px",
+  forcaNoEscuro: "35%",
+  forcaNoClaro: "0%",
+});
 
 /** Valores cromáticos publicados no manual oficial, sem derivação semântica. */
 export const PALETA_OFICIAL = Object.freeze({

@@ -17,6 +17,23 @@ export type {
   VarianteDeBotao,
 } from "./botao";
 
+export { BotaoMarcavel } from "./botao-marcavel";
+export type { BotaoMarcavelProps } from "./botao-marcavel";
+
+export { Chip, FaixaDeChips } from "./chip";
+export type { ChipProps, FaixaDeChipsProps } from "./chip";
+export { Abas } from "./abas";
+export type { AbaDeAbas, AbasProps } from "./abas";
+export type {
+  ComponenteDeLink,
+  ComponenteDeLinkProps,
+} from "./componente-de-link";
+
+export { Gaveta } from "./gaveta";
+export type { GavetaProps, LadoDaGaveta } from "./gaveta";
+export { AvisoFlutuante, DURACAO_MINIMA_DO_AVISO_MS } from "./aviso-flutuante";
+export type { AcaoDoAviso, AvisoFlutuanteProps } from "./aviso-flutuante";
+
 export { Campo } from "./campo";
 export type { CampoProps } from "./campo";
 export { descritoresDoCampo } from "./campo-descritores";
@@ -70,7 +87,15 @@ export type {
 export * from "./icones";
 
 export { Cartao } from "./cartao";
-export type { CartaoProps, NivelDeTitulo } from "./cartao";
+export type { CartaoProps, NivelDeTitulo, SuperficieDoCartao } from "./cartao";
+
+export { BarraInferior } from "./barra-inferior";
+export type {
+  BarraInferiorProps,
+  ItemDaBarraInferior,
+  ItemDeAcaoDaBarra,
+  ItemDeLinkDaBarra,
+} from "./barra-inferior";
 
 export { Lista } from "./lista";
 export type { ListaProps } from "./lista";
@@ -105,8 +130,6 @@ export type {
   TemaDaLojaProps,
 } from "./tema-loja";
 
-export { marcaDaLoja } from "./marca-da-loja";
-export type { MarcaDaLojaCalculada } from "./marca-da-loja";
 export { TemaDaMarca } from "./tema-da-marca";
 export type { TemaDaMarcaProps } from "./tema-da-marca";
 
@@ -114,6 +137,7 @@ export {
   CONTRASTE_MINIMO_GRAFICO,
   CONTRASTE_MINIMO_TEXTO,
   ajustarParaContraste,
+  ajustarParaContrasteContraTodos,
   contrasteSuficienteParaTexto,
   emHex,
   lerCor,
@@ -140,8 +164,13 @@ export type {
 } from "./selo-de-status";
 
 export {
+  BRILHO_DO_CTA,
+  COR_DA_ESTRELA_NO_ESCURO,
+  ESCALA_TIPOGRAFICA,
+  ESCALA_TIPOGRAFICA_COMPUTADOR,
   MEDIDAS,
   NOME_NO_CSS,
+  NOME_NO_CSS_DA_ESCALA,
   NOME_NO_CSS_DAS_EXTREMAS,
   NOME_NO_CSS_DAS_MEDIDAS,
   PALETAS,
@@ -149,7 +178,12 @@ export {
   PALETA_ESCURA,
   TINTAS_EXTREMAS,
 } from "./tokens";
-export type { NomeDoTema, PaletaDeCores } from "./tokens";
+export type {
+  NomeDoTema,
+  PaletaDeCores,
+  PapelTipografico,
+  TipoDoPapel,
+} from "./tokens";
 export {
   AMOSTRAS_DE_DESTAQUE_DA_LOJA,
   COR_DE_DESTAQUE_PADRAO_DA_LOJA,

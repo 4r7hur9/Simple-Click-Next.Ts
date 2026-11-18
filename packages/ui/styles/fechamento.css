@@ -790,3 +790,488 @@ h3.sc-fechar__titulo {
   border: none;
   border-radius: var(--raio-cartao);
 }
+
+/*
+ * A linha da sacola com foto (card #110, T-11004).
+ *
+ * A foto fica numa coluna estreita à esquerda e o resto da linha à direita. O
+ * tamanho vem da largura e da altura do próprio `<img>`: a lista não pula
+ * quando as fotos chegam. Sem foto, a linha é a de sempre (sem `<img>`).
+ * Seletor composto, para valer com qualquer ordem entre as folhas.
+ */
+.sc-carrinho-janela__item.sc-carrinho-janela__item--com-foto {
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  column-gap: var(--espaco-3);
+}
+
+.sc-carrinho-janela__item--com-foto > :not(.sc-carrinho-janela__foto) {
+  grid-column: 2;
+}
+
+.sc-carrinho-janela__item--com-foto > .sc-carrinho-janela__foto {
+  grid-column: 1;
+  grid-row: 1 / span 6;
+  align-self: start;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+  object-fit: cover;
+}
+
+/* O aviso de que a quantidade não mudou fica na própria linha. */
+.sc-carrinho-janela__falha {
+  min-inline-size: 0;
+}
+
+/* --- o fechamento com a cara do redesign (card #110, T-11005) ---------------
+ *
+ * As regras da tela não mudam; muda o desenho. Títulos de grupo em frase, e não
+ * em maiúsculas; escolhas e botões com o alvo de toque do cliente
+ * (`--altura-toque-cliente`, 48px); a escolha marcada com a borda da cor da
+ * marca. Seletores compostos com `.sc-fechar`, para valer sem depender da
+ * ordem entre as folhas. Sem transição: o fluxo do pedido não anima.
+ */
+.sc-fechar .sc-fechar__titulo,
+.sc-fechar .sc-pagamento__titulo {
+  font-size: var(--texto-base);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sc-fechar .sc-fechar__escolha,
+.sc-fechar .sc-pagamento__opcao {
+  min-block-size: var(--altura-toque-cliente, 3rem);
+}
+
+.sc-fechar .sc-fechar__secundario,
+.sc-fechar .sc-carrinho-janela__acao,
+.sc-fechar .sc-carrinho-janela__continuar {
+  min-block-size: var(--altura-toque-cliente, 3rem);
+}
+
+.sc-fechar .sc-fechar__secundario {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* O que acompanha a mensagem de erro: tentar de novo, entrar. */
+.sc-fechar__acoes-do-erro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+/* A nota de que o total com taxa é uma estimativa (fora da lista de valores). */
+.sc-resumo__estimativa,
+.sc-carrinho-janela__estimativa {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* Os valores que o servidor gravou no pedido criado. */
+.sc-fechar__gravado {
+  display: grid;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie);
+}
+
+.sc-fechar__gravado > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.sc-fechar__gravado dt {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-fechar__gravado dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-fechar__gravado-total {
+  padding-block-start: var(--espaco-2);
+  border-block-start: 1px solid var(--borda-leve);
+  font-weight: var(--peso-forte);
+}
+
+.sc-fechar__gravado-total dt {
+  color: var(--cor-tinta);
+}
+
+/* --- a sacola: barra fixa e coluna lateral (card #110, T-11001/T-11002) -------
+ *
+ * Duas formas da MESMA sacola. A barra vale abaixo de 1280px (celular e
+ * tablet); a coluna, a partir dele, dentro da região `.sc-catalogo__sacola`
+ * que o catálogo reserva. O ponto de troca é o `PONTO_DA_COLUNA` de
+ * `forma-da-sacola.ts`, e o teste `sacola-estilos` confere os dois.
+ *
+ * Sem transição nem pulo: o fluxo do pedido não anima. A barra NÃO usa a classe
+ * `.sc-sacola`, que é do botão redondo antigo.
+ */
+
+/* A barra fixa, embaixo, com o recorte e a barra do sistema respeitados. */
+.sc-sacola-barra {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-3);
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+  padding-block-end: max(var(--espaco-3), env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--borda-leve);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+}
+
+/* O aviso de cookies fica por último: a barra sobe a altura dele. */
+body:has(.sc-cookies) .sc-sacola-barra {
+  inset-block-end: var(--altura-do-aviso-de-cookies, 0px);
+}
+
+.sc-sacola-barra__resumo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.sc-sacola-barra__itens {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-sacola-barra__total {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-sacola-barra__abrir {
+  flex: none;
+  min-block-size: var(--altura-toque-cliente, 3rem);
+  padding-inline: var(--espaco-5);
+  border: none;
+  border-radius: var(--raio-completo);
+  background: var(--cor-marca);
+  color: var(--marca-preto-tecnologico);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sc-sacola-barra__abrir:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* Na coluna, a barra não existe (e a ilha também não a desenha). */
+@media (min-width: 1280px) {
+  .sc-sacola-barra {
+    display: none;
+  }
+}
+
+/* O atalho "Ir para a sacola": fora da tela até receber o foco. */
+.sc-sacola-atalho {
+  position: absolute;
+  inset-block-start: var(--espaco-2);
+  inset-inline-start: var(--espaco-2);
+  z-index: 60;
+  padding: var(--espaco-2) var(--espaco-4);
+  border-radius: var(--raio-botao);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-weight: 700;
+  transform: translateY(-300%);
+}
+
+.sc-sacola-atalho:focus {
+  transform: none;
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* A coluna: um painel que acompanha a rolagem, ao lado dos produtos. */
+.sc-sacola-coluna {
+  position: sticky;
+  inset-block-start: calc(var(--altura-da-barra, 0px) + var(--espaco-4));
+  display: grid;
+  gap: var(--espaco-4);
+  max-block-size: calc(
+    100dvh - var(--altura-da-barra, 0px) - 2 * var(--espaco-4)
+  );
+  padding: var(--espaco-4);
+  overflow-y: auto;
+  border: 1px solid var(--borda-leve);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+}
+
+.sc-sacola-coluna__topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.sc-sacola-coluna__titulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+}
+
+.sc-sacola-coluna__titulo:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-sacola-coluna__contagem {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-sacola-coluna__itens {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-sacola-coluna__estado {
+  margin: 0;
+}
+
+.sc-sacola-coluna__rodape {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+/* O aviso "Adicionado à sacola" sobe acima da barra fixa da sacola (e do
+   recorte do aparelho, que o próprio aviso já soma). */
+.sc-sacola-aviso {
+  --deslocamento-do-aviso: 4.75rem;
+}
+
+/* --- a sacola no layout Stitch (card #130) ----------------------------------
+ *
+ * Só desenho: a barra do celular com "Sacola · N itens" em cima e o total
+ * grande embaixo; a coluna do computador em cartão, com linhas compactas
+ * (miniatura, nome numa linha, quantidade pequena e o total da linha em verde)
+ * e o "Fechar pedido" em pílula verde. Nenhuma regra do pedido muda.
+ */
+
+.sc-sacola-barra {
+  padding-block-start: var(--espaco-3);
+  border-block-start-color: var(--borda-leve);
+  background: var(--cor-superficie);
+}
+
+.sc-sacola-barra__resumo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "icone itens"
+    "total total";
+  align-items: center;
+  column-gap: var(--espaco-2);
+  row-gap: 0;
+}
+
+.sc-sacola-barra__resumo > svg {
+  grid-area: icone;
+  inline-size: 1rem;
+  block-size: 1rem;
+  color: var(--cor-primaria-texto);
+}
+
+.sc-sacola-barra__itens {
+  grid-area: itens;
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sc-sacola-barra__total {
+  grid-area: total;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sc-sacola-barra__abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding-inline: var(--espaco-6);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: 800;
+}
+
+.sc-sacola-coluna {
+  gap: var(--espaco-3);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+}
+
+.sc-sacola-coluna__topo {
+  align-items: center;
+  padding-block-end: var(--espaco-3);
+  border-block-end: 1px solid var(--borda-leve);
+}
+
+.sc-sacola-coluna__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--texto-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sc-sacola-coluna__titulo svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  color: var(--cor-primaria-texto);
+}
+
+.sc-sacola-coluna__contagem {
+  font-size: var(--texto-xs);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__item {
+  padding-block: var(--espaco-3);
+  gap: var(--espaco-1);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__item.sc-carrinho-janela__item--com-foto {
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+}
+
+.sc-sacola-coluna
+  .sc-carrinho-janela__item--com-foto
+  > .sc-carrinho-janela__foto {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: var(--raio-2, 0.75rem);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__cabeca {
+  align-items: flex-start;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__nome {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--texto-sm);
+  font-weight: 800;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__subtotal {
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-base);
+  font-weight: 800;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__descricao {
+  font-size: var(--texto-xs);
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__detalhes {
+  font-size: var(--texto-xs);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__pe {
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__quantidade {
+  background: var(--cor-fundo);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__passo,
+.sc-sacola-coluna .sc-carrinho-janela__remover {
+  inline-size: 2rem;
+  block-size: 2rem;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__passo svg,
+.sc-sacola-coluna .sc-carrinho-janela__remover svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__unitario {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__remover {
+  margin-inline-start: auto;
+}
+
+.sc-sacola-coluna__rodape {
+  padding-block-start: var(--espaco-3);
+  border-block-start: 1px solid var(--borda-leve);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__resumo {
+  padding: var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-fundo);
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__resumo div:first-child dt {
+  color: var(--cor-tinta);
+  font-weight: 800;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__resumo div:first-child dd {
+  color: var(--cor-primaria-texto);
+  font-size: var(--texto-xl);
+  font-weight: 800;
+}
+
+.sc-sacola-coluna .sc-carrinho-janela__acao {
+  min-block-size: var(--altura-toque-cliente, 3rem);
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* O preço unitário vai para a linha de baixo: na coluna estreita, ao lado da
+   quantidade ele quebrava palavra por palavra. */
+.sc-sacola-coluna .sc-carrinho-janela__unitario {
+  flex: 1 1 100%;
+  order: 3;
+}

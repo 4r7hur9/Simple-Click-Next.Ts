@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { descritoresDoCampo } from "./campo-descritores";
 import { Girando } from "./estados";
+import { IconeBuscar } from "./icones";
 import { Info, type ConteudoDoInfo } from "./info";
 
 /**
@@ -44,6 +45,16 @@ export type CampoProps = Omit<
   className?: string | undefined;
   /** Permite trocar `input` por `textarea` ou `select` sem perder a moldura. */
   controle?: ReactNode | undefined;
+  /**
+   * Campo de busca das telas do cliente (card #104): `type="search"`, ícone de
+   * lupa, pílula e alvo de toque de 48px. O rótulo continua existindo.
+   */
+  busca?: boolean | undefined;
+  /**
+   * Esconde o rótulo da vista, e só da vista: o leitor de tela continua o
+   * ouvindo. É o caso da busca, que já tem lupa e texto de exemplo.
+   */
+  rotuloOculto?: boolean | undefined;
 };
 
 /** Rótulo, controle e mensagens de dica, espera, erro e sucesso, por `id`. */
@@ -60,6 +71,8 @@ export function Campo({
   desabilitado = false,
   className,
   controle,
+  busca = false,
+  rotuloOculto = false,
   ...resto
 }: CampoProps) {
   const idDica = `${id}-dica`;
@@ -76,7 +89,12 @@ export function Campo({
   });
 
   const rotuloDoCampo = (
-    <label className="sc-campo__rotulo" htmlFor={id}>
+    <label
+      className={["sc-campo__rotulo", rotuloOculto && "sc-so-leitor"]
+        .filter(Boolean)
+        .join(" ")}
+      htmlFor={id}
+    >
       {rotulo}
       {obrigatorio && (
         <span aria-hidden="true" className="sc-campo__obrigatorio">
@@ -86,11 +104,27 @@ export function Campo({
     </label>
   );
 
+  const entrada = (
+    <input
+      type={busca ? "search" : undefined}
+      {...resto}
+      id={id}
+      className="sc-campo__controle"
+      disabled={desabilitado}
+      required={obrigatorio || undefined}
+      aria-invalid={erro !== undefined || undefined}
+      aria-describedby={
+        descritores.length > 0 ? descritores.join(" ") : undefined
+      }
+    />
+  );
+
   return (
     <div
       className={[
         "sc-campo",
         erro === undefined && sucesso !== undefined && "sc-campo--sucesso",
+        busca && "sc-campo--busca",
         className,
       ]
         .filter(Boolean)
@@ -107,19 +141,15 @@ export function Campo({
         </div>
       )}
 
-      {controle ?? (
-        <input
-          {...resto}
-          id={id}
-          className="sc-campo__controle"
-          disabled={desabilitado}
-          required={obrigatorio || undefined}
-          aria-invalid={erro !== undefined || undefined}
-          aria-describedby={
-            descritores.length > 0 ? descritores.join(" ") : undefined
-          }
-        />
-      )}
+      {controle ??
+        (busca ? (
+          <div className="sc-campo__busca">
+            <IconeBuscar className="sc-campo__busca-icone" />
+            {entrada}
+          </div>
+        ) : (
+          entrada
+        ))}
 
       {dica !== undefined && (
         <p className="sc-campo__dica" id={idDica}>

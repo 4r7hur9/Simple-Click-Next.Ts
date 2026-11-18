@@ -181,22 +181,22 @@
 }
 
 .sc-kanban__coluna:nth-child(1) {
-  --etapa: #8ab4ff;
+  --etapa: var(--cor-etapa-aguardando);
 }
 .sc-kanban__coluna:nth-child(2) {
-  --etapa: #ffd166;
+  --etapa: var(--cor-etapa-aceito);
 }
 .sc-kanban__coluna:nth-child(3) {
-  --etapa: #ff9f43;
+  --etapa: var(--cor-etapa-preparo);
 }
 .sc-kanban__coluna:nth-child(4) {
-  --etapa: #c792ea;
+  --etapa: var(--cor-etapa-pronto);
 }
 .sc-kanban__coluna:nth-child(5) {
-  --etapa: #4dd0e1;
+  --etapa: var(--cor-etapa-entrega);
 }
 .sc-kanban__coluna:nth-child(6) {
-  --etapa: #69d597;
+  --etapa: var(--cor-etapa-concluido);
 }
 
 .sc-kanban__nome::before {

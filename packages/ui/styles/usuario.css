@@ -440,16 +440,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* O catálogo gruda a barra de categorias logo abaixo da pílula, e a
-     sacola arrastável não sobe para cima dela. */
+  /* O catálogo gruda a barra de categorias logo abaixo da pílula. */
   body:has(.sc-usuario-lateral) .sc-pagina-da-loja {
     --altura-da-barra: calc(3.5rem + 2 * var(--espaco-3));
-  }
-
-  body:has(.sc-usuario-lateral) .sc-sacola__area {
-    inset-block-start: calc(
-      3.5rem + 2 * max(var(--espaco-3), env(safe-area-inset-top))
-    );
   }
 
   .sc-usuario-lateral__fundo {

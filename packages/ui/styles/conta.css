@@ -362,7 +362,7 @@
 .sc-minha-conta__miolo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--espaco-6);
+  gap: var(--espaco-5);
   inline-size: min(100%, 48rem);
   margin-inline: auto;
 }
@@ -1059,7 +1059,7 @@ html:has(.sc-acesso-janela[open]) {
   justify-content: space-between;
   gap: var(--espaco-4);
   padding: var(--espaco-4);
-  border: 1px solid var(--marca-verde-click);
+  border: 1px solid var(--cor-primaria);
   border-radius: var(--raio-cartao);
   background-color: var(--cor-superficie-alta);
 }
@@ -1107,7 +1107,7 @@ html:has(.sc-acesso-janela[open]) {
 }
 
 .sc-metrica__nota[data-sentido="alta"] {
-  color: var(--marca-verde-click);
+  color: var(--cor-primaria-texto);
 }
 
 .sc-loja-topo {
@@ -1208,9 +1208,9 @@ html:has(.sc-acesso-janela[open]) {
   inline-size: 4rem;
   block-size: 4rem;
   place-items: center;
-  border: 2px solid var(--marca-verde-click);
+  border: 2px solid var(--cor-primaria);
   border-radius: 50%;
-  color: var(--marca-verde-click);
+  color: var(--cor-primaria-texto);
   font-family: var(--fonte-titulo);
   font-size: var(--texto-xl);
   font-weight: var(--peso-forte);
@@ -1284,8 +1284,8 @@ html:has(.sc-acesso-janela[open]) {
   block-size: 2.25rem;
   place-items: center;
   border-radius: var(--raio-botao);
-  background-color: var(--marca-grafite);
-  color: var(--marca-verde-click);
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
 }
 
 .sc-lojas-conta__nome {
@@ -1351,8 +1351,8 @@ html:has(.sc-acesso-janela[open]) {
   place-items: center;
   overflow: hidden;
   border-radius: var(--raio-botao);
-  background-color: var(--marca-grafite);
-  color: var(--marca-verde-click);
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
 }
 
 .sc-produtos-conta__foto img {
@@ -1373,4 +1373,253 @@ html:has(.sc-acesso-janela[open]) {
 .sc-minha-conta__descricao + .sc-lojas-conta,
 .sc-minha-conta__descricao + .sc-vazio {
   margin-block-start: var(--espaco-3);
+}
+
+
+/* --- conta: seções e moldura (card #111) -------------------------------- */
+
+/* A barra inferior do cliente (#105) cobre o pé da página no celular. */
+@media (max-width: 63.99rem) {
+  .sc-minha-conta {
+    padding-block-end: calc(
+      var(--espaco-7) + var(--altura-da-barra-inferior, 0px) +
+        env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+.sc-minha-conta__conteudo {
+  display: grid;
+  align-content: start;
+  gap: var(--espaco-6);
+  min-inline-size: 0;
+}
+
+.sc-secoes-da-conta__lista {
+  display: flex;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0 0 var(--espaco-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.sc-secoes-da-conta__lista::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-secoes-da-conta__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sc-secoes-da-conta__link[aria-current="page"] {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria, var(--cor-tinta-extrema-escura));
+  font-weight: var(--peso-forte);
+}
+
+.sc-secoes-da-conta__link:focus-visible {
+  outline: 2px solid var(--cor-foco, var(--cor-primaria-texto));
+  outline-offset: 2px;
+}
+
+/* Em /conta, no celular, a lista é a página inicial das seções. */
+@media (max-width: 63.99rem) {
+  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__lista {
+    display: grid;
+    overflow: visible;
+  }
+
+  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link {
+    justify-content: space-between;
+    min-block-size: 3.25rem;
+    border-radius: var(--raio-cartao);
+    font-size: var(--texto-base);
+  }
+
+  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link::after {
+    content: "›";
+    color: var(--cor-tinta-suave);
+  }
+
+  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link[aria-current="page"]::after {
+    color: inherit;
+  }
+}
+
+@media (min-width: 64rem) {
+  .sc-minha-conta__miolo {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--espaco-6);
+    inline-size: min(100%, 68rem);
+  }
+
+  .sc-secoes-da-conta {
+    position: sticky;
+    inset-block-start: var(--espaco-5);
+  }
+
+  .sc-secoes-da-conta__lista {
+    display: grid;
+    overflow: visible;
+  }
+
+  .sc-secoes-da-conta__link {
+    border-radius: var(--raio-botao);
+  }
+}
+
+/* --- conta: pedidos (card #111) ------------------------------------------
+   Classes próprias da conta: `.sc-pedidos*` é global e o painel também as
+   recebe, então ficam como estão. Aqui só tokens: nada de cor fixa. */
+
+.sc-meus-pedidos {
+  display: grid;
+  gap: var(--espaco-6);
+}
+
+.sc-meus-pedidos__loja {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-apertada);
+}
+
+.sc-meus-pedidos__loja-icone {
+  display: grid;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-meus-pedidos__lista {
+  display: grid;
+  gap: var(--espaco-4);
+  margin: var(--espaco-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-meus-pedidos__pedido {
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie-alta);
+}
+
+/* Cancelado: borda tracejada e número riscado, além do texto "cancelado". */
+.sc-meus-pedidos__pedido--cancelado {
+  border-style: dashed;
+}
+
+.sc-meus-pedidos__pedido--cancelado .sc-meus-pedidos__numero {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.sc-meus-pedidos__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.sc-meus-pedidos__numero {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+.sc-meus-pedidos__resumo {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.sc-meus-pedidos__total {
+  color: var(--cor-tinta);
+  font-weight: var(--peso-forte);
+}
+
+.sc-meus-pedidos__ver {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.sc-meus-pedidos__filtros {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-meus-pedidos__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--espaco-4);
+}
+
+.sc-meus-pedidos__form label {
+  display: grid;
+  gap: var(--espaco-1);
+  font-size: var(--texto-sm);
+}
+
+.sc-meus-pedidos__form .sc-seletor__gatilho {
+  min-inline-size: 12rem;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background-color: var(--cor-superficie-alta);
+  color: inherit;
+}
+
+/* Zona de risco da Segurança: a exclusão fica à parte das demais ações. */
+.sc-seguranca__risco {
+  margin: var(--espaco-4) 0 calc(-1 * var(--espaco-2));
+  padding-block-start: var(--espaco-4);
+  border-block-start: 1px dashed var(--cor-borda);
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* A moldura da conta (card #132) só carrega o alvo de toque do cliente; não
+   é caixa, para não mexer no fluxo da página. */
+.sc-moldura-cliente {
+  display: contents;
 }

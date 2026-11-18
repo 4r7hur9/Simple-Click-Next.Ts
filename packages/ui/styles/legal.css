@@ -40,21 +40,17 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
   --sc-cookies-sobe: 5.5rem;
 }
 
-/* A sacola arrastável não desce para trás do aviso: enquanto ele existe, o
-   rodapé da área dela sobe a altura dele (medida pelo próprio aviso). */
-body:has(.sc-cookies) .sc-sacola__area {
-  inset-block-end: calc(
-    max(var(--espaco-4), env(safe-area-inset-bottom)) +
-      var(--altura-do-aviso-de-cookies, 0px) + var(--espaco-3)
-  );
-}
-
-body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
-  inset-block-end: calc(
-    var(--altura-da-acao, 5.75rem) +
-      max(var(--espaco-4), env(safe-area-inset-bottom)) +
-      var(--altura-do-aviso-de-cookies, 0px) + var(--espaco-3)
-  );
+/* Celular com a barra de navegação do cliente (card #105): o aviso sobe a
+   altura dela (a área segura já está na conta do aviso). Quando a barra sai
+   (sacola, ação do produto) ou some com o teclado, ele desce sem deixar
+   espaço vazio. */
+@media (max-width: 63.99rem) {
+  body:has(.sc-barra-inferior:not(.sc-barra-inferior--embutida, [data-oculta])):not(
+      :has(.sc-sacola-barra, [data-sacola="barra"], .sc-produto__acao)
+    )
+    .sc-cookies {
+    --sc-cookies-sobe: var(--altura-da-barra-inferior);
+  }
 }
 
 .sc-cookies:focus-visible {
@@ -138,8 +134,10 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
   gap: var(--espaco-2);
 }
 
+/* O aviso aparece por cima das telas do cliente: os botões têm o alvo de
+   toque do cliente, 48px (card #132). */
 .sc-cookies__botao {
-  min-block-size: 2.75rem;
+  min-block-size: var(--altura-toque-cliente);
   padding: 0 var(--espaco-4);
   border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-completo);
@@ -204,12 +202,13 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
 
   .sc-cookies__botao--discreto {
     grid-column: 1 / -1;
-    min-block-size: 2.5rem;
+    min-block-size: var(--altura-toque-cliente);
   }
 }
 
 /* Computador: cartão no canto de baixo à direita (painel, administração,
-   landing, login) ou, onde há a lateral do usuário, logo ao lado dela. */
+   landing, login, e agora também o topo do cliente) ou, onde há a lateral do
+   usuário (painel e administração), logo ao lado dela. */
 @media (min-width: 64rem) {
   .sc-cookies {
     inset-block-end: max(var(--espaco-5), env(safe-area-inset-bottom));
@@ -223,27 +222,73 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
   }
 }
 
-/* ---------- rodapé legal ---------- */
+/* ---------- rodapé legal (colunas do Stitch, card #128) ---------- */
 
 .sc-rodape-legal {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-3) var(--espaco-5);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--espaco-5) var(--espaco-5)
+  margin-block-start: var(--espaco-7);
+  padding: var(--espaco-7) max(var(--espaco-4), env(safe-area-inset-left))
     calc(var(--espaco-5) + env(safe-area-inset-bottom));
-  border-block-start: 1px solid var(--cor-borda);
+  border-block-start: 1px solid color-mix(in srgb, var(--cor-borda) 50%, transparent);
   background: var(--cor-fundo);
   color: var(--cor-tinta-suave);
-  font-family: var(--fonte-corpo);
-  font-size: var(--texto-sm);
+  font-family: var(--fonte-base);
+  font-size: var(--tipo-corpo-sm-tamanho);
+  line-height: var(--tipo-corpo-sm-altura);
+}
+
+.sc-rodape-legal__colunas,
+.sc-rodape-legal__base {
+  box-sizing: border-box;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+}
+
+.sc-rodape-legal__colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-6) var(--espaco-5);
+}
+
+.sc-rodape-legal__marca-bloco {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--espaco-2);
+  align-content: start;
+}
+
+.sc-rodape-legal__logo {
+  margin: 0;
+  color: var(--cor-tinta);
+  font-size: var(--tipo-titulo-md-tamanho);
+  font-weight: var(--peso-extra);
+  letter-spacing: -0.02em;
+}
+
+.sc-rodape-legal__logo span {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-rodape-legal__sobre {
+  margin: 0;
+  max-inline-size: 22rem;
+}
+
+.sc-rodape-legal__coluna {
+  display: grid;
+  gap: var(--espaco-2);
+  align-content: start;
+}
+
+.sc-rodape-legal__titulo {
+  margin: 0;
+  color: var(--cor-tinta);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-negrito);
 }
 
 .sc-rodape-legal ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-2) var(--espaco-4);
+  display: grid;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -252,12 +297,13 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
 .sc-rodape-legal__link {
   display: inline-flex;
   align-items: center;
-  min-block-size: var(--altura-toque);
-  padding: var(--espaco-2) 0;
+  min-block-size: 2rem;
+  padding: var(--espaco-1) 0;
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
+  text-align: start;
   text-decoration: none;
   cursor: pointer;
   transition: color var(--transicao-rapida);
@@ -267,14 +313,78 @@ body:has(.sc-cookies) .sc-sacola__area--acima-da-acao {
   color: var(--cor-primaria-texto);
 }
 
-.sc-rodape-legal__link:focus-visible {
+.sc-rodape-legal__link:focus-visible,
+.sc-rodape-legal__convite:focus-visible {
   outline: 2px solid var(--cor-foco);
   outline-offset: 2px;
   border-radius: var(--raio-1);
 }
 
+.sc-rodape-legal__convite {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie);
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+}
+
+.sc-rodape-legal__convite:hover {
+  border-color: var(--cor-primaria-texto);
+}
+
+.sc-rodape-legal__base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-5);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-start: var(--espaco-6);
+  padding-block-start: var(--espaco-4);
+  border-block-start: 1px solid color-mix(in srgb, var(--cor-borda) 40%, transparent);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+}
+
+.sc-rodape-legal__base ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--espaco-4);
+}
+
+.sc-rodape-legal__base .sc-rodape-legal__link {
+  min-block-size: var(--altura-toque);
+}
+
+/* No rodapé do cliente todo link é alvo de toque de 48px nas duas medidas
+   (card #132): "Início" e "Lojas" são palavras curtas, e a caixa não pode ser
+   menor que o dedo. O `--altura-toque` aqui já é o do cliente (theme.css). */
+.sc-rodape-legal .sc-rodape-legal__link {
+  min-block-size: var(--altura-toque);
+  min-inline-size: var(--altura-toque);
+  padding-block: 0;
+}
+
 .sc-rodape-legal__marca {
   margin: 0;
+}
+
+@media (min-width: 64rem) {
+  .sc-rodape-legal {
+    padding-inline: var(--espaco-6);
+  }
+
+  .sc-rodape-legal__colunas {
+    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  }
+
+  .sc-rodape-legal__marca-bloco {
+    grid-column: auto;
+  }
 }
 
 /* ---------- páginas legais ---------- */
