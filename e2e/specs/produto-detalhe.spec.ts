@@ -20,7 +20,8 @@ test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async 
   await expect(
     page.getByRole("heading", { name: "Pastel de Carne" }),
   ).toBeVisible();
-  await expect(page.locator(".sc-produto__foto")).toHaveCount(1);
+  // A galeria do detalhe novo (card #109) substituiu `.sc-produto__foto`.
+  await expect(page.locator(".sc-detalhe__fotos")).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "Sobre o item" }),
   ).toBeVisible();
@@ -30,7 +31,9 @@ test("@spec:AC-410 a página do produto mostra tudo que preciso decidir", async 
   await expect(page.getByText("R$ 7,00").first()).toBeVisible();
   await expect(page.getByRole("group", { name: "Ingredientes" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Adicionais" })).toBeVisible();
-  await expect(page.getByLabel("Alguma observação?")).toBeVisible();
+  await expect(
+    page.getByLabel("Observação para este item (opcional)"),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Adicionar.*R\$ 7,00/ }),
   ).toBeVisible();

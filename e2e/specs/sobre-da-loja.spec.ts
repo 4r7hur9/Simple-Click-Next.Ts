@@ -23,6 +23,14 @@ import {
 
 const PAGINA_SOBRE = `/loja/${LOJA_COM_SOBRE.apelido}/sobre`;
 
+/**
+ * Desde o redesign (cards #107/#129) o Sobre é uma JANELA aberta sobre a
+ * vitrine da loja: a vitrine embaixo também mostra a logo e o endereço, e as
+ * conferências olham só para a janela. Os nomes dos links também mudaram:
+ * "Conversar no WhatsApp", "Ver o cardápio" e "Fechar" (volta à vitrine).
+ */
+const SOBRE = "dialog.sc-sobre-janela";
+
 let imagens: { readonly logo: string; readonly capa: string };
 
 test.beforeAll(async () => {
@@ -60,7 +68,7 @@ test("@spec:AC-421 a página Sobre mostra a história, a logo e a capa da loja",
   // A imagem precisa CARREGAR, e não só estar no HTML: um endereço quebrado
   // deixaria a moldura vazia e a asserção de atributo passaria assim mesmo.
   for (const endereco of [imagens.logo, imagens.capa]) {
-    const imagem = page.locator(`img[src="${endereco}"]`);
+    const imagem = page.locator(SOBRE).locator(`img[src="${endereco}"]`);
     await expect(imagem).toBeVisible();
     await expect
       .poll(() =>
@@ -75,9 +83,7 @@ test("@spec:AC-421 o caminho de volta leva à vitrine da loja", async ({
 }) => {
   await page.goto(PAGINA_SOBRE);
 
-  await page
-    .getByRole("link", { name: `Voltar para ${LOJA_COM_SOBRE.nome}` })
-    .click();
+  await page.locator(SOBRE).getByRole("link", { name: "Fechar" }).click();
 
   await expect(page).toHaveURL(
     `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}`,
@@ -94,7 +100,7 @@ test("@spec:AC-422 a página mostra o endereço de retirada e o WhatsApp públic
   expect(resposta?.status()).toBe(200);
 
   const { endereco } = LOJA_COM_SOBRE;
-  const retirada = page.locator("address");
+  const retirada = page.locator(SOBRE).locator("address");
   await expect(retirada).toContainText(
     `${endereco.logradouro}, ${endereco.numero}`,
   );
@@ -102,7 +108,7 @@ test("@spec:AC-422 a página mostra o endereço de retirada e o WhatsApp públic
   await expect(retirada).toContainText(`${endereco.cidade} / ${endereco.uf}`);
 
   await expect(
-    page.getByRole("link", { name: "WhatsApp público" }),
+    page.locator(SOBRE).getByRole("link", { name: /Conversar no WhatsApp/ }),
   ).toHaveAttribute("href", `https://wa.me/${LOJA_COM_SOBRE.whatsappPublico}`);
 
   // O HTML INTEIRO, e não só o texto visível: dado escondido num atributo ou
@@ -147,24 +153,26 @@ test("@spec:AC-423 sem JavaScript a página continua legível e navegável", asy
     LOJA_COM_SOBRE.nome,
   );
   await expect(pagina.getByText(LOJA_COM_SOBRE.historia)).toBeVisible();
-  await expect(pagina.locator("address")).toContainText(
+  await expect(pagina.locator(SOBRE).locator("address")).toContainText(
     LOJA_COM_SOBRE.endereco.logradouro,
   );
   await expect(
-    pagina.getByRole("link", { name: "WhatsApp público" }),
+    pagina.locator(SOBRE).getByRole("link", { name: /Conversar no WhatsApp/ }),
   ).toHaveAttribute("href", `https://wa.me/${LOJA_COM_SOBRE.whatsappPublico}`);
 
   // A navegação é link de verdade: com o script desligado, clicar ainda leva
   // à vitrine — e à lista de produtos.
-  await pagina.getByRole("link", { name: "Ver catálogo" }).click();
+  await pagina
+    .locator(SOBRE)
+    .getByRole("link", { name: "Ver o cardápio" })
+    .first()
+    .click();
   await expect(pagina).toHaveURL(
     `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}/cardapio`,
   );
 
   await pagina.goto(PAGINA_SOBRE);
-  await pagina
-    .getByRole("link", { name: `Voltar para ${LOJA_COM_SOBRE.nome}` })
-    .click();
+  await pagina.locator(SOBRE).getByRole("link", { name: "Fechar" }).click();
   await expect(pagina).toHaveURL(
     `${ENDERECO_DO_SITE}/loja/${LOJA_COM_SOBRE.apelido}`,
   );

@@ -89,7 +89,12 @@ test("@spec:AC-416 a vitrine publica srcset e reserva a moldura da foto", async 
   for (const imagem of atributos) {
     expect(imagem.src).not.toContain("w_1200");
     expect(imagem.srcset).toContain("w_");
-    expect(imagem.sizes).toContain("720px");
+    // O cartão do catálogo (#108) reserva 96px no celular, um terço da
+    // largura no tablet e 320px no computador (`SIZES_DO_CATALOGO`). O
+    // "720px" de antes saiu do código no 7e81202 e o teste não acompanhou.
+    expect(imagem.sizes).toBe(
+      "(max-width: 767px) 96px, (max-width: 1279px) 33vw, 320px",
+    );
     expect(imagem.width).toBe(320);
     expect(imagem.height).toBe(240);
   }

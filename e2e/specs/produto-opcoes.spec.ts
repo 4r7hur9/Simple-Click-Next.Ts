@@ -15,14 +15,21 @@ import {
   garantirLojaDoPainel,
   nomeUnico,
 } from "../fixtures/painel.ts";
+import { prepararContaParaATela } from "../fixtures/redesign-lojas.ts";
+import { jaEscolheuOsCookies } from "../fixtures/redesign.ts";
 
 let lojaId: string;
 
 test.beforeAll(async () => {
-  ({ id: lojaId } = await garantirLojaDoPainel());
+  const loja = await garantirLojaDoPainel();
+  lojaId = loja.id;
+  // Aviso de cookies, novo aceite e tutorial do dono abririam por cima do
+  // formulário (cada um tem prova própria).
+  await prepararContaParaATela(loja.donoId, "dono");
 });
 
 test.beforeEach(async ({ context }) => {
+  await jaEscolheuOsCookies(context, ENDERECO_DO_SITE);
   await entrarComoDono(context, ENDERECO_DO_SITE);
 });
 
@@ -37,40 +44,57 @@ test("@spec:AC-313 o grupo obrigatório criado pelo dono impede adicionar sem es
     page.getByRole("status").filter({ hasText: "Crie o primeiro grupo" }),
   ).toBeVisible();
 
-  await page.getByLabel("Nome", { exact: true }).fill("Estampa");
-  await page.getByLabel(/^Tipo/).selectOption("ADDON");
-  await page.getByLabel("Mínimo").fill("1");
-  await page.getByLabel("Máximo (opcional)").fill("1");
+  // Rótulos do formulário do painel novo (card #112).
+  await page.getByRole("textbox", { name: "Nome do grupo" }).fill("Estampa");
+  // "Tipo do grupo" virou o seletor do pacote (lista própria, não <select>).
+  const tipo = page.getByRole("combobox", { name: /^Tipo do grupo/ });
+  await tipo.click();
+  await page.getByRole("option", { name: "Adicional" }).click();
+  await expect(tipo).toContainText("Adicional");
+  await page.getByRole("spinbutton", { name: "Mínimo de escolhas" }).fill("1");
+  await page
+    .getByRole("spinbutton", { name: "Máximo de escolhas (opcional)" })
+    .fill("1");
   await page.getByRole("button", { name: "Criar grupo" }).click();
 
   const grupo = page.getByRole("article").filter({ hasText: "Estampa" });
-  await expect(grupo).toContainText("Obrigatório: 1");
+  await expect(grupo).toContainText("Obrigatório: escolher ao menos 1");
 
   for (const [opcao, acrescimo] of [
     ["Lisa", "0"],
     // Ponto decimal: "2.50" é R$ 2,50, e não R$ 250 (AC-311).
     ["Listrada", "2.50"],
   ] as const) {
-    await grupo.getByPlaceholder("Nova opção").fill(opcao);
-    await grupo.getByPlaceholder("Acréscimo R$").fill(acrescimo);
-    await grupo.getByRole("button", { name: "Adicionar" }).click();
+    await grupo.getByRole("textbox", { name: "Nome da opção" }).fill(opcao);
+    await grupo
+      .getByRole("textbox", { name: /Acréscimo no preço/ })
+      .or(grupo.getByRole("spinbutton", { name: /Acréscimo no preço/ }))
+      .fill(acrescimo);
+    await grupo.getByRole("button", { name: "Adicionar opção" }).click();
     await expect(grupo).toContainText(opcao);
   }
-  await expect(grupo).toContainText(/Listrada · R\$\s2,50/);
+  // O painel novo escreve o acréscimo com sinal: "Listrada · + R$ 2,50".
+  await expect(grupo).toContainText(/Listrada · \+ R\$\s2,50/);
 
   // A vitrine: sem escolher, o item não vai; escolhendo, o total já soma.
   await page.goto(`/loja/${APELIDO_DO_PAINEL}/produto/${produtoId}`);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
+  // O detalhe abre como janela sobre o catálogo (card #109): o nome é o
+  // título da janela, e o h1 da página é o do catálogo.
+  await expect(
+    page
+      .locator("dialog.sc-janela-produto[open]")
+      .getByRole("heading", { name: nome }),
+  ).toBeVisible();
 
-  const adicionar = page.getByRole("button", { name: /Adicionar/ });
+  const adicionar = page.getByRole("button", { name: /Adicionar à sacola/ });
   await adicionar.click();
   await expect(page.locator(".sc-produto__grupo--pendente")).toContainText(
     "Estampa",
   );
-  await expect(page.getByText("Adicionado ao carrinho")).toHaveCount(0);
+  await expect(page.getByText(/Adicionado à sacola/)).toHaveCount(0);
 
   await page.getByRole("radio", { name: /Listrada/ }).check();
   await expect(adicionar).toContainText(/R\$\s32,50/);
   await adicionar.click();
-  await expect(page.getByText("Adicionado ao carrinho")).toBeVisible();
+  await expect(page.getByText(/Adicionado à sacola/).first()).toBeVisible();
 });

@@ -55,15 +55,17 @@ test("@spec:AC-600 o pedido fechado na vitrine aparece na fila do dono sem recar
       await entrarComoDono(page.context(), ENDERECO_DO_SITE);
       await page.goto("/painel/pedidos");
       await expect(
-        page.getByText("Atualizando sozinha a cada poucos segundos."),
+        page.getByText("Atualizando sozinho a cada poucos segundos."),
       ).toBeVisible();
-      const contador = page.locator(
-        '[data-contador="fila-aguardando-confirmacao"]',
-      );
+      // A fila virou quadro por etapa (card #112): a etapa do pedido que
+      // acabou de chegar é "Pedido gerado", e o contador dela agora traz
+      // "pedido(s)" para o leitor de tela depois do número.
+      const grupo = page.getByRole("region", { name: "Pedido gerado" });
+      const contador = grupo.locator("[data-contador]");
       const antes =
         (await contador.count()) === 0
           ? 0
-          : Number(await contador.textContent());
+          : Number.parseInt((await contador.textContent()) ?? "0", 10);
       expect(await bipes(page)).toBe(0);
 
       // Nada mais acontece na página do dono: só o que ela busca sozinha.
@@ -83,7 +85,6 @@ test("@spec:AC-600 o pedido fechado na vitrine aparece na fila do dono sem recar
       criados.push(pedido.id);
 
       // O pedido aparece na fila, em destaque, marcado como novo.
-      const grupo = page.locator('[data-grupo="fila-aguardando-confirmacao"]');
       const cartao = grupo.getByRole("article", {
         name: `Pedido número ${pedido.numero}, novo`,
       });
@@ -94,7 +95,7 @@ test("@spec:AC-600 o pedido fechado na vitrine aparece na fila do dono sem recar
 
       // Com aviso sonoro e o contador atualizado.
       await expect.poll(() => bipes(page)).toBe(1);
-      await expect(contador).toHaveText(String(antes + 1));
+      await expect(contador).toHaveText(new RegExp(`^${antes + 1}\\b`));
       await expect(page.getByText("1 pedido novo")).toBeVisible();
       expect(recarregou).toBe(false);
     } finally {

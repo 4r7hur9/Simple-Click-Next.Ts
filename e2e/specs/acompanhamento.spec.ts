@@ -189,6 +189,10 @@ test("@spec:AC-614 link trocado ou adivinhado responde que o pedido não foi enc
     const pedido = await pedidoDoLink(token);
     criados.push(pedido.id);
 
+    // Quem tenta o link é um visitante SEM sessão (o pedido agora exige conta,
+    // e a conta de quem pediu mostraria o próprio nome no topo de toda página).
+    await page.context().clearCookies();
+
     // O link verdadeiro abre o pedido.
     await page.goto(`/loja/${apelido}/pedido/${token}`);
     await expect(page.getByText(nomeDoCliente)).toBeVisible();

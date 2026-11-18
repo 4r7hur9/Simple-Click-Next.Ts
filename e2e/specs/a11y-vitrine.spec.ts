@@ -96,9 +96,15 @@ test("@spec:AC-420 a vitrine cabe na menor largura suportada", async ({
       largura,
       imagensFora,
       textosFora,
-      botoesConfortaveis: [...document.querySelectorAll("button")].every(
-        (botao) => botao.getBoundingClientRect().height >= 44,
-      ),
+      // Só os botões DESENHADOS contam: o catálogo novo deixa no DOM painéis
+      // fechados (filtros, ordem, entrada) com botões de 0px, que não são
+      // alvo de toque de ninguém. Todo botão visível continua com 44px.
+      botoesConfortaveis: [...document.querySelectorAll("button")]
+        .filter((botao) => {
+          const caixa = botao.getBoundingClientRect();
+          return caixa.width > 0 && caixa.height > 0;
+        })
+        .every((botao) => botao.getBoundingClientRect().height >= 44),
     };
   });
 

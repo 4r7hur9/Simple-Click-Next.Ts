@@ -21,7 +21,9 @@ import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { Client } from "pg";
 
+import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 import { APELIDO_DO_PAINEL, garantirLojaDoPainel } from "./painel.ts";
+import { jaEscolheuOsCookies } from "./redesign.ts";
 
 /** Mesma chave da montagem da loja do painel (`fixtures/painel.ts`). */
 const TRAVA_DA_LOJA_DO_PAINEL = 8_142_310;
@@ -206,16 +208,33 @@ export function diaDaSemanaNaLoja(fuso = "America/Sao_Paulo"): number {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(nome);
 }
 
-/** O cliente põe um produto no carrinho, pela página do produto, e vai ao fechamento. */
+/**
+ * O cliente põe um produto na sacola, pela página do produto, e vai ao
+ * fechamento.
+ *
+ * TEXTOS DO REDESIGN (card #132, os mesmos que o #114 ajustou nos cenários de
+ * compra): o botão da janela do produto é "Adicionar à sacola" e a confirmação
+ * diz "Adicionado à sacola" (no celular, num aviso; no computador, só ao
+ * leitor de tela, e a coluna da sacola mostra o item). O aviso de cookies é
+ * escolhido antes, para não ficar por cima do botão. Quem chama já entrou
+ * (o pedido exige conta): os cenários de configuração entram como dono.
+ */
 export async function irAoFechamentoCom(
   pagina: Page,
   apelido: string,
   produtoIds: readonly string[],
 ): Promise<void> {
+  const origem = new URL(
+    pagina.url() === "about:blank" ? ENDERECO_DO_SITE : pagina.url(),
+  ).origin;
+  await jaEscolheuOsCookies(pagina.context(), origem);
   for (const produtoId of produtoIds) {
     await pagina.goto(`/loja/${apelido}/produto/${produtoId}`);
-    await pagina.getByRole("button", { name: /Adicionar/ }).click();
-    await expect(pagina.getByText("Adicionado ao carrinho")).toBeVisible();
+    const janela = pagina.locator("dialog.sc-janela-produto[open]");
+    await janela.getByRole("button", { name: /Adicionar à sacola/ }).click();
+    await expect(
+      pagina.getByText(/Adicionado à sacola/).first(),
+    ).toBeAttached();
   }
   await pagina.goto(`/loja/${apelido}/checkout`);
 }

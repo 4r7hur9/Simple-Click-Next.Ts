@@ -1,0 +1,214 @@
+{
+  "rodada": "2026-11-17",
+  "fonte": "Capturas de e2e/specs/capturas-redesign.onp.spec.ts (consolidadas em .rmcode/capturas/114/telas/) lidas lado a lado com ~/Downloads/stitch_referencia/stitch_redesign_e_commerce_simpleclick/*/screen.png",
+  "rubrica": "design.md §3 da feature stitch-validacao-visual: justificada (motivo com código), pendente (pergunta aberta), regressão (perda de resultado ou de acesso; bloqueia a onda)",
+  "diferencas": [
+    {
+      "tela": "todas",
+      "largura": "todas",
+      "tema": "todos",
+      "loja": "todas",
+      "classe": "justificada",
+      "motivo": "P-102",
+      "descricao": "Verde #B7FF00 (--cor-primaria) no lugar do #b2f800 do export, igual em todas as lojas, com texto escuro sobre ele."
+    },
+    {
+      "tela": "todas",
+      "largura": "todas",
+      "tema": "todos",
+      "loja": "todas",
+      "classe": "justificada",
+      "motivo": "P-103",
+      "descricao": "Ícones do pacote e fotos da própria loja no lugar de Material Symbols, Tailwind por CDN e imagens lh3.googleusercontent do export."
+    },
+    {
+      "tela": "todas",
+      "largura": "todas",
+      "tema": "claro",
+      "loja": "todas",
+      "classe": "pendente",
+      "motivo": "Q-11404",
+      "descricao": "O Stitch só tem o tema escuro; as capturas do claro não têm referência. O usuário decidiu em 17/11 que as telas seguem o aparelho (claro e escuro) — falta registrar a resposta na spec."
+    },
+    {
+      "tela": "vitrine",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-105",
+      "descricao": "Sem nota da loja, contagem de avaliações e favoritos, 'Fecha às 18:00', 'Certificada' e 'Estoque em Tempo Real': dados ilustrativos do export."
+    },
+    {
+      "tela": "vitrine",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-104",
+      "descricao": "O bloco 'Dúvidas sobre compatibilidade com seu carro?' (placa e chassi) virou 'Fale com a loja no WhatsApp'."
+    },
+    {
+      "tela": "vitrine",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-107",
+      "descricao": "Sem a aba 'Avaliações de Clientes': avaliações são função a decidir (#115) e ficam escondidas até a resposta."
+    },
+    {
+      "tela": "vitrine",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-105",
+      "descricao": "A capa é o fundo escuro padrão porque a loja não cadastrou foto de capa (dado real); o Stitch mostra uma foto de galpão ilustrativa."
+    },
+    {
+      "tela": "vitrine",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "todas",
+      "classe": "justificada",
+      "motivo": "P-105",
+      "descricao": "Rodapé sem CNPJ, 'Entrega Flash', 'Suporte 24h', 'Programa Fidelidade' e 'Tecnologia hiperlocal ultrarrápida'."
+    },
+    {
+      "tela": "catalogo",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-104",
+      "descricao": "Sem 'Compatibilidade rápida' por veículo nem 'Compatível com 12 modelos' no painel de filtros e nos cartões."
+    },
+    {
+      "tela": "catalogo",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-107",
+      "descricao": "Sem campo de cupom (PRIMEIRACOMPRA) na sacola e sem 'Avise-me quando chegar': cupons (#116) e avise-me (#118) são funções a decidir."
+    },
+    {
+      "tela": "catalogo",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "AC-11406",
+      "descricao": "A coluna da sacola não aparece com a sacola vazia (o Stitch mostra 2 itens); com itens ela aparece à direita, provado na jornada."
+    },
+    {
+      "tela": "catalogo",
+      "largura": "1280",
+      "tema": "escuro",
+      "loja": "brasa-burger",
+      "classe": "justificada",
+      "motivo": "P-105",
+      "descricao": "Sem 'Avaliação da loja 4.9 (1.420)', 'Entrega rápida em até 90 min' e 'Previsão de entrega: hoje até 18:00'."
+    },
+    {
+      "tela": "inicio",
+      "largura": "390",
+      "tema": "escuro",
+      "loja": "carga de exemplo",
+      "classe": "justificada",
+      "motivo": "P-105",
+      "descricao": "Lojas sem nota, tempo de entrega ('45 min', '35-40 min') e 'Entrega Grátis' inventados; o início mostra só o que as lojas publicaram."
+    },
+    {
+      "tela": "inicio",
+      "largura": "todas",
+      "tema": "todos",
+      "loja": "carga de exemplo",
+      "classe": "regressao",
+      "motivo": "AC-11409",
+      "descricao": "Carrossel de fotos dos posts (.sc-post__trilho) rola mas não recebe foco pelo teclado (axe scrollable-region-focusable, sério)."
+    },
+    {
+      "tela": "inicio",
+      "largura": "390 e 1280",
+      "tema": "claro",
+      "loja": "carga de exemplo",
+      "classe": "regressao",
+      "motivo": "AC-11409",
+      "descricao": "Preço dos posts (.sc-post__preco) sem contraste suficiente no tema claro (axe color-contrast, sério)."
+    },
+    {
+      "tela": "topo do cliente",
+      "largura": "1024 e 1280",
+      "tema": "todos",
+      "loja": "todas",
+      "classe": "regressao",
+      "motivo": "AC-11409",
+      "descricao": "Botão de localização (.sc-local-topo__botao) e menu da conta (.sc-menu-conta__botao): o texto visível não está no nome acessível (axe label-content-name-mismatch, sério)."
+    },
+    {
+      "tela": "todas do cliente",
+      "largura": "344, 390 e 768",
+      "tema": "escuro",
+      "loja": "todas",
+      "classe": "regressao",
+      "motivo": "AC-11412",
+      "descricao": "Alvos de toque abaixo dos 48px decididos no #104 (--altura-toque-cliente): a maioria tem 44px; o botão de localização 36px, o '+ Adicionar' do cartão 40px, 'Ler mais sobre a loja' 21px e os links do rodapé 32px."
+    },
+    {
+      "tela": "sacola",
+      "largura": "390",
+      "tema": "escuro",
+      "loja": "e2e-jornada",
+      "classe": "regressao",
+      "motivo": "AC-11416",
+      "descricao": "Com a API da sacola falhando, /carrinho não abre a sacola e o topo diz 'Sacola, vazia': a falha aparece como sacola vazia, sem aviso nem 'Tentar de novo'."
+    },
+    {
+      "tela": "produto",
+      "largura": "todas",
+      "tema": "todos",
+      "loja": "e2e-jornada",
+      "classe": "regressao",
+      "motivo": "AC-11416",
+      "descricao": "Produto inexistente numa loja que existe mostra 'Esta loja não está disponível'."
+    },
+    {
+      "tela": "conta-pedidos e conta-favoritos",
+      "largura": "todas",
+      "tema": "todos",
+      "loja": "-",
+      "classe": "regressao",
+      "motivo": "AC-11416",
+      "descricao": "Conta nova sem pedidos ou favoritos mostra a mensagem, mas nenhum link para seguir (só o texto 'no Explorar')."
+    },
+    {
+      "tela": "tv e prévia de compartilhamento",
+      "largura": "-",
+      "tema": "-",
+      "loja": "todas",
+      "classe": "regressao",
+      "motivo": "AC-11411",
+      "descricao": "O cardápio na TV e as imagens de compartilhamento (opengraph) ainda pintam com a cor salva da loja (loja.tema.corDestaque), contra a decisão de 17/11 de um verde só."
+    },
+    {
+      "tela": "admin",
+      "largura": "344",
+      "tema": "escuro",
+      "loja": "-",
+      "classe": "regressao",
+      "motivo": "AC-11319",
+      "descricao": "/admin (464px) e /admin/lojas (352px) rolam para o lado em 344px."
+    },
+    {
+      "tela": "painel",
+      "largura": "344",
+      "tema": "escuro",
+      "loja": "e2e-painel",
+      "classe": "regressao",
+      "motivo": "AC-11218",
+      "descricao": "/painel/produtos ainda mostra uma tabela em 344px, em vez de cartões."
+    }
+  ]
+}

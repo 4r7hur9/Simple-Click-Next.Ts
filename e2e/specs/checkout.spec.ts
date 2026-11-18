@@ -17,6 +17,9 @@ import {
   PRODUTO,
 } from "../fixtures/loja-de-teste.ts";
 import { interceptarWhatsApp, janelasAbertas } from "../fixtures/intercepts.ts";
+import { clienteLogado } from "../fixtures/redesign-lojas.ts";
+import { jaEscolheuOsCookies } from "../fixtures/redesign.ts";
+import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 let loja: Awaited<ReturnType<typeof garantirLojaDeTeste>>;
 
@@ -30,11 +33,17 @@ test.afterAll(async () => {
   await limparPedidosDoTeste(loja.id);
 });
 
-/** Põe um item no carrinho e vai para o fechamento. */
-async function comCarrinhoCheio(pagina: Page) {
+/**
+ * Entra com uma conta nova (o pedido EXIGE conta desde o redesign: o "Seu
+ * nome" de convidado não existe mais — o nome do pedido é o da conta), põe um
+ * item no carrinho e vai para o fechamento.
+ */
+async function comCarrinhoCheio(pagina: Page, nomeDaPessoa: string) {
+  await jaEscolheuOsCookies(pagina.context(), ENDERECO_DO_SITE);
+  await clienteLogado(pagina.context(), ENDERECO_DO_SITE, nomeDaPessoa);
   await pagina.goto(`/loja/${loja.apelido}/produto/${loja.produtoId}`);
-  await pagina.getByRole("button", { name: /Adicionar/ }).click();
-  await expect(pagina.getByText("Adicionado ao carrinho")).toBeVisible();
+  await pagina.getByRole("button", { name: /Adicionar à sacola/ }).click();
+  await expect(pagina.getByText(/Adicionado à sacola/).first()).toBeVisible();
   await pagina.goto(`/loja/${loja.apelido}/checkout`);
 }
 
@@ -42,15 +51,14 @@ test("@spec:AC-514 o pedido é criado e ganha código, do carrinho ao fim", asyn
   page,
 }) => {
   await interceptarWhatsApp(page);
-  await comCarrinhoCheio(page);
+  await comCarrinhoCheio(page, "Ana do Teste");
 
   // O RESUMO MOSTRA O QUE SE LEVA, antes de pedir qualquer dado.
   await expect(page.getByText(`1× ${PRODUTO.nome}`)).toBeVisible();
 
   await page.getByLabel(/Retirar no local/).check();
-  await page.getByLabel("Seu nome").fill("Ana do Teste");
-  await page.getByLabel("Seu WhatsApp").fill("11988887777");
-  await page.getByRole("button", { name: "Fechar pedido" }).click();
+  await page.getByLabel(/Seu WhatsApp/).fill("11988887777");
+  await page.getByRole("button", { name: "Confirmar pedido" }).click();
 
   // O código é o que a pessoa guarda e o dono procura.
   await expect(page.getByText(/[A-Z]-\d{4}/)).toBeVisible();
@@ -60,12 +68,11 @@ test("@spec:AC-520 enviar pelo WhatsApp abre a conversa com o texto pronto", asy
   page,
 }) => {
   await interceptarWhatsApp(page);
-  await comCarrinhoCheio(page);
+  await comCarrinhoCheio(page, "Bruno do Teste");
 
   await page.getByLabel(/Retirar no local/).check();
-  await page.getByLabel("Seu nome").fill("Bruno do Teste");
-  await page.getByLabel("Seu WhatsApp").fill("11977776666");
-  await page.getByRole("button", { name: "Fechar pedido" }).click();
+  await page.getByLabel(/Seu WhatsApp/).fill("11977776666");
+  await page.getByRole("button", { name: "Confirmar pedido" }).click();
 
   await page.getByRole("button", { name: /Enviar pelo WhatsApp/ }).click();
 
@@ -86,12 +93,11 @@ test("@spec:AC-523 fechar a janela do WhatsApp não perde o pedido", async ({
   page,
 }) => {
   await interceptarWhatsApp(page);
-  await comCarrinhoCheio(page);
+  await comCarrinhoCheio(page, "Carla do Teste");
 
   await page.getByLabel(/Retirar no local/).check();
-  await page.getByLabel("Seu nome").fill("Carla do Teste");
-  await page.getByLabel("Seu WhatsApp").fill("11966665555");
-  await page.getByRole("button", { name: "Fechar pedido" }).click();
+  await page.getByLabel(/Seu WhatsApp/).fill("11966665555");
+  await page.getByRole("button", { name: "Confirmar pedido" }).click();
 
   const codigo = await page
     .getByText(/[A-Z]-\d{4}/)

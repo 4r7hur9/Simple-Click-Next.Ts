@@ -36,6 +36,8 @@ test("@spec:AC-418 a vitrine percorre links com foco visível pelo teclado", asy
   await expect(
     page
       .getByRole("region", { name: "Salgados" })
-      .getByRole("link", { name: /Pastel de Teste/ }),
+      // O cartão novo tem também "Adicionar Pastel de Teste à sacola": o
+      // link procurado é o do cartão, cujo nome começa pelo produto.
+      .getByRole("link", { name: /^Pastel de Teste/ }),
   ).toBeVisible();
 });

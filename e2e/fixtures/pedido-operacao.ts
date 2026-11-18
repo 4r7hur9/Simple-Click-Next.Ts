@@ -22,8 +22,9 @@ import {
 import { Client } from "pg";
 
 import { ENDERECO_DO_SITE } from "../playwright.config.ts";
-import { irAoFechamentoCom } from "./config-loja.ts";
 import { interceptarWhatsApp } from "./intercepts.ts";
+import { clienteLogado } from "./redesign-lojas.ts";
+import { jaEscolheuOsCookies } from "./redesign.ts";
 
 function conectar(): Client {
   const url = process.env["DATABASE_URL_DIRETA"];
@@ -60,13 +61,22 @@ export interface PedidoNaVitrine {
 /**
  * O cliente fecha um pedido de um produto na vitrine, pagando em dinheiro, e
  * recebe o endereço do acompanhamento. Devolve o código público do link.
+ *
+ * O PEDIDO EXIGE CONTA desde o redesign (o "Seu nome" de convidado saiu): o
+ * cliente entra com uma conta nova cujo nome é `nomeDoCliente` — é esse nome
+ * que o dono vê na fila e o acompanhamento mostra. A assinatura não mudou.
  */
 export async function fazerPedidoNaVitrine(
   pagina: Page,
   { apelido, produtoId, nomeDoCliente, modo }: PedidoNaVitrine,
 ): Promise<string> {
   await interceptarWhatsApp(pagina);
-  await irAoFechamentoCom(pagina, apelido, [produtoId]);
+  await jaEscolheuOsCookies(pagina.context(), ENDERECO_DO_SITE);
+  await clienteLogado(pagina.context(), ENDERECO_DO_SITE, nomeDoCliente);
+  await pagina.goto(`/loja/${apelido}/produto/${produtoId}`);
+  await pagina.getByRole("button", { name: /Adicionar à sacola/ }).click();
+  await expect(pagina.getByText(/Adicionado à sacola/).first()).toBeVisible();
+  await pagina.goto(`/loja/${apelido}/checkout`);
   if (modo === "retirada") {
     await pagina.getByLabel("Retirar no local").check();
   } else {
@@ -81,9 +91,8 @@ export async function fazerPedidoNaVitrine(
     .getByRole("group", { name: "Forma de pagamento" })
     .getByLabel("Dinheiro")
     .check();
-  await pagina.getByLabel("Seu nome").fill(nomeDoCliente);
-  await pagina.getByLabel("Seu WhatsApp").fill("11988887777");
-  await pagina.getByRole("button", { name: "Fechar pedido" }).click();
+  await pagina.getByLabel(/Seu WhatsApp/).fill("11988887777");
+  await pagina.getByRole("button", { name: "Confirmar pedido" }).click();
 
   const link = pagina.getByRole("link", { name: /Acompanhar/ }).first();
   await expect(link).toBeVisible();
