@@ -71,3 +71,6 @@ apps/api/.midia-local/
 .workflow-ia/runtime/
 .workflow-ia/tasks/
 .workflow-ia/ci/
+
+# Capturas de tela dos agentes do board (pesadas, locais)
+/.rmcode/capturas/
