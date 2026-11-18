@@ -16,6 +16,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconeEstrela } from "@simpleclick/ui";
+import { comDestino } from "../../lib/destino-seguro.ts";
 
 export type VarianteDoFavoritar = "cartao" | "seguir" | "acao";
 
@@ -56,16 +57,24 @@ export function BotaoFavoritar({
   const classe = `sc-feed__favoritar sc-feed__favoritar--${variante}`;
   const seguir = variante === "seguir";
   // O botão de texto da loja não leva estrela (a estrela do post é do produto).
-  const rotuloDoTexto = seguir ? (favorita ? "Loja favorita" : "Favoritar loja") : null;
+  const rotuloDoTexto = seguir
+    ? favorita
+      ? "Loja favorita"
+      : "Favoritar loja"
+    : null;
   const estrela = seguir ? null : (
-    <IconeEstrela aria-hidden="true" size={22} preenchido={logado && favorita} />
+    <IconeEstrela
+      aria-hidden="true"
+      size={22}
+      preenchido={logado && favorita}
+    />
   );
 
   if (!logado) {
     return (
       <Link
         className={classe}
-        href={`/entrar?proximo=${encodeURIComponent(voltarPara)}`}
+        href={comDestino("/entrar", voltarPara)}
         aria-label={`Entre para favoritar ${alvo} ${nome}`}
         title={`Entre para favoritar ${alvo === "loja" ? "a loja" : "o produto"}`}
       >
@@ -76,9 +85,12 @@ export function BotaoFavoritar({
   }
 
   async function padrao(quer: boolean): Promise<boolean> {
-    const resposta = await buscar(`/api/conta/favoritos/${encodeURIComponent(apelido)}`, {
-      method: quer ? "POST" : "DELETE",
-    });
+    const resposta = await buscar(
+      `/api/conta/favoritos/${encodeURIComponent(apelido)}`,
+      {
+        method: quer ? "POST" : "DELETE",
+      },
+    );
     return resposta.ok;
   }
 
@@ -104,7 +116,9 @@ export function BotaoFavoritar({
       type="button"
       className={classe}
       aria-pressed={favorita}
-      aria-label={favorita ? `Favorito: ${alvo} ${nome}` : `Favoritar ${alvo} ${nome}`}
+      aria-label={
+        favorita ? `Favorito: ${alvo} ${nome}` : `Favoritar ${alvo} ${nome}`
+      }
       title={
         falhou
           ? "Não deu certo agora. Tente de novo."

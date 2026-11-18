@@ -1,6 +1,7 @@
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
 import { renovarAposGravar } from "../../../../server/renovar-vitrine.ts";
+import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
 
 /**
  * O tema da vitrine (cor de destaque e as duas fotos): o site encaminha a
@@ -9,6 +10,10 @@ import { renovarAposGravar } from "../../../../server/renovar-vitrine.ts";
  * loja são renovadas para já saírem na cor nova.
  */
 async function encaminhar(requisicao: Request): Promise<Response> {
+  // Card #134: escrita de outro site, ou corpo que não é JSON, para aqui.
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;
 

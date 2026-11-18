@@ -9,7 +9,6 @@
  *
  * O formato é o `ConteudoDoInfo` de `@simpleclick/ui` (`{ texto, exemplo }`).
  */
-import { COR_DE_DESTAQUE_PADRAO_DA_LOJA } from "@simpleclick/ui";
 
 export interface Explicacao {
   readonly texto: string;
@@ -142,16 +141,6 @@ export const EXPLICACOES = {
   },
 
   // --- Aparência ----------------------------------------------------------
-  corDeDestaque: {
-    texto:
-      "A cor de botões, títulos e selos da sua loja. O fundo é sempre preto, então escolha uma cor que se leia bem sobre ele.",
-    exemplo: "o vermelho do logo da sua pizzaria.",
-  },
-  codigoDaCor: {
-    texto:
-      "A cor em código hexadecimal: # e seis letras ou números. Cole aqui o código da sua marca.",
-    exemplo: `${COR_DE_DESTAQUE_PADRAO_DA_LOJA.toUpperCase()}, o verde SimpleClick.`,
-  },
   fotoDeFundo: {
     texto:
       "A foto larga no alto da página da loja (capa). Sem ela, vale a capa padrão do seu tipo de negócio.",

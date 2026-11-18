@@ -8,8 +8,9 @@
  * sem destaque — o tutorial nunca trava por causa de um elemento que não está
  * ali.
  *
- * Os alvos são os endereços dos links que já existem no menu; o tutorial não
- * pede marcação nova a ninguém.
+ * Os alvos são os endereços dos links que já existem no menu. A única marcação
+ * própria é `data-tutorial="menu-do-painel"` no menu lateral: antes o tutorial
+ * achava o menu por `data-tema`, que quebra se o tema do menu mudar.
  */
 import { ETAPAS_DO_PEDIDO } from "@simpleclick/contracts";
 
@@ -46,7 +47,7 @@ const FLUXO_DO_PEDIDO: Demonstracao = {
   ),
 };
 
-const MENU_DO_PAINEL = ['aside[aria-label][data-tema="escuro"]', 'nav[aria-label="Atalhos"]'];
+const MENU_DO_PAINEL = ['aside[data-tutorial="menu-do-painel"]', 'nav[aria-label="Atalhos"]'];
 const ONDE_REVER_NO_PAINEL = [link(ENDERECO_VER_TUTORIAL_DO_PAINEL), ...MENU_DO_PAINEL];
 
 const PASSOS_DO_DONO: readonly PassoDoTutorial[] = [
@@ -169,33 +170,45 @@ const PASSOS_DO_CLIENTE: readonly PassoDoTutorial[] = [
     id: "explorar",
     titulo: "Explore lojas e produtos",
     texto: "Navegue pelas lojas da sua região e pelos produtos de cada uma, por categoria.",
-    alvos: ['a[href^="/explorar"]', '[aria-label="Categorias"]'],
+    // O topo (computador) e a barra inferior (celular) marcam cada destino com
+    // `data-navegacao`; o tutorial usa o que estiver visível.
+    alvos: [
+      '[data-navegacao="explorar"]',
+      'a[href^="/explorar"]',
+      '[aria-label="Categorias"]',
+    ],
   },
   {
     id: "favoritar",
     titulo: "Favorite o que gostou",
     texto: "Toque no coração para guardar uma loja ou um produto e achar de novo depois.",
-    alvos: ['button[aria-label*="avorit"]', 'a[href="/conta/favoritos"]'],
+    alvos: [
+      'button[aria-label*="avorit"]',
+      '[data-navegacao="favoritos"]',
+      'a[href="/conta/favoritos"]',
+    ],
   },
   {
     id: "pedir",
     titulo: "Monte o pedido",
     texto:
       "Adicione itens à sacola e finalize: os seus dados e endereços já vêm da conta.",
-    alvos: [".sc-sacola"],
+    alvos: ["[data-sacola]", '[data-navegacao="sacola"]'],
   },
   {
     id: "acompanhar",
     titulo: "Acompanhe cada etapa",
     texto: "Em Meus pedidos você vê em que etapa o pedido está, do preparo à entrega.",
-    alvos: [link("/conta/pedidos")],
+    alvos: ['[data-navegacao="pedidos"]', link("/conta/pedidos")],
     demonstracao: FLUXO_DO_PEDIDO,
   },
   {
     id: "rever",
     titulo: "É isso!",
     texto: "Para rever este passo a passo, abra o menu da conta e toque em Ver tutorial.",
-    alvos: ["[data-ver-tutorial]", ".sc-usuario-lateral"],
+    // O botão do menu da conta (topo do cliente); com o menu aberto, o próprio
+    // "Ver tutorial"; a lateral só existe no painel e na administração.
+    alvos: ["[data-ver-tutorial]", "[data-menu-da-conta]", ".sc-usuario-lateral"],
   },
 ];
 

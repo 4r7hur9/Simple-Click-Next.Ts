@@ -6,12 +6,9 @@
  * aparecem aqui porque não aparecem lá — e a API confere de novo ao confirmar,
  * lendo o catálogo do mesmo jeito (AC-708).
  *
- * Cada produto vem com os grupos e as variações da página do produto, que é o
- * que a montagem precisa para dizer "falta escolher o molho" antes de o dono
- * tocar em confirmar.
+ * Esta primeira leitura é só o catálogo leve. As escolhas e variações são
+ * carregadas quando o lojista seleciona um produto.
  */
-import type { GrupoNaTela, VariacaoNaTela } from "../lib/produto.ts";
-import { buscarProduto } from "./produto.ts";
 import { buscarCatalogo } from "./vitrine.ts";
 
 /** O produto como a montagem do pedido o recebe. */
@@ -19,9 +16,8 @@ export interface ProdutoDoBalcao {
   readonly id: string;
   readonly nome: string;
   readonly precoCentavos: number | null;
+  readonly imagem: string | null;
   readonly disponivel: boolean;
-  readonly grupos: readonly GrupoNaTela[];
-  readonly variacoes: readonly VariacaoNaTela[];
 }
 
 export type LeituraDoBalcao =
@@ -31,18 +27,13 @@ export type LeituraDoBalcao =
 /**
  * Quanto o balcão espera cada resposta da API.
  *
- * MAIS QUE A VITRINE, e de propósito. A vitrine desiste em dois segundos
- * (`api-client.ts`) porque tem cópia guardada e o cliente pode voltar depois.
- * O balcão não guarda nada, pede o catálogo e o detalhe de TODOS os produtos de
- * uma vez, e o dono está com o cliente no telefone: esperar uns segundos a mais
- * é melhor que a tela de erro. Com dois segundos, um servidor recém-iniciado ou
- * ocupado com outra tela derrubava o catálogo inteiro — e um detalhe que
- * passasse do prazo sumia da lista calado.
+ * A espera maior que a da vitrine mantém a lista disponível quando a API está
+ * iniciando ou ocupada. O detalhe tem sua própria indicação de carregamento.
  */
 export const ESPERA_DO_BALCAO_EM_MS = 8_000;
 
 /**
- * Lê o catálogo da loja e o detalhe de cada produto dele.
+ * Lê só o catálogo leve. O detalhe de cada produto é carregado sob demanda.
  *
  * SEM CACHE: a vitrine pode servir a cópia de alguns segundos atrás, o balcão
  * não. O dono que acabou de cadastrar o produto novo e já quer lançá-lo no
@@ -56,8 +47,7 @@ export async function produtosDoBalcao(
     buscarNaRede(endereco, {
       ...opcoes,
       next: { revalidate: 0 },
-      // Substitui a espera da vitrine que `buscarCatalogo` e `buscarProduto`
-      // põem em cada pedido.
+      // Substitui a espera padrão da vitrine para o catálogo do balcão.
       signal: AbortSignal.timeout(ESPERA_DO_BALCAO_EM_MS),
     } as RequestInit)) as typeof fetch;
   const catalogo = await buscarCatalogo(apelidoDaLoja, {}, buscar);
@@ -68,32 +58,20 @@ export async function produtosDoBalcao(
     return { estado: "indisponivel", motivo: catalogo.motivo };
   }
 
-  const ids = [
-    ...new Set(
+  const produtos = [
+    ...new Map(
       [
         ...catalogo.catalogo.destaques,
         ...catalogo.catalogo.secoes.flatMap((secao) => secao.produtos),
-      ].map((produto) => produto.id),
-    ),
-  ];
-
-  const detalhes = await Promise.all(
-    ids.map((id) => buscarProduto(id, { apelidoDaLoja, buscar })),
-  );
-
-  const produtos: ProdutoDoBalcao[] = [];
-  for (const detalhe of detalhes) {
-    if (detalhe.estado !== "encontrado") continue;
-    const { produto } = detalhe;
-    produtos.push({
-      id: produto.id,
-      nome: produto.nome,
-      precoCentavos: produto.precoCentavos,
-      disponivel: produto.disponivel,
-      grupos: produto.grupos,
-      variacoes: produto.variacoes,
-    });
-  }
+      ].map((produto) => [produto.id, produto]),
+    ).values(),
+  ].map((produto): ProdutoDoBalcao => ({
+    id: produto.id,
+    nome: produto.nome,
+    precoCentavos: produto.precoCentavos,
+    imagem: produto.imagem,
+    disponivel: produto.disponivel,
+  }));
   produtos.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   return { estado: "ok", produtos };
 }

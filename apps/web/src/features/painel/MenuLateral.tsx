@@ -70,6 +70,8 @@ export interface PropsDoMenuLateral {
   readonly botaoDoMenuNosAtalhos?: boolean;
   /** Quem está logado (avatar, Minha conta, Sair), no pé do menu. */
   readonly usuario?: ReactNode;
+  /** Marca o menu lateral para o tutorial achá-lo (`data-tutorial`). */
+  readonly alvoDoTutorial?: string;
 }
 
 /** A largura a partir da qual o menu deixa de ser gaveta (o `md` do Tailwind). */
@@ -130,6 +132,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
     atalhos = [],
     botaoDoMenuNosAtalhos = false,
     usuario,
+    alvoDoTutorial,
   } = props;
   const secoes = secoesDoMenu(props);
   const caminho = usePathname();
@@ -239,6 +242,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
         ref={painel}
         id={idDoMenu}
         data-tema="escuro"
+        data-tutorial={alvoDoTutorial}
         data-aberta={aberta || undefined}
         {...(aberta
           ? { role: "dialog", "aria-modal": true, "aria-label": rotulo }
@@ -368,7 +372,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
                   aria-expanded={aberta}
                   aria-controls={idDoMenu}
                   onClick={abrir}
-                  className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-xs font-medium text-[var(--cor-tinta-suave)] ${FOCO}`}
+                  className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 rounded-none border-0 bg-transparent px-1 text-xs font-medium text-[var(--cor-tinta-suave)] ${FOCO}`}
                 >
                   <span className="flex h-8 w-12 items-center justify-center">
                     <IconeMenu />

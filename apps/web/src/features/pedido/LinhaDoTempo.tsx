@@ -58,30 +58,57 @@ export interface LinhaDoTempoProps {
   readonly historico: Historico;
 }
 
+/**
+ * A etapa atual é a última do histórico (card #111, AC-11109): ela é marcada
+ * por `aria-current="step"` e por um texto ("Agora"), e não só pela cor.
+ * As anteriores ficam listadas, mais discretas.
+ */
 export function LinhaDoTempo({ historico }: LinhaDoTempoProps) {
+  const ultima = historico.length - 1;
   return (
     <ol className="space-y-5" data-linha-do-tempo>
-      {historico.map((entrada, indice) => (
-        <li
-          key={`${entrada.ocorridoEm}-${indice}`}
-          className="flex gap-3"
-          data-passo={entrada.para}
-        >
-          <span
-            aria-hidden="true"
-            className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[var(--cor-primaria)] ring-4 ring-[var(--cor-primaria-suave)]"
-          />
-          <div>
-            <p className="font-semibold">{rotuloDoStatus(entrada.para)}</p>
-            <p className="text-sm text-[var(--cor-tinta-suave)]">
-              <time dateTime={entrada.ocorridoEm}>
-                {horario(entrada.ocorridoEm)}
-              </time>
-              {entrada.motivo ? ` · ${entrada.motivo}` : ""}
-            </p>
-          </div>
-        </li>
-      ))}
+      {historico.map((entrada, indice) => {
+        const atual = indice === ultima;
+        return (
+          <li
+            key={`${entrada.ocorridoEm}-${indice}`}
+            className="flex gap-3"
+            data-passo={entrada.para}
+            aria-current={atual ? "step" : undefined}
+          >
+            <span
+              aria-hidden="true"
+              className={
+                atual
+                  ? "mt-1 h-3 w-3 shrink-0 rounded-full bg-[var(--cor-primaria)] ring-4 ring-[var(--cor-primaria-suave)]"
+                  : "mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--cor-borda-forte)]"
+              }
+            />
+            <div>
+              <p
+                className={
+                  atual
+                    ? "font-bold"
+                    : "font-medium text-[var(--cor-tinta-suave)]"
+                }
+              >
+                {rotuloDoStatus(entrada.para)}
+                {atual ? (
+                  <span className="ml-2 rounded-full border border-[var(--cor-primaria)] px-2 py-0.5 text-xs font-semibold">
+                    Agora
+                  </span>
+                ) : null}
+              </p>
+              <p className="text-sm text-[var(--cor-tinta-suave)]">
+                <time dateTime={entrada.ocorridoEm}>
+                  {horario(entrada.ocorridoEm)}
+                </time>
+                {entrada.motivo ? ` · ${entrada.motivo}` : ""}
+              </p>
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 }

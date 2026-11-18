@@ -1,10 +1,14 @@
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
+import { recusarAcaoDeFora } from "../../../../../server/protecao-da-conta.ts";
 
 async function encaminhar(
   requisicao: Request,
   pedidoId: string,
 ): Promise<Response> {
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;
   const { token } = sessao;

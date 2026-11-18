@@ -1,5 +1,6 @@
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
+import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
 
 /**
  * A configuração do feed da loja (aparecer no feed, publicar produtos novos):
@@ -8,6 +9,10 @@ import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
  * daqui: 403 é o sinal de que o checkbox "Publicar no feed" não é dela.
  */
 async function encaminhar(requisicao: Request): Promise<Response> {
+  // Card #134: escrita de outro site, ou corpo que não é JSON, para aqui.
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;
 

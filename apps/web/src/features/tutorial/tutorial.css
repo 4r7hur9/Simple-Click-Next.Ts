@@ -28,7 +28,7 @@
   position: fixed;
   border-radius: var(--raio-cartao, 12px);
   box-shadow:
-    0 0 0 3px var(--cor-marca, #16a34a),
+    0 0 0 3px var(--cor-primaria),
     0 0 0 9999px rgb(15 23 20 / 0.6);
   pointer-events: none;
   transition:
@@ -43,7 +43,7 @@
   width: min(22rem, calc(100vw - 2rem));
   padding: 1.25rem;
   border-radius: var(--raio-janela, 16px);
-  background: var(--cor-superficie, #fff);
+  background: var(--cor-superficie);
   color: var(--cor-tinta);
   box-shadow: var(--sombra-larga, 0 20px 50px rgb(0 0 0 / 0.25));
   outline: none;
@@ -58,7 +58,7 @@
 
 .sc-tutorial__cartao:focus-visible {
   box-shadow:
-    0 0 0 3px var(--cor-foco, #16a34a),
+    0 0 0 3px var(--cor-foco),
     var(--sombra-larga, 0 20px 50px rgb(0 0 0 / 0.25));
 }
 
@@ -75,7 +75,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--cor-marca-texto, var(--cor-tinta-suave));
+  color: var(--cor-tinta-suave);
 }
 
 .sc-tutorial__pular {
@@ -181,7 +181,7 @@
 
 .sc-tutorial__bolinha[data-atual] {
   width: 1.25rem;
-  background: var(--cor-marca, #16a34a);
+  background: var(--cor-primaria);
 }
 
 .sc-tutorial__acoes {
@@ -222,8 +222,8 @@
   /* Acesa por um quinto do ciclo (4 ou 5 etapas): uma por vez, em fila. */
   0%,
   18% {
-    background: var(--cor-marca, #16a34a);
-    color: var(--cor-sobre-marca, #fff);
+    background: var(--cor-primaria);
+    color: var(--cor-em-primaria);
   }
   22%,
   100% {

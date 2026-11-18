@@ -8,6 +8,7 @@ import { CartaoDaLoja } from "../../../features/equipe/CartaoDaLoja.tsx";
 import { resumosDasLojas } from "../../../server/resumo-das-lojas.ts";
 import { escolherLojaDoPainel } from "../../../server/actions/loja.ts";
 import { lojaDoPedidoAtual } from "../../../server/loja-da-pagina.ts";
+import { comDestino } from "../../../lib/destino-seguro.ts";
 
 export const metadata: Metadata = {
   title: "Escolher a loja | SimpleClick",
@@ -32,7 +33,7 @@ export default async function PaginaDeEscolhaDaLoja({
 }: PropriedadesDaPagina) {
   const { estado } = await searchParams;
   const decisao = await lojaDoPedidoAtual();
-  if (decisao.estado === "sem-sessao") redirect("/entrar");
+  if (decisao.estado === "sem-sessao") redirect(comDestino("/entrar", "/escolher-loja"));
 
   let conteudo;
   if (decisao.estado === "indisponivel") {

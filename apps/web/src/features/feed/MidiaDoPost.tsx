@@ -8,7 +8,13 @@
  */
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 import { IconeBrilho } from "@simpleclick/ui";
 
 import type { MidiaDoPost as Midia } from "./social.ts";
@@ -46,6 +52,21 @@ export function MidiaDoPost({
     setAtual(Math.round(el.scrollLeft / el.clientWidth));
   }
 
+  // Pelo teclado (card #132): o carrossel recebe foco e anda com as setas,
+  // Home e End. As setas da tela são botões de verdade (Enter e Espaço).
+  function aoTeclar(evento: KeyboardEvent<HTMLDivElement>) {
+    const passo: Record<string, number> = {
+      ArrowLeft: atual - 1,
+      ArrowRight: atual + 1,
+      Home: 0,
+      End: midias.length - 1,
+    };
+    const destino = passo[evento.key];
+    if (destino === undefined) return;
+    evento.preventDefault();
+    irPara(destino);
+  }
+
   function aoClicar(evento: MouseEvent<HTMLDivElement>) {
     if ((evento.target as HTMLElement).closest("button")) return;
     const agora = evento.timeStamp;
@@ -75,6 +96,8 @@ export function MidiaDoPost({
         ref={trilho}
         className="sc-post__trilho"
         onScroll={aoRolar}
+        onKeyDown={varias ? aoTeclar : undefined}
+        tabIndex={varias ? 0 : undefined}
         role={varias ? "group" : undefined}
         aria-roledescription={varias ? "carrossel" : undefined}
         aria-label={varias ? `Fotos de ${nome}` : undefined}
@@ -107,26 +130,31 @@ export function MidiaDoPost({
           <span className="sc-post__contador" aria-hidden="true">
             {atual + 1}/{midias.length}
           </span>
-          {atual > 0 ? (
-            <button
-              type="button"
-              className="sc-post__seta sc-post__seta--antes"
-              aria-label="Foto anterior"
-              onClick={() => irPara(atual - 1)}
-            >
-              <ChevronLeft aria-hidden="true" size={20} />
-            </button>
-          ) : null}
-          {atual < midias.length - 1 ? (
-            <button
-              type="button"
-              className="sc-post__seta sc-post__seta--depois"
-              aria-label="Próxima foto"
-              onClick={() => irPara(atual + 1)}
-            >
-              <ChevronRight aria-hidden="true" size={20} />
-            </button>
-          ) : null}
+          {/* As duas setas ficam sempre montadas: uma que some no fim
+              derrubaria o foco de quem chegou nela pelo teclado. No fim, ela
+              fica marcada como indisponível e não faz nada. */}
+          <button
+            type="button"
+            className="sc-post__seta sc-post__seta--antes"
+            aria-label="Foto anterior"
+            aria-disabled={atual === 0 || undefined}
+            onClick={() => {
+              if (atual > 0) irPara(atual - 1);
+            }}
+          >
+            <ChevronLeft aria-hidden="true" size={20} />
+          </button>
+          <button
+            type="button"
+            className="sc-post__seta sc-post__seta--depois"
+            aria-label="Próxima foto"
+            aria-disabled={atual === midias.length - 1 || undefined}
+            onClick={() => {
+              if (atual < midias.length - 1) irPara(atual + 1);
+            }}
+          >
+            <ChevronRight aria-hidden="true" size={20} />
+          </button>
           <span className="sc-post__bolinhas" aria-hidden="true">
             {midias.map((midia, i) => (
               <span key={`${midia.url}-${i}`} data-atual={i === atual || undefined} />

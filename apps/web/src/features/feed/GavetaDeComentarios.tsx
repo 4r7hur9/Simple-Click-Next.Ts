@@ -7,10 +7,9 @@
  * exige conta: sem ela, o campo vira "Entre para comentar" com volta aqui.
  */
 import Link from "next/link";
-import { X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ProdutoDoFeed } from "@simpleclick/contracts";
-import { IconeEntrar } from "@simpleclick/ui";
+import { Gaveta, IconeEntrar } from "@simpleclick/ui";
 
 import {
   comentariosVisiveis,
@@ -19,6 +18,7 @@ import {
   type AcoesDoFeed,
   type Comentario,
 } from "./social.ts";
+import { comDestino } from "../../lib/destino-seguro.ts";
 
 type Estado =
   | { readonly fase: "carregando" }
@@ -39,21 +39,16 @@ export function GavetaDeComentarios({
   readonly acoes: AcoesDoFeed;
   readonly aoFechar: () => void;
 }) {
-  const janela = useRef<HTMLDialogElement>(null);
   const campo = useRef<HTMLTextAreaElement>(null);
   const [estado, setEstado] = useState<Estado>({ fase: "carregando" });
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [retorno, setRetorno] = useState<{ tom: "ok" | "erro"; texto: string } | null>(null);
+  const [retorno, setRetorno] = useState<{
+    tom: "ok" | "erro";
+    texto: string;
+  } | null>(null);
   const [tentativa, setTentativa] = useState(0);
   const id = produto?.id;
-
-  useEffect(() => {
-    const el = janela.current;
-    if (el === null) return;
-    if (produto !== null && !el.open) el.showModal?.();
-    if (produto === null && el.open) el.close();
-  }, [produto]);
 
   useEffect(() => {
     if (id === undefined) return;
@@ -65,7 +60,8 @@ export function GavetaDeComentarios({
       if (r.ok) setEstado({ fase: "pronto", lista: r.dados });
       // Sem a API de comentários ainda (ou fora do ar): lista vazia é melhor
       // que erro na primeira abertura; o "tentar de novo" fica para falha real.
-      else if (r.motivo === "indisponivel" && tentativa === 0) setEstado({ fase: "pronto", lista: [] });
+      else if (r.motivo === "indisponivel" && tentativa === 0)
+        setEstado({ fase: "pronto", lista: [] });
       else setEstado({ fase: "erro" });
     });
     return () => {
@@ -88,7 +84,10 @@ export function GavetaDeComentarios({
         fase: "pronto",
         lista: [...(e.fase === "pronto" ? e.lista : []), r.dados],
       }));
-      setRetorno({ tom: "ok", texto: "Seu comentário aguarda aprovação da loja." });
+      setRetorno({
+        tom: "ok",
+        texto: "Seu comentário aguarda aprovação da loja.",
+      });
       return;
     }
     setRetorno({
@@ -100,43 +99,39 @@ export function GavetaDeComentarios({
     });
   }
 
-  const visiveis = estado.fase === "pronto" ? comentariosVisiveis(estado.lista) : [];
+  const visiveis =
+    estado.fase === "pronto" ? comentariosVisiveis(estado.lista) : [];
   const agora = Date.now();
 
   return (
-    <dialog
-      ref={janela}
-      className="sc-comentarios"
-      aria-labelledby="sc-comentarios-titulo"
-      onClose={aoFechar}
-      onClick={(e) => {
-        // Toque no fundo escuro fecha.
-        if (e.target === e.currentTarget) janela.current?.close();
-      }}
+    <Gaveta
+      id="sc-comentarios"
+      aberta={produto !== null}
+      titulo="Comentários"
+      aoFechar={aoFechar}
+      rotuloDoFechar="Fechar comentários"
+      className="sc-comentarios-gaveta"
     >
       {produto === null ? null : (
         <div className="sc-comentarios__caixa">
-          <header className="sc-comentarios__topo">
-            <span className="sc-comentarios__puxador" aria-hidden="true" />
-            <h2 id="sc-comentarios-titulo">Comentários</h2>
-            <p className="sc-comentarios__sobre">
-              {produto.nome} · {produto.loja.nome}
-            </p>
-            <button
-              type="button"
-              className="sc-comentarios__fechar"
-              aria-label="Fechar comentários"
-              onClick={() => janela.current?.close()}
-            >
-              <X aria-hidden="true" size={22} />
-            </button>
-          </header>
+          <p className="sc-comentarios__sobre">
+            {produto.nome} · {produto.loja.nome}
+          </p>
 
-          <div className="sc-comentarios__lista" tabIndex={-1} autoFocus aria-live="polite" aria-busy={estado.fase === "carregando"}>
+          <div
+            className="sc-comentarios__lista"
+            tabIndex={-1}
+            autoFocus
+            aria-live="polite"
+            aria-busy={estado.fase === "carregando"}
+          >
             {estado.fase === "carregando" ? (
               <ul className="sc-comentarios__itens" aria-hidden="true">
                 {[0, 1, 2].map((i) => (
-                  <li key={i} className="sc-comentario sc-comentario--carregando">
+                  <li
+                    key={i}
+                    className="sc-comentario sc-comentario--carregando"
+                  >
                     <span className="sc-comentario__avatar" />
                     <span className="sc-post__traco sc-post__traco--longo" />
                   </li>
@@ -145,19 +140,31 @@ export function GavetaDeComentarios({
             ) : estado.fase === "erro" ? (
               <div className="sc-comentarios__vazio">
                 <p>Os comentários não carregaram.</p>
-                <button type="button" className="sc-feed__chamada" onClick={() => setTentativa((n) => n + 1)}>
+                <button
+                  type="button"
+                  className="sc-feed__chamada"
+                  onClick={() => setTentativa((n) => n + 1)}
+                >
                   Tentar de novo
                 </button>
               </div>
             ) : visiveis.length === 0 ? (
               <div className="sc-comentarios__vazio">
-                <p className="sc-comentarios__vazio-titulo">Ainda sem comentários</p>
-                <p>Conte o que achou. A loja aprova antes de aparecer para todos.</p>
+                <p className="sc-comentarios__vazio-titulo">
+                  Ainda sem comentários
+                </p>
+                <p>
+                  Conte o que achou. A loja aprova antes de aparecer para todos.
+                </p>
               </div>
             ) : (
               <ul className="sc-comentarios__itens">
                 {visiveis.map((c) => (
-                  <li key={c.id} className="sc-comentario" data-pendente={c.situacao === "pendente" || undefined}>
+                  <li
+                    key={c.id}
+                    className="sc-comentario"
+                    data-pendente={c.situacao === "pendente" || undefined}
+                  >
                     <span className="sc-comentario__avatar" aria-hidden="true">
                       {c.autor.slice(0, 1).toUpperCase()}
                     </span>
@@ -168,7 +175,9 @@ export function GavetaDeComentarios({
                       <span className="sc-comentario__meta">
                         {tempoRelativo(c.criadoEm, agora)}
                         {c.situacao === "pendente" ? (
-                          <span className="sc-comentario__pendente">Aguardando aprovação da loja</span>
+                          <span className="sc-comentario__pendente">
+                            Aguardando aprovação da loja
+                          </span>
                         ) : null}
                       </span>
                     </div>
@@ -179,13 +188,20 @@ export function GavetaDeComentarios({
           </div>
 
           {retorno === null ? null : (
-            <p className="sc-comentarios__retorno" data-tom={retorno.tom} role="status">
+            <p
+              className="sc-comentarios__retorno"
+              data-tom={retorno.tom}
+              role="status"
+            >
               {retorno.texto}
             </p>
           )}
 
           {logado ? (
-            <form className="sc-comentarios__form" onSubmit={(e) => void enviar(e)}>
+            <form
+              className="sc-comentarios__form"
+              onSubmit={(e) => void enviar(e)}
+            >
               <label className="sc-feed__oculto" htmlFor="sc-comentario-texto">
                 Escreva um comentário
               </label>
@@ -212,13 +228,16 @@ export function GavetaDeComentarios({
             <div className="sc-comentarios__entrar">
               <IconeEntrar aria-hidden="true" size={18} />
               <span>Para comentar, entre na sua conta.</span>
-              <Link className="sc-feed__chamada" href={`/entrar?proximo=${encodeURIComponent(voltarPara)}`}>
+              <Link
+                className="sc-feed__chamada"
+                href={comDestino("/entrar", voltarPara)}
+              >
                 Entrar
               </Link>
             </div>
           )}
         </div>
       )}
-    </dialog>
+    </Gaveta>
   );
 }

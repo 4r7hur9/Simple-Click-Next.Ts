@@ -11,14 +11,11 @@
  */
 import { notFound } from "next/navigation";
 
-import { ApresentacaoDaLoja } from "../../../../features/loja/ApresentacaoDaLoja.tsx";
-import { EntradaDaLoja } from "../../../../features/loja/EntradaDaLoja.tsx";
-import { PostsDaLoja } from "../../../../features/feed/PostsDaLoja.tsx";
+import { contagemExataDeItens } from "../../../../features/loja/contagem-de-itens.ts";
+import { PerfilDaLoja } from "../../../../features/loja/PerfilDaLoja.tsx";
+import { prepararProduto } from "../../../../server/catalogo-na-tela.ts";
 import { postsDoCatalogo } from "../../../../features/feed/social.ts";
-import {
-  SobreDaLoja,
-  type RecebimentoDaLoja,
-} from "../../../../features/loja/SobreDaLoja.tsx";
+import type { RecebimentoDaLoja } from "../../../../features/loja/SobreDaLoja.tsx";
 import {
   DadosEstruturados,
   negocioDaLoja,
@@ -32,8 +29,10 @@ import {
   buscarResumoDoCatalogo,
   buscarVitrine,
 } from "../../../../server/vitrine.ts";
-import * as acoesDoFeed from "../../../(explorar)/explorar/acoes.ts";
-import { lojasSeguidas, tokenDaSessao } from "../../../(explorar)/explorar/_dados.ts";
+import {
+  lojasSeguidas,
+  tokenDaSessao,
+} from "../../../(explorar)/explorar/_dados.ts";
 
 export async function TelaDaLoja({
   apelido,
@@ -48,15 +47,16 @@ export async function TelaDaLoja({
   // Em paralelo: o fechamento só alimenta a janela, e não pode atrasar a loja.
   // Os posts (catálogo, usuário e favoritas) também: se falharem, a loja
   // aparece sem a seção de posts, nunca quebrada.
-  const [resultadoSalvo, fechamento, catalogo, usuario, favoritas] = await Promise.all([
-    buscarVitrine(apelido),
-    buscarFechamento(apelido),
-    // Só os primeiros de cada seção (card #74): a loja de dez mil produtos
-    // não baixa o catálogo inteiro para montar a vitrine do perfil.
-    buscarResumoDoCatalogo(apelido, { porSecao: 12, totalMaximo: 48 }),
-    usuarioDoPedidoAtual(),
-    tokenDaSessao().then(lojasSeguidas),
-  ]);
+  const [resultadoSalvo, fechamento, catalogo, usuario, favoritas] =
+    await Promise.all([
+      buscarVitrine(apelido),
+      buscarFechamento(apelido),
+      // Só os primeiros de cada seção (card #74): a loja de dez mil produtos
+      // não baixa o catálogo inteiro para montar a vitrine do perfil.
+      buscarResumoDoCatalogo(apelido, { porSecao: 12, totalMaximo: 48 }),
+      usuarioDoPedidoAtual(),
+      tokenDaSessao().then(lojasSeguidas),
+    ]);
 
   const resultado = resultadoComRascunho(resultadoSalvo, rascunho);
 
@@ -83,10 +83,12 @@ export async function TelaDaLoja({
         }
       : null;
 
-  // Card #49: a vitrine é o perfil da loja, e os produtos são os posts dela,
-  // no mesmo jeito do /explorar. Cada produto aparece uma vez, só os à venda.
+  // Card #49: os produtos são os posts da loja. Cada produto aparece uma vez,
+  // só os à venda; a vitrine mostra até seis numa grade (card #129).
   const posts =
-    catalogo.estado === "encontrado" ? postsDoCatalogo(catalogo.dados.secoes, loja) : [];
+    catalogo.estado === "encontrado"
+      ? postsDoCatalogo(catalogo.dados.secoes, loja)
+      : [];
 
   return (
     <main className="sc-pagina-da-loja">
@@ -99,42 +101,28 @@ export async function TelaDaLoja({
         dados={negocioDaLoja({ loja, enderecoDoSite: enderecoDoSite() })}
       />
 
-      <ApresentacaoDaLoja
-        loja={loja}
-        abertura={abertura}
-        linkDoCardapio={`/loja/${loja.apelido}/cardapio`}
-        rotuloDoCatalogo={loja.rotulos.catalogo}
-      />
-
-      <PostsDaLoja
-        nomeDaLoja={loja.nome}
-        produtos={posts}
-        logado={usuario.papel !== "visitante"}
-        voltarPara={`/loja/${loja.apelido}`}
-        favorita={favoritas.includes(loja.apelido)}
-        acoes={{
-          maisPosts: acoesDoFeed.maisPosts,
-          curtir: acoesDoFeed.curtir,
-          favoritarProduto: acoesDoFeed.favoritarProduto,
-          comentarios: acoesDoFeed.comentarios,
-          comentar: acoesDoFeed.comentar,
-        }}
-      />
-
-      <SobreDaLoja
+      <PerfilDaLoja
         loja={loja}
         abertura={abertura}
         horario={horario ?? null}
         recebimento={recebimento}
-        rotuloDoCatalogo={loja.rotulos.catalogo}
-        aberta={sobreAberto}
+        destaques={
+          catalogo.estado === "encontrado"
+            ? catalogo.dados.destaques.map((produto) =>
+                prepararProduto(produto, loja.apelido),
+              )
+            : []
+        }
+        posts={posts}
+        logado={usuario.papel !== "visitante"}
+        favorita={favoritas.includes(loja.apelido)}
+        sobreAberto={sobreAberto}
+        contagemDeItens={
+          catalogo.estado === "encontrado"
+            ? contagemExataDeItens(catalogo.dados.secoes)
+            : null
+        }
       />
-      {/*
-        A entrada vem DEPOIS do conteúdo, e não em volta dele. Ela não desenha
-        nada: acha os blocos que já estão na página e os anima. Se nunca rodar,
-        a página continua inteira.
-      */}
-      <EntradaDaLoja />
     </main>
   );
 }

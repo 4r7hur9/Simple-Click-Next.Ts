@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { ResultadoDaAcao } from "./social.ts";
+import type { PaginaDeItens, ResultadoDaAcao } from "./social.ts";
 
 export type CargaDoFeed = "parado" | "carregando" | "erro" | "fim";
 
@@ -23,7 +23,7 @@ export function useMaisItens<T>({
   readonly chave: (item: T) => string;
   /** Pede a página `pagina` (2, 3…); sem ela, a lista é só a inicial. */
   readonly pedir?:
-    | ((pagina: number) => Promise<ResultadoDaAcao<{ readonly itens: readonly unknown[]; readonly total: number }>>)
+    | ((pagina: number) => Promise<ResultadoDaAcao<PaginaDeItens>>)
     | undefined;
 }) {
   const [itens, setItens] = useState<readonly T[]>(inicial);
@@ -32,6 +32,7 @@ export function useMaisItens<T>({
   const fimDe = (lista: readonly T[], t: number): CargaDoFeed =>
     pedir === undefined || lista.length >= t ? "fim" : "parado";
   const [carga, setCarga] = useState<CargaDoFeed>(fimDe(inicial, totalInicial));
+  const [sessaoVencida, setSessaoVencida] = useState(false);
   const sentinela = useRef<HTMLDivElement>(null);
   const ocupado = useRef(false);
 
@@ -40,6 +41,7 @@ export function useMaisItens<T>({
     setItens(inicial);
     setTotal(totalInicial);
     setPagina(1);
+    setSessaoVencida(false);
     setCarga(fimDe(inicial, totalInicial));
     // `fimDe` só depende de `pedir`, que não muda entre renderizações.
   }, [inicial, totalInicial]);
@@ -59,6 +61,7 @@ export function useMaisItens<T>({
     const vistos = new Set(itens.map(chave));
     const lista = [...itens, ...novos.filter((item) => !vistos.has(chave(item)))];
     setItens(lista);
+    if (r.dados.sessaoVencida === true) setSessaoVencida(true);
     setTotal(r.dados.total);
     setPagina(proxima);
     setCarga(novos.length === 0 || lista.length >= r.dados.total ? "fim" : "parado");
@@ -77,5 +80,5 @@ export function useMaisItens<T>({
     return () => observador.disconnect();
   }, [carga, carregarMais]);
 
-  return { itens, total, carga, sentinela, carregarMais };
+  return { itens, total, carga, sentinela, carregarMais, sessaoVencida };
 }

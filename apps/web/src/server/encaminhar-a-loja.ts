@@ -12,6 +12,7 @@ import { enderecoDaApi } from "./api-client.ts";
 import { cabecalhosDaPonte } from "./chamada-de-identidade.ts";
 import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
+import { recusarAcaoDeFora } from "./protecao-da-conta.ts";
 
 /** Métodos que levam corpo JSON até a API. */
 const COM_CORPO = new Set(["POST", "PUT", "PATCH"]);
@@ -22,6 +23,9 @@ async function encaminhar(
   token: string,
   destino: string,
 ): Promise<Response> {
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const leva = COM_CORPO.has(requisicao.method);
   const corpo = leva ? await requisicao.text() : "";
   const consulta = new URL(requisicao.url).search;

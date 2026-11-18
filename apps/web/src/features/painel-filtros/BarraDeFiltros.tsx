@@ -12,6 +12,9 @@
  */
 import {
   Botao,
+  Chip,
+  FaixaDeChips,
+  Gaveta,
   IconeBuscar,
   IconeFechar,
   IconeFiltro,
@@ -19,13 +22,7 @@ import {
   type OpcaoDoSeletor,
 } from "@simpleclick/ui";
 import "@simpleclick/ui/styles/filtros.css";
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export interface FiltroDeSelecao {
   readonly tipo: "selecao";
@@ -243,63 +240,6 @@ function FaixaDeValor({
   );
 }
 
-/**
- * A gaveta de baixo do celular: `<dialog>` modal. Só existe na página enquanto
- * está aberta (fechada, não deixa um `dialog` solto para trás).
- */
-function Gaveta({
-  aberta,
-  aoFechar,
-  titulo,
-  children,
-  rodape,
-}: {
-  readonly aberta: boolean;
-  readonly aoFechar: () => void;
-  readonly titulo: string;
-  readonly children: ReactNode;
-  readonly rodape: ReactNode;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const idDoTitulo = useId();
-
-  useEffect(() => {
-    const dialogo = ref.current;
-    if (aberta && dialogo !== null && !dialogo.open) dialogo.showModal();
-  }, [aberta]);
-
-  if (!aberta) return null;
-  return (
-    <dialog
-      ref={ref}
-      className="sc-gaveta"
-      aria-labelledby={idDoTitulo}
-      onClose={aoFechar}
-      onClick={(evento) => {
-        // Clique no fundo escurecido (o próprio <dialog>) fecha.
-        if (evento.target === ref.current) aoFechar();
-      }}
-    >
-      <div className="sc-gaveta__miolo">
-        <div className="sc-gaveta__cabeca">
-          <h2 id={idDoTitulo}>{titulo}</h2>
-          <Botao
-            variante="discreta"
-            tamanho="pequeno"
-            soIcone
-            icone={<IconeFechar />}
-            onClick={aoFechar}
-          >
-            Fechar os filtros
-          </Botao>
-        </div>
-        <div className="sc-gaveta__corpo">{children}</div>
-        <div className="sc-gaveta__rodape">{rodape}</div>
-      </div>
-    </dialog>
-  );
-}
-
 export function BarraDeFiltros({
   rotuloDaBusca,
   placeholder,
@@ -316,6 +256,19 @@ export function BarraDeFiltros({
 }: BarraDeFiltrosProps) {
   const [gaveta, setGaveta] = useState(false);
   const base = useId();
+
+  // A gaveta é coisa de celular: ao alargar a janela os filtros já estão em
+  // linha, então ela fecha (a do pacote não some sozinha no computador).
+  useEffect(() => {
+    if (!gaveta) return;
+    const largura = window.matchMedia("(min-width: 48rem)");
+    const aoMudar = () => {
+      if (largura.matches) setGaveta(false);
+    };
+    aoMudar();
+    largura.addEventListener("change", aoMudar);
+    return () => largura.removeEventListener("change", aoMudar);
+  }, [gaveta]);
   const temCampos = filtros.length > 0 || ordem !== undefined;
 
   const campos = (prefixo: string) => (
@@ -368,7 +321,12 @@ export function BarraDeFiltros({
       ) : null}
 
       {atalhos !== undefined ? (
-        <div className="sc-filtros__chips">{atalhos}</div>
+        <FaixaDeChips
+          rotulo="Atalhos de filtro"
+          className="sc-filtros__atalhos"
+        >
+          {atalhos}
+        </FaixaDeChips>
       ) : null}
 
       <div className="sc-filtros__rodape">
@@ -384,6 +342,8 @@ export function BarraDeFiltros({
 
       {temCampos ? (
         <Gaveta
+          id={`${base}-gaveta`}
+          rotuloDoFechar="Fechar os filtros"
           aberta={gaveta}
           aoFechar={() => setGaveta(false)}
           titulo="Filtros"
@@ -421,13 +381,8 @@ export function Atalho({
   readonly children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      className="sc-filtros__chip"
-      aria-pressed={ativo}
-      onClick={aoAlternar}
-    >
+    <Chip ativo={ativo} aoAlternar={aoAlternar}>
       {children}
-    </button>
+    </Chip>
   );
 }

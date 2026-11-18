@@ -17,7 +17,14 @@
  * só um fique marcado — três comportamentos que teriam de ser reescritos à mão,
  * e que costumam nascer errados.
  */
-import type { GrupoNaTela, VariacaoNaTela } from "../../lib/produto.ts";
+import {
+  ancoraDoGrupo,
+  type GrupoNaTela,
+  type VariacaoNaTela,
+} from "../../lib/produto.ts";
+
+/** A âncora (e a chave de pendência) da lista simples de variações. */
+export const CHAVE_DA_LISTA_DE_VARIACOES = "lista-de-variacoes";
 
 export interface MatrizDeVariacaoProps {
   /**
@@ -38,6 +45,8 @@ export interface MatrizDeVariacaoProps {
   readonly variacaoEscolhida: string | null;
   readonly aoEscolherEixo: (grupoId: string, opcaoId: string) => void;
   readonly aoEscolherVariacao: (variacaoId: string) => void;
+  /** Os grupos pendentes depois da tentativa, e a frase de cada um. */
+  readonly pendencias?: Readonly<Record<string, string>> | undefined;
 }
 
 export function MatrizDeVariacao({
@@ -49,22 +58,45 @@ export function MatrizDeVariacao({
   variacaoEscolhida,
   aoEscolherEixo,
   aoEscolherVariacao,
+  pendencias = {},
 }: MatrizDeVariacaoProps) {
   if (variacoes.length === 0) return null;
   // Só a variação padrão ("Único"): não há o que escolher, e um grupo com uma
   // opção pré-marcada só confunde. Quem escolhe por ela é EscolhasDoProduto.
-  if (eixos.length === 0 && variacoes.length === 1 && variacoes[0]?.disponivel) {
+  if (
+    eixos.length === 0 &&
+    variacoes.length === 1 &&
+    variacoes[0]?.disponivel
+  ) {
     return null;
   }
 
   if (eixos.length === 0) {
     return (
-      <fieldset className="sc-produto__grupo">
-        <legend className="sc-produto__grupo-nome">{rotuloDaVariacao}</legend>
+      <fieldset
+        className={`sc-produto__grupo${
+          pendencias[CHAVE_DA_LISTA_DE_VARIACOES]
+            ? " sc-produto__grupo--pendente"
+            : ""
+        }`}
+        id={ancoraDoGrupo(CHAVE_DA_LISTA_DE_VARIACOES)}
+        tabIndex={-1}
+      >
+        <legend className="sc-produto__grupo-nome">
+          {rotuloDaVariacao}
+          <span className="sc-produto__grupo-regra sc-produto__grupo-regra--exigida">
+            Escolha 1 · obrigatório
+          </span>
+        </legend>
+        {pendencias[CHAVE_DA_LISTA_DE_VARIACOES] ? (
+          <p className="sc-produto__pendencia" role="alert">
+            {pendencias[CHAVE_DA_LISTA_DE_VARIACOES]}
+          </p>
+        ) : null}
         <div className="sc-produto__escolhas">
           {variacoes.map((variacao) => (
             <label
-              className={`sc-produto__escolha${
+              className={`sc-produto__escolha sc-produto__escolha--pilula${
                 variacao.disponivel ? "" : " sc-produto__escolha--indisponivel"
               }`}
               key={variacao.id}
@@ -98,7 +130,14 @@ export function MatrizDeVariacao({
       {eixos.map((eixo) => {
         const possiveis = comSaida[eixo.id];
         return (
-          <fieldset className="sc-produto__grupo" key={eixo.id}>
+          <fieldset
+            className={`sc-produto__grupo${
+              pendencias[eixo.id] ? " sc-produto__grupo--pendente" : ""
+            }`}
+            id={ancoraDoGrupo(eixo.id)}
+            key={eixo.id}
+            tabIndex={-1}
+          >
             <legend className="sc-produto__grupo-nome">
               {eixo.nome}
               <span
@@ -109,6 +148,11 @@ export function MatrizDeVariacao({
                 {eixo.obrigatorio ? `${eixo.regra} · obrigatório` : eixo.regra}
               </span>
             </legend>
+            {pendencias[eixo.id] ? (
+              <p className="sc-produto__pendencia" role="alert">
+                {pendencias[eixo.id]}
+              </p>
+            ) : null}
             <div className="sc-produto__escolhas">
               {eixo.opcoes.map((opcao) => {
                 // Sem conjunto calculado, nada é desabilitado: é melhor deixar
@@ -120,7 +164,7 @@ export function MatrizDeVariacao({
 
                 return (
                   <label
-                    className={`sc-produto__escolha${
+                    className={`sc-produto__escolha sc-produto__escolha--pilula${
                       bloqueada ? " sc-produto__escolha--indisponivel" : ""
                     }`}
                     key={opcao.id}

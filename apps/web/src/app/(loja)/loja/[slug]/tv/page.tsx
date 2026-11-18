@@ -17,7 +17,6 @@ import "@simpleclick/ui/styles/exibicao.css";
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PALETA_ESCURA } from "@simpleclick/ui";
 
 import { ExibicaoDeCardapio } from "../../../../../features/tv/ExibicaoDeCardapio.tsx";
 import {
@@ -36,9 +35,6 @@ import {
   buscarCatalogo,
   buscarVitrine,
 } from "../../../../../server/vitrine.ts";
-
-/** A cor de reserva quando a loja não escolheu nenhuma (AC-014). */
-const COR_DE_RESERVA = PALETA_ESCURA.primaria;
 
 interface ParametrosDaPagina {
   readonly params: Promise<{ readonly slug: string }>;
@@ -95,7 +91,6 @@ export default async function PaginaDaTv({
         apelido: loja.apelido,
         nome: loja.nome,
         rotuloDoCatalogo: loja.rotulos.catalogo,
-        corPrincipal: loja.tema?.corDestaque ?? COR_DE_RESERVA,
       }}
       // Catálogo indisponível NÃO derruba a página: a televisão abre em
       // "carregando", busca sozinha e mostra o cardápio assim que a rede

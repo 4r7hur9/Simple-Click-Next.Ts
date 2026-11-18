@@ -181,7 +181,9 @@ export function textoDoPrazo(minutos: number): string {
   if (minutos < 24 * 60) {
     const horas = Math.floor(minutos / 60);
     const resto = minutos % 60;
-    return resto === 0 ? `${horas}h` : `${horas}h${String(resto).padStart(2, "0")}`;
+    return resto === 0
+      ? `${horas}h`
+      : `${horas}h${String(resto).padStart(2, "0")}`;
   }
   const dias = Math.round(minutos / (24 * 60));
   return dias === 1 ? "1 dia" : `${dias} dias`;

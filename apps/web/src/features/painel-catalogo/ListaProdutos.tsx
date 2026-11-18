@@ -10,7 +10,13 @@
  * endereço, para voltar, recarregar ou mandar o link sem perder o filtro.
  */
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import {
   Botao,
   Carregando,
@@ -39,6 +45,37 @@ import {
   useLeituraMaisRecente,
   type PaginacaoDaLista,
 } from "../painel-estoque/lista-paginada.tsx";
+
+/**
+ * CARTÕES NO CELULAR, TABELA NO COMPUTADOR (card 112, AC-11218; card 133). A tabela de
+ * seis colunas não cabe em 344px, e virar `display: block` por CSS ainda deixa
+ * uma `<table>` para o leitor de tela anunciar linhas e colunas que não existem
+ * mais na tela. Abaixo de 48rem (a mesma quebra da barra de baixo do painel) a
+ * lista é desenhada como cartões empilhados; acima, continua a tabela.
+ *
+ * A consulta pergunta "é celular?": sem `matchMedia`, ou quando ela não casa
+ * (servidor, jsdom), vale a tabela. Os produtos chegam depois da hidratação,
+ * quando a largura de verdade já é conhecida.
+ */
+const CONSULTA_DO_CELULAR = "(max-width: 47.99rem)";
+
+function assinarLargura(avisar: () => void): () => void {
+  if (typeof window.matchMedia !== "function") return () => undefined;
+  const consulta = window.matchMedia(CONSULTA_DO_CELULAR);
+  consulta.addEventListener("change", avisar);
+  return () => consulta.removeEventListener("change", avisar);
+}
+
+function estaNoCelular(): boolean {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(CONSULTA_DO_CELULAR).matches
+  );
+}
+
+function useNoCelular(): boolean {
+  return useSyncExternalStore(assinarLargura, estaNoCelular, () => false);
+}
 
 interface Produto {
   readonly id: string;
@@ -367,6 +404,8 @@ export function ListaProdutos() {
     setMensagem("Produto removido. Pedidos antigos continuam preservados.");
   }
 
+  const noCelular = useNoCelular();
+
   const colunas: readonly ColunaDaTabela<Produto>[] = [
     {
       chave: "produto",
@@ -623,14 +662,18 @@ export function ListaProdutos() {
             aria-busy={carregando || undefined}
             className={carregando ? "opacity-60 transition-opacity" : ""}
           >
-            <Tabela
-              legenda="Produtos do catálogo"
-              legendaEscondida
-              colunas={colunas}
-              linhas={produtos}
-              chaveDaLinha={(produto) => produto.id}
-              noCelular="cartoes"
-            />
+            {noCelular ? (
+              <CartoesDeProduto colunas={colunas} produtos={produtos} />
+            ) : (
+              <Tabela
+                legenda="Produtos do catálogo"
+                legendaEscondida
+                colunas={colunas}
+                linhas={produtos}
+                chaveDaLinha={(produto) => produto.id}
+                noCelular="cartoes"
+              />
+            )}
           </div>
         )}
         {pagina !== null && !falhou ? (
@@ -646,5 +689,59 @@ export function ListaProdutos() {
         ) : null}
       </div>
     </section>
+  );
+}
+
+/**
+ * A lista de produtos no celular: um cartão por produto, com as MESMAS células
+ * da tabela (nome, remoção, situação e ações não se repetem em outro lugar).
+ * Categoria, preço e estoque viram pares rótulo-valor (`<dl>`), que é o que o
+ * cabeçalho da coluna dizia na tabela.
+ */
+function CartoesDeProduto({
+  colunas,
+  produtos,
+}: {
+  readonly colunas: readonly ColunaDaTabela<Produto>[];
+  readonly produtos: readonly Produto[];
+}) {
+  const celula = (chave: string, produto: Produto): ReactNode =>
+    colunas.find((coluna) => coluna.chave === chave)?.celula(produto) ?? null;
+  const dados = colunas.filter((coluna) =>
+    ["categoria", "preco", "estoque"].includes(coluna.chave),
+  );
+
+  return (
+    <ul
+      role="list"
+      aria-label="Produtos do catálogo"
+      className="m-0 grid list-none grid-cols-[minmax(0,1fr)] gap-3 p-0"
+    >
+      {produtos.map((produto) => (
+        <li
+          key={produto.id}
+          className="sc-cartao grid min-w-0 gap-3 p-4"
+          data-produto={produto.id}
+        >
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">{celula("produto", produto)}</div>
+            <div className="shrink-0">{celula("acoes", produto)}</div>
+          </div>
+          <dl className="m-0 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {dados.map((coluna) => (
+              <div key={coluna.chave} className="min-w-0">
+                <dt className="text-xs text-[var(--cor-tinta-suave)]">
+                  {coluna.titulo}
+                </dt>
+                <dd className="m-0 font-medium tabular-nums">
+                  {coluna.celula(produto)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className="min-w-0">{celula("situacao", produto)}</div>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -1,21 +1,15 @@
 "use client";
 /**
- * A personalização da loja pelo dono: cor de destaque, fotos, textos e
+ * A personalização da loja pelo dono: fotos, textos e
  * contato, com a prévia da vitrine ao lado (US-904: AC-916, AC-917, AC-918).
  *
- * O FUNDO DA LOJA É SEMPRE PRETO. O dono escolhe a COR DE DESTAQUE — a que
- * pinta os títulos em bloco, botões, filetes e selos — num seletor de
- * cor, e duas fotos: o fundo da vitrine (a página da loja) e o topo do
- * cardápio. Sem foto, vale a capa padrão do tipo de negócio.
+ * O FUNDO DA LOJA É SEMPRE PRETO e a cor de destaque é sempre o verde
+ * SimpleClick: não há cor própria por loja. O dono escolhe duas fotos: o fundo
+ * da vitrine (a página da loja) e o topo do cardápio. Sem foto, vale a capa
+ * padrão do tipo de negócio.
  *
- * A PRÉVIA MOSTRA O RESULTADO ANTES DE PUBLICAR. Ela usa o mesmo envelope de
- * tema da vitrine, então a cor, a letra por cima dela e as fotos são as que o
- * cliente verá.
- *
- * COR RUIM NÃO É RECUSADA, é consertada e avisada (AC-917): a letra sobre a
- * cor é escolhida sozinha (grafite ou branca, contraste AA) e, se a cor for
- * escura demais para o fundo preto, a vitrine clareia só onde ela vira
- * texto — e a tela sugere uma cor parecida que aparece bem.
+ * A PRÉVIA MOSTRA O RESULTADO ANTES DE PUBLICAR, com o mesmo envelope da
+ * vitrine.
  *
  * O SELO ABERTO/FECHADO (card #64) é uma pílula clara ou escura sobre a capa.
  * No automático, a tela mede a cor de cada foto aqui e manda junto com o tema;
@@ -28,10 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Aviso,
   avaliarSelo,
-  COR_DE_DESTAQUE_PADRAO_DA_LOJA,
   IconeRecortar,
-  marcaDaLoja,
-  PALETA_OFICIAL,
   PREFERENCIAS_DO_SELO,
   type AjusteDoRecorte,
   type PreferenciaDoSelo,
@@ -47,6 +38,7 @@ import {
   type ChaveDeAjusteDeFoto,
   type SecaoDeAparencia,
   type SecaoDeContato,
+  COR_DE_DESTAQUE_PADRAO,
   ehEnderecoDeImagem,
 } from "@simpleclick/contracts";
 
@@ -66,7 +58,6 @@ import {
   useRecorteDeImagem,
 } from "../recorte/RecorteDeImagem.tsx";
 import { PreviaDaLojaReal } from "./PreviaDaLojaReal.tsx";
-import { SeletorDeCor } from "./SeletorDeCor.tsx";
 import { comInfo, InfoDoPainel, RotuloComInfo } from "./RotuloComInfo.tsx";
 import { useSecao } from "./useSecao.ts";
 
@@ -168,11 +159,8 @@ function temaDaApi(bruto: unknown): TemaNaTela {
     }
   }
   return {
-    corDestaque:
-      typeof lido?.corDestaque === "string" &&
-      /^#[0-9a-fA-F]{6}$/.test(lido.corDestaque)
-        ? lido.corDestaque.toLowerCase()
-        : COR_DE_DESTAQUE_PADRAO_DA_LOJA,
+    // Sem cor própria por loja: o campo segue no contrato, sempre o verde.
+    corDestaque: COR_DE_DESTAQUE_PADRAO,
     fundoVitrine: texto(lido?.fundoVitrine),
     topoCardapio: texto(lido?.topoCardapio),
     fundoVitrineCelular: texto(lido?.fundoVitrineCelular),
@@ -314,7 +302,6 @@ const TEXTOS_DO_CONTATO = {
 const MENSAGEM_DE_SUCESSO =
   "Aparência publicada. A página da sua loja já mostra o que está na prévia.";
 
-const arredondar = (valor: number) => valor.toFixed(1).replace(".", ",");
 
 export interface FormularioAparenciaProps {
   /** O apelido da loja: a prévia abre a loja pública dela. */
@@ -444,15 +431,8 @@ export function FormularioAparencia({
       logo: dados.logo,
       boasVindas: dados.boasVindas,
       rotuloDoCatalogo,
-      corDestaque: tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO_DA_LOJA,
     }),
-    [
-      dados.nome,
-      dados.logo,
-      dados.boasVindas,
-      rotuloDoCatalogo,
-      tema?.corDestaque,
-    ],
+    [dados.nome, dados.logo, dados.boasVindas, rotuloDoCatalogo],
   );
 
   /**
@@ -702,7 +682,6 @@ export function FormularioAparencia({
     nome: dados.nome,
     boasVindas: dados.boasVindas,
     logo: dados.logo,
-    corDestaque: tema.corDestaque,
     fundoVitrine: tema.fundoVitrine,
     fundoVitrineCelular: tema.fundoVitrineCelular,
     topoCardapio: tema.topoCardapio,
@@ -711,7 +690,6 @@ export function FormularioAparencia({
     coresDasImagens: coresEmUso,
   };
 
-  const marca = marcaDaLoja(tema.corDestaque);
   const idDaMensagem = "estado-da-aparencia";
   const corDoFundo = tema.coresDasImagens[tema.fundoVitrine] ?? null;
   const corDoTopo = tema.coresDasImagens[fotoDoTopo(tema)] ?? null;
@@ -731,63 +709,6 @@ export function FormularioAparencia({
         className="space-y-6"
         noValidate
       >
-        <section
-          className="space-y-4 rounded-3xl border border-[var(--cor-borda)] p-5"
-          aria-labelledby="titulo-cor-de-destaque"
-        >
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 id="titulo-cor-de-destaque" className="text-xl font-semibold">
-                Cor de destaque
-              </h2>
-              <InfoDoPainel explicacao="corDeDestaque" nome="Cor de destaque" />
-            </div>
-            <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-              O fundo da sua loja é sempre preto. Esta é a cor dos títulos em
-              bloco, botões, filetes e selos. A luz de “Aberto” é sempre verde.
-            </p>
-          </div>
-          <SeletorDeCor
-            valor={tema.corDestaque}
-            aoMudar={(hex) => mudarTema({ corDestaque: hex })}
-            padrao={COR_DE_DESTAQUE_PADRAO_DA_LOJA}
-          />
-          <p
-            className="text-sm text-[var(--cor-tinta-suave)]"
-            data-letra-sobre-cor=""
-          >
-            A letra por cima da cor é{" "}
-            <strong className="text-[var(--cor-tinta)]">
-              {marca.corSobreMarca === PALETA_OFICIAL.branco
-                ? "branca"
-                : "grafite"}
-            </strong>{" "}
-            (contraste {arredondar(marca.relacaoSobreMarca)}:1, acima do mínimo
-            de 4,5:1).
-          </p>
-          <ErroDoCampo campo="corDestaque" erros={errosDoTema} />
-          {marca.avisos.length > 0 ? (
-            <Aviso tom="atencao" titulo="Esta cor compromete a leitura">
-              <ul className="list-disc pl-5 text-sm" data-avisos="contraste">
-                {marca.avisos.map((aviso) => (
-                  <li key={aviso}>{aviso}</li>
-                ))}
-              </ul>
-              {marca.corSugerida === null ? null : (
-                <button
-                  type="button"
-                  className="sc-botao sc-botao--secundaria sc-botao--pequeno mt-3"
-                  onClick={() =>
-                    mudarTema({ corDestaque: marca.corSugerida ?? "" })
-                  }
-                >
-                  Usar a cor sugerida ({marca.corSugerida})
-                </button>
-              )}
-            </Aviso>
-          ) : null}
-        </section>
-
         <section
           className="space-y-4 rounded-3xl border border-[var(--cor-borda)] p-5"
           aria-labelledby="titulo-fotos"

@@ -53,10 +53,7 @@ export interface EntregaNaTela {
 /** A grade semanal, como a vitrine a devolve. */
 export interface HorarioNaTela {
   readonly modo:
-    | "SCHEDULE"
-    | "ALWAYS_OPEN"
-    | "TEMPORARILY_CLOSED"
-    | "PERMANENTLY_CLOSED";
+    "SCHEDULE" | "ALWAYS_OPEN" | "TEMPORARILY_CLOSED" | "PERMANENTLY_CLOSED";
   readonly semana: readonly {
     readonly dia: number;
     readonly faixas: readonly FaixaNaTela[];
@@ -270,7 +267,8 @@ export function ComoReceber({
   readonly entrega: EntregaNaTela | null;
   readonly endereco: EnderecoNaTela | null;
 }) {
-  const fazEntrega = entrega?.aceitaEntrega ?? formasDeEntrega.includes("DELIVERY");
+  const fazEntrega =
+    entrega?.aceitaEntrega ?? formasDeEntrega.includes("DELIVERY");
   const fazRetirada =
     entrega?.aceitaRetirada ?? formasDeEntrega.includes("PICKUP");
   if (!fazEntrega && !fazRetirada) return null;
@@ -360,12 +358,19 @@ export function ComoReceber({
 // ---------------------------------------------------------------------------
 
 /** O nome e o ícone de cada forma que a versão 1 conhece. */
-const PAGAMENTO: Record<string, { readonly nome: string; readonly icone: ReactNode }> =
-  {
-    PIX: { nome: "Pix", icone: <IconePix /> },
-    CASH: { nome: "Dinheiro", icone: <IconeDinheiro /> },
-    CARD_ON_DELIVERY: { nome: "Cartão na entrega", icone: <IconeCartao /> },
-  };
+const PAGAMENTO: Record<
+  string,
+  { readonly nome: string; readonly icone: ReactNode }
+> = {
+  PIX: { nome: "Pix", icone: <IconePix /> },
+  CASH: { nome: "Dinheiro", icone: <IconeDinheiro /> },
+  CARD_ON_DELIVERY: { nome: "Cartão na entrega", icone: <IconeCartao /> },
+};
+
+/** O nome por extenso de uma forma de pagamento; o código desconhecido sai como veio. */
+export function nomeDaFormaDePagamento(forma: string): string {
+  return PAGAMENTO[forma]?.nome ?? forma;
+}
 
 /**
  * As formas de pagamento, em pílulas. SÓ O NOME: a chave PIX mora na mesma
@@ -412,7 +417,11 @@ export function OndeEstamos({
   const mapa = enderecoNoMapa(endereco);
 
   return (
-    <CartaoDaSecao id="sobre-endereco" titulo="Onde estamos" icone={<IconeLocal />}>
+    <CartaoDaSecao
+      id="sobre-endereco"
+      titulo="Onde estamos"
+      icone={<IconeLocal />}
+    >
       <address className="sc-sobre__endereco">
         {linhas.map((linha) => (
           <span key={linha}>{linha}</span>

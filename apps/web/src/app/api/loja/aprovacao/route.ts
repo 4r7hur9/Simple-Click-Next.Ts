@@ -14,11 +14,16 @@
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { cabecalhosParaApi } from "../../../../server/chamada-de-identidade.ts";
 import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
+import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
 
 async function encaminhar(
   requisicao: Request,
   metodo: "GET" | "PUT" | "POST",
 ): Promise<Response> {
+  // Card #134: escrita de outro site, ou corpo que não é JSON, para aqui.
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;
   const apelido = encodeURIComponent(sessao.apelido);

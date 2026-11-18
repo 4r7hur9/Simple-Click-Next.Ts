@@ -5,7 +5,11 @@
  * dono cadastra nome, produtos e preço, e a foto de fachada fica para depois.
  * Sem imagem, o WhatsApp mostra o link como uma linha de texto cinza, e o link
  * cinza não é aberto. Desenhada, toda loja tem uma prévia no primeiro minuto de
- * vida, com o nome dela e a cor que ela escolheu.
+ * vida, com o nome dela e o verde SimpleClick.
+ *
+ * UM VERDE SÓ (decisão de 17/11/2026): a cor salva da loja não pinta mais nada.
+ * O verde entra como PREENCHIMENTO (a faixa e a etiqueta do convite), e a letra
+ * sobre ele é a escura do tema — verde como letra sobre o fundo claro some.
  *
  * 1200×630 é a medida que WhatsApp, Facebook e X aceitam sem recortar. Menor,
  * cada rede recorta do seu jeito e o nome da loja some numa delas.
@@ -40,8 +44,9 @@ const FUNDO = PALETA_CLARA.fundo;
 const TINTA = PALETA_CLARA.tinta;
 const TINTA_SUAVE = PALETA_CLARA.tintaSuave;
 
-/** A cor de reserva quando a loja não escolheu nenhuma (AC-014). */
-const COR_DE_RESERVA = PALETA_CLARA.primaria;
+/** O verde SimpleClick e a letra legível sobre ele. */
+const VERDE = PALETA_CLARA.primaria;
+const TINTA_SOBRE_O_VERDE = PALETA_CLARA.emPrimaria;
 
 export default async function ImagemDaLoja({ params }: ParametrosDaImagem) {
   const { slug } = await params;
@@ -56,7 +61,6 @@ export default async function ImagemDaLoja({ params }: ParametrosDaImagem) {
 
   const nome = loja?.nome ?? "SimpleClick";
   const chamada = loja?.boasVindas ?? "Vitrine e pedidos pelo WhatsApp";
-  const cor = loja?.tema?.corDestaque ?? COR_DE_RESERVA;
 
   return new ImageResponse(
     <div
@@ -70,9 +74,8 @@ export default async function ImagemDaLoja({ params }: ParametrosDaImagem) {
         padding: 72,
       }}
     >
-      {/* A faixa de cor é a loja se apresentando antes de qualquer palavra:
-            é a única parte da prévia que muda de loja para loja à distância. */}
-      <div style={{ display: "flex", height: 16, background: cor }} />
+      {/* A faixa verde é a marca se apresentando antes de qualquer palavra. */}
+      <div style={{ display: "flex", height: 16, background: VERDE }} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div
@@ -99,17 +102,21 @@ export default async function ImagemDaLoja({ params }: ParametrosDaImagem) {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          fontSize: 30,
-          color: cor,
-          fontWeight: 600,
-        }}
-      >
-        {loja === null ? "simpleclick" : `Peça em ${nome} pelo WhatsApp`}
+      <div style={{ display: "flex" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "12px 28px",
+            borderRadius: 999,
+            background: VERDE,
+            fontSize: 30,
+            color: TINTA_SOBRE_O_VERDE,
+            fontWeight: 600,
+          }}
+        >
+          {loja === null ? "simpleclick" : `Peça em ${nome} pelo WhatsApp`}
+        </div>
       </div>
     </div>,
     size,

@@ -345,6 +345,14 @@ export function tempoRelativo(iso: string, agora = Date.now()): string {
 // O que a tela pede ao servidor (as ações moram em app/(explorar))
 // ---------------------------------------------------------------------------
 
+/** Uma página de itens vinda do servidor (rolagem infinita). */
+export interface PaginaDeItens {
+  readonly itens: readonly unknown[];
+  readonly total: number;
+  /** A sessão venceu e esta página veio sem os favoritos (card #106). */
+  readonly sessaoVencida?: true | undefined;
+}
+
 export type ResultadoDaAcao<T> =
   | { readonly ok: true; readonly dados: T }
   | { readonly ok: false; readonly motivo: "precisa-entrar" | "indisponivel" | "recusado"; readonly mensagem?: string };
@@ -355,7 +363,7 @@ export interface AcoesDoFeed {
   readonly maisPosts: (
     parametros: Readonly<Record<string, string>>,
     pagina: number,
-  ) => Promise<ResultadoDaAcao<{ readonly itens: readonly unknown[]; readonly total: number }>>;
+  ) => Promise<ResultadoDaAcao<PaginaDeItens>>;
   readonly curtir: (
     produtoId: string,
     quer: boolean,

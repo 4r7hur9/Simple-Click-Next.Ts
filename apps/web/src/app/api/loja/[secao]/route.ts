@@ -3,6 +3,7 @@ import { SECOES_DO_DONO } from "@simpleclick/contracts";
 import { enderecoDaApi } from "../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../server/loja-do-painel.ts";
 import { renovarVitrineDaLoja } from "../../../../server/renovar-vitrine.ts";
+import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
 
 /**
  * O que o site encaminha: as seções do dono (AC-921) e os avisos do painel.
@@ -16,6 +17,10 @@ async function encaminhar(
 ): Promise<Response> {
   if (!SECOES.has(secao))
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });
+
+  // Card #134: escrita de outro site, ou corpo que não é JSON, para aqui.
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
 
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;

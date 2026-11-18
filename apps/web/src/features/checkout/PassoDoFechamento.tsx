@@ -19,9 +19,14 @@ import { Aviso, Botao, IconeFechar, IconeVoltar } from "@simpleclick/ui";
 
 import {
   abrirJanelaDeAcesso,
+  EVENTO_ACESSO_CONCLUIDO,
   type AbaDeAcesso,
 } from "../auth/JanelaDeAcesso.tsx";
 
+import {
+  contaNormalizada,
+  type ArquivoDeTentativas,
+} from "./chave-do-fechamento.ts";
 import {
   FechamentoDaCompra,
   ID_DO_TITULO_DO_FECHAMENTO,
@@ -43,6 +48,8 @@ export interface PassoDoFechamentoProps {
   readonly preparar: PrepararFechamento;
   readonly aoVoltar: () => void;
   readonly aoFecharJanela: () => void;
+  /** A tentativa pendente, guardada pela janela da sacola (ver o fechamento). */
+  readonly tentativas?: ArquivoDeTentativas | undefined;
   /** Trocáveis para a prova. */
   readonly pedirConta?: typeof abrirJanelaDeAcesso | undefined;
   readonly conferir?: FechamentoDaCompraProps["conferir"];
@@ -50,12 +57,14 @@ export interface PassoDoFechamentoProps {
   readonly salvarEndereco?: FechamentoDaCompraProps["salvarEndereco"];
 }
 
+type PreparoPronto = Extract<PreparoDoFechamento, { estado: "pronto" }>;
+
 type Situacao =
   | { readonly tipo: "preparando" }
   | { readonly tipo: "falhou" }
   | {
       readonly tipo: "pronto";
-      readonly preparo: Extract<PreparoDoFechamento, { estado: "pronto" }>;
+      readonly preparo: PreparoPronto;
     };
 
 export function PassoDoFechamento({
@@ -65,12 +74,21 @@ export function PassoDoFechamento({
   preparar,
   aoVoltar,
   aoFecharJanela,
+  tentativas,
   pedirConta = abrirJanelaDeAcesso,
   conferir,
   fechar,
   salvarEndereco,
 }: PassoDoFechamentoProps) {
   const [situacao, setSituacao] = useState<Situacao>({ tipo: "preparando" });
+  // Sobe quando OUTRA conta entrou: o fechamento nasce de novo, com os dados e
+  // a chave dela, e nada da conta anterior fica no formulário (AC-11020).
+  const [geracaoDaConta, setGeracaoDaConta] = useState(0);
+  // Sobe quando a MESMA conta voltou: o envio, travado desde o 401, destrava.
+  const [sessaoRenovada, setSessaoRenovada] = useState(0);
+  // O e-mail da conta que o formulário mostra, só para comparar em memória.
+  const contaMostrada = useRef("");
+  const renovando = useRef(false);
   const titulo = useRef<HTMLHeadingElement>(null);
   // A ação chega do servidor e troca de identidade a cada atualização da
   // página (o `router.refresh` depois de entrar). Guardada aqui, ela não
@@ -116,6 +134,68 @@ export function PassoDoFechamento({
 
   const semConta =
     situacao.tipo === "pronto" && situacao.preparo.conta === null;
+  const comConta =
+    situacao.tipo === "pronto" && situacao.preparo.conta !== null;
+  const emailDaConta =
+    situacao.tipo === "pronto" ? (situacao.preparo.conta?.email ?? null) : null;
+
+  useEffect(() => {
+    if (emailDaConta !== null)
+      contaMostrada.current = contaNormalizada(emailDaConta);
+  }, [emailDaConta]);
+
+  /**
+   * Prepara de novo SEM voltar ao "preparando": o formulário preenchido não
+   * some. Diz se a conta é a mesma, outra ou se não deu para saber.
+   *
+   * NA DÚVIDA, É OUTRA CONTA: conta nula, e-mail diferente ou ausente. A chave
+   * de um pedido devolve o pedido gravado sem olhar quem pede, e o pedido traz
+   * nome, telefone e endereço.
+   */
+  const conferirConta = useCallback(async (): Promise<
+    "mesma" | "outra" | "indefinida"
+  > => {
+    let preparo: PreparoDoFechamento;
+    try {
+      preparo = await prepararAtual.current();
+    } catch {
+      return "indefinida";
+    }
+    if (preparo.estado !== "pronto") return "indefinida";
+    if (
+      preparo.conta !== null &&
+      contaNormalizada(preparo.conta.email) === contaMostrada.current &&
+      contaMostrada.current !== ""
+    ) {
+      return "mesma";
+    }
+    tentativas?.descartar();
+    // Sem conta, a janela de acesso abre (uma vez por preparação). Com outra
+    // conta, o fechamento é refeito do zero.
+    setGeracaoDaConta((g) => g + 1);
+    setSituacao({ tipo: "pronto", preparo });
+    return "outra";
+  }, [tentativas]);
+
+  /** A pessoa entrou de novo (depois do 401, ou em outra janela). */
+  const renovar = useCallback(async () => {
+    if (renovando.current) return;
+    renovando.current = true;
+    try {
+      if ((await conferirConta()) === "mesma") setSessaoRenovada((n) => n + 1);
+    } finally {
+      renovando.current = false;
+    }
+  }, [conferirConta]);
+
+  // Entrou em outra janela de acesso com o fechamento à vista.
+  useEffect(() => {
+    if (!comConta) return;
+    const aoConcluir = () => void renovar();
+    window.addEventListener(EVENTO_ACESSO_CONCLUIDO, aoConcluir);
+    return () =>
+      window.removeEventListener(EVENTO_ACESSO_CONCLUIDO, aoConcluir);
+  }, [comConta, renovar]);
 
   // Ninguém logado: a janela de acesso abre sozinha, uma vez por preparação.
   useEffect(() => {
@@ -126,6 +206,7 @@ export function PassoDoFechamento({
     const { config, conta, enderecos } = situacao.preparo;
     return (
       <FechamentoDaCompra
+        key={geracaoDaConta}
         apelidoDaLoja={apelidoDaLoja}
         formas={config.formas}
         formasDePagamento={config.formasDePagamento}
@@ -140,8 +221,15 @@ export function PassoDoFechamento({
         // A sessão venceu no meio: entrar de novo e tocar em confirmar. O
         // formulário fica como estava.
         aoPrecisarDeConta={() =>
-          pedirConta({ aba: "entrar", motivo: MOTIVO_DA_CONTA })
+          pedirConta({
+            aba: "entrar",
+            motivo: MOTIVO_DA_CONTA,
+            aoEntrar: () => void renovar(),
+          })
         }
+        sessaoRenovada={sessaoRenovada}
+        tentativas={tentativas}
+        aoConfirmarConta={async () => (await conferirConta()) === "mesma"}
         conferir={conferir}
         fechar={fechar}
         salvarEndereco={salvarEndereco}
@@ -156,7 +244,7 @@ export function PassoDoFechamento({
           type="button"
           className="sc-carrinho-janela__fechar sc-fechar__voltar"
           onClick={aoVoltar}
-          aria-label="Voltar ao carrinho"
+          aria-label="Voltar à sacola"
         >
           <IconeVoltar aria-hidden="true" />
         </button>
@@ -166,7 +254,7 @@ export function PassoDoFechamento({
           id={ID_DO_TITULO_DO_FECHAMENTO}
           tabIndex={-1}
         >
-          Finalizar pedido
+          Fechar pedido
         </h2>
         <button
           type="button"
@@ -181,8 +269,14 @@ export function PassoDoFechamento({
       <div className="sc-carrinho-janela__corpo sc-fechar__corpo">
         {situacao.tipo === "preparando" ? (
           <div className="sc-carrinho-janela__estado" role="status">
-            <span className="sc-carrinho-janela__esqueleto" aria-hidden="true" />
-            <span className="sc-carrinho-janela__esqueleto" aria-hidden="true" />
+            <span
+              className="sc-carrinho-janela__esqueleto"
+              aria-hidden="true"
+            />
+            <span
+              className="sc-carrinho-janela__esqueleto"
+              aria-hidden="true"
+            />
             <p>Preparando seu pedido…</p>
           </div>
         ) : situacao.tipo === "falhou" ? (
@@ -234,7 +328,7 @@ export function PassoDoFechamento({
           className="sc-carrinho-janela__continuar"
           onClick={aoVoltar}
         >
-          Voltar ao carrinho
+          Voltar à sacola
         </button>
       </footer>
     </div>

@@ -8,6 +8,7 @@
 import { chamarIdentidade, valorDoSetCookie } from "../../../../server/chamada-de-identidade.ts";
 import { responderSessaoDoNavegador } from "../../../../server/sessao.ts";
 import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
+import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
 
 function json(status: number, corpo: Record<string, unknown>): Response {
   return Response.json(corpo, {
@@ -17,6 +18,9 @@ function json(status: number, corpo: Record<string, unknown>): Response {
 }
 
 export async function POST(requisicao: Request): Promise<Response> {
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
   if (token === undefined) return json(401, { erro: "nao_autenticado" });
 

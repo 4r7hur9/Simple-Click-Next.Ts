@@ -9,6 +9,12 @@
     box-sizing: border-box;
   }
 
+  /* Plus Jakarta Sans em títulos e texto: o corpo usa a mesma família do
+     título (ver `layout.tsx`). */
+  :root {
+    --fonte-corpo: var(--fonte-titulo-da-marca);
+  }
+
   html {
     min-width: 344px;
     background-color: var(--cor-fundo);
@@ -298,4 +304,22 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/*
+ * A landing "/" fica de fora do redesign (decisão do dono do produto): ela
+ * continua em Space Grotesk e Inter. O topo dela marca a página com
+ * `.sc-lp-topo`; daí o `body` redefine as QUATRO variáveis, porque
+ * `--fonte-titulo` e `--fonte-base` chegam já resolvidas da raiz e
+ * `--fonte-corpo` é lida direto pelo rodapé e pelo aviso de cookies.
+ */
+body:has(.sc-lp-topo) {
+  --fonte-titulo-da-marca: var(--fonte-legada-titulo);
+  --fonte-corpo: var(--fonte-legada-corpo);
+  --fonte-titulo:
+    var(--fonte-legada-titulo), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fonte-base:
+    var(--fonte-legada-corpo), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

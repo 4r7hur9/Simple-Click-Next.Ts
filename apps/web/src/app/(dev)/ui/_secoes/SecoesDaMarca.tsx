@@ -68,19 +68,19 @@ export function SecoesDaMarca() {
       </Secao>
 
       <Secao
-        descricao="Space Grotesk cria a voz dos títulos; Inter sustenta leitura e controles."
+        descricao="A Plus Jakarta Sans dá a voz dos títulos e sustenta leitura e controles."
         id="secao-tipografia"
         titulo="Tipografia"
       >
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <p className="text-sm">Space Grotesk · títulos e destaques</p>
+            <p className="text-sm">Plus Jakarta Sans · títulos e destaques</p>
             <p className="font-display text-2xl font-semibold">
               Sua loja, simples de verdade.
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-sm">Inter · texto e interface</p>
+            <p className="text-sm">Plus Jakarta Sans · texto e interface</p>
             <p className="font-sans">
               Organize o catálogo, receba pedidos e acompanhe cada etapa sem
               ruído visual.

@@ -34,6 +34,24 @@ export interface BotaoAdicionarProps {
   readonly enviando?: boolean | undefined;
   readonly aoMudarQuantidade: (quantidade: number) => void;
   readonly aoAdicionar: () => void;
+  /**
+   * A linha "N × unitário = subtotal" (AC-10915). Só existe com a variação
+   * resolvida; não é anunciada (só o total do botão é), para não duplicar a fala.
+   */
+  readonly subtotal?:
+    | {
+        readonly quantidade: number;
+        readonly unitario: string;
+        readonly total: string;
+      }
+    | null
+    | undefined;
+  /**
+   * Variação escolhida que acabou, com o produto à venda (AC-10921): o botão
+   * fica desabilitado e a frase explica. Ignorado quando o produto todo não
+   * está à venda: aí vale `explicacao`.
+   */
+  readonly bloqueio?: string | null | undefined;
   /** Para onde vai quem quer ver o carrinho. Sem ele, o atalho não aparece. */
   readonly linkDoCarrinho?: string | undefined;
 }
@@ -47,12 +65,24 @@ export function BotaoAdicionar({
   aVenda,
   explicacao = null,
   enviando = false,
+  subtotal = null,
+  bloqueio = null,
   aoMudarQuantidade,
   aoAdicionar,
   linkDoCarrinho,
 }: BotaoAdicionarProps) {
+  const travado = aVenda && bloqueio !== null;
+
   return (
     <div className="sc-produto__acao">
+      {aVenda && subtotal !== null && !travado ? (
+        <p className="sc-produto__subtotal">
+          <span>
+            {subtotal.quantidade} × {subtotal.unitario}
+          </span>
+          <span> = {subtotal.total}</span>
+        </p>
+      ) : null}
       {aVenda ? (
         <div
           className="sc-produto__quantidade"
@@ -93,7 +123,7 @@ export function BotaoAdicionar({
         type="button"
         className="sc-produto__adicionar"
         onClick={aoAdicionar}
-        disabled={!aVenda || enviando}
+        disabled={!aVenda || travado || enviando}
       >
         {aVenda ? (
           <>
@@ -121,7 +151,11 @@ export function BotaoAdicionar({
         </a>
       ) : null}
 
-      {explicacao ? (
+      {travado ? (
+        <p className="sc-produto__indisponivel" role="status">
+          {bloqueio}
+        </p>
+      ) : explicacao ? (
         <p className="sc-produto__indisponivel">{explicacao}</p>
       ) : null}
     </div>

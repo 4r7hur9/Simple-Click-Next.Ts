@@ -16,6 +16,11 @@
 import {
   PARAMETRO_DA_ORDEM,
   PARAMETRO_DO_ATACADO,
+  PARAMETRO_DO_ESTOQUE,
+  PARAMETRO_DO_PRECO_ATE,
+  PARAMETRO_DO_PRECO_DE,
+  precoParaEndereco,
+  rotuloDoValor,
   type OrdemDoCatalogo,
 } from "../../lib/catalogo.ts";
 
@@ -35,16 +40,15 @@ export interface FiltroEspecificacaoProps {
   readonly ordem?: OrdemDoCatalogo | undefined;
   /** O filtro de atacado ligado vai junto (card #59). */
   readonly atacado?: boolean | undefined;
-}
-
-/**
- * O que o cliente lê em cada opção. O valor que vai no endereço não muda —
- * só a leitura: "true" é como o banco escreve, "Sim" é como a gente fala.
- */
-function rotuloDoValor(valor: string): string {
-  if (valor === "true") return "Sim";
-  if (valor === "false") return "Não";
-  return valor;
+  /**
+   * Mostra também "Só em estoque" e a faixa de preço (card #108). A barra do
+   * catálogo liga; sem isso o formulário é só o das especificações, como era.
+   */
+  readonly gerais?: boolean | undefined;
+  /** "Só em estoque" e a faixa de preço, em centavos (card #108). */
+  readonly estoque?: boolean | undefined;
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
 }
 
 /** O mesmo catálogo, sem nenhum `filtro=` — mantém categoria, busca e ordem. */
@@ -73,8 +77,19 @@ export function FiltroEspecificacao({
   busca,
   ordem = "relevancia",
   atacado = false,
+  gerais = false,
+  estoque = false,
+  precoMin = null,
+  precoMax = null,
 }: FiltroEspecificacaoProps) {
-  if (filtros.length === 0) return null;
+  // Com `gerais`, o formulário existe SEMPRE (card #108): "Só em estoque" e a
+  // faixa de preço valem para qualquer loja, mesmo sem especificação cadastrada.
+  if (filtros.length === 0 && !gerais) return null;
+  const ligado =
+    selecionados.length > 0 ||
+    estoque ||
+    precoMin !== null ||
+    precoMax !== null;
   return (
     <form
       className="sc-filtro__formulario"
@@ -111,8 +126,57 @@ export function FiltroEspecificacao({
           })}
         </fieldset>
       ))}
+      {gerais ? (
+        <>
+          <fieldset className="sc-filtro__grupo">
+            <legend className="sc-filtro__nome">Disponibilidade</legend>
+            <label className="sc-filtro__opcao">
+              <input
+                type="checkbox"
+                name={PARAMETRO_DO_ESTOQUE}
+                value="1"
+                defaultChecked={estoque}
+              />
+              Só em estoque
+            </label>
+          </fieldset>
+          <fieldset className="sc-filtro__grupo sc-filtro__preco">
+            <legend className="sc-filtro__nome">Preço</legend>
+            <label className="sc-filtro__campo" htmlFor="filtro-preco-de">
+              Preço mínimo (R$)
+              <input
+                id="filtro-preco-de"
+                className="sc-filtro__numero"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                name={PARAMETRO_DO_PRECO_DE}
+                defaultValue={
+                  precoMin === null ? "" : precoParaEndereco(precoMin)
+                }
+              />
+            </label>
+            <label className="sc-filtro__campo" htmlFor="filtro-preco-ate">
+              Preço máximo (R$)
+              <input
+                id="filtro-preco-ate"
+                className="sc-filtro__numero"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                name={PARAMETRO_DO_PRECO_ATE}
+                defaultValue={
+                  precoMax === null ? "" : precoParaEndereco(precoMax)
+                }
+              />
+            </label>
+          </fieldset>
+        </>
+      ) : null}
       <div className="sc-filtro__acoes">
-        {selecionados.length > 0 ? (
+        {ligado ? (
           <a
             className="sc-filtro__limpar"
             href={limparFiltros(acao, categoria, busca, ordem, atacado)}

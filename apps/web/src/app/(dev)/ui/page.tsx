@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { SecaoDaBaseVisual } from "./_secoes/SecaoDaBaseVisual.tsx";
 import { SecaoDosTemas } from "./_secoes/SecaoDosTemas.tsx";
 import { SecoesDaMarca } from "./_secoes/SecoesDaMarca.tsx";
 import { SecoesDasPecasNovas } from "./_secoes/SecoesDasPecasNovas.tsx";
@@ -55,6 +56,7 @@ export default function VitrineDoDesignSystem() {
       <SecaoDoInfo />
       <SecoesDeDados />
       <SecoesDasPecasNovas />
+      <SecaoDaBaseVisual />
       <SecaoDoSeletorDePeriodo />
       <SecoesDeRetorno />
       <SecaoDosTemas />

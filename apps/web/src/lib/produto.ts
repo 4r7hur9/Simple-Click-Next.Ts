@@ -41,6 +41,18 @@ export interface ImagemNaTela {
   readonly altura: number | null;
 }
 
+/** Uma mídia da galeria: foto ou vídeo, na ordem do dono. */
+export interface MidiaNaTela {
+  readonly tipo: "imagem" | "video";
+  readonly url: string;
+  /** A capa (poster) do vídeo; nula em foto ou vídeo sem capa. */
+  readonly capa: string | null;
+  readonly texto: string | null;
+  readonly largura: number | null;
+  readonly altura: number | null;
+  readonly duracaoSegundos: number | null;
+}
+
 /** Uma opção dentro de um grupo, como a tela a mostra. */
 export interface OpcaoNaTela {
   readonly id: string;
@@ -61,6 +73,8 @@ export interface GrupoNaTela {
   readonly maximo: number | null;
   readonly permiteRepetir: boolean;
   readonly eixoDeVariacao: boolean;
+  /** `INGREDIENT`, `ADDON`, `VARIATION`, `FRACTION` ou `SPEC`. Opcional para quem monta à mão. */
+  readonly tipo?: string | null | undefined;
   /** Derivada de `minimo >= 1`, como no banco e no contrato. */
   readonly obrigatorio: boolean;
   /** "Escolha 1", "Escolha até 3", "Opcional" — a regra em palavras. */
@@ -74,6 +88,8 @@ export interface VariacaoNaTela {
   readonly nome: string;
   readonly preco: string | null;
   readonly precoCentavos: number | null;
+  /** O preço "de" desta variação, só quando é maior que o atual. */
+  readonly precoAnterior?: string | null | undefined;
   readonly disponivel: boolean;
   readonly padrao: boolean;
   readonly valoresDosEixos: readonly {
@@ -95,6 +111,15 @@ export interface ProdutoNaTela {
   readonly chamada: string | null;
   readonly descricao: string | null;
   readonly imagens: readonly ImagemNaTela[];
+  /**
+   * Fotos e vídeos na ordem do dono. Ausente = a galeria usa `imagens`.
+   * `imagens` continua existindo: alimenta a prévia e os dados estruturados.
+   */
+  readonly midias?: readonly MidiaNaTela[] | undefined;
+  /** O que a loja cadastrou como especificação (T-10912); vazio = sem seção. */
+  readonly especificacoes?:
+    | readonly { readonly chave: string; readonly nome: string; readonly valor: string }[]
+    | undefined;
   readonly preco: string | null;
   readonly precoCentavos: number | null;
   readonly precoAnterior: string | null;
@@ -113,6 +138,40 @@ export interface ProdutoNaTela {
   readonly linkDaSecao: string | null;
   readonly nomeDaSecao: string | null;
   readonly linkDoCatalogo: string;
+}
+
+/**
+ * O convite a escolher, o mesmo no cartão e no detalhe (AC-10913).
+ *
+ * "Escolher tamanho" quando só a variação falta; "Escolher opções" nos demais
+ * casos. Nunca um valor que muda sozinho.
+ */
+export function conviteAEscolher(
+  rotuloDaVariacao: string,
+  { soFaltaVariacao }: { readonly soFaltaVariacao: boolean },
+): string {
+  const rotulo = rotuloDaVariacao.trim().toLowerCase();
+  return soFaltaVariacao && rotulo !== ""
+    ? `Escolher ${rotulo}`
+    : "Escolher opções";
+}
+
+/** As mídias da galeria: `midias` quando há, senão as fotos de `imagens`. */
+export function midiasDaGaleria(
+  produto: Pick<ProdutoNaTela, "midias" | "imagens">,
+): readonly MidiaNaTela[] {
+  if (produto.midias !== undefined && produto.midias.length > 0) {
+    return produto.midias;
+  }
+  return produto.imagens.map((imagem) => ({
+    tipo: "imagem" as const,
+    url: imagem.url,
+    capa: null,
+    texto: imagem.texto,
+    largura: imagem.largura,
+    altura: imagem.altura,
+    duracaoSegundos: null,
+  }));
 }
 
 /** O identificador do elemento de um grupo, para a página rolar até ele. */

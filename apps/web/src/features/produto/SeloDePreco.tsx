@@ -38,7 +38,7 @@ export function SeloDePreco({
         </span>
       ) : null}
       <span className="sc-produto__preco">
-        {precoAnterior ? <span className="sc-so-leitor">por </span> : null}
+        {precoAnterior ? <span className="sc-so-leitor">{" por "}</span> : null}
         {preco}
       </span>
     </p>

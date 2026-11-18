@@ -33,10 +33,10 @@ export async function buscarAcompanhamento(
         headers: { accept: "application/json" },
       },
     );
-  } catch (erro) {
+  } catch {
     return {
       estado: "indisponivel",
-      motivo: erro instanceof Error ? erro.message : "falha de rede",
+      motivo: "falha de rede",
     };
   }
 

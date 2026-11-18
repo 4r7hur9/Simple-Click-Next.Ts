@@ -11,6 +11,7 @@ import { TAMANHO_MAXIMO_DA_IMPORTACAO_EM_BYTES } from "@simpleclick/contracts";
 
 import { enderecoDaApi } from "../../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../../server/loja-do-painel.ts";
+import { recusarOrigemDeFora } from "../../../../../../server/protecao-da-conta.ts";
 
 const ACOES = new Set(["previa", "confirmar"]);
 
@@ -20,6 +21,9 @@ export async function POST(
   requisicao: Request,
   contexto: Contexto,
 ): Promise<Response> {
+  const recusada = recusarOrigemDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const { acao } = await contexto.params;
   if (!ACOES.has(acao)) {
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });

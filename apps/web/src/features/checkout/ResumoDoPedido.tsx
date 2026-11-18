@@ -29,6 +29,12 @@ export interface ResumoDoPedidoProps {
   /** Frase do que impede fechar; nulo quando o pedido pode seguir (AC-908). */
   readonly impedimento?: string | null | undefined;
   readonly estado?: EstadoDaTela | undefined;
+  /**
+   * O total ainda é uma estimativa: a taxa só é confirmada quando o pedido é
+   * criado. A nota fica FORA da lista de descrição, para cada valor continuar
+   * ligado ao próprio rótulo.
+   */
+  readonly estimativa?: boolean | undefined;
 }
 
 export function ResumoDoPedido({
@@ -37,13 +43,17 @@ export function ResumoDoPedido({
   total,
   impedimento,
   estado = "pronto",
+  estimativa = false,
 }: ResumoDoPedidoProps) {
   const idDoTitulo = useId();
 
   // Uma seção com título, e não um cartão dentro da janela: no fechamento o
   // resumo é o último bloco antes do botão, e caixa dentro de caixa só pesa.
   return (
-    <section className="sc-fechar__grupo sc-resumo-bloco" aria-labelledby={idDoTitulo}>
+    <section
+      className="sc-fechar__grupo sc-resumo-bloco"
+      aria-labelledby={idDoTitulo}
+    >
       <h3 className="sc-fechar__titulo" id={idDoTitulo}>
         Resumo do pedido
       </h3>
@@ -73,6 +83,13 @@ export function ResumoDoPedido({
           <dd className="sc-resumo__valor">{total}</dd>
         </div>
       </dl>
+
+      {estimativa ? (
+        <p className="sc-resumo__estimativa">
+          Valor estimado: a taxa de entrega é confirmada quando o pedido é
+          criado.
+        </p>
+      ) : null}
 
       {impedimento ? (
         <Aviso tom="atencao" titulo="Ainda não dá para fechar">

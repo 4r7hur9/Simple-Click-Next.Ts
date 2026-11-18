@@ -10,6 +10,7 @@
  * conferido contra endereço de fora), a pessoa volta para onde estava.
  */
 import { Suspense } from "react";
+import { Aviso } from "@simpleclick/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AoContinuarVoceConcorda } from "../../../features/legal/RodapeLegal.tsx";
@@ -26,6 +27,8 @@ function ConteudoDeEntrar() {
   const parametros = useSearchParams();
   const destino =
     parametros === null ? undefined : destinoDosParametros(parametros);
+  // O Sair não conseguiu revogar a conexão no servidor (card #111, AC-11119).
+  const saidaParcial = parametros?.get("saida") === "parcial";
 
   return (
     <CascaDaConta
@@ -33,6 +36,13 @@ function ConteudoDeEntrar() {
       titulo="Entrar"
       descricao="Use o e-mail e a senha da sua conta SimpleClick."
     >
+      {saidaParcial ? (
+        <Aviso tom="atencao" titulo="Você saiu deste navegador">
+          Não conseguimos encerrar esta conexão no servidor, então ela pode
+          continuar aberta. Entre de novo e use “Encerrar todas as sessões” em
+          Segurança.
+        </Aviso>
+      ) : null}
       <LoginForm
         aoEntrar={enviarLogin}
         aoPedirSegundoFator={(desafioId, canal) =>

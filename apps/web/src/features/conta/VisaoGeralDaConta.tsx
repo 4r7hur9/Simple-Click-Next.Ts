@@ -340,12 +340,12 @@ export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaC
           </div>
           <ul className="sc-inicio__lista">
             {lista.ultimos.map((p) => (
-              <li key={p.id} className="sc-pedidos__pedido" data-pedido={p.id}>
-                <div className="sc-pedidos__topo">
-                  <p className="sc-pedidos__numero">{p.loja.nome}</p>
+              <li key={p.id} className="sc-meus-pedidos__pedido" data-pedido={p.id}>
+                <div className="sc-meus-pedidos__topo">
+                  <p className="sc-meus-pedidos__numero">{p.loja.nome}</p>
                   <Selo tom={tomDoStatus(p.status)}>{rotuloDoStatus(p.status)}</Selo>
                 </div>
-                <p className="sc-pedidos__resumo">
+                <p className="sc-meus-pedidos__resumo">
                   Pedido nº {p.numero} · <time dateTime={p.criadoEm}>{quando(p.criadoEm)}</time> · {escreverDinheiro(p.totalCentavos)}
                 </p>
                 <div className="sc-minha-conta__acao">

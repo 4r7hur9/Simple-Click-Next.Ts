@@ -32,9 +32,17 @@ import {
   PARAMETRO_DA_CATEGORIA,
   PARAMETRO_DA_ORDEM,
   PARAMETRO_DO_ATACADO,
+  ORDENS_NOVAS,
+  PARAMETRO_DO_ESTOQUE,
+  PARAMETRO_DO_PRECO_ATE,
+  PARAMETRO_DO_PRECO_DE,
+  precoParaEndereco,
+  precoParaLeitura,
   PARAMETRO_DO_CURSOR,
   ROTULO_DE_TODAS,
+  rotuloDoValor,
   type AbaDeCategoria,
+  type FiltroAtivoNaTela,
   type MaisProdutosNaTela,
   type RecorteDaLista,
   type OpcaoDeOrdem,
@@ -91,6 +99,10 @@ interface RecorteDoEndereco {
   readonly filtros?: readonly string[] | undefined;
   /** `?atacado=1` (card #59): atravessa abas, ordem e busca, como os filtros. */
   readonly atacado?: boolean | undefined;
+  /** `?estoque=1`, `?preco-de=` e `?preco-ate=` (card #108); preços em centavos. */
+  readonly estoque?: boolean | undefined;
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
   /** `?cursor=` (card #74): a página seguinte de uma lista, sem script. */
   readonly cursor?: string | null | undefined;
 }
@@ -112,6 +124,9 @@ function enderecoDoCatalogo(
     ordem = "relevancia",
     filtros = [],
     atacado = false,
+    estoque = false,
+    precoMin = null,
+    precoMax = null,
     cursor = null,
   }: RecorteDoEndereco,
 ): string {
@@ -128,6 +143,13 @@ function enderecoDoCatalogo(
   }
   if (atacado) {
     partes.push(`${PARAMETRO_DO_ATACADO}=1`);
+  }
+  if (estoque) partes.push(`${PARAMETRO_DO_ESTOQUE}=1`);
+  if (precoMin !== null) {
+    partes.push(`${PARAMETRO_DO_PRECO_DE}=${precoParaEndereco(precoMin)}`);
+  }
+  if (precoMax !== null) {
+    partes.push(`${PARAMETRO_DO_PRECO_ATE}=${precoParaEndereco(precoMax)}`);
   }
   if (ordem !== "relevancia") {
     partes.push(`${PARAMETRO_DA_ORDEM}=${ordem}`);
@@ -146,13 +168,18 @@ const COMPARAR_NOMES = new Intl.Collator("pt-BR", { sensitivity: "base" });
  * que ele não tem. Empate mantém a ordem do dono (o `sort` é estável).
  *
  * Só serve ao catálogo INTEIRO (`prepararCatalogo`); no catálogo em páginas
- * quem ordena é a API, com a mesma regra.
+ * quem ordena é a API, com a mesma regra. A TV NÃO aplica estoque, faixa nem as
+ * ordens novas.
  */
 function ordenar(
   produtos: readonly ProdutoNaVitrineNoContrato[],
   ordem: OrdemDoCatalogo,
 ): readonly ProdutoNaVitrineNoContrato[] {
-  if (ordem === "relevancia") return produtos;
+  // As ordens novas (lançamentos e desconto de atacado, card #108) e o estoque
+  // e a faixa de preço só existem na API: este caminho (a TV e as provas, com o
+  // catálogo inteiro na mão) mantém a ordem do dono, e o comentário acima vale
+  // só para as ordens que ele conhece.
+  if (ordem === "relevancia" || ORDENS_NOVAS.includes(ordem)) return produtos;
   const copia = [...produtos];
   if (ordem === "a-z") {
     return copia.sort((a, b) => COMPARAR_NOMES.compare(a.nome, b.nome));
@@ -177,6 +204,10 @@ export interface OpcoesDoCatalogo {
   readonly filtros?: readonly string[] | undefined;
   /** O filtro de atacado está ligado no endereço (card #59). */
   readonly atacado?: boolean | undefined;
+  /** Estoque e faixa de preço (card #108); preços em centavos. */
+  readonly estoque?: boolean | undefined;
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
 }
 
 /** O texto não vazio, ou nulo. */
@@ -203,7 +234,9 @@ export function precisaDePagina(
  *
  * É o caminho de quem já tem a loja toda na mão (a TV, as provas). Ele monta
  * o mesmo resumo e a mesma página que a API devolveria e passa pelo MESMO
- * `prepararCatalogoEmPaginas` — as duas formas não têm como divergir.
+ * `prepararCatalogoEmPaginas` — as duas formas não têm como divergir nas
+ * ordens e filtros que a TV conhece. Estoque, faixa de preço e as ordens novas
+ * (card #108) só a API aplica: aqui valem como se não tivessem sido pedidos.
  */
 export function prepararCatalogo(
   catalogo: CatalogoDaVitrineNoContrato,
@@ -263,16 +296,25 @@ export function prepararCatalogoEmPaginas(
     ordem: ordemPedida,
     filtros = [],
     atacado = false,
+    estoque = false,
+    precoMin = null,
+    precoMax = null,
   }: OpcoesDoCatalogo,
 ): CatalogoNaTela {
   const termo = preenchido(termoBuscado);
   const ordem = lerOrdem(ordemPedida);
+  // Os filtros que atravessam abas, ordem e "Ver mais", como o atacado.
+  const globais = { estoque, precoMin, precoMax };
   const recorte = (categoria: string | null): RecorteDaLista => ({
     categoria,
     busca: termo,
     filtros: [...filtros],
     atacado,
     ordem,
+    // Só quando ligados: o recorte de sempre não ganha campo nenhum.
+    ...(estoque ? { estoque } : {}),
+    ...(precoMin !== null ? { precoMin } : {}),
+    ...(precoMax !== null ? { precoMax } : {}),
   });
 
   const secoes: readonly SecaoNaTela[] = resumo.secoes.map((secao) => ({
@@ -289,6 +331,7 @@ export function prepararCatalogoEmPaginas(
             cursor: secao.proximoCursor,
             recorte: { ...recorte(secao.apelido), ordem: "relevancia" },
             link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
               categoria: secao.apelido,
               busca: termo,
               filtros,
@@ -311,9 +354,18 @@ export function prepararCatalogoEmPaginas(
   //
   // O MESMO VALE PARA O ATACADO (card #59): ligado e sem acerto é "nenhum
   // produto com atacado", e não loja vazia.
-  const lojaSemCatalogo = termo === null && !atacado && semProduto;
+  //
+  // O MESMO VALE PARA O FILTRO DE ESPECIFICAÇÃO (card #108): a API tira as
+  // seções sem acerto, então um filtro sem nenhum produto deixa `secoes` vazio —
+  // e isso NÃO é loja sem catálogo, nem "atacado" sem acerto. É "nenhum produto
+  // com esse filtro", e a tela precisa manter a barra para desfazê-lo.
+  const comFiltro =
+    filtros.length > 0 || estoque || precoMin !== null || precoMax !== null;
+  const lojaSemCatalogo =
+    termo === null && !atacado && !comFiltro && semProduto;
   const buscaSemAcerto = termo !== null && semProduto;
-  const atacadoSemAcerto = termo === null && atacado && semProduto;
+  const atacadoSemAcerto =
+    termo === null && atacado && !comFiltro && semProduto;
 
   const pedida = preenchido(categoriaEscolhida);
   const escolhida =
@@ -325,28 +377,39 @@ export function prepararCatalogoEmPaginas(
   // compartilhado depois de o dono renomear a seção, ou alguém digitando. A
   // página continua inteira e diz que aquela categoria não existe mais, com o
   // caminho de volta — 404 aqui perderia a loja junto com a categoria.
-  const filtroSemAcerto = pedida !== null && escolhida === null;
+  const categoriaPedidaAusente = pedida !== null && escolhida === null;
+  // Só é "a categoria não existe mais" quando NENHUM filtro está ligado: com
+  // filtro, a API também tira a seção que existe mas não tem acerto, e a
+  // explicação certa é a do filtro.
+  const filtroSemAcerto = categoriaPedidaAusente && !comFiltro;
+  const filtroSemAcertoNaLista =
+    comFiltro &&
+    termo === null &&
+    (semProduto || categoriaPedidaAusente);
 
   const abas: readonly AbaDeCategoria[] = [
     {
       nome: ROTULO_DE_TODAS,
       link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
         categoria: null,
         busca: termo,
         ordem,
         atacado,
       }),
-      emVigor: escolhida === null && !filtroSemAcerto,
+      emVigor: escolhida === null && !categoriaPedidaAusente,
     },
     ...secoes.map((secao) => ({
       nome: secao.nome,
       link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
         categoria: secao.apelido,
         busca: termo,
         ordem,
         atacado,
       }),
       emVigor: escolhida !== null && secao.apelido === escolhida.apelido,
+      total: secao.total,
     })),
   ];
 
@@ -363,6 +426,7 @@ export function prepararCatalogoEmPaginas(
             cursor: pagina.proximoCursor,
             recorte: recorte(categoria),
             link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
               categoria,
               busca: termo,
               ordem,
@@ -388,7 +452,7 @@ export function prepararCatalogoEmPaginas(
   const secoesNaOrdem: readonly SecaoNaTela[] =
     escolhida !== null
       ? [daPagina(escolhida, escolhida.apelido)]
-      : ordem === "relevancia" || semProduto || filtroSemAcerto
+      : ordem === "relevancia" || semProduto || categoriaPedidaAusente
         ? secoes
         : [
             daPagina(
@@ -401,6 +465,7 @@ export function prepararCatalogoEmPaginas(
     valor: opcao.valor,
     nome: opcao.nome,
     link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
       categoria: escolhida?.apelido ?? null,
       busca: termo,
       ordem: opcao.valor,
@@ -412,6 +477,64 @@ export function prepararCatalogoEmPaginas(
 
   const faceta = resumo.atacado ?? { produtos: 0, menorPedidoMinimo: null };
 
+  // Um chip por filtro de especificação ligado. O rótulo usa o nome que a API
+  // oferece ("Tamanho"); chave que a API não oferece mais cai na própria chave.
+  const oferecidos = resumo.filtros ?? [];
+  const semOsGlobais = { estoque: false, precoMin: null, precoMax: null };
+  const linkSem = (retirar: Partial<RecorteDoEndereco>) =>
+    enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
+      categoria: pedida,
+      busca: termo,
+      ordem,
+      filtros,
+      atacado,
+      ...retirar,
+    });
+  const filtrosDeEspecificacao: readonly FiltroAtivoNaTela[] = filtros.map((ligado) => {
+    const separador = ligado.indexOf("=");
+    const chave = separador === -1 ? ligado : ligado.slice(0, separador);
+    const valor = separador === -1 ? "" : ligado.slice(separador + 1);
+    const nome = oferecidos.find((f) => f.chave === chave)?.nome ?? chave;
+    return {
+      rotulo: valor === "" ? nome : `${nome}: ${rotuloDoValor(valor)}`,
+      // A categoria do endereço fica como a pessoa a pediu: tirar um filtro não
+      // pode trocar de categoria.
+      link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
+        categoria: pedida,
+        busca: termo,
+        ordem,
+        filtros: filtros.filter((outro) => outro !== ligado),
+        atacado,
+      }),
+    };
+  });
+  // Estoque e faixa de preço (card #108): um chip cada, e cada um tira só o seu.
+  const filtrosAtivos: readonly FiltroAtivoNaTela[] = [
+    ...filtrosDeEspecificacao,
+    ...(estoque
+      ? [{ rotulo: "Em estoque", link: linkSem({ estoque: false }) }]
+      : []),
+    ...(precoMin !== null || precoMax !== null
+      ? [
+          {
+            rotulo:
+              precoMin !== null && precoMax !== null
+                ? `Preço: ${precoParaLeitura(precoMin)} a ${precoParaLeitura(precoMax)}`
+                : precoMin !== null
+                  ? `Preço: a partir de ${precoParaLeitura(precoMin)}`
+                  : `Preço: até ${precoParaLeitura(precoMax ?? 0)}`,
+            link: linkSem({ precoMin: null, precoMax: null }),
+          },
+        ]
+      : []),
+  ];
+  const totalEncontrado =
+    pagina !== null
+      ? pagina.total
+      : secoes.reduce((soma, secao) => soma + (secao.total ?? 0), 0);
+
   return {
     filtros: resumo.filtros ?? [],
     secoes: secoesNaOrdem,
@@ -422,12 +545,13 @@ export function prepararCatalogoEmPaginas(
     // E SOMEM FORA DA ORDEM DO DONO: "destaques primeiro" é justamente uma das
     // ordens, e quem pediu "menor preço" quer a lista começando pelo mais barato.
     destaques:
-      escolhida === null && !filtroSemAcerto && ordem === "relevancia"
+      escolhida === null && !categoriaPedidaAusente && ordem === "relevancia"
         ? resumo.destaques.map((p) => prepararProduto(p, apelidoDaLoja))
         : [],
     abas,
     filtroEmVigor: escolhida?.nome ?? null,
     linkDeTodas: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
       categoria: null,
       busca: termo,
       ordem,
@@ -436,11 +560,20 @@ export function prepararCatalogoEmPaginas(
     termoBuscado: termo,
     buscaSemAcerto,
     linkSemBusca: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
       categoria: null,
       busca: null,
     }),
     lojaSemCatalogo,
     filtroSemAcerto,
+    filtroSemAcertoNaLista,
+    linkSemFiltros: enderecoDoCatalogo(apelidoDaLoja, {
+      ...semOsGlobais,
+      categoria: pedida,
+      busca: termo,
+      ordem,
+      atacado,
+    }),
     ordem,
     ordens,
     atacado: {
@@ -448,6 +581,7 @@ export function prepararCatalogoEmPaginas(
       menorPedidoMinimo: faceta.menorPedidoMinimo,
       ligado: atacado,
       link: enderecoDoCatalogo(apelidoDaLoja, {
+      ...globais,
         categoria: escolhida?.apelido ?? null,
         busca: termo,
         ordem,
@@ -456,5 +590,7 @@ export function prepararCatalogoEmPaginas(
       }),
     },
     atacadoSemAcerto,
+    filtrosAtivos,
+    totalEncontrado,
   };
 }

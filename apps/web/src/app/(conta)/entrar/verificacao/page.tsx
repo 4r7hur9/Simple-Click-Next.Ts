@@ -12,10 +12,14 @@ import { CodigoDeRecuperacaoForm } from "../../../../features/auth/CodigoDeRecup
 import { CodigoForm } from "../../../../features/auth/CodigoForm.tsx";
 import { CascaDaConta } from "../../../../features/auth/CascaDaConta.tsx";
 import {
+  destinoDepoisDoSegundoFator,
   respostaDaRecuperacao,
   respostaDoCodigo,
 } from "../../../../features/auth/respostas-de-acesso.ts";
-import { destinoDosParametros } from "../../../../features/auth/destino-seguro.ts";
+import {
+  comDestino,
+  destinoDosParametros,
+} from "../../../../lib/destino-seguro.ts";
 
 /** POST na ponte e o corpo lido, sem confiar na forma. */
 async function enviarParaAPonte(caminho: string, corpo: unknown) {
@@ -38,9 +42,12 @@ function ConteudoDaVerificacao() {
   // Quem veio de uma página (a loja, o checkout) volta para ela.
   const destino = destinoDosParametros(parametros);
 
+  // Recomeçar o login não faz a pessoa perder para onde ia.
+  const paraEntrar = comDestino("/entrar", destino);
+
   useEffect(() => {
-    if (desafioId === null || desafioId === "") roteador.replace("/entrar");
-  }, [desafioId, roteador]);
+    if (desafioId === null || desafioId === "") roteador.replace(paraEntrar);
+  }, [desafioId, paraEntrar, roteador]);
 
   if (desafioId === null || desafioId === "") {
     return <p role="status">Voltando para o login…</p>;
@@ -68,7 +75,9 @@ function ConteudoDaVerificacao() {
             );
             return respostaDaRecuperacao(status, corpo);
           }}
-          aoCriarSessao={(caminho) => roteador.replace(caminho)}
+          aoCriarSessao={(resposta) =>
+            roteador.replace(destinoDepoisDoSegundoFator({ ...resposta, destino }))
+          }
         />
       ) : (
         <CodigoForm
@@ -81,9 +90,14 @@ function ConteudoDaVerificacao() {
             return respostaDoCodigo(status, corpo);
           }}
           aoCriarSessao={(paraOPapel) =>
-            roteador.replace(destino ?? paraOPapel)
+            roteador.replace(
+              destinoDepoisDoSegundoFator({
+                redirecionarPara: paraOPapel,
+                destino,
+              }),
+            )
           }
-          aoRecomecarLogin={() => roteador.replace("/entrar")}
+          aoRecomecarLogin={() => roteador.replace(paraEntrar)}
         />
       )}
       {canal === "TOTP" ? (

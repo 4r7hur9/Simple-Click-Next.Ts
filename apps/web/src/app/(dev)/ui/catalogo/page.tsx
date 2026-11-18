@@ -3,8 +3,6 @@ import { TemaDaLoja, PALETA_CLARA } from "@simpleclick/ui";
 import { BannersPromocionais } from "../../../../features/vitrine/BannersPromocionais.tsx";
 import { BANNERS_DE_DEMONSTRACAO } from "../../../../features/vitrine/banners-de-demonstracao.ts";
 
-import { SacolaDeExemplo } from "./SacolaDeExemplo.tsx";
-
 /**
  * Página `/ui/catalogo`: as peças novas do cardápio com dados de exemplo —
  * os banners promocionais (3, 1 e nenhum) e a sacola flutuante arrastável —,
@@ -31,8 +29,6 @@ export default function PreviaDoCatalogo() {
         <h2>Nenhum banner (a seção não aparece)</h2>
         <BannersPromocionais banners={[]} />
 
-        <h2>Sacola flutuante</h2>
-        <SacolaDeExemplo />
         <div style={{ blockSize: "120vh" }} />
       </main>
     </TemaDaLoja>

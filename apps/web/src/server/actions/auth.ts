@@ -6,9 +6,12 @@
  * funcionam sem JavaScript e o cookie de renovação nunca chega ao navegador
  * como texto.
  *
- * Sair revoga no servidor ANTES de apagar o cookie: se a API falhar, o
- * cookie fica e a pessoa tenta de novo, em vez de deixar o token válido
- * escondido em outro lugar.
+ * Sair revoga no servidor e SEMPRE apaga os cookies deste navegador (card
+ * #111, AC-11119): se a API falhar, a pessoa sai mesmo assim (era pior ficar
+ * logada num aparelho compartilhado) e é levada a `/entrar?saida=parcial`,
+ * que diz que a conexão pode continuar aberta no servidor. "Encerrar todas as
+ * sessões" mantém o contrário: a promessa dela é sobre os outros aparelhos, e
+ * se falhar nada foi encerrado, então os cookies ficam para tentar de novo.
  */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -21,8 +24,14 @@ import {
   NOME_DO_COOKIE_DE_RENOVACAO,
 } from "../session-cookie.ts";
 
+/** Saiu deste navegador, mas a API não confirmou a revogação (AC-11119). */
+const DESTINO_DA_SAIDA_PARCIAL = "/entrar?saida=parcial";
+
 type Caminho =
   "/v1/auth/sessoes/atual/encerrar" | "/v1/auth/sessoes/encerrar-todas";
+
+/** Quanto esperar a API: o Sair não pode travar com ela fora do ar. */
+const ESPERA_DA_REVOGACAO_EM_MS = 4_000;
 
 /** Pede o encerramento à API; devolve se ela confirmou. */
 async function pedirEncerramento(caminho: Caminho): Promise<boolean> {
@@ -49,6 +58,7 @@ async function pedirEncerramento(caminho: Caminho): Promise<boolean> {
       method: "POST",
       cache: "no-store",
       headers: cabecalhos,
+      signal: AbortSignal.timeout(ESPERA_DA_REVOGACAO_EM_MS),
     });
     return resposta.ok;
   } catch {
@@ -75,11 +85,9 @@ async function apagarCookiesDaSessao(): Promise<void> {
 
 /** Sai apenas deste navegador, revogando antes o token na API. */
 export async function sairDaConta(): Promise<void> {
-  if (!(await pedirEncerramento("/v1/auth/sessoes/atual/encerrar"))) {
-    redirect("/conta/seguranca?estado=erro");
-  }
+  const revogada = await pedirEncerramento("/v1/auth/sessoes/atual/encerrar");
   await apagarCookiesDaSessao();
-  redirect("/entrar");
+  redirect(revogada ? "/entrar" : DESTINO_DA_SAIDA_PARCIAL);
 }
 
 /** Sai de todos os navegadores e dispositivos conectados à conta. */
@@ -98,9 +106,7 @@ export async function encerrarTodasAsSessoes(): Promise<void> {
  * cliente não escolhe destino fora do site.
  */
 export async function sairPelaBarra(caminho: string): Promise<void> {
-  if (!(await pedirEncerramento("/v1/auth/sessoes/atual/encerrar"))) {
-    redirect("/conta/seguranca?estado=erro");
-  }
+  const revogada = await pedirEncerramento("/v1/auth/sessoes/atual/encerrar");
   await apagarCookiesDaSessao();
-  redirect(destinoDepoisDeSair(caminho));
+  redirect(revogada ? destinoDepoisDeSair(caminho) : DESTINO_DA_SAIDA_PARCIAL);
 }

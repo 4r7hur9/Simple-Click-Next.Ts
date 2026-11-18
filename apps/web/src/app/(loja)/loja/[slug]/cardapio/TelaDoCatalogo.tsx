@@ -25,9 +25,8 @@
  * primeiro produto seria a soma das duas idas — que é o que o AC-415 mede.
  */
 import { notFound } from "next/navigation";
-import { corDaImagem } from "@simpleclick/contracts";
 import {
-  COR_DE_DESTAQUE_PADRAO_DA_LOJA,
+  IconeOrdenar,
   TemaDaMarca,
   Vazio,
 } from "@simpleclick/ui";
@@ -38,25 +37,34 @@ import {
   type RecebimentoDaLoja,
 } from "../../../../../features/loja/SobreDaLoja.tsx";
 import { JanelaDoProduto } from "../../../../../features/produto/JanelaDoProduto.tsx";
-import { CapaDaVitrine } from "../../../../../features/vitrine/CapaDaVitrine.tsx";
+import { CabecalhoDoCatalogo } from "../../../../../features/vitrine/CabecalhoDoCatalogo.tsx";
 import { BannersPromocionais } from "../../../../../features/vitrine/BannersPromocionais.tsx";
 import { BarraDeCatalogo } from "../../../../../features/vitrine/BarraDeCatalogo.tsx";
 import {
   BANNERS_DE_DEMONSTRACAO,
   PARAMETRO_DOS_BANNERS_DE_DEMONSTRACAO,
 } from "../../../../../features/vitrine/banners-de-demonstracao.ts";
-import { SemResultado } from "../../../../../features/vitrine/BuscaProduto.tsx";
-import { Destaques } from "../../../../../features/vitrine/Destaques.tsx";
+import {
+  BuscaProduto,
+  SemResultado,
+} from "../../../../../features/vitrine/BuscaProduto.tsx";
+import { FiltrosAtivos } from "../../../../../features/vitrine/FiltrosAtivos.tsx";
 import { GradeDeProdutos } from "../../../../../features/vitrine/GradeDeProdutos.tsx";
-import { BlocosPorRamo } from "../../../../../features/painel-catalogo/BlocosPorRamo.tsx";
 import {
   PARAMETRO_DA_BUSCA,
   PARAMETRO_DA_CATEGORIA,
   PARAMETRO_DA_ORDEM,
   PARAMETRO_DO_ATACADO,
   PARAMETRO_DO_CURSOR,
+  PARAMETRO_DO_ESTOQUE,
+  PARAMETRO_DO_PRECO_ATE,
+  PARAMETRO_DO_PRECO_DE,
   lerAtacado,
+  lerEstoque,
   lerOrdem,
+  lerPrecoEmReais,
+  limitarFiltros,
+  ORDENS_NOVAS,
 } from "../../../../../lib/catalogo.ts";
 import type { ProdutoNaTela } from "../../../../../lib/produto.ts";
 import { temBloco } from "../../../../../lib/vertical.ts";
@@ -120,17 +128,36 @@ export async function TelaDoCatalogo({
   const termo = primeiro(consulta[PARAMETRO_DA_BUSCA]);
   const categoria = primeiro(consulta[PARAMETRO_DA_CATEGORIA]);
   const filtroNoEndereco = consulta["filtro"];
-  const filtros =
+  // Sem repetidos e dentro do que a API aceita (20 filtros de 120 caracteres):
+  // marcar 21 valores no formulário não pode derrubar a tela.
+  const filtros = limitarFiltros(
     filtroNoEndereco === undefined
       ? []
       : Array.isArray(filtroNoEndereco)
         ? filtroNoEndereco
-        : [filtroNoEndereco];
+        : [filtroNoEndereco],
+  );
   const atacado = lerAtacado(primeiro(consulta[PARAMETRO_DO_ATACADO]));
+  // Estoque e faixa de preço (card #108). O preço vem em reais e vira centavos;
+  // o que não é número é ignorado, e min maior que max troca de lugar.
+  const estoque = lerEstoque(primeiro(consulta[PARAMETRO_DO_ESTOQUE]));
+  let precoMin = lerPrecoEmReais(primeiro(consulta[PARAMETRO_DO_PRECO_DE]));
+  let precoMax = lerPrecoEmReais(primeiro(consulta[PARAMETRO_DO_PRECO_ATE]));
+  if (precoMin !== null && precoMax !== null && precoMin > precoMax) {
+    [precoMin, precoMax] = [precoMax, precoMin];
+  }
 
   const ordemPedida = primeiro(consulta[PARAMETRO_DA_ORDEM]);
   const comPagina = precisaDePagina(categoria, ordemPedida);
-  const recorte = { busca: termo, categoria, filtros, atacado };
+  const recorte = {
+    busca: termo,
+    categoria,
+    filtros,
+    atacado,
+    estoque,
+    precoMin,
+    precoMax,
+  };
 
   // Em paralelo. O fechamento só alimenta a janela do Sobre (pagamento e
   // entrega), e não pode atrasar o cardápio.
@@ -163,6 +190,13 @@ export async function TelaDoCatalogo({
 
   const vitrine = resultadoComRascunho(vitrineSalva, rascunho);
 
+  // A API ainda não conhece os filtros novos e a leitura foi repetida sem eles:
+  // a lista veio SEM estoque, faixa ou ordem nova, e a tela não os mostra como
+  // aplicados (chips, ordem em vigor) — só avisa.
+  const degradado =
+    (resumo.estado === "encontrado" && resumo.degradado === true) ||
+    (pagina?.estado === "encontrado" && pagina.degradado === true);
+
   // Inexistente e suspensa caem no MESMO lugar, porque a API já as respondeu
   // igual (AC-402). Distinguir aqui desfaria o cuidado tomado lá.
   if (
@@ -194,12 +228,40 @@ export async function TelaDoCatalogo({
       apelidoDaLoja: loja.apelido,
       categoriaEscolhida: categoria,
       termoBuscado: termo,
-      ordem: ordemPedida,
+      ordem:
+        degradado && ORDENS_NOVAS.includes(lerOrdem(ordemPedida))
+          ? "relevancia"
+          : ordemPedida,
       filtros,
       atacado,
+      estoque: degradado ? false : estoque,
+      precoMin: degradado ? null : precoMin,
+      precoMax: degradado ? null : precoMax,
     },
   );
   const carregarMais = carregarMaisProdutos.bind(null, loja.apelido);
+
+  // CATEGORIA QUE NÃO EXISTE MAIS (AC-10825): a página continua inteira, com o
+  // aviso e o catálogo logo abaixo. Com categoria no endereço, o resumo acima
+  // foi pedido SEM os produtos (`porSecao` ausente = só contagens) e a página
+  // veio vazia; para listar o catálogo é preciso uma segunda leitura, sem a
+  // categoria. É o caminho raro (endereço velho), e só ele paga a ida extra.
+  let secoesDoCatalogoInteiro: typeof naTela.secoes = [];
+  if (naTela.filtroSemAcerto) {
+    const inteiro = await buscarResumoDoCatalogo(slug, {
+      busca: termo,
+      atacado,
+      porSecao: PRODUTOS_POR_SECAO,
+      totalMaximo: PRODUTOS_NA_PRIMEIRA_TELA,
+    });
+    if (inteiro.estado === "encontrado") {
+      secoesDoCatalogoInteiro = prepararCatalogoEmPaginas(inteiro.dados, null, {
+        apelidoDaLoja: loja.apelido,
+        termoBuscado: termo,
+        atacado,
+      }).secoes;
+    }
+  }
 
   // `?banners=demo` mostra artes de exemplo, SÓ fora de produção: o cadastro
   // dos banners ainda não existe, e assim dá para ver a faixa funcionando.
@@ -221,28 +283,41 @@ export async function TelaDoCatalogo({
         }
       : null;
 
-  const capaDoTopo = loja.tema?.topoCardapio ?? loja.capa;
-  // A versão do celular só vale junto da foto do topo do tema.
-  const capaDoTopoNoCelular = loja.tema?.topoCardapio
-    ? (loja.tema.topoCardapioCelular ?? null)
-    : null;
+  const endereco = loja.enderecoParaRetirada;
+  const lugar =
+    [endereco?.bairro, endereco?.cidade]
+      .filter((parte): parte is string => Boolean(parte))
+      .join(", ") || null;
+
+  // A busca é a mesma nas duas larguras; só muda onde ela mora (cabeçalho até
+  // o tablet, em cima da grade no computador). Cada cópia tem o seu `id`.
+  const propsDaBusca = {
+    acao,
+    termo: naTela.termoBuscado,
+    rotuloDoCatalogo: loja.rotulos.catalogo,
+    ordem: naTela.ordem,
+    atacado: naTela.atacado.ligado,
+    estoque: degradado ? false : estoque,
+    precoMin: degradado ? null : precoMin,
+    precoMax: degradado ? null : precoMax,
+  } as const;
+  const ordemEmVigor = naTela.ordens.find((opcao) => opcao.emVigor);
 
   return (
-    <TemaDaMarca
-      corDestaque={loja.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO_DA_LOJA}
-      className="sc-pagina-da-loja"
-    >
-      <main className="sc-vitrine">
-        <CapaDaVitrine
+    <TemaDaMarca className="sc-pagina-da-loja">
+      <main className="sc-vitrine sc-catalogo">
+        <CabecalhoDoCatalogo
           apelidoDaLoja={loja.apelido}
           nomeDaLoja={loja.nome}
-          capa={capaDoTopo}
-          capaCelular={capaDoTopoNoCelular}
-          ramo={loja.ramo}
+          logo={loja.logo}
           rotuloDoCatalogo={loja.rotulos.catalogo}
           abertura={abertura}
-          seloDeStatus={loja.tema?.seloDeStatus}
-          corDaCapa={corDaImagem(loja.tema, capaDoTopo)}
+          lugar={lugar}
+          busca={
+            naTela.lojaSemCatalogo ? null : (
+              <BuscaProduto {...propsDaBusca} id="busca-no-topo" />
+            )
+          }
         />
 
         {/*
@@ -255,6 +330,7 @@ export async function TelaDoCatalogo({
         {naTela.filtroEmVigor === null &&
         naTela.termoBuscado === null &&
         naTela.ordem === "relevancia" &&
+        filtros.length === 0 &&
         !atacado &&
         produtoAberto === null ? (
           <DadosEstruturados
@@ -269,10 +345,12 @@ export async function TelaDoCatalogo({
         {naTela.lojaSemCatalogo ? (
           // AC-407: loja recém-criada explica que está montando o catálogo, em
           // vez de mostrar uma tela vazia que lê como erro de carregamento.
-          <Vazio
-            titulo={`O ${loja.rotulos.catalogo.toLowerCase()} está sendo montado`}
-            descricao={`${loja.nome} ainda não publicou produtos. Volte em breve.`}
-          />
+          <div className="sc-catalogo__produtos">
+            <Vazio
+              titulo={`O ${loja.rotulos.catalogo.toLowerCase()} está sendo montado`}
+              descricao={`${loja.nome} ainda não publicou produtos. Volte em breve.`}
+            />
+          </div>
         ) : (
           <>
             <BarraDeCatalogo
@@ -288,66 +366,129 @@ export async function TelaDoCatalogo({
               ordem={naTela.ordem}
               acao={acao}
               categoria={categoria}
+              estoque={degradado ? false : estoque}
+              precoMin={degradado ? null : precoMin}
+              precoMax={degradado ? null : precoMax}
               busca={termo}
-              termo={naTela.termoBuscado}
-              rotuloDoCatalogo={loja.rotulos.catalogo}
               atacado={naTela.atacado}
             />
 
-            <BannersPromocionais banners={banners} />
-
-            <BlocosPorRamo
-              blocos={loja.blocos}
-              tela="vitrine"
-              bloco="destaques"
-            >
-              <Destaques destaques={naTela.destaques} />
-            </BlocosPorRamo>
-
-            {naTela.buscaSemAcerto ? (
-              <SemResultado
-                termo={naTela.termoBuscado ?? ""}
-                linkDeTodos={naTela.linkSemBusca}
-                rotuloDoCatalogo={loja.rotulos.catalogo}
-              />
-            ) : naTela.atacadoSemAcerto ? (
-              <Vazio
-                titulo="Nenhum produto com preço de atacado"
-                descricao={`Por enquanto, ${loja.nome} não tem produtos com preço de atacado.`}
-                acao={
-                  <a className="sc-vitrine__aba" href={naTela.atacado.link}>
-                    Ver o {loja.rotulos.catalogo.toLowerCase()} inteiro
-                  </a>
-                }
-              />
-            ) : naTela.filtroSemAcerto ? (
-              // Categoria que não existe mais não derruba a página: ela explica
-              // e oferece a saída, porque vazio sem caminho é beco sem saída.
-              <Vazio
-                titulo="Essa categoria não existe mais"
-                descricao={`Ela pode ter sido renomeada ou retirada do ${loja.rotulos.catalogo.toLowerCase()}.`}
-                acao={
-                  <a className="sc-vitrine__aba" href={naTela.linkDeTodas}>
-                    Ver o {loja.rotulos.catalogo.toLowerCase()} inteiro
-                  </a>
-                }
-              />
-            ) : (
-              <div className="sc-vitrine__secoes">
-                {naTela.secoes.map((secao, indice) => (
-                  <GradeDeProdutos
-                    key={secao.id}
-                    secao={secao}
-                    primeira={indice === 0}
-                    carregarMais={carregarMais}
-                    // A lista única carrega sozinha na rolagem.
-                    automatico={comPagina}
-                  />
-                ))}
+            {/*
+              Tudo o que não é a barra mora aqui: banners, destaques, as seções
+              e os vazios. É o item "produtos" da grade de três zonas.
+            */}
+            <div className="sc-catalogo__produtos">
+              {/*
+                No computador, a busca e a ordem ficam num cartão em cima da
+                grade (como na referência); até o tablet elas moram no
+                cabeçalho e na barra, e esta faixa não aparece.
+              */}
+              <div className="sc-catalogo__ferramentas">
+                <BuscaProduto {...propsDaBusca} id="busca-sobre-a-grade" />
+                <button
+                  type="button"
+                  className="sc-catalogo__ordenar"
+                  popoverTarget="painel-da-ordem"
+                >
+                  <IconeOrdenar aria-hidden="true" />
+                  <span className="sc-catalogo__ordenar-rotulo">Ordenar:</span>
+                  <span className="sc-catalogo__ordenar-valor">
+                    {ordemEmVigor?.nome ?? "Relevância"}
+                  </span>
+                </button>
               </div>
-            )}
+
+              {degradado ? (
+                <p role="status" className="sc-catalogo__aviso">
+                  Alguns filtros não puderam ser aplicados agora.
+                </p>
+              ) : null}
+              <FiltrosAtivos
+                ativos={naTela.filtrosAtivos ?? []}
+                total={naTela.totalEncontrado ?? 0}
+              />
+
+              <BannersPromocionais banners={banners} />
+
+              {naTela.buscaSemAcerto ? (
+                <SemResultado
+                  termo={naTela.termoBuscado ?? ""}
+                  linkDeTodos={naTela.linkSemBusca}
+                  rotuloDoCatalogo={loja.rotulos.catalogo}
+                />
+              ) : naTela.atacadoSemAcerto ? (
+                <Vazio
+                  titulo="Nenhum produto com preço de atacado"
+                  descricao={`Por enquanto, ${loja.nome} não tem produtos com preço de atacado.`}
+                  acao={
+                    <a className="sc-vitrine__aba" href={naTela.atacado.link}>
+                      Ver o {loja.rotulos.catalogo.toLowerCase()} inteiro
+                    </a>
+                  }
+                />
+              ) : naTela.filtroSemAcertoNaLista ? (
+                // Filtro sem acerto NÃO é loja vazia (AC-10824): a barra continua
+                // ali em cima para desmarcar, e o link limpa só os filtros.
+                <Vazio
+                  titulo="Nenhum produto com esse filtro"
+                  descricao={`Nenhum produto do ${loja.rotulos.catalogo.toLowerCase()} tem essa combinação de filtros.`}
+                  acao={
+                    <a
+                      className="sc-vitrine__aba"
+                      href={naTela.linkSemFiltros ?? naTela.linkDeTodas}
+                    >
+                      Limpar filtros
+                    </a>
+                  }
+                />
+              ) : naTela.filtroSemAcerto ? (
+                // Categoria que não existe mais não derruba a página: ela explica
+                // e oferece a saída, porque vazio sem caminho é beco sem saída.
+                <>
+                  <Vazio
+                    titulo="Essa categoria não existe mais"
+                    descricao={`Ela pode ter sido renomeada ou retirada do ${loja.rotulos.catalogo.toLowerCase()}.`}
+                    acao={
+                      <a className="sc-vitrine__aba" href={naTela.linkDeTodas}>
+                        Ver o {loja.rotulos.catalogo.toLowerCase()} inteiro
+                      </a>
+                    }
+                  />
+                  <div className="sc-vitrine__secoes">
+                    {secoesDoCatalogoInteiro.map((secao, indice) => (
+                      <GradeDeProdutos
+                        key={secao.id}
+                        secao={secao}
+                        primeira={indice === 0}
+                        carregarMais={carregarMais}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="sc-vitrine__secoes">
+                  {naTela.secoes.map((secao, indice) => (
+                    <GradeDeProdutos
+                      key={secao.id}
+                      secao={secao}
+                      primeira={indice === 0}
+                      carregarMais={carregarMais}
+                      // A lista única carrega sozinha na rolagem.
+                      automatico={comPagina}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
+
+        {/*
+          A região da sacola (computador, a partir de 1280px). O conteúdo é do
+          #110: vazia, ela não ocupa espaço (`:empty`) e os produtos ficam com a
+          largura dela.
+        */}
+        <div className="sc-catalogo__sacola" data-regiao-da-sacola="" />
       </main>
 
       {/*
@@ -368,6 +509,7 @@ export async function TelaDoCatalogo({
         apelidoDaLoja={loja.apelido}
         rotulos={loja.rotulos}
         ramo={loja.ramo}
+        blocosDoDetalhe={loja.blocos.detalheProduto}
         rotuloDoCatalogo={loja.rotulos.catalogo}
         produtoInicial={produtoAberto}
         carregarProduto={carregarProdutoDaJanela.bind(null, loja.apelido)}

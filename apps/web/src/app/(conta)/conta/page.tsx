@@ -7,6 +7,7 @@ import { buscarMetricasDaConta, calcularMetricas, lerPeriodoDaVisao } from "../.
 import { buscarMeusPedidos } from "../../../lib/meus-pedidos.ts";
 import { Erro } from "@simpleclick/ui";
 import { tokenOuEntrar } from "./_token.ts";
+import { comDestino } from "../../../lib/destino-seguro.ts";
 
 export const metadata = { title: "Visão geral | SimpleClick" };
 export const dynamic = "force-dynamic";
@@ -17,13 +18,13 @@ export default async function PaginaInicialDaConta({
 }: {
   searchParams: Promise<{ periodo?: string; de?: string; ate?: string }>;
 }) {
-  const token = await tokenOuEntrar();
+  const token = await tokenOuEntrar("/conta");
   const periodo = lerPeriodoDaVisao(await searchParams, hojeNoFuso("America/Sao_Paulo"));
   const [pedidos, metricas] = await Promise.all([
     buscarMeusPedidos(token),
     buscarMetricasDaConta(token, periodo),
   ]);
-  if (pedidos.estado === "nao-autenticado" || metricas.estado === "nao-autenticado") redirect("/entrar");
+  if (pedidos.estado === "nao-autenticado" || metricas.estado === "nao-autenticado") redirect(comDestino("/entrar", "/conta"));
 
   return (
     <PaginaDaConta

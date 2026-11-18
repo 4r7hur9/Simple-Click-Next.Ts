@@ -17,7 +17,12 @@ import { IconeBrilho, IconeEntrega, IconeLocal } from "@simpleclick/ui";
 import { capaPadraoDe } from "../../lib/capa-padrao.ts";
 import { BotaoFavoritar } from "./BotaoFavoritar.tsx";
 import { escreverDistancia, escreverFormas } from "./consulta.ts";
-import { escreverContagem, socialDoProduto, type AcoesDoFeed } from "./social.ts";
+import {
+  escreverContagem,
+  socialDoProduto,
+  type AcoesDoFeed,
+} from "./social.ts";
+import { comDestino } from "../../lib/destino-seguro.ts";
 
 export function PostDeLoja({
   loja,
@@ -42,7 +47,7 @@ export function PostDeLoja({
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const perfil = `/loja/${loja.apelido}`;
-  const entrar = `/entrar?proximo=${encodeURIComponent(voltarPara)}`;
+  const entrar = comDestino("/entrar", voltarPara);
   const foto = loja.fotoDePerfil ?? loja.logo;
   const iniciais = loja.iniciais ?? iniciaisDaLoja(loja.nome);
   const distancia = escreverDistancia(loja.distanciaKm);
@@ -71,7 +76,11 @@ export function PostDeLoja({
     } else {
       setCurtiu(!quer);
       setCurtidas((n) => Math.max(0, n + (quer ? -1 : 1)));
-      setAviso(r.motivo === "precisa-entrar" ? "Entre para curtir." : "Não deu para curtir agora. Tente de novo.");
+      setAviso(
+        r.motivo === "precisa-entrar"
+          ? "Entre para curtir."
+          : "Não deu para curtir agora. Tente de novo.",
+      );
     }
     setOcupado(false);
   }
@@ -91,10 +100,23 @@ export function PostDeLoja({
   }
 
   return (
-    <article className="sc-post sc-post--loja" data-loja={loja.apelido} aria-label={loja.nome}>
+    <article
+      className="sc-post sc-post--loja"
+      data-loja={loja.apelido}
+      aria-label={loja.nome}
+    >
       <header className="sc-post__topo">
-        <Link className="sc-post__avatar" href={perfil} aria-hidden="true" tabIndex={-1}>
-          {foto ? <img src={foto} alt="" loading="lazy" /> : <span>{iniciais}</span>}
+        <Link
+          className="sc-post__avatar"
+          href={perfil}
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          {foto ? (
+            <img src={foto} alt="" loading="lazy" />
+          ) : (
+            <span>{iniciais}</span>
+          )}
         </Link>
         <div className="sc-post__quem">
           <Link className="sc-post__loja" href={perfil}>
@@ -110,14 +132,22 @@ export function PostDeLoja({
         className="sc-post__midia sc-post__midia--loja"
         href={perfil}
         aria-label={`Abrir ${loja.nome}`}
-        style={{ "--capa-url": `url("${loja.capa ?? capaPadraoDe(loja.tipoDeNegocio)}")` } as CSSProperties}
+        style={
+          {
+            "--capa-url": `url("${loja.capa ?? capaPadraoDe(loja.tipoDeNegocio)}")`,
+          } as CSSProperties
+        }
         data-capa-propria={loja.capa ? "" : undefined}
       >
         {loja.capa ? (
           <img src={loja.capa} alt="" loading={prioridade ? "eager" : "lazy"} />
         ) : (
           <span className="sc-post__perfil-grande" aria-hidden="true">
-            {foto ? <img src={foto} alt="" loading="lazy" /> : <span>{iniciais}</span>}
+            {foto ? (
+              <img src={foto} alt="" loading="lazy" />
+            ) : (
+              <span>{iniciais}</span>
+            )}
           </span>
         )}
       </Link>
@@ -135,7 +165,11 @@ export function PostDeLoja({
             <IconeBrilho aria-hidden="true" size={28} preenchido={curtiu} />
           </button>
         ) : (
-          <Link className="sc-post__acao" href={entrar} aria-label="Entre para curtir">
+          <Link
+            className="sc-post__acao"
+            href={entrar}
+            aria-label="Entre para curtir"
+          >
             <IconeBrilho aria-hidden="true" size={28} />
           </Link>
         )}
@@ -167,7 +201,9 @@ export function PostDeLoja({
 
       <div className="sc-post__corpo">
         {curtidas > 0 ? (
-          <p className="sc-post__curtidas">{escreverContagem(curtidas, "curtida", "curtidas")}</p>
+          <p className="sc-post__curtidas">
+            {escreverContagem(curtidas, "curtida", "curtidas")}
+          </p>
         ) : null}
         <div className="sc-post__compra">
           <div className="sc-post__produto">
@@ -194,7 +230,9 @@ export function PostDeLoja({
           )}
           {loja.produtosNoFeed > 0 ? (
             <li className="sc-post__fato-destaque">
-              {loja.produtosNoFeed === 1 ? "1 produto em destaque" : `${loja.produtosNoFeed} produtos em destaque`}
+              {loja.produtosNoFeed === 1
+                ? "1 produto em destaque"
+                : `${loja.produtosNoFeed} produtos em destaque`}
             </li>
           ) : null}
         </ul>

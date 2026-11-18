@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { EnderecosSalvos } from "../../../../features/conta/EnderecosSalvos.tsx";
 import { PaginaDaConta } from "../../../../features/conta/PaginaDaConta.tsx";
 import { NOME_DO_COOKIE_DE_ACESSO } from "../../../../server/session-cookie.ts";
+import { comDestino } from "../../../../lib/destino-seguro.ts";
 
 export const metadata = { title: "Meus endereços | SimpleClick" };
 
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function PaginaDosMeusEnderecos() {
   const token = (await cookies()).get(NOME_DO_COOKIE_DE_ACESSO)?.value;
-  if (token === undefined || token === "") redirect("/entrar");
+  if (token === undefined || token === "") redirect(comDestino("/entrar", "/conta/enderecos"));
 
   return (
     <PaginaDaConta

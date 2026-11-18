@@ -25,7 +25,11 @@ export interface CodigoDeRecuperacaoFormProps {
   readonly aoConfirmar: (
     codigo: string,
   ) => Promise<RespostaDaRecuperacaoNaTela>;
-  readonly aoCriarSessao: (destino: string) => void;
+  /** A orientação (se houver) e o destino do papel; quem decide é a tela. */
+  readonly aoCriarSessao: (resposta: {
+    readonly orientarPara?: string | undefined;
+    readonly redirecionarPara: string;
+  }) => void;
 }
 
 export function CodigoDeRecuperacaoForm({
@@ -48,7 +52,10 @@ export function CodigoDeRecuperacaoForm({
     try {
       const resposta = await aoConfirmar(limpo);
       if (resposta.status === "SESSAO_CRIADA") {
-        aoCriarSessao(resposta.orientarPara ?? resposta.redirecionarPara);
+        aoCriarSessao({
+          orientarPara: resposta.orientarPara,
+          redirecionarPara: resposta.redirecionarPara,
+        });
         return;
       }
       setErro(

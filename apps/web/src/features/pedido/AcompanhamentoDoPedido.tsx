@@ -36,7 +36,6 @@ export interface AcompanhamentoDoPedidoProps {
   readonly apelidoDaLoja: string;
   readonly tokenDoPedido: string;
   readonly inicial: Pedido;
-  readonly corPrincipal: string;
   /** Como perguntar de novo. A prova troca por um que responde sem rede. */
   readonly atualizar?:
     | ((apelido: string, token: string) => Promise<ResultadoDoAcompanhamento>)
@@ -74,7 +73,6 @@ export function AcompanhamentoDoPedido({
   apelidoDaLoja,
   tokenDoPedido,
   inicial,
-  corPrincipal,
   atualizar = buscarAcompanhamento,
   intervaloMs = INTERVALO_DO_ACOMPANHAMENTO_MS,
   voltar,
@@ -110,7 +108,7 @@ export function AcompanhamentoDoPedido({
   const motivo = motivoDoCancelamento(pedido);
 
   return (
-    <TemaDaMarca corDestaque={corPrincipal} className="sc-pagina-da-loja">
+    <TemaDaMarca className="sc-pagina-da-loja">
       {/* O fundo vai num bloco próprio: o contêiner do tema é `display:
           contents` e não pinta nada. */}
       <div className="min-h-screen bg-[var(--cor-superficie)] text-[var(--cor-tinta)]">
@@ -244,6 +242,7 @@ export function AcompanhamentoDoPedido({
                 {pedido.loja.whatsappPublico ? (
                   <a
                     className="sc-botao sc-botao--secundaria sc-botao--pilula"
+                    rel="noopener noreferrer"
                     href={`https://wa.me/${pedido.loja.whatsappPublico.replace(/\D/g, "")}`}
                     data-contato-da-loja
                   >

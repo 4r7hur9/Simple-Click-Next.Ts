@@ -1,6 +1,6 @@
 import "@simpleclick/ui/styles/stories.css";
 
-import { COR_DE_DESTAQUE_PADRAO, iniciaisDaLoja } from "@simpleclick/contracts";
+import { iniciaisDaLoja } from "@simpleclick/contracts";
 import type { Metadata } from "next";
 
 import { TelaDeStories } from "../../../../features/stories-painel/TelaDeStories.tsx";
@@ -36,7 +36,6 @@ export default async function PaginaDosStories() {
           nome,
           fotoDePerfil: publica?.logo ?? null,
           iniciais: iniciaisDaLoja(nome),
-          corDestaque: publica?.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO,
           podeTrocarFoto: permissoesDaLoja(loja).has("personalizacao"),
         }}
       />

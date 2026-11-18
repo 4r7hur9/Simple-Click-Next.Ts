@@ -34,6 +34,9 @@ export const metadata = {
   title: "Segurança da conta | SimpleClick",
 };
 
+// Mostra a pessoa da sessão: nada aqui pode ser guardado de antemão (AC-11120).
+export const dynamic = "force-dynamic";
+
 /**
  * Ações separadas para a pessoa não encerrar todos os dispositivos por engano.
  * Formulários funcionam sem JavaScript e enviam a ação ao servidor, que nunca
@@ -45,7 +48,7 @@ export default async function PaginaDeSeguranca({
   searchParams: Promise<{ estado?: string }>;
 }) {
   const { estado } = await searchParams;
-  const token = await tokenOuEntrar();
+  const token = await tokenOuEntrar("/conta/seguranca");
   const [dados, sessoes, aceites] = await Promise.all([
     buscarDadosDaConta(token),
     buscarSessoesAbertas(token),
@@ -69,7 +72,7 @@ export default async function PaginaDeSeguranca({
           nivelDoTitulo={2}
           icone={<IconeSeguranca />}
           titulo="Trocar senha"
-          descricao="Ao trocar, os outros aparelhos são desconectados. Use 12 caracteres ou mais."
+          descricao="Ao trocar, os outros aparelhos saem da conta em até 15 minutos (o tempo de a conexão deles ser renovada). Use 12 caracteres ou mais."
         >
           <TrocarSenha />
         </Cartao>
@@ -159,6 +162,9 @@ export default async function PaginaDeSeguranca({
           <ExportarMeusDados />
         </Cartao>
 
+        <p className="sc-seguranca__risco" role="presentation">
+          Zona de risco
+        </p>
         <Cartao
           nivelDoTitulo={2}
           icone={<IconeExcluir />}

@@ -3,12 +3,11 @@ import "@simpleclick/ui/styles/vitrine.css";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PALETA_CLARA } from "@simpleclick/ui";
 
 import { AcompanhamentoDoPedido } from "../../../../../features/pedido/AcompanhamentoDoPedido.tsx";
 import { buscarMeuPedido } from "../../../../../lib/meus-pedidos.ts";
 import { NOME_DO_COOKIE_DE_ACESSO } from "../../../../../server/session-cookie.ts";
-import { buscarVitrine } from "../../../../../server/vitrine.ts";
+import { comDestino } from "../../../../../lib/destino-seguro.ts";
 
 interface ParametrosDaPagina {
   readonly params: Promise<{ readonly id: string }>;
@@ -17,6 +16,7 @@ interface ParametrosDaPagina {
 export const metadata: Metadata = {
   title: "Meu pedido | SimpleClick",
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 export const dynamic = "force-dynamic";
@@ -36,28 +36,23 @@ export default async function PaginaDoMeuPedido({
 }: ParametrosDaPagina) {
   const { id } = await params;
   const token = (await cookies()).get(NOME_DO_COOKIE_DE_ACESSO)?.value;
-  if (token === undefined || token === "") redirect("/entrar");
+  const aqui = `/conta/pedidos/${encodeURIComponent(id)}`;
+  if (token === undefined || token === "") redirect(comDestino("/entrar", aqui));
 
   const leitura = await buscarMeuPedido(id, token);
-  if (leitura.estado === "nao-autenticado") redirect("/entrar");
+  if (leitura.estado === "nao-autenticado") redirect(comDestino("/entrar", aqui));
   if (leitura.estado === "nao-encontrado") notFound();
   if (leitura.estado === "indisponivel") {
     throw new Error(`pedido da conta indisponível: ${leitura.motivo}`);
   }
 
   const { detalhe } = leitura;
-  const vitrine = await buscarVitrine(detalhe.loja.apelido);
-  const corPrincipal =
-    vitrine.estado === "encontrada"
-      ? (vitrine.vitrine.loja.tema?.corDestaque ?? PALETA_CLARA.primaria)
-      : PALETA_CLARA.primaria;
 
   return (
     <AcompanhamentoDoPedido
       apelidoDaLoja={detalhe.loja.apelido}
       tokenDoPedido={detalhe.tokenPublico}
       inicial={detalhe.pedido}
-      corPrincipal={corPrincipal}
       voltar={{ href: "/conta/pedidos", rotulo: "← Meus pedidos" }}
     />
   );

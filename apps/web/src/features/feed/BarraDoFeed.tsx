@@ -9,10 +9,10 @@
  * próxima visita já sair ordenada sem perguntar outra vez. Sem ela, o feed
  * segue por relevância e a tela diz por quê.
  *
- * Card #49: a barra fica compacta, grudada no topo junto das abas. A busca
- * aparece sempre no computador; forma de receber, ordem e localização (e, no
- * celular, a busca) moram atrás do botão "Filtros", que mostra quantos estão
- * ligados.
+ * Card #128 (Stitch): no celular, a busca é o campo largo do alto da página,
+ * com o botão "Filtros" ao lado; no computador a busca mora no topo do site e
+ * aqui fica só o "Filtros", na linha dos segmentos. Forma de receber, ordem e
+ * localização moram atrás dele, que mostra quantos estão ligados.
  */
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -34,36 +34,11 @@ import {
   type EntregaDoFeed,
   type OrdemDoFeed,
 } from "./consulta.ts";
+import { guardarLocalDoAparelho, lerLocalDoAparelho } from "../usuario/local-do-aparelho.ts";
 
-/** Onde a localização fica guardada neste navegador. */
-export const CHAVE_DO_LOCAL = "sc:feed:local";
-
-interface Local {
-  readonly lat: number;
-  readonly lng: number;
-}
-
-function localGuardado(): Local | null {
-  try {
-    const bruto = window.localStorage.getItem(CHAVE_DO_LOCAL);
-    if (bruto === null) return null;
-    const lido = JSON.parse(bruto) as Partial<Local>;
-    return typeof lido.lat === "number" && typeof lido.lng === "number"
-      ? { lat: lido.lat, lng: lido.lng }
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function guardarLocal(local: Local | null): void {
-  try {
-    if (local === null) window.localStorage.removeItem(CHAVE_DO_LOCAL);
-    else window.localStorage.setItem(CHAVE_DO_LOCAL, JSON.stringify(local));
-  } catch {
-    // Navegador sem armazenamento: só não lembra na próxima visita.
-  }
-}
+// A localização do aparelho (consentimento, arredondamento e limpeza) mora em
+// `features/usuario/local-do-aparelho.ts`, junto do indicador do topo (card #105).
+export { CHAVE_DO_LOCAL } from "../usuario/local-do-aparelho.ts";
 
 type EstadoDoLocal = "parado" | "pedindo" | "negado" | "sem-suporte";
 
@@ -78,21 +53,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
   const [busca, setBusca] = useState(consulta.busca ?? "");
   const [estadoDoLocal, setEstadoDoLocal] = useState<EstadoDoLocal>("parado");
   const [aberta, setAberta] = useState(false);
-  const raiz = useRef<HTMLDivElement>(null);
 
-  // A altura da barra fixa muda (filtros abertos, busca no celular): o feed
-  // a guarda em --sc-feed-barra, e o encaixe da rolagem para o post logo
-  // abaixo dela, nunca por baixo.
-  useEffect(() => {
-    const fixa = raiz.current?.closest<HTMLElement>(".sc-feed__fixa");
-    const feed = fixa?.closest<HTMLElement>(".sc-feed");
-    if (!fixa || !feed || typeof ResizeObserver === "undefined") return;
-    const medir = () => feed.style.setProperty("--sc-feed-barra", `${fixa.offsetHeight}px`);
-    medir();
-    const observador = new ResizeObserver(medir);
-    observador.observe(fixa);
-    return () => observador.disconnect();
-  }, []);
   const jaTentou = useRef(false);
   const comLocal = temLocal(consulta);
 
@@ -116,7 +77,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
           lat: arredondarLocal(posicao.coords.latitude),
           lng: arredondarLocal(posicao.coords.longitude),
         };
-        guardarLocal(local);
+        guardarLocalDoAparelho(local);
         setEstadoDoLocal("parado");
         irPara({ ...local, ordem }, substituir);
       },
@@ -125,16 +86,15 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
     );
   }
 
-  // Ao abrir: localização já guardada entra sozinha (sem perguntar de novo);
-  // "Mais perto" no endereço sem localização pede uma vez.
+  // Ao abrir: localização já guardada (com consentimento) entra sozinha, sem
+  // perguntar de novo. O navegador NUNCA pede a localização ao abrir — nem
+  // com "Mais perto" no endereço: só quando a pessoa toca no botão.
   useEffect(() => {
     if (comLocal || jaTentou.current) return;
     jaTentou.current = true;
-    const guardado = localGuardado();
+    const guardado = lerLocalDoAparelho();
     if (guardado !== null) {
       irPara({ ...guardado, pagina: consulta.pagina }, true);
-    } else if (consulta.ordem === "distancia") {
-      pedirLocal("distancia", true);
     }
     // Só na chegada: depois, quem muda é a própria pessoa.
   }, []);
@@ -150,7 +110,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
   }
 
   function esquecerLocal() {
-    guardarLocal(null);
+    guardarLocalDoAparelho(null);
     setEstadoDoLocal("parado");
     irPara({
       lat: undefined,
@@ -178,7 +138,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
     (consulta.atacado ? 1 : 0);
 
   return (
-    <div ref={raiz} className="sc-feed__barra" data-aberta={aberta || undefined}>
+    <div className="sc-feed__barra" data-aberta={aberta || undefined}>
       <button
         type="button"
         className="sc-feed__abrir-filtros"
@@ -208,7 +168,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
           autoComplete="off"
           placeholder={
             consulta.aba === "produtos"
-              ? "Buscar produtos"
+              ? "O que você procura hoje?"
               : "Buscar lojas pelo nome ou bairro"
           }
           value={busca}
@@ -286,14 +246,21 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
             <IconeFechar aria-hidden="true" className="sc-feed__pilula-x" />
           </button>
         ) : (
-          <button
-            type="button"
-            className="sc-feed__pilula sc-feed__pilula--local"
-            onClick={() => pedirLocal()}
-            disabled={estadoDoLocal === "pedindo"}
-          >
-            <IconeLocal aria-hidden="true" /> Perto de mim
-          </button>
+          <>
+            <button
+              type="button"
+              className="sc-feed__pilula sc-feed__pilula--local"
+              aria-describedby="sc-feed-finalidade"
+              onClick={() => pedirLocal()}
+              disabled={estadoDoLocal === "pedindo"}
+            >
+              <IconeLocal aria-hidden="true" /> Perto de mim
+            </button>
+            <p id="sc-feed-finalidade" className="sc-feed__finalidade">
+              Usamos sua localização só para mostrar o que está mais perto. Guardamos uma
+              posição aproximada (cerca de 100 m) neste aparelho, e você pode apagá-la quando quiser.
+            </p>
+          </>
         )}
       </div>
 

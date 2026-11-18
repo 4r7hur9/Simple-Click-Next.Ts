@@ -1,4 +1,3 @@
-import { COR_DE_DESTAQUE_PADRAO } from "@simpleclick/contracts";
 import type { Metadata } from "next";
 
 import { FormularioDoFeed } from "../../../../features/feed-config/FormularioDoFeed.tsx";
@@ -44,7 +43,6 @@ export default async function PaginaDoFeed() {
       publica?.capa ??
       publica?.tema?.fundoVitrine ??
       capaPadraoDe(publica?.ramo),
-    corDestaque: publica?.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO,
     bairro: publica?.enderecoParaRetirada?.bairro ?? null,
     cidade: publica?.enderecoParaRetirada?.cidade ?? null,
     formasDeEntrega: publica?.formasDeEntrega ?? [],

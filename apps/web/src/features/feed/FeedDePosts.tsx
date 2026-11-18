@@ -13,9 +13,10 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
 import type { ProdutoDoFeed } from "@simpleclick/contracts";
 
+import { comDestino } from "../../lib/destino-seguro.ts";
 import { GavetaDeComentarios } from "./GavetaDeComentarios.tsx";
 import { Post, PostCarregando } from "./Post.tsx";
-import type { AcoesDoFeed, ResultadoDaAcao } from "./social.ts";
+import type { AcoesDoFeed, PaginaDeItens, ResultadoDaAcao } from "./social.ts";
 import { useMaisItens, type CargaDoFeed } from "./useMaisItens.ts";
 
 const idDoProduto = (p: ProdutoDoFeed) => p.id;
@@ -44,6 +45,7 @@ export function FeedDePosts({
   seguidas,
   acoes,
   pedir: pedirFora,
+  sessaoVencida: venceuNaPagina = false,
 }: {
   readonly inicial: readonly ProdutoDoFeed[];
   readonly total: number;
@@ -55,15 +57,15 @@ export function FeedDePosts({
   readonly seguidas: readonly string[];
   readonly acoes: AcoesDoFeed;
   /** Troca de onde vem a próxima página (a vitrine revela a lista local). */
-  readonly pedir?: (
-    pagina: number,
-  ) => Promise<ResultadoDaAcao<{ readonly itens: readonly unknown[]; readonly total: number }>>;
+  readonly pedir?: (pagina: number) => Promise<ResultadoDaAcao<PaginaDeItens>>;
+  /** A sessão venceu antes de a página carregar (as estrelas vieram vazias). */
+  readonly sessaoVencida?: boolean;
 }) {
   const pedir = useCallback(
     (pagina: number) => (pedirFora ? pedirFora(pagina) : acoes.maisPosts(parametros, pagina)),
     [pedirFora, acoes, parametros],
   );
-  const { itens, total, carga, sentinela, carregarMais } = useMaisItens({
+  const { itens, total, carga, sentinela, carregarMais, sessaoVencida } = useMaisItens({
     inicial,
     total: totalInicial,
     chave: idDoProduto,
@@ -74,6 +76,14 @@ export function FeedDePosts({
 
   return (
     <>
+      {venceuNaPagina || sessaoVencida ? (
+        <p className="sc-posts__aviso" role="status">
+          Sua sessão venceu, por isso os favoritos não aparecem.{" "}
+          <a className="sc-feed__chamada" href={comDestino("/entrar", voltarPara)}>
+            Entrar de novo
+          </a>
+        </p>
+      ) : null}
       <div className="sc-posts">
         {itens.map((produto, i) => (
           <Post

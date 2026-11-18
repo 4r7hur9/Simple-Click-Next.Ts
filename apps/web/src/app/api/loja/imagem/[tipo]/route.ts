@@ -9,6 +9,7 @@
  */
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
+import { recusarOrigemDeFora } from "../../../../../server/protecao-da-conta.ts";
 import { renovarVitrineDaLoja } from "../../../../../server/renovar-vitrine.ts";
 
 const TIPOS = new Set([
@@ -31,6 +32,10 @@ export async function PUT(
   if (!TIPOS.has(tipo)) {
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });
   }
+
+  // Card #134: o corpo é a imagem crua (não JSON); só a origem é conferida.
+  const recusada = recusarOrigemDeFora(requisicao);
+  if (recusada !== null) return recusada;
 
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;

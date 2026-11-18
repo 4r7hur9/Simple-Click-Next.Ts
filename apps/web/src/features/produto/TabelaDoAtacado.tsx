@@ -10,7 +10,10 @@
 import { Info } from "@simpleclick/ui";
 
 import type { AtacadoNaVitrine } from "../../lib/atacado-na-vitrine.ts";
-import { linhasDoAtacado } from "../../lib/atacado-na-vitrine.ts";
+import {
+  faixaNoAtacado,
+  linhasDoAtacado,
+} from "../../lib/atacado-na-vitrine.ts";
 import { EXPLICACOES_PARA_CLIENTES } from "../loja/explicacoes-para-clientes.ts";
 
 export interface TabelaDoAtacadoProps {
@@ -30,10 +33,12 @@ export function TabelaDoAtacado({
   if (linhas.length === 0) return null;
 
   // A linha que vale é a última cuja quantidade a escolha já alcança.
-  const vale = linhas.reduce(
-    (atual, linha, indice) => (linha.aPartirDe <= quantidade ? indice : atual),
-    0,
+  // A linha marcada é a da MESMA faixa que dá o preço por unidade do botão.
+  const minimaQueVale = faixaNoAtacado(atacado, quantidade)?.quantidadeMinima;
+  const indiceQueVale = linhas.findIndex(
+    (linha) => linha.aPartirDe === (minimaQueVale ?? 1),
   );
+  const vale = indiceQueVale === -1 ? 0 : indiceQueVale;
 
   return (
     <section className="sc-atacado" aria-labelledby="sc-atacado-titulo">

@@ -35,7 +35,6 @@ export interface PerfilDaTela {
   readonly nome: string;
   readonly fotoDePerfil: string | null;
   readonly iniciais: string;
-  readonly corDestaque: string;
   /** Pode trocar a logo (permissão `personalizacao`). */
   readonly podeTrocarFoto: boolean;
 }
@@ -52,7 +51,7 @@ export function FotoDePerfil({
 }: {
   readonly perfil: Pick<
     PerfilDaTela,
-    "fotoDePerfil" | "iniciais" | "corDestaque" | "nome"
+    "fotoDePerfil" | "iniciais" | "nome"
   >;
   readonly tamanho?: "grande" | "pequena";
 }) {
@@ -67,7 +66,7 @@ export function FotoDePerfil({
           <span
             className="flex h-full w-full items-center justify-center"
             style={{
-              backgroundColor: perfil.corDestaque,
+              backgroundColor: "var(--cor-primaria)",
               color: "var(--cor-tinta-extrema-escura)",
             }}
           >
@@ -324,7 +323,6 @@ export function TelaDeStories({ perfil }: { readonly perfil: PerfilDaTela }) {
           perfil={{
             apelido: perfil.apelido,
             nome: perfil.nome,
-            corDestaque: perfil.corDestaque,
           }}
           limites={limites}
           aoPublicado={() => void aoPublicar()}

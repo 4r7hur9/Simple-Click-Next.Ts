@@ -82,7 +82,13 @@ export function FileiraDeStories({
   if (lojas.length === 0) return null;
 
   return (
-    <section className="sc-stories" aria-label="Stories das lojas">
+    <section className="sc-stories" aria-labelledby="sc-stories-titulo">
+      <header className="sc-stories__cabeca">
+        <h2 id="sc-stories-titulo" className="sc-stories__titulo">
+          Novidades das lojas
+        </h2>
+        <span className="sc-stories__selo">Stories</span>
+      </header>
       <ul className="sc-stories__fileira">
         {ordem.map((loja, i) => {
           const novo = temStoryNovo(loja, vistos);

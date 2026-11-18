@@ -20,6 +20,10 @@ import {
   PARAMETRO_DA_BUSCA,
   PARAMETRO_DA_ORDEM,
   PARAMETRO_DO_ATACADO,
+  PARAMETRO_DO_ESTOQUE,
+  PARAMETRO_DO_PRECO_ATE,
+  PARAMETRO_DO_PRECO_DE,
+  precoParaEndereco,
   type OrdemDoCatalogo,
 } from "../../lib/catalogo.ts";
 
@@ -34,6 +38,10 @@ export interface BuscaProdutoProps {
   readonly ordem?: OrdemDoCatalogo | undefined;
   /** O filtro de atacado ligado atravessa a busca também (card #59). */
   readonly atacado?: boolean | undefined;
+  /** Estoque e faixa de preço (card #108) também atravessam a busca. */
+  readonly estoque?: boolean | undefined;
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
   /** O `id` do campo. Duas buscas na mesma página precisam de ids diferentes. */
   readonly id?: string | undefined;
 }
@@ -44,6 +52,9 @@ export function BuscaProduto({
   rotuloDoCatalogo,
   ordem = "relevancia",
   atacado = false,
+  estoque = false,
+  precoMin = null,
+  precoMax = null,
   id = "busca-na-vitrine",
 }: BuscaProdutoProps) {
   return (
@@ -59,6 +70,23 @@ export function BuscaProduto({
       {atacado ? (
         <input type="hidden" name={PARAMETRO_DO_ATACADO} value="1" />
       ) : null}
+      {estoque ? (
+        <input type="hidden" name={PARAMETRO_DO_ESTOQUE} value="1" />
+      ) : null}
+      {precoMin === null ? null : (
+        <input
+          type="hidden"
+          name={PARAMETRO_DO_PRECO_DE}
+          value={precoParaEndereco(precoMin)}
+        />
+      )}
+      {precoMax === null ? null : (
+        <input
+          type="hidden"
+          name={PARAMETRO_DO_PRECO_ATE}
+          value={precoParaEndereco(precoMax)}
+        />
+      )}
       <label className="sc-so-leitor" htmlFor={id}>
         Buscar no {rotuloDoCatalogo.toLowerCase()}
       </label>

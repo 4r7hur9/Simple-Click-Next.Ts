@@ -84,9 +84,14 @@ export function lerConsulta(
   const entrega = primeiro(parametros["entrega"]);
   const ordem = primeiro(parametros["ordem"]);
   const lista = primeiro(parametros["lista"]);
-  const lat = numeroEntre(primeiro(parametros["lat"]), -90, 90);
-  const lng = numeroEntre(primeiro(parametros["lng"]), -180, 180);
-  const comLocal = lat !== undefined && lng !== undefined;
+  // A coordenada é dado pessoal: o endereço pode chegar com muitas casas
+  // (link antigo, edição à mão), e aqui ela vira ~100 m, valor fora da faixa
+  // cai (card #106, AC-10618). Tudo que sai daqui já está arredondado.
+  const latBruta = numeroEntre(primeiro(parametros["lat"]), -90, 90);
+  const lngBruta = numeroEntre(primeiro(parametros["lng"]), -180, 180);
+  const comLocal = latBruta !== undefined && lngBruta !== undefined;
+  const lat = comLocal ? arredondarLocal(latBruta) : undefined;
+  const lng = comLocal ? arredondarLocal(lngBruta) : undefined;
   const pagina = numeroEntre(primeiro(parametros["pagina"]), 1, 1000);
   return {
     aba,

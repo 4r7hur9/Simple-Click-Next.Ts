@@ -4,13 +4,24 @@ import {
   lerConsulta,
   type ParametrosDaPagina,
 } from "../../../../features/feed/consulta.ts";
-import { TelaDoFeed } from "../../../../features/feed/TelaDoFeed.tsx";
+import { TelaDoFeed, type ConteudoDoFeed } from "../../../../features/feed/TelaDoFeed.tsx";
 import { buscarTiposDeNegocio } from "../../../../server/feed.ts";
 import { usuarioDoPedidoAtual } from "../../../../server/usuario-da-sessao.ts";
 import * as acoes from "../acoes.ts";
-import { conteudoDosProdutos, lojasSeguidas, storiesDoFeed, tokenDaSessao } from "../_dados.ts";
+import { secoesDoInicio } from "../_secoes.tsx";
+import {
+  conteudoDosProdutos,
+  ouReserva,
+  seguidasDaConta,
+  tokenDaSessao,
+} from "../_dados.ts";
 
-export const metadata: Metadata = { title: "Explorar produtos | SimpleClick" };
+export const metadata: Metadata = {
+  title: "Explorar produtos e lojas | SimpleClick",
+  description:
+    "Descubra produtos, ofertas e lojas perto de você no SimpleClick.",
+  alternates: { canonical: "/explorar/produtos" },
+};
 
 /**
  * A aba padrão do feed: os produtos que as lojas publicaram, como posts de
@@ -22,14 +33,16 @@ export default async function PaginaDeProdutosDoExplorar({
   searchParams: Promise<ParametrosDaPagina>;
 }) {
   // A rolagem infinita sempre começa da primeira página.
-  const consulta = { ...lerConsulta("produtos", await searchParams), pagina: 1 };
+  const parametros = await searchParams;
+  const consulta = { ...lerConsulta("produtos", parametros), pagina: 1 };
   const token = await tokenDaSessao();
-  const [tipos, conteudo, usuario, stories, seguidas] = await Promise.all([
-    buscarTiposDeNegocio(),
-    conteudoDosProdutos(consulta),
+  const [tipos, conteudo, usuario, seguidas] = await Promise.all([
+    ouReserva(buscarTiposDeNegocio(), []),
+    ouReserva<ConteudoDoFeed>(conteudoDosProdutos(consulta, token), {
+      estado: "indisponivel",
+    }),
     usuarioDoPedidoAtual(),
-    storiesDoFeed(token),
-    lojasSeguidas(token),
+    ouReserva(seguidasDaConta(token), { apelidos: [], sessaoVencida: false }),
   ]);
   return (
     <TelaDoFeed
@@ -37,8 +50,8 @@ export default async function PaginaDeProdutosDoExplorar({
       tipos={tipos}
       conteudo={conteudo}
       logado={usuario.papel !== "visitante"}
-      stories={stories}
-      seguidas={seguidas}
+      secoes={secoesDoInicio(consulta, parametros["destaques"], token, "/explorar/produtos")}
+      seguidas={seguidas.apelidos}
       acoes={{
         maisPosts: acoes.maisPosts,
         maisLojas: acoes.maisLojas,

@@ -24,7 +24,7 @@ import {
   type Vitrine,
 } from "@simpleclick/contracts";
 
-import { PARAMETRO_DA_BUSCA } from "../lib/catalogo.ts";
+import { PARAMETRO_DA_BUSCA, limitarFiltros } from "../lib/catalogo.ts";
 import { enderecoDaApi, ESPERA_MAXIMA_EM_MS } from "./api-client.ts";
 import { etiquetasDaVitrine } from "./cache.ts";
 
@@ -125,6 +125,11 @@ export interface OpcoesDaBusca {
   readonly filtros?: readonly string[] | undefined;
   /** Só produtos com preço de atacado (card #59). */
   readonly atacado?: boolean | undefined;
+  /** Só o que não está esgotado (card #108). */
+  readonly estoque?: boolean | undefined;
+  /** Faixa de preço em CENTAVOS, inclusive (card #108). */
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
 }
 
 /**
@@ -212,9 +217,71 @@ export async function buscarCatalogo(
 
 /** O que vem da API, conferido, ou o motivo de não ter vindo. */
 export type ResultadoDaLeitura<T> =
-  | { readonly estado: "encontrado"; readonly dados: T }
+  | {
+      readonly estado: "encontrado";
+      readonly dados: T;
+      /**
+       * A API ainda não entende os filtros novos (estoque, faixa de preço, ordem
+       * nova) e a leitura foi REPETIDA sem eles: a lista veio sem esses filtros,
+       * e a tela não pode mostrá-los como aplicados.
+       */
+      readonly degradado?: boolean;
+    }
   | { readonly estado: "nao-encontrada" }
-  | { readonly estado: "indisponivel"; readonly motivo: string };
+  | {
+      readonly estado: "indisponivel";
+      readonly motivo: string;
+      /** A API recusou (400) um campo dos filtros novos. */
+      readonly recusouCampoNovo?: boolean;
+    };
+
+/** Os campos que só a API nova conhece. */
+const CAMPOS_NOVOS = ["estoque", "precoMin", "precoMax", "ordem"] as const;
+
+function temCampoNovo(opcoes: OpcoesDaBusca & { ordem?: string | undefined }): boolean {
+  return (
+    opcoes.estoque === true ||
+    opcoes.precoMin != null ||
+    opcoes.precoMax != null ||
+    opcoes.ordem === "maior-desconto-atacado" ||
+    opcoes.ordem === "lancamentos"
+  );
+}
+
+function semCamposNovos<T extends OpcoesDaBusca & { ordem?: string | undefined }>(
+  opcoes: T,
+): T {
+  const { estoque: _e, precoMin: _a, precoMax: _b, ...resto } = opcoes;
+  return {
+    ...resto,
+    ...(opcoes.ordem === "maior-desconto-atacado" || opcoes.ordem === "lancamentos"
+      ? { ordem: "relevancia" }
+      : {}),
+  } as T;
+}
+
+/**
+ * Repete UMA vez, sem os campos novos, quando a API respondeu 400 apontando um
+ * deles: a web saiu antes da API, e um link com a ordem nova não pode derrubar
+ * a página. Qualquer outro erro continua sendo erro.
+ */
+async function comDegradacao<T, O extends OpcoesDaBusca & { ordem?: string | undefined }>(
+  opcoes: O,
+  ler: (opcoes: O) => Promise<ResultadoDaLeitura<T>>,
+): Promise<ResultadoDaLeitura<T>> {
+  const resultado = await ler(opcoes);
+  if (
+    resultado.estado === "indisponivel" &&
+    resultado.recusouCampoNovo === true &&
+    temCampoNovo(opcoes)
+  ) {
+    const repetido = await ler(semCamposNovos(opcoes));
+    return repetido.estado === "encontrado"
+      ? { ...repetido, degradado: true }
+      : repetido;
+  }
+  return resultado;
+}
 
 /** Busca, filtros e atacado no endereço da API, como o catálogo inteiro faz. */
 function parametrosDosFiltros(opcoes: OpcoesDaBusca): URLSearchParams {
@@ -222,8 +289,14 @@ function parametrosDosFiltros(opcoes: OpcoesDaBusca): URLSearchParams {
   const termo = opcoes.busca?.trim() ?? "";
   if (termo !== "") parametros.set(PARAMETRO_DA_BUSCA, termo);
   if (opcoes.categoria) parametros.set("categoria", opcoes.categoria);
-  for (const filtro of opcoes.filtros ?? []) parametros.append("filtro", filtro);
+  // A API recusa mais de 20 filtros e filtro com mais de 120 caracteres.
+  for (const filtro of limitarFiltros(opcoes.filtros ?? [])) {
+    parametros.append("filtro", filtro);
+  }
   if (opcoes.atacado === true) parametros.set("atacado", "1");
+  if (opcoes.estoque === true) parametros.set("estoque", "1");
+  if (opcoes.precoMin != null) parametros.set("precoMin", String(opcoes.precoMin));
+  if (opcoes.precoMax != null) parametros.set("precoMax", String(opcoes.precoMax));
   return parametros;
 }
 
@@ -265,9 +338,16 @@ async function lerDaVitrine<T>(
 
   if (resposta.status === 404) return { estado: "nao-encontrada" };
   if (!resposta.ok) {
+    // 400 que aponta um campo dos filtros novos: a API é mais antiga que a web.
+    let recusouCampoNovo = false;
+    if (resposta.status === 400) {
+      const texto = await resposta.text().catch(() => "");
+      recusouCampoNovo = CAMPOS_NOVOS.some((campo) => texto.includes(campo));
+    }
     return {
       estado: "indisponivel",
       motivo: `a API respondeu ${resposta.status}`,
+      ...(recusouCampoNovo ? { recusouCampoNovo } : {}),
     };
   }
 
@@ -303,18 +383,20 @@ export async function buscarResumoDoCatalogo(
   opcoes: OpcoesDoResumo = {},
   buscar: typeof fetch = fetch,
 ): Promise<ResultadoDaLeitura<ResumoDoCatalogoNoContrato>> {
-  const parametros = parametrosDosFiltros(opcoes);
-  if (opcoes.porSecao !== undefined) {
-    parametros.set("porSecao", String(opcoes.porSecao));
-  }
-  if (opcoes.totalMaximo !== undefined) {
-    parametros.set("totalMaximo", String(opcoes.totalMaximo));
-  }
-  return lerDaVitrine(
-    { apelido, caminho: "/catalogo/resumo", parametros },
-    esquemaDoResumoDoCatalogo,
-    buscar,
-  );
+  return comDegradacao(opcoes, (efetivas) => {
+    const parametros = parametrosDosFiltros(efetivas);
+    if (efetivas.porSecao !== undefined) {
+      parametros.set("porSecao", String(efetivas.porSecao));
+    }
+    if (efetivas.totalMaximo !== undefined) {
+      parametros.set("totalMaximo", String(efetivas.totalMaximo));
+    }
+    return lerDaVitrine(
+      { apelido, caminho: "/catalogo/resumo", parametros },
+      esquemaDoResumoDoCatalogo,
+      buscar,
+    );
+  });
 }
 
 /** O que muda a página: os filtros, a ordem, o cursor e o tamanho. */
@@ -330,17 +412,19 @@ export async function buscarPaginaDoCatalogo(
   opcoes: OpcoesDaPagina = {},
   buscar: typeof fetch = fetch,
 ): Promise<ResultadoDaLeitura<PaginaDoCatalogoNoContrato>> {
-  const parametros = parametrosDosFiltros(opcoes);
-  if (opcoes.ordem !== undefined && opcoes.ordem !== "relevancia") {
-    parametros.set("ordem", opcoes.ordem);
-  }
-  if (opcoes.cursor) parametros.set("cursor", opcoes.cursor);
-  if (opcoes.limite !== undefined) {
-    parametros.set("limite", String(opcoes.limite));
-  }
-  return lerDaVitrine(
-    { apelido, caminho: "/catalogo/produtos", parametros },
-    esquemaDaPaginaDoCatalogo,
-    buscar,
-  );
+  return comDegradacao(opcoes, (efetivas) => {
+    const parametros = parametrosDosFiltros(efetivas);
+    if (efetivas.ordem !== undefined && efetivas.ordem !== "relevancia") {
+      parametros.set("ordem", efetivas.ordem);
+    }
+    if (efetivas.cursor) parametros.set("cursor", efetivas.cursor);
+    if (efetivas.limite !== undefined) {
+      parametros.set("limite", String(efetivas.limite));
+    }
+    return lerDaVitrine(
+      { apelido, caminho: "/catalogo/produtos", parametros },
+      esquemaDaPaginaDoCatalogo,
+      buscar,
+    );
+  });
 }

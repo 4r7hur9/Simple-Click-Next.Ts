@@ -41,6 +41,8 @@ import {
   type ConferenciaNaTela,
   type EnderecoNovoParaEnviar,
   type PedidoNaTela,
+  type PedidoParaEnviar,
+  type ResultadoDoFechamento,
 } from "../../lib/carrinho-do-navegador.ts";
 import {
   salvarEnderecoDaConta,
@@ -49,6 +51,13 @@ import {
 import { escreverDinheiro } from "../../lib/produto.ts";
 
 import { AvisoDeMudanca, type MudancaNaTela } from "./AvisoDeMudanca.tsx";
+import {
+  contaNormalizada,
+  criarArquivoDeTentativas,
+  novaChaveDoFechamento,
+  type ArquivoDeTentativas,
+  type TentativaPendente,
+} from "./chave-do-fechamento.ts";
 import { CaixaPix } from "./CaixaPix.tsx";
 import {
   ENDERECO_EM_BRANCO,
@@ -98,6 +107,23 @@ export interface FechamentoDaCompraProps {
   readonly aoFecharJanela?: (() => void) | undefined;
   /** A sessão acabou no meio do caminho: quem monta abre o "Entrar". */
   readonly aoPrecisarDeConta?: (() => void) | undefined;
+  /**
+   * Muda quando a sessão foi renovada pela MESMA conta: o envio, travado
+   * desde o 401, destrava. Outra conta não passa por aqui: quem monta troca a
+   * `key` e o fechamento nasce de novo, com os dados e a chave dela.
+   */
+  readonly sessaoRenovada?: number | undefined;
+  /**
+   * Onde a tentativa pendente fica guardada. A janela da sacola o mantém
+   * enquanto a página está aberta, para fechar a janela no meio do envio não
+   * perder a chave. Sem ele, vale um arquivo próprio desta montagem.
+   */
+  readonly tentativas?: ArquivoDeTentativas | undefined;
+  /**
+   * Antes de repetir um envio, confere se a conta de agora é a que enviou
+   * (`true`). Sem ele, vale que é a mesma.
+   */
+  readonly aoConfirmarConta?: (() => Promise<boolean>) | undefined;
   /** Trocáveis para a prova responder sem rede. */
   readonly conferir?: typeof conferirCarrinho | undefined;
   readonly fechar?: typeof criarPedido | undefined;
@@ -138,16 +164,6 @@ const ROTULO_DA_ENTREGA: Record<FormaDeEntrega, string> = {
   DELIVERY: "Receber em casa",
   PICKUP: "Retirar no local",
 };
-
-/**
- * Uma chave nova por TENTATIVA de fechar, e não por pedido.
- *
- * É o que faz o segundo toque no botão reencontrar o primeiro pedido em vez de
- * criar outro (AC-516).
- */
-function novaChave(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
-}
 
 /** O endereço que a conta escolheria primeiro: o padrão, ou o primeiro. */
 function enderecoInicial(enderecos: readonly EnderecoSalvo[]): string | null {
@@ -206,6 +222,9 @@ export function FechamentoDaCompra({
   aoVoltar,
   aoFecharJanela,
   aoPrecisarDeConta,
+  sessaoRenovada,
+  tentativas,
+  aoConfirmarConta,
   conferir = conferirCarrinho,
   fechar = criarPedido,
   salvarEndereco = salvarEnderecoDaConta,
@@ -240,7 +259,22 @@ export function FechamentoDaCompra({
   const [erros, setErros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
   const [pedido, setPedido] = useState<PedidoNaTela | null>(null);
-  const [chave] = useState(novaChave);
+  // A tentativa que ficou sem resposta definitiva (rede caiu depois do envio):
+  // enquanto existe, o formulário fica como foi enviado, e a saída é repetir.
+  const [pendente, setPendente] = useState<TentativaPendente | null>(null);
+  // O 401: o envio fica travado até a sessão voltar (a mesma conta) ou o
+  // fechamento nascer de novo (outra conta).
+  const [semSessao, setSemSessao] = useState(false);
+  const [arquivoProprio] = useState(criarArquivoDeTentativas);
+  const arquivo = tentativas ?? arquivoProprio;
+  // A chave vale para UMA tentativa. Nasce no primeiro envio e só é refeita
+  // depois de uma resposta definitiva (pedido criado, recusa, 409).
+  const chaveAtual = useRef<string | null | undefined>(undefined);
+  // A trava do envio é um ref, e não o estado: dois toques no mesmo ciclo de
+  // renderização leem o mesmo `enviando` e passariam os dois.
+  const emEnvio = useRef(false);
+  const montado = useRef(false);
+  const contaDeAgora = contaNormalizada(conta.email);
 
   const precisaTelefone = conta.telefone === null || conta.telefone === "";
 
@@ -316,9 +350,110 @@ export function FechamentoDaCompra({
     }
   }
 
+  /** O que fazer com a resposta do servidor. */
+  function aplicar(
+    resultado: ResultadoDoFechamento,
+    tentativa: TentativaPendente,
+  ) {
+    // Fechou a janela no meio: a tentativa guarda o desfecho, e quem abrir de
+    // novo o encontra (`recuperar`).
+    if (!montado.current) return;
+
+    if (resultado.estado === "falhou") {
+      setPendente(tentativa);
+      setErro(
+        "Não foi possível confirmar o pedido agora, e ele pode ter sido criado. Seus dados ficaram guardados: toque em Tentar de novo, e não vai sair um pedido repetido.",
+      );
+      return;
+    }
+
+    // Qualquer outra resposta é DEFINITIVA: o servidor decidiu.
+    if (arquivo.ler() === tentativa) arquivo.descartar();
+    setPendente(null);
+    chaveAtual.current = undefined;
+
+    if (resultado.estado === "criado") {
+      setPedido(resultado.pedido);
+      // O carrinho virou pedido: a sacola some do cardápio.
+      avisarQueOCarrinhoMudou();
+      return;
+    }
+
+    if (resultado.estado === "sem-conta") {
+      setSemSessao(true);
+      setErro("Sua sessão terminou. Entre de novo para confirmar o pedido.");
+      aoPrecisarDeConta?.();
+      return;
+    }
+
+    if (resultado.estado === "recusado") {
+      const codigo = resultado.codigo.toLowerCase();
+      if (codigo.startsWith("telefone")) {
+        setErros({ telefone: resultado.motivo });
+      } else if (codigo.includes("troco")) {
+        setErros({ troco: resultado.motivo });
+      } else if (codigo.startsWith("endereco")) {
+        // O servidor exige o endereço: a frase aparece no grupo do endereço.
+        setErros({ endereco: resultado.motivo });
+      } else {
+        setErro(resultado.motivo);
+      }
+      return;
+    }
+
+    // `nao-pode` (409): o mundo mudou desde que a janela abriu. Reconferir é o
+    // que mostra O QUE mudou, e uma mudança nova pede nova confirmação.
+    setErro(resultado.motivo);
+    setConfirmouMudanca(false);
+    void carregar(true);
+  }
+
+  /** Manda o corpo, guardando a tentativa ANTES: ela sobrevive a fechar a janela. */
+  async function despachar(corpo: PedidoParaEnviar, chave: string) {
+    const tentativa: TentativaPendente = {
+      chave,
+      corpo,
+      conta: contaDeAgora,
+      promessa: null,
+      desfecho: null,
+    };
+    const promessa = (async (): Promise<ResultadoDoFechamento> => {
+      try {
+        return await fechar(apelidoDaLoja, corpo);
+      } catch {
+        return { estado: "falhou", motivo: "sem resposta" };
+      }
+    })();
+    tentativa.promessa = promessa;
+    arquivo.guardar(tentativa);
+    void promessa.then((resultado) => {
+      tentativa.promessa = null;
+      tentativa.desfecho = resultado;
+    });
+    aplicar(await promessa, tentativa);
+  }
+
+  /** Começa um envio: só um por vez, e a tela fica ocupada até a resposta. */
+  async function comTrava(trabalho: () => Promise<void>) {
+    if (emEnvio.current) return;
+    emEnvio.current = true;
+    setEnviando(true);
+    setErro(null);
+    try {
+      await trabalho();
+    } finally {
+      emEnvio.current = false;
+      if (montado.current) setEnviando(false);
+    }
+  }
+
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
-    if (conferencia === null || enviando) return;
+    if (conferencia === null || emEnvio.current) return;
+    if (pendente !== null || semSessao) return;
+    // O botão já está desligado, mas Enter num campo e o teste mandam o
+    // formulário assim mesmo: o impedimento vale aqui também.
+    if (travado !== null) return;
 
     // A tela confere o que consegue conferir sozinha; o servidor confere de
     // novo, e é ele quem manda (P-007).
@@ -344,7 +479,8 @@ export function FechamentoDaCompra({
         ? trocoEmCentavos(troco)
         : null;
     if (trocoPedido === undefined) {
-      pendentes["troco"] = "Escreva só o valor em reais, por exemplo 100 ou 100,00.";
+      pendentes["troco"] =
+        "Escreva só o valor em reais, por exemplo 100 ou 100,00.";
     } else if (trocoPedido !== null && trocoPedido < totalNaTela) {
       pendentes["troco"] =
         `O troco precisa ser para um valor maior que o total (${escreverDinheiro(totalNaTela)}).`;
@@ -352,63 +488,123 @@ export function FechamentoDaCompra({
     setErros(pendentes);
     if (Object.keys(pendentes).length > 0) return;
 
-    setEnviando(true);
-    setErro(null);
-    try {
-      const resultado = await fechar(apelidoDaLoja, {
-        ...(precisaTelefone ? { telefone: telefone.trim() } : {}),
-        // Retirada não leva endereço: o servidor não pede, e mandá-lo seria
-        // enviar dado pessoal que ninguém vai usar.
-        ...(forma === "DELIVERY" ? destino : {}),
-        entrega: forma,
-        formaDePagamento: pagamento,
-        trocoParaCentavos: trocoPedido ?? null,
-        observacao: observacao.trim() === "" ? null : observacao.trim(),
-        chaveDeIdempotencia: chave,
-        // Vai junto SÓ para a API anotar divergência. Ela recalcula com os
-        // preços dela, e é o número dela que vale (P-006).
-        totalVistoCentavos: totalNaTela,
-        // O subtotal dos itens, com a faixa de atacado que a conferência
-        // aplicou: se o servidor calcular outro, o pedido não sai (card #57).
-        subtotalVistoCentavos: subtotal,
-      });
-
-      if (resultado.estado === "criado") {
-        setPedido(resultado.pedido);
-        // O carrinho virou pedido: a sacola some do cardápio.
-        avisarQueOCarrinhoMudou();
-        return;
-      }
-
-      if (resultado.estado === "sem-conta") {
-        setErro("Sua sessão terminou. Entre de novo para confirmar o pedido.");
-        aoPrecisarDeConta?.();
-        return;
-      }
-
-      if (resultado.estado === "recusado") {
-        if (resultado.codigo.startsWith("telefone")) {
-          setErros({ telefone: resultado.motivo });
-        } else if (resultado.codigo.toUpperCase().includes("TROCO")) {
-          setErros({ troco: resultado.motivo });
-        } else {
-          setErro(resultado.motivo);
-        }
-        return;
-      }
-
+    // Sem gerador seguro de números, não há chave, e sem chave não há envio:
+    // uma chave fraca deixaria o pedido legível por quem a adivinhasse.
+    chaveAtual.current ??= novaChaveDoFechamento();
+    const chave = chaveAtual.current;
+    if (chave === null) {
       setErro(
-        resultado.estado === "nao-pode"
-          ? resultado.motivo
-          : "Não foi possível fechar o pedido agora. Confira sua conexão e tente de novo.",
+        "Este navegador não consegue proteger o envio do pedido. Atualize o navegador e tente de novo.",
       );
-      // O mundo mudou desde que a janela abriu: reconferir é o que mostra o
-      // QUE mudou, em vez de deixar a pessoa adivinhar.
-      void carregar(true);
-    } finally {
-      setEnviando(false);
+      return;
     }
+
+    await comTrava(() =>
+      despachar(
+        {
+          ...(precisaTelefone ? { telefone: telefone.trim() } : {}),
+          // Retirada não leva endereço: o servidor não pede, e mandá-lo seria
+          // enviar dado pessoal que ninguém vai usar.
+          ...(forma === "DELIVERY" ? destino : {}),
+          entrega: forma,
+          formaDePagamento: pagamento,
+          trocoParaCentavos: trocoPedido ?? null,
+          observacao: observacao.trim() === "" ? null : observacao.trim(),
+          chaveDeIdempotencia: chave,
+          // Vai junto SÓ para a API anotar divergência. Ela recalcula com os
+          // preços dela, e é o número dela que vale (P-006).
+          totalVistoCentavos: totalNaTela,
+          // O subtotal dos itens, com a faixa de atacado que a conferência
+          // aplicou: se o servidor calcular outro, o pedido não sai (card #57).
+          subtotalVistoCentavos: subtotal,
+        },
+        chave,
+      ),
+    );
   }
+
+  /**
+   * Repete o envio que ficou sem resposta, SEM criar um pedido novo.
+   *
+   * Antes de tudo, confere a conta: a chave devolve o pedido gravado sem olhar
+   * quem pede, então outra conta nunca pode reaproveitá-la. Depois lê o
+   * carrinho, que é convertido na mesma transação do pedido:
+   *
+   * - com itens, o pedido NÃO saiu: a tentativa é descartada e a pessoa pode
+   *   editar e confirmar de novo, com chave nova;
+   * - vazio, o pedido provavelmente saiu: repete EXATAMENTE o que foi enviado,
+   *   com a mesma chave, e o servidor devolve o pedido.
+   */
+  async function reenviar() {
+    const tentativa = arquivo.ler();
+    if (tentativa === null) return;
+    await comTrava(async () => {
+      const mesmaConta = aoConfirmarConta ? await aoConfirmarConta() : true;
+      if (!mesmaConta) {
+        // Quem monta refaz o fechamento com a conta nova.
+        arquivo.descartar();
+        setPendente(null);
+        return;
+      }
+
+      const lido = await conferir(apelidoDaLoja, null);
+      if (lido.estado !== "conferido") {
+        setPendente(tentativa);
+        setErro(
+          "Ainda não deu para confirmar o pedido. Confira sua conexão e tente de novo.",
+        );
+        return;
+      }
+
+      if (lido.conferencia.itens.length > 0) {
+        arquivo.descartar();
+        setPendente(null);
+        chaveAtual.current = undefined;
+        setConferencia(lido.conferencia);
+        setErro(
+          "O pedido não chegou a ser criado. Confira os dados e confirme de novo.",
+        );
+        return;
+      }
+
+      await despachar(tentativa.corpo, tentativa.chave);
+    });
+  }
+
+  /** Abriu de novo com uma tentativa no arquivo: traz o resultado dela. */
+  async function recuperar(tentativa: TentativaPendente) {
+    if (tentativa.conta !== contaDeAgora) {
+      arquivo.descartar();
+      return;
+    }
+    if (tentativa.desfecho !== null && tentativa.desfecho.estado !== "falhou") {
+      aplicar(tentativa.desfecho, tentativa);
+      return;
+    }
+    if (tentativa.promessa !== null) {
+      await comTrava(async () => {
+        aplicar(await tentativa.promessa!, tentativa);
+      });
+      return;
+    }
+    setPendente(tentativa);
+    await reenviar();
+  }
+
+  useEffect(() => {
+    montado.current = true;
+    const guardada = arquivo.ler();
+    if (guardada !== null) void recuperar(guardada);
+    return () => {
+      montado.current = false;
+    };
+    // Só na montagem: o arquivo e a conta são os da montagem.
+  }, []);
+
+  // A sessão voltou com a mesma conta: o envio destrava.
+  useEffect(() => {
+    if (sessaoRenovada !== undefined) setSemSessao(false);
+  }, [sessaoRenovada]);
 
   const mudancas: readonly MudancaNaTela[] = (conferencia?.mudancas ?? []).map(
     (mudanca) => ({
@@ -418,6 +614,12 @@ export function FechamentoDaCompra({
     }),
   );
 
+  // Enviando, esperando repetir um envio sem resposta ou sem sessão: nada do
+  // formulário muda, para o que foi enviado ser o que a pessoa vê.
+  const bloqueado = enviando || pendente !== null || semSessao;
+  // Com taxa, o total ainda é uma conta da tela: o valor que vale é o que o
+  // servidor grava ao criar o pedido (AC-11014, ASM-11003).
+  const estimativa = forma === "DELIVERY" && taxa > 0;
   const naoAtende = !formas.aceitaEntrega && !formas.aceitaRetirada;
   const vazio = conferencia !== null && conferencia.itens.length === 0;
   const pedeConfirmacao =
@@ -437,7 +639,8 @@ export function FechamentoDaCompra({
             type="button"
             className="sc-carrinho-janela__fechar sc-fechar__voltar"
             onClick={aoVoltar}
-            aria-label="Voltar ao carrinho"
+            disabled={enviando}
+            aria-label="Voltar à sacola"
           >
             <IconeVoltar aria-hidden="true" />
           </button>
@@ -448,13 +651,14 @@ export function FechamentoDaCompra({
           id={ID_DO_TITULO_DO_FECHAMENTO}
           tabIndex={-1}
         >
-          {pedido === null ? "Finalizar pedido" : "Pedido feito"}
+          {pedido === null ? "Fechar pedido" : "Pedido feito"}
         </h2>
         {aoFecharJanela ? (
           <button
             type="button"
             className="sc-carrinho-janela__fechar"
             onClick={aoFecharJanela}
+            disabled={enviando}
             aria-label="Fechar"
           >
             <IconeFechar aria-hidden="true" />
@@ -495,7 +699,7 @@ export function FechamentoDaCompra({
           // Carrinho vazio NÃO é erro: é um estado legítimo, e o caminho de
           // saída é voltar ao catálogo — vazio sem saída é beco sem saída.
           <div className="sc-carrinho-janela__estado sc-carrinho-janela__vazio">
-            <p>Seu carrinho está vazio.</p>
+            <p>Sua sacola está vazia.</p>
             <a className="sc-carrinho-janela__acao" href={linkDoCatalogo}>
               Ver o {catalogo}
               <IconeAvancar aria-hidden="true" />
@@ -537,6 +741,31 @@ export function FechamentoDaCompra({
                 {erro}
               </p>
             )}
+            {pendente !== null ? (
+              // Repetir leva o MESMO pedido, com a mesma chave: não cria outro.
+              <div className="sc-fechar__acoes-do-erro">
+                <button
+                  type="button"
+                  className="sc-fechar__secundario"
+                  onClick={() => void reenviar()}
+                  disabled={enviando}
+                  aria-busy={enviando}
+                >
+                  {enviando ? "Conferindo…" : "Tentar de novo"}
+                </button>
+              </div>
+            ) : null}
+            {semSessao ? (
+              <div className="sc-fechar__acoes-do-erro">
+                <button
+                  type="button"
+                  className="sc-fechar__secundario"
+                  onClick={() => aoPrecisarDeConta?.()}
+                >
+                  Entrar
+                </button>
+              </div>
+            ) : null}
 
             <QuemPede
               conta={conta}
@@ -544,7 +773,7 @@ export function FechamentoDaCompra({
               telefone={telefone}
               aoMudarTelefone={setTelefone}
               erro={erros["telefone"]}
-              desabilitado={enviando}
+              desabilitado={bloqueado}
             />
 
             <FormaDeReceber
@@ -553,7 +782,7 @@ export function FechamentoDaCompra({
               aoEscolher={setForma}
               entrega={entrega}
               subtotal={subtotal}
-              desabilitado={enviando}
+              desabilitado={bloqueado}
             />
 
             {forma === "DELIVERY" ? (
@@ -582,7 +811,7 @@ export function FechamentoDaCompra({
                 erros={erros}
                 erroAoSalvar={erroAoSalvar}
                 erroDoGrupo={erros["endereco"]}
-                desabilitado={enviando}
+                desabilitado={bloqueado}
               />
             ) : (
               <section
@@ -629,7 +858,7 @@ export function FechamentoDaCompra({
                 maxLength={500}
                 value={observacao}
                 onChange={(evento) => setObservacao(evento.target.value)}
-                desabilitado={enviando}
+                desabilitado={bloqueado}
               />
             </div>
 
@@ -638,6 +867,7 @@ export function FechamentoDaCompra({
               rotuloDoTotal="Total"
               total={escreverDinheiro(totalNaTela)}
               impedimento={travado}
+              estimativa={estimativa}
             />
           </form>
         )}
@@ -651,11 +881,17 @@ export function FechamentoDaCompra({
               <dd>{escreverDinheiro(totalNaTela)}</dd>
             </div>
           </dl>
+          {estimativa ? (
+            <p className="sc-carrinho-janela__estimativa">
+              Valor estimado: a taxa de entrega é confirmada quando o pedido é
+              criado.
+            </p>
+          ) : null}
           <button
             type="submit"
             form={ID_DO_FORMULARIO}
             className="sc-carrinho-janela__acao sc-carrinho-janela__acao--larga"
-            disabled={enviando || travado !== null}
+            disabled={bloqueado || travado !== null}
             aria-busy={enviando}
           >
             {enviando ? "Enviando…" : "Confirmar pedido"}
@@ -666,8 +902,9 @@ export function FechamentoDaCompra({
               type="button"
               className="sc-carrinho-janela__continuar"
               onClick={aoVoltar}
+              disabled={enviando}
             >
-              Voltar ao carrinho
+              Voltar à sacola
             </button>
           ) : null}
         </footer>
@@ -818,27 +1055,28 @@ function PedidoCriado({
   if (pedido.whatsapp !== null) {
     const whatsapp = pedido.whatsapp;
     return (
-      <EnvioWhatsApp
-        codigoDoPedido={pedido.codigo}
-        enderecoDaConversa={whatsapp.endereco}
-        textoDoPedido={whatsapp.texto}
-        linkDeAcompanhamento={acompanhamento}
-        aoAbrir={() =>
-          registrarCliqueNoWhatsApp(apelidoDaLoja, pedido.tokenPublico).then(
-            () => undefined,
-          )
-        }
-      />
+      <>
+        <ValoresGravados pedido={pedido} />
+        <EnvioWhatsApp
+          codigoDoPedido={pedido.codigo}
+          enderecoDaConversa={whatsapp.endereco}
+          textoDoPedido={whatsapp.texto}
+          linkDeAcompanhamento={acompanhamento}
+          aoAbrir={() =>
+            registrarCliqueNoWhatsApp(apelidoDaLoja, pedido.tokenPublico).then(
+              () => undefined,
+            )
+          }
+        />
+      </>
     );
   }
 
   return (
     <section className="sc-fechamento__pronto" aria-live="polite">
       <h3>Pedido {pedido.codigo} registrado</h3>
-      <p>
-        Guarde este código: é por ele que a loja encontra seu pedido. O total
-        foi de <strong>{escreverDinheiro(pedido.totalCentavos)}</strong>.
-      </p>
+      <p>Guarde este código: é por ele que a loja encontra seu pedido.</p>
+      <ValoresGravados pedido={pedido} />
       <p>
         Esta loja não cadastrou WhatsApp para pedidos. Combine a entrega pelo
         canal de sempre, citando o código.
@@ -849,6 +1087,31 @@ function PedidoCriado({
         </a>
       </p>
     </section>
+  );
+}
+
+/**
+ * O que o servidor GRAVOU no pedido: subtotal, taxa e total. Depois de criado
+ * não há mais estimativa: estes são os valores que valem (AC-11014).
+ */
+function ValoresGravados({ pedido }: { readonly pedido: PedidoNaTela }) {
+  return (
+    <dl className="sc-fechar__gravado" aria-label="Valores do pedido">
+      <div>
+        <dt>Subtotal</dt>
+        <dd>{escreverDinheiro(pedido.subtotalCentavos)}</dd>
+      </div>
+      {pedido.taxaDeEntregaCentavos > 0 ? (
+        <div>
+          <dt>Taxa de entrega</dt>
+          <dd>{escreverDinheiro(pedido.taxaDeEntregaCentavos)}</dd>
+        </div>
+      ) : null}
+      <div className="sc-fechar__gravado-total">
+        <dt>Total</dt>
+        <dd>{escreverDinheiro(pedido.totalCentavos)}</dd>
+      </div>
+    </dl>
   );
 }
 

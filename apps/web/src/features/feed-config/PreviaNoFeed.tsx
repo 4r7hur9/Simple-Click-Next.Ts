@@ -14,7 +14,6 @@ export interface LojaDaPrevia {
   readonly ramo: string | null;
   readonly logo: string | null;
   readonly capa: string | null;
-  readonly corDestaque: string;
   readonly bairro: string | null;
   readonly cidade: string | null;
   readonly formasDeEntrega: readonly string[];
@@ -61,7 +60,7 @@ export function PreviaNoFeed({
       >
         Prévia em Explorar
       </h2>
-      <TemaDaMarca corDestaque={loja.corDestaque} className="mt-3">
+      <TemaDaMarca className="mt-3">
         <article
           aria-label={`Cartão da loja ${loja.nome}`}
           data-no-feed={noFeed ? "sim" : "nao"}

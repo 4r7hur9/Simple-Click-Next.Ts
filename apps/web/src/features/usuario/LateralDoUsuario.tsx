@@ -22,25 +22,10 @@
 import "@simpleclick/ui/styles/usuario.css";
 
 import {
-  IconeConfiguracoes,
-  IconeExplorar,
-  IconeEstrela,
-  IconeCriarConta,
   IconeFechar,
-  IconeEntrar,
-  IconeLocal,
   IconeLoja,
-  IconeMetricas,
-  IconePedido,
   IconeSair,
-  IconeSeguranca,
-  IconeAbrirFora,
-  IconeTrocar,
-  IconeUsuario,
-  IconeDashboard,
-  IconeInicio,
   IconeInfo,
-  type Icone,
 } from "@simpleclick/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -55,31 +40,14 @@ import {
   nomeLegivel,
   itensDoUsuario,
   SELO_DO_PAPEL,
-  type IconeDoItem,
   type LojaNaBarra,
   type UsuarioDaBarra,
 } from "../../lib/quem-esta-logado.ts";
 import { EVENTO_VER_TUTORIAL } from "../tutorial/passos.ts";
+import { limparDadosLocaisDoCliente } from "./local-do-aparelho.ts";
+import { ICONES_DO_USUARIO } from "./icones-do-usuario.ts";
 
-/** O desenho de cada item, pelo nome que a lógica de papéis devolve. */
-export const ICONES_DO_USUARIO: Readonly<Record<IconeDoItem, Icone>> = {
-  entrar: IconeEntrar,
-  "criar-conta": IconeCriarConta,
-  loja: IconeInicio,
-  inicio: IconeDashboard,
-  pedidos: IconePedido,
-  dados: IconeUsuario,
-  enderecos: IconeLocal,
-  favoritos: IconeEstrela,
-  explorar: IconeExplorar,
-  seguranca: IconeSeguranca,
-  painel: IconeMetricas,
-  "ver-loja": IconeAbrirFora,
-  conta: IconeUsuario,
-  trocar: IconeTrocar,
-  admin: IconeConfiguracoes,
-  auditoria: IconeSeguranca,
-};
+export { ICONES_DO_USUARIO } from "./icones-do-usuario.ts";
 
 export interface LateralDoUsuarioProps {
   readonly usuario: UsuarioDaBarra;
@@ -298,6 +266,8 @@ export function LateralDoUsuario({
               aria-label={saindo ? "Saindo…" : "Sair"}
               disabled={saindo}
               onClick={() => {
+                // Sair apaga o que o feed guardou neste aparelho (localização, stories).
+                limparDadosLocaisDoCliente();
                 iniciarSaida(async () => {
                   await sair(caminho ?? "/");
                 });

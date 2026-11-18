@@ -14,10 +14,14 @@ import { Vazio } from "@simpleclick/ui";
 
 import type { PaginaNaTela, RecorteDaLista, SecaoNaTela } from "../../lib/catalogo.ts";
 
-import { CartaoDeProduto } from "./CartaoDeProduto.tsx";
+import { CartaoDeProduto, type FormatoDoCartao } from "./CartaoDeProduto.tsx";
 import { MaisProdutos } from "./MaisProdutos.tsx";
 
-export { CartaoDeProduto, type CartaoDeProdutoProps } from "./CartaoDeProduto.tsx";
+export {
+  CartaoDeProduto,
+  type CartaoDeProdutoProps,
+  type FormatoDoCartao,
+} from "./CartaoDeProduto.tsx";
 
 export interface GradeDeProdutosProps {
   readonly secao: SecaoNaTela;
@@ -36,6 +40,8 @@ export interface GradeDeProdutosProps {
    * seção é querer ver a seguinte, e o "Ver mais" espera o toque.
    */
   readonly automatico?: boolean | undefined;
+  /** O cartão da lista (celular) e da grade (tablet e computador). */
+  readonly formato?: FormatoDoCartao | undefined;
 }
 
 /** Uma seção do cardápio, com título e a grade dos produtos dela. */
@@ -44,6 +50,7 @@ export function GradeDeProdutos({
   primeira = false,
   carregarMais,
   automatico = false,
+  formato = "catalogo",
 }: GradeDeProdutosProps) {
   const total = secao.total ?? secao.produtos.length;
   const itens = secao.produtos.map((produto, indice) => (
@@ -51,6 +58,7 @@ export function GradeDeProdutos({
       <CartaoDeProduto
         produto={produto}
         prioridade={primeira && indice === 0}
+        formato={formato}
       />
     </li>
   ));
@@ -93,6 +101,8 @@ export function GradeDeProdutos({
           nomeDaSecao={secao.nome}
           carregar={carregarMais}
           automatico={automatico}
+          formato={formato}
+          jaMostrados={secao.produtos.map((produto) => produto.id)}
         >
           {itens}
         </MaisProdutos>

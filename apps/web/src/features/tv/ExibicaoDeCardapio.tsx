@@ -21,7 +21,13 @@
  * não é erro: é uma linha discreta no rodapé (AC-929).
  */
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Carregando, Erro, TemaDaLoja, Vazio } from "@simpleclick/ui";
+import {
+  Carregando,
+  Erro,
+  PALETA_ESCURA,
+  TemaDaLoja,
+  Vazio,
+} from "@simpleclick/ui";
 
 import type { CatalogoDaVitrineNoContrato } from "@simpleclick/contracts";
 
@@ -45,7 +51,6 @@ export interface LojaNaTv {
   readonly nome: string;
   /** "Cardápio" na lanchonete, "Catálogo" na loja de roupas. */
   readonly rotuloDoCatalogo: string;
-  readonly corPrincipal: string;
 }
 
 export interface ExibicaoDeCardapioProps {
@@ -120,8 +125,10 @@ export function ExibicaoDeCardapio({
   } as CSSProperties;
 
   return (
+    // UM VERDE SÓ (decisão de 17/11/2026): a parede pinta com o verde
+    // SimpleClick, com letra escura sobre ele, e nunca com a cor salva da loja.
     <TemaDaLoja
-      corPrincipal={loja.corPrincipal}
+      corPrincipal={PALETA_ESCURA.primaria}
       tema="escuro"
       className="sc-exibicao"
     >

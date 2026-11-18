@@ -1,5 +1,6 @@
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
+import { recusarOrigemDeFora } from "../../../../../server/protecao-da-conta.ts";
 
 /**
  * A impressão automática do painel (T-608): o estado do agente, os cupons que
@@ -20,6 +21,9 @@ async function encaminhar(
   requisicao: Request,
   recurso: string,
 ): Promise<Response> {
+  const recusada = recusarOrigemDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   if (RECURSOS[recurso] !== requisicao.method) {
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });
   }

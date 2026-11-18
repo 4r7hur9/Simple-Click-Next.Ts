@@ -37,7 +37,6 @@ export interface RascunhoDaVitrine {
   readonly nome: string;
   readonly boasVindas: string;
   readonly logo: string;
-  readonly corDestaque: string;
   readonly fundoVitrine: string;
   readonly fundoVitrineCelular: string;
   readonly topoCardapio: string;
@@ -111,9 +110,6 @@ export function lerRascunho(
     nome: texto(lido["nome"], MAXIMOS.nome),
     boasVindas: texto(lido["boasVindas"], MAXIMOS.boasVindas),
     logo: foto(lido["logo"]),
-    corDestaque: ehCorHexadecimal(lido["corDestaque"])
-      ? lido["corDestaque"].toLowerCase()
-      : "",
     fundoVitrine: foto(lido["fundoVitrine"]),
     fundoVitrineCelular: foto(lido["fundoVitrineCelular"]),
     topoCardapio: foto(lido["topoCardapio"]),
@@ -138,10 +134,7 @@ export function vitrineComRascunho(
   const { loja } = vitrine;
   const temaSalvo = loja.tema;
   const tema: TemaDaLoja = {
-    corDestaque:
-      rascunho.corDestaque !== ""
-        ? rascunho.corDestaque
-        : (temaSalvo?.corDestaque ?? COR_DE_DESTAQUE_PADRAO),
+    corDestaque: COR_DE_DESTAQUE_PADRAO, // sem cor própria por loja
     corDeFundo: COR_DE_FUNDO_DA_VITRINE,
     fundoVitrine: rascunho.fundoVitrine || null,
     topoCardapio: rascunho.topoCardapio || null,

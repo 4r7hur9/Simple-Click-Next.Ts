@@ -6,6 +6,7 @@
  * tela, e para login, segundo fator e código de recuperação lerem a mesma
  * resposta do mesmo jeito.
  */
+import { destinoSeguro } from "../../lib/destino-seguro.ts";
 import type { RespostaDoCadastroNaTela } from "./CadastroForm.tsx";
 import type { RespostaDoCodigoNaTela } from "./CodigoForm.tsx";
 import type { RespostaDaRecuperacaoNaTela } from "./CodigoDeRecuperacaoForm.tsx";
@@ -16,6 +17,26 @@ type Corpo = Record<string, unknown>;
 
 /** Sem destino na resposta: o cliente começa pelo feed (card #37). */
 const DESTINO_PADRAO = "/explorar/produtos";
+
+/**
+ * Para onde ir depois do segundo fator. A orientação da API (por exemplo,
+ * guardar os códigos de recuperação) vem ANTES do destino que a pessoa
+ * trazia; sem destino, vale o do papel. Tudo passa pela regra única: nada
+ * que a resposta ou o endereço tragam leva para fora do site.
+ */
+export function destinoDepoisDoSegundoFator(opcoes: {
+  readonly orientarPara?: string | undefined;
+  readonly redirecionarPara?: string | undefined;
+  /** O `?proximo=` já conferido da tela de verificação. */
+  readonly destino?: string | undefined;
+}): string {
+  return (
+    destinoSeguro(opcoes.orientarPara) ??
+    destinoSeguro(opcoes.destino) ??
+    destinoSeguro(opcoes.redirecionarPara) ??
+    DESTINO_PADRAO
+  );
+}
 
 const texto = (valor: unknown): string =>
   typeof valor === "string" ? valor : "";
@@ -28,8 +49,7 @@ export function respostaDoLogin(
   if (status === 200 && corpo["status"] === "SESSAO_CRIADA") {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara:
-        texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
+      redirecionarPara: texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
     };
   }
   if (status === 200 && corpo["status"] === "DESAFIO_DE_SEGUNDO_FATOR") {
@@ -72,8 +92,7 @@ export function respostaDoCadastro(
   if (status === 201 && corpo["status"] === "SESSAO_CRIADA") {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara:
-        texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
+      redirecionarPara: texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
     };
   }
   if (status === 201) {
@@ -126,8 +145,7 @@ export function respostaDoCodigo(
   if (status === 200 && corpo["status"] === "SESSAO_CRIADA") {
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara:
-        texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
+      redirecionarPara: texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
     };
   }
   if (corpo["status"] === "CODIGO_INCORRETO") {
@@ -152,8 +170,7 @@ export function respostaDaRecuperacao(
     const orientarPara = texto(corpo["orientarPara"]);
     return {
       status: "SESSAO_CRIADA",
-      redirecionarPara:
-        texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
+      redirecionarPara: texto(corpo["redirecionarPara"]) || DESTINO_PADRAO,
       ...(orientarPara === "" ? {} : { orientarPara }),
     };
   }
@@ -174,7 +191,10 @@ export type RespostaDaLojaNaTela =
       readonly mensagem: string;
       readonly sugestao: string | null;
     }
-  | { readonly status: "CAMPOS_INVALIDOS"; readonly campos: readonly { campo: string; mensagem: string }[] }
+  | {
+      readonly status: "CAMPOS_INVALIDOS";
+      readonly campos: readonly { campo: string; mensagem: string }[];
+    }
   | { readonly status: "LIMITE"; readonly mensagem: string }
   | { readonly status: "SEM_SESSAO" }
   | { readonly status: "INDISPONIVEL"; readonly mensagem: string };
@@ -201,15 +221,15 @@ export function respostaDaLoja(
     return {
       status: "APELIDO_EM_USO",
       mensagem: "Este endereço já está em uso. Escolha outro.",
-      sugestao: typeof corpo["sugestao"] === "string" ? corpo["sugestao"] : null,
+      sugestao:
+        typeof corpo["sugestao"] === "string" ? corpo["sugestao"] : null,
     };
   }
   if (status === 409 && corpo["erro"] === "limite_atingido") {
     return {
       status: "LIMITE",
       mensagem:
-        texto(corpo["mensagem"]) ||
-        "Esta conta já chegou ao limite de lojas.",
+        texto(corpo["mensagem"]) || "Esta conta já chegou ao limite de lojas.",
     };
   }
   const campos = corpo["campos"];

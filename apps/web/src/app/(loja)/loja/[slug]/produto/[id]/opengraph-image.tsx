@@ -18,6 +18,7 @@ import { ImageResponse } from "next/og";
 import { PALETA_CLARA } from "@simpleclick/ui";
 
 import { buscarProduto } from "../../../../../../server/produto.ts";
+import { enderecoDoSite } from "../../../../../../server/endereco-do-site.ts";
 import { buscarVitrine } from "../../../../../../server/vitrine.ts";
 
 export const alt = "Produto no SimpleClick";
@@ -36,8 +37,31 @@ const FUNDO = PALETA_CLARA.fundo;
 const TINTA = PALETA_CLARA.tinta;
 const TINTA_SUAVE = PALETA_CLARA.tintaSuave;
 
-/** A cor de reserva quando a loja não escolheu nenhuma (AC-014). */
-const COR_DE_RESERVA = PALETA_CLARA.primaria;
+/**
+ * UM VERDE SÓ (decisão de 17/11/2026): a cor salva da loja não pinta mais nada.
+ * O verde entra como PREENCHIMENTO (fundo sem foto, filete e etiqueta do
+ * preço), com a letra escura do tema sobre ele — nunca como letra no claro.
+ */
+const VERDE = PALETA_CLARA.primaria;
+const TINTA_SOBRE_O_VERDE = PALETA_CLARA.emPrimaria;
+
+/**
+ * `next/og` só desenha foto com endereço ABSOLUTO; com um caminho do próprio
+ * site (`/demo/...`) a rota estourava e o robô ficava sem prévia nenhuma. O
+ * caminho é resolvido contra o endereço do site; o que não vira http(s) fica
+ * de fora e a prévia sai com o fundo verde.
+ */
+function enderecoAbsoluto(url: string | null): string | null {
+  if (url === null) return null;
+  try {
+    const absoluto = new URL(url, enderecoDoSite());
+    return absoluto.protocol === "https:" || absoluto.protocol === "http:"
+      ? absoluto.href
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
   const { slug, id } = await params;
@@ -55,8 +79,7 @@ export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
   // Como na imagem da loja: nada aqui devolve erro. O robô da rede social não
   // sabe ler um 500 — ele mostraria o link sem prévia nenhuma.
   const nome = produto?.nome ?? loja?.nome ?? "SimpleClick";
-  const cor = loja?.tema?.corDestaque ?? COR_DE_RESERVA;
-  const foto = produto?.imagens[0]?.url ?? null;
+  const foto = enderecoAbsoluto(produto?.imagens[0]?.url ?? null);
 
   // PREÇO NULO É "DEPENDE DA VARIAÇÃO", e não zero: a faixa mostra o nome da
   // loja no lugar. Escrever "R$ 0,00" prometeria de graça o que custa.
@@ -78,7 +101,7 @@ export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          background: foto === null ? cor : TINTA,
+          background: foto === null ? VERDE : TINTA,
           overflow: "hidden",
         }}
       >
@@ -102,7 +125,7 @@ export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
           justifyContent: "space-between",
           gap: 32,
           padding: "36px 56px",
-          borderTop: `10px solid ${cor}`,
+          borderTop: `10px solid ${VERDE}`,
         }}
       >
         <div
@@ -133,9 +156,12 @@ export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
           <div
             style={{
               display: "flex",
-              fontSize: 60,
+              padding: "8px 28px",
+              borderRadius: 999,
+              background: VERDE,
+              fontSize: 56,
               fontWeight: 700,
-              color: cor,
+              color: TINTA_SOBRE_O_VERDE,
               whiteSpace: "nowrap",
             }}
           >

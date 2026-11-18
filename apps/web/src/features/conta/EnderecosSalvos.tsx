@@ -220,6 +220,8 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
   const [apagando, setApagando] = useState<string | null>(null);
   const [editando, setEditando] = useState<string | null>(null);
   const [falhou, setFalhou] = useState(false);
+  /** O endereço com uma ação em andamento: sem clique duplo (AC-11130). */
+  const [ocupado, setOcupado] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setEstado({ tipo: "carregando" });
@@ -236,19 +238,25 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
   }, [carregar]);
 
   async function tornarPadrao(endereco: EnderecoSalvo) {
+    if (ocupado !== null) return;
     setFalhou(false);
+    setOcupado(endereco.id);
     const resultado = await trocarEnderecoDaConta(
       endereco.id,
       paraSalvar(endereco, true),
       buscar,
     );
+    setOcupado(null);
     if (resultado.estado === "salvo") await carregar();
     else setFalhou(true);
   }
 
   async function apagar(id: string) {
+    if (ocupado !== null) return;
     setFalhou(false);
+    setOcupado(id);
     const apagado = await apagarEnderecoDaConta(id, buscar);
+    setOcupado(null);
     setApagando(null);
     if (apagado) await carregar();
     else setFalhou(true);
@@ -343,6 +351,9 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
                   <Botao
                     variante="secundaria"
                     tamanho="pequeno"
+                    carregando={ocupado === endereco.id}
+                    rotuloDeEspera="Salvando…"
+                    desabilitado={ocupado !== null}
                     onClick={() => void tornarPadrao(endereco)}
                   >
                     Usar como padrão
@@ -350,9 +361,18 @@ export function EnderecosSalvos({ buscar = fetch }: EnderecosSalvosProps) {
                 )}
                 {apagando === endereco.id ? (
                   <>
+                    {endereco.padrao && estado.enderecos.length > 1 ? (
+                      <p className="sc-endereco__linha" role="note">
+                        Este é o endereço padrão. Se você apagar, o mais antigo
+                        que sobrar passa a ser o padrão.
+                      </p>
+                    ) : null}
                     <Botao
                       variante="perigo"
                       tamanho="pequeno"
+                      carregando={ocupado === endereco.id}
+                      rotuloDeEspera="Apagando…"
+                      desabilitado={ocupado !== null}
                       onClick={() => void apagar(endereco.id)}
                     >
                       Sim, apagar

@@ -4,13 +4,17 @@ import {
   lerConsulta,
   type ParametrosDaPagina,
 } from "../../../../features/feed/consulta.ts";
-import { TelaDoFeed } from "../../../../features/feed/TelaDoFeed.tsx";
+import { TelaDoFeed, type ConteudoDoFeed } from "../../../../features/feed/TelaDoFeed.tsx";
 import { buscarTiposDeNegocio } from "../../../../server/feed.ts";
 import { usuarioDoPedidoAtual } from "../../../../server/usuario-da-sessao.ts";
 import * as acoes from "../acoes.ts";
-import { conteudoDasLojas, tokenDaSessao } from "../_dados.ts";
+import { conteudoDasLojas, ouReserva, tokenDaSessao } from "../_dados.ts";
 
-export const metadata: Metadata = { title: "Explorar lojas | SimpleClick" };
+export const metadata: Metadata = {
+  title: "Lojas para explorar | SimpleClick",
+  description: "Veja as lojas do SimpleClick, as favoritas e as que você visitou.",
+  alternates: { canonical: "/explorar/lojas" },
+};
 
 /**
  * As lojas do feed, uma por vez como post (card #49), com favoritas e vistas
@@ -25,8 +29,10 @@ export default async function PaginaDeLojasDoExplorar({
   const consulta = { ...lerConsulta("lojas", await searchParams), pagina: 1 };
   const token = await tokenDaSessao();
   const [tipos, conteudo, usuario] = await Promise.all([
-    buscarTiposDeNegocio(),
-    conteudoDasLojas(consulta, token),
+    ouReserva(buscarTiposDeNegocio(), []),
+    ouReserva<ConteudoDoFeed>(conteudoDasLojas(consulta, token), {
+      estado: "indisponivel",
+    }),
     usuarioDoPedidoAtual(),
   ]);
   return (

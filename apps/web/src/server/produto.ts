@@ -62,7 +62,7 @@ function regraDoGrupo(minimo: number, maximo: number | null): string {
 function explicar(motivo: MotivoNaTela | null): string | null {
   switch (motivo) {
     case "ESGOTADO":
-      return "Este item acabou. Ele volta assim que a loja repuser.";
+      return "Este item acabou.";
     case "FORA_DO_HORARIO":
       return "Este item não está sendo vendido agora.";
     case "LOJA_FECHADA":
@@ -157,6 +157,7 @@ export function prepararProduto(
     maximo: grupo.maximo,
     permiteRepetir: grupo.permiteRepetir,
     eixoDeVariacao: grupo.eixoDeVariacao,
+    tipo: grupo.tipo,
     // Derivada do mínimo, como no banco e no contrato: um campo próprio poderia
     // divergir do número que de fato bloqueia.
     obrigatorio: grupo.minimo >= 1,
@@ -180,6 +181,12 @@ export function prepararProduto(
           ? null
           : emReais(variacao.precoCentavos),
       precoCentavos: variacao.precoCentavos,
+      precoAnterior:
+        variacao.precoAnteriorCentavos !== null &&
+        variacao.precoCentavos !== null &&
+        variacao.precoAnteriorCentavos > variacao.precoCentavos
+          ? emReais(variacao.precoAnteriorCentavos)
+          : null,
       disponivel: variacao.disponivel,
       padrao: variacao.padrao,
       valoresDosEixos: variacao.valoresDosEixos,
@@ -201,6 +208,8 @@ export function prepararProduto(
     chamada: daApi.chamada,
     descricao: daApi.descricao,
     imagens: daApi.imagens,
+    midias: daApi.midias ?? [],
+    especificacoes: daApi.especificacoes ?? [],
     preco: daApi.precoCentavos === null ? null : emReais(daApi.precoCentavos),
     precoCentavos: daApi.precoCentavos,
     precoAnterior:

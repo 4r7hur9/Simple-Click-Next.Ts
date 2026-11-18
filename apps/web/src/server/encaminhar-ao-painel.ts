@@ -11,6 +11,7 @@
 import { enderecoDaApi } from "./api-client.ts";
 import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
 import { renovarAposGravar } from "./renovar-vitrine.ts";
+import { recusarAcaoDeFora } from "./protecao-da-conta.ts";
 
 /** Métodos que levam corpo JSON até a API. */
 const COM_CORPO = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -24,6 +25,9 @@ export async function encaminharAoPainel(
   requisicao: Request,
   caminho: string,
 ): Promise<Response> {
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
+
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;
   const { token } = sessao;

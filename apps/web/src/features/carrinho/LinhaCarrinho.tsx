@@ -14,7 +14,13 @@
  * quantidade 1, o "menos" fica desligado e quem quer tirar o item usa o
  * "remover", que diz o que faz.
  */
-import { IconeAdicionar, IconeExcluir, IconeRemover } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  IconeAdicionar,
+  IconeExcluir,
+  IconeRemover,
+} from "@simpleclick/ui";
 
 import type { ItemNaTela, OpcaoNaTela } from "./useCarrinho.ts";
 
@@ -45,12 +51,19 @@ export interface LinhaCarrinhoProps {
   readonly aoMudarQuantidade: (itemId: string, quantidade: number) => void;
   /** Enquanto o servidor responde, os controles ficam bloqueados. */
   readonly ocupado?: boolean | undefined;
+  /**
+   * A mudança de quantidade desta linha que o servidor recusou (AC-11009): a
+   * linha segue com a quantidade de antes, diz que não deu e oferece tentar de
+   * novo. Ausente, nada é mostrado.
+   */
+  readonly falha?: { readonly aoTentarDeNovo: () => void } | undefined;
 }
 
 export function LinhaCarrinho({
   item,
   aoMudarQuantidade,
   ocupado = false,
+  falha,
 }: LinhaCarrinhoProps) {
   const nomeCompleto = item.variacao
     ? `${item.nome} (${item.variacao})`
@@ -59,8 +72,27 @@ export function LinhaCarrinho({
   const temDetalhe =
     Boolean(item.variacao) || opcoes.length > 0 || Boolean(item.observacao);
 
+  const foto = item.foto ?? null;
+
   return (
-    <li className="sc-carrinho-janela__item">
+    <li
+      className={`sc-carrinho-janela__item${
+        foto ? " sc-carrinho-janela__item--com-foto" : ""
+      }`}
+    >
+      {foto ? (
+        // A foto é do produto; o nome já está ao lado, então o texto
+        // alternativo só entra quando o cadastro trouxe um próprio.
+        <img
+          className="sc-carrinho-janela__foto"
+          src={foto.url}
+          alt={foto.texto ?? ""}
+          width={foto.largura ?? 96}
+          height={foto.altura ?? 96}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : null}
       <div className="sc-carrinho-janela__cabeca">
         <p className="sc-carrinho-janela__nome">{item.nome}</p>
         <p className="sc-carrinho-janela__subtotal">{item.totalDaLinha}</p>
@@ -131,6 +163,22 @@ export function LinhaCarrinho({
             </li>
           ) : null}
         </ul>
+      ) : null}
+
+      {falha ? (
+        <div className="sc-carrinho-janela__falha">
+          <Aviso
+            tom="erro"
+            titulo="Não foi possível mudar a quantidade"
+            acao={
+              <Botao variante="secundaria" onClick={falha.aoTentarDeNovo}>
+                Tentar de novo
+              </Botao>
+            }
+          >
+            A quantidade continua a de antes.
+          </Aviso>
+        </div>
       ) : null}
 
       <div className="sc-carrinho-janela__pe">

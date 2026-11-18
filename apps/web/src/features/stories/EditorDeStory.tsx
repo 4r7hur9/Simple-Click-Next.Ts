@@ -88,7 +88,6 @@ import {
 export interface PerfilDoEditor {
   readonly apelido: string;
   readonly nome: string;
-  readonly corDestaque: string;
 }
 
 interface Props {
@@ -155,9 +154,7 @@ export function EditorDeStory({
     destino === "produto" && produto === null ? "loja" : destino;
   const ocupado = envio.fase === "compondo" || envio.fase === "enviando";
 
-  const destaque = /^#[0-9a-fA-F]{6}$/.test(perfil.corDestaque)
-    ? perfil.corDestaque.toLowerCase()
-    : COR_DE_DESTAQUE_PADRAO;
+  const destaque = COR_DE_DESTAQUE_PADRAO; // sempre o verde SimpleClick
   const tintaDoDestaque = tintaSobre(destaque);
   const cores = useMemo(() => paletaDaLoja(destaque), [destaque]);
   const familias = useMemo(() => familiasDoEditor(), []);

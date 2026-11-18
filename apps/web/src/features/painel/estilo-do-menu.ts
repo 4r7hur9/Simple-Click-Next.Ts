@@ -7,7 +7,7 @@ export const FOCO =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cor-foco)] [&:focus:not(:focus-visible)]:outline-none!";
 
 /** Item do menu: 44px de toque, ícone + nome; na faixa de ícones, só o ícone. */
-export const BASE_DO_ITEM = `group relative flex min-h-[var(--altura-toque)] w-full items-center gap-3 rounded-[var(--raio)] px-3 text-left text-sm font-medium motion-safe:transition-colors motion-safe:duration-150 md:max-lg:justify-center md:max-lg:px-0 ${FOCO}`;
+export const BASE_DO_ITEM = `group relative flex min-h-[var(--altura-toque)] w-full items-center gap-3 rounded-[var(--raio-completo)] px-4 text-left text-sm font-medium motion-safe:transition-colors motion-safe:duration-150 md:max-lg:justify-center md:max-lg:px-0 ${FOCO}`;
 
 /**
  * O item ativo já é um bloco verde: o contorno de foco por fora dele virava um

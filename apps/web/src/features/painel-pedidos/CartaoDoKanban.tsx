@@ -95,7 +95,10 @@ export function CartaoDoKanban({
         type="button"
         className="sc-cartao-pedido__abrir"
         onClick={() => aoAbrir(pedido)}
-        aria-label={`Abrir pedido ${pedido.numero} de ${pedido.cliente}`}
+        // SEM aria-label: o nome do botão é o que está escrito nele (número,
+        // hora, cliente, total, itens). Um rótulo diferente do texto visível
+        // quebra o comando de voz (axe label-content-name-mismatch), e o
+        // cartão em volta já se anuncia como "Pedido número N".
       >
         <span className="sc-cartao-pedido__topo">
           <span>

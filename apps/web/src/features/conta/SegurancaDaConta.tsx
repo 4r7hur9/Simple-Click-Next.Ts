@@ -44,7 +44,7 @@ export function TrocarSenha() {
     if (r.ok) {
       setAtual("");
       setNova("");
-      setResultado({ tom: "sucesso", texto: "Senha trocada. Os outros aparelhos foram desconectados." });
+      setResultado({ tom: "sucesso", texto: "Senha trocada. Os outros aparelhos saem da conta em até 15 minutos; este continua conectado." });
     } else {
       setResultado({ tom: "erro", texto: texto(r.erro, r.erro === "senha_fraca" ? undefined : r.mensagem) });
     }
@@ -71,10 +71,15 @@ function quando(iso: string): string {
 export function SessoesAbertas({ inicial }: { readonly inicial: readonly SessaoAberta[] }) {
   const [sessoes, setSessoes] = useState(inicial);
   const [falhou, setFalhou] = useState(false);
+  /** A conexão sendo encerrada: sem clique duplo (AC-11130). */
+  const [encerrando, setEncerrando] = useState<string | null>(null);
 
   async function encerrar(id: string) {
+    if (encerrando !== null) return;
     setFalhou(false);
+    setEncerrando(id);
     const r = await chamarConta("DELETE", `sessoes/${id}`);
+    setEncerrando(null);
     if (r.ok) setSessoes((atuais) => atuais.filter((s) => s.id !== id));
     else setFalhou(true);
   }
@@ -93,7 +98,14 @@ export function SessoesAbertas({ inicial }: { readonly inicial: readonly SessaoA
               <p className="sc-sessoes__quando">Entrou em {quando(s.iniciadaEm)} · último acesso {quando(s.ultimoAcessoEm)}</p>
             </div>
             {s.atual ? null : (
-              <Botao variante="secundaria" tamanho="pequeno" onClick={() => void encerrar(s.id)}>
+              <Botao
+                variante="secundaria"
+                tamanho="pequeno"
+                carregando={encerrando === s.id}
+                rotuloDeEspera="Encerrando…"
+                desabilitado={encerrando !== null}
+                onClick={() => void encerrar(s.id)}
+              >
                 Encerrar
               </Botao>
             )}

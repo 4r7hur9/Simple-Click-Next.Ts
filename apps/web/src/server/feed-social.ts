@@ -109,17 +109,29 @@ export async function chamarApiSocial(
   }
 }
 
+export interface LeituraDeStories {
+  readonly corpo: unknown;
+  /** A sessão tinha vencido e a leitura foi repetida sem ela (card #106). */
+  readonly sessaoVencida: boolean;
+}
+
+/** `GET /v1/stories`, dizendo se a sessão venceu no caminho. */
+export async function lerStoriesDoFeed(
+  token: string | undefined,
+  buscar: typeof fetch = fetch,
+): Promise<LeituraDeStories> {
+  const lido = await chamarApiSocial(CAMINHOS_SOCIAIS.stories, { token, buscar });
+  if (lido.estado === "nao-autenticado" && token !== undefined) {
+    const publico = await chamarApiSocial(CAMINHOS_SOCIAIS.stories, { buscar });
+    return { corpo: publico.estado === "ok" ? publico.corpo : null, sessaoVencida: true };
+  }
+  return { corpo: lido.estado === "ok" ? lido.corpo : null, sessaoVencida: false };
+}
+
 /** `GET /v1/stories`: as lojas com story no ar (com token, vistos e favoritas). */
 export async function buscarStoriesDoFeed(
   token: string | undefined,
   buscar: typeof fetch = fetch,
 ): Promise<unknown> {
-  const lido = await chamarApiSocial(CAMINHOS_SOCIAIS.stories, {
-    token,
-    buscar,
-  });
-  if (lido.estado === "nao-autenticado" && token !== undefined) {
-    return buscarStoriesDoFeed(undefined, buscar);
-  }
-  return lido.estado === "ok" ? lido.corpo : null;
+  return (await lerStoriesDoFeed(token, buscar)).corpo;
 }

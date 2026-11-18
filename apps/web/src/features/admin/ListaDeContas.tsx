@@ -269,7 +269,9 @@ function ContasProntas({
         conta.pendentes > 0 ? (
           <Link
             href={`/admin/contas/${conta.identidadeId}`}
-            aria-label={`${plural(conta.pendentes, "loja pendente", "lojas pendentes")} de ${conta.nome ?? conta.email}`}
+            // O nome acessível COMEÇA pelo texto do selo ("1 pendente"): quem
+            // usa comando de voz fala o que vê (axe label-content-name-mismatch).
+            aria-label={`${plural(conta.pendentes, "pendente", "pendentes")} de aprovação, nas lojas de ${conta.nome ?? conta.email}`}
           >
             <Selo tom="atencao">
               {plural(conta.pendentes, "pendente", "pendentes")}

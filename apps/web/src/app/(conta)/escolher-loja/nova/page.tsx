@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { CascaDaConta } from "../../../../features/auth/CascaDaConta.tsx";
 import { FormularioOutraLoja } from "../../../../features/equipe/FormularioOutraLoja.tsx";
 import { lojaDoPedidoAtual } from "../../../../server/loja-da-pagina.ts";
+import { comDestino } from "../../../../lib/destino-seguro.ts";
 
 export const metadata: Metadata = {
   title: "Abrir outra loja | SimpleClick",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 /** Nova loja do dono (card #32): nasce aguardando aprovação e respeita o limite. */
 export default async function PaginaDeNovaLoja() {
   const decisao = await lojaDoPedidoAtual();
-  if (decisao.estado === "sem-sessao") redirect("/entrar");
+  if (decisao.estado === "sem-sessao") redirect(comDestino("/entrar", "/escolher-loja/nova"));
   return (
     <CascaDaConta
       titulo="Abrir outra loja"

@@ -9,9 +9,12 @@ import "@simpleclick/ui/styles/narrativa.css";
 import "@simpleclick/ui/styles/sobre.css";
 
 import type { ReactNode } from "react";
-import { COR_DE_DESTAQUE_PADRAO_DA_LOJA, TemaDaMarca } from "@simpleclick/ui";
+import { TemaDaMarca } from "@simpleclick/ui";
 
-import { LateralDaSessao } from "../../../_usuario/sessao.tsx";
+import {
+  BarraInferiorDaSessao,
+  NavegacaoDaSessao,
+} from "../../../_usuario/sessao.tsx";
 import { RodapeLegal } from "../../../../features/legal/RodapeLegal.tsx";
 import { JanelaDeAcesso } from "../../../../features/auth/JanelaDeAcesso.tsx";
 import { buscarVitrine } from "../../../../server/vitrine.ts";
@@ -33,19 +36,14 @@ export default async function MolduraDaLoja({
           nome: vitrine.vitrine.loja.nome,
         }
       : undefined;
-  // A cor de destaque do dono vai no envelope, DESENHADA NO SERVIDOR: a loja
-  // abre já na cor dela, sem piscar o verde padrão. Janelas (carrinho, produto,
-  // entrar) também ficam dentro dele.
-  const corDestaque =
-    vitrine.estado === "encontrada"
-      ? (vitrine.vitrine.loja.tema?.corDestaque ??
-        COR_DE_DESTAQUE_PADRAO_DA_LOJA)
-      : COR_DE_DESTAQUE_PADRAO_DA_LOJA;
+  // Envelope da loja: sem cor própria, tudo no verde SimpleClick. Janelas
+  // (carrinho, produto, entrar) também ficam dentro dele.
   return (
-    <TemaDaMarca corDestaque={corDestaque}>
-      <LateralDaSessao loja={loja} />
+    <TemaDaMarca>
+      <NavegacaoDaSessao loja={loja} />
       {children}
       <RodapeLegal />
+      <BarraInferiorDaSessao />
       {/* Entrar / criar conta sem sair da loja: abrirJanelaDeAcesso(). */}
       <JanelaDeAcesso />
     </TemaDaMarca>

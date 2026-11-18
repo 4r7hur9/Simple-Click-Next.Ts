@@ -78,6 +78,11 @@ export interface RecorteDaLista {
   readonly filtros: readonly string[];
   readonly atacado: boolean;
   readonly ordem: OrdemDoCatalogo;
+  /** Só o que não está esgotado (card #108). Ausente vale falso. */
+  readonly estoque?: boolean | undefined;
+  /** Faixa de preço em CENTAVOS, inclusive. Ausente ou nulo é "sem limite". */
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
 }
 
 /** A continuação de uma lista (card #74). */
@@ -107,6 +112,11 @@ export interface AbaDeCategoria {
   readonly link: string;
   /** A aba escolhida agora. É ela que recebe `aria-current` na tela. */
   readonly emVigor: boolean;
+  /**
+   * Quantos produtos a categoria tem (com busca e filtros valendo). "Todas" não
+   * leva número: um produto em duas seções seria contado duas vezes.
+   */
+  readonly total?: number | undefined;
 }
 
 /**
@@ -114,7 +124,12 @@ export interface AbaDeCategoria {
  * destaques no topo — e é o padrão, que não aparece no endereço.
  */
 export type OrdemDoCatalogo =
-  "relevancia" | "menor-preco" | "maior-preco" | "a-z";
+  | "relevancia"
+  | "menor-preco"
+  | "maior-preco"
+  | "a-z"
+  | "maior-desconto-atacado"
+  | "lancamentos";
 
 /** Uma opção do "Ordenar", já com o link que a aplica. */
 export interface OpcaoDeOrdem {
@@ -136,6 +151,24 @@ export interface FiltroDeAtacadoNaTela {
   readonly ligado: boolean;
   /** O link que inverte o filtro. */
   readonly link: string;
+}
+
+/** Um filtro ligado, como chip: o rótulo e o endereço SEM ele (AC-10815). */
+export interface FiltroAtivoNaTela {
+  /** O que o cliente lê: "Tamanho: M". */
+  readonly rotulo: string;
+  /** O mesmo catálogo sem este filtro; categoria, busca, ordem e os outros ficam. */
+  readonly link: string;
+}
+
+/**
+ * O que o cliente lê em cada valor de filtro. O valor que vai no endereço não
+ * muda — só a leitura: "true" é como o banco escreve, "Sim" é como a gente fala.
+ */
+export function rotuloDoValor(valor: string): string {
+  if (valor === "true") return "Sim";
+  if (valor === "false") return "Não";
+  return valor;
 }
 
 /** O catálogo inteiro, pronto para desenhar. */
@@ -163,6 +196,14 @@ export interface CatalogoNaTela {
   readonly lojaSemCatalogo: boolean;
   /** A categoria pedida no endereço não existe nesta loja. */
   readonly filtroSemAcerto: boolean;
+  /**
+   * Há filtro de especificação ligado e nenhum produto o atende (AC-10824).
+   * É diferente de loja sem catálogo e de categoria que não existe: a tela
+   * mantém a barra e oferece "Limpar filtros". Ausente vale falso.
+   */
+  readonly filtroSemAcertoNaLista?: boolean | undefined;
+  /** O mesmo catálogo sem nenhum filtro: categoria, busca, ordem e atacado ficam. */
+  readonly linkSemFiltros?: string | undefined;
   /** A ordem em vigor. Fora de "relevancia", as seções viram uma lista só. */
   readonly ordem: OrdemDoCatalogo;
   /** As opções do "Ordenar", cada uma com o link que mantém filtro e busca. */
@@ -171,6 +212,17 @@ export interface CatalogoNaTela {
   readonly atacado: FiltroDeAtacadoNaTela;
   /** O filtro de atacado está ligado e nenhum produto o atende. */
   readonly atacadoSemAcerto: boolean;
+  /**
+   * Os filtros de especificação ligados, um chip cada (AC-10815). Ausente
+   * vale lista vazia: quem monta o catálogo à mão (TV, provas) não os usa.
+   */
+  readonly filtrosAtivos?: readonly FiltroAtivoNaTela[] | undefined;
+  /**
+   * Quantos itens a lista tem com os filtros em vigor. Na página única é o
+   * total dela; nas seções, a soma das seções (um produto em duas seções conta
+   * em cada uma).
+   */
+  readonly totalEncontrado?: number | undefined;
 }
 
 /** O nome do parâmetro no endereço. É o que a pessoa lê na barra do navegador. */
@@ -199,7 +251,62 @@ export const ORDENS_DO_CATALOGO: readonly {
   { valor: "menor-preco", nome: "Menor preço" },
   { valor: "maior-preco", nome: "Maior preço" },
   { valor: "a-z", nome: "Nome, de A a Z" },
+  { valor: "maior-desconto-atacado", nome: "Maior desconto no atacado" },
+  { valor: "lancamentos", nome: "Lançamentos" },
 ];
+
+/** As ordens que só a API nova entende (card #108). */
+export const ORDENS_NOVAS: readonly OrdemDoCatalogo[] = [
+  "maior-desconto-atacado",
+  "lancamentos",
+];
+
+/** Os parâmetros do endereço dos filtros novos. O preço vai em REAIS. */
+export const PARAMETRO_DO_ESTOQUE = "estoque";
+export const PARAMETRO_DO_PRECO_DE = "preco-de";
+export const PARAMETRO_DO_PRECO_ATE = "preco-ate";
+
+/** O maior preço aceito no filtro: R$ 1.000.000,00, em centavos (igual ao contrato). */
+export const TETO_DO_PRECO_EM_CENTAVOS = 100_000_000;
+
+/** O filtro "em estoque" está ligado no endereço. */
+export function lerEstoque(valor: string | null | undefined): boolean {
+  return valor === "1" || valor === "true";
+}
+
+/**
+ * Lê um preço escrito em REAIS ("10", "10,50", "10.50") e devolve CENTAVOS
+ * inteiros. Qualquer outra coisa (vazio, negativo, "abc", "1e9", NaN) é
+ * ignorada: nulo. Acima do teto, vale o teto.
+ */
+export function lerPrecoEmReais(valor: string | null | undefined): number | null {
+  const texto = (valor ?? "").trim();
+  if (!/^\d{1,9}(?:[.,]\d{1,2})?$/.test(texto)) return null;
+  const reais = Number(texto.replace(",", "."));
+  if (!Number.isFinite(reais)) return null;
+  return Math.min(Math.round(reais * 100), TETO_DO_PRECO_EM_CENTAVOS);
+}
+
+/** Centavos como o endereço e o campo os escrevem: "10.5", ou "10" sem centavos. */
+export function precoParaEndereco(centavos: number): string {
+  return String(centavos / 100);
+}
+
+/** Centavos como o cliente lê: "R$ 10,50". */
+export function precoParaLeitura(centavos: number): string {
+  return `R$ ${(centavos / 100).toFixed(2).replace(".", ",")}`;
+}
+
+/** A API recusa mais de 20 filtros e filtro com mais de 120 caracteres. */
+export const MAXIMO_DE_FILTROS = 20;
+export const MAXIMO_DE_CARACTERES_DO_FILTRO = 120;
+
+/** Os filtros do endereço, sem repetidos e dentro do que a API aceita. */
+export function limitarFiltros(filtros: readonly string[]): string[] {
+  return [...new Set(filtros)]
+    .filter((filtro) => filtro.length <= MAXIMO_DE_CARACTERES_DO_FILTRO)
+    .slice(0, MAXIMO_DE_FILTROS);
+}
 
 /** Lê a ordem do endereço. Valor desconhecido vale a padrão, sem erro. */
 export function lerOrdem(valor: string | null | undefined): OrdemDoCatalogo {

@@ -22,7 +22,7 @@ export function secoesDosCookies(email: string): readonly SecaoLegal[] {
           lista: [
             "Essenciais (sempre ligados): necessários para o site funcionar. Mantêm sua sessão de login, protegem contra fraude e ataques, guardam a sacola e lembram sua escolha de cookies. Sem eles, o site não funciona e, por isso, não dependem de consentimento.",
             "Desempenho e análise (só com seu consentimento): medem como o site é usado — páginas visitadas, erros e tempos de carregamento — para melhorarmos. Hoje o SimpleClick não carrega ferramentas de análise de terceiros; se isso mudar, elas só serão ativadas depois da sua autorização.",
-            "Funcionais e preferências (só com seu consentimento): lembram escolhas que não são indispensáveis, como tema, filtros e a última loja visitada.",
+            "Funcionais e preferências (só com seu consentimento): lembram escolhas que não são indispensáveis, como tema, filtros, a última loja visitada e a sua localização aproximada (quando você escolhe usá-la), que fica neste aparelho até você apagá-la ou sair da conta.",
           ],
         },
         "Não usamos cookies de publicidade ou de marketing. Se passarmos a usar, criaremos uma categoria própria e pediremos nova autorização.",

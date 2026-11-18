@@ -55,6 +55,9 @@ export async function carregarMaisProdutos(
     busca: recorte.busca,
     filtros: recorte.filtros,
     atacado: recorte.atacado,
+    estoque: recorte.estoque === true,
+    precoMin: recorte.precoMin ?? null,
+    precoMax: recorte.precoMax ?? null,
     ordem: lerOrdem(recorte.ordem),
     cursor,
   });

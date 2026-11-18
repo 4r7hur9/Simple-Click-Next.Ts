@@ -1,12 +1,12 @@
 /**
- * Os filtros da lista de pedidos (card #35): situação em chips e, num
+ * Os filtros da lista de pedidos (card #35): situação em chips (`Chip` do #104) e, num
  * formulário GET, a loja e o período. Funciona sem JavaScript — o filtro mora
  * no endereço, então dá para voltar e compartilhar a lista filtrada.
  */
 import Link from "next/link";
 
 import type { FiltroDePedidos, Situacao } from "../../lib/conta-do-cliente.ts";
-import { Seletor } from "@simpleclick/ui";
+import { Chip, FaixaDeChips, Seletor } from "@simpleclick/ui";
 
 const SITUACOES: readonly { valor: Situacao; rotulo: string }[] = [
   { valor: "todos", rotulo: "Todos" },
@@ -41,22 +41,20 @@ export function FiltrosDePedidos({
 }) {
   const ativo = filtro.situacao !== "todos" || filtro.periodo !== "todos" || filtro.loja !== "";
   return (
-    <div className="sc-filtros">
-      <nav aria-label="Situação do pedido">
-        <ul className="sc-filtros__chips">
-          {SITUACOES.map((s) => (
-            <li key={s.valor}>
-              <Link
-                href={endereco(filtro, { situacao: s.valor })}
-                aria-current={filtro.situacao === s.valor ? "true" : undefined}
-              >
-                {s.rotulo}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <form className="sc-filtros__form" method="get" action="/conta/pedidos" aria-label="Filtrar por loja e período">
+    <div className="sc-meus-pedidos__filtros">
+      <FaixaDeChips rotulo="Situação do pedido" navegacao>
+        {SITUACOES.map((s) => (
+          <Chip
+            key={s.valor}
+            href={endereco(filtro, { situacao: s.valor })}
+            ativo={filtro.situacao === s.valor}
+            componenteDeLink={Link}
+          >
+            {s.rotulo}
+          </Chip>
+        ))}
+      </FaixaDeChips>
+      <form className="sc-meus-pedidos__form" method="get" action="/conta/pedidos" aria-label="Filtrar por loja e período">
         {filtro.situacao === "todos" ? null : <input type="hidden" name="situacao" value={filtro.situacao} />}
         <label>
           <span>Loja</span>

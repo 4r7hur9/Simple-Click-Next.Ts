@@ -19,7 +19,15 @@ import { enderecoDaApi } from "./api-client.ts";
 const ESPERA_MAXIMA_EM_MS = 5_000;
 
 export type LeituraDoFeed<T> =
-  | { readonly estado: "ok"; readonly dados: T }
+  | {
+      readonly estado: "ok";
+      readonly dados: T;
+      /**
+       * A sessão tinha vencido: a leitura foi repetida sem ela. A tela não
+       * pode tratar como "pessoa sem favoritos" (card #106, AC-10614).
+       */
+      readonly sessaoVencida?: true | undefined;
+    }
   | { readonly estado: "nao-autenticado" }
   | { readonly estado: "indisponivel" };
 
@@ -73,9 +81,11 @@ export async function buscarProdutosDoFeed(
   token?: string,
 ): Promise<LeituraDoFeed<PaginaDoFeed<ProdutoDoFeed>>> {
   const lido = await ler(`/v1/feed/produtos?${consulta}`, esquemaDosProdutosDoFeed, token, buscar);
-  // Token vencido não tira o feed público da pessoa: tenta sem ele.
+  // Token vencido não tira o feed público da pessoa: tenta sem ele, mas
+  // avisa que a sessão venceu (nunca "estrelas falsas" em silêncio).
   if (lido.estado === "nao-autenticado" && token !== undefined) {
-    return buscarProdutosDoFeed(consulta, buscar);
+    const publico = await buscarProdutosDoFeed(consulta, buscar);
+    return publico.estado === "ok" ? { ...publico, sessaoVencida: true } : publico;
   }
   if (lido.estado !== "ok") return lido;
   const { produtos, pagina, porPagina, total } = lido.dados;
@@ -91,7 +101,8 @@ export async function buscarLojasDoFeed(
   const lido = await ler(`/v1/feed/lojas?${consulta}`, esquemaDasLojasDoFeed, token, buscar);
   // Token vencido não tira a lista pública da pessoa: tenta sem ele.
   if (lido.estado === "nao-autenticado" && token !== undefined) {
-    return buscarLojasDoFeed(consulta, undefined, buscar);
+    const publico = await buscarLojasDoFeed(consulta, undefined, buscar);
+    return publico.estado === "ok" ? { ...publico, sessaoVencida: true } : publico;
   }
   if (lido.estado !== "ok") return lido;
   const { lojas, pagina, porPagina, total } = lido.dados;
@@ -107,8 +118,9 @@ export async function buscarLojasDaContaNoFeed(
 ): Promise<LeituraDoFeed<readonly LojaDoFeed[]>> {
   const p = new URLSearchParams({ porPagina: "50" });
   if (local.lat !== undefined && local.lng !== undefined) {
-    p.set("lat", String(local.lat));
-    p.set("lng", String(local.lng));
+    // Dado pessoal: ~100 m basta para ordenar (AC-10618), venha de onde vier.
+    p.set("lat", String(Math.round(local.lat * 1000) / 1000));
+    p.set("lng", String(Math.round(local.lng * 1000) / 1000));
   }
   const lido = await ler(`/v1/conta/${quais}?${p.toString()}`, esquemaDasLojasDoFeed, token, buscar);
   return lido.estado === "ok" ? { estado: "ok", dados: lido.dados.lojas } : lido;

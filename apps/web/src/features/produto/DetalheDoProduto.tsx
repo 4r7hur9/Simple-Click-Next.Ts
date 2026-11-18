@@ -1,21 +1,20 @@
 /**
- * O detalhe de um produto, como a janela do cardápio o mostra: fotos, nome,
- * preço, descrição e o formulário de escolhas (AC-410, AC-411, AC-412, AC-413).
+ * O detalhe de um produto, como a janela do cardápio o mostra: galeria, nome,
+ * preço, descrição e o formulário de escolhas (AC-410 a AC-413, AC-10901 a
+ * AC-10907).
  *
- * SÓ DESENHA. Quem busca o produto e abre a janela é `JanelaDoProduto`; quem faz
- * a conta e leva o item ao carrinho é `EscolhasDoProduto`, o mesmo formulário de
- * sempre — a janela não tem regra de preço nem de estoque própria.
+ * SÓ MONTA. A galeria é `GaleriaDoProduto`; a ordem dos blocos vem do ramo
+ * (`blocos-do-ramo.ts`); quem faz a conta, mostra o preço que acompanha a
+ * variação e leva o item ao carrinho é `EscolhasDoProduto` — a janela não tem
+ * regra de preço nem de estoque própria.
  *
- * AS FOTOS SÃO UMA TIRA que encaixa ao arrastar, sem script. A moldura tem
- * proporção fixa e a foto a preenche (`fill`), então a janela não pula quando a
- * imagem chega (AC-416).
+ * Em 768 px ou mais a galeria fica à esquerda e a decisão à direita; abaixo
+ * disso, a galeria vem primeiro e a decisão logo depois.
  */
-import Image from "next/image";
-
-import type { ProdutoNaTela } from "../../lib/produto.ts";
+import { midiasDaGaleria, type ProdutoNaTela } from "../../lib/produto.ts";
 
 import { EscolhasDoProduto } from "./EscolhasDoProduto.tsx";
-import { SeloDePreco } from "./SeloDePreco.tsx";
+import { GaleriaDoProduto } from "./GaleriaDoProduto.tsx";
 
 export interface DetalheDoProdutoProps {
   readonly produto: ProdutoNaTela;
@@ -23,6 +22,8 @@ export interface DetalheDoProdutoProps {
   readonly rotulos: { readonly variacao: string };
   /** O tipo de negócio da loja: escolhe o exemplo da observação do item. */
   readonly ramo?: string | null | undefined;
+  /** `blocos.detalheProduto` do ramo: só ordena a tela (AC-10905). */
+  readonly blocos?: readonly string[] | undefined;
   /** O id do nome do produto, que dá nome à janela. */
   readonly idDoTitulo: string;
   readonly aoAdicionado?: (() => void) | undefined;
@@ -33,43 +34,18 @@ export function DetalheDoProduto({
   apelidoDaLoja,
   rotulos,
   ramo,
+  blocos,
   idDoTitulo,
   aoAdicionado,
 }: DetalheDoProdutoProps) {
-  const fotos = produto.imagens;
-
+  const especificacoes = produto.especificacoes ?? [];
   return (
     <div className="sc-detalhe">
       <div className="sc-detalhe__fotos">
-        {fotos.length > 0 ? (
-          <ul
-            className="sc-detalhe__galeria"
-            aria-label="Fotos do produto"
-            tabIndex={fotos.length > 1 ? 0 : undefined}
-          >
-            {fotos.map((imagem, indice) => (
-              <li className="sc-detalhe__figura" key={imagem.url}>
-                <Image
-                  className="sc-detalhe__foto"
-                  src={imagem.url}
-                  alt={imagem.texto ?? ""}
-                  fill
-                  priority={indice === 0}
-                  sizes="(max-width: 768px) 100vw, 28rem"
-                />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="sc-detalhe__sem-foto" aria-hidden="true">
-            {produto.nome.slice(0, 1).toUpperCase()}
-          </div>
-        )}
-        {fotos.length > 1 ? (
-          <p className="sc-detalhe__contagem-de-fotos" aria-hidden="true">
-            {fotos.length} fotos · arraste para ver
-          </p>
-        ) : null}
+        <GaleriaDoProduto
+          midias={midiasDaGaleria(produto)}
+          nome={produto.nome}
+        />
       </div>
 
       <div className="sc-detalhe__decisao">
@@ -83,23 +59,7 @@ export function DetalheDoProduto({
           {produto.chamada ? (
             <p className="sc-produto__chamada">{produto.chamada}</p>
           ) : null}
-          <SeloDePreco
-            preco={produto.preco}
-            precoAnterior={produto.precoAnterior}
-          />
         </header>
-
-        {produto.descricao ? (
-          <section
-            className="sc-produto__descricao"
-            aria-labelledby={`${idDoTitulo}-sobre`}
-          >
-            <h3 className="sc-produto__secao-nome" id={`${idDoTitulo}-sobre`}>
-              Sobre o item
-            </h3>
-            <p>{produto.descricao}</p>
-          </section>
-        ) : null}
 
         <EscolhasDoProduto
           // A chave refaz o formulário do zero a cada produto aberto: as
@@ -109,7 +69,49 @@ export function DetalheDoProduto({
           apelidoDaLoja={apelidoDaLoja}
           rotulos={rotulos}
           ramo={ramo}
+          blocos={blocos}
           aoAdicionado={aoAdicionado}
+          informacoes={
+            produto.descricao || especificacoes.length > 0 ? (
+              <>
+                {produto.descricao ? (
+                  <section
+                    className="sc-produto__descricao"
+                    aria-labelledby={`${idDoTitulo}-sobre`}
+                  >
+                    <h3
+                      className="sc-produto__secao-nome"
+                      id={`${idDoTitulo}-sobre`}
+                    >
+                      Sobre o item
+                    </h3>
+                    <p>{produto.descricao}</p>
+                  </section>
+                ) : null}
+                {especificacoes.length > 0 ? (
+                  <section
+                    className="sc-produto__especificacoes"
+                    aria-labelledby={`${idDoTitulo}-especificacoes`}
+                  >
+                    <h3
+                      className="sc-produto__secao-nome"
+                      id={`${idDoTitulo}-especificacoes`}
+                    >
+                      Especificações
+                    </h3>
+                    <dl className="sc-produto__especificacoes-lista">
+                      {especificacoes.map((item) => (
+                        <div key={item.chave}>
+                          <dt>{item.nome}</dt>
+                          <dd>{item.valor}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                ) : null}
+              </>
+            ) : null
+          }
         />
       </div>
     </div>

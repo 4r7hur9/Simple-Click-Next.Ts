@@ -23,7 +23,7 @@
  * novo com o cliente ao telefone.
  */
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Aviso,
   Botao,
@@ -62,6 +62,7 @@ export interface ProdutoParaMontar {
   readonly id: string;
   readonly nome: string;
   readonly precoCentavos: number | null;
+  readonly imagem?: string | null | undefined;
   readonly disponivel: boolean;
   readonly grupos: readonly GrupoNaTela[];
   readonly variacoes: readonly VariacaoNaTela[];
@@ -94,6 +95,10 @@ export interface MontarPedidoProps {
   readonly repetirPedidoId?: string | null | undefined;
   /** A rede. A prova troca por uma que responde sem servidor. */
   readonly buscar?: Buscar | undefined;
+  /** Lê grupos e variações só depois de selecionar um produto no balcão. */
+  readonly carregarDetalhe?:
+    | ((produtoId: string) => Promise<ProdutoParaMontar | null>)
+    | undefined;
   /** Quem lança. Padrão: a rota do painel. */
   readonly lancar?:
     | ((pedido: PedidoManualParaCriar) => Promise<ResultadoDoLancamento>)
@@ -388,6 +393,7 @@ export function MontarPedido({
   clienteId = null,
   repetirPedidoId = null,
   buscar = fetch,
+  carregarDetalhe,
   lancar,
 }: MontarPedidoProps) {
   const [nomeDaFicha, setNomeDaFicha] = useState<string | null>(null);
@@ -403,6 +409,15 @@ export function MontarPedido({
     [],
   );
   const [escolhendo, setEscolhendo] = useState<string | null>(null);
+  const [detalheDoProduto, setDetalheDoProduto] =
+    useState<ProdutoParaMontar | null>(null);
+  const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
+  const [erroDoDetalhe, setErroDoDetalhe] = useState<string | null>(null);
+  const detalhesEmCache = useRef(new Map<string, ProdutoParaMontar>());
+  const leiturasEmCurso = useRef(
+    new Map<string, Promise<ProdutoParaMontar | null>>(),
+  );
+  const pedidoDeDetalhe = useRef(0);
   const [entrega, setEntrega] = useState<"PICKUP" | "DELIVERY">("PICKUP");
   const [logradouro, setLogradouro] = useState("");
   const [numero, setNumero] = useState("");
@@ -447,8 +462,62 @@ export function MontarPedido({
     () => itens.reduce((soma, item) => soma + item.totalCentavos, 0),
     [itens],
   );
-  const produtoEmMontagem = produtos.find((p) => p.id === escolhendo) ?? null;
+  const produtoEmMontagem =
+    detalheDoProduto?.id === escolhendo ? detalheDoProduto : null;
   const vendaveis = produtos.filter((p) => p.disponivel);
+
+  async function escolherProduto(produtoId: string): Promise<void> {
+    const pedido = ++pedidoDeDetalhe.current;
+    setEscolhendo(produtoId || null);
+    setDetalheDoProduto(null);
+    setErroDoDetalhe(null);
+    if (produtoId === "") {
+      setCarregandoDetalhe(false);
+      return;
+    }
+
+    const guardado = detalhesEmCache.current.get(produtoId);
+    if (guardado) {
+      setDetalheDoProduto(guardado);
+      setCarregandoDetalhe(false);
+      return;
+    }
+
+    // Componentes que já recebem fichas completas (ex.: testes e repetição)
+    // continuam funcionando; a página do balcão passa a ação sob demanda.
+    if (!carregarDetalhe) {
+      const ficha = produtos.find((p) => p.id === produtoId) ?? null;
+      setDetalheDoProduto(ficha);
+      setCarregandoDetalhe(false);
+      return;
+    }
+
+    setCarregandoDetalhe(true);
+    let leitura = leiturasEmCurso.current.get(produtoId);
+    if (!leitura) {
+      leitura = carregarDetalhe(produtoId);
+      leiturasEmCurso.current.set(produtoId, leitura);
+    }
+    try {
+      const ficha = await leitura;
+      if (ficha) detalhesEmCache.current.set(produtoId, ficha);
+      if (pedido !== pedidoDeDetalhe.current) return;
+      if (!ficha) {
+        setErroDoDetalhe("Não foi possível carregar este produto.");
+      } else {
+        setDetalheDoProduto(ficha);
+      }
+    } catch {
+      if (pedido === pedidoDeDetalhe.current) {
+        setErroDoDetalhe("Não foi possível carregar este produto.");
+      }
+    } finally {
+      if (leiturasEmCurso.current.get(produtoId) === leitura) {
+        leiturasEmCurso.current.delete(produtoId);
+      }
+      if (pedido === pedidoDeDetalhe.current) setCarregandoDetalhe(false);
+    }
+  }
 
   async function confirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -728,7 +797,39 @@ export function MontarPedido({
           <p className="text-[var(--cor-tinta-suave)]">Nenhum item ainda.</p>
         )}
 
-        {produtoEmMontagem !== null ? (
+        {escolhendo !== null && carregandoDetalhe ? (
+          <div>
+            <p role="status" aria-live="polite">
+              Carregando opções do produto…
+            </p>
+            <Botao
+              variante="discreta"
+              onClick={() => void escolherProduto("")}
+            >
+              Cancelar
+            </Botao>
+          </div>
+        ) : erroDoDetalhe !== null ? (
+          <Aviso tom="atencao" titulo="Não foi possível abrir o produto">
+            <p>{erroDoDetalhe}</p>
+            <div className="flex flex-wrap gap-3">
+              <Botao
+                variante="discreta"
+                onClick={() => {
+                  if (escolhendo !== null) void escolherProduto(escolhendo);
+                }}
+              >
+                Tentar de novo
+              </Botao>
+              <Botao
+                variante="discreta"
+                onClick={() => void escolherProduto("")}
+              >
+                Cancelar
+              </Botao>
+            </div>
+          </Aviso>
+        ) : produtoEmMontagem !== null ? (
           <ItemEmMontagem
             key={produtoEmMontagem.id}
             produto={produtoEmMontagem}
@@ -744,7 +845,7 @@ export function MontarPedido({
             <Seletor
               className="min-h-12"
               value=""
-              onChange={(valor) => setEscolhendo(valor || null)}
+              onChange={(valor) => void escolherProduto(valor)}
             >
               <option value="">Escolha um produto…</option>
               {vendaveis.map((produto) => (

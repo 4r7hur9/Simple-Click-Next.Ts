@@ -127,6 +127,19 @@ export async function adicionarAoCarrinho(
  */
 export const AVISO_DE_CARRINHO_MUDOU = "sc:carrinho-mudou";
 
+/**
+ * O pedido para abrir a sacola (card #105): o ícone da sacola do topo dispara
+ * este evento com `detail: { atendido: false }`; quem abre a sacola (o
+ * `CarrinhoFlutuante`) marca `atendido = true`. Se ninguém atender, o topo
+ * leva à página da sacola da loja. O destino NUNCA vem do evento.
+ */
+export const EVENTO_ABRIR_SACOLA = "sc:abrir-sacola";
+
+/** O `detail` do evento de abrir a sacola. */
+export interface PedidoDeAbrirASacola {
+  atendido: boolean;
+}
+
 /** Avisa a página de que o carrinho mudou. */
 export function avisarQueOCarrinhoMudou(): void {
   if (typeof window === "undefined") return;

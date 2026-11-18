@@ -109,6 +109,7 @@ export function MenuDoPainel({
   return (
     <MenuLateral
       rotulo="Navegação do painel"
+      alvoDoTutorial="menu-do-painel"
       marca={marca}
       contexto={
         <CabecalhoDaLoja

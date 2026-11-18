@@ -23,7 +23,10 @@ import type {
   RecorteDaLista,
 } from "../../lib/catalogo.ts";
 
-import { CartaoDeProduto } from "./CartaoDeProduto.tsx";
+import { CartaoDeProduto, type FormatoDoCartao } from "./CartaoDeProduto.tsx";
+
+/** Sem ids já mostrados. Constante: um `[]` novo a cada render refaria o observador. */
+const SEM_IDS: readonly string[] = [];
 
 /** Quanto antes do fim a rolagem infinita já pede a página seguinte. */
 const MARGEM_DA_ROLAGEM = "600px 0px";
@@ -37,6 +40,15 @@ export interface MaisProdutosProps {
     | ((recorte: RecorteDaLista, cursor: string) => Promise<PaginaNaTela | null>)
     | undefined;
   readonly automatico?: boolean | undefined;
+  /**
+   * Os produtos que o servidor já desenhou (`children`). A página seguinte não
+   * pode repetir nenhum deles (AC-10802), nem quando a loja mudou entre uma
+   * página e outra e o deslocamento do cursor passou a apontar para um item que
+   * já está na tela.
+   */
+  readonly jaMostrados?: readonly string[] | undefined;
+  /** O mesmo formato do cartão que o servidor já desenhou. */
+  readonly formato?: FormatoDoCartao | undefined;
   /** Os itens (`li`) que o servidor já desenhou. */
   readonly children: ReactNode;
 }
@@ -47,6 +59,8 @@ export function MaisProdutos({
   nomeDaSecao,
   carregar,
   automatico = false,
+  formato = "catalogo",
+  jaMostrados = SEM_IDS,
   children,
 }: MaisProdutosProps) {
   const [extras, setExtras] = useState<readonly ProdutoNaTela[]>([]);
@@ -69,7 +83,7 @@ export function MaisProdutos({
         return;
       }
       setExtras((atuais) => {
-        const vistos = new Set(atuais.map((p) => p.id));
+        const vistos = new Set([...jaMostrados, ...atuais.map((p) => p.id)]);
         return [...atuais, ...pagina.produtos.filter((p) => !vistos.has(p.id))];
       });
       setCursor(pagina.proximoCursor);
@@ -79,7 +93,7 @@ export function MaisProdutos({
       emCurso.current = false;
       setCarregando(false);
     }
-  }, [carregar, cursor, mais.recorte]);
+  }, [carregar, cursor, mais.recorte, jaMostrados]);
 
   useEffect(() => {
     const alvo = botao.current;
@@ -105,10 +119,24 @@ export function MaisProdutos({
         {children}
         {extras.map((produto) => (
           <li className="sc-vitrine__item" key={produto.id}>
-            <CartaoDeProduto produto={produto} />
+            <CartaoDeProduto produto={produto} formato={formato} />
           </li>
         ))}
       </ul>
+      {/*
+        A REGIÃO FALADA EXISTE DESDE O PRIMEIRO RENDER, vazia. Leitor de tela só
+        anuncia o que muda dentro de uma região que já estava na página: uma
+        mensagem inserida junto com a própria região passa em silêncio. O texto
+        do botão ("Tentar de novo") continua lá para quem vê.
+      */}
+      <p
+        className="sc-so-leitor"
+        role="status"
+        aria-live="polite"
+        data-aviso-do-ver-mais=""
+      >
+        {falhou ? `Não deu para carregar mais produtos de ${nomeDaSecao}.` : ""}
+      </p>
       {cursor === null ? null : (
         <div className="sc-vitrine__ver-mais">
           <a

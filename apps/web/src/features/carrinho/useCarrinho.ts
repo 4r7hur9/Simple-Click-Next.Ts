@@ -47,6 +47,16 @@ export interface ItemNaTela {
   readonly avisoDoAtacado?: string | null;
   /** A faixa que já valeu: "Atacado: 5% de desconto a partir de 10 peças". */
   readonly faixaDoAtacado?: string | null;
+  /** A primeira foto do produto, quando ele tem; sem foto, a linha não tem `<img>`. */
+  readonly foto?: FotoNaLinha | null;
+}
+
+/** A foto da linha, com o espaço já conhecido (sem salto de layout). */
+export interface FotoNaLinha {
+  readonly url: string;
+  readonly texto: string | null;
+  readonly largura: number | null;
+  readonly altura: number | null;
 }
 
 /** O carrinho inteiro, já formatado pelo servidor. */
@@ -65,11 +75,26 @@ export interface ServicoDoCarrinho {
 /** Os quatro estados de tela, como P-011 exige. */
 export type SituacaoDoCarrinho = "carregando" | "pronto" | "vazio" | "erro";
 
+/** A mudança de quantidade que o servidor não aceitou (AC-11009). */
+export interface FalhaAoMudar {
+  readonly itemId: string;
+  readonly quantidade: number;
+}
+
 export interface UsoDoCarrinho {
   readonly situacao: SituacaoDoCarrinho;
   readonly carrinho: CarrinhoNaTela | null;
   readonly erro: string | null;
+  /**
+   * A última mudança de quantidade que falhou. Opcional de propósito: quem não
+   * sabe dela (e os testes antigos) lê a ausência como "sem falha". Enquanto
+   * existe, a tela mostra a lista com os valores de antes e um aviso na linha,
+   * e não a tela de erro que apaga o carrinho.
+   */
+  readonly falhaAoMudar?: FalhaAoMudar | null;
   mudarQuantidade(itemId: string, quantidade: number): Promise<void>;
+  /** Repete a mudança que falhou. */
+  tentarDeNovo?(): Promise<void>;
   recarregar(): Promise<void>;
 }
 
@@ -84,13 +109,23 @@ function situacaoDe(carrinho: CarrinhoNaTela | null): SituacaoDoCarrinho {
   return carrinho.itens.length === 0 ? "vazio" : "pronto";
 }
 
-export function useCarrinho(servico: ServicoDoCarrinho): UsoDoCarrinho {
+/**
+ * `ativo` diz se vale carregar as linhas agora. A sacola do celular só precisa
+ * da contagem enquanto fechada, e carregar o carrinho inteiro (com uma ação de
+ * servidor por produto) sem ninguém olhar seria custo à toa. Padrão: sim.
+ */
+export function useCarrinho(
+  servico: ServicoDoCarrinho,
+  ativo = true,
+): UsoDoCarrinho {
   const [carrinho, setCarrinho] = useState<CarrinhoNaTela | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [falhaAoMudar, setFalhaAoMudar] = useState<FalhaAoMudar | null>(null);
 
   const recarregar = useCallback(async () => {
     try {
       setErro(null);
+      setFalhaAoMudar(null);
       setCarrinho(await servico.ver());
     } catch {
       // A mensagem é a mesma para qualquer falha de propósito: o detalhe
@@ -100,20 +135,27 @@ export function useCarrinho(servico: ServicoDoCarrinho): UsoDoCarrinho {
   }, [servico]);
 
   useEffect(() => {
-    void recarregar();
-  }, [recarregar]);
+    if (ativo) void recarregar();
+  }, [recarregar, ativo]);
 
   const mudarQuantidade = useCallback(
     async (itemId: string, quantidade: number) => {
       try {
         setErro(null);
+        setFalhaAoMudar(null);
         setCarrinho(await servico.mudarQuantidade(itemId, quantidade));
       } catch {
         setErro("Não conseguimos atualizar seu carrinho. Tente de novo.");
+        setFalhaAoMudar({ itemId, quantidade });
       }
     },
     [servico],
   );
+
+  const tentarDeNovo = useCallback(async () => {
+    if (falhaAoMudar === null) return;
+    await mudarQuantidade(falhaAoMudar.itemId, falhaAoMudar.quantidade);
+  }, [falhaAoMudar, mudarQuantidade]);
 
   return {
     // Erro tem precedência sobre vazio: um carrinho que não carregou não é um
@@ -122,7 +164,9 @@ export function useCarrinho(servico: ServicoDoCarrinho): UsoDoCarrinho {
     situacao: erro !== null ? "erro" : situacaoDe(carrinho),
     carrinho: carrinho ?? (erro !== null ? CARRINHO_VAZIO : null),
     erro,
+    falhaAoMudar,
     mudarQuantidade,
+    tentarDeNovo,
     recarregar,
   };
 }

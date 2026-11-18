@@ -2,7 +2,6 @@ import "@simpleclick/ui/styles/vitrine.css";
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { COR_DE_DESTAQUE_PADRAO_DA_LOJA } from "@simpleclick/ui";
 
 import { AcompanhamentoDoPedido } from "../../../../../../features/pedido/AcompanhamentoDoPedido.tsx";
 import { buscarAcompanhamento } from "../../../../../../lib/acompanhamento.ts";
@@ -23,6 +22,8 @@ export async function generateMetadata({
         ? `Acompanhar pedido · ${vitrine.vitrine.loja.nome}`
         : "Acompanhar pedido",
     robots: { index: false, follow: false },
+    // O código do pedido está na rota: nenhum link sai levando o endereço.
+    referrer: "no-referrer",
   };
 }
 
@@ -51,12 +52,6 @@ export default async function PaginaDeAcompanhamento({
       apelidoDaLoja={slug}
       tokenDoPedido={token}
       inicial={resultado.acompanhamento.pedido}
-      corPrincipal={
-        vitrine.estado === "encontrada"
-          ? (vitrine.vitrine.loja.tema?.corDestaque ??
-            COR_DE_DESTAQUE_PADRAO_DA_LOJA)
-          : COR_DE_DESTAQUE_PADRAO_DA_LOJA
-      }
     />
   );
 }

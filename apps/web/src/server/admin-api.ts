@@ -17,6 +17,10 @@
 
 import { enderecoDaApi } from "./api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
+import {
+  recusarAcaoDeFora,
+  recusarOrigemDeFora,
+} from "./protecao-da-conta.ts";
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
@@ -135,6 +139,14 @@ export async function encaminharParaAdministracao(
   if (!caminhoPermitido(caminho, metodo)) {
     return respostaJson(404, { erro: "nao_encontrado" });
   }
+
+  // O envio de documentos carrega bytes crus; as demais escritas seguem o
+  // contrato JSON das APIs da administração.
+  const recusa =
+    metodo === "POST" && /^lojas\/[0-9a-f-]{36}\/documentos$/.test(caminho)
+      ? recusarOrigemDeFora(requisicao)
+      : await recusarAcaoDeFora(requisicao);
+  if (recusa !== null) return recusa;
 
   const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
   if (token === undefined) {

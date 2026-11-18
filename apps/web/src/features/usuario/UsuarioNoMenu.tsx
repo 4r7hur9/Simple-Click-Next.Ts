@@ -15,6 +15,7 @@ import { IconeExplorar, IconeSair, IconeUsuario } from "@simpleclick/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
+import { limparDadosLocaisDoCliente } from "./local-do-aparelho.ts";
 
 import {
   itemAtivo,
@@ -66,7 +67,9 @@ export function UsuarioNoMenu({ usuario, sair }: UsuarioNoMenuProps) {
         className="sc-usuario-menu__acao sc-usuario-menu__acao--sair"
         disabled={saindo}
         onClick={() => {
-          iniciarSaida(async () => {
+          // Sair apaga o que o feed guardou neste aparelho (localização, stories).
+                limparDadosLocaisDoCliente();
+                iniciarSaida(async () => {
             await sair(caminho ?? "/");
           });
         }}

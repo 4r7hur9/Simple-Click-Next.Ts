@@ -1,32 +1,42 @@
 /**
- * A apresentação da loja, em UMA TELA (AC-400, AC-401, AC-015).
+ * A apresentação da loja no layout do Stitch (cards #107 e #129).
  *
- * A DECISÃO QUE MANDA AQUI: quem abre o endereço de uma loja quer o cardápio.
- * Esta página é uma porta, não um destino — e porta com três telas de rolagem
- * até a maçaneta é atrito no mesmo lugar em que a skill manda não ter nenhum.
+ * O QUE ESTÁ NA TELA, de cima para baixo, como a referência:
  *
- * A SEGUNDA DECISÃO: a página tem de parecer COM A LOJA, e não com um modelo.
- * A cor que o dono escolheu já estava no banco e não estava sendo usada — o
- * resultado era uma tela correta e genérica, igual para a pastelaria e para a
- * loja de roupa. Aqui essa cor pinta o fundo, o anel da marca e o botão, com o
- * contraste ajustado pelo próprio design system (AC-015).
+ * 1. O CARTÃO DA LOJA: a capa como faixa curta com um degradê escuro embaixo,
+ *    a situação ("Aberta agora") como etiqueta no canto, o logo quadrado
+ *    sobreposto à capa, o nome ao lado e, na mesma linha, Favoritar,
+ *    Compartilhar e WhatsApp. Sem foto do dono, um degradê neutro.
+ * 2. A faixa com a descrição curta (as boas-vindas ou o começo do Sobre).
+ * 3. O botão do catálogo, de largura total, no verde SimpleClick.
+ * 4. As condições (entrega, endereço, pagamento), cada uma em seu cartão.
+ *
+ * Só dado real da loja: bloco sem dado some. Nada de nota, selo, parcela nem
+ * número inventado.
  *
  * ESTE COMPONENTE NÃO ANIMA NADA. Ele desenha a página inteira, legível, com
  * JavaScript desligado — que é o que o AC-415 exige e o que a torna encontrável.
  */
-import type { CSSProperties } from "react";
 import {
-  COR_DE_DESTAQUE_PADRAO_DA_LOJA,
+  IconeConversa,
+  IconeEstoque,
+  IconeAvancar,
+  IconeInfo,
   TemaDaMarca,
   type PreferenciaDoSelo,
 } from "@simpleclick/ui";
 
-import { capaPadraoDe } from "../../lib/capa-padrao.ts";
 import { iniciaisDe } from "../../lib/iniciais.ts";
+import { BotaoFavoritar } from "../feed/BotaoFavoritar.tsx";
 import { atributosDoSelo } from "../vitrine/SeloDeStatus.tsx";
+import { BotaoCompartilharLoja } from "./BotaoCompartilharLoja.tsx";
+import { textoDaContagem } from "./contagem-de-itens.ts";
+import { CondicoesDaLoja } from "./CondicoesDaLoja.tsx";
 import { FotoDaLoja } from "./FotoDaLoja.tsx";
+import type { RecebimentoDaLoja } from "./SobreDaLoja.tsx";
+import { numeroDoWhatsApp } from "./sobre/formatos.ts";
 
-/** O tema da loja: a cor de destaque e as fotos que o dono escolheu. */
+/** O tema da loja: as fotos (a cor de destaque é sempre o verde SimpleClick) que o dono escolheu. */
 export interface TemaNaTela {
   readonly corDestaque: string;
   readonly fundoVitrine: string | null;
@@ -40,16 +50,13 @@ export interface TemaNaTela {
   readonly coresDasImagens?: Readonly<Record<string, string>> | undefined;
 }
 
-/** A cor de destaque de quem ainda não escolheu: o verde SimpleClick. */
-export const COR_DE_DESTAQUE_PADRAO = COR_DE_DESTAQUE_PADRAO_DA_LOJA;
-
 /** A loja, como o contrato da API a descreve. */
 export interface LojaNaTela {
   readonly apelido: string;
   readonly nome: string;
   /**
-   * O código do tipo de negócio (`vertical_code`), que escolhe a capa padrão
-   * quando o dono não enviou a dele. Ausente, vale a capa padrão genérica.
+   * O código do tipo de negócio (`vertical_code`). A vitrine não desenha mais
+   * a capa padrão do ramo (card #129), mas o campo continua no contrato.
    */
   readonly ramo?: string | null | undefined;
   readonly boasVindas: string | null;
@@ -90,38 +97,28 @@ export interface ApresentacaoDaLojaProps {
    * lanchonete e erra na loja de roupas, e é o botão principal da tela.
    */
   readonly rotuloDoCatalogo: string;
-}
-
-const NOME_DA_ENTREGA: Record<string, string> = {
-  DELIVERY: "Entrega",
-  PICKUP: "Retirada no local",
-};
-
-/**
- * A cor de reserva quando a loja não escolheu nenhuma.
- *
- * Vem do valor declarado do design system, e não escrita aqui: cor literal em
- * componente é reprovada pelo ESLint (AC-014), e por bom motivo — duas cópias
- * do mesmo azul divergem no dia em que alguém muda uma delas.
- */
-
-/** Junta as partes do endereço numa linha, sem vírgula sobrando. */
-function enderecoEmUmaLinha(
-  endereco: NonNullable<LojaNaTela["enderecoParaRetirada"]>,
-): string {
-  const rua = [endereco.logradouro, endereco.numero].filter(Boolean).join(", ");
-  const cidade = [endereco.cidade, endereco.uf].filter(Boolean).join("/");
-  return [rua, endereco.complemento, endereco.bairro, cidade]
-    .filter(Boolean)
-    .join(" · ");
+  /**
+   * Quantos itens a loja tem à venda, quando o número é exato (card #107).
+   * Nulo ou ausente: o botão mostra só o texto.
+   */
+  readonly contagemDeItens?: number | null | undefined;
+  /**
+   * Favoritar a loja junto da identidade. Sem ele, não há o botão. Nunca
+   * mostra quantas pessoas favoritaram.
+   */
+  readonly favoritar?:
+    { readonly logado: boolean; readonly favorita: boolean } | undefined;
+  /** O WhatsApp que o dono marcou como público; sem ele, não há o botão. */
+  readonly whatsappPublico?: string | null | undefined;
+  /** Mostra o "Compartilhar a loja" (só aparece com JavaScript). */
+  readonly compartilhar?: boolean | undefined;
+  /** Pagamento e entrega, SEM a chave PIX; alimenta o cartão de pagamento. */
+  readonly recebimento?: RecebimentoDaLoja | null | undefined;
 }
 
 /**
- * A situação da loja, como uma marca e não como uma caixa de aviso.
- *
- * Caixa de aviso é para o que interrompe. "Aberta agora" não interrompe: é um
- * dado da loja, tão permanente quanto o endereço dela, e emoldurá-lo faria a
- * tela parecer que algo deu errado.
+ * A situação da loja, como uma etiqueta no canto da capa, e não como uma caixa
+ * de aviso: "Aberta agora" não interrompe, é um dado da loja.
  */
 function SituacaoDaLoja({
   abertura,
@@ -171,9 +168,16 @@ export function ApresentacaoDaLoja({
   abertura,
   linkDoCardapio,
   rotuloDoCatalogo,
+  contagemDeItens = null,
+  favoritar,
+  whatsappPublico = null,
+  compartilhar = false,
+  recebimento = null,
 }: ApresentacaoDaLojaProps) {
-  const temDetalhes =
-    loja.formasDeEntrega.length > 0 || loja.enderecoParaRetirada !== null;
+  const digitosDoWhatsApp =
+    whatsappPublico === null ? "" : numeroDoWhatsApp(whatsappPublico);
+  const temAcoes =
+    favoritar !== undefined || digitosDoWhatsApp !== "" || compartilhar;
   // A foto de fundo da vitrine que o dono escolheu manda; depois a capa dele.
   const fundo = loja.tema?.fundoVitrine ?? loja.capa;
   // A versão do celular só vale junto da foto de fundo do tema (a capa antiga
@@ -181,29 +185,22 @@ export function ApresentacaoDaLoja({
   const fundoCelular = loja.tema?.fundoVitrine
     ? (loja.tema.fundoVitrineCelular ?? null)
     : null;
+  // A descrição curta: as boas-vindas; sem elas, o começo do Sobre.
+  const descricao = loja.boasVindas ?? loja.sobre ?? null;
+  const catalogo = rotuloDoCatalogo.toLowerCase();
 
   return (
-    <TemaDaMarca
-      corDestaque={loja.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO}
-      className="sc-loja"
-    >
+    <TemaDaMarca className="sc-loja">
       <div data-narrativa="apresentacao">
         <section className="sc-loja__tela" data-secao="loja">
-          {/*
-            O PAINEL É A LOJA. Fundo grafite da SimpleClick, o nome em letra
-            grande sobre a faixa verde-click e a cor do dono só no anel da marca
-            — a identidade da plataforma emoldura, a da loja assina. Quando o
-            dono sobe uma capa, ela vira o fundo do painel inteiro, sob um véu
-            escuro que mantém a letra legível.
-          */}
           <div
             className={`sc-loja__painel ${
               fundo ? "sc-loja__painel--com-capa" : "sc-loja__painel--padrao"
             }`}
           >
-            {fundo ? (
-              <>
-                {/* A capa é ambiente: o nome da loja já está no título. */}
+            {/* A capa é ambiente: o nome da loja já está no título. */}
+            <div className="sc-loja__capa">
+              {fundo ? (
                 <FotoDaLoja
                   className="sc-loja__fundo"
                   src={fundo}
@@ -212,181 +209,141 @@ export function ApresentacaoDaLoja({
                   height={1200}
                   loading="eager"
                 />
-                <span className="sc-loja__veu" aria-hidden="true" />
-              </>
-            ) : (
-              <>
-                {/*
-                  Sem capa do dono, a capa padrão do ramo: ícones do negócio em
-                  traço verde-click sobre o grafite. Decoração pura, como a
-                  trama de pontos, e some para o leitor de tela.
-                */}
-                <span
-                  className="sc-loja__padrao"
-                  data-capa-padrao={loja.ramo ?? ""}
-                  style={
-                    {
-                      "--capa-url": `url(${capaPadraoDe(loja.ramo)})`,
-                    } as CSSProperties
-                  }
-                  aria-hidden="true"
-                />
-                <span className="sc-loja__trama" aria-hidden="true" />
-              </>
-            )}
+              ) : null}
+              <span className="sc-loja__veu" aria-hidden="true" />
+              <SituacaoDaLoja
+                abertura={abertura}
+                seloDeStatus={loja.tema?.seloDeStatus}
+                corDoFundo={
+                  fundo ? (loja.tema?.coresDasImagens?.[fundo] ?? null) : null
+                }
+              />
+            </div>
 
             <header className="sc-loja__identidade">
-              <div className="sc-loja__topo">
-                <span className="sc-loja__marca">
-                  {loja.logo ? (
-                    // A dimensão vai na marcação para o espaço já estar
-                    // reservado e a página não pular (AC-416).
-                    <img
-                      className="sc-loja__logo"
-                      src={loja.logo}
-                      alt=""
-                      width={88}
-                      height={88}
-                      loading="eager"
+              <span className="sc-loja__marca">
+                {loja.logo ? (
+                  // A dimensão vai na marcação para o espaço já estar
+                  // reservado e a página não pular (AC-416).
+                  <img
+                    className="sc-loja__logo"
+                    src={loja.logo}
+                    alt=""
+                    width={88}
+                    height={88}
+                    loading="eager"
+                  />
+                ) : (
+                  <span className="sc-loja__iniciais" aria-hidden="true">
+                    {iniciaisDe(loja.nome)}
+                  </span>
+                )}
+              </span>
+
+              <h1 className="sc-loja__nome">{loja.nome}</h1>
+
+              {temAcoes ? (
+                <div className="sc-loja__acoes">
+                  {favoritar ? (
+                    <BotaoFavoritar
+                      apelido={loja.apelido}
+                      nome={loja.nome}
+                      favorita={favoritar.favorita}
+                      logado={favoritar.logado}
+                      voltarPara={`/loja/${loja.apelido}`}
+                      variante="seguir"
                     />
-                  ) : (
-                    <span className="sc-loja__iniciais" aria-hidden="true">
-                      {iniciaisDe(loja.nome)}
-                    </span>
-                  )}
-                </span>
-                <SituacaoDaLoja
-                  abertura={abertura}
-                  seloDeStatus={loja.tema?.seloDeStatus}
-                  corDoFundo={
-                    fundo ? (loja.tema?.coresDasImagens?.[fundo] ?? null) : null
-                  }
-                />
-              </div>
-
-              <h1 className="sc-loja__nome">
-                <span className="sc-marcador">{loja.nome}</span>
-              </h1>
-
-              {loja.boasVindas ? (
-                <p className="sc-loja__boas-vindas">{loja.boasVindas}</p>
+                  ) : null}
+                  {compartilhar ? (
+                    <BotaoCompartilharLoja
+                      apelido={loja.apelido}
+                      nome={loja.nome}
+                    />
+                  ) : null}
+                  {digitosDoWhatsApp !== "" ? (
+                    <a
+                      className="sc-loja__acao sc-loja__acao--whatsapp"
+                      href={`https://wa.me/${digitosDoWhatsApp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Fale com a loja no WhatsApp (abre em outra aba)"
+                    >
+                      <IconeConversa aria-hidden="true" />
+                      <span aria-hidden="true">WhatsApp</span>
+                    </a>
+                  ) : null}
+                </div>
               ) : null}
+            </header>
 
-              {loja.sobre ? (
-                <div className="sc-loja__sobre">
-                  {/*
-                    O caminho para a página inteira é um LINK DE TEXTO dentro do
-                    filete, e não um botão: botão em pílula aqui disputava com
-                    "Ver o cardápio", que é a ação que importa nesta tela.
-                  */}
-                  <div className="sc-loja__ficha">
-                    <p className="sc-loja__ficha-titulo">Sobre a loja</p>
-                    <p className="sc-loja__sobre-texto">{loja.sobre}</p>
-                    {/*
-                      Abre a JANELA do Sobre por cima desta tela (o ouvinte
-                      mora em `JanelaDoSobre`); sem script, é um link comum
-                      para a mesma loja com a janela aberta.
-                    */}
+            {descricao ? (
+              <div className="sc-loja__descricao">
+                <span className="sc-loja__descricao-icone" aria-hidden="true">
+                  <IconeInfo />
+                </span>
+                <div className="sc-loja__descricao-corpo">
+                  <p
+                    className={
+                      loja.boasVindas
+                        ? "sc-loja__boas-vindas"
+                        : "sc-loja__descricao-texto"
+                    }
+                  >
+                    {descricao}
+                  </p>
+                  {loja.sobre ? (
+                    // Abre a JANELA do Sobre (o ouvinte mora em `JanelaDoSobre`);
+                    // sem script, é um link comum para a mesma loja.
                     <a
                       className="sc-loja__ler-mais"
                       href={`/loja/${loja.apelido}/sobre`}
                       data-abre-sobre=""
                     >
                       Ler mais sobre a loja
-                      <svg
-                        className="sc-loja__seta"
-                        viewBox="0 0 20 20"
-                        width="16"
-                        height="16"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M4 10h11M11 5l5 5-5 5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
                     </a>
-                  </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </header>
+              </div>
+            ) : null}
 
-            <div className="sc-loja__base">
-              {/*
-                O caminho para o cardápio é um link de verdade, e não um botão
-                que navega por script: funciona com JavaScript desligado, abre
-                em nova aba pelo teclado, e o buscador o segue.
-              */}
-              <p className="sc-loja__chamada">
-                <a className="sc-loja__entrar" href={linkDoCardapio}>
-                  <span>Ver o {rotuloDoCatalogo.toLowerCase()}</span>
-                  <span className="sc-loja__seta-caixa" aria-hidden="true">
-                    <svg
-                      className="sc-loja__seta"
-                      viewBox="0 0 20 20"
-                      width="20"
-                      height="20"
-                    >
-                      <path
-                        d="M4 10h11M11 5l5 5-5 5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+            {/*
+              O caminho para o catálogo é um link de verdade, e não um botão que
+              navega por script: funciona com JavaScript desligado, abre em nova
+              aba pelo teclado, e o buscador o segue.
+            */}
+            <p className="sc-loja__chamada">
+              <a className="sc-loja__entrar" href={linkDoCardapio}>
+                <span className="sc-loja__entrar-rotulo">
+                  <IconeEstoque aria-hidden="true" />
+                  <span>
+                    Ver o {catalogo} completo
+                    {contagemDeItens !== null && contagemDeItens > 0 ? (
+                      <span className="sc-loja__entrar-contagem">
+                        {" "}
+                        ({textoDaContagem(contagemDeItens)})
+                      </span>
+                    ) : null}
                   </span>
-                </a>
-                {!abertura.aberta ? (
-                  <span className="sc-loja__nota">
-                    Você pode ver o {rotuloDoCatalogo.toLowerCase()} e voltar
-                    depois.
-                  </span>
-                ) : null}
-              </p>
-
-              {temDetalhes ? (
-                <footer className="sc-loja__detalhes">
-                  {loja.formasDeEntrega.length > 0 ? (
-                    <div className="sc-loja__ficha">
-                      <p className="sc-loja__ficha-titulo">Como receber</p>
-                      <ul className="sc-loja__formas">
-                        {loja.formasDeEntrega.map((forma) => (
-                          <li key={forma}>{NOME_DA_ENTREGA[forma] ?? forma}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-
-                  {loja.enderecoParaRetirada ? (
-                    <div className="sc-loja__ficha">
-                      <p className="sc-loja__ficha-titulo">Onde estamos</p>
-                      <address className="sc-loja__endereco">
-                        {enderecoEmUmaLinha(loja.enderecoParaRetirada)}
-                      </address>
-                    </div>
-                  ) : null}
-
-                  {/* Segunda porta da janela do Sobre, para quem procura o horário. */}
-                  <div className="sc-loja__ficha">
-                    <p className="sc-loja__ficha-titulo">Informações</p>
-                    <a
-                      className="sc-loja__ler-mais"
-                      href={`/loja/${loja.apelido}/sobre`}
-                      data-abre-sobre=""
-                    >
-                      Horários, pagamento e contato
-                    </a>
-                  </div>
-                </footer>
+                </span>
+                <span className="sc-loja__entrar-explorar" aria-hidden="true">
+                  Explorar
+                  <IconeAvancar className="sc-loja__seta" />
+                </span>
+              </a>
+              {!abertura.aberta ? (
+                <span className="sc-loja__nota">
+                  Você pode ver o {catalogo} e voltar depois.
+                </span>
               ) : null}
-            </div>
+            </p>
           </div>
+
+          <CondicoesDaLoja
+            apelido={loja.apelido}
+            formasDeEntrega={loja.formasDeEntrega}
+            endereco={loja.enderecoParaRetirada}
+            recebimento={recebimento}
+          />
         </section>
       </div>
     </TemaDaMarca>

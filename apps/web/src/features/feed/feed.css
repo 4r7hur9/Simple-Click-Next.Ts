@@ -1,12 +1,9 @@
 /*
- * Feed dos clientes (/explorar, card #37): fundo preto e destaque verde da
- * marca. A moldura do layout pede o tema escuro (`data-tema="escuro"`), e daqui
- * para baixo só entram os tokens — nenhuma cor escrita à mão.
+ * Feed dos clientes (/explorar, card #37), na composição do Stitch (card
+ * #128): fundo grafite, superfícies em camadas, cantos de 12–16px, Plus
+ * Jakarta Sans e o verde SimpleClick como única cor de destaque. Segue o tema
+ * da página (claro ou escuro) pelos tokens — nenhuma cor escrita à mão.
  */
-
-body:has(.sc-feed-moldura) {
-  background-color: var(--marca-preto-tecnologico);
-}
 
 .sc-feed-moldura {
   min-block-size: 100dvh;
@@ -15,18 +12,25 @@ body:has(.sc-feed-moldura) {
 }
 
 .sc-feed {
-  /* Margem lateral: 1rem no celular, 2rem do tablet para cima. */
+  /* Margem lateral: 1rem no celular, 1.5rem do tablet para cima. */
   --sc-feed-lado: var(--espaco-4);
   box-sizing: border-box;
-  max-inline-size: 76rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-inline-size: 75rem;
   margin-inline: auto;
-  padding: var(--espaco-4) var(--sc-feed-lado) var(--espaco-8);
+  padding: var(--espaco-4) var(--sc-feed-lado) var(--espaco-7);
   font-family: var(--fonte-base);
+}
+
+.sc-feed > * {
+  min-inline-size: 0;
 }
 
 @media (min-width: 48rem) {
   .sc-feed {
-    --sc-feed-lado: var(--espaco-6);
+    --sc-feed-lado: var(--espaco-5);
   }
 }
 
@@ -39,92 +43,60 @@ body:has(.sc-feed-moldura) {
   white-space: nowrap;
 }
 
-/* --- barra fixa: título, abas, busca/filtros e categorias (card #49) --- */
-
-/* Embaixo da pílula do usuário no celular; no topo da tela no computador. */
-/* A coluna dos posts: larga, mas um post (4:5) inteiro cabe na tela. */
-.sc-feed {
-  --sc-feed-topo: 0px;
-  --sc-feed-coluna: clamp(28rem, calc((100dvh - 15rem) * 0.8), 42rem);
-}
-
-@media (max-width: 63.99rem) {
-  body:has(.sc-usuario-lateral) .sc-feed {
-    --sc-feed-topo: calc(3.5rem + 2 * var(--espaco-3));
-  }
-}
-
-.sc-feed[data-aba="produtos"] {
-  max-inline-size: calc(48rem + 2 * var(--sc-feed-lado));
-}
-
-.sc-feed__fixa {
-  position: sticky;
-  inset-block-start: var(--sc-feed-topo);
-  z-index: 20;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--espaco-3);
-  margin: 0 calc(-1 * var(--sc-feed-lado)) var(--espaco-6);
-  padding: var(--espaco-3) var(--sc-feed-lado);
-  border-block-end: 1px solid var(--cor-borda);
-  background-color: var(--cor-fundo);
-}
-
-/* No celular, a faixa acima da barra (onde flutua a pílula do usuário)
-   também é fundo: nada do feed aparece passando por trás. */
-.sc-feed__fixa::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 100%;
-  block-size: var(--sc-feed-topo);
-  background-color: var(--cor-fundo);
-}
-
-.sc-feed__topo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--espaco-2) var(--espaco-3);
-}
-
 .sc-feed__titulo {
   margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-xl);
-  line-height: 1.1;
+  font-size: var(--tipo-titulo-lg-tamanho);
+  font-weight: var(--peso-extra);
+  line-height: var(--tipo-titulo-lg-altura);
+  letter-spacing: -0.02em;
 }
 
-.sc-feed__abas {
+/* --- busca e filtros ---------------------------------------------------- */
+
+/* Celular: o campo largo do Stitch e o "Filtros" redondo ao lado; os
+   controles abrem embaixo, na largura toda. */
+.sc-feed__barra {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.sc-feed__barra .sc-feed__busca {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.sc-feed__abrir-filtros {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
   display: inline-flex;
-  padding: 0.1875rem;
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-inline-size: 3.25rem;
+  min-block-size: 3.25rem;
+  padding: 0 var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-3);
   background-color: var(--cor-superficie);
-}
-
-.sc-feed__aba {
-  padding: var(--espaco-1) var(--espaco-4);
-  border-radius: var(--raio-completo);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-forte);
-  text-decoration: none;
-  transition: background-color var(--transicao-rapida);
-}
-
-.sc-feed__aba:hover {
   color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
 }
 
-.sc-feed__aba[aria-current="page"] {
-  background-color: var(--cor-primaria);
-  color: var(--cor-em-primaria);
+.sc-feed__abrir-filtros:hover,
+.sc-feed__abrir-filtros[aria-expanded="true"] {
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-primaria-texto);
 }
 
-@media (max-width: 47.99rem) {
-  .sc-feed__titulo {
+/* No celular o "Filtros" é só o ícone (o nome fica para o leitor). */
+@media (max-width: 63.99rem) {
+  .sc-feed__abrir-rotulo {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
@@ -132,124 +104,12 @@ body:has(.sc-feed-moldura) {
     clip-path: inset(50%);
     white-space: nowrap;
   }
-}
 
-/* --- categorias (tipos de negócio) ------------------------------------- */
-
-.sc-feed__categorias {
-  display: flex;
-  gap: var(--espaco-2);
-  margin-inline: calc(-1 * var(--sc-feed-lado));
-  padding: 0 var(--sc-feed-lado) var(--espaco-1);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.sc-feed__categorias::-webkit-scrollbar {
-  display: none;
-}
-
-.sc-feed__categorias .sc-feed__categoria {
-  min-block-size: 2rem;
-  padding: 0 var(--espaco-3);
-}
-
-.sc-feed__categoria,
-.sc-feed__pilula {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--espaco-1);
-  min-block-size: 2.5rem;
-  padding: 0 var(--espaco-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
-  background-color: var(--cor-superficie);
-  color: var(--cor-tinta);
-  font: inherit;
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    border-color var(--transicao-rapida),
-    background-color var(--transicao-rapida);
-}
-
-.sc-feed__categoria:hover,
-.sc-feed__pilula:hover {
-  border-color: var(--cor-primaria);
-}
-
-.sc-feed__categoria[aria-current="true"],
-.sc-feed__pilula[aria-current="true"],
-.sc-feed__pilula[aria-pressed="true"] {
-  border-color: var(--cor-primaria);
-  background-color: var(--cor-primaria);
-  color: var(--cor-em-primaria);
-}
-
-.sc-feed__pilula:disabled {
-  cursor: progress;
-  opacity: 0.6;
-}
-
-.sc-feed__pilula svg {
-  inline-size: 1rem;
-  block-size: 1rem;
-}
-
-.sc-feed__pilula-x {
-  opacity: 0.7;
-}
-
-:is(.sc-feed__categoria, .sc-feed__pilula, .sc-feed__aba, .sc-feed__link,
-  .sc-feed__favoritar, .sc-feed__etiqueta, .sc-feed__paginacao a, .sc-feed__abrir-filtros,
-  .sc-post__acao, .sc-post__pedir, .sc-post__loja, .sc-post__seta, .sc-post__som,
-  .sc-post__ver-comentarios, .sc-stories__bolinha, .sc-posts__mais):focus-visible {
-  outline: 2px solid var(--cor-foco);
-  outline-offset: 2px;
-}
-
-/* --- barra: busca, entrega, ordem e local ------------------------------ */
-
-.sc-feed__barra {
-  display: flex;
-  flex: 1 1 18rem;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--espaco-2);
-  min-inline-size: 0;
-}
-
-.sc-feed__barra .sc-feed__busca {
-  flex: 1 1 14rem;
-  order: 1;
-  min-inline-size: 0;
-}
-
-.sc-feed__abrir-filtros {
-  order: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  min-block-size: 2.5rem;
-  padding: 0 var(--espaco-3);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
-  background-color: var(--cor-superficie);
-  color: var(--cor-tinta);
-  font: inherit;
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-forte);
-  cursor: pointer;
-}
-
-.sc-feed__abrir-filtros[aria-expanded="true"],
-.sc-feed__abrir-filtros:hover {
-  border-color: var(--cor-primaria);
+  .sc-feed__contagem {
+    position: absolute;
+    inset-block-start: 0.25rem;
+    inset-inline-end: 0.25rem;
+  }
 }
 
 .sc-feed__contagem {
@@ -262,42 +122,16 @@ body:has(.sc-feed-moldura) {
   background-color: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font-size: var(--texto-xs);
+  font-weight: var(--peso-extra);
 }
 
 .sc-feed__barra .sc-feed__controles,
 .sc-feed__barra .sc-feed__aviso {
-  order: 3;
-  flex-basis: 100%;
+  grid-column: 1 / -1;
 }
 
 .sc-feed__barra:not([data-aberta]) .sc-feed__controles {
   display: none;
-}
-
-/* Celular: a barra se desmancha na linha das abas — "Filtros" fica ao lado
-   delas, e a busca e os controles abrem embaixo, na largura toda. */
-@media (max-width: 47.99rem) {
-  .sc-feed__barra {
-    display: contents;
-  }
-
-  .sc-feed__abrir-filtros {
-    margin-inline-start: auto;
-  }
-
-  .sc-feed__barra .sc-feed__busca {
-    order: 3;
-    flex-basis: 100%;
-  }
-
-  .sc-feed__barra:not([data-aberta]) .sc-feed__busca:not(:has(input:not(:placeholder-shown))) {
-    display: none;
-  }
-}
-
-.sc-feed__barra .sc-feed__busca input,
-.sc-feed__barra .sc-feed__buscar {
-  min-block-size: 2.25rem;
 }
 
 .sc-feed__busca {
@@ -305,30 +139,35 @@ body:has(.sc-feed-moldura) {
   display: flex;
   align-items: center;
   gap: var(--espaco-2);
+  min-block-size: 3.25rem;
   padding: var(--espaco-1) var(--espaco-1) var(--espaco-1) var(--espaco-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
+  border: 1px solid transparent;
+  border-radius: var(--raio-3);
   background-color: var(--cor-superficie);
+  box-shadow: var(--sombra-2);
 }
 
 .sc-feed__busca:focus-within {
-  border-color: var(--cor-primaria);
+  border-color: var(--cor-foco);
 }
 
 .sc-feed__busca-icone {
   flex-shrink: 0;
-  color: var(--cor-tinta-suave);
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  color: var(--cor-primaria-texto);
 }
 
 .sc-feed__busca input {
   flex: 1;
   inline-size: 0;
   min-inline-size: 0;
-  min-block-size: 2.5rem;
+  min-block-size: var(--altura-toque);
   border: 0;
   background: transparent;
   color: var(--cor-tinta);
   font: inherit;
+  font-size: var(--tipo-corpo-md-tamanho);
   outline: none;
 }
 
@@ -343,8 +182,8 @@ body:has(.sc-feed-moldura) {
 .sc-feed__limpar {
   display: grid;
   place-items: center;
-  inline-size: 2rem;
-  block-size: 2rem;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
   padding: 0;
   border: 0;
   border-radius: var(--raio-completo);
@@ -353,15 +192,23 @@ body:has(.sc-feed-moldura) {
   cursor: pointer;
 }
 
+/* No celular o teclado já traz o "Buscar" (o Enter envia), como no Stitch. */
+@media (max-width: 63.99rem) {
+  .sc-feed__buscar {
+    display: none;
+  }
+}
+
 .sc-feed__buscar {
   min-block-size: 2.5rem;
-  padding: 0 var(--espaco-5);
+  padding: 0 var(--espaco-4);
   border: 0;
-  border-radius: var(--raio-completo);
+  border-radius: var(--raio-2);
   background-color: var(--cor-primaria);
   color: var(--cor-em-primaria);
   font: inherit;
-  font-weight: var(--peso-forte);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-negrito);
   cursor: pointer;
 }
 
@@ -370,6 +217,9 @@ body:has(.sc-feed-moldura) {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--espaco-2) var(--espaco-3);
+  padding: var(--espaco-4);
+  border-radius: var(--raio-cartao);
+  background-color: var(--cor-superficie);
 }
 
 .sc-feed__grupo {
@@ -393,9 +243,16 @@ body:has(.sc-feed-moldura) {
   padding: 0 var(--espaco-3);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-botao);
-  background-color: var(--cor-superficie);
+  background-color: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font: inherit;
+}
+
+.sc-feed__finalidade {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
 }
 
 .sc-feed__aviso {
@@ -407,15 +264,176 @@ body:has(.sc-feed-moldura) {
   font-size: var(--texto-sm);
 }
 
+/* Computador: a busca é a do topo do site; aqui fica só o "Filtros", na linha
+   dos segmentos (a ordem visual muda, a do Tab segue a do documento). */
+@media (min-width: 64rem) {
+  .sc-feed {
+    flex-flow: row wrap;
+    column-gap: var(--espaco-3);
+  }
+
+  .sc-feed > * {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  .sc-feed > .sc-stories,
+  .sc-feed > .sc-feed__titulo {
+    order: 1;
+  }
+
+  .sc-feed > .sc-feed__categorias {
+    order: 2;
+  }
+
+  /* Logo depois dos segmentos, na mesma linha (os demais vêm a seguir). */
+  .sc-feed > .sc-feed__barra {
+    order: 3;
+  }
+
+  .sc-feed > .sc-feed__barra ~ * {
+    order: 4;
+  }
+
+  .sc-feed > .sc-feed__barra ~ .sc-stories {
+    order: 1;
+  }
+
+  .sc-feed > .sc-feed__barra ~ .sc-feed__categorias {
+    order: 2;
+  }
+
+  .sc-feed > .sc-feed__categorias {
+    flex: 1 1 0;
+  }
+
+  .sc-feed > .sc-feed__barra {
+    position: relative;
+    flex: none;
+    display: block;
+    align-self: center;
+  }
+
+  .sc-feed__barra .sc-feed__busca {
+    display: none;
+  }
+
+  .sc-feed__abrir-filtros {
+    min-block-size: var(--altura-toque);
+    border-radius: var(--raio-completo);
+    padding-inline: var(--espaco-4);
+  }
+
+  .sc-feed__barra .sc-feed__controles,
+  .sc-feed__barra .sc-feed__aviso {
+    position: absolute;
+    inset-block-start: calc(100% + var(--espaco-2));
+    inset-inline-end: 0;
+    z-index: 10;
+    inline-size: 26rem;
+    box-shadow: var(--sombra-3);
+  }
+}
+
+/* --- segmentos (chips do #104 no tamanho do Stitch) -------------------- */
+
+.sc-feed__categorias {
+  margin-inline: calc(-1 * var(--sc-feed-lado));
+  padding-inline: var(--sc-feed-lado);
+}
+
+.sc-feed__categorias .sc-feed__categoria {
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border-color: transparent;
+  background-color: var(--cor-superficie);
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-forte);
+}
+
+.sc-feed__categorias .sc-feed__categoria:hover {
+  color: var(--cor-tinta);
+  background-color: var(--cor-superficie-alta);
+}
+
+.sc-feed__categorias .sc-feed__categoria[aria-current="true"] {
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-negrito);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--cor-primaria) 30%, transparent);
+}
+
+@media (min-width: 64rem) {
+  .sc-feed__categorias {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}
+
+/* --- pílulas (listas de lojas e filtros) -------------------------------- */
+
+.sc-feed__pilula {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border: 1px solid transparent;
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida);
+}
+
+.sc-feed__pilula:hover {
+  border-color: var(--cor-primaria);
+}
+
+.sc-feed__pilula[aria-current="true"],
+.sc-feed__pilula[aria-pressed="true"] {
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-feed__pilula:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.sc-feed__pilula svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.sc-feed__pilula-x {
+  opacity: 0.7;
+}
+
+:is(.sc-feed__categoria, .sc-feed__pilula, .sc-feed__link, .sc-feed__favoritar,
+  .sc-feed__etiqueta, .sc-feed__paginacao a, .sc-feed__abrir-filtros, .sc-feed__buscar,
+  .sc-feed__limpar, .sc-inicio__ver-tudo, .sc-abertura__atalho, .sc-feed__chamada,
+  .sc-post__acao, .sc-post__pedir, .sc-post__loja, .sc-post__seta, .sc-post__som,
+  .sc-post__ver-comentarios, .sc-stories__bolinha, .sc-posts__mais):focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
 .sc-feed__listas {
   display: flex;
   flex-wrap: wrap;
   gap: var(--espaco-2);
-  margin-block-end: var(--espaco-5);
 }
 
 .sc-feed__filtro-ativo {
-  margin: 0 0 var(--espaco-3);
+  margin: 0;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-sm);
 }
@@ -432,28 +450,148 @@ body:has(.sc-feed-moldura) {
   font-size: var(--texto-sm);
 }
 
-/* --- grade e cartões --------------------------------------------------- */
+/* --- abertura do início (só no computador, como no Stitch) -------------- */
+
+.sc-abertura {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .sc-abertura {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    gap: var(--espaco-4);
+    justify-items: start;
+    overflow: hidden;
+    padding: var(--espaco-7);
+    border-radius: var(--raio-grande, 1rem);
+    background-color: var(--cor-superficie);
+    box-shadow: var(--sombra-larga);
+  }
+
+  /* As duas luzes do Stitch: verde no canto de cima e uma névoa embaixo. */
+  .sc-abertura::before,
+  .sc-abertura::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: var(--raio-completo);
+    filter: blur(64px);
+    pointer-events: none;
+  }
+
+  .sc-abertura::before {
+    inset-block-start: -6rem;
+    inset-inline-end: -6rem;
+    inline-size: 24rem;
+    block-size: 24rem;
+    background: color-mix(in srgb, var(--cor-primaria) 14%, transparent);
+  }
+
+  .sc-abertura::after {
+    inset-block-end: -5rem;
+    inset-inline-start: 33%;
+    inline-size: 20rem;
+    block-size: 20rem;
+    background: color-mix(in srgb, var(--cor-primaria) 6%, transparent);
+  }
+}
+
+.sc-abertura__selo {
+  margin: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-primaria-texto);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-negrito);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sc-abertura__titulo {
+  max-inline-size: 46rem;
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: var(--peso-extra);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.sc-abertura__titulo span {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-abertura__texto {
+  max-inline-size: 36rem;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-corpo-lg-tamanho);
+  line-height: var(--tipo-corpo-lg-altura);
+}
+
+.sc-abertura__atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.sc-abertura__rotulo {
+  margin-inline-end: var(--espaco-1);
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-negrito);
+  text-transform: uppercase;
+}
+
+.sc-abertura__atalho {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-3);
+  border-radius: var(--raio-2);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+}
+
+.sc-abertura__atalho::before {
+  content: "✦";
+  margin-inline-end: var(--espaco-1);
+  color: var(--cor-primaria-texto);
+}
+
+.sc-abertura__atalho:hover {
+  background-color: var(--cor-fundo);
+}
+
+/* --- cartões ------------------------------------------------------------ */
 
 .sc-feed__grade {
   display: grid;
-  gap: var(--espaco-5);
+  gap: var(--espaco-4);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .sc-feed__grade--produtos {
-  grid-template-columns: repeat(auto-fill, minmax(min(10.5rem, 45%), 1fr));
-}
-
-@media (min-width: 48rem) {
-  .sc-feed__grade {
-    gap: var(--espaco-6);
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .sc-feed__grade--lojas {
-  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .sc-feed__grade--produtos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--espaco-5);
+  }
 }
 
 .sc-feed__cartao {
@@ -461,22 +599,14 @@ body:has(.sc-feed-moldura) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--cor-borda);
   border-radius: var(--raio-cartao);
   background-color: var(--cor-superficie);
-  transition:
-    border-color var(--transicao-rapida),
-    transform var(--transicao-rapida);
+  box-shadow: var(--sombra-2);
+  transition: box-shadow var(--transicao-media);
 }
 
 .sc-feed__cartao:hover {
-  border-color: var(--cor-primaria);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .sc-feed__cartao:hover {
-    transform: translateY(-2px);
-  }
+  box-shadow: var(--sombra-3);
 }
 
 .sc-feed__link {
@@ -487,10 +617,11 @@ body:has(.sc-feed-moldura) {
   text-decoration: none;
 }
 
+/* Produto: foto quadrada sobre o grafite, texto e o "+" redondo. */
 .sc-feed__foto {
   position: relative;
   display: block;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
   overflow: hidden;
   background-color: var(--cor-superficie-alta);
 }
@@ -501,13 +632,25 @@ body:has(.sc-feed-moldura) {
   object-fit: cover;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .sc-feed__foto img,
+  .sc-feed__capa > img {
+    transition: transform 500ms ease;
+  }
+
+  .sc-feed__cartao:hover .sc-feed__foto img,
+  .sc-feed__cartao:hover .sc-feed__capa > img {
+    transform: scale(1.05);
+  }
+}
+
 .sc-feed__sem-foto {
   display: grid;
   place-items: center;
   block-size: 100%;
-  color: var(--cor-primaria);
-  font-family: var(--fonte-titulo);
+  color: var(--cor-tinta-suave);
   font-size: 2.5rem;
+  font-weight: var(--peso-extra);
 }
 
 .sc-feed__distancia {
@@ -515,80 +658,155 @@ body:has(.sc-feed-moldura) {
   inset-block-end: var(--espaco-2);
   inset-inline-start: var(--espaco-2);
   padding: 0.125rem var(--espaco-2);
-  border-radius: var(--raio-completo);
-  background-color: var(--cor-fundo);
-  color: var(--cor-primaria);
+  border-radius: var(--raio-1);
+  background-color: color-mix(in srgb, var(--cor-fundo) 88%, transparent);
+  color: var(--cor-tinta);
   font-size: var(--texto-xs);
   font-weight: var(--peso-forte);
 }
 
 .sc-feed__texto {
-  display: grid;
-  gap: var(--espaco-2);
-  padding: var(--espaco-5);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-2);
+}
+
+.sc-feed__loja {
+  overflow: hidden;
+  color: var(--cor-primaria-texto);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-negrito);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .sc-feed__nome {
-  font-weight: var(--peso-forte);
-  line-height: 1.25;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--tipo-titulo-sm-tamanho);
+  font-weight: var(--peso-negrito);
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* A descrição só no computador (no celular o cartão é compacto). */
+.sc-feed__descricao {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .sc-feed__descricao {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--cor-tinta-suave);
+    font-size: var(--tipo-corpo-sm-tamanho);
+    line-height: var(--tipo-corpo-sm-altura);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
 }
 
 .sc-feed__preco {
-  color: var(--cor-primaria);
-  font-weight: var(--peso-forte);
+  display: flex;
+  flex-direction: column;
+  margin-block-start: auto;
+  padding-block-start: var(--espaco-2);
+  padding-inline-end: 3rem;
+  font-weight: var(--peso-extra);
+}
+
+.sc-feed__preco-por {
+  font-size: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.sc-feed__moeda {
+  margin-inline-end: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: var(--peso-negrito);
+}
+
+.sc-feed__preco-de {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
 }
 
 /* Varejo e atacado juntos (card #56): a linha do atacado, logo abaixo. */
 .sc-feed__atacado {
+  color: var(--cor-primaria-texto);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-forte);
+}
+
+/* O "+" do Stitch: verde, redondo, com brilho; é desenho dentro do link. */
+.sc-feed__mais {
+  position: absolute;
+  inset-block-end: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--cor-primaria) 35%, transparent);
+}
+
+.sc-feed__pe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: 3.25rem;
+  padding: 0 var(--espaco-3) var(--espaco-3);
+  padding-inline-end: 3.75rem;
+}
+
+.sc-feed__curtidas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   color: var(--cor-tinta-suave);
   font-size: var(--texto-xs);
   font-weight: var(--peso-forte);
 }
 
-.sc-feed__preco-de {
-  margin-inline-end: var(--espaco-2);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-normal);
-}
-
-.sc-feed__loja,
-.sc-feed__meta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-sm);
-}
-
-.sc-feed__meta--destaque {
+.sc-feed__curtidas svg {
   color: var(--cor-primaria-texto);
 }
 
 .sc-feed__etiqueta {
-  align-self: start;
-  margin: 0 var(--espaco-5) var(--espaco-5);
+  max-inline-size: 100%;
+  overflow: hidden;
   padding: 0.125rem var(--espaco-2);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
+  border-radius: var(--raio-1);
+  background-color: var(--cor-superficie-alta);
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-forte);
   text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sc-feed__etiqueta:hover {
-  border-color: var(--cor-primaria);
   color: var(--cor-tinta);
 }
 
-/* Loja: capa em faixa, logo redondo sobreposto. */
+/* Loja: capa larga com o tipo e o logo, nome grande e o rodapé do cartão. */
 .sc-feed__capa {
   position: relative;
   display: block;
-  block-size: 6rem;
-  background:
-    radial-gradient(circle at 80% 20%, var(--cor-primaria-suave), transparent 60%),
-    var(--cor-superficie-alta);
+  block-size: 11rem;
+  background-color: var(--cor-superficie-alta);
 }
 
 .sc-feed__capa > img {
@@ -597,10 +815,41 @@ body:has(.sc-feed-moldura) {
   object-fit: cover;
 }
 
+.sc-feed__capa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--cor-superficie),
+    transparent 55%,
+    rgb(0 0 0 / 35%)
+  );
+  pointer-events: none;
+}
+
+.sc-feed__tipo {
+  position: absolute;
+  inset-block-start: var(--espaco-3);
+  inset-inline-start: var(--espaco-3);
+  z-index: 1;
+  max-inline-size: calc(100% - 4.5rem);
+  overflow: hidden;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-completo);
+  background-color: color-mix(in srgb, var(--cor-fundo) 82%, transparent);
+  color: var(--cor-tinta);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-forte);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sc-feed__logo {
   position: absolute;
-  inset-block-end: -1.5rem;
-  inset-inline-start: var(--espaco-3);
+  inset-block-end: calc(-1 * var(--espaco-5));
+  inset-inline-start: var(--espaco-4);
+  z-index: 1;
   display: grid;
   place-items: center;
   inline-size: 3.5rem;
@@ -608,8 +857,9 @@ body:has(.sc-feed-moldura) {
   overflow: hidden;
   border: 3px solid var(--cor-superficie);
   border-radius: var(--raio-completo);
-  background-color: var(--cor-fundo);
-  color: var(--cor-primaria);
+  background-color: var(--cor-superficie-alta);
+  color: var(--cor-tinta-suave);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cor-primaria) 45%, transparent);
 }
 
 .sc-feed__logo img {
@@ -619,38 +869,71 @@ body:has(.sc-feed-moldura) {
 }
 
 .sc-feed__cartao--loja .sc-feed__texto {
-  padding-block-start: var(--espaco-6);
+  gap: var(--espaco-1);
+  padding: var(--espaco-6) var(--espaco-4) var(--espaco-4);
+}
+
+.sc-feed__cartao--loja .sc-feed__nome {
+  font-size: var(--tipo-titulo-md-tamanho);
+  font-weight: var(--peso-extra);
+  letter-spacing: -0.01em;
+  -webkit-line-clamp: 1;
+}
+
+.sc-feed__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-corpo-sm-tamanho);
+}
+
+.sc-feed__meta--destaque {
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-negrito);
+}
+
+.sc-feed__rodape-da-loja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-1) var(--espaco-3);
+  margin-block-start: auto;
+  padding-block-start: var(--espaco-3);
+  border-block-start: 1px solid color-mix(in srgb, var(--cor-borda) 35%, transparent);
 }
 
 .sc-feed__favoritar {
   position: absolute;
-  inset-block-start: var(--espaco-2);
-  inset-inline-end: var(--espaco-2);
+  inset-block-start: var(--espaco-3);
+  inset-inline-end: var(--espaco-3);
+  z-index: 2;
   display: grid;
   place-items: center;
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
   padding: 0;
-  border: 1px solid var(--cor-borda);
+  border: 0;
   border-radius: var(--raio-completo);
-  background-color: var(--cor-fundo);
+  background-color: color-mix(in srgb, var(--cor-fundo) 80%, transparent);
   color: var(--cor-tinta);
   cursor: pointer;
 }
 
 .sc-feed__favoritar:hover {
-  color: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
 }
 
 /* Favorita: a estrela acesa no verde da marca. */
 .sc-feed__favoritar[aria-pressed="true"] {
-  border-color: var(--cor-primaria);
   color: var(--cor-primaria);
   filter: drop-shadow(0 0 6px var(--cor-primaria));
 }
 
 .sc-feed__favoritar[data-falhou] {
-  border-color: var(--cor-erro);
+  box-shadow: inset 0 0 0 1px var(--cor-erro);
 }
 
 .sc-feed__favoritar:disabled {
@@ -703,7 +986,7 @@ body:has(.sc-feed-moldura) {
 .sc-feed__favoritar--seguir {
   display: inline-flex;
   flex-shrink: 0;
-  min-block-size: 2rem;
+  min-block-size: var(--altura-toque);
   padding: 0 var(--espaco-3);
   border-color: var(--cor-borda-forte);
   background-color: transparent;
@@ -731,18 +1014,55 @@ body:has(.sc-feed-moldura) {
 .sc-feed__favoritar--acao {
   display: grid;
   place-items: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
   border: 0;
   background: none;
   color: var(--cor-tinta);
 }
 
-/* --- stories (da loja) -------------------------------------------------- */
+/* --- stories (da loja), no desenho do Stitch ----------------------------- */
 
 .sc-stories {
-  max-inline-size: var(--sc-feed-coluna);
-  margin: 0 auto var(--espaco-6);
+  display: grid;
+  gap: var(--espaco-2);
+}
+
+.sc-stories__cabeca {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.sc-stories__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  font-size: var(--tipo-titulo-sm-tamanho);
+  font-weight: var(--peso-extra);
+  letter-spacing: -0.01em;
+}
+
+/* O ponto aceso do Stitch, antes do título. */
+.sc-stories__titulo::before {
+  content: "";
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria);
+  box-shadow: 0 0 10px var(--cor-primaria);
+}
+
+.sc-stories__selo {
+  padding: 0.125rem var(--espaco-2);
+  border-radius: var(--raio-1);
+  background-color: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-extra);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .sc-stories__fileira {
@@ -759,11 +1079,18 @@ body:has(.sc-feed-moldura) {
   display: none;
 }
 
+@media (min-width: 64rem) {
+  .sc-stories__fileira {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}
+
 .sc-stories__bolinha {
   display: grid;
   justify-items: center;
-  gap: var(--espaco-1);
-  inline-size: 5rem;
+  gap: 0.375rem;
+  inline-size: 4.75rem;
   padding: 0;
   border: 0;
   background: none;
@@ -772,24 +1099,26 @@ body:has(.sc-feed-moldura) {
   cursor: pointer;
 }
 
-/* Anel: verde da marca enquanto há novidade; cinza depois de visto. */
+/* Anel: verde da marca (com brilho) enquanto há novidade; cinza depois. */
 .sc-stories__anel {
   display: grid;
   place-items: center;
   inline-size: 4.25rem;
   block-size: 4.25rem;
-  padding: 3px;
+  padding: 2px;
   border-radius: var(--raio-completo);
-  background: var(--cor-borda-forte);
+  background: var(--cor-borda);
+  transition: transform var(--transicao-rapida);
 }
 
 .sc-stories__bolinha[data-novo] .sc-stories__anel {
   background: conic-gradient(
     from 210deg,
-    var(--marca-verde-click),
+    var(--cor-primaria),
     var(--marca-mint),
-    var(--marca-verde-click)
+    var(--cor-primaria)
   );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--cor-primaria) 35%, transparent);
 }
 
 .sc-stories__foto {
@@ -798,10 +1127,10 @@ body:has(.sc-feed-moldura) {
   inline-size: 100%;
   block-size: 100%;
   overflow: hidden;
-  border: 3px solid var(--cor-fundo);
+  border: 2px solid var(--cor-fundo);
   border-radius: var(--raio-completo);
   background-color: var(--cor-superficie-alta);
-  color: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
 }
 
 .sc-stories__foto img {
@@ -811,31 +1140,25 @@ body:has(.sc-feed-moldura) {
 }
 
 .sc-stories__iniciais {
-  font-family: var(--fonte-titulo);
   font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
+  font-weight: var(--peso-extra);
 }
 
 .sc-stories__nome {
   max-inline-size: 100%;
   overflow: hidden;
-  color: var(--cor-tinta-suave);
-  font-size: var(--texto-xs);
+  color: var(--cor-tinta);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-forte);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sc-stories__bolinha[data-novo] .sc-stories__iniciais {
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-forte);
-}
-
-.sc-stories__nome {
-  color: var(--cor-tinta);
-}
-
 @media (prefers-reduced-motion: no-preference) {
+  .sc-stories__bolinha:hover .sc-stories__anel {
+    transform: scale(1.05);
+  }
+
   .sc-stories__bolinha:active .sc-stories__anel {
     transform: scale(0.94);
   }
@@ -1021,37 +1344,67 @@ body:has(.sc-feed-moldura) {
 
 /* --- posts --------------------------------------------------------------- */
 
-/* Rolagem com encaixe leve: o post para alinhado, sem prender a pessoa. */
-html:has(.sc-feed-moldura .sc-posts) {
-  scroll-snap-type: y proximity;
-}
-
-/* O topo da página também é ponto de encaixe: ao abrir, ninguém pula os stories. */
-html:has(.sc-feed-moldura .sc-posts) body {
-  scroll-snap-align: start;
-}
-
+/* Os posts ocupam a largura da página, como no Stitch (card #128). */
 .sc-posts {
   display: grid;
-  gap: 2.5rem;
-  max-inline-size: var(--sc-feed-coluna);
-  margin-inline: auto;
+  gap: var(--espaco-5);
+  inline-size: 100%;
 }
 
 .sc-post {
-  scroll-snap-align: start;
-  /* Para 1,5rem abaixo da barra fixa (altura medida em BarraDoFeed). */
-  scroll-margin-block-start: calc(var(--sc-feed-topo) + var(--sc-feed-barra, 8rem) + var(--espaco-5));
   overflow: hidden;
-  border: 1px solid var(--cor-borda);
   border-radius: var(--raio-cartao);
   background-color: var(--cor-superficie);
+  box-shadow: var(--sombra-2);
 }
 
-/* Celular: o post ocupa a largura toda da coluna (com 1rem de margem). */
-@media (max-width: 47.99rem) {
-  .sc-posts {
-    gap: var(--espaco-6);
+/* Computador: a foto à esquerda e o texto à direita, num cartão largo. */
+@media (min-width: 64rem) {
+  .sc-feed-moldura .sc-post {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "midia topo"
+      "midia corpo"
+      "midia aviso"
+      "midia acoes";
+    column-gap: var(--espaco-2);
+    padding: var(--espaco-4);
+  }
+
+  .sc-feed-moldura .sc-post > .sc-post__midia {
+    grid-area: midia;
+    align-self: start;
+    overflow: hidden;
+    border-radius: var(--raio-3);
+  }
+
+  /* Ao lado do texto a foto fica mais baixa: quadrada no produto e larga na
+     loja (a capa), como os cartões largos do Stitch. */
+  .sc-feed-moldura .sc-post > .sc-post__midia {
+    aspect-ratio: 1;
+  }
+
+  .sc-feed-moldura .sc-post--loja > .sc-post__midia {
+    aspect-ratio: 16 / 10;
+  }
+
+  .sc-feed-moldura .sc-post > .sc-post__topo {
+    grid-area: topo;
+  }
+
+  .sc-feed-moldura .sc-post > .sc-post__corpo {
+    grid-area: corpo;
+  }
+
+  .sc-feed-moldura .sc-post > .sc-post__aviso {
+    grid-area: aviso;
+  }
+
+  .sc-feed-moldura .sc-post > .sc-post__acoes {
+    grid-area: acoes;
+    align-self: end;
   }
 }
 
@@ -1174,31 +1527,48 @@ html:has(.sc-feed-moldura .sc-posts) body {
   font-weight: var(--peso-forte);
 }
 
+/* O círculo desenhado tem 2rem (Stitch), mas o alvo de toque é o do cliente,
+   48px (card #132): o fundo pinta só o círculo no meio do botão. */
 .sc-post__seta,
 .sc-post__som {
+  --cor-do-circulo: color-mix(in srgb, var(--marca-branco) 85%, transparent);
   position: absolute;
   display: grid;
   place-items: center;
-  inline-size: 2rem;
-  block-size: 2rem;
+  inline-size: var(--altura-toque-cliente);
+  block-size: var(--altura-toque-cliente);
   padding: 0;
   border: 0;
   border-radius: var(--raio-completo);
-  background-color: color-mix(in srgb, var(--marca-branco) 85%, transparent);
+  background: radial-gradient(
+    circle,
+    var(--cor-do-circulo) 1rem,
+    transparent calc(1rem + 0.5px)
+  );
   color: var(--marca-preto-tecnologico);
   cursor: pointer;
 }
 
 .sc-post__seta {
-  inset-block-start: calc(50% - 1rem);
+  inset-block-start: calc(50% - var(--altura-toque-cliente) / 2);
+}
+
+.sc-post__seta[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .sc-post__seta--antes {
-  inset-inline-start: var(--espaco-3);
+  inset-inline-start: var(--espaco-1);
 }
 
 .sc-post__seta--depois {
-  inset-inline-end: var(--espaco-3);
+  inset-inline-end: var(--espaco-1);
+}
+
+.sc-post__trilho:focus-visible {
+  outline: 3px solid var(--cor-foco, var(--cor-primaria));
+  outline-offset: -3px;
 }
 
 /* No toque, arrastar já basta: as setas ficam para o mouse. */
@@ -1209,9 +1579,9 @@ html:has(.sc-feed-moldura .sc-posts) body {
 }
 
 .sc-post__som {
-  inset-block-end: var(--espaco-3);
-  inset-inline-end: var(--espaco-3);
-  background-color: color-mix(in srgb, var(--marca-preto-tecnologico) 70%, transparent);
+  --cor-do-circulo: color-mix(in srgb, var(--marca-preto-tecnologico) 70%, transparent);
+  inset-block-end: var(--espaco-1);
+  inset-inline-end: var(--espaco-1);
   color: var(--marca-branco);
 }
 
@@ -1275,8 +1645,8 @@ html:has(.sc-feed-moldura .sc-posts) body {
 .sc-post__acao {
   display: grid;
   place-items: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
   padding: 0;
   border: 0;
   border-radius: var(--raio-completo);
@@ -1355,7 +1725,8 @@ html:has(.sc-feed-moldura .sc-posts) body {
 
 .sc-post__preco {
   margin: var(--espaco-1) 0 0;
-  color: var(--cor-primaria);
+  /* Verde como LETRA segue o tema (#131): escuro no claro, aceso no escuro. */
+  color: var(--cor-primaria-texto);
   font-size: var(--texto-lg);
   font-weight: var(--peso-forte);
 }
@@ -1406,6 +1777,8 @@ html:has(.sc-feed-moldura .sc-posts) body {
 
 .sc-post__ver-comentarios {
   justify-self: start;
+  min-block-size: var(--altura-toque);
+  min-inline-size: var(--altura-toque);
   padding: 0;
   border: 0;
   background: none;
@@ -1454,7 +1827,7 @@ html:has(.sc-feed-moldura .sc-posts) body {
   display: grid;
   gap: var(--espaco-3);
   justify-items: center;
-  max-inline-size: var(--sc-feed-coluna);
+  max-inline-size: 42rem;
   margin: 2.5rem auto 0;
 }
 
@@ -1471,7 +1844,7 @@ html:has(.sc-feed-moldura .sc-posts) body {
 }
 
 .sc-posts__mais {
-  min-block-size: 2.75rem;
+  min-block-size: var(--altura-toque);
   padding: 0 var(--espaco-5);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-completo);
@@ -1484,62 +1857,12 @@ html:has(.sc-feed-moldura .sc-posts) body {
 
 /* --- gaveta de comentários ---------------------------------------------- */
 
-.sc-comentarios {
-  inline-size: 100%;
-  max-inline-size: 100%;
-  block-size: 100dvh;
-  max-block-size: 100dvh;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--cor-tinta);
-}
-
-.sc-comentarios::backdrop {
-  background-color: var(--cor-sobreposicao);
-}
-
+/* A moldura (fundo, foco, Esc, animação) é da Gaveta do #104. */
 .sc-comentarios__caixa {
-  position: absolute;
-  inset: auto 0 0;
   display: flex;
   flex-direction: column;
-  max-block-size: 80dvh;
-  min-block-size: 50dvh;
-  border-start-start-radius: var(--raio-janela);
-  border-start-end-radius: var(--raio-janela);
-  background-color: var(--cor-superficie);
-  box-shadow: var(--sombra-3);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .sc-comentarios[open] .sc-comentarios__caixa {
-    animation: sc-comentarios-subir 220ms ease-out;
-  }
-}
-
-@keyframes sc-comentarios-subir {
-  from { transform: translateY(40%); opacity: 0.4; }
-}
-
-/* Computador: painel à direita, da altura da tela. */
-@media (min-width: 48rem) {
-  .sc-comentarios__caixa {
-    inset: 0 0 0 auto;
-    inline-size: min(28rem, 100%);
-    max-block-size: none;
-    border-radius: 0;
-    border-inline-start: 1px solid var(--cor-borda);
-  }
-
-  @keyframes sc-comentarios-subir {
-    from { transform: translateX(30%); opacity: 0.4; }
-  }
-
-  .sc-comentarios__puxador {
-    display: none;
-  }
+  gap: 0.75rem;
+  min-block-size: 0;
 }
 
 .sc-comentarios__topo {
@@ -1847,32 +2170,179 @@ html:has(.sc-feed-moldura .sc-posts) body {
   font-weight: var(--peso-medio);
 }
 
-/* Lojas: a mesma coluna dos posts. */
-.sc-feed[data-aba="lojas"] {
-  max-inline-size: calc(48rem + 2 * var(--sc-feed-lado));
+/* ---------------------------------------------------------------------------
+   Início (card #106, composição do Stitch no #128): as seções com sobretítulo
+   verde, título grande e "ver tudo". Celular: uma coluna, e a faixa de lojas
+   rola dentro de si. Computador: lojas em 3 colunas e destaques em 4.
+   ------------------------------------------------------------------------- */
+.sc-inicio__secao {
+  display: grid;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+  margin-block-start: var(--espaco-3);
 }
 
-.sc-feed[data-aba="lojas"] .sc-feed__listas {
-  max-inline-size: var(--sc-feed-coluna);
-  margin-inline: auto;
+.sc-inicio__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espaco-2) var(--espaco-4);
 }
 
-/* --- posts na vitrine da loja (o perfil) -------------------------------- */
-
-.sc-feed--perfil {
-  scroll-margin-block-start: calc(3.5rem + 2 * var(--espaco-3));
-  padding-block: var(--espaco-7) var(--espaco-8);
+.sc-inicio__titulos {
+  display: grid;
+  gap: var(--espaco-1);
+  min-inline-size: 0;
 }
 
-.sc-feed__perfil-titulo {
-  max-inline-size: var(--sc-feed-coluna);
-  margin: 0 auto var(--espaco-6);
-  font-family: var(--fonte-titulo);
-  font-size: var(--texto-xl);
+.sc-inicio__sobretitulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  color: var(--cor-primaria-texto);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-negrito);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.sc-feed__perfil-titulo span {
+.sc-inicio__sobretitulo::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--raio-completo);
+  background-color: var(--cor-primaria);
+  box-shadow: 0 0 10px var(--cor-primaria);
+}
+
+.sc-inicio__titulo {
+  margin: 0;
+  color: var(--cor-tinta);
+  font-size: var(--tipo-titulo-md-tamanho);
+  font-weight: var(--peso-extra);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.sc-inicio__ver-tudo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-block-size: var(--altura-toque);
+  color: var(--cor-primaria-texto);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-negrito);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sc-inicio__ver-tudo:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* As abas dos destaques: linha própria no celular, à direita no computador. */
+.sc-inicio__abas {
+  order: 3;
+  flex: 1 1 100%;
+}
+
+@media (min-width: 64rem) {
+  .sc-inicio__abas {
+    order: 0;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+}
+
+.sc-inicio__abas .sc-chip {
+  /* Alvo de toque do cliente, 48px (card #132). */
+  min-block-size: var(--altura-toque);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+}
+
+.sc-inicio__convite {
+  margin: 0;
   color: var(--cor-tinta-suave);
-  font-size: var(--texto-base);
-  font-weight: var(--peso-normal);
+  font-size: var(--tipo-corpo-sm-tamanho);
+}
+
+.sc-inicio__vazio {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-inicio__lojas,
+.sc-inicio__produtos {
+  display: grid;
+  gap: var(--espaco-4);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-inicio__lojas {
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(16rem, 88%);
+  margin-inline: calc(-1 * var(--sc-feed-lado, 1rem));
+  padding-inline: var(--sc-feed-lado, 1rem);
+  scroll-padding-inline: var(--sc-feed-lado, 1rem);
+  padding-block-end: var(--espaco-2);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.sc-inicio__lojas::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-inicio__lojas > * {
+  scroll-snap-align: start;
+}
+
+.sc-inicio__produtos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .sc-inicio__produtos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sc-inicio__lojas {
+    grid-auto-columns: minmax(16rem, 45%);
+  }
+}
+
+@media (min-width: 64rem) {
+  .sc-inicio__secao {
+    gap: var(--espaco-5);
+    margin-block-start: var(--espaco-5);
+  }
+
+  .sc-inicio__titulo {
+    font-size: var(--tipo-titulo-lg-tamanho);
+  }
+}
+
+@media (min-width: 1280px) {
+  .sc-inicio__lojas {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--espaco-5);
+    margin-inline: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .sc-inicio__produtos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--espaco-5);
+  }
 }

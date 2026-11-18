@@ -6,6 +6,7 @@ import { PaginaDaConta } from "../../../../features/conta/PaginaDaConta.tsx";
 import { filtrarPedidos, lerFiltro, lojasDosPedidos } from "../../../../lib/conta-do-cliente.ts";
 import { buscarMeusPedidos } from "../../../../lib/meus-pedidos.ts";
 import { tokenOuEntrar } from "../_token.ts";
+import { comDestino } from "../../../../lib/destino-seguro.ts";
 
 export const metadata = { title: "Meus pedidos | SimpleClick" };
 
@@ -22,11 +23,11 @@ export default async function PaginaDeMeusPedidos({
 }: {
   searchParams: Promise<{ situacao?: string; periodo?: string; loja?: string }>;
 }) {
-  const token = await tokenOuEntrar();
+  const token = await tokenOuEntrar("/conta/pedidos");
   const filtro = lerFiltro(await searchParams);
 
   const leitura = await buscarMeusPedidos(token);
-  if (leitura.estado === "nao-autenticado") redirect("/entrar");
+  if (leitura.estado === "nao-autenticado") redirect(comDestino("/entrar", "/conta/pedidos"));
 
   const todos = leitura.estado === "ok" ? leitura.pedidos : [];
   const exibida =

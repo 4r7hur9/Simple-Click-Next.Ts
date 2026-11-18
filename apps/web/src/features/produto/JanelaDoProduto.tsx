@@ -51,6 +51,8 @@ export interface JanelaDoProdutoProps {
   readonly rotulos: { readonly variacao: string };
   /** O tipo de negócio da loja: escolhe o exemplo da observação do item. */
   readonly ramo?: string | null | undefined;
+  /** `blocos.detalheProduto` da loja: só ordena os blocos do detalhe. */
+  readonly blocosDoDetalhe?: readonly string[] | undefined;
   /** Como a loja chama o catálogo, para o "voltar ao cardápio". */
   readonly rotuloDoCatalogo: string;
   /** Nasce aberta com este produto — é a rota `/loja/<loja>/produto/<id>`. */
@@ -125,6 +127,7 @@ export function JanelaDoProduto({
   apelidoDaLoja,
   rotulos,
   ramo,
+  blocosDoDetalhe,
   rotuloDoCatalogo,
   produtoInicial = null,
   carregarProduto,
@@ -139,6 +142,8 @@ export function JanelaDoProduto({
   const empilhou = useRef(false);
   /** O id pedido por último: resposta atrasada de outro produto é descartada. */
   const pedido = useRef<string | null>(produtoInicial?.id ?? null);
+  /** Quem abriu a janela: o foco volta para lá ao fechar (AC-10929). */
+  const gatilho = useRef<HTMLElement | null>(null);
   const guardados = useRef(new Map<string, ProdutoNaTela>());
   const ocupados = useRef(new Set<string>());
   const relogioDoAviso = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,8 +225,8 @@ export function JanelaDoProduto({
           itemDoToqueUnico(achado),
         );
         if (resultado.estado === "adicionado") {
+          // A confirmação é do CarrinhoFlutuante (#110, AC-11006).
           avisarQueOCarrinhoMudou();
-          avisar(`${achado.nome} entrou na sacola.`);
         } else if (resultado.estado === "nao-fecha") {
           // O produto mudou desde que a página abriu: a janela mostra o de agora.
           guardados.current.delete(id);
@@ -250,6 +255,7 @@ export function JanelaDoProduto({
       const mais = alvo.closest<HTMLElement>("a[data-adicionar-produto]");
       if (mais) {
         evento.preventDefault();
+        gatilho.current = mais;
         const id = mais.dataset["adicionarProduto"];
         if (id) void adicionarDireto(id);
         return;
@@ -258,6 +264,7 @@ export function JanelaDoProduto({
       const cartao = alvo.closest<HTMLElement>("a[data-abre-produto]");
       if (cartao) {
         evento.preventDefault();
+        gatilho.current = cartao;
         const id = cartao.dataset["abreProduto"];
         if (id) void abrir(id, true);
       }
@@ -279,7 +286,9 @@ export function JanelaDoProduto({
     // direto pelo link do produto, troca no lugar.
     function aoFechar(): void {
       if (elemento?.open) return;
+      const idFechado = pedido.current;
       pedido.current = null;
+      devolverOFoco(idFechado);
       setSituacao("fechada");
       if (produtoDoEndereco(apelidoDaLoja, window.location.pathname) === null) {
         return;
@@ -290,6 +299,19 @@ export function JanelaDoProduto({
       } else {
         window.history.replaceState(null, "", enderecoDoCatalogo);
       }
+    }
+
+    // O foco volta ao cartão de onde a pessoa veio. No link direto não há
+    // clique de origem: cai no cartão do mesmo produto, se ele estiver na tela.
+    function devolverOFoco(id: string | null): void {
+      let alvo = gatilho.current;
+      if ((alvo === null || !alvo.isConnected) && id !== null) {
+        alvo = document.querySelector<HTMLElement>(
+          `a[data-abre-produto="${id.replace(/"/g, "")}"]`,
+        );
+      }
+      alvo?.focus({ preventScroll: true });
+      gatilho.current = null;
     }
 
     // Clique no FUNDO fecha: o fundo é o próprio `dialog`.
@@ -359,9 +381,9 @@ export function JanelaDoProduto({
               apelidoDaLoja={apelidoDaLoja}
               rotulos={rotulos}
               ramo={ramo}
+              blocos={blocosDoDetalhe}
               idDoTitulo={ID_DO_TITULO}
               aoAdicionado={() => {
-                avisar(`${produto.nome} entrou na sacola.`);
                 janela.current?.close();
               }}
             />

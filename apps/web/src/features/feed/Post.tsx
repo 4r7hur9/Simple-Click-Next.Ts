@@ -29,6 +29,7 @@ import {
   tempoRelativo,
   type AcoesDoFeed,
 } from "./social.ts";
+import { comDestino } from "../../lib/destino-seguro.ts";
 
 export function Post({
   produto,
@@ -61,7 +62,7 @@ export function Post({
   const foto = loja.fotoDePerfil ?? loja.logo;
   const iniciais = loja.iniciais ?? iniciaisDaLoja(loja.nome);
   const pedir = `/loja/${loja.apelido}/produto/${produto.id}`;
-  const entrar = `/entrar?proximo=${encodeURIComponent(voltarPara)}`;
+  const entrar = comDestino("/entrar", voltarPara);
   const distancia = escreverDistancia(produto.distanciaKm);
   const temDesconto =
     produto.precoOriginalCentavos !== null &&
@@ -105,7 +106,11 @@ export function Post({
     const url = new URL(pedir, window.location.origin).toString();
     try {
       if (typeof navigator.share === "function") {
-        await navigator.share({ title: produto.nome, text: `${produto.nome} · ${loja.nome}`, url });
+        await navigator.share({
+          title: produto.nome,
+          text: `${produto.nome} · ${loja.nome}`,
+          url,
+        });
         return;
       }
       await navigator.clipboard.writeText(url);
@@ -116,10 +121,23 @@ export function Post({
   }
 
   return (
-    <article className="sc-post" data-produto={produto.id} aria-label={`${produto.nome}, de ${loja.nome}`}>
+    <article
+      className="sc-post"
+      data-produto={produto.id}
+      aria-label={`${produto.nome}, de ${loja.nome}`}
+    >
       <header className="sc-post__topo">
-        <Link className="sc-post__avatar" href={perfil} aria-hidden="true" tabIndex={-1}>
-          {foto ? <img src={foto} alt="" loading="lazy" /> : <span>{iniciais}</span>}
+        <Link
+          className="sc-post__avatar"
+          href={perfil}
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          {foto ? (
+            <img src={foto} alt="" loading="lazy" />
+          ) : (
+            <span>{iniciais}</span>
+          )}
         </Link>
         <div className="sc-post__quem">
           <Link className="sc-post__loja" href={perfil}>
@@ -166,7 +184,11 @@ export function Post({
             <IconeBrilho aria-hidden="true" size={28} preenchido={curtiu} />
           </button>
         ) : (
-          <Link className="sc-post__acao" href={entrar} aria-label="Entre para curtir">
+          <Link
+            className="sc-post__acao"
+            href={entrar}
+            aria-label="Entre para curtir"
+          >
             <IconeBrilho aria-hidden="true" size={28} />
           </Link>
         )}
@@ -195,7 +217,9 @@ export function Post({
           voltarPara={voltarPara}
           variante="acao"
           alvo="produto"
-          alternar={async (quer) => (await acoes.favoritarProduto(produto.id, quer)).ok}
+          alternar={async (quer) =>
+            (await acoes.favoritarProduto(produto.id, quer)).ok
+          }
         />
       </div>
 
@@ -207,7 +231,9 @@ export function Post({
 
       <div className="sc-post__corpo">
         {curtidas > 0 ? (
-          <p className="sc-post__curtidas">{escreverContagem(curtidas, "curtida", "curtidas")}</p>
+          <p className="sc-post__curtidas">
+            {escreverContagem(curtidas, "curtida", "curtidas")}
+          </p>
         ) : null}
         <div className="sc-post__compra">
           <div className="sc-post__produto">
@@ -234,7 +260,9 @@ export function Post({
             Pedir
           </Link>
         </div>
-        {produto.descricao ? <p className="sc-post__descricao">{produto.descricao}</p> : null}
+        {produto.descricao ? (
+          <p className="sc-post__descricao">{produto.descricao}</p>
+        ) : null}
         <button
           type="button"
           className="sc-post__ver-comentarios"

@@ -13,6 +13,7 @@ import {
   lerComentarios,
   TAMANHO_MAXIMO_DO_COMENTARIO,
   type Comentario,
+  type PaginaDeItens,
   type ResultadoDaAcao,
 } from "../../../features/feed/social.ts";
 import { lerConsulta } from "../../../features/feed/consulta.ts";
@@ -38,14 +39,23 @@ function falha<T>(lido: Exclude<RespostaSocial, { estado: "ok" }>): ResultadoDaA
 export async function maisPosts(
   parametros: Readonly<Record<string, string>>,
   pagina: number,
-): Promise<ResultadoDaAcao<{ readonly itens: readonly unknown[]; readonly total: number }>> {
+): Promise<ResultadoDaAcao<PaginaDeItens>> {
   if (!Number.isInteger(pagina) || pagina < 2 || pagina > 1000) {
     return { ok: false, motivo: "recusado" };
   }
   const consulta = { ...lerConsulta("produtos", parametros), pagina };
-  const conteudo = await conteudoDosProdutos(consulta);
+  // A sessão é lida AQUI, no servidor: o navegador nunca manda o token. Sem
+  // ela, as páginas 2 em diante vinham sem a estrela dos favoritos.
+  const conteudo = await conteudoDosProdutos(consulta, await tokenDaSessao());
   if (conteudo.estado !== "produtos") return { ok: false, motivo: "indisponivel" };
-  return { ok: true, dados: { itens: conteudo.itens, total: conteudo.total } };
+  return {
+    ok: true,
+    dados: {
+      itens: conteudo.itens,
+      total: conteudo.total,
+      ...(conteudo.sessaoVencida === true ? { sessaoVencida: true as const } : {}),
+    },
+  };
 }
 
 export async function maisLojas(

@@ -5,6 +5,8 @@
  * chave e confirmar o código passam por `/api/auth/aplicativo/...`, que usa
  * a sessão do cookie. Nenhum token chega a este código.
  */
+import { useEffect, useState } from "react";
+
 import TotpForm, {
   type ConfirmacaoDoAplicativo,
   type PreparoDoAplicativo,
@@ -55,6 +57,22 @@ async function confirmar(codigo: string): Promise<ConfirmacaoDoAplicativo> {
   };
 }
 
+/**
+ * A chave e os códigos de recuperação vivem só no estado do formulário. Quando
+ * a página volta do histórico guardado pelo navegador (`pageshow` com
+ * `persisted`), o formulário é remontado do zero: nada do que foi mostrado
+ * antes reaparece (AC-11121). Uma chave nova é gerada ao abrir de novo.
+ */
 export function AtivacaoDoAplicativo() {
-  return <TotpForm aoPreparar={preparar} aoConfirmar={confirmar} />;
+  const [recomeco, setRecomeco] = useState(0);
+
+  useEffect(() => {
+    function aoMostrar(evento: PageTransitionEvent) {
+      if (evento.persisted) setRecomeco((n) => n + 1);
+    }
+    window.addEventListener("pageshow", aoMostrar);
+    return () => window.removeEventListener("pageshow", aoMostrar);
+  }, []);
+
+  return <TotpForm key={recomeco} aoPreparar={preparar} aoConfirmar={confirmar} />;
 }

@@ -1,69 +1,80 @@
 "use client";
 
 /**
- * O carrinho flutuante da vitrine.
+ * A sacola da loja: a ilha que decide QUE FORMA ela tem e cuida do que é comum
+ * a todas (card #110).
  *
- * UMA SACOLA QUE SÓ APARECE QUANDO HÁ O QUE MOSTRAR. Carrinho vazio flutuando
- * sobre o cardápio é ruído; com um item dentro, ele vira o próximo passo — um
- * botão redondo com a contagem e o total, que a pessoa arrasta para onde não
- * atrapalha (`SacolaFlutuante`).
+ * UMA SACOLA, TRÊS APARÊNCIAS, UM ESTADO SÓ:
  *
- * O TOQUE ABRE UMA JANELA, e não outra página. A pessoa confere, ajusta a
- * quantidade e volta ao cardápio sem perder o lugar da rolagem. A gaveta é um
- * `<dialog>` de verdade: prende o foco, fecha com Esc e devolve o foco ao botão
- * — três coisas que uma `div` posicionada teria de reinventar.
+ * - NO COMPUTADOR, a coluna lateral (`ColunaDaSacola`), levada por portal à
+ *   região `.sc-catalogo__sacola` que o catálogo reserva. É uma região, e não
+ *   um diálogo: o foco entra e sai dela, e Esc não faz nada.
+ * - NO CELULAR E NO TABLET, a barra fixa (`BarraDaSacola`), que só existe com
+ *   itens e abre a sacola num diálogo modal.
+ * - O DIÁLOGO é um `<dialog>` de verdade: prende o foco, fecha com Esc e
+ *   devolve o foco ao botão que o abriu. Tem dois passos, a sacola e o
+ *   fechamento (`PassoDoFechamento`). `/loja/<loja>/checkout` abre já no
+ *   segundo.
  *
- * O FECHAMENTO É O SEGUNDO PASSO DA MESMA JANELA. "Fechar pedido" troca o
- * conteúdo do carrinho pelo do fechamento (`PassoDoFechamento`), com o voltar
- * ao carrinho; nada de navegar. `/loja/<loja>/checkout` abre a janela já nele.
+ * A ILHA FICA NO FIM DA TELA, e não dentro da região do catálogo: a barra é
+ * `position: fixed` e some junto com a região (`display: none` abaixo de
+ * 1280px). Só a coluna vai à região.
  *
- * SEM SCRIPT, NADA DISTO APARECE, e a página não perde nada: a barra do topo
- * continua com o link do carrinho, que leva ao fechamento.
+ * O ESTADO TEM UMA FONTE: um `useCarrinho`, que só carrega as linhas quando
+ * alguém as vê (coluna à mostra ou diálogo aberto). Com a barra e o diálogo
+ * fechados, basta a contagem e o total. Tudo vem da conferência da API: o
+ * carrinho guarda só identificadores, e nome e preço de agora são dela (P-006).
  *
- * O TOTAL VEM DA CONFERÊNCIA DA API, e não de uma conta feita aqui. O carrinho
- * guarda só identificadores; nome e preço de agora são da API (P-006).
+ * SEM SCRIPT, nada disto aparece, e a página não perde nada: a barra do topo
+ * continua com o link da sacola, que leva ao fechamento. A sacola NUNCA vai no
+ * HTML do servidor (AC-11026): ela é lida no navegador, sem cache.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { AvisoFlutuante } from "@simpleclick/ui";
 
 import {
   AVISO_DE_CARRINHO_MUDOU,
+  EVENTO_ABRIR_SACOLA,
+  type PedidoDeAbrirASacola,
   avisarQueOCarrinhoMudou,
-  conferirCarrinho,
-  contarItensDoCarrinho,
   mudarQuantidadeNoCarrinho,
-  verItensDoCarrinho,
 } from "../../lib/carrinho-do-navegador.ts";
-import { escreverDinheiro, type ProdutoNaTela } from "../../lib/produto.ts";
 import { ID_DO_TITULO_DO_FECHAMENTO } from "../checkout/FechamentoDaCompra.tsx";
+import {
+  criarArquivoDeTentativas,
+  type ArquivoDeTentativas,
+} from "../checkout/chave-do-fechamento.ts";
 import { PassoDoFechamento } from "../checkout/PassoDoFechamento.tsx";
 import type { PrepararFechamento } from "../checkout/preparo-do-fechamento.ts";
 
-import { avisoDoAtacado, faixaQueValeu } from "./atacado-na-linha.ts";
+import { BarraDaSacola } from "./BarraDaSacola.tsx";
+import { ColunaDaSacola } from "./ColunaDaSacola.tsx";
 import { GavetaCarrinho, ID_DO_TITULO_DO_CARRINHO } from "./GavetaCarrinho.tsx";
-import { SacolaFlutuante } from "./SacolaFlutuante.tsx";
+import { useFormaDaSacola } from "./forma-da-sacola.ts";
+import {
+  lerResumoDaSacola,
+  verPelaConferencia,
+  type CacheDeProdutos,
+  type CarregarProduto,
+  type ResumoDaSacola,
+} from "./ver-pela-conferencia.ts";
 import {
   useCarrinho,
-  type CarrinhoNaTela,
-  type ItemNaTela,
   type ServicoDoCarrinho,
+  type UsoDoCarrinho,
 } from "./useCarrinho.ts";
 
-/** Busca o produto no servidor (variação, opções com preço, descrição). */
-export type CarregarProduto = (id: string) => Promise<ProdutoNaTela | null>;
+export type { CarregarProduto } from "./ver-pela-conferencia.ts";
 
 export interface CarrinhoFlutuanteProps {
   readonly apelidoDaLoja: string;
   /** Como a loja chama o catálogo: "Cardápio", "Catálogo". */
   readonly rotuloDoCatalogo: string;
   /**
-   * Na página do produto a barra de adicionar já ocupa o pé da tela no
-   * celular, e a sacola não desce até ela.
-   */
-  readonly acimaDaAcao?: boolean | undefined;
-  /**
    * Quem traz o detalhe do produto (a mesma ação de servidor da janela do
    * produto). Opcional: sem ela, cada item mostra o que o carrinho guarda —
-   * opções e observação —, só sem o preço das opções e sem a descrição.
+   * opções e observação —, só sem o preço das opções, a descrição e a foto.
    */
   readonly carregarProduto?: CarregarProduto | undefined;
   /**
@@ -71,142 +82,58 @@ export interface CarrinhoFlutuanteProps {
    * ao apelido. Sem ela, "Fechar pedido" vai ao endereço do checkout.
    */
   readonly prepararFechamento?: PrepararFechamento | undefined;
-  /** Abre a janela já no fechamento — a rota `/loja/<loja>/checkout`. */
+  /** Abre o diálogo já no fechamento — a rota `/loja/<loja>/checkout`. */
   readonly abrirNoFechamento?: boolean | undefined;
-  /** Abre a janela no carrinho — a rota `/loja/<loja>/carrinho`. */
+  /** Abre a sacola — a rota `/loja/<loja>/carrinho`. */
   readonly abrirNoCarrinho?: boolean | undefined;
 }
 
-/** Os dois passos da janela. */
+/** Os dois passos do diálogo. */
 type PassoDaJanela = "carrinho" | "fechamento";
 
-/** A descrição curta: a chamada, ou a descrição do produto. */
-function descricaoCurta(produto: ProdutoNaTela | undefined): string | null {
-  return produto?.chamada ?? produto?.descricao ?? null;
-}
-
-/**
- * Lê o carrinho pela conferência, que é quem sabe nome e preço de agora, e
- * junta o que a tela mostra de cada item.
- *
- * TRÊS FONTES, CADA UMA COM O QUE SÓ ELA SABE: a conferência dá nome, preço
- * unitário, subtotal da linha e o total (P-006); o carrinho da sessão dá a
- * variação, as opções e a observação; o produto dá o NOME da variação, o
- * acréscimo de cada opção e a descrição. Nenhuma conta é feita aqui — os preços
- * vêm todos escritos. Se o carrinho ou o produto não responderem, o item
- * aparece com o que se tem, e o total continua o da conferência.
- */
-async function verPelaConferencia(
-  apelidoDaLoja: string,
-  carregarProduto?: CarregarProduto,
-): Promise<CarrinhoNaTela> {
-  const [resultado, guardados] = await Promise.all([
-    conferirCarrinho(apelidoDaLoja),
-    verItensDoCarrinho(apelidoDaLoja),
-  ]);
-  if (resultado.estado !== "conferido") throw new Error(resultado.motivo);
-
-  const { itens, subtotalCentavos } = resultado.conferencia;
-  const doCarrinho = new Map((guardados ?? []).map((item) => [item.id, item]));
-
-  const produtos = new Map<string, ProdutoNaTela>();
-  if (carregarProduto) {
-    const ids = [...new Set(itens.map((item) => item.produtoId))];
-    const achados = await Promise.all(
-      ids.map((id) => carregarProduto(id).catch(() => null)),
-    );
-    ids.forEach((id, indice) => {
-      const achado = achados[indice];
-      if (achado) produtos.set(id, achado);
-    });
+/** O título da página, para onde o foco vai quando não sobra outro lugar. */
+function tituloDaPagina(): HTMLElement | null {
+  const titulo = document.querySelector<HTMLElement>("h1");
+  if (titulo !== null && !titulo.hasAttribute("tabindex")) {
+    titulo.setAttribute("tabindex", "-1");
   }
-
-  return {
-    itens: itens.map((item): ItemNaTela => {
-      const guardado = doCarrinho.get(item.itemId);
-      const produto = produtos.get(item.produtoId);
-      // A variação só vale ser dita quando o produto tem mais de uma: "Padrão"
-      // ao lado do refrigerante é ruído.
-      const variacao =
-        produto && produto.variacoes.length > 1 && guardado?.variacaoId
-          ? (produto.variacoes.find((v) => v.id === guardado.variacaoId)
-              ?.nome ?? null)
-          : null;
-      return {
-        id: item.itemId,
-        nome: item.nome,
-        variacao,
-        quantidade: item.quantidade,
-        precoUnitario: escreverDinheiro(item.precoUnitarioCentavos),
-        totalDaLinha: escreverDinheiro(item.totalDaLinhaCentavos),
-        // O atacado, como a conferência calculou (card #57): o varejo riscado,
-        // a faixa que valeu e quantas peças faltam para a próxima.
-        precoDeVarejo:
-          item.varejoUnitarioCentavos === undefined ||
-          item.varejoUnitarioCentavos === null
-            ? null
-            : escreverDinheiro(item.varejoUnitarioCentavos),
-        avisoDoAtacado: avisoDoAtacado(item.atacado ?? null),
-        faixaDoAtacado: faixaQueValeu(item.atacado ?? null),
-        observacao: guardado?.observacao ?? null,
-        descricao: descricaoCurta(produto),
-        opcoes: (guardado?.opcoes ?? []).map((opcao) => {
-          const grupo = produto?.grupos.find((g) => g.nome === opcao.grupoNome);
-          const daLoja = grupo?.opcoes.find((o) => o.nome === opcao.opcaoNome);
-          return {
-            grupoNome: opcao.grupoNome,
-            opcaoNome: opcao.opcaoNome,
-            quantidade: opcao.quantidade,
-            acrescimo: daLoja?.acrescimo ?? null,
-          };
-        }),
-      };
-    }),
-    totalDeItens: itens.reduce((soma, item) => soma + item.quantidade, 0),
-    total: escreverDinheiro(subtotalCentavos),
-  };
+  return titulo;
 }
 
-/** O conteúdo da janela. Só existe enquanto ela está aberta. */
-function ConteudoDaGaveta({
+/** O foco está "perdido": no corpo da página, ou num elemento que saiu dela. */
+function focoPerdido(): boolean {
+  const ativo = document.activeElement;
+  return (
+    ativo === null || ativo === document.body || !document.body.contains(ativo)
+  );
+}
+
+/** O conteúdo do diálogo. Só existe enquanto ele está aberto. */
+function ConteudoDoDialogo({
+  carrinho,
   apelidoDaLoja,
   linkDoCatalogo,
   linkDoFechamento,
   rotuloDoCatalogo,
-  carregarProduto,
   prepararFechamento,
+  tentativas,
   passo,
   aoMudarPasso,
+  aoVoltar,
   aoFecharJanela,
 }: {
+  readonly carrinho: UsoDoCarrinho;
   readonly apelidoDaLoja: string;
   readonly linkDoCatalogo: string;
   readonly linkDoFechamento: string;
   readonly rotuloDoCatalogo: string;
-  readonly carregarProduto?: CarregarProduto | undefined;
   readonly prepararFechamento?: PrepararFechamento | undefined;
+  readonly tentativas: ArquivoDeTentativas;
   readonly passo: PassoDaJanela;
   readonly aoMudarPasso: (passo: PassoDaJanela) => void;
+  readonly aoVoltar: () => void;
   readonly aoFecharJanela: () => void;
 }) {
-  const servico = useMemo<ServicoDoCarrinho>(
-    () => ({
-      ver: () => verPelaConferencia(apelidoDaLoja, carregarProduto),
-      async mudarQuantidade(itemId, quantidade) {
-        const mudou = await mudarQuantidadeNoCarrinho(
-          apelidoDaLoja,
-          itemId,
-          quantidade,
-        );
-        if (!mudou) throw new Error("a API recusou a mudança");
-        avisarQueOCarrinhoMudou();
-        return verPelaConferencia(apelidoDaLoja, carregarProduto);
-      },
-    }),
-    [apelidoDaLoja, carregarProduto],
-  );
-  const carrinho = useCarrinho(servico);
-
   if (passo === "fechamento" && prepararFechamento) {
     return (
       <PassoDoFechamento
@@ -214,11 +141,8 @@ function ConteudoDaGaveta({
         linkDoCatalogo={linkDoCatalogo}
         rotuloDoCatalogo={rotuloDoCatalogo}
         preparar={prepararFechamento}
-        aoVoltar={() => {
-          aoMudarPasso("carrinho");
-          // O carrinho pode ter mudado lá (pedido feito, item esgotado).
-          void carrinho.recarregar();
-        }}
+        tentativas={tentativas}
+        aoVoltar={aoVoltar}
         aoFecharJanela={aoFecharJanela}
       />
     );
@@ -244,92 +168,384 @@ function ConteudoDaGaveta({
 export function CarrinhoFlutuante({
   apelidoDaLoja,
   rotuloDoCatalogo,
-  acimaDaAcao = false,
   carregarProduto,
   prepararFechamento,
   abrirNoFechamento = false,
   abrirNoCarrinho = false,
 }: CarrinhoFlutuanteProps) {
-  const [contagem, setContagem] = useState(0);
-  const [total, setTotal] = useState<string | null>(null);
-  const [aberto, setAberto] = useState(false);
-  const [passo, setPasso] = useState<PassoDaJanela>("carrinho");
-  const [pulso, setPulso] = useState(0);
-  const gaveta = useRef<HTMLDialogElement>(null);
-
   const linkDoFechamento = `/loja/${apelidoDaLoja}/checkout`;
   const linkDoCatalogo = `/loja/${apelidoDaLoja}/cardapio`;
 
-  const atualizar = useCallback(async () => {
-    const quantos = await contarItensDoCarrinho(apelidoDaLoja);
-    if (quantos === null) return;
-    setContagem(quantos);
-    if (quantos === 0) {
-      setTotal(null);
-      return;
-    }
-    const conferencia = await conferirCarrinho(apelidoDaLoja);
-    setTotal(
-      conferencia.estado === "conferido"
-        ? escreverDinheiro(conferencia.conferencia.subtotalCentavos)
-        : null,
+  const forma = useFormaDaSacola();
+  // A região só se acha depois da montagem: no servidor ela não existe para a
+  // ilha, e a primeira pintura no navegador é a mesma do servidor.
+  const [regiao, setRegiao] = useState<HTMLElement | null>(null);
+  const [resumo, setResumo] = useState<ResumoDaSacola>({
+    contagem: 0,
+    total: null,
+  });
+  const [aberto, setAberto] = useState(false);
+  const [passo, setPasso] = useState<PassoDaJanela>("carrinho");
+  const [anuncio, setAnuncio] = useState("");
+  const [confirmacao, setConfirmacao] = useState<string | null>(null);
+  const [tentativas] = useState(criarArquivoDeTentativas);
+
+  const dialogo = useRef<HTMLDialogElement>(null);
+  const botaoDaBarra = useRef<HTMLButtonElement>(null);
+  const tituloDaColuna = useRef<HTMLHeadingElement>(null);
+
+  // Sem a região do catálogo (loja sem catálogo), vale a barra em qualquer
+  // largura: a sacola nunca fica sem lugar.
+  const naColunaPossivel = forma === "coluna" && regiao !== null;
+  const { contagem, total } = resumo;
+  const naColuna = naColunaPossivel && contagem > 0;
+  // Só carrega as linhas quando alguém as vê.
+  const ativo = aberto || naColuna;
+
+  // O que os ouvintes precisam saber, sem refazer o ouvinte a cada mudança.
+  const vivo = useRef({ ativo, aberto, contagem, naColuna });
+  useEffect(() => {
+    vivo.current = { ativo, aberto, contagem, naColuna };
+  });
+
+  useEffect(() => {
+    setRegiao(document.querySelector<HTMLElement>("[data-regiao-da-sacola]"));
+  }, []);
+
+  // --- o estado: uma fonte só ----------------------------------------------
+
+  const carregarProdutoAtual = useRef(carregarProduto);
+  useEffect(() => {
+    carregarProdutoAtual.current = carregarProduto;
+  });
+  const temProduto = carregarProduto !== undefined;
+  const [cache] = useState<CacheDeProdutos>(() => new Map());
+  // Sinaliza o aviso que a própria sacola dispara ao mudar uma quantidade: ela
+  // já recebe a lista nova na resposta, e ler de novo seria chamada em dobro.
+  const avisoProprio = useRef(false);
+
+  const servico = useMemo<ServicoDoCarrinho>(() => {
+    const produto = temProduto
+      ? (id: string) =>
+          carregarProdutoAtual.current?.(id) ?? Promise.resolve(null)
+      : undefined;
+    return {
+      ver: () => verPelaConferencia(apelidoDaLoja, produto, cache),
+      async mudarQuantidade(itemId, quantidade) {
+        const mudou = await mudarQuantidadeNoCarrinho(
+          apelidoDaLoja,
+          itemId,
+          quantidade,
+        );
+        if (!mudou) throw new Error("a API recusou a mudança");
+        avisoProprio.current = true;
+        try {
+          avisarQueOCarrinhoMudou();
+        } finally {
+          avisoProprio.current = false;
+        }
+        return verPelaConferencia(apelidoDaLoja, produto, cache);
+      },
+    };
+  }, [apelidoDaLoja, temProduto, cache]);
+
+  const carrinho = useCarrinho(servico, ativo);
+  const recarregarLinhas = useRef(carrinho.recarregar);
+  useEffect(() => {
+    recarregarLinhas.current = carrinho.recarregar;
+  });
+
+  // Vira true quando o resumo veio do servidor (contagem 0 deixa de ser chute).
+  const resumoLido = useRef(false);
+
+  const atualizarResumo = useCallback(async () => {
+    const lido = await lerResumoDaSacola(apelidoDaLoja, (contagem) =>
+      // A contagem aparece na hora; o total chega com a conferência.
+      setResumo((atual) =>
+        atual.contagem === contagem
+          ? atual
+          : { contagem, total: contagem === 0 ? null : atual.total },
+      ),
     );
+    if (lido !== null) {
+      resumoLido.current = true;
+      setResumo(lido);
+    }
   }, [apelidoDaLoja]);
 
   useEffect(() => {
-    void atualizar();
+    void atualizarResumo();
+  }, [atualizarResumo]);
 
+  // Quando as linhas chegam, a contagem e o total saem delas: sem outra chamada.
+  const { carrinho: linhas, situacao } = carrinho;
+  useEffect(() => {
+    if (!vivo.current.ativo || linhas === null) return;
+    if (situacao !== "pronto" && situacao !== "vazio") return;
+    const total = linhas.totalDeItens > 0 ? linhas.total : null;
+    setResumo((atual) =>
+      atual.contagem === linhas.totalDeItens && atual.total === total
+        ? atual
+        : { contagem: linhas.totalDeItens, total },
+    );
+  }, [linhas, situacao]);
+
+  // --- o aviso de que o carrinho mudou ---------------------------------------
+
+  const anunciarDepois = useRef<ResumoDaSacola | null>(null);
+  useEffect(() => {
     function aoMudar() {
-      void atualizar();
-      // A chave muda e o CSS refaz o pulo do selo: o olho percebe que o item
-      // entrou sem a página precisar dizer em voz alta.
-      setPulso((anterior) => anterior + 1);
+      // A própria sacola mudou uma quantidade: a lista nova já veio.
+      if (avisoProprio.current) return;
+      if (!vivo.current.aberto) anunciarDepois.current = resumoAtual.current;
+      if (vivo.current.ativo) void recarregarLinhas.current();
+      else void atualizarResumo();
     }
     window.addEventListener(AVISO_DE_CARRINHO_MUDOU, aoMudar);
     return () => window.removeEventListener(AVISO_DE_CARRINHO_MUDOU, aoMudar);
-  }, [atualizar]);
+  }, [atualizarResumo]);
 
-  const abrir = useCallback(
-    (inicio: PassoDaJanela = "carrinho") => {
-      const dialogo = gaveta.current;
+  const resumoAtual = useRef(resumo);
+  useEffect(() => {
+    resumoAtual.current = resumo;
+  });
+
+  // Anuncia o que mudou, sem tirar o foco de onde a pessoa estava (AC-11006).
+  // No celular e no tablet, a confirmação é visível (AvisoFlutuante) e se
+  // anuncia sozinha; no computador, a coluna muda e um aviso só para leitor de
+  // tela diz o que aconteceu.
+  useEffect(() => {
+    const antes = anunciarDepois.current;
+    if (
+      antes === null ||
+      (antes.contagem === contagem && antes.total === total)
+    ) {
+      return;
+    }
+    anunciarDepois.current = null;
+    const itens = `${contagem} ${contagem === 1 ? "item" : "itens"}`;
+    if (contagem === 0) {
+      setAnuncio("Sua sacola está vazia.");
+    } else if (contagem > antes.contagem && !naColunaPossivel) {
+      setConfirmacao(
+        `Adicionado à sacola: ${itens}${total ? `, total ${total}` : ""}.`,
+      );
+    } else {
+      setAnuncio(
+        `${contagem > antes.contagem ? "Adicionado à sacola" : "Sacola atualizada"}: ${itens}${total ? `, total ${total}` : ""}.`,
+      );
+    }
+  }, [contagem, total, naColunaPossivel]);
+
+  // --- o diálogo -------------------------------------------------------------
+
+  const abrirDialogo = useCallback(
+    (inicio: PassoDaJanela) => {
+      const janela = dialogo.current;
       // Navegador sem `<dialog>` vai para o fechamento, que é o mesmo destino
       // por outro caminho.
-      if (dialogo === null || typeof dialogo.showModal !== "function") {
+      if (janela === null || typeof janela.showModal !== "function") {
         if (inicio === "carrinho") window.location.href = linkDoFechamento;
         return;
       }
-      if (dialogo.open) return;
+      if (janela.open) return;
       setPasso(inicio);
       setAberto(true);
-      dialogo.showModal();
+      janela.showModal();
     },
     [linkDoFechamento],
   );
 
-  // A rota do checkout abre a janela já no fechamento, por cima do cardápio.
-  useEffect(() => {
-    if (abrirNoFechamento) abrir("fechamento");
-    else if (abrirNoCarrinho) abrir("carrinho");
-  }, [abrirNoFechamento, abrirNoCarrinho, abrir]);
+  /** Fecha o diálogo; o foco é resolvido em `aoFecharDialogo`. */
+  const fecharDialogo = useCallback(() => {
+    dialogo.current?.close();
+  }, []);
 
-  function fechar() {
-    gaveta.current?.close();
+  // Para onde o foco vai quando o diálogo fecha por um caminho que pede lugar
+  // certo (o voltar do computador, a largura que alargou).
+  const focoAoFechar = useRef<"titulo-da-coluna" | null>(null);
+
+  function aoFecharDialogo() {
+    setAberto(false);
+    setPasso("carrinho");
+    if (focoAoFechar.current === "titulo-da-coluna") {
+      focoAoFechar.current = null;
+      if (tituloDaColuna.current !== null) {
+        tituloDaColuna.current.focus();
+        return;
+      }
+    }
+    // O navegador devolve o foco ao botão que abriu. Sem ele (abertura pela
+    // rota, botão que sumiu porque a sacola esvaziou), o foco vai a um lugar
+    // que existe, e nunca ao corpo da página.
+    if (!focoPerdido()) return;
+    const alvo =
+      botaoDaBarra.current?.isConnected === true
+        ? botaoDaBarra.current
+        : ((vivo.current.naColuna ? tituloDaColuna.current : null) ??
+          tituloDaPagina());
+    alvo?.focus();
   }
+
+  function irAoFechamento() {
+    if (!prepararFechamento) {
+      window.location.href = linkDoFechamento;
+      return;
+    }
+    if (dialogo.current?.open) setPasso("fechamento");
+    else abrirDialogo("fechamento");
+  }
+
+  /** "Voltar à sacola" do fechamento: na coluna, fecha o diálogo e volta a ela. */
+  function voltarDoFechamento() {
+    if (naColuna) {
+      focoAoFechar.current = "titulo-da-coluna";
+      fecharDialogo();
+      return;
+    }
+    setPasso("carrinho");
+    // O carrinho pode ter mudado lá (pedido feito, item esgotado).
+    void carrinho.recarregar();
+  }
+
+  // --- pedidos de abrir ------------------------------------------------------
+
+  /** O ícone da sacola do topo (card #105) pede para abrir a mesma sacola. */
+  useEffect(() => {
+    function aoPedir(evento: Event) {
+      const pedido = (evento as CustomEvent<PedidoDeAbrirASacola | undefined>)
+        .detail;
+      // Quem atende marca: senão o topo navega para a página da sacola. O
+      // destino NUNCA vem do evento, e o `detail` não decide nada além disso.
+      // Sem `<dialog>` modal não há o que abrir: o topo navega para a página.
+      const janela = dialogo.current;
+      const naColunaAgora = vivo.current.naColuna;
+      if (
+        !naColunaAgora &&
+        (janela === null || typeof janela.showModal !== "function")
+      ) {
+        return;
+      }
+      if (pedido !== undefined) pedido.atendido = true;
+
+      // Com um diálogo aberto (o do produto, por exemplo) o topo está inerte, e
+      // diálogo dentro de diálogo não existe: o pedido é ignorado.
+      if (document.querySelector("dialog[open]") !== null) return;
+
+      const atual = vivo.current;
+      // Antes da primeira leitura a contagem é 0 sem ser verdade: abre o
+      // diálogo, que carrega as linhas e mostra o estado real.
+      if (!resumoLido.current) {
+        abrirDialogo("carrinho");
+        return;
+      }
+      if (atual.contagem === 0) {
+        setAnuncio("Sua sacola está vazia.");
+        return;
+      }
+      if (atual.naColuna) {
+        tituloDaColuna.current?.focus();
+        return;
+      }
+      abrirDialogo("carrinho");
+    }
+    window.addEventListener(EVENTO_ABRIR_SACOLA, aoPedir);
+    return () => window.removeEventListener(EVENTO_ABRIR_SACOLA, aoPedir);
+  }, [abrirDialogo]);
+
+  // As rotas `/carrinho` e `/checkout` abrem a sacola e o fechamento.
+  const rotaJaAberta = useRef(false);
+  useEffect(() => {
+    if (rotaJaAberta.current) return;
+    if (abrirNoFechamento) {
+      rotaJaAberta.current = true;
+      abrirDialogo("fechamento");
+    } else if (abrirNoCarrinho) {
+      rotaJaAberta.current = true;
+      abrirDialogo("carrinho");
+    }
+  }, [abrirNoFechamento, abrirNoCarrinho, abrirDialogo]);
+
+  // --- a largura da janela muda (AC-11030) -----------------------------------
+
+  // O diálogo da sacola que alarga fecha, e a coluna aparece com o foco no
+  // título. O fechamento continua modal. A coluna que encolhe vira barra, e
+  // nunca abre um diálogo sozinha.
+  useEffect(() => {
+    if (aberto && passo === "carrinho" && naColuna) {
+      focoAoFechar.current = "titulo-da-coluna";
+      fecharDialogo();
+    }
+  }, [aberto, passo, naColuna, fecharDialogo]);
+
+  // O foco estava dentro da coluna quando ela virou barra: vai a "Ver sacola".
+  const focoEstavaNaColuna = useRef(false);
+  useEffect(() => {
+    function aoFocar(evento: FocusEvent) {
+      focoEstavaNaColuna.current =
+        regiao !== null &&
+        evento.target instanceof Node &&
+        regiao.contains(evento.target);
+    }
+    document.addEventListener("focusin", aoFocar);
+    return () => document.removeEventListener("focusin", aoFocar);
+  }, [regiao]);
+
+  useEffect(() => {
+    if (naColuna) return;
+    if (focoEstavaNaColuna.current && focoPerdido()) {
+      botaoDaBarra.current?.focus();
+    }
+    focoEstavaNaColuna.current = false;
+  }, [naColuna]);
+
+  // --- o desenho -------------------------------------------------------------
 
   return (
     <>
-      {contagem > 0 ? (
-        <SacolaFlutuante
+      {!naColunaPossivel && contagem > 0 ? (
+        <BarraDaSacola
           contagem={contagem}
           total={total}
-          pulso={pulso}
-          acimaDaAcao={acimaDaAcao}
-          aoAbrir={() => abrir()}
+          botaoRef={botaoDaBarra}
+          aoAbrir={() => abrirDialogo("carrinho")}
         />
       ) : null}
 
+      {naColuna && regiao !== null
+        ? createPortal(
+            <ColunaDaSacola
+              carrinho={carrinho}
+              tituloRef={tituloDaColuna}
+              aoFechar={irAoFechamento}
+            />,
+            regiao,
+          )
+        : null}
+
+      {/* Anúncio para leitor de tela, sem mover o foco. Sempre montado: uma
+          região criada junto com o texto nem sempre é lida. */}
+      <div className="sc-so-leitor" role="status" aria-live="polite">
+        {anuncio}
+      </div>
+
+      <div className="sc-sacola-aviso">
+        <AvisoFlutuante
+          tom="sucesso"
+          mensagem={confirmacao}
+          acao={{
+            rotulo: "Ver sacola",
+            aoAcionar: () => {
+              setConfirmacao(null);
+              abrirDialogo("carrinho");
+            },
+          }}
+          aoFechar={() => setConfirmacao(null)}
+        />
+      </div>
+
       <dialog
-        ref={gaveta}
+        ref={dialogo}
         className={`sc-flutuante__gaveta sc-carrinho-janela${
           passo === "fechamento" ? " sc-carrinho-janela--fechamento" : ""
         }`}
@@ -338,31 +554,30 @@ export function CarrinhoFlutuante({
             ? ID_DO_TITULO_DO_FECHAMENTO
             : ID_DO_TITULO_DO_CARRINHO
         }
-        onClose={() => {
-          setAberto(false);
-          setPasso("carrinho");
-        }}
+        onClose={aoFecharDialogo}
         onClick={(evento) => {
-          // Toque no fundo escurecido fecha o CARRINHO: o alvo é o próprio
+          // Toque no fundo escurecido fecha a SACOLA: o alvo é o próprio
           // `<dialog>` só quando o toque caiu fora da caixa de conteúdo. No
           // fechamento, não: um toque fora sem querer apagaria o que a pessoa
           // escolheu — lá se sai pelo X, pelo Esc ou pelo voltar.
           if (evento.target === evento.currentTarget && passo === "carrinho") {
-            fechar();
+            fecharDialogo();
           }
         }}
       >
         {aberto ? (
-          <ConteudoDaGaveta
+          <ConteudoDoDialogo
+            carrinho={carrinho}
             apelidoDaLoja={apelidoDaLoja}
             linkDoCatalogo={linkDoCatalogo}
             linkDoFechamento={linkDoFechamento}
             rotuloDoCatalogo={rotuloDoCatalogo}
-            carregarProduto={carregarProduto}
             prepararFechamento={prepararFechamento}
+            tentativas={tentativas}
             passo={passo}
             aoMudarPasso={setPasso}
-            aoFecharJanela={fechar}
+            aoVoltar={voltarDoFechamento}
+            aoFecharJanela={fecharDialogo}
           />
         ) : null}
       </dialog>

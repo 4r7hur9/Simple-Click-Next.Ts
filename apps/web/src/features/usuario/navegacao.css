@@ -1,0 +1,689 @@
+/*
+ * Navegação do cliente (card #105): topo, menu da conta, barra inferior e a
+ * convivência das barras fixas.
+ *
+ * Só `--cor-primaria*` e `--cor-foco` pintam estas peças: eles
+ * valem o verde SimpleClick (não há cor por loja), e `--cor-marca*` nunca
+ * entra aqui. Tema claro e escuro vêm dos tokens.
+ *
+ * A quebra é UMA só, em 64rem: abaixo dela a barra inferior, acima as abas do
+ * topo; nunca as duas.
+ */
+
+/* ------------------------------------------------------------------ topo */
+
+/* A altura do topo é UMA só, no documento: os CSS de outros donos (feed,
+   vitrine) a usam para grudar a própria faixa logo abaixo dele. Já inclui a
+   área segura de cima (o recorte do aparelho). */
+:root {
+  --altura-da-fileira-do-topo: 3.5rem;
+  --altura-das-abas-do-topo: 0rem;
+  --altura-do-topo-cliente: calc(
+    var(--altura-da-fileira-do-topo) + var(--altura-das-abas-do-topo) +
+      env(safe-area-inset-top, 0px)
+  );
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --altura-da-fileira-do-topo: 4rem;
+    --altura-das-abas-do-topo: 2.75rem;
+  }
+}
+
+.sc-topo-cliente {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 30;
+  padding-block-start: env(safe-area-inset-top);
+  background: color-mix(in srgb, var(--cor-fundo) 90%, transparent);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 22%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--cor-tinta);
+  font-family: var(--fonte-base);
+}
+
+.sc-topo-cliente__fileira {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-da-fileira-do-topo);
+  max-inline-size: 75rem;
+  margin-inline: auto;
+  padding-inline: max(var(--espaco-4), env(safe-area-inset-left))
+    max(var(--espaco-4), env(safe-area-inset-right));
+}
+
+/* A marca do Stitch: "Simple" na tinta, "Click" no verde e o ponto aceso. */
+.sc-topo-cliente__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  min-block-size: var(--altura-toque);
+  color: var(--cor-tinta);
+  font-size: 1.125rem;
+  font-weight: var(--peso-extra);
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  flex: none;
+}
+
+.sc-topo-cliente__nome span {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-topo-cliente__ponto {
+  inline-size: 0.4375rem;
+  block-size: 0.4375rem;
+  margin-inline-start: 0.125rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cor-primaria) var(--brilho-forca, 35%), transparent);
+}
+
+.sc-topo-cliente__local {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.sc-topo-cliente__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  flex: none;
+}
+
+/* Botões redondos do Stitch (busca e sacola no celular). */
+.sc-topo-cliente__botao {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  border-radius: var(--raio-completo);
+  color: var(--cor-tinta);
+  background: var(--cor-superficie-alta);
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transicao-rapida);
+}
+
+.sc-topo-cliente__botao:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-topo-cliente a:focus-visible,
+.sc-topo-cliente button:focus-visible,
+.sc-menu-conta a:focus-visible,
+.sc-menu-conta button:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* A busca de verdade é do computador; no celular vale o ícone. */
+.sc-topo-cliente__busca {
+  display: none;
+}
+
+.sc-topo-cliente__busca-icone {
+  position: absolute;
+  inset-inline-start: var(--espaco-4);
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  color: var(--cor-tinta-suave);
+  pointer-events: none;
+}
+
+.sc-topo-cliente__busca input {
+  inline-size: 100%;
+  block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4) 0 2.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--raio-3);
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--tipo-corpo-md-tamanho);
+}
+
+.sc-topo-cliente__busca input::placeholder {
+  color: var(--cor-tinta-suave);
+}
+
+.sc-topo-cliente__busca input:focus-visible {
+  outline: none;
+  border-color: var(--cor-foco);
+}
+
+/* As abas (computador): segunda fileira, escondida abaixo de 64rem. */
+.sc-topo-cliente__abas {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .sc-topo-cliente__abas {
+    display: block;
+  }
+}
+
+.sc-topo-cliente__abas-lista {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  max-inline-size: 75rem;
+  min-block-size: var(--altura-das-abas-do-topo);
+  margin: 0 auto;
+  padding: 0 var(--espaco-5);
+  border-block-start: 1px solid color-mix(in srgb, var(--cor-borda) 40%, transparent);
+  list-style: none;
+}
+
+/* Pílulas de texto; a atual acende no verde (texto escuro sobre ele).
+   O alvo de toque é o do cliente, 48px (card #132), mas a pílula desenhada
+   continua com os 2rem do Stitch: a sobra é uma borda transparente em cima e
+   embaixo, e o fundo só pinta por dentro dela. */
+.sc-topo-cliente__aba {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-4);
+  border-block: calc((var(--altura-toque) - 2rem) / 2) solid transparent;
+  border-radius: var(--raio-completo);
+  background-clip: padding-box;
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-rotulo-lg-tamanho);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sc-topo-cliente__aba:hover {
+  color: var(--cor-tinta);
+}
+
+.sc-topo-cliente__aba[aria-current="page"] {
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-negrito);
+}
+
+@media (min-width: 64rem) {
+  .sc-topo-cliente__fileira {
+    gap: var(--espaco-5);
+    padding-inline: var(--espaco-5);
+  }
+
+  .sc-topo-cliente__marca {
+    font-size: 1.75rem;
+  }
+
+  .sc-topo-cliente__local {
+    flex: none;
+    max-inline-size: 15rem;
+  }
+
+  .sc-topo-cliente__busca {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    max-inline-size: 36rem;
+  }
+
+  .sc-topo-cliente__acoes {
+    margin-inline-start: auto;
+  }
+
+  .sc-topo-cliente__botao[data-navegacao="buscar"] {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------- menu da conta */
+
+.sc-menu-conta {
+  position: relative;
+}
+
+.sc-menu-conta__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-block-size: var(--altura-toque);
+  min-inline-size: var(--altura-toque);
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* O avatar do Stitch: círculo claro com o ícone ou as iniciais escuras. */
+.sc-menu-conta__avatar {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  margin-inline: calc((var(--altura-toque) - 2.25rem) / 2);
+  border-radius: var(--raio-completo);
+  background: var(--cor-tinta);
+  color: var(--cor-fundo);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-negrito);
+}
+
+.sc-menu-conta__botao:hover .sc-menu-conta__avatar {
+  box-shadow: 0 0 0 2px var(--cor-primaria);
+}
+
+/* Visitante: o texto "Entrar" aparece ao lado do ícone. */
+.sc-menu-conta__entrar {
+  display: none;
+  padding-inline-end: var(--espaco-3);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-sm);
+}
+
+.sc-menu-conta[data-papel="visitante"] .sc-menu-conta__avatar {
+  margin-inline-end: 0;
+}
+
+@media (min-width: 40rem) {
+  .sc-menu-conta__entrar {
+    display: inline;
+  }
+}
+
+.sc-menu-conta__painel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--espaco-2));
+  inset-inline-end: 0;
+  z-index: 31;
+  inline-size: min(20rem, calc(100vw - 1.5rem));
+  max-block-size: calc(100dvh - 5rem);
+  overflow-y: auto;
+  padding: var(--espaco-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-menu-conta__painel[hidden] {
+  display: none;
+}
+
+.sc-menu-conta__quem {
+  display: grid;
+  gap: var(--espaco-1);
+  padding: var(--espaco-3);
+  border-block-end: 1px solid var(--cor-borda);
+  margin-block-end: var(--espaco-2);
+}
+
+.sc-menu-conta__nome {
+  font-size: var(--tipo-titulo-sm-tamanho);
+  font-weight: var(--tipo-titulo-sm-peso);
+  overflow-wrap: anywhere;
+}
+
+.sc-menu-conta__detalhe {
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.sc-menu-conta__selo {
+  justify-self: start;
+  padding: 0 var(--espaco-2);
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--tipo-rotulo-sm-peso);
+}
+
+.sc-menu-conta__lista {
+  display: grid;
+  gap: var(--espaco-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-menu-conta__rodape {
+  display: grid;
+  gap: var(--espaco-1);
+  margin-block-start: var(--espaco-2);
+  padding-block-start: var(--espaco-2);
+  border-block-start: 1px solid var(--cor-borda);
+}
+
+.sc-menu-conta__item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  inline-size: 100%;
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-3);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sc-menu-conta__item:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-menu-conta__item[aria-current="page"] {
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria-texto);
+  font-weight: var(--peso-forte);
+}
+
+.sc-menu-conta__item[data-destaque] {
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-weight: var(--peso-forte);
+}
+
+.sc-menu-conta__item:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-topo-cliente__botao {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------- barra inferior */
+
+/* Só uma navegação por largura: a barra é do celular; a partir de 64rem valem
+   as abas do topo. */
+@media (min-width: 64rem) {
+  .sc-barra-cliente {
+    display: none;
+  }
+}
+
+/* O desenho do Stitch: barra no fundo da página, e o destino atual com o
+   ícone num anel verde e o rótulo em verde (o texto continua dizendo onde se
+   está). Só dentro da navegação do cliente; a peça do #104 não muda. */
+.sc-barra-cliente .sc-barra-inferior {
+  border-block-start-color: color-mix(in srgb, var(--cor-borda) 50%, transparent);
+  background-color: color-mix(in srgb, var(--cor-fundo) 94%, transparent);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 18%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.sc-barra-cliente .sc-barra-inferior__item {
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-forte);
+}
+
+.sc-barra-cliente .sc-barra-inferior__icone {
+  inline-size: 2rem;
+  block-size: 2rem;
+  padding: 0;
+}
+
+.sc-barra-cliente .sc-barra-inferior__item--ativo {
+  color: var(--cor-primaria-texto);
+}
+
+.sc-barra-cliente .sc-barra-inferior__item--ativo .sc-barra-inferior__icone {
+  background-color: transparent;
+  color: var(--cor-primaria-texto);
+  box-shadow: inset 0 0 0 2px var(--cor-primaria-texto);
+}
+
+/* ---------------------------------------------------- localização do topo */
+
+.sc-local-topo {
+  position: relative;
+  min-inline-size: 0;
+}
+
+/* A pílula de localização do Stitch: pino verde, texto e a setinha. */
+.sc-local-topo__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  max-inline-size: 100%;
+  /* Alvo do cliente, 48px nas duas medidas (card #132). */
+  min-block-size: var(--altura-toque-cliente);
+  min-inline-size: var(--altura-toque-cliente);
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 0;
+  border-radius: var(--raio-completo);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-forte);
+  text-align: start;
+  cursor: pointer;
+}
+
+.sc-local-topo__botao:hover {
+  background: var(--cor-superficie);
+}
+
+.sc-local-topo__icone {
+  flex: none;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  color: var(--cor-primaria-texto);
+}
+
+.sc-local-topo__seta {
+  flex: none;
+  inline-size: 1rem;
+  block-size: 1rem;
+  color: var(--cor-tinta-suave);
+}
+
+.sc-local-topo__textos {
+  display: grid;
+  min-inline-size: 0;
+}
+
+/* "Sua região" só no computador, em cima do lugar. */
+.sc-local-topo__chamada {
+  display: none;
+  color: var(--cor-tinta-suave);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-medio);
+  line-height: 1;
+}
+
+@media (min-width: 64rem) {
+  .sc-local-topo__botao {
+    padding-inline: var(--espaco-4);
+  }
+
+  .sc-local-topo__chamada {
+    display: block;
+  }
+
+  .sc-local-topo__rotulo {
+    font-size: var(--tipo-corpo-sm-tamanho);
+  }
+}
+
+.sc-local-topo__botao:focus-visible,
+.sc-local-topo__acao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-local-topo__rotulo {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-local-topo__painel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--espaco-2));
+  inset-inline-start: 0;
+  z-index: 31;
+  inline-size: min(22rem, calc(100vw - 1.5rem));
+  display: grid;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-tinta);
+  box-shadow: var(--sombra-3);
+}
+
+.sc-local-topo__painel[hidden] {
+  display: none;
+}
+
+.sc-local-topo__texto,
+.sc-local-topo__aviso {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-base);
+}
+
+.sc-local-topo__aviso {
+  color: var(--cor-erro);
+}
+
+.sc-local-topo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.sc-local-topo__acao {
+  min-block-size: var(--altura-toque);
+  padding: 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  cursor: pointer;
+}
+
+.sc-local-topo__acao--principal {
+  border-color: transparent;
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+}
+
+.sc-local-topo__acao:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------------------------------------------------------- sacola do topo */
+
+.sc-sacola-topo {
+  position: relative;
+}
+
+.sc-sacola-topo__contagem {
+  position: absolute;
+  inset-block-start: 0.125rem;
+  inset-inline-end: 0.125rem;
+  min-inline-size: 1.125rem;
+  block-size: 1.125rem;
+  padding-inline: 0.25rem;
+  border-radius: var(--raio-completo);
+  background: var(--cor-primaria);
+  color: var(--cor-em-primaria);
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  font-weight: var(--peso-extra);
+  line-height: 1.125rem;
+  text-align: center;
+}
+
+/* ------------------------------------- barras fixas, camadas e área segura */
+
+/*
+ * Camadas (valores locais; o projeto não tem tokens de camada): o topo é 30,
+ * a barra inferior 25 (componentes.css) e o aviso de cookies 15 (legal.css).
+ * Quem fica acima da barra sobe por DESLOCAMENTO (a altura da barra mais a área
+ * segura), não por camada.
+ *
+ * UMA barra fixa de baixo por vez: a barra de navegação sai quando a página
+ * tem a sacola (flutuante ou barra) ou a ação do produto, e volta quando ela
+ * some (por exemplo, ao esvaziar a sacola).
+ */
+
+/* A loja gruda a própria faixa logo abaixo do topo. */
+body:has(.sc-topo-cliente) .sc-pagina-da-loja {
+  --altura-da-barra: var(--altura-do-topo-cliente);
+}
+
+/* O Tab nunca para atrás do topo: o documento reserva a altura dele. A
+   vitrine já soma o topo no `scroll-margin` dos próprios itens (somar de novo
+   deslocaria o encaixe), então fica de fora. */
+html:has(.sc-topo-cliente):not(:has(.sc-pagina-da-loja)) {
+  scroll-padding-block-start: calc(
+    var(--altura-do-topo-cliente) + var(--espaco-3)
+  );
+}
+
+@media (max-width: 63.99rem) {
+  /* A página reserva espaço embaixo para a barra e a área segura: o último
+     conteúdo e o último botão ficam acima dela. */
+  body:has(.sc-barra-cliente) {
+    padding-block-end: calc(
+      var(--altura-da-barra-inferior) + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  /* Há outra barra fixa de baixo (sacola, ação do produto): a de navegação sai
+     e a reserva também (cada uma já reserva o próprio espaço). */
+  body:has(.sc-barra-cliente):has(.sc-sacola-barra, [data-sacola="barra"], .sc-produto__acao) {
+    padding-block-end: 0;
+  }
+
+  body:has(.sc-sacola-barra, [data-sacola="barra"], .sc-produto__acao) .sc-barra-cliente {
+    display: none;
+  }
+
+  /* O Tab também não para atrás da barra de baixo. */
+  html:has(.sc-barra-cliente):not(
+      :has(.sc-sacola-barra, [data-sacola="barra"], .sc-produto__acao)
+    ) {
+    scroll-padding-block-end: calc(
+      var(--altura-da-barra-inferior) + env(safe-area-inset-bottom, 0px) +
+        var(--espaco-3)
+    );
+  }
+
+  /* O aviso flutuante (#104) sobe acima da barra pela altura dela; a área
+     segura já está na conta do próprio aviso. */
+  body:has(.sc-barra-cliente):not(
+      :has(.sc-sacola-barra, [data-sacola="barra"], .sc-produto__acao)
+    ) {
+    --deslocamento-do-aviso: var(--altura-da-barra-inferior);
+  }
+}

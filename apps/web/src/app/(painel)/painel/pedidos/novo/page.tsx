@@ -6,6 +6,7 @@ import { Erro } from "@simpleclick/ui";
 import { MontarPedido } from "../../../../../features/painel-pedidos/MontarPedido.tsx";
 import { exigirLojaDaPagina } from "../../../../../server/loja-da-pagina.ts";
 import { produtosDoBalcao } from "../../../../../server/produtos-do-balcao.ts";
+import { carregarDetalheDoBalcao } from "./acoes.ts";
 
 export const metadata = { title: "Novo pedido | SimpleClick" };
 
@@ -44,7 +45,12 @@ export default async function PaginaDoNovoPedido({
       </header>
       {catalogo.estado === "ok" ? (
         <MontarPedido
-          produtos={catalogo.produtos}
+          produtos={catalogo.produtos.map((produto) => ({
+            ...produto,
+            grupos: [],
+            variacoes: [],
+          }))}
+          carregarDetalhe={carregarDetalheDoBalcao.bind(null, loja.apelido)}
           clienteId={parametro(busca.cliente)}
           repetirPedidoId={parametro(busca.repetir)}
         />

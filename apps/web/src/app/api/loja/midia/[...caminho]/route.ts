@@ -12,6 +12,7 @@
  */
 import { enderecoDaApi } from "../../../../../server/api-client.ts";
 import { sessaoParaEncaminhar } from "../../../../../server/loja-do-painel.ts";
+import { recusarOrigemDeFora } from "../../../../../server/protecao-da-conta.ts";
 import { renovarAposGravar } from "../../../../../server/renovar-vitrine.ts";
 
 const UUID = "[0-9a-fA-F-]{36}";
@@ -65,6 +66,10 @@ async function encaminhar(
   if (!permitidos.some((padrao) => padrao.test(caminho))) {
     return Response.json({ erro: "nao_encontrado" }, { status: 404 });
   }
+
+  // Card #134: o corpo é o arquivo cru (não JSON); só a origem é conferida.
+  const recusada = recusarOrigemDeFora(requisicao);
+  if (recusada !== null) return recusada;
 
   const sessao = await sessaoParaEncaminhar(requisicao);
   if (sessao instanceof Response) return sessao;

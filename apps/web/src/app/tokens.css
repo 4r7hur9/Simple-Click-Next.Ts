@@ -52,6 +52,51 @@
   --font-weight-normal: var(--peso-normal);
   --font-weight-medium: var(--peso-medio);
   --font-weight-semibold: var(--peso-forte);
+  --font-weight-bold: var(--peso-negrito);
+  --font-weight-extrabold: var(--peso-extra);
+
+  /* Escala do redesign: `text-titulo-xl`, `text-preco`… trazem tamanho,
+     altura de linha, peso e espaçamento do papel. */
+  --text-titulo-xl: var(--tipo-titulo-xl-tamanho);
+  --text-titulo-xl--line-height: var(--tipo-titulo-xl-altura);
+  --text-titulo-xl--font-weight: var(--tipo-titulo-xl-peso);
+  --text-titulo-xl--letter-spacing: var(--tipo-titulo-xl-espaco);
+  --text-titulo-lg: var(--tipo-titulo-lg-tamanho);
+  --text-titulo-lg--line-height: var(--tipo-titulo-lg-altura);
+  --text-titulo-lg--font-weight: var(--tipo-titulo-lg-peso);
+  --text-titulo-lg--letter-spacing: var(--tipo-titulo-lg-espaco);
+  --text-titulo-md: var(--tipo-titulo-md-tamanho);
+  --text-titulo-md--line-height: var(--tipo-titulo-md-altura);
+  --text-titulo-md--font-weight: var(--tipo-titulo-md-peso);
+  --text-titulo-md--letter-spacing: var(--tipo-titulo-md-espaco);
+  --text-titulo-sm: var(--tipo-titulo-sm-tamanho);
+  --text-titulo-sm--line-height: var(--tipo-titulo-sm-altura);
+  --text-titulo-sm--font-weight: var(--tipo-titulo-sm-peso);
+  --text-titulo-sm--letter-spacing: var(--tipo-titulo-sm-espaco);
+  --text-corpo-lg: var(--tipo-corpo-lg-tamanho);
+  --text-corpo-lg--line-height: var(--tipo-corpo-lg-altura);
+  --text-corpo-lg--font-weight: var(--tipo-corpo-lg-peso);
+  --text-corpo-lg--letter-spacing: var(--tipo-corpo-lg-espaco);
+  --text-corpo-md: var(--tipo-corpo-md-tamanho);
+  --text-corpo-md--line-height: var(--tipo-corpo-md-altura);
+  --text-corpo-md--font-weight: var(--tipo-corpo-md-peso);
+  --text-corpo-md--letter-spacing: var(--tipo-corpo-md-espaco);
+  --text-corpo-sm: var(--tipo-corpo-sm-tamanho);
+  --text-corpo-sm--line-height: var(--tipo-corpo-sm-altura);
+  --text-corpo-sm--font-weight: var(--tipo-corpo-sm-peso);
+  --text-corpo-sm--letter-spacing: var(--tipo-corpo-sm-espaco);
+  --text-rotulo-lg: var(--tipo-rotulo-lg-tamanho);
+  --text-rotulo-lg--line-height: var(--tipo-rotulo-lg-altura);
+  --text-rotulo-lg--font-weight: var(--tipo-rotulo-lg-peso);
+  --text-rotulo-lg--letter-spacing: var(--tipo-rotulo-lg-espaco);
+  --text-rotulo-sm: var(--tipo-rotulo-sm-tamanho);
+  --text-rotulo-sm--line-height: var(--tipo-rotulo-sm-altura);
+  --text-rotulo-sm--font-weight: var(--tipo-rotulo-sm-peso);
+  --text-rotulo-sm--letter-spacing: var(--tipo-rotulo-sm-espaco);
+  --text-preco: var(--tipo-preco-tamanho);
+  --text-preco--line-height: var(--tipo-preco-altura);
+  --text-preco--font-weight: var(--tipo-preco-peso);
+  --text-preco--letter-spacing: var(--tipo-preco-espaco);
 
   --radius-sm: var(--raio-1);
   --radius-button: var(--raio-botao);

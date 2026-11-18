@@ -1,29 +1,23 @@
 /**
- * A barra do catálogo: categorias, filtro e ordem numa faixa só, grudada logo
- * abaixo da barra do topo.
+ * A barra do catálogo no layout Stitch (card #130): categorias em pílula,
+ * "Ordenar", "Filtrar" e o chip de atacado.
  *
- * UMA FAIXA SÓ, COM A BUSCA. Categorias, busca, filtro e ordem ficam onde o
- * olho já está, e a faixa inteira gruda ao rolar — quem está no vigésimo
- * produto busca, troca de categoria ou de ordem sem voltar ao topo. Não há
- * outra busca na página.
+ * A BUSCA NÃO MORA AQUI: até o tablet ela fica no cabeçalho do catálogo e, no
+ * computador, no cartão em cima da grade (`TelaDoCatalogo`).
  *
  * TUDO FUNCIONA SEM SCRIPT, como o resto da vitrine (AC-415):
  *   * as categorias e as ordens são LINKS — o endereço muda, se compartilha e o
  *     "voltar" desfaz;
- *   * a busca e o filtro são formulários `GET` comuns;
+ *   * o filtro é um formulário `GET` comum;
  *   * os painéis abrem pelo atributo `popover` do HTML: o próprio navegador
  *     abre, fecha no Esc e no toque fora, e devolve o foco ao botão.
  *
- * NO COMPUTADOR, o campo de busca compacto, "Filtrar" e "Ordenar" ficam à
- * direita, cada botão com o seu painel. NO CELULAR, a busca vira uma lupa (o
- * campo abre num painel no alto da tela) e filtro e ordem viram um botão só,
- * com uma gaveta de baixo: tudo disputando a largura com as categorias as
- * deixaria sem espaço. A troca é só de CSS — a lista de ordens existe nos
- * dois painéis, e a cópia que não vale na largura atual fica `display: none`,
- * fora da árvore de acessibilidade.
+ * NO CELULAR E NO TABLET a faixa gruda no topo: as pílulas das categorias
+ * rolam na horizontal e, embaixo, "Ordenar" e "Filtrar" abrem gavetas de
+ * baixo. NO COMPUTADOR a barra vira o painel lateral "Filtros": categorias em
+ * lista, com a contagem à direita, e o formulário do filtro já aberto.
  */
 import {
-  IconeBuscar,
   IconeConfirmar,
   IconeFechar,
   IconeFiltro,
@@ -38,7 +32,6 @@ import type {
 } from "../../lib/catalogo.ts";
 
 import { AbasDeCategoria } from "./AbasDeCategoria.tsx";
-import { BuscaProduto } from "./BuscaProduto.tsx";
 import { FiltroEspecificacao } from "./FiltroEspecificacao.tsx";
 
 type Filtro = {
@@ -50,7 +43,6 @@ type Filtro = {
 /** Os `id` dos painéis. Uma barra por página. */
 const PAINEL_DA_ORDEM = "painel-da-ordem";
 const PAINEL_DOS_AJUSTES = "painel-dos-ajustes";
-const PAINEL_DA_BUSCA = "painel-da-busca";
 
 export interface BarraDeCatalogoProps {
   /** As abas; `null` quando o ramo não mostra categorias. */
@@ -64,15 +56,15 @@ export interface BarraDeCatalogoProps {
   readonly acao: string;
   readonly categoria: string | null;
   readonly busca: string | null;
-  /** O termo que está sendo buscado, para o campo abrir preenchido. */
-  readonly termo?: string | null | undefined;
-  /** Como a loja chama o catálogo, para o rótulo da busca. */
-  readonly rotuloDoCatalogo?: string | undefined;
   /**
    * O chip "Atacado" (card #59). Só aparece quando há produto com atacado no
    * resultado — ou quando o filtro já está ligado, para poder desligá-lo.
    */
   readonly atacado?: FiltroDeAtacadoNaTela | undefined;
+  /** Estoque e faixa de preço ligados (card #108); preços em centavos. */
+  readonly estoque?: boolean | undefined;
+  readonly precoMin?: number | null | undefined;
+  readonly precoMax?: number | null | undefined;
 }
 
 /**
@@ -147,22 +139,32 @@ export function BarraDeCatalogo({
   acao,
   categoria,
   busca,
-  termo = null,
-  rotuloDoCatalogo = "Catálogo",
   atacado,
+  estoque = false,
+  precoMin = null,
+  precoMax = null,
 }: BarraDeCatalogoProps) {
   const atacadoLigado = atacado?.ligado ?? false;
   const mostrarAtacado =
     atacado !== undefined && (atacado.ligado || atacado.produtos > 0);
-  const temFiltro = filtros.length > 0;
   const ordemEmVigor = ordens.find((opcao) => opcao.emVigor);
-  // O selo do botão do celular conta tudo o que está mexendo na lista: cada
-  // filtro marcado e a ordem, quando não é a do dono.
-  const ajustes = selecionados.length + (ordem === "relevancia" ? 0 : 1);
+  // O selo do "Filtrar" conta tudo o que o formulário está aplicando: cada
+  // especificação marcada, o "Só em estoque" e a faixa de preço. A ordem tem
+  // o botão dela, que já mostra o nome da ordem em vigor.
+  const filtrosLigados =
+    selecionados.length +
+    (estoque ? 1 : 0) +
+    (precoMin !== null || precoMax !== null ? 1 : 0);
 
   return (
     <div className="sc-catalogo-barra">
       <div className="sc-catalogo-barra__conteudo">
+        {/* Só no computador, onde a barra vira o painel lateral. */}
+        <p className="sc-catalogo-barra__cabeca" aria-hidden="true">
+          <IconeFiltro />
+          Filtros
+        </p>
+
         {abas === null ? (
           <span className="sc-catalogo-barra__vao" />
         ) : (
@@ -170,53 +172,9 @@ export function BarraDeCatalogo({
         )}
 
         <div className="sc-catalogo-barra__acoes">
-          <div className="sc-catalogo-barra__busca">
-            <BuscaProduto
-              acao={acao}
-              termo={termo}
-              rotuloDoCatalogo={rotuloDoCatalogo}
-              ordem={ordem}
-              atacado={atacadoLigado}
-            />
-          </div>
-
-          {mostrarAtacado ? <ChipDeAtacado atacado={atacado} /> : null}
-
           <button
             type="button"
-            className="sc-catalogo-barra__botao sc-catalogo-barra__botao--estreito"
-            popoverTarget={PAINEL_DA_BUSCA}
-          >
-            <IconeBuscar aria-hidden="true" />
-            <span className="sc-so-leitor">
-              {termo ? `Buscar (buscando "${termo}")` : "Buscar"}
-            </span>
-            {termo ? (
-              <span className="sc-catalogo-barra__ponto" aria-hidden="true" />
-            ) : null}
-          </button>
-
-          {temFiltro ? (
-            <button
-              type="button"
-              className="sc-catalogo-barra__botao sc-catalogo-barra__botao--largo"
-              popoverTarget={PAINEL_DOS_AJUSTES}
-            >
-              <IconeFiltro aria-hidden="true" />
-              Filtrar
-              {selecionados.length > 0 ? (
-                <span className="sc-catalogo-barra__selo">
-                  <span className="sc-so-leitor">, </span>
-                  {selecionados.length}
-                  <span className="sc-so-leitor"> marcados</span>
-                </span>
-              ) : null}
-            </button>
-          ) : null}
-
-          <button
-            type="button"
-            className="sc-catalogo-barra__botao sc-catalogo-barra__botao--largo"
+            className="sc-catalogo-barra__botao sc-catalogo-barra__botao--ordem"
             popoverTarget={PAINEL_DA_ORDEM}
           >
             <IconeOrdenar aria-hidden="true" />
@@ -232,54 +190,28 @@ export function BarraDeCatalogo({
 
           <button
             type="button"
-            className="sc-catalogo-barra__botao sc-catalogo-barra__botao--estreito"
+            className="sc-catalogo-barra__botao sc-catalogo-barra__botao--filtro"
             popoverTarget={PAINEL_DOS_AJUSTES}
           >
             <IconeFiltro aria-hidden="true" />
-            <span className="sc-so-leitor">
-              {temFiltro ? "Filtrar e ordenar" : "Ordenar"}
-            </span>
-            {ajustes > 0 ? (
+            Filtrar
+            {filtrosLigados > 0 ? (
               <span className="sc-catalogo-barra__selo">
                 <span className="sc-so-leitor">, </span>
-                {ajustes}
+                {filtrosLigados}
                 <span className="sc-so-leitor"> em vigor</span>
               </span>
             ) : null}
           </button>
+
+          {mostrarAtacado ? <ChipDeAtacado atacado={atacado} /> : null}
         </div>
       </div>
 
-      {/* O painel da busca: só o celular chega a ele, pela lupa. */}
-      <div
-        id={PAINEL_DA_BUSCA}
-        className="sc-painel sc-painel--busca"
-        popover="auto"
-        role="dialog"
-        aria-label="Buscar"
-      >
-        <div className="sc-painel__topo">
-          <BuscaProduto
-            acao={acao}
-            termo={termo}
-            rotuloDoCatalogo={rotuloDoCatalogo}
-            ordem={ordem}
-            atacado={atacadoLigado}
-            id="busca-no-painel"
-          />
-          <button
-            type="button"
-            className="sc-painel__fechar"
-            popoverTarget={PAINEL_DA_BUSCA}
-            popoverTargetAction="hide"
-            aria-label="Fechar a busca"
-          >
-            <IconeFechar aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
-      {/* O painel da ordem: só o computador chega a ele. */}
+      {/*
+        O painel da ordem: gaveta de baixo até o tablet; no computador, menu
+        pendurado no "Ordenar" de cima da grade.
+      */}
       <div
         id={PAINEL_DA_ORDEM}
         className="sc-painel sc-painel--ordem"
@@ -292,8 +224,8 @@ export function BarraDeCatalogo({
       </div>
 
       {/*
-        O painel dos ajustes: no computador, o painel do "Filtrar"; no celular,
-        a gaveta de baixo com a ordem e o filtro juntos.
+        O painel do filtro: gaveta de baixo no celular e no tablet; no
+        computador, fica aberto dentro do painel lateral.
       */}
       <div
         id={PAINEL_DOS_AJUSTES}
@@ -304,10 +236,7 @@ export function BarraDeCatalogo({
       >
         <div className="sc-painel__topo">
           <p className="sc-painel__titulo" id="titulo-dos-ajustes">
-            <span className="sc-painel__so-estreito">
-              {temFiltro ? "Filtrar e ordenar" : "Ordenar"}
-            </span>
-            <span className="sc-painel__so-largo">Filtrar</span>
+            Filtrar
           </p>
           <button
             type="button"
@@ -320,35 +249,19 @@ export function BarraDeCatalogo({
           </button>
         </div>
 
-        <section
-          className="sc-painel__secao sc-painel__so-estreito"
-          aria-label="Ordenar por"
-        >
-          <p className="sc-painel__subtitulo" aria-hidden="true">
-            Ordenar por
-          </p>
-          <ListaDeOrdens ordens={ordens} />
-        </section>
-
-        {temFiltro ? (
-          <section className="sc-painel__secao" aria-label="Filtrar">
-            <p
-              className="sc-painel__subtitulo sc-painel__so-estreito"
-              aria-hidden="true"
-            >
-              Filtrar
-            </p>
-            <FiltroEspecificacao
-              filtros={filtros}
-              selecionados={selecionados}
-              acao={acao}
-              categoria={categoria}
-              busca={busca}
-              ordem={ordem}
-              atacado={atacadoLigado}
-            />
-          </section>
-        ) : null}
+        <FiltroEspecificacao
+          filtros={filtros}
+          selecionados={selecionados}
+          acao={acao}
+          categoria={categoria}
+          busca={busca}
+          ordem={ordem}
+          atacado={atacadoLigado}
+          gerais
+          estoque={estoque}
+          precoMin={precoMin}
+          precoMax={precoMax}
+        />
       </div>
     </div>
   );

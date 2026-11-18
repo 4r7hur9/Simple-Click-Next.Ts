@@ -58,10 +58,10 @@ async function pedirComoCliente(
       },
     });
     return { estado: "resposta", resposta };
-  } catch (erro) {
+  } catch {
     return {
       estado: "indisponivel",
-      motivo: erro instanceof Error ? erro.message : "falha de rede",
+      motivo: "falha de rede",
     };
   }
 }

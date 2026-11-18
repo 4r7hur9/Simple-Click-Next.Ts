@@ -70,17 +70,42 @@ export function linhasDoAtacado(
   };
   return [
     varejo,
-    ...atacado.faixas.map((faixa) => ({
-      aPartirDe: faixa.quantidadeMinima,
-      quantidade: `A partir de ${unidades(faixa.quantidadeMinima)}`,
-      rotulo: faixa.rotulo,
-      preco: escreverDinheiro(faixa.unitarioCentavos),
-      economia: `${escreverDinheiro(faixa.descontoPorUnidadeCentavos)} por un.${
-        faixa.tipoDeDesconto === "PERCENTUAL" ? ` (${faixa.desconto}%)` : ""
-      }`,
-      ehVarejo: false,
-    })),
+    ...[...atacado.faixas]
+      .sort((a, b) => a.quantidadeMinima - b.quantidadeMinima)
+      .map((faixa) => ({
+        aPartirDe: faixa.quantidadeMinima,
+        quantidade: `A partir de ${unidades(faixa.quantidadeMinima)}`,
+        rotulo: faixa.rotulo,
+        preco: escreverDinheiro(faixa.unitarioCentavos),
+        economia: `${escreverDinheiro(faixa.descontoPorUnidadeCentavos)} por un.${
+          faixa.tipoDeDesconto === "PERCENTUAL" ? ` (${faixa.desconto}%)` : ""
+        }`,
+        ehVarejo: false,
+      })),
   ];
+}
+
+/**
+ * A faixa que vale para esta quantidade: a de MAIOR `quantidadeMinima` que ela
+ * alcança, qualquer que seja a ordem em que as faixas chegaram. Nula abaixo do
+ * pedido mínimo (vale o varejo). A tabela, o preço por unidade e o total do
+ * botão leem esta mesma escolha.
+ */
+export function faixaNoAtacado(
+  atacado: AtacadoNaVitrine | null | undefined,
+  quantidade: number,
+): AtacadoNaVitrine["faixas"][number] | null {
+  let escolhida: AtacadoNaVitrine["faixas"][number] | null = null;
+  for (const faixa of atacado?.faixas ?? []) {
+    if (faixa.quantidadeMinima > quantidade) continue;
+    if (
+      escolhida === null ||
+      faixa.quantidadeMinima > escolhida.quantidadeMinima
+    ) {
+      escolhida = faixa;
+    }
+  }
+  return escolhida;
 }
 
 /**
@@ -92,9 +117,5 @@ export function unitarioNoAtacado(
   atacado: AtacadoNaVitrine | null | undefined,
   quantidade: number,
 ): number | null {
-  let unitario: number | null = null;
-  for (const faixa of atacado?.faixas ?? []) {
-    if (faixa.quantidadeMinima <= quantidade) unitario = faixa.unitarioCentavos;
-  }
-  return unitario;
+  return faixaNoAtacado(atacado, quantidade)?.unitarioCentavos ?? null;
 }

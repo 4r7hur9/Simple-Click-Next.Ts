@@ -24,7 +24,6 @@ export interface DadosDoContexto {
   readonly boasVindas: string;
   /** Como a loja chama o catálogo: "Cardápio", "Catálogo". */
   readonly rotuloDoCatalogo: string;
-  readonly corDestaque: string;
 }
 
 /**
@@ -159,7 +158,7 @@ function ContextoDaFoto({
     "--letras-do-nome": String(nome.length),
   } as CSSProperties;
   return (
-    <TemaDaMarca corDestaque={dados.corDestaque}>
+    <TemaDaMarca>
       <div
         className={`sc-ctx sc-ctx--${lugar === "vitrine" ? "cartao" : "faixa"} sc-ctx--${tela}`}
         style={estilo}

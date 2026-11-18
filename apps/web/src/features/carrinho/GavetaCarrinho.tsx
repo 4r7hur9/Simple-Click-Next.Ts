@@ -69,12 +69,20 @@ export function GavetaCarrinho({
   rotuloDoCatalogo = "Cardápio",
 }: GavetaCarrinhoProps) {
   const {
-    situacao,
     carrinho: dados,
     erro,
+    falhaAoMudar,
     mudarQuantidade,
+    tentarDeNovo,
     recarregar,
   } = carrinho;
+  // Mudança de quantidade que falhou NÃO apaga a lista: a linha mostra a
+  // quantidade de antes e o aviso (AC-11009). Só carregar que falha é erro.
+  const comFalhaNaLinha =
+    falhaAoMudar != null &&
+    tentarDeNovo !== undefined &&
+    (dados?.itens.length ?? 0) > 0;
+  const situacao = comFalhaNaLinha ? "pronto" : carrinho.situacao;
   const catalogo = rotuloDoCatalogo.toLowerCase();
   const titulo = useRef<HTMLHeadingElement>(null);
 
@@ -98,7 +106,7 @@ export function GavetaCarrinho({
           id={ID_DO_TITULO_DO_CARRINHO}
           tabIndex={-1}
         >
-          Carrinho
+          Sua sacola
           {quantos > 0 ? (
             <span className="sc-so-leitor">
               , {quantos} {quantos === 1 ? "item" : "itens"}
@@ -155,7 +163,7 @@ export function GavetaCarrinho({
           <div className="sc-carrinho-janela__estado sc-carrinho-janela__vazio">
             <SacolaDeFundo className="sc-carrinho-janela__vazio-sacola" />
             <p className="sc-carrinho__vazio">
-              Seu carrinho está vazio. Escolha um produto para começar.
+              Sua sacola está vazia. Escolha um produto para começar.
             </p>
             <a className="sc-carrinho-janela__acao" href={linkDaVitrine}>
               Ver o {catalogo}
@@ -170,6 +178,11 @@ export function GavetaCarrinho({
                 item={item}
                 aoMudarQuantidade={(itemId, quantidade) =>
                   void mudarQuantidade(itemId, quantidade)
+                }
+                falha={
+                  comFalhaNaLinha && falhaAoMudar?.itemId === item.id
+                    ? { aoTentarDeNovo: () => void tentarDeNovo?.() }
+                    : undefined
                 }
               />
             ))}

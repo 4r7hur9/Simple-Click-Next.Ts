@@ -21,6 +21,24 @@ import { CartaoEsgotado } from "./CartaoEsgotado.tsx";
 const LARGURA_DA_IMAGEM = 320;
 const ALTURA_DA_IMAGEM = 240;
 
+/**
+ * O cartão tem dois formatos (card #108):
+ *
+ * - `"faixa"` (o padrão, o de sempre): foto grande, usado pela tira de
+ *   destaques e em qualquer lugar que desenhe o cartão fora do catálogo.
+ * - `"catalogo"`: a lista de uma coluna no celular, com foto pequena à
+ *   esquerda, e a grade de três colunas do tablet e do computador.
+ *
+ * O formato só troca o `sizes` da imagem e a classe; a marcação, os links e os
+ * atributos `data-*` são os mesmos (a janela do produto depende deles).
+ */
+export type FormatoDoCartao = "faixa" | "catalogo";
+
+const SIZES_DA_FAIXA = "(max-width: 540px) 50vw, 320px";
+/** Foto de 6rem no celular, um terço da largura no tablet, 320px no computador. */
+const SIZES_DO_CATALOGO =
+  "(max-width: 767px) 96px, (max-width: 1279px) 33vw, 320px";
+
 export interface CartaoDeProdutoProps {
   readonly produto: ProdutoNaTela;
   /**
@@ -29,6 +47,8 @@ export interface CartaoDeProdutoProps {
    * baixa sessenta fotos antes de mostrar a primeira.
    */
   readonly prioridade?: boolean | undefined;
+  /** Lista e grade do catálogo (`"catalogo"`) ou a foto grande de sempre. */
+  readonly formato?: FormatoDoCartao | undefined;
 }
 
 /**
@@ -43,12 +63,13 @@ export interface CartaoDeProdutoProps {
 export function CartaoDeProduto({
   produto,
   prioridade = false,
+  formato = "faixa",
 }: CartaoDeProdutoProps) {
   return (
     <div
       className={`sc-vitrine__cartao${
-        produto.disponivel ? "" : " sc-vitrine__cartao--esgotado"
-      }`}
+        formato === "catalogo" ? " sc-vitrine__cartao--catalogo" : ""
+      }${produto.disponivel ? "" : " sc-vitrine__cartao--esgotado"}`}
     >
       <a
         className="sc-vitrine__link"
@@ -67,7 +88,9 @@ export function CartaoDeProduto({
               height={ALTURA_DA_IMAGEM}
               priority={prioridade}
               loading={prioridade ? undefined : "lazy"}
-              sizes="(max-width: 540px) 50vw, 320px"
+              sizes={
+                formato === "catalogo" ? SIZES_DO_CATALOGO : SIZES_DA_FAIXA
+              }
             />
           ) : (
             // Loja nova costuma não ter foto, e cartão sem moldura desalinha a
@@ -130,6 +153,12 @@ export function CartaoDeProduto({
           aria-label={`Adicionar ${produto.nome} à sacola`}
         >
           <IconeAdicionar aria-hidden="true" />
+          {/* No catálogo o "+" é a pílula "+ Adicionar" (layout Stitch). */}
+          {formato === "catalogo" ? (
+            <span className="sc-vitrine__mais-rotulo" aria-hidden="true">
+              Adicionar
+            </span>
+          ) : null}
         </a>
       ) : null}
     </div>

@@ -7,6 +7,8 @@
  * como visitante. Quem decide acesso continua sendo a API, em cada rota; a
  * barra só mostra atalhos.
  */
+import { comDestino, destinoSeguro } from "./destino-seguro.ts";
+
 /** Os cinco jeitos de a barra se apresentar. */
 export type PapelNaBarra =
   "visitante" | "cliente" | "dono" | "equipe" | "admin";
@@ -182,10 +184,8 @@ export const SELO_DO_PAPEL: Readonly<Record<PapelNaBarra, string | null>> = {
  * Só caminho interno — nunca `//outro-site`.
  */
 export function destinoDepoisDeSair(caminho: unknown): string {
-  if (typeof caminho !== "string") return "/";
-  if (!caminho.startsWith("/") || caminho.startsWith("//")) return "/";
-  if (caminho.includes("\\")) return "/";
-  return caminho.startsWith("/loja/") ? caminho : "/";
+  const seguro = destinoSeguro(caminho);
+  return seguro !== undefined && seguro.startsWith("/loja/") ? seguro : "/";
 }
 
 /** O endereço de entrar ou cadastrar que traz a pessoa de volta aqui. */
@@ -193,11 +193,10 @@ export function enderecoComRetorno(
   destino: "/entrar" | "/cadastrar",
   caminho: string | null,
 ): string {
-  if (caminho === null || caminho === "/" || !caminho.startsWith("/")) {
-    return destino;
-  }
-  if (caminho.startsWith("//") || caminho === destino) return destino;
-  return `${destino}?proximo=${encodeURIComponent(caminho)}`;
+  if (caminho === null || caminho === "/") return destino;
+  // A mesma regra de todo o site: caminho de fora, tela de acesso, segredo e
+  // localização não entram no endereço de retorno.
+  return comDestino(destino, caminho);
 }
 
 /** Telas sem barra: o cardápio na TV ocupa a tela inteira, sem pessoa. */

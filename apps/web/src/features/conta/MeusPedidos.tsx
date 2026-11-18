@@ -69,31 +69,35 @@ function CartaoDoPedido({
 }) {
   return (
     <li
-      className="sc-pedidos__pedido"
+      className={
+        pedido.status === "CANCELLED"
+          ? "sc-meus-pedidos__pedido sc-meus-pedidos__pedido--cancelado"
+          : "sc-meus-pedidos__pedido"
+      }
       data-pedido={pedido.id}
       data-status={pedido.status}
     >
-      <div className="sc-pedidos__topo">
-        <p className="sc-pedidos__numero">Pedido nº {pedido.numero}</p>
+      <div className="sc-meus-pedidos__topo">
+        <p className="sc-meus-pedidos__numero">Pedido nº {pedido.numero}</p>
         <Selo tom={tomDoStatus(pedido.status)}>
           {rotuloDoStatus(pedido.status)}
         </Selo>
       </div>
-      <p className="sc-pedidos__resumo">
+      <p className="sc-meus-pedidos__resumo">
         <time dateTime={pedido.criadoEm}>{quando(pedido.criadoEm)}</time>
         {" · "}
         {itens(pedido.quantidadeDeItens)}
         {" · "}
-        <span className="sc-pedidos__total" data-total>
+        <span className="sc-meus-pedidos__total" data-total>
           {escreverDinheiro(pedido.totalCentavos)}
         </span>
       </p>
       <div className="sc-minha-conta__acao">
-        <Link className="sc-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
+        <Link className="sc-meus-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
           Ver o pedido nº {pedido.numero}
         </Link>
         <Link
-          className="sc-pedidos__ver"
+          className="sc-meus-pedidos__ver"
           href={`/loja/${encodeURIComponent(pedido.loja.apelido)}/cardapio`}
         >
           Pedir de novo
@@ -135,25 +139,30 @@ export function MeusPedidos({ leitura, filtrada = false }: MeusPedidosProps) {
       <Vazio
         titulo="Você ainda não fez nenhum pedido"
         descricao="Quando você comprar em uma loja estando na sua conta, o pedido aparece aqui — sem precisar guardar o link."
+        acao={
+          <Link className="sc-botao sc-botao--primaria" href="/explorar">
+            Explorar lojas
+          </Link>
+        }
       />
     );
   }
 
   return (
-    <div className="sc-pedidos" data-meus-pedidos>
+    <div className="sc-meus-pedidos" data-meus-pedidos>
       {agruparPedidosPorLoja(leitura.pedidos).map((grupo) => (
         <section
           key={grupo.apelido}
           aria-labelledby={`loja-${grupo.apelido}`}
           data-loja={grupo.apelido}
         >
-          <h2 id={`loja-${grupo.apelido}`} className="sc-pedidos__loja">
-            <span className="sc-pedidos__loja-icone" aria-hidden="true">
+          <h2 id={`loja-${grupo.apelido}`} className="sc-meus-pedidos__loja">
+            <span className="sc-meus-pedidos__loja-icone" aria-hidden="true">
               <IconeLoja />
             </span>
             {grupo.nome}
           </h2>
-          <ol className="sc-pedidos__lista">
+          <ol className="sc-meus-pedidos__lista">
             {grupo.pedidos.map((pedido) => (
               <CartaoDoPedido key={pedido.id} pedido={pedido} />
             ))}

@@ -19,9 +19,14 @@ import { CartaoDeProduto } from "./GradeDeProdutos.tsx";
 
 export interface DestaquesProps {
   readonly destaques: readonly ProdutoNaTela[];
+  /**
+   * `"tira"` (o padrão): a faixa que rola na horizontal, a do cardápio.
+   * `"grade"`: a grade de cartões da página da loja (card #129, Stitch).
+   */
+  readonly formato?: "tira" | "grade" | undefined;
 }
 
-export function Destaques({ destaques }: DestaquesProps) {
+export function Destaques({ destaques, formato = "tira" }: DestaquesProps) {
   // Loja sem destaque não ganha uma faixa vazia com título: ela simplesmente
   // começa pelo cardápio. Seção com cabeçalho e nada dentro lê como falha.
   if (destaques.length === 0) return null;
@@ -41,17 +46,32 @@ export function Destaques({ destaques }: DestaquesProps) {
         antes de percorrer. Trocar por `role="group"` daria o rótulo e tiraria a
         contagem — que é justamente o que diz se vale a pena ouvir tudo.
       */}
-      <ul
-        className="sc-vitrine__tira"
-        tabIndex={0}
-        aria-label="Produtos em destaque"
-      >
-        {destaques.map((produto, indice) => (
-          <li className="sc-vitrine__tira-item" key={produto.id}>
-            <CartaoDeProduto produto={produto} prioridade={indice === 0} />
-          </li>
-        ))}
-      </ul>
+      {formato === "grade" ? (
+        // A grade não rola: cada cartão já é alcançável pelo Tab, e o
+        // contêiner não precisa entrar na ordem do teclado.
+        <ul
+          className="sc-vitrine__grade-destaques"
+          aria-label="Produtos em destaque"
+        >
+          {destaques.map((produto, indice) => (
+            <li className="sc-vitrine__item" key={produto.id}>
+              <CartaoDeProduto produto={produto} prioridade={indice === 0} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul
+          className="sc-vitrine__tira"
+          tabIndex={0}
+          aria-label="Produtos em destaque"
+        >
+          {destaques.map((produto, indice) => (
+            <li className="sc-vitrine__tira-item" key={produto.id}>
+              <CartaoDeProduto produto={produto} prioridade={indice === 0} />
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

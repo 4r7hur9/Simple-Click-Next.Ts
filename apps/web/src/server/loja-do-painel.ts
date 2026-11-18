@@ -22,6 +22,10 @@ import {
 } from "@simpleclick/contracts";
 
 import { enderecoDaApi } from "./api-client.ts";
+import {
+  recusarAcaoDeFora,
+  recusarOrigemDeFora,
+} from "./protecao-da-conta.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
 
 /** O cookie que guarda a loja escolhida (só o apelido, nada secreto). */
@@ -139,6 +143,24 @@ export async function sessaoParaEncaminhar(
   requisicao: Request,
   buscar: typeof fetch = fetch,
 ): Promise<{ readonly token: string; readonly apelido: string } | Response> {
+  // As rotas de upload levam bytes crus, e o importador leva um arquivo. Elas
+  // ainda exigem mesma origem, mas não podem exigir JSON. As demais escritas
+  // do catálogo e do painel seguem o mesmo contrato JSON da área da conta.
+  const caminho = new URL(requisicao.url).pathname;
+  if (caminho.startsWith("/api/catalogo/") || caminho.startsWith("/api/painel/")) {
+    const corpoEmBytes =
+      /\/api\/catalogo\/produtos\/[^/]+\/imagens\/(?:arquivo|[^/]+\/arquivo)$/.test(
+        caminho,
+      ) ||
+      /\/api\/painel\/clientes\/importacao\/(?:previa|confirmar)$/.test(
+        caminho,
+      );
+    const recusada = corpoEmBytes
+      ? recusarOrigemDeFora(requisicao)
+      : await recusarAcaoDeFora(requisicao);
+    if (recusada !== null) return recusada;
+  }
+
   const loja = await lojaDoPainel(requisicao.headers.get("cookie"), buscar);
   switch (loja.estado) {
     case "pronta":

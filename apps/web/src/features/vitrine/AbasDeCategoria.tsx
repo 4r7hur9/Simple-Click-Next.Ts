@@ -34,16 +34,29 @@ export function AbasDeCategoria({ abas, filtroEmVigor }: AbasDeCategoriaProps) {
       <ul className="sc-vitrine__abas-lista">
         {abas.map((aba) => (
           <li key={aba.link}>
+            {/*
+              O visual é o do chip do #104 (`.sc-chip*`), mas o elemento é este
+              link: o `Chip` da biblioteca anuncia `aria-current="true"`, e a
+              categoria em vigor é a PÁGINA em que a pessoa está
+              (`aria-current="page"`, que os testes da vitrine fixam).
+            */}
             <a
-              className={`sc-vitrine__aba${
-                aba.emVigor ? " sc-vitrine__aba--em-vigor" : ""
-              }`}
+              className={`sc-chip${aba.emVigor ? " sc-chip--ativo" : ""}`}
               href={aba.link}
               // `aria-current` é o que conta a escolha para quem não vê a cor
               // de fundo. Sem ele, o filtro em vigor existe só para quem enxerga.
               {...(aba.emVigor ? { "aria-current": "page" as const } : {})}
             >
-              {aba.nome}
+              <span className="sc-chip__rotulo">{aba.nome}</span>
+              {aba.total === undefined ? null : (
+                <span className="sc-chip__contagem">
+                  {aba.total}
+                  {/* O número sozinho não diz do que é: o leitor ouve "itens". */}
+                  <span className="sc-so-leitor">
+                    {aba.total === 1 ? " item" : " itens"}
+                  </span>
+                </span>
+              )}
             </a>
           </li>
         ))}

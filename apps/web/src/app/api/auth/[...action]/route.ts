@@ -11,6 +11,10 @@ import {
   ehFormularioDeAcesso,
   responderFormularioDeAcesso,
 } from "../../../../server/formularios-de-acesso";
+import {
+  recusarAcaoDeFora,
+  recusarOrigemDeFora,
+} from "../../../../server/protecao-da-conta.ts";
 import { responderAcaoDeSessao } from "../../../../server/sessao";
 
 /** A autenticação manipula cookie e deve continuar no runtime Node. */
@@ -58,8 +62,15 @@ export async function POST(
 ): Promise<Response> {
   const { action } = await contexto.params;
   const acao = action.join("/");
+  // Card #134: pedido de outro site é recusado antes de qualquer coisa. O
+  // formulário sem script manda `form-urlencoded`, então nele só a origem é
+  // conferida; as ações JSON também recusam corpo que não é JSON (415).
   if (ehFormularioDeAcesso(acao)) {
+    const deFora = recusarOrigemDeFora(requisicao);
+    if (deFora !== null) return deFora;
     return responderFormularioDeAcesso(requisicao, acao);
   }
+  const recusada = await recusarAcaoDeFora(requisicao);
+  if (recusada !== null) return recusada;
   return cookiesParaOAmbiente(await responderAcaoDeSessao(requisicao, acao));
 }

@@ -18,7 +18,7 @@
  * pessoa acabou de abrir a acusa de um erro que ela ainda não teve chance de
  * cometer.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { unitarioNoAtacado } from "../../lib/atacado-na-vitrine.ts";
 import {
@@ -29,6 +29,7 @@ import {
   ancoraDoGrupo,
   calcularItem,
   comoGrupoDaRegra,
+  conviteAEscolher,
   escreverDinheiro,
   opcoesComSaida,
   resolverVariacao,
@@ -39,8 +40,13 @@ import {
 
 import { BotaoAdicionar } from "./BotaoAdicionar.tsx";
 import { exemploDaObservacao } from "./exemplo-da-observacao.ts";
-import { MatrizDeVariacao } from "./MatrizDeVariacao.tsx";
+import { secoesDeEscolha } from "./blocos-do-ramo.ts";
+import {
+  CHAVE_DA_LISTA_DE_VARIACOES,
+  MatrizDeVariacao,
+} from "./MatrizDeVariacao.tsx";
 import { SelecaoDeOpcoes } from "./SelecaoDeOpcoes.tsx";
+import { SeloDePreco } from "./SeloDePreco.tsx";
 import { TabelaDoAtacado } from "./TabelaDoAtacado.tsx";
 
 /** O que a página manda ao servidor quando a pessoa adiciona. */
@@ -66,6 +72,10 @@ export interface EscolhasDoProdutoProps {
   readonly rotulos: { readonly variacao: string };
   /** O tipo de negócio da loja: escolhe o exemplo da observação do item. */
   readonly ramo?: string | null | undefined;
+  /** Os blocos do detalhe do ramo (`blocos.detalheProduto`): só ordenam as escolhas. */
+  readonly blocos?: readonly string[] | undefined;
+  /** Entre o preço e as escolhas: a descrição do produto. */
+  readonly informacoes?: ReactNode;
   /**
    * Quem leva o item ao servidor.
    *
@@ -88,6 +98,8 @@ export function EscolhasDoProduto({
   apelidoDaLoja,
   rotulos,
   ramo,
+  blocos,
+  informacoes,
   aoAdicionar,
   aoAdicionado,
 }: EscolhasDoProdutoProps) {
@@ -118,7 +130,8 @@ export function EscolhasDoProduto({
     () => {
       // A variante padrão define os eixos de abertura: sem isso, a loja de
       // roupa abre sem tamanho marcado e o cliente decide antes de ver o preço.
-      const padrao = produto.variacoes.find((v) => v.padrao);
+      // Padrão esgotada NÃO abre marcada (AC-10921): a pessoa escolhe outra.
+      const padrao = produto.variacoes.find((v) => v.padrao && v.disponivel);
       if (padrao === undefined) return {};
       const inicial: Record<string, string> = {};
       for (const valor of padrao.valoresDosEixos) {
@@ -166,6 +179,24 @@ export function EscolhasDoProduto({
     return mapa;
   }, [produto.variacoes, eixos, escolhaDeEixo]);
 
+  const secoes = useMemo(
+    () =>
+      secoesDeEscolha(
+        blocos,
+        eixos,
+        gruposComuns,
+        eixos.length === 0 && produto.variacoes.length > 1,
+      ),
+    [blocos, eixos, gruposComuns, produto.variacoes.length],
+  );
+  // Os grupos comuns na ordem da TELA: é a ordem das pendências. Os eixos
+  // nunca entram na conta: quem os resolve é a variação.
+  const gruposNaOrdem = useMemo(
+    () =>
+      secoes.flatMap((secao) => (secao.tipo === "grupo" ? [secao.grupo] : [])),
+    [secoes],
+  );
+
   const escolhas: readonly EscolhaFeita[] = useMemo(
     () =>
       gruposComuns.flatMap((grupo) =>
@@ -205,10 +236,10 @@ export function EscolhasDoProduto({
       calcularItem({
         precoBaseEmCentavos: precoBase,
         quantidade,
-        grupos: gruposComuns.map(comoGrupoDaRegra),
+        grupos: gruposNaOrdem.map(comoGrupoDaRegra),
         escolhas,
       }),
-    [precoBase, quantidade, gruposComuns, escolhas],
+    [precoBase, quantidade, gruposNaOrdem, escolhas],
   );
 
   // Variante por escolher é pendência da PÁGINA, e não da regra do core: o core
@@ -216,14 +247,60 @@ export function EscolhasDoProduto({
   // preço base que quem chama já resolveu.
   const faltaVariacao = produto.variacoes.length > 0 && variacao === null;
 
+  /**
+   * Tudo o que falta, NA ORDEM DA TELA: eixo sem escolha, lista de variações
+   * sem escolha e grupo comum com pendência. A rolagem vai à primeira (AC-10909).
+   */
+  const pendenciasNaOrdem = useMemo(() => {
+    const lista: { chave: string; texto: string }[] = [];
+    for (const secao of secoes) {
+      if (secao.tipo === "eixo") {
+        if (escolhaDeEixo[secao.grupo.id] === undefined) {
+          lista.push({
+            chave: secao.grupo.id,
+            texto: `Escolha ${secao.grupo.nome.toLowerCase()} antes de adicionar.`,
+          });
+        }
+      } else if (secao.tipo === "lista") {
+        if (variacao === null) {
+          lista.push({
+            chave: CHAVE_DA_LISTA_DE_VARIACOES,
+            texto: `Escolha ${rotulos.variacao.toLowerCase()} antes de adicionar.`,
+          });
+        }
+      } else {
+        const pendencia = conta.pendencias.find(
+          (p) => p.grupoId === secao.grupo.id,
+        );
+        if (pendencia !== undefined) {
+          lista.push({ chave: secao.grupo.id, texto: pendencia.explicacao });
+        }
+      }
+    }
+    return lista;
+  }, [secoes, escolhaDeEixo, variacao, rotulos.variacao, conta.pendencias]);
+
   const pendenciasPorGrupo = useMemo(() => {
     if (!tentou) return {};
     const mapa: Record<string, string> = {};
-    for (const pendencia of conta.pendencias) {
-      mapa[pendencia.grupoId] ??= pendencia.explicacao;
+    for (const pendencia of pendenciasNaOrdem) {
+      mapa[pendencia.chave] ??= pendencia.texto;
     }
     return mapa;
-  }, [tentou, conta.pendencias]);
+  }, [tentou, pendenciasNaOrdem]);
+
+  // A variação escolhida acabou, ou a padrão (que abriria marcada) acabou e
+  // ainda não há outra escolhida, com o produto à venda (AC-10921). Com o
+  // produto inteiro fora de venda vale a frase do produto, e não esta.
+  const padraoEsgotada =
+    produto.variacoes.length > 1 &&
+    produto.variacoes.some((v) => v.padrao && !v.disponivel);
+  const bloqueio =
+    produto.disponivel &&
+    ((variacao !== null && !variacao.disponivel) ||
+      (variacao === null && padraoEsgotada))
+      ? "Essa opção acabou. Escolha outra."
+      : null;
 
   function alternar(grupo: GrupoNaTela, opcaoId: string) {
     setMarcadas((atual) => {
@@ -288,17 +365,16 @@ export function EscolhasDoProduto({
   async function adicionar() {
     setTentou(true);
 
-    if (faltaVariacao) {
-      const primeiroEixo = eixos[0];
-      if (primeiroEixo !== undefined) irAtePendencia(primeiroEixo.id);
-      return;
-    }
+    if (bloqueio !== null) return;
 
-    if (!conta.podeAdicionar) {
-      const primeira = conta.pendencias[0];
-      if (primeira !== undefined) irAtePendencia(primeira.grupoId);
+    // O que falta (variação ou grupo) vale mais que o botão: vai ao primeiro
+    // pendente na ordem em que a tela o mostra.
+    const primeira = pendenciasNaOrdem[0];
+    if (primeira !== undefined) {
+      irAtePendencia(primeira.chave);
       return;
     }
+    if (faltaVariacao || !conta.podeAdicionar) return;
 
     const item: ItemEscolhido = {
       produtoId: produto.id,
@@ -334,7 +410,6 @@ export function EscolhasDoProduto({
       });
 
       if (resultado.estado === "adicionado") {
-        setRecado("Adicionado à sacola.");
         avisarQueOCarrinhoMudou();
         aoAdicionado?.();
         return;
@@ -353,31 +428,69 @@ export function EscolhasDoProduto({
     }
   }
 
+  // O preço do cabeçalho, em três casos (D-3): sem variações, o do produto;
+  // com a variação resolvida, o dela; pendente, o convite — nunca um valor que
+  // muda sozinho. Uma variação só vale por ela mesma.
+  const unica =
+    produto.variacoes.length === 1 ? (produto.variacoes[0] ?? null) : null;
+  const dela = variacao ?? unica;
+  const cabecalho =
+    produto.variacoes.length === 0
+      ? { preco: produto.preco, anterior: produto.precoAnterior }
+      : dela !== null
+        ? { preco: dela.preco, anterior: dela.precoAnterior ?? null }
+        : { preco: null, anterior: null };
+  const convite = conviteAEscolher(rotulos.variacao, {
+    soFaltaVariacao: conta.podeAdicionar,
+  });
+
+  const subtotal =
+    variacao !== null || produto.variacoes.length === 0
+      ? {
+          quantidade,
+          unitario: escreverDinheiro(conta.unitarioEmCentavos),
+          total: escreverDinheiro(conta.totalEmCentavos),
+        }
+      : null;
+
+  const eixoNoEstado = {
+    rotuloDaVariacao: rotulos.variacao,
+    variacoes: produto.variacoes,
+    escolhaDeEixo,
+    comSaida,
+    variacaoEscolhida: variacao?.id ?? null,
+    aoEscolherEixo: escolherEixo,
+    aoEscolherVariacao: setVariacaoManual,
+    pendencias: pendenciasPorGrupo,
+  } as const;
+
   return (
     <div className="sc-produto__formulario">
-      <MatrizDeVariacao
-        rotuloDaVariacao={rotulos.variacao}
-        variacoes={produto.variacoes}
-        eixos={eixos}
-        escolhaDeEixo={escolhaDeEixo}
-        comSaida={comSaida}
-        variacaoEscolhida={variacao?.id ?? null}
-        aoEscolherEixo={escolherEixo}
-        aoEscolherVariacao={setVariacaoManual}
+      <SeloDePreco
+        preco={cabecalho.preco}
+        precoAnterior={cabecalho.anterior}
+        convite={convite}
       />
 
-      {tentou && faltaVariacao ? (
-        <p className="sc-produto__pendencia" role="alert">
-          Escolha uma opção antes de adicionar.
-        </p>
-      ) : null}
+      {informacoes}
 
-      <SelecaoDeOpcoes
-        grupos={gruposComuns}
-        marcadas={marcadas}
-        pendencias={pendenciasPorGrupo}
-        aoAlternar={alternar}
-      />
+      {secoes.map((secao) =>
+        secao.tipo === "grupo" ? (
+          <SelecaoDeOpcoes
+            key={secao.chave}
+            grupos={[secao.grupo]}
+            marcadas={marcadas}
+            pendencias={pendenciasPorGrupo}
+            aoAlternar={alternar}
+          />
+        ) : (
+          <MatrizDeVariacao
+            key={secao.chave}
+            {...eixoNoEstado}
+            eixos={secao.tipo === "eixo" ? [secao.grupo] : []}
+          />
+        ),
+      )}
 
       <TabelaDoAtacado
         atacado={variacao === null ? produto.atacado : atacado}
@@ -418,6 +531,8 @@ export function EscolhasDoProduto({
         aVenda={produto.disponivel}
         explicacao={produto.explicacaoDaIndisponibilidade}
         enviando={enviando}
+        subtotal={subtotal}
+        bloqueio={bloqueio}
         aoMudarQuantidade={setQuantidade}
         aoAdicionar={() => void adicionar()}
       />

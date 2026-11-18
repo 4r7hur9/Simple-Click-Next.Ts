@@ -8,8 +8,8 @@
 export const EMAIL_PADRAO_DO_ENCARREGADO = "privacidade@simpleclick.com.br";
 
 /** Quando a política foi escrita pela última vez (texto de exibição). */
-export const DATA_DE_ATUALIZACAO = "19 de outubro de 2026";
-export const DATA_DE_ATUALIZACAO_ISO = "2026-10-19";
+export const DATA_DE_ATUALIZACAO = "12 de novembro de 2026";
+export const DATA_DE_ATUALIZACAO_ISO = "2026-11-12";
 export const VERSAO_DOS_TEXTOS = "1.0";
 
 export function emailDoEncarregado(

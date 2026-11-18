@@ -90,6 +90,25 @@ const configuracao: NextConfig = {
       },
     ];
   },
+  // Cabeçalhos de segurança do site todo (card #105). Hoje só a política de
+  // referência: sem ela, o endereço da página (a tela de entrar leva o destino
+  // no `?proximo=`, e o acompanhamento do pedido leva um código na rota) vai
+  // inteiro ao servidor de qualquer link externo. Com
+  // `strict-origin-when-cross-origin`, o mesmo site recebe o endereço completo
+  // e os de fora só recebem a origem (e nada num salto para http).
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
+    ];
+  },
   // Não anunciar a tecnologia do servidor: informação que só serve a quem
   // procura vulnerabilidade conhecida.
   poweredByHeader: false,

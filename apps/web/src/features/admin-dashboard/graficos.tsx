@@ -147,7 +147,17 @@ export function GraficoDeColunas({
   const maior = maiorDe(pontos.map((p) => p.valor));
   const topo = Math.max(...pontos.map((p) => p.valor));
   return (
-    <div className="min-w-0 overflow-x-auto overflow-y-hidden pb-1" data-grafico="colunas">
+    // RELATIVE prende aqui o texto só para leitor de tela de cada coluna (que é
+    // absoluto): sem isso ele escapa do recorte e alarga a página em 344px.
+    // A faixa rola sozinha quando as colunas não cabem, e por isso entra no Tab
+    // (axe `scrollable-region-focusable`): quem usa teclado também a rola.
+    <div
+      className="relative min-w-0 overflow-x-auto overflow-y-hidden pb-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cor-foco)]"
+      data-grafico="colunas"
+      role="group"
+      aria-label={descricao}
+      tabIndex={0}
+    >
       <ol
         role="list"
         aria-label={descricao}

@@ -31,9 +31,20 @@ export function JanelaDeConfirmacao({
   useEffect(() => {
     const elemento = janela.current;
     if (elemento === null || elemento.open) return;
+    // Quem tinha o foco (o botão que abriu a janela) o recebe de volta ao
+    // fechar: o navegador já faz isso em `close()`, mas aqui fica explícito,
+    // porque a janela some também por desmontagem (AC-11328).
+    const quemAbriu = document.activeElement;
     elemento.showModal();
     return () => {
       if (elemento.open) elemento.close();
+      if (
+        quemAbriu instanceof HTMLElement &&
+        quemAbriu !== document.body &&
+        quemAbriu.isConnected
+      ) {
+        quemAbriu.focus();
+      }
     };
   }, []);
 

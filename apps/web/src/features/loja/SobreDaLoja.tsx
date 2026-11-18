@@ -17,7 +17,6 @@ import { TemaDaMarca } from "@simpleclick/ui";
 import { capaPadraoDe } from "../../lib/capa-padrao.ts";
 import { iniciaisDe } from "../../lib/iniciais.ts";
 import {
-  COR_DE_DESTAQUE_PADRAO,
   type TemaNaTela,
 } from "./ApresentacaoDaLoja.tsx";
 import { diaDaSemanaNoFuso, type EnderecoNaTela } from "./sobre/formatos.ts";
@@ -93,7 +92,7 @@ export function SobreDaLoja({
   const fundo = loja.tema?.fundoVitrine ?? loja.capa;
 
   return (
-    <TemaDaMarca corDestaque={loja.tema?.corDestaque ?? COR_DE_DESTAQUE_PADRAO}>
+    <TemaDaMarca>
       <JanelaDoSobre
         apelido={loja.apelido}
         aberta={aberta}
