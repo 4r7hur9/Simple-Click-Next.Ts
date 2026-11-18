@@ -103,7 +103,7 @@ describe("o carrinho mostra o que foi escolhido (AC-500)", () => {
       "3 itens",
     );
     expect(tela.querySelector("#titulo-do-carrinho")?.textContent).toBe(
-      "Carrinho, 3 itens",
+      "Sua sacola, 3 itens",
     );
   });
 
@@ -235,7 +235,7 @@ describe("os quatro estados da gaveta (AC-501)", () => {
       }),
     );
 
-    expect(tela.textContent).toContain("carrinho está vazio");
+    expect(tela.textContent).toContain("sacola está vazia");
     const link = [...tela.querySelectorAll("a")].find(
       (a) => a.getAttribute("href") === "/loja/sabor",
     );
@@ -259,7 +259,7 @@ describe("os quatro estados da gaveta (AC-501)", () => {
     );
 
     expect(tela.textContent).toContain("Não deu para abrir o carrinho");
-    expect(tela.textContent).not.toContain("carrinho está vazio");
+    expect(tela.textContent).not.toContain("sacola está vazia");
     expect(tela.querySelector('[role="alert"]')).not.toBeNull();
   });
 

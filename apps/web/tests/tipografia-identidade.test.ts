@@ -8,18 +8,16 @@ const LAYOUT = readFileSync(
 );
 
 describe("tipografia oficial", () => {
-  it("@spec:AC-942 carrega Space Grotesk e Inter pelo next/font com variáveis globais", () => {
+  it("@spec:AC-942 carrega a família da marca pelo next/font com variáveis globais", () => {
+    // Decisão Q-10401 (redesign Stitch): Plus Jakarta Sans substitui Space
+    // Grotesk e Inter nas telas; as duas antigas ficam só para a landing.
     expect(LAYOUT).toContain(
-      'import { Inter, Space_Grotesk } from "next/font/google"',
+      'import { Inter, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google"',
     );
     expect(LAYOUT).toMatch(
-      /Space_Grotesk\(\{[\s\S]*?display: "swap",[\s\S]*?variable: "--fonte-titulo-da-marca"/,
-    );
-    expect(LAYOUT).toMatch(
-      /Inter\(\{[\s\S]*?display: "swap",[\s\S]*?variable: "--fonte-corpo"/,
+      /Plus_Jakarta_Sans\(\{[\s\S]*?display: "swap",[\s\S]*?variable: "--fonte-titulo-da-marca"/,
     );
     expect(LAYOUT).toContain("tituloDaMarca.variable");
-    expect(LAYOUT).toContain("textoDaMarca.variable");
   });
 
   it("@spec:AC-942 não instala Asectica nem mantém as fontes provisórias na interface", () => {

@@ -75,7 +75,16 @@ function apiDeMentira(opcoes: { readonly foraDoAr?: boolean } = {}) {
 function pedido(caminho: string, cookie?: string, metodo = "GET"): Request {
   return new Request(`https://simpleclick.test${caminho}`, {
     method: metodo,
-    headers: cookie === undefined ? {} : { cookie },
+    headers: {
+      ...(cookie === undefined ? {} : { cookie }),
+      ...(metodo === "GET"
+        ? {}
+        : {
+            origin: "https://simpleclick.test",
+            "sec-fetch-site": "same-origin",
+            "content-type": "application/json",
+          }),
+    },
     ...(metodo === "PUT" ? { body: "{}" } : {}),
   });
 }

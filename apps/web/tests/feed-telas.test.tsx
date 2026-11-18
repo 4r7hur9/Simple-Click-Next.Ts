@@ -22,7 +22,12 @@ vi.mock("next/image", () => ({
 import { BarraDoFeed, CHAVE_DO_LOCAL } from "../src/features/feed/BarraDoFeed.tsx";
 import { BotaoFavoritar } from "../src/features/feed/BotaoFavoritar.tsx";
 import { lerConsulta } from "../src/features/feed/consulta.ts";
+import {
+  NOME_DO_COOKIE_DE_CONSENTIMENTO,
+  serializarConsentimento,
+} from "../src/features/legal/consentimento.ts";
 import { TelaDoFeed } from "../src/features/feed/TelaDoFeed.tsx";
+import { apagarLocalDoAparelho } from "../src/features/usuario/local-do-aparelho.ts";
 
 let raiz: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -95,7 +100,7 @@ const LOJA: LojaDoFeed = {
 };
 
 describe("TelaDoFeed", () => {
-  it("produtos: aba, tipo marcado, cartão com preço, distância e links", () => {
+  it("produtos: área, tipo marcado, cartão com preço, distância e links", () => {
     const tela = montar(
       <TelaDoFeed
         consulta={lerConsulta("produtos", { tipo: "FOOD_SNACK,FOOD_ACAI" })}
@@ -104,7 +109,9 @@ describe("TelaDoFeed", () => {
         logado={false}
       />,
     );
-    expect(tela.querySelector('[aria-current="page"]')?.textContent).toBe("Produtos");
+    // As áreas Explorar/Lojas são as abas do topo (card #128): a tela diz qual é a dela.
+    expect(tela.querySelector("main")?.getAttribute("data-aba")).toBe("produtos");
+    expect(tela.querySelector("h1")?.textContent).toBe("Explorar produtos e lojas");
     expect(tela.querySelector('.sc-feed__categoria[aria-current="true"]')?.textContent).toBe("Comida");
     const cartao = tela.querySelector('[data-produto="p1"]');
     expect(cartao?.querySelector("a")?.getAttribute("href")).toBe(
@@ -226,6 +233,22 @@ describe("BotaoFavoritar", () => {
 });
 
 describe("BarraDoFeed e localização", () => {
+  /** A pessoa aceitou os cookies funcionais depois do texto da localização. */
+  function comConsentimentoFuncional() {
+    const escolhidoEm = Date.parse("2026-11-13T12:00:00-03:00");
+    document.cookie = `${NOME_DO_COOKIE_DE_CONSENTIMENTO}=${serializarConsentimento(
+      { desempenho: false, funcionais: true },
+      escolhidoEm,
+    )}; Path=/`;
+  }
+
+  afterEach(() => {
+    document.cookie = `${NOME_DO_COOKIE_DE_CONSENTIMENTO}=; Path=/; Max-Age=0`;
+    window.localStorage.clear();
+    // A coordenada também vive na memória da página: cada teste começa limpo.
+    apagarLocalDoAparelho();
+  });
+
   function comGeolocalizacao(
     resposta: "ok" | "negado",
   ): ReturnType<typeof vi.fn> {
@@ -249,7 +272,8 @@ describe("BarraDoFeed e localização", () => {
     expect(navegacao.replace).not.toHaveBeenCalled();
   });
 
-  it("'Perto de mim' pede, arredonda, guarda e ordena por distância", () => {
+  it("'Perto de mim' pede, arredonda, guarda (com consentimento) e ordena por distância", () => {
+    comConsentimentoFuncional();
     comGeolocalizacao("ok");
     const tela = montar(<BarraDoFeed consulta={lerConsulta("lojas", { tipo: "APPAREL" })} />);
     const botao = [...tela.querySelectorAll("button")].find((b) => b.textContent?.includes("Perto de mim"));
@@ -264,14 +288,25 @@ describe("BarraDoFeed e localização", () => {
     });
   });
 
+  it("[CA-18] @spec:AC-10506 'Mais perto' no endereço NÃO pede a localização ao abrir", () => {
+    const pedir = comGeolocalizacao("ok");
+    const tela = montar(<BarraDoFeed consulta={lerConsulta("produtos", { ordem: "distancia" })} />);
+    expect(pedir).not.toHaveBeenCalled();
+    expect(navegacao.replace).not.toHaveBeenCalled();
+    expect(tela.textContent).toContain("precisamos da sua localização");
+  });
+
   it("negada: avisa e segue por relevância", () => {
     comGeolocalizacao("negado");
     const tela = montar(<BarraDoFeed consulta={lerConsulta("produtos", { ordem: "distancia" })} />);
+    const botao = [...tela.querySelectorAll("button")].find((b) => b.textContent?.includes("Perto de mim"));
+    act(() => botao?.click());
     expect(tela.querySelector('[role="status"]')?.textContent).toContain("mostramos por relevância");
     expect(navegacao.push).not.toHaveBeenCalled();
   });
 
   it("localização guardada entra sozinha, sem perguntar", () => {
+    comConsentimentoFuncional();
     const pedir = comGeolocalizacao("ok");
     window.localStorage.setItem(CHAVE_DO_LOCAL, JSON.stringify({ lat: -23.5, lng: -46.6 }));
     montar(<BarraDoFeed consulta={lerConsulta("produtos", { busca: "pastel" })} />);

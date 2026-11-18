@@ -234,7 +234,7 @@ describe("a lista de lojas na tela", () => {
   it("card #29 as pílulas mostram quantas lojas há em cada situação, e a fila de aprovação chama atenção", () => {
     const pagina = desenhar();
     const filtros = pagina.querySelector(
-      'nav[aria-label="Filtrar por situação"]',
+      '[role="group"][aria-label="Filtrar por situação"]',
     );
     const texto = filtros?.textContent ?? "";
     for (const rotulo of [

@@ -76,7 +76,6 @@ const PERFIL: PerfilDaTela = {
   nome: "Pastelaria da Vila",
   fotoDePerfil: null,
   iniciais: "PV",
-  corDestaque: "#b7ff00",
   podeTrocarFoto: true,
 };
 

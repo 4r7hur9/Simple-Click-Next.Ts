@@ -184,14 +184,19 @@ describe("a barra do catálogo", () => {
     ).toBe("maior-preco");
   });
 
-  it("o botão do celular conta filtros marcados e a ordem fora da padrão", () => {
+  it("o 'Filtrar' conta os filtros marcados e o 'Ordenar' mostra a ordem fora da padrão", () => {
     const pagina = document.createElement("div");
     pagina.innerHTML = desenharBarra("a-z", ["recheio=Frango"]);
-    expect(
-      pagina.querySelector(
-        '.sc-catalogo-barra__botao--estreito[popovertarget="painel-dos-ajustes"]',
-      )?.textContent,
-    ).toContain("2");
+    const filtrar = pagina.querySelector(
+      '.sc-catalogo-barra__botao--filtro[popovertarget="painel-dos-ajustes"]',
+    );
+    expect(filtrar?.querySelector(".sc-catalogo-barra__selo")?.textContent).toBe(
+      ", 1 em vigor",
+    );
+    const ordenar = pagina.querySelector(
+      '.sc-catalogo-barra__botao--ordem[popovertarget="painel-da-ordem"]',
+    );
+    expect(ordenar?.textContent).toBe("Ordenar: Nome, de A a Z");
   });
 
   it("não tem violação crítica nem séria de acessibilidade", async () => {

@@ -271,7 +271,8 @@ describe("o cartão do feed", () => {
 
   it("mostra o atacado junto do varejo", () => {
     const html = desenhar({ ...DO_FEED, atacado: ATACADO });
-    expect(html).toContain("R$ 10,00");
+    // O "R$" vem num span menor (Stitch, card #128): o texto lido é o mesmo.
+    expect(espacos(html.replace(/<[^>]+>/g, ""))).toContain("R$ 10,00");
     expect(html).toContain("Atacado a partir de 10 un.: R$ 9,50");
   });
 

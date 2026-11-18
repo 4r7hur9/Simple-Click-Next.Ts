@@ -11,7 +11,6 @@ import { join } from "node:path";
 import { vi } from "vitest";
 
 import type { CatalogoDaVitrineNoContrato } from "@simpleclick/contracts";
-import { PALETA_ESCURA } from "@simpleclick/ui";
 
 import {
   ExibicaoDeCardapio,
@@ -35,9 +34,6 @@ const LOJA: LojaNaTv = {
   apelido: "sabor-e-cia",
   nome: "Sabor & Cia",
   rotuloDoCatalogo: "Cardápio",
-  // A cor da paleta, que já passa no contraste: a prova da cor escolhida pelo
-  // dono é a de AC-926, e mora em `calcularTemaDaLoja`.
-  corPrincipal: PALETA_ESCURA.primaria,
 };
 
 export const VITRINE = "https://simpleclick.app/loja/sabor-e-cia/cardapio";

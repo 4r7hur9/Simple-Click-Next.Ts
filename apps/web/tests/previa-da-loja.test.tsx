@@ -29,7 +29,6 @@ const RASCUNHO: RascunhoDaVitrine = {
   nome: "Pastel & Cia",
   boasVindas: "Feito na hora!",
   logo: "https://img.exemplo.test/logo.png",
-  corDestaque: "#ff8a00",
   fundoVitrine: "https://img.exemplo.test/fundo.webp",
   fundoVitrineCelular: "https://img.exemplo.test/fundo-celular.webp",
   topoCardapio: "https://img.exemplo.test/topo.webp",
@@ -66,7 +65,6 @@ describe("o rascunho que a prévia recebe é conferido", () => {
     expect(texto).toMatch(/^[\w-]+$/);
     expect(lerRascunho(texto, "pastelaria")).toMatchObject({
       nome: "Pão & Açaí da Vó",
-      corDestaque: "#ff8a00",
       fundoVitrineCelular: "https://img.exemplo.test/fundo-celular.webp",
     });
   });
@@ -83,7 +81,6 @@ describe("o rascunho que a prévia recebe é conferido", () => {
     const sujo = codificarRascunho({
       ...RASCUNHO,
       nome: "x".repeat(500),
-      corDestaque: "red; } body { display:none",
       logo: "javascript:alert(1)",
       fundoVitrine: "http://inseguro.test/a.jpg",
       topoCardapio: "https://ok.exemplo.test/topo.webp",
@@ -91,7 +88,7 @@ describe("o rascunho que a prévia recebe é conferido", () => {
     });
     const lido = lerRascunho(sujo, "pastelaria")!;
     expect(lido.nome).toHaveLength(80);
-    expect(lido.corDestaque).toBe("");
+    expect(lido).not.toHaveProperty("corDestaque");
     expect(lido.logo).toBe("");
     expect(lido.fundoVitrine).toBe("");
     expect(lido.topoCardapio).toBe("https://ok.exemplo.test/topo.webp");
@@ -102,12 +99,12 @@ describe("o rascunho que a prévia recebe é conferido", () => {
 describe("o rascunho por cima da vitrine é o que a loja desenha", () => {
   const vitrine = vitrineComRascunho(VITRINE, RASCUNHO);
 
-  it("troca cor, fotos (com as do celular), nome, descrição e logo", () => {
+  it("troca fotos (com as do celular), nome, descrição e logo", () => {
     expect(vitrine.loja.nome).toBe("Pastel & Cia");
     expect(vitrine.loja.boasVindas).toBe("Feito na hora!");
     expect(vitrine.loja.logo).toBe("https://img.exemplo.test/logo.png");
     expect(vitrine.loja.tema).toMatchObject({
-      corDestaque: "#ff8a00",
+      corDestaque: "#b7ff00", // sempre o verde SimpleClick
       fundoVitrine: "https://img.exemplo.test/fundo.webp",
       fundoVitrineCelular: "https://img.exemplo.test/fundo-celular.webp",
       topoCardapio: "https://img.exemplo.test/topo.webp",
@@ -116,7 +113,7 @@ describe("o rascunho por cima da vitrine é o que a loja desenha", () => {
     });
   });
 
-  it("a página inicial da loja (ApresentacaoDaLoja) sai com a cor, a foto e o texto do rascunho", () => {
+  it("a página inicial da loja (ApresentacaoDaLoja) sai sem cor de loja, com a foto e o texto do rascunho", () => {
     const html = renderToStaticMarkup(
       <ApresentacaoDaLoja
         loja={{ ...vitrine.loja, capa: vitrine.loja.capa ?? null } as never}
@@ -125,7 +122,7 @@ describe("o rascunho por cima da vitrine é o que a loja desenha", () => {
         rotuloDoCatalogo="Cardápio"
       />,
     );
-    expect(html).toContain("--cor-marca:#ff8a00");
+    expect(html).not.toMatch(/--cor-marca|--cor-primaria/);
     expect(html).toContain("Pastel &amp; Cia");
     expect(html).toContain("Feito na hora!");
     expect(html).toContain('src="https://img.exemplo.test/fundo.webp"');
@@ -157,7 +154,6 @@ describe("o rascunho por cima da vitrine é o que a loja desenha", () => {
     const vazio = vitrineComRascunho(VITRINE, {
       ...RASCUNHO,
       nome: "",
-      corDestaque: "",
       seloDeStatus: "",
     });
     expect(vazio.loja.nome).toBe("Pastelaria da Zica");

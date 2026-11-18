@@ -47,7 +47,7 @@ const LIMITES: LimitesDeMidia = {
   formatosDeImagem: ["image/jpeg", "image/png", "image/webp"],
 };
 
-const PERFIL = { apelido: "pastelaria-da-vila", nome: "Pastelaria da Vila", corDestaque: "#b7ff00" };
+const PERFIL = { apelido: "pastelaria-da-vila", nome: "Pastelaria da Vila" };
 
 let raiz: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -339,7 +339,7 @@ describe("a edição", () => {
     expect(editor().textContent).toContain("Publicar Story");
   });
 
-  it("a cor da loja vem primeiro na paleta", async () => {
+  it("o verde SimpleClick vem primeiro na paleta", async () => {
     tentarCamera(undefined);
     container = document.createElement("div");
     document.body.append(container);
@@ -347,7 +347,7 @@ describe("a edição", () => {
     await act(async () => {
       raiz?.render(
         <EditorDeStory
-          perfil={{ ...PERFIL, corDestaque: "#ff6600" }}
+          perfil={{ ...PERFIL }}
           limites={LIMITES}
           aoPublicado={aoPublicado}
           aoFechar={aoFechar}
@@ -357,8 +357,8 @@ describe("a edição", () => {
     await escolherDaGaleria(new File([new Uint8Array(5)], "a.jpg", { type: "image/jpeg" }));
     await clicar("Desenhar");
     const primeira = editor().querySelector('[aria-label="Cor do pincel"] button');
-    expect(primeira?.getAttribute("aria-label")).toBe("Cor #ff6600");
-    expect(editor().style.getPropertyValue("--sc-story-destaque")).toBe("#ff6600");
+    expect(primeira?.getAttribute("aria-label")).toBe("Cor #b7ff00");
+    expect(editor().style.getPropertyValue("--sc-story-destaque")).toBe("#b7ff00");
   });
 
   it("alternar entre preencher e mostrar inteira", async () => {

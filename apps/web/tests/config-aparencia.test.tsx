@@ -9,7 +9,6 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act } from "react";
-import { marcaDaLoja, relacaoDeContraste } from "@simpleclick/ui";
 
 import {
   conferirArquivo,
@@ -215,96 +214,14 @@ describe("a prévia é a loja de verdade, com o rascunho, antes de publicar (AC-
   });
 });
 
-describe("a cor de destaque tem seletor e a leitura é protegida (AC-917)", () => {
-  /** A cor que a loja de verdade vai receber (a do rascunho) e as derivadas dela. */
-  async function corDaPrevia() {
+describe("não há cor de destaque por loja (card #127)", () => {
+  it("@spec:AC-917 a tela de Aparência não oferece seletor de cor nem fala de cor de destaque, e a prévia fica no verde SimpleClick", async () => {
+    const { tela } = await abrir();
     await esperarPrevia();
-    const cor = rascunho().corDestaque;
-    return { cor, marca: marcaDaLoja(cor) };
-  }
-
-  it("@spec:AC-917 escolher uma amostra pinta a loja da prévia e calcula a letra por cima", async () => {
-    const { tela } = await abrir();
-    expect((await corDaPrevia()).cor).toBe("#b7ff00");
-
-    clicar(exigir(tela, 'button[aria-label^="Azul"]'));
-
-    const { cor, marca } = await corDaPrevia();
-    expect(cor).toBe("#4da3ff");
-    expect(relacaoDeContraste(marca.corSobreMarca, cor)).toBeGreaterThanOrEqual(
-      4.5,
-    );
-    expect(exigir(tela, "[data-letra-sobre-cor]").textContent).toContain(
-      "A letra por cima da cor é",
-    );
-  });
-
-  it("@spec:AC-917 digitar o código hexadecimal troca a cor, e código incompleto só avisa", async () => {
-    const { tela } = await abrir();
-    const campo = exigir<HTMLInputElement>(
-      tela,
-      "[data-seletor-de-cor] input.sc-campo",
-    );
-
-    digitar(campo, "#ff4d4d");
-    expect((await corDaPrevia()).cor).toBe("#ff4d4d");
-
-    digitar(campo, "#ff4");
-    expect((await corDaPrevia()).cor).toBe("#ffff44");
-
-    digitar(campo, "#zz");
-    expect((await corDaPrevia()).cor).toBe("#ffff44");
-    expect(tela.textContent).toContain("Use o código com 6 letras e números");
-  });
-
-  it("@spec:AC-917 cor escura demais para o preto é avisada, com sugestão de um clique", async () => {
-    const { tela } = await abrir();
-    expect(tela.textContent).not.toContain("compromete a leitura");
-
-    digitar(
-      exigir<HTMLInputElement>(tela, "[data-seletor-de-cor] input.sc-campo"),
-      "#1a237e",
-    );
-
-    expect(tela.textContent).toContain("Esta cor compromete a leitura");
-    expect(
-      tela.querySelectorAll('[data-avisos="contraste"] li').length,
-    ).toBeGreaterThan(0);
-    // O preenchimento continua sendo a cor do dono; o texto ganha versão clara.
-    const escura = await corDaPrevia();
-    expect(escura.cor).toBe("#1a237e");
-    expect(
-      relacaoDeContraste(escura.marca.corComoTexto, "#000000"),
-    ).toBeGreaterThanOrEqual(4.5);
-
-    clicar(botao(tela, "Usar a cor sugerida"));
-    const { cor } = await corDaPrevia();
-    expect(cor).not.toBe("#1a237e");
-    expect(relacaoDeContraste(cor, "#000000")).toBeGreaterThanOrEqual(3);
-    expect(tela.textContent).not.toContain("Esta cor compromete a leitura");
-  });
-
-  it("@spec:AC-917 'Voltar ao verde SimpleClick' restaura a cor padrão", async () => {
-    const { tela } = await abrir();
-    clicar(exigir(tela, 'button[aria-label^="Roxo"]'));
-    expect((await corDaPrevia()).cor).toBe("#a78bfa");
-
-    clicar(botao(tela, "Voltar ao verde SimpleClick"));
-    expect((await corDaPrevia()).cor).toBe("#b7ff00");
-  });
-
-  it("@spec:AC-917 o quadro de saturação e brilho responde às setas do teclado", async () => {
-    const { tela } = await abrir();
-    const quadro = exigir<HTMLElement>(tela, "[data-quadro-de-cor]");
-    const antes = (await corDaPrevia()).cor;
-
-    act(() => {
-      quadro.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
-      );
-    });
-
-    expect((await corDaPrevia()).cor).not.toBe(antes);
+    expect(tela.querySelector("[data-seletor-de-cor]")).toBeNull();
+    expect(tela.querySelector('button[aria-label^="Azul"]')).toBeNull();
+    expect(tela.textContent).not.toContain("Cor de destaque");
+    expect(rascunho()).not.toHaveProperty("corDestaque");
   });
 });
 
@@ -313,7 +230,6 @@ describe("salvar grava só o que mudou (AC-916)", () => {
     const { chamadas, tela } = await abrir();
 
     digitar(exigir(tela, 'input[name="nome"]'), "Pastel & Cia");
-    clicar(exigir(tela, 'button[aria-label^="Laranja"]'));
     digitar(
       exigir(tela, 'input[name="endereco-fundo"]'),
       "https://imagens.exemplo.test/fundo.jpg",
@@ -330,10 +246,10 @@ describe("salvar grava só o que mudou (AC-916)", () => {
       nome: "Pastel & Cia",
       // A capa antiga acompanha a foto de fundo; a cor antiga, a de destaque.
       capa: "https://imagens.exemplo.test/fundo.jpg",
-      corPrimaria: "#ff8a00",
+      corPrimaria: "#b7ff00",
     });
     expect(gravacoes[1]?.corpo).toEqual({
-      corDestaque: "#ff8a00",
+      corDestaque: "#b7ff00",
       fundoVitrine: "https://imagens.exemplo.test/fundo.jpg",
       topoCardapio: null,
       fundoVitrineCelular: null,

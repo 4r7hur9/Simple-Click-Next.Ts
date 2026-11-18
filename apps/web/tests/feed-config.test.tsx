@@ -39,7 +39,6 @@ const LOJA: LojaDaPrevia = {
   ramo: "Lanchonete",
   logo: null,
   capa: null,
-  corDestaque: "#b7ff00",
   bairro: "Centro",
   cidade: "Campinas",
   formasDeEntrega: ["DELIVERY", "PICKUP"],

@@ -517,7 +517,9 @@ describe("cancelar", () => {
     await act(async () => {
       botao(cartao(tela, "1"), "Cancelar").click();
     });
-    const janela = tela.querySelectorAll("dialog")[1] as HTMLDialogElement;
+    const janela = [...tela.querySelectorAll("dialog")].find((d) =>
+      d.textContent?.includes("motivo"),
+    ) as HTMLDialogElement;
     expect(janela.hasAttribute("open")).toBe(true);
     const enviar = [...janela.querySelectorAll("button")].find(
       (b) => b.getAttribute("type") === "submit",

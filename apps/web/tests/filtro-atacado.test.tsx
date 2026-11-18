@@ -155,17 +155,19 @@ describe("o chip Atacado na barra do catálogo", () => {
     expect(desenharBarra(VAZIO, false)).not.toContain("sc-catalogo-barra__chip");
   });
 
-  it("ligado, continua aparecendo (para desligar) e a busca e o filtro o levam junto", () => {
+  it("ligado, continua aparecendo (para desligar) e o filtro o leva junto", () => {
     const html = desenharBarra(VAZIO, true);
     const doc = new DOMParser().parseFromString(html, "text/html");
     const chip = doc.querySelector("a.sc-catalogo-barra__chip");
     expect(chip?.classList.contains("sc-catalogo-barra__chip--ligado")).toBe(true);
     expect(chip?.getAttribute("aria-current")).toBe("true");
     expect(chip?.getAttribute("href")).toBe(`/loja/${LOJA}/cardapio`);
-    // As duas buscas (computador e celular) e o formulário do filtro.
+    // O formulário do filtro. As buscas saíram da barra (card #130): moram no
+    // cabeçalho e em cima da grade, e o teste da tela inteira prova que as
+    // duas levam o atacado (`catalogo-stitch.onp.test.tsx`).
     expect(
       doc.querySelectorAll('form input[type="hidden"][name="atacado"][value="1"]'),
-    ).toHaveLength(3);
+    ).toHaveLength(1);
   });
 
   it("o 'Limpar filtros' das especificações não desliga o atacado", () => {

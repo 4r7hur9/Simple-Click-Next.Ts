@@ -228,9 +228,10 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
     if (!linha) throw new Error("linha do produto ausente");
     await clicar(botao(linha, "Remover"));
     expect(chamadas).toHaveLength(1);
-    expect(tela.querySelector('[role="group"]')?.textContent).toContain(
-      "Pedidos que já o incluíram continuam como foram feitos",
-    );
+    expect(
+      tela.querySelector('[role="group"][aria-label^="Confirmar a remoção"]')
+        ?.textContent,
+    ).toContain("Pedidos que já o incluíram continuam como foram feitos");
 
     await clicar(botao(tela, "Confirmar remoção"));
     expect(chamadas[1]).toEqual({
@@ -238,6 +239,59 @@ describe("a lista de produtos do dono (AC-307, AC-308, P-011)", () => {
       metodo: "DELETE",
     });
     expect(tela.querySelector("table")).toBeNull();
+  });
+});
+
+/** Finge a largura da tela: `true` = a partir de 48rem (computador). */
+function larguraDeComputador(computador: boolean): void {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((consulta: string) => ({
+      // A lista pergunta "é celular?" (abaixo de 48rem).
+      matches: consulta.includes("max-width: 47.99rem") ? !computador : false,
+      media: consulta,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+}
+
+describe("a lista de produtos no celular é de cartões (#112 AC-11218, #133)", () => {
+  it("@spec:AC-11218 abaixo de 48rem não há tabela: cada produto é um cartão com nome, preço, situação e ações", async () => {
+    larguraDeComputador(false);
+    roteiro(async () => json(pagina([PUBLICADO, RASCUNHO])));
+    const tela = await montar();
+
+    expect(tela.querySelector("table")).toBeNull();
+    const lista = tela.querySelector('ul[aria-label="Produtos do catálogo"]');
+    expect(lista).not.toBeNull();
+    const cartoes = [...(lista?.querySelectorAll(":scope > li") ?? [])];
+    expect(cartoes).toHaveLength(2);
+    const primeiro = cartoes[0]?.textContent ?? "";
+    expect(primeiro).toContain("Pastel de queijo");
+    expect(primeiro).toContain("Pastéis");
+    expect(primeiro).toMatch(/R\$\s19,90/);
+    expect(primeiro).toContain("Publicado");
+    expect(cartoes[1]?.textContent).toContain("Rascunho");
+    // Os rótulos que o cabeçalho da coluna dava viram termos da lista.
+    expect(
+      [...(cartoes[0]?.querySelectorAll("dt") ?? [])].map((d) => d.textContent),
+    ).toEqual(["Categoria", "Preço", "Estoque"]);
+    // O nome leva à edição e as ações continuam no cartão.
+    expect(
+      cartoes[0]?.querySelector('a[href="/painel/produtos/p-1"]'),
+    ).not.toBeNull();
+    expect(cartoes[0]?.querySelector("button")).not.toBeNull();
+  });
+
+  it("@spec:AC-11218 a partir de 48rem a lista continua uma tabela com cabeçalho", async () => {
+    larguraDeComputador(true);
+    roteiro(async () => json(pagina([PUBLICADO])));
+    const tela = await montar();
+
+    expect(tela.querySelector("table")).not.toBeNull();
+    expect(tela.querySelector("thead th")).not.toBeNull();
+    expect(tela.querySelector('ul[aria-label="Produtos do catálogo"]')).toBeNull();
   });
 });
 

@@ -10,7 +10,6 @@
  * Que a API devolve o pedido da loja suspensa, e não o da excluída, está
  * provado contra o banco em `apps/api/tests/admin-situacao.test.ts`.
  */
-import { PALETA_CLARA } from "@simpleclick/ui";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -41,7 +40,7 @@ beforeEach(() => {
 });
 
 describe("o pedido da loja suspensa continua acompanhável (AC-209, Q-203)", () => {
-  it("@spec:AC-209 sem a vitrine (loja suspensa), a página mostra o pedido, com a cor padrão", async () => {
+  it("@spec:AC-209 sem a vitrine (loja suspensa), a página mostra o pedido, sem a vitrine", async () => {
     vitrine.buscarVitrine.mockResolvedValue({ estado: "nao-encontrada" });
     acompanhamento.buscarAcompanhamento.mockResolvedValue({
       estado: "encontrado",
@@ -52,13 +51,12 @@ describe("o pedido da loja suspensa continua acompanhável (AC-209, Q-203)", () 
       parametros(),
     )) as ReactElement<{
       inicial: unknown;
-      corPrincipal: string;
       apelidoDaLoja: string;
     }>;
 
     expect(pagina.props.inicial).toEqual(PEDIDO);
     expect(pagina.props.apelidoDaLoja).toBe("pastel-da-joi");
-    expect(pagina.props.corPrincipal).toBe(PALETA_CLARA.primaria);
+    expect(pagina.props).not.toHaveProperty("corPrincipal");
   });
 
   it("@spec:AC-209 pedido que o acompanhamento não encontra (loja excluída, link errado) continua sendo página inexistente", async () => {
@@ -72,7 +70,7 @@ describe("o pedido da loja suspensa continua acompanhável (AC-209, Q-203)", () 
     );
   });
 
-  it("@spec:AC-209 com a loja no ar, a cor continua sendo a da loja", async () => {
+  it("@spec:AC-209 com a loja no ar, a cor da loja é ignorada: a página não recebe cor", async () => {
     vitrine.buscarVitrine.mockResolvedValue({
       estado: "encontrada",
       vitrine: {
@@ -93,10 +91,9 @@ describe("o pedido da loja suspensa continua acompanhável (AC-209, Q-203)", () 
 
     const pagina = (await PaginaDeAcompanhamento(
       parametros(),
-    )) as ReactElement<{
-      corPrincipal: string;
-    }>;
+    )) as ReactElement<Record<string, unknown>>;
 
-    expect(pagina.props.corPrincipal).toBe("#aa3300");
+    expect(pagina.props).not.toHaveProperty("corPrincipal");
+    expect(JSON.stringify(pagina.props)).not.toContain("#aa3300");
   });
 });

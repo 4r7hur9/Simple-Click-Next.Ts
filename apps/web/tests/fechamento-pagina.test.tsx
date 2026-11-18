@@ -267,7 +267,7 @@ describe("carrinho vazio não é erro", () => {
       conferencia: { ...CONFERENCIA, itens: [], subtotalCentavos: 0 },
     });
 
-    expect(caixa.textContent).toContain("carrinho está vazio");
+    expect(caixa.textContent).toContain("sacola está vazia");
     expect(caixa.querySelector(`a[href="/loja/${LOJA}/cardapio"]`)).not.toBeNull();
     desmontar();
   });

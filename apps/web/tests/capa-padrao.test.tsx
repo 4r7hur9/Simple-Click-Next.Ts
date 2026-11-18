@@ -66,29 +66,15 @@ describe("capa padrão por tipo de negócio", () => {
     expect(capaPadraoDe(undefined)).toBe(CAPA_PADRAO_GENERICA);
   });
 
-  it("loja sem capa mostra a capa padrão do ramo dela, escondida do leitor de tela", () => {
-    const padrao =
-      painelDe(LOJA).querySelector<HTMLElement>(".sc-loja__padrao");
-    expect(padrao?.style.getPropertyValue("--capa-url")).toContain(
-      "/capas-padrao/food_snack.svg",
-    );
-    expect(padrao?.getAttribute("aria-hidden")).toBe("true");
-
-    const roupa = painelDe({ ...LOJA, ramo: "APPAREL" });
-    expect(
-      roupa
-        .querySelector<HTMLElement>(".sc-loja__padrao")
-        ?.style.getPropertyValue("--capa-url"),
-    ).toContain("/capas-padrao/apparel.svg");
-  });
-
-  it("loja sem ramo informado ainda recebe a capa genérica", () => {
-    const { ramo: _ramo, ...semRamo } = LOJA;
-    const padrao =
-      painelDe(semRamo).querySelector<HTMLElement>(".sc-loja__padrao");
-    expect(padrao?.style.getPropertyValue("--capa-url")).toContain(
-      CAPA_PADRAO_GENERICA,
-    );
+  it("loja sem capa: a vitrine usa o degradê neutro do Stitch, sem o padrão de ícones do ramo", () => {
+    // Card #129: o padrão de ícones saiu da página da loja (o /cardapio segue
+    // com a capa padrão do ramo, coberta pelos testes de capaPadraoDe acima).
+    for (const loja of [LOJA, { ...LOJA, ramo: "APPAREL" }]) {
+      const painel = painelDe(loja);
+      expect(painel.querySelector(".sc-loja__capa")).not.toBeNull();
+      expect(painel.querySelector(".sc-loja__padrao")).toBeNull();
+      expect(painel.innerHTML).not.toContain("--capa-url");
+    }
   });
 
   it("a capa enviada pelo dono manda: nada de capa padrão por trás dela", () => {

@@ -281,7 +281,7 @@ describe("as contas", () => {
       linha?.querySelector(`a[href="/admin/contas/${DONO}"]`),
     ).not.toBeNull();
     expect(
-      document.querySelector('nav[aria-label="Tipo de conta"]')?.textContent,
+      document.querySelector('[role="group"][aria-label="Tipo de conta"]')?.textContent,
     ).toContain("Equipe das lojas");
   });
 

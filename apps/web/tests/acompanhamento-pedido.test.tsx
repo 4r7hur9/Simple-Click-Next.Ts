@@ -103,7 +103,6 @@ async function montar(
         apelidoDaLoja="acai-da-praca"
         tokenDoPedido="token-longo-e-aleatorio"
         inicial={inicial}
-        corPrincipal="#7c3aed"
         atualizar={atualizar}
         intervaloMs={INTERVALO}
       />,

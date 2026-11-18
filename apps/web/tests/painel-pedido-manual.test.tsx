@@ -108,6 +108,90 @@ function marcar(tela: HTMLElement, nome: string): void {
 }
 
 describe("o grupo obrigatório impede o item, como na vitrine (AC-708)", () => {
+  it("carrega uma ficha ao selecionar e reutiliza a mesma ficha ao reabrir", async () => {
+    let leituras = 0;
+    const resumo = { ...LANCHE, grupos: [], variacoes: [] };
+    const tela = montar(
+      <MontarPedido
+        produtos={[resumo]}
+        carregarDetalhe={async () => {
+          leituras += 1;
+          return LANCHE;
+        }}
+      />,
+    );
+
+    escolherProduto(tela, LANCHE.id);
+    await esperar();
+    expect(leituras).toBe(1);
+    expect(tela.textContent).toContain("Ketchup");
+
+    clicar(botao(tela, "Cancelar"));
+    escolherProduto(tela, LANCHE.id);
+    await esperar();
+    expect(leituras).toBe(1);
+    expect(tela.textContent).toContain("Ketchup");
+  });
+
+  it("mostra erro e permite tentar carregar a ficha de novo", async () => {
+    let leituras = 0;
+    const tela = montar(
+      <MontarPedido
+        produtos={[{ ...LANCHE, grupos: [], variacoes: [] }]}
+        carregarDetalhe={async () => {
+          leituras += 1;
+          if (leituras === 1) throw new Error("rede indisponível");
+          return LANCHE;
+        }}
+      />,
+    );
+
+    escolherProduto(tela, LANCHE.id);
+    await esperar();
+    expect(tela.textContent).toContain("Não foi possível abrir o produto");
+    clicar(botao(tela, "Tentar de novo"));
+    await esperar();
+    expect(leituras).toBe(2);
+    expect(tela.textContent).toContain("Ketchup");
+  });
+
+  it("descarta a ficha atrasada depois de cancelar e escolher outro produto", async () => {
+    let liberarLanche!: (produto: ProdutoParaMontar) => void;
+    const tela = montar(
+      <MontarPedido
+        produtos={[
+          { ...LANCHE, grupos: [], variacoes: [] },
+          { ...SUCO, grupos: [], variacoes: [] },
+        ]}
+        carregarDetalhe={(id) =>
+          id === LANCHE.id
+            ? new Promise((resolver) => {
+                liberarLanche = resolver;
+              })
+            : Promise.resolve(SUCO)
+        }
+      />,
+    );
+
+    escolherProduto(tela, LANCHE.id);
+    expect(tela.textContent).toContain("Carregando opções do produto");
+    clicar(botao(tela, "Cancelar"));
+    escolherProduto(tela, SUCO.id);
+    await esperar();
+    expect(
+      tela.querySelector('section[aria-label="Montar Suco de laranja"]'),
+    ).not.toBeNull();
+
+    liberarLanche(LANCHE);
+    await esperar();
+    expect(
+      tela.querySelector('section[aria-label="Montar Suco de laranja"]'),
+    ).not.toBeNull();
+    expect(
+      tela.querySelector('section[aria-label="Montar X-Salada"]'),
+    ).toBeNull();
+  });
+
   it("@spec:AC-708 sem escolher o molho, o lanche não entra e a tela aponta o grupo pendente", async () => {
     simularApi(() => ({ status: 201, corpo: PEDIDO_CRIADO }));
     const tela = montar(<MontarPedido produtos={[LANCHE, SUCO]} />);
