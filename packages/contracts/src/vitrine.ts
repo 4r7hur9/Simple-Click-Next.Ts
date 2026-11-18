@@ -333,6 +333,36 @@ export const esquemaDoPedidoMinimoDeAtacado = z.coerce
   .min(2)
   .max(100_000);
 
+/** `?estoque=1` (ou `true`): só o que NÃO está esgotado. `0`/`false` é o mesmo que ausente. */
+export const esquemaDoFiltroDeEstoque = z.enum(["1", "true", "0", "false"]);
+
+/** O filtro "em estoque" está ligado na consulta. */
+export function estoqueLigado(valor: string | undefined): boolean {
+  return valor === "1" || valor === "true";
+}
+
+/** O maior preço que o filtro de faixa aceita: R$ 1.000.000,00, em centavos. */
+export const TETO_DO_PRECO_DO_FILTRO_EM_CENTAVOS = 100_000_000;
+
+/**
+ * Preço do filtro de faixa, em CENTAVOS, escrito só com dígitos.
+ *
+ * É TEXTO validado por padrão, e não `z.coerce.number()`: o coerce aceitaria
+ * "1e3", "0x10", " 12 " e o vazio (que viraria 0 e filtraria pelo preço zero).
+ * Também não leva `transform`: este esquema entra no documento OpenAPI, e o
+ * gerador publica a forma de SAÍDA (`io: "output"`). Quem usa o valor o converte
+ * com `Number()`. O padrão aceita de 1 a 8 dígitos e, exatamente, o teto.
+ */
+export const esquemaDoPrecoDoFiltro = z
+  .string()
+  .regex(/^(?:\d{1,8}|100000000)$/);
+
+/** Quantos `?filtro=` uma consulta pode ter, e o tamanho de cada um. */
+export const MAXIMO_DE_FILTROS_NA_CONSULTA = 20;
+export const MAXIMO_DE_CARACTERES_DO_FILTRO = 120;
+
+const esquemaDeUmFiltro = z.string().max(MAXIMO_DE_CARACTERES_DO_FILTRO);
+
 /**
  * O que a busca da vitrine aceita (AC-408).
  *
@@ -345,7 +375,12 @@ export const esquemaDaBuscaDoCatalogo = z.strictObject({
   /** Vazio ou ausente é "sem busca", e devolve o catálogo inteiro. */
   busca: z.string().max(60).optional(),
   categoria: z.string().max(80).optional(),
-  filtro: z.union([z.string(), z.array(z.string())]).optional(),
+  filtro: z
+    .union([
+      esquemaDeUmFiltro,
+      z.array(esquemaDeUmFiltro).max(MAXIMO_DE_FILTROS_NA_CONSULTA),
+    ])
+    .optional(),
   /**
    * Só produtos com preço de atacado (card #59): `?atacado=1`. `0` ou ausente
    * não filtra.
@@ -356,6 +391,12 @@ export const esquemaDaBuscaDoCatalogo = z.strictObject({
    * é de até N unidades.
    */
   pedidoMinimo: esquemaDoPedidoMinimoDeAtacado.optional(),
+  /** Só produtos que não estão esgotados (card #108): `?estoque=1`. */
+  estoque: esquemaDoFiltroDeEstoque.optional(),
+  /** Preço mínimo, em centavos, inclusive. Só produtos de preço único entram. */
+  precoMin: esquemaDoPrecoDoFiltro.optional(),
+  /** Preço máximo, em centavos, inclusive. */
+  precoMax: esquemaDoPrecoDoFiltro.optional(),
 });
 
 /**
@@ -375,7 +416,7 @@ export const rotaDoCatalogo = definirRota({
   etiqueta: "vitrine",
   resumo: "As seções e os destaques da loja",
   descricao:
-    "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Loja inexistente e loja suspensa respondem igual.",
+    "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Aceita os filtros `busca`, `categoria`, `filtro` (até 20), `atacado`, `pedidoMinimo`, `estoque` (só o que não está esgotado) e `precoMin`/`precoMax` (centavos, inclusive, só produtos de preço único). Loja inexistente e loja suspensa respondem igual.",
   parametros: esquemaDoApelido,
   consulta: esquemaDaBuscaDoCatalogo,
   resposta: esquemaDoCatalogo,
@@ -395,6 +436,10 @@ export const esquemaDaOrdemDoCatalogo = z.enum([
   "menor-preco",
   "maior-preco",
   "a-z",
+  /** O maior desconto de atacado, em %, sobre o preço que vale (card #108). */
+  "maior-desconto-atacado",
+  /** Os mais recentes primeiro, pela data de cadastro (card #108). */
+  "lancamentos",
 ]);
 
 export type OrdemDoCatalogoNoContrato = z.infer<typeof esquemaDaOrdemDoCatalogo>;
@@ -499,7 +544,7 @@ export const rotaDoResumoDoCatalogo = definirRota({
   etiqueta: "vitrine",
   resumo: "As seções do catálogo com a contagem de produtos",
   descricao:
-    "Devolve as seções visíveis da loja na ordem do dono, com quantos produtos cada uma tem (já com busca, especificações e atacado aplicados), os destaques, os filtros e a faceta de atacado. Com `porSecao=N`, cada seção traz também os N primeiros produtos e o cursor para continuar em `/catalogo/produtos`.",
+    "Devolve as seções visíveis da loja na ordem do dono, com quantos produtos cada uma tem (já com busca, especificações, atacado, estoque e faixa de preço aplicados), os destaques, os filtros e a faceta de atacado. Com `porSecao=N`, cada seção traz também os N primeiros produtos e o cursor para continuar em `/catalogo/produtos`.",
   parametros: esquemaDoApelido,
   consulta: esquemaDaConsultaDoResumo,
   resposta: esquemaDoResumoDoCatalogo,
@@ -516,7 +561,7 @@ export const rotaDaPaginaDoCatalogo = definirRota({
   etiqueta: "vitrine",
   resumo: "Uma página de produtos do catálogo",
   descricao:
-    "Devolve até `limite` produtos (padrão 24, máximo 48) com categoria, busca, especificações, atacado e ordem aplicados no servidor, o total da lista e o cursor da página seguinte (nulo quando acabou). Sem categoria, a lista junta todas as seções, cada produto uma vez.",
+    "Devolve até `limite` produtos (padrão 24, máximo 48) com categoria, busca, especificações, atacado, estoque, faixa de preço e ordem aplicados no servidor, o total da lista e o cursor da página seguinte (nulo quando acabou). A ordem pode ser `relevancia`, `menor-preco`, `maior-preco`, `a-z`, `maior-desconto-atacado` ou `lancamentos` (cadastro mais recente primeiro). Sem categoria, a lista junta todas as seções, cada produto uma vez.",
   parametros: esquemaDoApelido,
   consulta: esquemaDaConsultaDaPagina,
   resposta: esquemaDaPaginaDoCatalogo,
@@ -608,6 +653,21 @@ export const esquemaDoProduto = z.strictObject({
    * sempre manda; opcional só para quem monta à mão.
    */
   midias: z.array(esquemaDaMidiaPublica).optional(),
+  /**
+   * As especificações que a loja cadastrou para este produto (card #109,
+   * T-10912), já em texto para ler ("195,5 mm", "Sim"). Só o cadastrado: vazio
+   * quando a loja não cadastrou nada. A API sempre manda; opcional só para
+   * quem monta à mão.
+   */
+  especificacoes: z
+    .array(
+      z.strictObject({
+        chave: z.string(),
+        nome: z.string(),
+        valor: z.string(),
+      }),
+    )
+    .optional(),
   /** O preço da variante padrão, ou o do produto quando não há variante. */
   precoCentavos: z.int().nonnegative().nullable(),
   precoAnteriorCentavos: z.int().nonnegative().nullable(),

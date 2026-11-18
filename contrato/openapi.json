@@ -7367,7 +7367,7 @@
         "tags": [
           "vitrine"
         ],
-        "description": "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Loja inexistente e loja suspensa respondem igual.",
+        "description": "Devolve o catálogo público de uma loja: as seções visíveis na ordem que o dono definiu, com os produtos publicados de cada uma, e a lista de destaques. Traz também a versão do catálogo, que muda a cada alteração e serve para saber quando uma cópia guardada venceu. Aceita os filtros `busca`, `categoria`, `filtro` (até 20), `atacado`, `pedidoMinimo`, `estoque` (só o que não está esgotado) e `precoMin`/`precoMax` (centavos, inclusive, só produtos de preço único). Loja inexistente e loja suspensa respondem igual.",
         "parameters": [
           {
             "name": "apelido",
@@ -7413,18 +7413,35 @@
             }
           },
           {
+            "name": "estoque",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1",
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
             "name": "filtro",
             "in": "query",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "maxLength": 120
                 },
                 {
+                  "maxItems": 20,
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 120
                   }
                 }
               ]
@@ -7438,6 +7455,24 @@
               "type": "integer",
               "minimum": 2,
               "maximum": 100000
+            }
+          },
+          {
+            "name": "precoMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
+            }
+          },
+          {
+            "name": "precoMin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
             }
           }
         ],
@@ -7892,7 +7927,7 @@
         "tags": [
           "vitrine"
         ],
-        "description": "Devolve até `limite` produtos (padrão 24, máximo 48) com categoria, busca, especificações, atacado e ordem aplicados no servidor, o total da lista e o cursor da página seguinte (nulo quando acabou). Sem categoria, a lista junta todas as seções, cada produto uma vez.",
+        "description": "Devolve até `limite` produtos (padrão 24, máximo 48) com categoria, busca, especificações, atacado, estoque, faixa de preço e ordem aplicados no servidor, o total da lista e o cursor da página seguinte (nulo quando acabou). A ordem pode ser `relevancia`, `menor-preco`, `maior-preco`, `a-z`, `maior-desconto-atacado` ou `lancamentos` (cadastro mais recente primeiro). Sem categoria, a lista junta todas as seções, cada produto uma vez.",
         "parameters": [
           {
             "name": "apelido",
@@ -7948,18 +7983,35 @@
             }
           },
           {
+            "name": "estoque",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1",
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
             "name": "filtro",
             "in": "query",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "maxLength": 120
                 },
                 {
+                  "maxItems": 20,
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 120
                   }
                 }
               ]
@@ -7985,7 +8037,9 @@
                 "relevancia",
                 "menor-preco",
                 "maior-preco",
-                "a-z"
+                "a-z",
+                "maior-desconto-atacado",
+                "lancamentos"
               ]
             }
           },
@@ -7997,6 +8051,24 @@
               "type": "integer",
               "minimum": 2,
               "maximum": 100000
+            }
+          },
+          {
+            "name": "precoMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
+            }
+          },
+          {
+            "name": "precoMin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
             }
           }
         ],
@@ -8224,7 +8296,7 @@
         "tags": [
           "vitrine"
         ],
-        "description": "Devolve as seções visíveis da loja na ordem do dono, com quantos produtos cada uma tem (já com busca, especificações e atacado aplicados), os destaques, os filtros e a faceta de atacado. Com `porSecao=N`, cada seção traz também os N primeiros produtos e o cursor para continuar em `/catalogo/produtos`.",
+        "description": "Devolve as seções visíveis da loja na ordem do dono, com quantos produtos cada uma tem (já com busca, especificações, atacado, estoque e faixa de preço aplicados), os destaques, os filtros e a faceta de atacado. Com `porSecao=N`, cada seção traz também os N primeiros produtos e o cursor para continuar em `/catalogo/produtos`.",
         "parameters": [
           {
             "name": "apelido",
@@ -8270,18 +8342,35 @@
             }
           },
           {
+            "name": "estoque",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1",
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
             "name": "filtro",
             "in": "query",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "maxLength": 120
                 },
                 {
+                  "maxItems": 20,
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 120
                   }
                 }
               ]
@@ -8305,6 +8394,24 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 48
+            }
+          },
+          {
+            "name": "precoMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
+            }
+          },
+          {
+            "name": "precoMin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(?:\\d{1,8}|100000000)$"
             }
           },
           {
@@ -12449,6 +12556,29 @@
                 "largura",
                 "altura",
                 "texto"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "especificacoes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "chave": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "valor": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "chave",
+                "nome",
+                "valor"
               ],
               "additionalProperties": false
             }

@@ -86,6 +86,10 @@ describe("tema da loja", () => {
       coresDasImagens: {},
       ajustesDasFotos: {},
     });
+    // A cor guardada é ignorada: não há cor própria por loja.
+    expect(temaDaLoja({ corDestaque: "#ff0000" }).corDestaque).toBe(
+      COR_DE_DESTAQUE_PADRAO,
+    );
     expect(
       temaDaLoja({
         fundoVitrineCelular: "https://img.exemplo.test/f-m.webp",
@@ -107,7 +111,7 @@ describe("tema da loja", () => {
     expect(
       temaDaLoja({ corDestaque: "#ABCDEF", fundoVitrine: "http://x" })
         .corDestaque,
-    ).toBe("#abcdef");
+    ).toBe("#b7ff00");
     expect(
       temaDaLoja({ fundoVitrine: "http://inseguro" }).fundoVitrine,
     ).toBeNull();

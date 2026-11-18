@@ -206,9 +206,8 @@ export function temaDaLoja(guardado: {
 }): TemaDaLoja {
   const imagem = (valor: unknown) => (ehEnderecoDeImagem(valor) ? valor : null);
   return {
-    corDestaque: ehCorHexadecimal(guardado.corDestaque)
-      ? guardado.corDestaque.toLowerCase()
-      : COR_DE_DESTAQUE_PADRAO,
+    // Sem cor própria por loja: o valor guardado é ignorado (compatibilidade).
+    corDestaque: COR_DE_DESTAQUE_PADRAO,
     corDeFundo: COR_DE_FUNDO_DA_VITRINE,
     fundoVitrine: imagem(guardado.fundoVitrine),
     topoCardapio: imagem(guardado.topoCardapio),
