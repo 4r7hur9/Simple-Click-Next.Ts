@@ -7,12 +7,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { ListaDeContas } from "../../../../features/admin/ListaDeContas.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../server/acesso-da-administracao.ts";
 
 export const metadata: Metadata = {
   title: "Contas | Administração SimpleClick",
 };
 
-export default function PaginaDasContas() {
+export default async function PaginaDasContas() {
+  await exigirAdministracaoDaPlataforma("/admin/contas");
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <header className="max-w-3xl">

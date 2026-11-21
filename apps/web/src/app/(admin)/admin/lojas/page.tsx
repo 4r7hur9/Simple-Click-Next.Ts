@@ -10,10 +10,12 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ListaLojas } from "../../../../features/admin/ListaLojas.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../server/acesso-da-administracao.ts";
 
 export const metadata = { title: "Lojas | Administração SimpleClick" };
 
-export default function PaginaDeLojas() {
+export default async function PaginaDeLojas() {
+  await exigirAdministracaoDaPlataforma("/admin/lojas");
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-5">

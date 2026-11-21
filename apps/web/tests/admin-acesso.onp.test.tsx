@@ -4,11 +4,14 @@
  * em toda tela de /admin (card #113, T-11301). Prova de REGRESSÃO, verde
  * contra o código atual.
  *
- * Importante: a web NÃO autoriza nada. Quem barra quem não é administrador é
- * a API (duas travas), provado em `apps/api/tests/admin-*.test.ts`. O que se
- * prova aqui é o que a tela faz quando a API recusa: o texto da mensagem, a
- * ausência de dado de loja ou de conta, e a recusa igual para loja que existe
- * e para a que não existe. O contador do menu também fica a zero.
+ * Duas camadas barram quem não é administrador. Primeiro, a guarda do
+ * servidor (card #163, `server/acesso-da-administracao.ts`, provada em
+ * `admin-guarda-servidor.test.tsx`) nem entrega a casca de /admin sem grant
+ * ativo. Depois, cada dado passa pela API (duas travas), provada em
+ * `apps/api/tests/admin-*.test.ts`. O que se prova aqui é a segunda linha: o
+ * que a tela faz quando a API recusa — o texto da mensagem, a ausência de
+ * dado de loja ou de conta, e a recusa igual para loja que existe e para a
+ * que não existe. O contador do menu também fica a zero.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

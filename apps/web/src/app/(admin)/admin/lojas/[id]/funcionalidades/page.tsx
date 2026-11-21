@@ -6,6 +6,7 @@
  * administração, e cada alteração vai para o histórico com o motivo.
  */
 import { FuncionalidadesDaLoja } from "../../../../../../features/admin/FuncionalidadesDaLoja.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../../../server/acesso-da-administracao.ts";
 
 export const metadata = {
   title: "Funcionalidades liberadas | Administração SimpleClick",
@@ -19,6 +20,9 @@ export default async function PaginaDasFuncionalidades({
   params,
 }: ParametrosDaPagina) {
   const { id } = await params;
+  await exigirAdministracaoDaPlataforma(
+    `/admin/lojas/${encodeURIComponent(id)}/funcionalidades`,
+  );
   return (
     <section aria-labelledby="titulo-das-funcionalidades">
       <h2

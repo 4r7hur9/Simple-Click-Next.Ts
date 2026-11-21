@@ -8,6 +8,7 @@
 import Link from "next/link";
 
 import { HistoricoDeAuditoria } from "../../../../features/admin/HistoricoDeAuditoria.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../server/acesso-da-administracao.ts";
 
 export const metadata = {
   title: "Histórico de auditoria | Administração SimpleClick",
@@ -20,6 +21,7 @@ interface ParametrosDaPagina {
 export default async function PaginaDaAuditoria({
   searchParams,
 }: ParametrosDaPagina) {
+  await exigirAdministracaoDaPlataforma("/admin/auditoria");
   const { loja } = await searchParams;
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">

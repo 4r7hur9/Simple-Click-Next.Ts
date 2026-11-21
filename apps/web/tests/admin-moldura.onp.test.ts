@@ -1,22 +1,33 @@
 /**
- * A moldura da administração não ganha guarda nem cache (card #113,
- * T-11302). O layout só desenha menu e conteúdo; quem decide o acesso é a
- * API. O número do selo de pendentes é lido a cada requisição, nunca fixado
- * no módulo (AC-11302).
+ * A moldura da administração não ganha cache (card #113, T-11302) e, desde o
+ * card #163, passa pela guarda do servidor ANTES de desenhar menu e conteúdo:
+ * a decisão "layout sem guarda" do #113 foi revista, porque a casca exposta a
+ * qualquer conta era a causa do acesso indevido. A guarda mora em
+ * `server/acesso-da-administracao.ts` (aqui, simulada); o layout não chama
+ * `redirect`/`notFound` por conta própria. O número do selo de pendentes é
+ * lido a cada requisição, nunca fixado no módulo (AC-11302).
  */
 import { join } from "node:path";
 
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ler, RAIZ_WEB } from "./apoio-painel-lojista.ts";
 
-const { pendentes } = vi.hoisted(() => ({ pendentes: vi.fn() }));
+const { pendentes, guarda, menu } = vi.hoisted(() => ({
+  pendentes: vi.fn(),
+  guarda: vi.fn(),
+  menu: vi.fn(),
+}));
+
+vi.mock("../src/server/acesso-da-administracao.ts", () => ({
+  exigirAdministracaoDaPlataforma: guarda,
+}));
 
 vi.mock("../src/server/pendentes-da-administracao.ts", () => ({
   lojasPendentesDeAprovacao: pendentes,
 }));
 vi.mock("../src/features/painel/MenuDaAdministracao.tsx", () => ({
-  MenuDaAdministracao: () => null,
+  MenuDaAdministracao: menu,
 }));
 vi.mock("../src/app/_usuario/sessao.tsx", () => ({
   UsuarioDoMenuDaSessao: () => null,
@@ -41,6 +52,14 @@ function elementos(no: unknown): { props: Record<string, unknown> }[] {
   ];
 }
 
+beforeEach(() => {
+  pendentes.mockReset();
+  guarda.mockReset();
+  menu.mockReset();
+  guarda.mockResolvedValue(undefined);
+  menu.mockReturnValue(null);
+});
+
 describe("moldura da administração", () => {
   it("[CA-4] @spec:AC-11302 o selo de pendentes é lido a cada requisição, sem memória entre uma e outra", async () => {
     pendentes.mockResolvedValueOnce(3).mockResolvedValueOnce(0);
@@ -55,15 +74,48 @@ describe("moldura da administração", () => {
     expect(numero(segunda)).toBe(0);
   });
 
-  it("[CA-4] @spec:AC-11307 o layout não ganha guarda, cache nem estado de módulo", () => {
+  it("[CA-3] o layout passa pela guarda do servidor antes do selo e do menu", async () => {
+    const ordem: string[] = [];
+    guarda.mockImplementationOnce(async () => {
+      ordem.push("guarda");
+    });
+    pendentes.mockImplementationOnce(async () => {
+      ordem.push("pendentes");
+      return 2;
+    });
+
+    await LayoutDaAdministracao({ children: null });
+
+    expect(guarda).toHaveBeenCalledWith("/admin");
+    expect(ordem).toEqual(["guarda", "pendentes"]);
+  });
+
+  it("[CA-2] guarda recusou: o layout não lê pendentes nem devolve a casca", async () => {
+    const recusa = new Error("NEXT_HTTP_ERROR_FALLBACK;404");
+    guarda.mockRejectedValueOnce(recusa);
+
+    await expect(LayoutDaAdministracao({ children: null })).rejects.toBe(
+      recusa,
+    );
+    expect(pendentes).not.toHaveBeenCalled();
+    expect(menu).not.toHaveBeenCalled();
+  });
+
+  it("[CA-4] @spec:AC-11307 o layout chama a guarda pelo helper, sem cache nem estado de módulo", () => {
     const codigo = ler(CAMINHO).replace(/\/\*[\s\S]*?\*\//g, "");
     expect(codigo).not.toMatch(/["']use cache["']|unstable_cache|revalidate/);
+    // A decisão (redirect/404) é do helper; o layout não lê cookie nem decide.
     expect(codigo).not.toMatch(
       /\bredirect\s*\(|\bnotFound\s*\(|\bcookies\s*\(/,
     );
     expect(codigo).not.toMatch(/^(let|var)\s/m);
-    // O layout continua um componente de servidor que só repassa o número.
     expect(codigo).not.toContain('"use client"');
-    expect(codigo).toContain("lojasPendentesDeAprovacao()");
+    const guardaNoCodigo = codigo.indexOf(
+      'await exigirAdministracaoDaPlataforma("/admin")',
+    );
+    expect(guardaNoCodigo).toBeGreaterThan(-1);
+    expect(guardaNoCodigo).toBeLessThan(
+      codigo.indexOf("lojasPendentesDeAprovacao()"),
+    );
   });
 });

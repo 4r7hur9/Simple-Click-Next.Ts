@@ -7,10 +7,12 @@
 import Link from "next/link";
 
 import { FormularioNovaLoja } from "../../../../../features/admin/FormularioNovaLoja.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../../server/acesso-da-administracao.ts";
 
 export const metadata = { title: "Nova loja | Administração SimpleClick" };
 
-export default function PaginaDeNovaLoja() {
+export default async function PaginaDeNovaLoja() {
+  await exigirAdministracaoDaPlataforma("/admin/lojas/nova");
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <Link

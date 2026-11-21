@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { AbasDaLoja } from "../../../../../features/admin/AbasDaLoja.tsx";
 import { CabecalhoDaFicha } from "../../../../../features/admin/CabecalhoDaFicha.tsx";
 import { ProvedorDaFicha } from "../../../../../features/admin/ProvedorDaFicha.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../../server/acesso-da-administracao.ts";
 
 interface ParametrosDoLayout {
   readonly children: ReactNode;
@@ -23,6 +24,9 @@ export default async function LayoutDaFicha({
   params,
 }: ParametrosDoLayout) {
   const { id } = await params;
+  await exigirAdministracaoDaPlataforma(
+    `/admin/lojas/${encodeURIComponent(id)}`,
+  );
   return (
     <div className="mx-auto max-w-6xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <ProvedorDaFicha lojaId={id}>

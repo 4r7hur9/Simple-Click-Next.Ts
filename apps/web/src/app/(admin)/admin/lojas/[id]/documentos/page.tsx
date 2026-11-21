@@ -7,6 +7,7 @@
  * no clique, com cada abertura registrada na trilha.
  */
 import { DocumentosDaLoja } from "../../../../../../features/admin/DocumentosDaLoja.tsx";
+import { exigirAdministracaoDaPlataforma } from "../../../../../../server/acesso-da-administracao.ts";
 
 export const metadata = {
   title: "Contrato e documentos | Administração SimpleClick",
@@ -20,6 +21,9 @@ export default async function PaginaDosDocumentos({
   params,
 }: ParametrosDaPagina) {
   const { id } = await params;
+  await exigirAdministracaoDaPlataforma(
+    `/admin/lojas/${encodeURIComponent(id)}/documentos`,
+  );
   return (
     <section aria-labelledby="titulo-dos-documentos">
       <h2
