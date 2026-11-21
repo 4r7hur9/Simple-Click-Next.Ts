@@ -47,8 +47,8 @@ env:
   DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
   # A aplicação e a migração precisam de cadeias DIFERENTES (db.ts recusa
   # iguais); `pgbouncer=true` imita o agrupador de produção e as distingue.
-  DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci?pgbouncer=true
-  DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+  DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_dev?pgbouncer=true
+  DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_dev
   SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
   SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
   SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
@@ -141,12 +141,12 @@ jobs:
       - name: Dependências (lockfile congelado)
         run: pnpm install --frozen-lockfile
 
-      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_dev)
         # Os testes que provam a separação entre o banco de teste e o de
         # desenvolvimento precisam que o segundo exista (vazio basta).
         env:
           PGPASSWORD: ci_postgres_teste_2026
-        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_dev"
 
       - name: Testes de unidade
         run: pnpm test:unit
@@ -197,12 +197,12 @@ jobs:
       - name: Dependências (lockfile congelado)
         run: pnpm install --frozen-lockfile
 
-      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_dev)
         # Os testes que provam a separação entre o banco de teste e o de
         # desenvolvimento precisam que o segundo exista (vazio basta).
         env:
           PGPASSWORD: ci_postgres_teste_2026
-        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_dev"
 
       - name: Cliente do PostgreSQL (pg_dump/pg_restore/psql da prova AC-052)
         # A imagem ubuntu-24.04 já traz o cliente 16, da mesma versão do
@@ -263,12 +263,12 @@ jobs:
       - name: Dependências (lockfile congelado)
         run: pnpm install --frozen-lockfile
 
-      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_dev)
         # Os testes que provam a separação entre o banco de teste e o de
         # desenvolvimento precisam que o segundo exista (vazio basta).
         env:
           PGPASSWORD: ci_postgres_teste_2026
-        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_dev"
 
       - name: Suíte completa com cobertura (falha abaixo do mínimo declarado)
         run: pnpm test:coverage
