@@ -7,6 +7,7 @@
  * é montada dentro de `Suspense`.
  */
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { ListaLojas } from "../../../../features/admin/ListaLojas.tsx";
@@ -14,8 +15,18 @@ import { exigirAdministracaoDaPlataforma } from "../../../../server/acesso-da-ad
 
 export const metadata = { title: "Lojas | Administração SimpleClick" };
 
-export default async function PaginaDeLojas() {
+export default async function PaginaDeLojas({
+  searchParams,
+}: {
+  readonly searchParams?: Promise<
+    Record<string, string | string[] | undefined>
+  >;
+} = {}) {
   await exigirAdministracaoDaPlataforma("/admin/lojas");
+  // As pendentes têm tela própria (card #170): o endereço antigo leva a ela.
+  if ((await searchParams)?.situacao === "PENDING_APPROVAL") {
+    redirect("/admin/aprovacoes");
+  }
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-5">

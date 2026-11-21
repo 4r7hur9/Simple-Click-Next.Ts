@@ -24,7 +24,12 @@
  * com uma transição CSS curta, e só quando a pessoa não pediu menos movimento.
  */
 
-import { Botao, IconeFechar, IconeMenu } from "@simpleclick/ui";
+import {
+  Botao,
+  IconeFechar,
+  IconeMenu,
+  SeloDaAdministracao,
+} from "@simpleclick/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -72,6 +77,12 @@ export interface PropsDoMenuLateral {
   readonly usuario?: ReactNode;
   /** Marca o menu lateral para o tutorial achá-lo (`data-tutorial`). */
   readonly alvoDoTutorial?: string;
+  /**
+   * `administracao` veste o menu com o modo da plataforma (card 170, D-13):
+   * classe `sc-menu--administracao` e o selo no topo da sidebar e da barra do
+   * celular. O padrão (`painel`) deixa o menu do dono como sempre foi.
+   */
+  readonly modo?: "painel" | "administracao";
 }
 
 /** A largura a partir da qual o menu deixa de ser gaveta (o `md` do Tailwind). */
@@ -133,7 +144,11 @@ export function MenuLateral(props: PropsDoMenuLateral) {
     botaoDoMenuNosAtalhos = false,
     usuario,
     alvoDoTutorial,
+    modo = "painel",
   } = props;
+  const administracao = modo === "administracao";
+  const classeDoModo = administracao ? " sc-menu--administracao" : "";
+  const selo = administracao ? <SeloDaAdministracao /> : null;
   const secoes = secoesDoMenu(props);
   const caminho = usePathname();
   const idDoMenu = useId();
@@ -222,11 +237,12 @@ export function MenuLateral(props: PropsDoMenuLateral) {
       {/* Celular: a barra do topo, com a marca e o botão da gaveta. */}
       <header
         data-tema="escuro"
-        className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 bg-[var(--cor-superficie)] px-4 text-[var(--cor-tinta)] md:hidden"
+        className={`sticky top-0 z-30 flex h-16 items-center justify-between gap-3 bg-[var(--cor-superficie)] px-4 text-[var(--cor-tinta)] md:hidden${classeDoModo}`}
       >
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-col items-start">
           {marca}
           {contextoDoTopo}
+          {selo}
         </div>
         {botaoDeAbrir}
       </header>
@@ -243,18 +259,20 @@ export function MenuLateral(props: PropsDoMenuLateral) {
         id={idDoMenu}
         data-tema="escuro"
         data-tutorial={alvoDoTutorial}
+        data-modo={administracao ? "administracao" : undefined}
         data-aberta={aberta || undefined}
         {...(aberta
           ? { role: "dialog", "aria-modal": true, "aria-label": rotulo }
           : {})}
         onKeyDown={prenderFoco}
         onClick={aoClicarNoMenu}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-hidden rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible lg:w-64 ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-hidden rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible lg:w-64${classeDoModo} ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
       >
         <div className="flex items-start justify-between gap-2 px-2 pt-2 md:max-lg:justify-center md:max-lg:px-0">
           <div className="flex min-w-0 flex-col md:max-lg:hidden">
             {marca}
             {contexto}
+            {selo !== null ? <span className="mt-2">{selo}</span> : null}
           </div>
           <span className="hidden md:max-lg:flex">
             {/* Na faixa de ícones, só a inicial da marca. */}
@@ -323,7 +341,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
         <nav
           aria-label="Atalhos"
           data-tema="escuro"
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--cor-borda)] bg-[var(--cor-superficie)] pb-[env(safe-area-inset-bottom)] text-[var(--cor-tinta)] md:hidden"
+          className={`fixed inset-x-0 bottom-0 z-30 border-t border-[var(--cor-borda)] bg-[var(--cor-superficie)] pb-[env(safe-area-inset-bottom)] text-[var(--cor-tinta)] md:hidden${classeDoModo}`}
         >
           <ul
             className="grid"

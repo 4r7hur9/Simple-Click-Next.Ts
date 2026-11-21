@@ -116,18 +116,19 @@ describe("painel · moldura e menu", () => {
     expect(chamadas.some((u) => u.includes("comentarios"))).toBe(false);
   });
 
-  it("[CA-6] @spec:AC-11211 a administração mantém os mesmos itens", () => {
+  it("[CA-6] @spec:AC-11211 a administração tem os sete itens planos do #170", () => {
     const tela = montar(<MenuDaAdministracao pendentes={3} />);
     const achados = [...tela.querySelectorAll("a")].map((a) =>
       a.getAttribute("href"),
     );
     for (const href of [
       "/admin",
+      "/admin/aprovacoes",
       "/admin/lojas",
-      "/admin/lojas?situacao=PENDING_APPROVAL",
-      "/admin/lojas/nova",
       "/admin/contas",
+      "/admin/donos-e-equipes",
       "/admin/auditoria",
+      "/admin/configuracoes",
     ]) {
       expect(achados).toContain(href);
     }

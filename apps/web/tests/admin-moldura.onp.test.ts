@@ -31,6 +31,7 @@ vi.mock("../src/features/painel/MenuDaAdministracao.tsx", () => ({
 }));
 vi.mock("../src/app/_usuario/sessao.tsx", () => ({
   UsuarioDoMenuDaSessao: () => null,
+  ModalDaContaDaSessao: () => null,
 }));
 
 import LayoutDaAdministracao from "../src/app/(admin)/admin/layout.tsx";

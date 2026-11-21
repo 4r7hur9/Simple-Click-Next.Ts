@@ -85,7 +85,18 @@ export interface TipoParaFiltro {
   readonly nome: string;
 }
 
+/**
+ * `lojas` é a lista de sempre; `aprovacoes` é a mesma lista com a situação
+ * fixa em "pendentes" (tela Aprovações, card #170): sem pílulas de situação
+ * e sem aviso, e o endereço é `/admin/aprovacoes`.
+ */
+export type ModoDaLista = "lojas" | "aprovacoes";
+
+export const ENDERECO_DAS_APROVACOES = "/admin/aprovacoes";
+
 export interface TabelaDeLojasProps {
+  /** Padrão: `lojas`. */
+  readonly modo?: ModoDaLista;
   readonly consulta: ConsultaDaLista;
   /** O que está digitado no campo de busca (ainda não enviado). */
   readonly termo: string;
@@ -140,16 +151,21 @@ export function consultaDoEndereco(
 }
 
 /** O endereço da página para esta consulta (só o que difere do padrão). */
-export function enderecoDaPagina(consulta: ConsultaDaLista): string {
+export function enderecoDaPagina(
+  consulta: ConsultaDaLista,
+  modo: ModoDaLista = "lojas",
+): string {
+  const base = modo === "aprovacoes" ? ENDERECO_DAS_APROVACOES : "/admin/lojas";
   const parametros = new URLSearchParams();
-  if (consulta.situacao !== null) parametros.set("situacao", consulta.situacao);
+  if (modo === "lojas" && consulta.situacao !== null)
+    parametros.set("situacao", consulta.situacao);
   if (consulta.tipo !== "") parametros.set("tipo", consulta.tipo);
   if (consulta.ordem !== "recentes") parametros.set("ordem", consulta.ordem);
   if (consulta.busca.trim() !== "")
     parametros.set("busca", consulta.busca.trim());
   if (consulta.pagina > 1) parametros.set("pagina", String(consulta.pagina));
   const texto = parametros.toString();
-  return texto === "" ? "/admin/lojas" : `/admin/lojas?${texto}`;
+  return texto === "" ? base : `${base}?${texto}`;
 }
 
 /** O endereço que a tela consulta no próprio site, com a consulta montada. */
@@ -167,18 +183,13 @@ export function enderecoDaLista(
   return `/api/admin/lojas?${parametros.toString()}`;
 }
 
+/** As pílulas de Lojas: as pendentes têm tela própria (Aprovações). */
 function pilulasDaLista(
   lista: ListaDeLojasNoContrato | null,
 ): PilulaDeFiltro<string>[] {
   const c = lista?.contagens;
   return [
     { valor: "TODAS", rotulo: "Todas", quantidade: c?.todas },
-    {
-      valor: "PENDING_APPROVAL",
-      rotulo: "Pendentes de aprovação",
-      quantidade: c?.PENDING_APPROVAL,
-      destaque: true,
-    },
     { valor: "ACTIVE", rotulo: "Ativas", quantidade: c?.ACTIVE },
     { valor: "INACTIVE", rotulo: "Inativas", quantidade: c?.INACTIVE },
     { valor: "REJECTED", rotulo: "Recusadas", quantidade: c?.REJECTED },
@@ -189,12 +200,13 @@ const SELETOR = "min-w-[12rem]";
 
 /** Só desenha. Nenhuma chamada de rede mora aqui, fora dos atos de aprovação. */
 export function TabelaDeLojas(props: TabelaDeLojasProps) {
-  const { estado, termo, consulta } = props;
+  const { estado, termo, consulta, modo = "lojas" } = props;
+  const aprovacoes = modo === "aprovacoes";
   const lista = estado.fase === "pronta" ? estado.lista : null;
   const pendentes = lista?.contagens.PENDING_APPROVAL ?? 0;
   const filtrando =
     consulta.busca.trim() !== "" ||
-    consulta.situacao !== null ||
+    (!aprovacoes && consulta.situacao !== null) ||
     consulta.tipo !== "";
 
   return (
@@ -206,43 +218,45 @@ export function TabelaDeLojas(props: TabelaDeLojasProps) {
         Lojas cadastradas
       </h2>
 
-      {pendentes > 0 && consulta.situacao !== "PENDING_APPROVAL" && (
-        <Aviso
-          tom="atencao"
-          aoVivo={false}
-          titulo={
-            pendentes === 1
-              ? "1 loja espera a sua aprovação"
-              : `${pendentes} lojas esperam a sua aprovação`
-          }
-          acao={
-            <Botao
-              variante="primaria"
-              onClick={() =>
-                props.aoMudarFiltro({ situacao: "PENDING_APPROVAL", pagina: 1 })
-              }
-            >
-              Ver pendentes
-            </Botao>
-          }
-        >
-          <p>Lojas novas só entram no ar depois de aprovadas.</p>
-        </Aviso>
-      )}
+      {!aprovacoes &&
+        pendentes > 0 &&
+        consulta.situacao !== "PENDING_APPROVAL" && (
+          <Aviso
+            tom="atencao"
+            aoVivo={false}
+            titulo={
+              pendentes === 1
+                ? "1 loja espera a sua aprovação"
+                : `${pendentes} lojas esperam a sua aprovação`
+            }
+            acao={
+              <Link
+                className="sc-botao sc-botao--primaria"
+                href={ENDERECO_DAS_APROVACOES}
+              >
+                Ver pendentes
+              </Link>
+            }
+          >
+            <p>Lojas novas só entram no ar depois de aprovadas.</p>
+          </Aviso>
+        )}
 
       <Cartao>
         <div className="grid gap-4">
-          <PilulasDeFiltro
-            rotulo="Filtrar por situação"
-            pilulas={pilulasDaLista(lista)}
-            valor={consulta.situacao ?? "TODAS"}
-            aoEscolher={(valor) =>
-              props.aoMudarFiltro({
-                situacao: situacaoDoEndereco(valor),
-                pagina: 1,
-              })
-            }
-          />
+          {!aprovacoes && (
+            <PilulasDeFiltro
+              rotulo="Filtrar por situação"
+              pilulas={pilulasDaLista(lista)}
+              valor={consulta.situacao ?? "TODAS"}
+              aoEscolher={(valor) =>
+                props.aoMudarFiltro({
+                  situacao: situacaoDoEndereco(valor),
+                  pagina: 1,
+                })
+              }
+            />
+          )}
           <form
             role="search"
             onSubmit={props.aoBuscar}
@@ -364,7 +378,7 @@ export function TabelaDeLojas(props: TabelaDeLojasProps) {
               >
                 Limpar filtros
               </Botao>
-            ) : (
+            ) : aprovacoes ? undefined : (
               <Link
                 className="sc-botao sc-botao--primaria"
                 href="/admin/lojas/nova"
@@ -546,13 +560,18 @@ function ListaPronta({
 }
 
 /** Estado e rede. O desenho é todo de `TabelaDeLojas`. */
-export function ListaLojas() {
+export function ListaLojas({
+  modo = "lojas",
+}: { readonly modo?: ModoDaLista } = {}) {
   const parametros = useSearchParams();
   const roteador = useRouter();
-  const consulta = useMemo(
-    () => consultaDoEndereco(parametros ?? new URLSearchParams()),
-    [parametros],
-  );
+  const consulta = useMemo(() => {
+    const doEndereco = consultaDoEndereco(parametros ?? new URLSearchParams());
+    // Em Aprovações a situação é fixa; o endereço não a escolhe.
+    return modo === "aprovacoes"
+      ? { ...doEndereco, situacao: "PENDING_APPROVAL" as const }
+      : doEndereco;
+  }, [parametros, modo]);
   const [termo, setTermo] = useState(consulta.busca);
   const [estado, setEstado] = useState<EstadoDaLista>({ fase: "carregando" });
   const [tipos, setTipos] = useState<readonly TipoParaFiltro[]>([]);
@@ -615,13 +634,14 @@ export function ListaLojas() {
 
   const ir = useCallback(
     (proxima: ConsultaDaLista) => {
-      roteador.replace(enderecoDaPagina(proxima), { scroll: false });
+      roteador.replace(enderecoDaPagina(proxima, modo), { scroll: false });
     },
-    [roteador],
+    [roteador, modo],
   );
 
   return (
     <TabelaDeLojas
+      modo={modo}
       consulta={consulta}
       termo={termo}
       tipos={tipos}

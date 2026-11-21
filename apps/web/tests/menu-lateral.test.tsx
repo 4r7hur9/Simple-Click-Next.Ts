@@ -100,6 +100,22 @@ beforeEach(() => {
 });
 afterEach(desmontar);
 
+describe("o menu lateral no modo padrão", () => {
+  it("[CA-12] não tem selo nem classe de administração, aria-expanded só no botão da gaveta e nenhum hidden", () => {
+    const tela = menu();
+    expect(tela.querySelector(".sc-menu--administracao")).toBeNull();
+    expect(tela.querySelector(".sc-selo-admin")).toBeNull();
+    expect(navegacao(tela).querySelector("[aria-expanded]")).toBeNull();
+    expect(navegacao(tela).querySelector("[hidden]")).toBeNull();
+  });
+
+  it("[CA-12] há um único aria-current na navegação", () => {
+    expect(
+      navegacao(menu()).querySelectorAll('[aria-current="page"]'),
+    ).toHaveLength(1);
+  });
+});
+
 describe("o menu lateral", () => {
   it("mostra cada seção com o título e todos os itens de uma vez", () => {
     const nav = navegacao(menu());

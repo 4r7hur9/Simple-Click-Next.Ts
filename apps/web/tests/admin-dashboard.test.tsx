@@ -69,7 +69,7 @@ describe("corpo do painel", () => {
     expect(q("pedidos")?.querySelector('[data-variacao="queda"]')).not.toBeNull();
     expect(q("faturamento")?.querySelector('[data-variacao="alta"]')).not.toBeNull();
     expect(q("lojas-pendentes")?.querySelector("a")?.getAttribute("href")).toBe(
-      "/admin/lojas?situacao=PENDING_APPROVAL",
+      "/admin/aprovacoes",
     );
     expect(q("conversao")?.textContent).toContain("—");
   });

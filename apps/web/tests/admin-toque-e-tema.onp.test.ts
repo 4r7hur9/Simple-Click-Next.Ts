@@ -2,8 +2,9 @@
  * Toque e tema da administração (card #113, T-11311, AC-11329 e AC-11331).
  *
  * O alvo de toque vem do token do #104 (`--altura-toque`), sem medida
- * própria; e a administração não ganha folha de estilo nem troca de tema:
- * segue o tema claro de hoje, com os tokens do pacote. A medida
+ * própria. AC-11331 reescrito (card #170, D-13): o modo administração tem uma
+ * única folha do design system (`administracao-da-plataforma.css`), sem
+ * `admin.css`, e as pastas do admin não escolhem tema nem escrevem cor. A medida
  * renderizada fica para o e2e do #114.
  */
 import { existsSync } from "node:fs";
@@ -52,12 +53,25 @@ describe("alvo de toque", () => {
 });
 
 describe("tema", () => {
-  it("[CA-15] @spec:AC-11331 a administração não tem folha de estilo própria nem escolhe tema", () => {
+  it("[CA-15] @spec:AC-11331 o modo administração vem do design system: sem admin.css, sem data-tema nem cor literal nas pastas do admin", () => {
     expect(existsSync(join(ESTILOS, "admin.css"))).toBe(false);
+    expect(existsSync(join(ESTILOS, "administracao-da-plataforma.css"))).toBe(
+      true,
+    );
+    expect(ler(join(ESTILOS, "theme.css"))).toContain(
+      "administracao-da-plataforma.css",
+    );
     for (const arquivo of todos) {
       const codigo = ler(arquivo);
       expect(codigo, arquivo).not.toMatch(
         /data-tema|dataset\.tema|prefers-color-scheme|color-scheme/,
+      );
+      // Sem comentários: "#170" nos textos de cartão não é cor.
+      const semComentarios = codigo
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1");
+      expect(semComentarios, arquivo).not.toMatch(
+        /["'`(\s]#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/,
       );
     }
   });

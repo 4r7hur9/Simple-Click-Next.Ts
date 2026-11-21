@@ -61,7 +61,7 @@ import {
   type EstadoDoPainel,
 } from "./useMetricasDoAdmin.ts";
 
-export const ENDERECO_DAS_PENDENTES = "/admin/lojas?situacao=PENDING_APPROVAL";
+export const ENDERECO_DAS_PENDENTES = "/admin/aprovacoes";
 
 const TOM_DA_SITUACAO: Readonly<
   Record<SituacaoDaLoja, "sucesso" | "atencao" | "erro" | "neutro">

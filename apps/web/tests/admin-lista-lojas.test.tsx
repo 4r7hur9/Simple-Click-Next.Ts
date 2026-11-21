@@ -237,13 +237,9 @@ describe("a lista de lojas na tela", () => {
       '[role="group"][aria-label="Filtrar por situação"]',
     );
     const texto = filtros?.textContent ?? "";
-    for (const rotulo of [
-      "Todas",
-      "Pendentes de aprovação",
-      "Ativas",
-      "Inativas",
-      "Recusadas",
-    ]) {
+    // Pendentes não é pílula de Lojas: tem tela própria (Aprovações).
+    expect(texto).not.toContain("Pendentes de aprovação");
+    for (const rotulo of ["Todas", "Ativas", "Inativas", "Recusadas"]) {
       expect(texto).toContain(rotulo);
     }
     expect(texto).toContain("27");
@@ -256,14 +252,27 @@ describe("a lista de lojas na tela", () => {
       "3 lojas esperam a sua aprovação",
     );
     expect(pagina.body.textContent).toContain("Ver pendentes");
+    expect(
+      [...pagina.querySelectorAll("a")]
+        .find((link) => link.textContent === "Ver pendentes")
+        ?.getAttribute("href"),
+    ).toBe("/admin/aprovacoes");
 
+    // Em Aprovações a situação é fixa: sem pílulas e sem aviso.
     const naFila = desenhar({
+      modo: "aprovacoes",
       consulta: { ...CONSULTA_INICIAL, situacao: "PENDING_APPROVAL" },
     });
     expect(naFila.body.textContent).not.toContain("esperam a sua aprovação");
+    expect(naFila.querySelector('[aria-label="Filtrar por situação"]')).toBe(
+      null,
+    );
     expect(
-      naFila.querySelector('button[aria-pressed="true"]')?.textContent,
-    ).toContain("Pendentes de aprovação");
+      enderecoDaPagina(
+        { ...CONSULTA_INICIAL, situacao: "PENDING_APPROVAL", pagina: 2 },
+        "aprovacoes",
+      ),
+    ).toBe("/admin/aprovacoes?pagina=2");
   });
 
   it("card #29 só a loja pendente tem Aprovar e Recusar na linha; as outras têm Abrir", () => {
