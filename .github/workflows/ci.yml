@@ -45,7 +45,9 @@ env:
   # `globalPassThroughEnv` do turbo.json.
   LOG_LEVEL: warn
   DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
-  DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+  # A aplicação e a migração precisam de cadeias DIFERENTES (db.ts recusa
+  # iguais); `pgbouncer=true` imita o agrupador de produção e as distingue.
+  DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci?pgbouncer=true
   DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
   SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
   SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
