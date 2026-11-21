@@ -20,6 +20,8 @@ import {
  */
 const ATOS_SEM_NOME_NO_CONTRATO: Readonly<Record<string, string>> = {
   LIMITES_PADRAO_ALTERADOS: "Limites padrão da plataforma alterados",
+  LGPD_EXPORTACAO: "Exportação de dados do titular (LGPD)",
+  LGPD_EXCLUSAO: "Exclusão de dados do titular (LGPD)",
   LIMITE_DO_DONO_ALTERADO: "Limite de lojas do dono alterado",
   CONVITE_REENVIADO: "Convite de acesso reenviado",
   CLIENTES_IMPORTADOS: "Clientes importados de arquivo",

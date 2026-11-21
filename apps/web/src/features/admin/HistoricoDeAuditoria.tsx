@@ -15,6 +15,8 @@
 
 import {
   esquemaDaPaginaDaAuditoria,
+  esquemaDaPaginaDaAuditoriaDaPlataforma,
+  type PaginaDaAuditoriaDaPlataformaNoContrato,
   type PaginaDaAuditoriaNoContrato,
   type RegistroDaAuditoriaNoContrato,
 } from "@simpleclick/contracts";
@@ -54,7 +56,14 @@ export const SEM_FILTROS: FiltrosDaAuditoria = {
 export type EstadoDoHistorico =
   | { readonly fase: "carregando" }
   | { readonly fase: "erro"; readonly mensagem: string }
-  | { readonly fase: "pronto"; readonly pagina: PaginaDaAuditoriaNoContrato };
+  | {
+      readonly fase: "pronto";
+      readonly pagina:
+        PaginaDaAuditoriaNoContrato | PaginaDaAuditoriaDaPlataformaNoContrato;
+    };
+
+/** As duas origens dos atos: o das lojas e o da plataforma (pessoas, limites). */
+export type AbaDaAuditoria = "lojas" | "plataforma";
 
 export const MENSAGEM_DE_SESSAO =
   "Sua sessão não tem acesso à administração. Entre de novo.";
@@ -67,13 +76,20 @@ export const MENSAGEM_DE_PERIODO =
 export function enderecoDoHistorico(
   filtros: FiltrosDaAuditoria,
   pagina: number,
+  aba: AbaDaAuditoria = "lojas",
 ): string {
   const parametros = new URLSearchParams({ pagina: String(pagina) });
-  for (const chave of ["loja", "ato", "de", "ate"] as const) {
+  // Ato da plataforma não pertence a loja: o filtro por loja não existe lá.
+  const chaves =
+    aba === "plataforma"
+      ? (["ato", "de", "ate"] as const)
+      : (["loja", "ato", "de", "ate"] as const);
+  for (const chave of chaves) {
     const valor = filtros[chave].trim();
     if (valor !== "") parametros.set(chave, valor);
   }
-  return `/api/admin/auditoria?${parametros.toString()}`;
+  const base = aba === "plataforma" ? "auditoria/plataforma" : "auditoria";
+  return `/api/admin/${base}?${parametros.toString()}`;
 }
 
 /** O período está na ordem certa (ou incompleto, o que também vale)? */
@@ -87,6 +103,8 @@ const OPCOES_DE_ATO = Object.entries(NOMES_DOS_ATOS).sort(([, a], [, b]) =>
 );
 
 export interface PainelDaAuditoriaProps {
+  /** De onde vêm os atos; sem ela, das lojas. */
+  readonly aba?: AbaDaAuditoria;
   /** O rascunho dos filtros, como está no formulário. */
   readonly rascunho: FiltrosDaAuditoria;
   /** O nome da loja filtrada, quando se sabe; senão, o filtro aparece genérico. */
@@ -105,6 +123,7 @@ export interface PainelDaAuditoriaProps {
 /** Só desenha. Nenhuma chamada de rede mora aqui. */
 export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
   const { rascunho, estado } = props;
+  const aba = props.aba ?? "lojas";
   const algumFiltro =
     rascunho.loja !== "" ||
     rascunho.ato !== "" ||
@@ -113,6 +132,24 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
 
   return (
     <section aria-labelledby="historico-de-auditoria" className="mt-8">
+      <nav aria-label="Origem dos atos" className="mb-6 flex flex-wrap gap-2">
+        {(
+          [
+            ["lojas", "Lojas", "/admin/auditoria"],
+            ["plataforma", "Plataforma", "/admin/auditoria?aba=plataforma"],
+          ] as const
+        ).map(([codigo, rotulo, destino]) => (
+          <Link
+            key={codigo}
+            href={destino}
+            prefetch={false}
+            aria-current={aba === codigo ? "page" : undefined}
+            className={`sc-chip${aba === codigo ? " sc-chip--ativo" : ""}`}
+          >
+            {rotulo}
+          </Link>
+        ))}
+      </nav>
       <Cartao titulo="Filtrar histórico" nivelDoTitulo={2}>
         <form
           aria-label="Filtros do histórico"
@@ -131,9 +168,7 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
                 aria-describedby={descritoresDoCampo("filtro-ato", {
                   info: true,
                 }).join(" ")}
-                onChange={(valor) =>
-                  props.aoMudar({ ...rascunho, ato: valor })
-                }
+                onChange={(valor) => props.aoMudar({ ...rascunho, ato: valor })}
               >
                 <option value="">Todos os atos</option>
                 {OPCOES_DE_ATO.map(([codigo, rotulo]) => (
@@ -199,7 +234,7 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
         </form>
       </Cartao>
 
-      {rascunho.loja !== "" && (
+      {aba === "lojas" && rascunho.loja !== "" && (
         <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
           <Selo semBolinha>
             Só a loja {props.nomeDaLojaFiltrada ?? "escolhida"}
@@ -259,13 +294,19 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
   );
 }
 
+const NOMES_DAS_ENTIDADES: Readonly<Record<string, string>> = {
+  identity: "Pessoa",
+  store: "Loja",
+};
+
 function PaginaPronta({
   pagina,
   filtrandoLoja,
   aoFiltrarLoja,
   aoIrParaPagina,
 }: {
-  readonly pagina: PaginaDaAuditoriaNoContrato;
+  readonly pagina:
+    PaginaDaAuditoriaNoContrato | PaginaDaAuditoriaDaPlataformaNoContrato;
   readonly filtrandoLoja: boolean;
   readonly aoFiltrarLoja: (registro: RegistroDaAuditoriaNoContrato) => void;
   readonly aoIrParaPagina: (pagina: number) => void;
@@ -275,9 +316,11 @@ function PaginaPronta({
     Math.ceil(pagina.total / pagina.porPagina),
   );
   // A lista da trilha devolve o registro sem a loja; o mapa a recupera.
-  const porId = new Map(
-    pagina.registros.map((registro) => [registro.id, registro]),
-  );
+  const porId = new Map<
+    string,
+    | RegistroDaAuditoriaNoContrato
+    | PaginaDaAuditoriaDaPlataformaNoContrato["registros"][number]
+  >(pagina.registros.map((registro) => [registro.id, registro]));
 
   return (
     <>
@@ -292,6 +335,14 @@ function PaginaPronta({
           complemento={(registro) => {
             const completo = porId.get(registro.id);
             if (completo === undefined) return null;
+            if (!("loja" in completo)) {
+              return (
+                <p className="mt-1 text-sm">
+                  Sobre:{" "}
+                  {NOMES_DAS_ENTIDADES[completo.entidade] ?? completo.entidade}
+                </p>
+              );
+            }
             const { loja } = completo;
             return (
               <p className="mt-1 flex flex-wrap items-center gap-x-3 text-sm">
@@ -349,6 +400,8 @@ function PaginaPronta({
 }
 
 export interface HistoricoDeAuditoriaProps {
+  /** A aba do endereço (`?aba=plataforma`); sem ela, as lojas. */
+  readonly aba?: AbaDaAuditoria;
   /** A loja que chega pelo endereço (`?loja=`), vinda da ficha. */
   readonly lojaInicial?: string;
 }
@@ -356,6 +409,7 @@ export interface HistoricoDeAuditoriaProps {
 /** Estado e rede. O desenho é todo de `PainelDaAuditoria`. */
 export function HistoricoDeAuditoria({
   lojaInicial = "",
+  aba = "lojas",
 }: HistoricoDeAuditoriaProps) {
   const inicial: FiltrosDaAuditoria = { ...SEM_FILTROS, loja: lojaInicial };
   const [rascunho, setRascunho] = useState<FiltrosDaAuditoria>(inicial);
@@ -372,7 +426,7 @@ export function HistoricoDeAuditoria({
     setEstado({ fase: "carregando" });
     try {
       const resposta = await fetch(
-        enderecoDoHistorico(consulta.filtros, consulta.pagina),
+        enderecoDoHistorico(consulta.filtros, consulta.pagina, aba),
         { cache: "no-store" },
       );
       if (resposta.status === 401 || resposta.status === 403) {
@@ -383,7 +437,15 @@ export function HistoricoDeAuditoria({
         setEstado({ fase: "erro", mensagem: MENSAGEM_DE_FALHA });
         return;
       }
-      const pagina = esquemaDaPaginaDaAuditoria.parse(await resposta.json());
+      const corpo: unknown = await resposta.json();
+      if (aba === "plataforma") {
+        setEstado({
+          fase: "pronto",
+          pagina: esquemaDaPaginaDaAuditoriaDaPlataforma.parse(corpo),
+        });
+        return;
+      }
+      const pagina = esquemaDaPaginaDaAuditoria.parse(corpo);
       const daLoja = pagina.registros.find(
         (registro) => registro.loja.id === consulta.filtros.loja,
       );
@@ -392,7 +454,7 @@ export function HistoricoDeAuditoria({
     } catch {
       setEstado({ fase: "erro", mensagem: MENSAGEM_DE_FALHA });
     }
-  }, [consulta]);
+  }, [consulta, aba]);
 
   useEffect(() => {
     void carregar();
@@ -410,6 +472,7 @@ export function HistoricoDeAuditoria({
 
   return (
     <PainelDaAuditoria
+      aba={aba}
       rascunho={rascunho}
       nomeDaLojaFiltrada={nomeDaLoja}
       estado={estado}

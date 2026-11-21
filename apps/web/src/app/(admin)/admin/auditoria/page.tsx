@@ -15,14 +15,18 @@ export const metadata = {
 };
 
 interface ParametrosDaPagina {
-  readonly searchParams: Promise<{ readonly loja?: string | string[] }>;
+  readonly searchParams: Promise<{
+    readonly loja?: string | string[];
+    readonly aba?: string | string[];
+  }>;
 }
 
 export default async function PaginaDaAuditoria({
   searchParams,
 }: ParametrosDaPagina) {
   await exigirAdministracaoDaPlataforma("/admin/auditoria");
-  const { loja } = await searchParams;
+  const { loja, aba } = await searchParams;
+  const plataforma = aba === "plataforma";
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <Link
@@ -44,6 +48,8 @@ export default async function PaginaDaAuditoria({
         </p>
       </header>
       <HistoricoDeAuditoria
+        key={plataforma ? "plataforma" : "lojas"}
+        aba={plataforma ? "plataforma" : "lojas"}
         lojaInicial={typeof loja === "string" ? loja : ""}
       />
     </div>

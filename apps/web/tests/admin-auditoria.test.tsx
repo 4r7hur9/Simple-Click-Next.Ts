@@ -250,3 +250,58 @@ describe("o repasse do site (AC-215)", () => {
     ).toBe(true);
   });
 });
+
+describe("a aba Plataforma (card #170, T-11)", () => {
+  const PLATAFORMA = {
+    registros: [
+      {
+        id: "90",
+        quando: "2026-11-20T15:00:00.000Z",
+        acao: "LIMITES_PADRAO_ALTERADOS",
+        quem: { id: "5b0c0000-0000-4000-8000-0000000000bb", nome: "Ana" },
+        papel: "ADMIN",
+        campos: [{ campo: "produtosPorLoja", antes: 500, depois: 800 }],
+        sensivel: true,
+        entidade: "store",
+        entidadeId: null,
+      },
+    ],
+    total: 1,
+    pagina: 1,
+    porPagina: 25,
+  };
+
+  it("@spec:AC-215 alterna Lojas/Plataforma pela consulta e consulta a rota da plataforma, sem filtro de loja", async () => {
+    const chamadas = simularApi(() => ({ status: 200, corpo: PLATAFORMA }));
+    const tela = montar(
+      <HistoricoDeAuditoria aba="plataforma" lojaInicial="x" />,
+    );
+    await esperar();
+    expect(chamadas[0]?.url).toBe(
+      "/api/admin/auditoria/plataforma?pagina=1&ato=&de=&ate=".replace(
+        "&ato=&de=&ate=",
+        "",
+      ),
+    );
+    const abas = tela.querySelectorAll('nav[aria-label="Origem dos atos"] a');
+    expect(abas[0]?.getAttribute("href")).toBe("/admin/auditoria");
+    expect(abas[1]?.getAttribute("href")).toBe(
+      "/admin/auditoria?aba=plataforma",
+    );
+    expect(abas[1]?.getAttribute("aria-current")).toBe("page");
+    expect(tela.textContent).toContain(
+      "Limites padrão da plataforma alterados",
+    );
+    expect(tela.querySelector('[data-sensivel="true"]')).not.toBeNull();
+    expect(tela.textContent).not.toContain("Só desta loja");
+  });
+
+  it("@spec:AC-215 o repasse libera a leitura da plataforma e o PATCH dos limites padrão", () => {
+    expect(caminhoPermitido("auditoria/plataforma", "GET")).toBe(true);
+    expect(caminhoPermitido("auditoria/plataforma", "POST")).toBe(false);
+    expect(caminhoPermitido("limites", "PATCH")).toBe(true);
+    expect(enderecoDoHistorico(SEM_FILTROS, 2, "plataforma")).toBe(
+      "/api/admin/auditoria/plataforma?pagina=2",
+    );
+  });
+});
