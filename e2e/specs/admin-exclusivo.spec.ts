@@ -1,10 +1,13 @@
 /**
- * Acesso direto à administração da plataforma (card #163, T-5).
+ * Acesso direto à administração da plataforma (card #163, T-5; card #170, T-6).
  *
- * Só quem tem grant ativo em `platform_admins` entra em /admin. Os demais
- * recebem 404 neutro (ou o redirecionamento para /entrar, sem sessão), sem
- * nenhum rastro do menu no HTML nem no payload RSC. A API barra também o
- * token que SÓ DIZ "ADMIN", sem grant.
+ * Só quem tem grant ativo em `platform_admins` entra em /admin. Quem não tem é
+ * REDIRECIONADO pelo servidor para a área do próprio papel (dono e equipe, o
+ * painel; cliente, o feed), sem nenhum rastro do menu no HTML nem no payload
+ * RSC, e sem 404 por falta de permissão. Sem sessão, o redirecionamento é para
+ * /entrar. A API barra também o token que SÓ DIZ "ADMIN", sem grant, com 403.
+ * A matriz completa de papéis × áreas e os limites de saltos estão em
+ * `area-por-papel.spec.ts`.
  *
  * Roda só no e2e isolado (`pnpm --filter @simpleclick/e2e test:e2e:isolado`):
  * a fixture recusa banco que não seja simpleclick_test ou sc_e2e_*.
@@ -109,46 +112,80 @@ test.describe("[CA-1] sem sessão", () => {
 });
 
 test.describe("[CA-2] sem grant", () => {
-  const papeis: Array<[string, () => Promise<string>]> = [
+  // Cada papel é levado para a área dele: nunca 404, nunca HTML da administração.
+  const papeis: Array<[string, () => Promise<string>, string]> = [
     [
       "cliente",
       async () =>
         tokenDoCliente((await criarClienteDeTeste("Cliente")).identidadeId),
+      "/explorar/produtos",
     ],
-    ["dono", async () => tokenDoDono((await garantirLojaDoPainel()).donoId)],
-    ["equipe", tokenDaEquipe],
-    ["ADMIN no token sem grant", tokenAdminSemGrant],
+    [
+      "dono",
+      async () => tokenDoDono((await garantirLojaDoPainel()).donoId),
+      "/painel",
+    ],
+    ["equipe", tokenDaEquipe, "/painel"],
+    ["ADMIN no token sem grant", tokenAdminSemGrant, "/explorar/produtos"],
   ];
 
-  for (const [nome, obterToken] of papeis) {
-    test(`[CA-2] ${nome}: 404 neutro, sem menu no HTML nem no RSC`, async ({
+  for (const [nome, obterToken, destino] of papeis) {
+    test(`[CA-17] ${nome}: redirecionado para ${destino}, sem menu no HTML nem no RSC`, async ({
       context,
     }) => {
       await cookie(context, await obterToken());
       for (const caminho of CAMINHOS) {
-        for (const cabecalhos of [{}, { RSC: "1" }]) {
-          // Com o cabeçalho RSC o Next primeiro redireciona para a mesma URL
-          // com o parâmetro `_rsc` (cache-busting); segue-se esse salto, e o
-          // que vale é a resposta final.
-          const rsc = "RSC" in cabecalhos;
-          const resposta = await context.request.get(
-            `${ENDERECO_DO_SITE}${caminho}`,
-            { maxRedirects: rsc ? 1 : 0, headers: cabecalhos },
-          );
-          // HTML: 404 de verdade. RSC: o Next entrega o 404 DENTRO do payload
-          // (status 200 depois do salto do `_rsc`); o que se prova é que
-          // nenhuma tela nem menu da administração vai no corpo.
-          expect(
-            rsc ? [200, 404] : [404],
-            `${caminho} ${JSON.stringify(cabecalhos)}`,
-          ).toContain(resposta.status());
-          const corpo = await resposta.text();
-          expect(corpo).not.toContain(MENU);
-          expect(corpo).not.toContain("Navegação da administração");
-        }
+        // HTML: redirecionamento de verdade (307), com o destino do papel e
+        // nenhum byte da administração no corpo.
+        const html = await context.request.get(
+          `${ENDERECO_DO_SITE}${caminho}`,
+          { maxRedirects: 0 },
+        );
+        expect(REDIRECIONAMENTOS, caminho).toContain(html.status());
+        expect(html.status(), caminho).not.toBe(404);
+        const local = new URL(html.headers()["location"] ?? "", ENDERECO_DO_SITE);
+        expect(`${local.pathname}${local.search}`, caminho).toBe(destino);
+        const corpo = await html.text();
+        expect(corpo).not.toContain(MENU);
+        expect(corpo).not.toContain("Navegação da administração");
+
+        // RSC (navegação parcial do App Router): com o cabeçalho RSC o Next
+        // primeiro redireciona para a mesma URL com o parâmetro `_rsc`
+        // (cache-busting); segue-se esse salto. O que vale é que nenhuma tela
+        // nem menu da administração vai no corpo, e que não há 404.
+        const rsc = await context.request.get(`${ENDERECO_DO_SITE}${caminho}`, {
+          maxRedirects: 1,
+          headers: { RSC: "1" },
+        });
+        expect([200, ...REDIRECIONAMENTOS], `${caminho} RSC`).toContain(
+          rsc.status(),
+        );
+        const corpoRsc = await rsc.text();
+        expect(corpoRsc).not.toContain(MENU);
+        expect(corpoRsc).not.toContain("Navegação da administração");
       }
     });
   }
+
+  test("[CA-17] quem foi redirecionado chega à própria área em poucos saltos, nunca à administração", async ({
+    context,
+  }) => {
+    await cookie(context, await tokenDaEquipe());
+    const pagina = await context.newPage();
+    let saltos = 0;
+    pagina.on("response", (resposta) => {
+      if (
+        resposta.request().isNavigationRequest() &&
+        REDIRECIONAMENTOS.includes(resposta.status())
+      ) {
+        saltos += 1;
+      }
+    });
+    await pagina.goto(`${ENDERECO_DO_SITE}/admin`);
+    await expect(pagina).toHaveURL(/\/painel(\?|$)/);
+    expect(saltos).toBeLessThanOrEqual(5);
+    expect(await pagina.content()).not.toContain(MENU);
+  });
 
   test("[CA-2] o repasse /api/admin/lojas recusa quem não tem grant", async ({
     context,

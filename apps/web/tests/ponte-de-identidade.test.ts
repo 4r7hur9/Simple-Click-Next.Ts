@@ -283,6 +283,29 @@ describe("formulários sem script", () => {
       `${SITE}/definir-senha?estado=concluido&convite=true`,
     );
   });
+
+  it("card 170 T-13: com `Origin: null` (Referrer-Policy no-referrer) a API recebe a origem do site", async () => {
+    const fraseBoa = "uma frase longa e boa";
+    const api = apiQueResponde(200, { redefinida: true });
+    const pedido = new Request(`${SITE}/api/auth/definir-senha`, {
+      method: "POST",
+      headers: { origin: "null" },
+      body: new URLSearchParams({
+        token: "t".repeat(30),
+        senha: fraseBoa,
+        confirmacao: fraseBoa,
+      }),
+    });
+    const resposta = await responderFormularioDeAcesso(
+      pedido,
+      "definir-senha",
+      api.buscar,
+    );
+    expect(api.chamadas[0]?.cabecalhos.get("origin")).toBe(SITE);
+    expect(resposta.headers.get("location")).toBe(
+      `${SITE}/definir-senha?estado=concluido`,
+    );
+  });
 });
 
 describe("endereço do visitante para o limite da API", () => {

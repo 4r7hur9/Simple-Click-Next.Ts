@@ -76,6 +76,20 @@ export function cabecalhosDaPonte(
   };
 }
 
+/**
+ * A origem que vai à API. O navegador manda `Origin: null` quando a tela tem
+ * `Referrer-Policy: no-referrer` (o formulário de /definir-senha, card #170,
+ * T-8); "null" não está na lista da API e derrubaria o pedido com 403. Quem
+ * chega aqui já passou pela checagem de origem do site, então a origem do
+ * próprio site é a certa.
+ */
+export function origemParaApi(requisicao: Request): string {
+  const origem = requisicao.headers.get("origin");
+  return origem === null || origem === "null"
+    ? new URL(requisicao.url).origin
+    : origem;
+}
+
 /** Os cabeçalhos que a API espera do site. */
 export function cabecalhosParaApi(
   requisicao: Request,
@@ -85,10 +99,12 @@ export function cabecalhosParaApi(
   const cabecalhos = new Headers({
     accept: "application/json",
     "content-type": "application/json",
-    origin: requisicao.headers.get("origin") ?? new URL(requisicao.url).origin,
+    origin: origemParaApi(requisicao),
     "x-simpleclick-client": "navegador",
   });
-  for (const [nome, valor] of Object.entries(cabecalhosDaPonte(requisicao, fonte))) {
+  for (const [nome, valor] of Object.entries(
+    cabecalhosDaPonte(requisicao, fonte),
+  )) {
     cabecalhos.set(nome, valor);
   }
   if (extras.tokenDeRenovacao !== undefined) {

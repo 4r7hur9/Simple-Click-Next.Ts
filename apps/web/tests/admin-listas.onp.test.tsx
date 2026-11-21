@@ -8,8 +8,8 @@
  * endereço.
  */
 import type {
-  ListaDeContasNoContrato,
   ListaDeLojasNoContrato,
+  ListaDePessoasNoContrato,
   SituacaoDaLoja,
 } from "@simpleclick/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -108,7 +108,7 @@ describe("chips de filtro das listas", () => {
     );
     expect(grupo).not.toBeNull();
     const chips = [...(grupo?.querySelectorAll(".sc-chip") ?? [])];
-    expect(chips.map((c) => c.tagName)).toEqual(Array(5).fill("BUTTON"));
+    expect(chips.map((c) => c.tagName)).toEqual(Array(4).fill("BUTTON"));
     // Filtro é botão, nunca link: com href o Link pré-carregaria a busca.
     expect(grupo?.querySelectorAll("a, [href]")).toHaveLength(0);
     expect(chips.map((c) => c.getAttribute("aria-pressed"))).toEqual([
@@ -116,77 +116,82 @@ describe("chips de filtro das listas", () => {
       "false",
       "false",
       "false",
-      "false",
     ]);
     const contagens = chips.map(
       (c) => c.querySelector(".sc-chip__contagem")?.textContent,
     );
-    expect(contagens).toEqual(["27", "3", "20", "3", "1"]);
+    expect(contagens).toEqual(["27", "20", "3", "1"]);
   });
 
   it("[CA-7] @spec:AC-11318 todo chip fica na ordem do Tab (nenhum desabilitado nem com tabindex negativo)", () => {
     const chips = [...lojas().querySelectorAll<HTMLButtonElement>(".sc-chip")];
-    expect(chips.length).toBe(5);
+    expect(chips.length).toBe(4);
     for (const chip of chips) {
       expect(chip.disabled).toBe(false);
       expect(chip.tabIndex).toBeGreaterThanOrEqual(0);
     }
   });
 
-  it("[CA-7] @spec:AC-11318 a fila de pendentes chama atenção por tom e por texto; escolhida, volta ao tom do filtro marcado", () => {
-    const pendente = lojas().querySelectorAll(".sc-chip")[1];
-    expect(pendente?.className).toContain("cor-atencao");
-    expect(pendente?.textContent).toContain("esperam por você");
-    expect(pendente?.getAttribute("aria-pressed")).toBe("false");
-
-    const escolhida = lojas({
-      consulta: { ...CONSULTA_INICIAL, situacao: "PENDING_APPROVAL" },
-    }).querySelectorAll(".sc-chip")[1];
-    expect(escolhida?.className).toContain("sc-chip--ativo");
-    expect(escolhida?.className).not.toContain("cor-atencao");
-    expect(escolhida?.getAttribute("aria-pressed")).toBe("true");
-
-    const semFila = lojas({
-      estado: {
-        fase: "pronta",
-        lista: {
-          ...LISTA,
-          contagens: { ...LISTA.contagens, PENDING_APPROVAL: 0 },
-        },
-      },
-    }).querySelectorAll(".sc-chip")[1];
-    expect(semFila?.className).not.toContain("cor-atencao");
+  it("[CA-7] @spec:AC-11318 a fila de pendentes não é chip de Lojas: o aviso leva à tela Aprovações", () => {
+    const pagina = lojas();
+    const textos = [...pagina.querySelectorAll(".sc-chip")].map(
+      (c) => c.textContent,
+    );
+    expect(textos.join(" ")).not.toContain("esperam por você");
+    const ver = [...pagina.querySelectorAll("a")].find(
+      (a) => a.textContent === "Ver pendentes",
+    );
+    expect(ver?.getAttribute("href")).toBe("/admin/aprovacoes");
   });
 
-  it("[CA-7] @spec:AC-11318 a lista de contas filtra por tipo em chips de botão, em grupo com nome", () => {
-    const lista: ListaDeContasNoContrato = {
-      contas: [],
+  it("[CA-7] @spec:AC-11318 a lista de pessoas filtra por tipo e por situação em chips de botão, em grupos com nome", () => {
+    const lista: ListaDePessoasNoContrato = {
+      pessoas: [],
       total: 0,
       pagina: 1,
       porPagina: 25,
-      contagens: { donos: 7, equipe: 2 },
+      contagens: { todas: 12, clientes: 3, donos: 7, equipe: 2 },
     };
     document.body.innerHTML = renderToStaticMarkup(
       <TabelaDeContas
-        consulta={{ tipo: "donos", busca: "", pagina: 1 }}
+        consulta={{
+          tipo: "donos",
+          situacao: "ativas",
+          busca: "",
+          pagina: 1,
+        }}
         termo=""
         estado={{ fase: "pronta", lista }}
         aoMudarTermo={() => undefined}
         aoBuscar={() => undefined}
         aoMudarTipo={() => undefined}
+        aoMudarSituacao={() => undefined}
         aoTentarDeNovo={() => undefined}
         aoIrParaPagina={() => undefined}
       />,
     );
     const grupo = document.querySelector(
-      '[role="group"][aria-label="Tipo de conta"]',
+      '[role="group"][aria-label="Tipo de pessoa"]',
     );
     const chips = [...(grupo?.querySelectorAll("button.sc-chip") ?? [])];
     expect(chips.map((c) => c.getAttribute("aria-pressed"))).toEqual([
+      "false",
+      "false",
       "true",
       "false",
     ]);
+    expect(
+      chips.map((c) => c.querySelector(".sc-chip__contagem")?.textContent),
+    ).toEqual(["12", "3", "7", "2"]);
     expect(grupo?.querySelectorAll("[href]")).toHaveLength(0);
+    const situacao = document.querySelector(
+      '[role="group"][aria-label="Situação da conta"]',
+    );
+    expect(
+      [...(situacao?.querySelectorAll("button.sc-chip") ?? [])].map((c) =>
+        c.getAttribute("aria-pressed"),
+      ),
+    ).toEqual(["true", "false", "false"]);
   });
 
   it("[CA-7] @spec:AC-11318 o período das métricas da loja são chips; escolher outro muda o marcado", async () => {
