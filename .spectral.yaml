@@ -1,0 +1,17 @@
+# Ruleset do lint do OpenAPI (docs/openapi.yaml, gerado do contrato Zod).
+# Base: spectral:oas. Ajustes só onde o documento é GERADO e a regra pede
+# algo que a geração não tem como dar sem inventar texto.
+extends: ["spectral:oas"]
+rules:
+  # O contrato não declara licença nem contato: é API proprietária, sem termo
+  # público a citar. Inventar um dado jurídico seria pior que o aviso.
+  info-contact: off
+  info-license: off
+  # Texto das operações vem de `resumo`/`descricao` do contrato; só algumas
+  # rotas têm descrição longa. O resumo (operation-summary) segue obrigatório.
+  operation-description: off
+  # Os esquemas nomeados (Produto, Variacao, Opcao...) são publicados de
+  # propósito para o cliente Kotlin/Swift gerar tipos com nome, mas o
+  # conversor Zod embute os aninhados em vez de referenciá-los. "Sem uso" aqui
+  # é consequência da geração, não componente esquecido.
+  oas3-unused-component: off

@@ -85,6 +85,11 @@ export interface DefinicaoDeRota<TParametros, TConsulta, TCorpo, TResposta> {
   readonly status?: number;
   /** Situações de falha que esta rota pode devolver, além do padrão. */
   readonly errosPossiveis?: readonly number[];
+  /**
+   * Outras situações de SUCESSO com o mesmo corpo (só metadado do documento).
+   * Ex.: criação 201 e reenvio idempotente 200. Não altera a validação.
+   */
+  readonly statusAlternativosDeSucesso?: readonly number[];
 }
 
 /** Entrada crua da requisição, como o Express a entrega. */
@@ -125,6 +130,7 @@ export interface RotaDoContrato<
   readonly resposta: z.ZodType<TResposta>;
   readonly status: number;
   readonly errosPossiveis: readonly number[];
+  readonly statusAlternativosDeSucesso: readonly number[];
   /** Uso 1: confere a entrada da requisição, ou recusa nomeando o campo. */
   validar(
     entrada: EntradaBruta,
@@ -293,6 +299,9 @@ export function definirRota<
     resposta: definicao.resposta,
     status: definicao.status ?? 200,
     errosPossiveis: Object.freeze([...(definicao.errosPossiveis ?? [])]),
+    statusAlternativosDeSucesso: Object.freeze([
+      ...(definicao.statusAlternativosDeSucesso ?? []),
+    ]),
     // Confere as três partes e recusa com TODOS os problemas, não o primeiro.
     validar(entrada) {
       const problemas: ProblemaDeValidacao[] = [];

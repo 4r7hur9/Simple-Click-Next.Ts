@@ -39,6 +39,11 @@ export type {
 } from "./item-total.ts";
 export { precoQueVale, precoValeAgora } from "./preco-vigente.ts";
 export type { PrecoCadastrado, PrecoVigente } from "./preco-vigente.ts";
+export {
+  HORIZONTE_DO_PROXIMO_PRECO_MS,
+  proximaQuedaDePreco,
+} from "./proximo-preco.ts";
+export type { ProximaQuedaDePreco } from "./proximo-preco.ts";
 export { conferirCarrinho } from "./pedido-total.ts";
 export type {
   Conferencia,

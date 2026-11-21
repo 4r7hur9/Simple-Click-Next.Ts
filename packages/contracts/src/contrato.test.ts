@@ -90,6 +90,7 @@ describe("contrato compartilhado", () => {
       "get /v1/vitrine/{apelido}/catalogo/produtos",
       "get /v1/vitrine/{apelido}/catalogo/resumo",
       "get /v1/vitrine/{apelido}/fechamento",
+      "get /v1/vitrine/{apelido}/pedido/{token}",
       "post /v1/vitrine/{apelido}/pedidos",
       "get /v1/vitrine/{apelido}/produto/{produtoId}",
     ]);

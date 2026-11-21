@@ -672,6 +672,20 @@ export const esquemaDoProduto = z.strictObject({
   precoCentavos: z.int().nonnegative().nullable(),
   precoAnteriorCentavos: z.int().nonnegative().nullable(),
   /**
+   * A próxima QUEDA de preço do produto nos próximos 7 dias (card #140): o
+   * preço unitário de varejo que passa a valer em `aPartirDe`. Aumento agendado
+   * nunca aparece. A chave só existe com a feature flag
+   * FLAG_VITRINE_PROXIMO_PRECO ligada; ligada e sem queda, vem nulo. Opcional
+   * porque, desligada, a resposta é a de sempre.
+   */
+  proximoPreco: z
+    .strictObject({
+      precoCentavos: z.int().nonnegative(),
+      aPartirDe: z.iso.datetime(),
+    })
+    .nullable()
+    .optional(),
+  /**
    * O atacado sobre `precoCentavos` (card #56): a tabela de faixas com o
    * preço por unidade e a economia. Nulo = só varejo. Opcional só para quem
    * monta à mão.

@@ -356,3 +356,170 @@ describe("o item conferido separa o que veio das opções (AC-515)", () => {
     expect(conferido.itensQueSeguem[0]?.acrescimosEmCentavos).toBe(0);
   });
 });
+
+/**
+ * Estruturação 3 (IEL Módulo 2): fechamento dos ramos de `conferirCarrinho`.
+ *
+ * Os casos acima já provavam o dinheiro (de onde vem o número) e as mudanças
+ * (subiu, caiu, esgotou, sumiu). Ficavam sem prova: a explicação do preço
+ * aplicado (AC-310), o formato do milhar na frase de aviso, o `null` explícito
+ * vindo do banco e a recusa de valor quebrado (AC-311). Cada caso abaixo tem
+ * uma mutação do código que ele reprova — ver docs/estruturacao/03-testes-checkout.md.
+ */
+describe("explicação do preço aplicado acompanha o preço (AC-310)", () => {
+  const ATACADO = {
+    rotulo: "Atacado",
+    motivo: "Atacado: preço a partir de 6 unidades",
+  };
+  const VARIANTE_G = {
+    rotulo: "Variante G",
+    motivo: "Preço da variante G",
+  };
+
+  it("@spec:AC-310 preço do produto com atacado leva a explicação do produto para o item", () => {
+    const conferido = conferirCarrinho(
+      [{ itemId: "i1", produtoId: "p1", quantidade: 6 }],
+      [{ ...MARMITA, precoEmCentavos: 1800, precoAplicado: ATACADO }],
+    );
+
+    expect(conferido.itensQueSeguem[0]?.precoAplicado).toEqual(ATACADO);
+    expect(conferido.subtotalEmCentavos).toBe(10800);
+  });
+
+  it("@spec:AC-310 preço da variante leva a explicação da VARIANTE, e a do produto é ignorada", () => {
+    // O preço veio da variante; explicar com o atacado do produto diria à
+    // pessoa um motivo que não é o do número que ela está vendo.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: 3000,
+          precoAplicado: VARIANTE_G,
+        },
+      ],
+      [{ ...MARMITA, precoAplicado: ATACADO }],
+    );
+
+    expect(conferido.itensQueSeguem[0]?.precoAplicado).toEqual(VARIANTE_G);
+  });
+
+  it("@spec:AC-310 variante sem explicação NÃO herda a explicação do produto", () => {
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoBaseEmCentavos: 3000,
+        },
+      ],
+      [{ ...MARMITA, precoAplicado: ATACADO }],
+    );
+
+    expect(conferido.itensQueSeguem[0]?.precoAplicado).toBeNull();
+  });
+
+  it("@spec:AC-310 preço normal não tem explicação: o campo é nulo, e não indefinido", () => {
+    const conferido = conferirCarrinho([DUAS_MARMITAS], [MARMITA]);
+
+    expect(conferido.itensQueSeguem[0]?.precoAplicado).toBeNull();
+  });
+});
+
+describe("a frase do aviso de preço e as bordas da conferência (AC-503, AC-311)", () => {
+  it("@spec:AC-503 preço de milhar é escrito com ponto e vírgula, em reais", () => {
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoVistoEmCentavos: 99999,
+        },
+      ],
+      [{ ...MARMITA, nome: "Fogão", precoEmCentavos: 123456 }],
+    );
+
+    expect(conferido.mudancas[0]?.explicacao).toBe(
+      "Fogão subiu de R$ 999,99 para R$ 1.234,56.",
+    );
+  });
+
+  it("@spec:AC-503 preço visto com valor negativo não quebra a frase (defesa, o contrato já recusa)", () => {
+    // A borda HTTP só aceita inteiro não negativo; a função é pura e não
+    // depende disso para continuar escrevendo uma frase legível.
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoVistoEmCentavos: -150,
+        },
+      ],
+      [MARMITA],
+    );
+
+    expect(conferido.mudancas[0]?.tipo).toBe("PRECO_SUBIU");
+    expect(conferido.mudancas[0]?.explicacao).toContain("de -R$ 1,50 para");
+  });
+
+  it("@spec:AC-503 preço visto nulo (carrinho antigo) não inventa mudança, como o ausente", () => {
+    const conferido = conferirCarrinho(
+      [
+        {
+          itemId: "i1",
+          produtoId: "p1",
+          quantidade: 1,
+          precoVistoEmCentavos: null,
+        },
+      ],
+      [{ ...MARMITA, precoEmCentavos: 2500 }],
+    );
+
+    expect(conferido.mudancas).toEqual([]);
+    expect(conferido.precisaConfirmar).toBe(false);
+  });
+
+  it("@spec:AC-504 total enviado nulo é o mesmo que não enviar: sem divergência", () => {
+    const conferido = conferirCarrinho([DUAS_MARMITAS], [MARMITA], null);
+
+    expect(conferido.houveDivergencia).toBe(false);
+    expect(conferido.totalQueOClienteEnviouEmCentavos).toBeNull();
+  });
+
+  it("@spec:AC-504 total enviado ZERO em carrinho com itens é divergência (zero não é 'ausente')", () => {
+    const conferido = conferirCarrinho([DUAS_MARMITAS], [MARMITA], 0);
+
+    expect(conferido.houveDivergencia).toBe(true);
+    expect(conferido.subtotalEmCentavos).toBe(4000);
+  });
+
+  it("@spec:AC-503 carrinho vazio confere em zero e não pede confirmação", () => {
+    const conferido = conferirCarrinho([], [MARMITA]);
+
+    expect(conferido.subtotalEmCentavos).toBe(0);
+    expect(conferido.itensQueSeguem).toEqual([]);
+    expect(conferido.precisaConfirmar).toBe(false);
+  });
+
+  it("@spec:AC-311 quantidade quebrada estoura em vez de arredondar", () => {
+    expect(() =>
+      conferirCarrinho(
+        [{ itemId: "i1", produtoId: "p1", quantidade: 1.5 }],
+        [MARMITA],
+      ),
+    ).toThrow(/quantidade/);
+  });
+
+  it("@spec:AC-311 preço do catálogo quebrado estoura em vez de cobrar centavo fantasma", () => {
+    expect(() =>
+      conferirCarrinho(
+        [{ itemId: "i1", produtoId: "p1", quantidade: 1 }],
+        [{ ...MARMITA, precoEmCentavos: 19.99 }],
+      ),
+    ).toThrow(/inteiro em centavos/);
+  });
+});

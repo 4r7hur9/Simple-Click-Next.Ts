@@ -57,6 +57,10 @@ import {
   ROTAS_DO_SOCIAL,
 } from "./social.ts";
 import { rotaDaLojaSolicitada } from "./equipe.ts";
+import {
+  esquemaDoAcompanhamento,
+  rotaDoAcompanhamento,
+} from "./acompanhamento.ts";
 import { esquemaDeIdentificacaoDaApi, rotaDeIdentificacao } from "./saude.ts";
 import {
   esquemaDaVitrine,
@@ -94,6 +98,7 @@ export const ROTAS_DO_CONTRATO: readonly RotaDoContrato[] = montarCatalogo([
   rotaDeConferirCarrinho,
   rotaDoFechamento,
   rotaDeCriarPedido,
+  rotaDoAcompanhamento,
   ...ROTAS_DA_IDENTIDADE,
   rotaDoEu,
   ...ROTAS_DO_FEED,
@@ -137,6 +142,7 @@ export const ESQUEMAS_DO_CONTRATO: Readonly<Record<string, z.ZodType>> =
     EntregaDaLoja: esquemaDaEntregaDaLoja,
     PedidoParaCriar: esquemaDoPedidoParaCriar,
     PedidoCriado: esquemaDoPedidoCriado,
+    Acompanhamento: esquemaDoAcompanhamento,
     ContatoDoPedido: esquemaDoContato,
     SessaoAberta: esquemaDaSessaoAberta,
     ResultadoDoLogin: esquemaDoResultadoDoLogin,

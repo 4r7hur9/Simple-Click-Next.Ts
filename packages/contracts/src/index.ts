@@ -416,3 +416,5 @@ export * from "./atacado.ts";
 export * from "./importacao-clientes.ts";
 // LGPD funcional: aceite versionado dos documentos e direitos do titular (card #79).
 export * from "./legal.ts";
+
+export { codigoDoPedido } from "./codigo-do-pedido.ts";

@@ -74,7 +74,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -117,7 +124,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -127,7 +141,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -137,7 +158,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -205,7 +233,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -215,7 +253,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -225,7 +270,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -235,7 +287,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -279,7 +338,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -289,7 +355,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -413,7 +486,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -423,7 +506,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -433,7 +523,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -443,7 +540,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -512,7 +616,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -522,7 +636,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -532,7 +653,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -542,7 +670,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -641,7 +776,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -651,7 +796,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -661,7 +813,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -728,7 +887,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -738,7 +907,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -797,7 +973,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -807,7 +993,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -817,7 +1010,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -827,7 +1027,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -837,7 +1044,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -847,7 +1061,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -993,7 +1214,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1003,7 +1234,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1013,7 +1251,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1023,7 +1268,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1073,7 +1325,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1083,7 +1345,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1093,7 +1362,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1150,7 +1426,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1160,7 +1446,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1170,7 +1463,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1286,7 +1586,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1296,7 +1606,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1306,7 +1623,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1316,7 +1640,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1378,7 +1709,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1388,7 +1729,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1398,7 +1746,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1467,7 +1822,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1477,7 +1842,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1487,7 +1859,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1497,7 +1876,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1555,7 +1941,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1565,7 +1961,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1606,7 +2009,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1616,7 +2026,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1660,7 +2077,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1670,7 +2097,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1680,7 +2114,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1756,7 +2197,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1766,7 +2217,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1776,7 +2234,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1833,7 +2298,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1843,7 +2315,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1897,7 +2376,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1907,7 +2393,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1983,7 +2476,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -1993,7 +2496,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2003,7 +2513,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2066,7 +2583,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2076,7 +2600,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2108,7 +2639,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2118,7 +2656,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2189,7 +2734,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2199,7 +2754,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2209,7 +2771,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2492,7 +3061,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2502,7 +3078,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2559,7 +3142,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2569,7 +3162,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2579,7 +3179,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2634,7 +3241,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2644,7 +3261,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2654,7 +3278,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2775,7 +3406,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2785,7 +3426,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2942,7 +3590,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -2952,7 +3610,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3014,7 +3679,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3024,7 +3699,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3034,7 +3716,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3044,7 +3733,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3054,7 +3750,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3097,7 +3800,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3107,7 +3820,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3117,7 +3837,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3158,7 +3885,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3168,7 +3905,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3178,7 +3922,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3334,7 +4085,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3344,7 +4105,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3502,7 +4270,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3512,7 +4290,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3575,7 +4360,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3585,7 +4380,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3595,7 +4397,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3605,7 +4414,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3615,7 +4431,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3659,7 +4482,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3669,7 +4502,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3679,7 +4519,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3721,7 +4568,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3731,7 +4588,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3741,7 +4605,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3941,7 +4812,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3951,7 +4832,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -3961,7 +4849,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4127,7 +5022,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4137,7 +5039,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4147,7 +5056,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4356,7 +5272,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4366,7 +5292,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4376,7 +5309,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4386,7 +5326,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4550,7 +5497,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4560,7 +5517,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4570,7 +5534,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4580,7 +5551,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4590,7 +5568,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4600,7 +5585,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4664,7 +5656,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4674,7 +5673,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4684,7 +5690,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4848,7 +5861,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4858,7 +5881,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4868,7 +5898,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4878,7 +5915,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4888,7 +5932,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -4898,7 +5949,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5185,7 +6243,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5195,7 +6263,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5205,7 +6280,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5215,7 +6297,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5269,7 +6358,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5279,7 +6375,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5289,7 +6392,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5343,7 +6453,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5353,7 +6470,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5363,7 +6487,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5464,7 +6595,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5474,7 +6615,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5484,7 +6632,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5494,7 +6649,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5565,7 +6727,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5575,7 +6747,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5585,7 +6764,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5595,7 +6781,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5680,7 +6873,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5690,7 +6890,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5700,7 +6907,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5753,7 +6967,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5763,7 +6984,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5773,7 +7001,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5826,7 +7061,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5836,7 +7078,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5846,7 +7095,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5916,7 +7172,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5926,7 +7192,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5936,7 +7209,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -5946,7 +7226,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6018,7 +7305,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6028,7 +7322,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6038,7 +7339,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6212,7 +7520,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6222,7 +7537,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6232,7 +7554,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6394,7 +7723,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6404,7 +7743,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6414,7 +7760,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6424,7 +7777,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6434,7 +7794,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6444,7 +7811,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6454,7 +7828,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6508,7 +7889,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6518,7 +7906,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6528,7 +7923,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6609,7 +8011,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6812,7 +8221,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6822,7 +8241,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6882,7 +8308,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6892,7 +8325,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6953,7 +8393,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -6998,7 +8445,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7008,7 +8465,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7053,7 +8517,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7063,7 +8537,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7118,7 +8599,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7128,7 +8619,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7183,7 +8681,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7193,7 +8701,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7203,7 +8718,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7279,7 +8801,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7289,7 +8821,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7342,7 +8881,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7352,7 +8901,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7902,7 +9458,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -7912,7 +9478,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8271,7 +9844,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8281,7 +9864,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8864,7 +10454,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8874,7 +10474,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8919,7 +10526,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8929,7 +10546,75 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vitrine/{apelido}/pedido/{token}": {
+      "get": {
+        "operationId": "get_v1_vitrine_por_apelido_pedido_por_token",
+        "summary": "Acompanha o pedido pelo endereço secreto",
+        "tags": [
+          "carrinho"
+        ],
+        "description": "Quem tem o `tokenPublico` vê o pedido; a rota não exige login e responde `Cache-Control: no-store`. Token fora do formato, token inexistente, token de outra loja e loja inexistente respondem todos 404 `nao_encontrado`. Loja suspensa continua acompanhável.",
+        "parameters": [
+          {
+            "name": "apelido",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requisição atendida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acompanhamento"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Endereço ou recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8970,7 +10655,17 @@
         },
         "responses": {
           "200": {
-            "description": "Requisição atendida",
+            "description": "Requisição atendida (resposta alternativa de sucesso; reenvio idempotente devolve o recurso já existente)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoCriado"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Recurso criado",
             "content": {
               "application/json": {
                 "schema": {
@@ -8984,7 +10679,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -8994,7 +10699,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9004,7 +10716,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9014,7 +10733,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9024,7 +10750,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9079,7 +10812,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaInvalida"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroDeEntradaRecusada"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9089,7 +10832,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Erro"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErroComEnvelope"
+                    }
+                  ]
                 }
               }
             }
@@ -9100,6 +10850,119 @@
   },
   "components": {
     "schemas": {
+      "ErroDeEntradaInvalida": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string",
+            "const": "entrada_invalida"
+          },
+          "campos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "onde": {
+                  "type": "string",
+                  "enum": [
+                    "params",
+                    "query",
+                    "body"
+                  ]
+                },
+                "caminho": {
+                  "type": "string"
+                },
+                "mensagem": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "onde",
+                "caminho",
+                "mensagem"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "erro",
+          "campos"
+        ],
+        "additionalProperties": false
+      },
+      "ErroDeEntradaRecusada": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string"
+          },
+          "campos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "onde": {
+                  "type": "string",
+                  "enum": [
+                    "params",
+                    "query",
+                    "body"
+                  ]
+                },
+                "caminho": {
+                  "type": "string"
+                },
+                "mensagem": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "onde",
+                "caminho",
+                "mensagem"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mensagem": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "erro"
+        ]
+      },
+      "ErroComEnvelope": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "object",
+            "properties": {
+              "codigo": {
+                "type": "string"
+              },
+              "mensagem": {
+                "type": "string"
+              },
+              "referencia": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "codigo",
+              "mensagem",
+              "referencia"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "erro"
+        ],
+        "additionalProperties": false
+      },
       "Abertura": {
         "type": "object",
         "properties": {
@@ -9133,6 +10996,197 @@
           "aberta",
           "proximaAbertura",
           "motivo"
+        ],
+        "additionalProperties": false
+      },
+      "Acompanhamento": {
+        "type": "object",
+        "properties": {
+          "pedido": {
+            "type": "object",
+            "properties": {
+              "numero": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "codigo": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "entrega": {
+                "type": "string"
+              },
+              "formaDePagamento": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "totalCentavos": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "criadoEm": {
+                "type": "string"
+              },
+              "whatsappConfirmadoEm": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cliente": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string"
+                  },
+                  "telefoneMascarado": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "telefoneMascarado"
+                ],
+                "additionalProperties": false
+              },
+              "loja": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string"
+                  },
+                  "whatsappPublico": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "nome",
+                  "whatsappPublico"
+                ],
+                "additionalProperties": false
+              },
+              "itens": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "variacao": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "quantidade": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "totalCentavos": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "opcoes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "grupo": {
+                            "type": "string"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "quantidade": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "grupo",
+                          "nome",
+                          "quantidade"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "nome",
+                    "variacao",
+                    "quantidade",
+                    "totalCentavos",
+                    "opcoes"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "historico": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "para": {
+                      "type": "string"
+                    },
+                    "motivo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ocorridoEm": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "de",
+                    "para",
+                    "motivo",
+                    "ocorridoEm"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "numero",
+              "codigo",
+              "status",
+              "entrega",
+              "formaDePagamento",
+              "totalCentavos",
+              "criadoEm",
+              "whatsappConfirmadoEm",
+              "cliente",
+              "loja",
+              "itens",
+              "historico"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "pedido"
         ],
         "additionalProperties": false
       },
@@ -12601,6 +14655,33 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proximoPreco": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "precoCentavos": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "aPartirDe": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "precoCentavos",
+                  "aPartirDe"
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "null"

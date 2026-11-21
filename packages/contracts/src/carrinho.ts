@@ -397,5 +397,8 @@ export const rotaDeCriarPedido = definirRota({
   parametros: esquemaDoApelido,
   corpo: esquemaDoPedidoParaCriar,
   resposta: esquemaDoPedidoCriado,
+  status: 201,
+  // 200 = reenvio com a mesma chave de idempotência (`jaExistia: true`).
+  statusAlternativosDeSucesso: [200],
   errosPossiveis: [400, 401, 404, 409, 422],
 });
