@@ -380,6 +380,8 @@ export type {
   FuncionalidadeNaAdministracaoNoContrato,
   FuncionalidadesDaLojaNoContrato,
 } from "./admin-funcionalidades.ts";
+// Pessoas, vínculos e auditoria da plataforma (card #170).
+export * from "./admin-pessoas.ts";
 export * from "./auth.ts";
 export * from "./auth-rotas.ts";
 export * from "./eu.ts";

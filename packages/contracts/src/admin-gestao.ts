@@ -1,19 +1,18 @@
 /**
- * Gestão de lojas e contas pela administração (card #29): números por loja,
- * equipe da loja e a lista de contas (donos e equipe).
+ * Gestão de lojas pela administração (card #29): números por loja e equipe da
+ * loja.
  *
  *   GET /v1/admin/lojas/:id/metricas?dias=30
  *   GET /v1/admin/lojas/:id/equipe
- *   GET /v1/admin/contas?tipo=donos|equipe&busca=&pagina=&porPagina=
- *   GET /v1/admin/contas/:identidadeId
+ *
+ * As contas (donos e equipe) viraram as Pessoas (`admin-pessoas.ts`, card
+ * #170): os esquemas do `/v1/admin/contas` antigo saíram junto com a rota.
  *
  * A lista de lojas (`admin-lista.ts`) ganhou dono, pedidos e faturamento, e a
  * consulta ganhou tipo de negócio e ordenação.
  */
 
 import { z } from "zod";
-
-import { esquemaDaSituacaoDaLoja } from "./admin-cadastro.ts";
 
 /** Como a lista de lojas pode ser ordenada. */
 export const ORDENS_DA_LISTA_DE_LOJAS = [
@@ -106,64 +105,3 @@ export type MembroNaAdministracaoNoContrato = z.infer<
 export type EquipeDaLojaNaAdministracaoNoContrato = z.infer<
   typeof esquemaDaEquipeDaLojaNaAdministracao
 >;
-
-// ---------------------------------------------------------------------------
-// Contas
-// ---------------------------------------------------------------------------
-
-export const TIPOS_DE_CONTA_NA_ADMINISTRACAO = ["donos", "equipe"] as const;
-
-export type TipoDeContaNaAdministracao =
-  (typeof TIPOS_DE_CONTA_NA_ADMINISTRACAO)[number];
-
-export const esquemaDaConsultaDeContas = z.object({
-  tipo: z.enum(TIPOS_DE_CONTA_NA_ADMINISTRACAO).default("donos"),
-  busca: z.string().trim().max(80).optional(),
-  pagina: z.coerce.number().int().min(1).default(1),
-  porPagina: z.coerce.number().int().min(1).max(100).default(25),
-});
-
-export type ConsultaDeContasNoContrato = z.output<
-  typeof esquemaDaConsultaDeContas
->;
-
-export const esquemaDaLojaDaConta = z.strictObject({
-  id: z.string(),
-  nome: z.string(),
-  apelido: z.string(),
-  status: esquemaDaSituacaoDaLoja,
-  papel: z.enum(["OWNER", "STAFF"]),
-});
-
-export const esquemaDaContaNaAdministracao = z.strictObject({
-  identidadeId: z.string(),
-  nome: z.string().nullable(),
-  email: z.string(),
-  telefone: z.string().nullable(),
-  criadaEm: z.string(),
-  /** Dono quando tem ao menos uma loja como dono; senão, equipe. */
-  tipo: z.enum(["DONO", "EQUIPE"]),
-  lojas: z.array(esquemaDaLojaDaConta),
-  /** Lojas deste dono aguardando aprovação. */
-  pendentes: z.number().int().min(0),
-  /** Quantas lojas ocupam vaga e quantas podem; só para dono. */
-  lojasEmUso: z.number().int().min(0),
-  limiteDeLojas: z.number().int().min(0).nullable(),
-});
-
-export const esquemaDaListaDeContas = z.strictObject({
-  contas: z.array(esquemaDaContaNaAdministracao),
-  total: z.number().int().min(0),
-  pagina: z.number().int().min(1),
-  porPagina: z.number().int().min(1),
-  /** Quantas contas de cada tipo existem, com a mesma busca. */
-  contagens: z.strictObject({
-    donos: z.number().int().min(0),
-    equipe: z.number().int().min(0),
-  }),
-});
-
-export type ContaNaAdministracaoNoContrato = z.infer<
-  typeof esquemaDaContaNaAdministracao
->;
-export type ListaDeContasNoContrato = z.infer<typeof esquemaDaListaDeContas>;

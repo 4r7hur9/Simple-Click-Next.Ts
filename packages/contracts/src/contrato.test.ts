@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  esquemaDaAtribuicaoDeDono,
+  esquemaDaConsultaDePessoas,
+  esquemaDaDesativacaoDePessoa,
+  esquemaDaEdicaoDePessoa,
+  esquemaDaRemocaoDeVinculo,
+  esquemaDaSubstituicaoDeDono,
+  esquemaDoCadastroDePessoa,
+  esquemaDoPedidoDeAcesso,
   CODIGO_NAO_ENCONTRADO,
   ERROS_DE_TODA_ROTA,
   ESQUEMAS_DO_CONTRATO,
@@ -166,5 +174,63 @@ describe("contrato compartilhado", () => {
     );
     expect(ESQUEMAS_DO_CONTRATO["Erro"]).toBe(esquemaDeErro);
     expect(ROTAS_DO_CONTRATO[0]?.resposta).toBe(rotaDeIdentificacao.resposta);
+  });
+});
+
+describe("contratos de pessoas e vínculos (#170)", () => {
+  const id = "3f2b8c1e-5a4d-4e6f-8a9b-0c1d2e3f4a5b";
+
+  it("corpos de escrita recusam papel e admin (strictObject)", () => {
+    const cadastro = { nome: "Ana", email: "ana@exemplo.com" };
+    expect(esquemaDoCadastroDePessoa.safeParse(cadastro).success).toBe(true);
+    expect(
+      esquemaDoCadastroDePessoa.safeParse({ ...cadastro, papel: "ADMIN" })
+        .success,
+    ).toBe(false);
+    expect(
+      esquemaDoCadastroDePessoa.safeParse({ ...cadastro, admin: true }).success,
+    ).toBe(false);
+    expect(
+      esquemaDaEdicaoDePessoa.safeParse({ nome: "Ana", papel: "OWNER" }).success,
+    ).toBe(false);
+    expect(esquemaDaEdicaoDePessoa.safeParse({}).success).toBe(false);
+  });
+
+  it("paginação limita porPagina a 100 e a busca não tem telefone", () => {
+    expect(esquemaDaConsultaDePessoas.safeParse({ porPagina: 100 }).success).toBe(
+      true,
+    );
+    expect(esquemaDaConsultaDePessoas.safeParse({ porPagina: 101 }).success).toBe(
+      false,
+    );
+    const lida = esquemaDaConsultaDePessoas.parse({ busca: "ana" });
+    expect(lida.busca).toBe("ana");
+    expect("telefone" in lida).toBe(false);
+  });
+
+  it("atos sensíveis exigem motivo", () => {
+    expect(esquemaDaDesativacaoDePessoa.safeParse({}).success).toBe(false);
+    expect(esquemaDaDesativacaoDePessoa.safeParse({ motivo: "  " }).success).toBe(
+      false,
+    );
+    expect(esquemaDaDesativacaoDePessoa.safeParse({ motivo: "x" }).success).toBe(
+      true,
+    );
+    expect(esquemaDoPedidoDeAcesso.safeParse({}).success).toBe(false);
+    expect(esquemaDaRemocaoDeVinculo.safeParse({}).success).toBe(false);
+    expect(
+      esquemaDaAtribuicaoDeDono.safeParse({ identidadeId: id }).success,
+    ).toBe(false);
+    expect(
+      esquemaDaSubstituicaoDeDono.safeParse({ novoDonoId: id, motivo: "troca" })
+        .success,
+    ).toBe(true);
+    expect(
+      esquemaDaSubstituicaoDeDono.safeParse({
+        novoDonoId: id,
+        motivo: "troca",
+        papel: "OWNER",
+      }).success,
+    ).toBe(false);
   });
 });

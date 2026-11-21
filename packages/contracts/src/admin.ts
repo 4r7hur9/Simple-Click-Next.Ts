@@ -11,3 +11,4 @@ export * from "./admin-documentos.ts";
 export * from "./admin-situacao.ts";
 export * from "./admin-metricas.ts";
 export * from "./admin-gestao.ts";
+export * from "./admin-pessoas.ts";

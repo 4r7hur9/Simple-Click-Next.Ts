@@ -91,6 +91,17 @@ export const ROTULOS_DOS_ATOS: Readonly<Record<string, string>> = {
   EQUIPE_SENHA_TROCADA: "Senha da equipe trocada",
   TEMA_ALTERADO: "Tema da vitrine alterado",
   FEED_CONFIGURADO: "Feed configurado",
+  // Card #170: pessoas e vínculos.
+  CONTA_CRIADA: "Pessoa cadastrada",
+  CONTA_EDITADA: "Dados da pessoa alterados",
+  CONTA_DESATIVADA: "Conta desativada",
+  CONTA_REATIVADA: "Conta reativada",
+  ACESSO_GERADO: "Link de acesso gerado",
+  ACESSO_USADO: "Link de acesso usado",
+  CONTA_CONSULTADA: "Ficha da pessoa aberta",
+  DONO_ADICIONADO: "Dono adicionado à loja",
+  DONO_SUBSTITUIDO: "Dono da loja substituído",
+  DONO_REMOVIDO: "Dono removido da loja",
 };
 
 /** Como cada campo do cadastro se chama na tela. */
