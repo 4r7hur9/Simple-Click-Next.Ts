@@ -28,8 +28,17 @@ describe("Referrer-Policy", () => {
     expect(valores.length).toBeGreaterThan(0);
     for (const valor of valores) {
       expect(valor).not.toMatch(/unsafe-url|no-referrer-when-downgrade/);
-      expect(valor).toBe("strict-origin-when-cross-origin");
+      // A única exceção é mais estrita: o link único de definir senha leva o
+      // token no endereço e não manda Referer nenhum (T-8 do #170).
+      expect(["strict-origin-when-cross-origin", "no-referrer"]).toContain(
+        valor,
+      );
     }
+    const definirSenha = regras.find((r) => r.source === "/definir-senha");
+    expect(definirSenha?.headers).toContainEqual({
+      key: "Referrer-Policy",
+      value: "no-referrer",
+    });
   });
 
   it("[CA-33] @spec:AC-10514 as outras configurações do site seguem (redirecionamentos e poweredByHeader)", async () => {

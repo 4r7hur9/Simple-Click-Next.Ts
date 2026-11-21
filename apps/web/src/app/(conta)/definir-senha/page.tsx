@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Aviso, Botao, CampoDeSenha, Sucesso } from "@simpleclick/ui";
 
+import { cookies } from "next/headers";
+
+import { COOKIE_DO_LINK_DE_SENHA } from "../../../server/formularios-de-acesso.ts";
+import { LimparTokenDaBarra } from "../../../features/auth/LimparTokenDaBarra.tsx";
 import { CascaDaConta } from "../../../features/auth/CascaDaConta.tsx";
 
 export const metadata: Metadata = {
@@ -28,7 +32,17 @@ export default async function PaginaDeDefinicaoDeSenha({
 }: {
   searchParams: Promise<{ token?: string; convite?: string; estado?: string }>;
 }) {
-  const { token, convite, estado } = await searchParams;
+  const { token: tokenDoEndereco, convite, estado } = await searchParams;
+  // Sem token no endereço (volta de erro), o link vem do cookie curto.
+  let token = tokenDoEndereco;
+  if (token === undefined || token === "") {
+    try {
+      const guardado = (await cookies()).get(COOKIE_DO_LINK_DE_SENHA)?.value;
+      if (guardado) token = guardado;
+    } catch {
+      // Fora de um pedido (prova isolada): sem cookie.
+    }
+  }
   const primeiroAcesso = convite === "true";
   const titulo = primeiroAcesso
     ? "Defina sua primeira senha"
@@ -79,42 +93,45 @@ export default async function PaginaDeDefinicaoDeSenha({
             Abra esta tela pelo link que enviamos ao seu e-mail.
           </Aviso>
         ) : (
-          <form
-            action="/api/auth/definir-senha"
-            method="post"
-            className="sc-conta__form"
-          >
-            <input name="token" type="hidden" value={token} />
-            {primeiroAcesso ? (
-              <input name="convite" type="hidden" value="true" />
-            ) : null}
-            <div className="sc-conta__campos">
-              <CampoDeSenha
-                id="senha"
-                name="senha"
-                autoComplete="new-password"
-                mostrarForca
-                rotulo="Nova senha"
-                dica="Use 12 caracteres ou mais."
-                obrigatorio
-                required
-                minLength={12}
-              />
-              <CampoDeSenha
-                id="confirmacao"
-                name="confirmacao"
-                rotuloDoOlho="Mostrar confirmação"
-                autoComplete="new-password"
-                rotulo="Confirme a nova senha"
-                obrigatorio
-                required
-                minLength={12}
-              />
-            </div>
-            <Botao className="sc-conta__botao" tamanho="grande" type="submit">
-              Salvar nova senha
-            </Botao>
-          </form>
+          <>
+            <LimparTokenDaBarra />
+            <form
+              action="/api/auth/definir-senha"
+              method="post"
+              className="sc-conta__form"
+            >
+              <input name="token" type="hidden" value={token} />
+              {primeiroAcesso ? (
+                <input name="convite" type="hidden" value="true" />
+              ) : null}
+              <div className="sc-conta__campos">
+                <CampoDeSenha
+                  id="senha"
+                  name="senha"
+                  autoComplete="new-password"
+                  mostrarForca
+                  rotulo="Nova senha"
+                  dica="Use 12 caracteres ou mais."
+                  obrigatorio
+                  required
+                  minLength={12}
+                />
+                <CampoDeSenha
+                  id="confirmacao"
+                  name="confirmacao"
+                  rotuloDoOlho="Mostrar confirmação"
+                  autoComplete="new-password"
+                  rotulo="Confirme a nova senha"
+                  obrigatorio
+                  required
+                  minLength={12}
+                />
+              </div>
+              <Botao className="sc-conta__botao" tamanho="grande" type="submit">
+                Salvar nova senha
+              </Botao>
+            </form>
+          </>
         )}
       </div>
     </CascaDaConta>

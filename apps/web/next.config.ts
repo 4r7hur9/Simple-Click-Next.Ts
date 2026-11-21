@@ -107,6 +107,16 @@ const configuracao: NextConfig = {
           },
         ],
       },
+      // O link único de definir senha leva o token no endereço: nada de
+      // Referer para fora nem de cópia em cache (a regra mais específica vem
+      // depois e vence a geral).
+      {
+        source: "/definir-senha",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
     ];
   },
   // Não anunciar a tecnologia do servidor: informação que só serve a quem
