@@ -288,6 +288,34 @@ export function codigosRepoNoBanco(
 // Recuperação de senha (AC-114, AC-115)
 // ---------------------------------------------------------------------------
 
+/**
+ * A conta não aceita pedido de recuperação (desativada ou anonimizada no meio
+ * do caminho). Nunca chega à pessoa: o caso de uso responde o texto neutro.
+ */
+export class ErroDeContaSemRecuperacao extends Error {
+  constructor() {
+    super("a conta não aceita pedido de recuperação");
+    this.name = "ErroDeContaSemRecuperacao";
+  }
+}
+
+/** O código do PostgreSQL dentro do erro que o Prisma embrulha. */
+function codigoDoPostgres(erro: unknown): string | undefined {
+  const embrulhado = erro as
+    | {
+        readonly message?: unknown;
+        readonly meta?: {
+          readonly driverAdapterError?: {
+            readonly cause?: { readonly code?: unknown };
+          };
+        };
+      }
+    | undefined;
+  const doAdaptador = embrulhado?.meta?.driverAdapterError?.cause?.code;
+  if (typeof doAdaptador === "string") return doAdaptador;
+  return /Code: `([0-9A-Za-z]+)`/.exec(String(embrulhado?.message ?? ""))?.[1];
+}
+
 export function repositorioDeRecuperacaoNoBanco(
   acesso: AcessoDoRepositorio,
 ): RepositorioDeRecuperacaoDeSenha {
@@ -306,13 +334,28 @@ export function repositorioDeRecuperacaoNoBanco(
     },
 
     async criarPedido(pedido) {
-      await acesso().emTransacao(
-        (tx) =>
-          tx.$executeRaw`
-          SELECT app.auth_criar_pedido_de_recuperacao(
-                   ${pedido.identidadeId}::uuid, ${pedido.resumoDoToken},
-                   ${pedido.expiraEm}::timestamptz)`,
-      );
+      // A conta pode ter sido desativada (ou anonimizada) entre a busca por
+      // e-mail e este passo: a função recusa com P0002. Num SAVEPOINT, para a
+      // recusa não abortar a transação da requisição — que ainda precisa
+      // terminar e responder o texto neutro de sempre (card #170, D-2). A
+      // recusa sobe como erro próprio: o caso de uso não manda e-mail e
+      // responde igual a conta inexistente.
+      await acesso().emTransacao(async (tx) => {
+        await tx.$executeRaw`SAVEPOINT pedido_de_recuperacao`;
+        try {
+          await tx.$executeRaw`
+            SELECT app.auth_criar_pedido_de_recuperacao(
+                     ${pedido.identidadeId}::uuid, ${pedido.resumoDoToken},
+                     ${pedido.expiraEm}::timestamptz)`;
+        } catch (causa) {
+          await tx.$executeRaw`ROLLBACK TO SAVEPOINT pedido_de_recuperacao`;
+          if (codigoDoPostgres(causa) === "P0002") {
+            throw new ErroDeContaSemRecuperacao();
+          }
+          throw causa;
+        }
+        await tx.$executeRaw`RELEASE SAVEPOINT pedido_de_recuperacao`;
+      });
     },
 
     async consumirPedidoERedefinirSenha(dados) {

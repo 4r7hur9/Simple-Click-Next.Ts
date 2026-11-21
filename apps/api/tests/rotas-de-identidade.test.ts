@@ -15,7 +15,11 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { MENSAGEM_DE_ENVIO_INDISPONIVEL } from "@simpleclick/contracts";
-import { bancoDoArquivo, conectarNoBancoDoArquivo } from "@simpleclick/testing";
+import {
+  bancoDoArquivo,
+  comoAdministracao,
+  conectarNoBancoDoArquivo,
+} from "@simpleclick/testing";
 
 import { emailNovo } from "./apoio-da-conta.ts";
 import {
@@ -36,8 +40,13 @@ import {
   sessoesDe,
 } from "./apoio-do-segundo-fator.ts";
 import { abrirAcessoDaAplicacao, ESPERA_LONGA } from "./apoio-de-isolamento.ts";
+import { comoVisitante } from "./apoio-da-identidade.ts";
 import type { AcessoAoBanco } from "../src/core/db.ts";
 import { ASSUNTOS_DE_ACESSO } from "../src/modules/auth/emails-de-acesso.ts";
+import {
+  ErroDeContaSemRecuperacao,
+  repositorioDeRecuperacaoNoBanco,
+} from "../src/modules/auth/identidade.repo.ts";
 import { derivarSenha } from "../src/modules/auth/senha.ts";
 import {
   gerarTokenDeVerificacao,
@@ -483,6 +492,90 @@ describe("limite, atalho de desenvolvimento e e-mail", () => {
         });
       }
       expect(await contasCom(inexistente)).toBe(0);
+    },
+    ESPERA_LONGA,
+  );
+});
+
+describe("recuperação neutra para conta desativada (card #170) [CA-4]", () => {
+  /** Desativa pela credencial da administração, a única que pode (0075). */
+  async function desativarConta(email: string): Promise<string> {
+    return comoAdministracao(async (tx) => {
+      const { rows } = await tx.query<{ id: string }>(
+        `UPDATE app.identities SET disabled_at = now()
+          WHERE email_norm = $1 RETURNING id::text AS id`,
+        [email],
+      );
+      const id = rows[0]?.id;
+      if (id === undefined) throw new Error("conta não achada");
+      return id;
+    });
+  }
+
+  it(
+    "[CA-4] /senha/esqueci responde igual para conta desativada, inexistente e ativa, e só a ativa recebe o link",
+    async () => {
+      const ativa = await clienteVerificado(app, caixa, emailNovo());
+      const desativada = await clienteVerificado(app, caixa, emailNovo());
+      const idDesativada = await desativarConta(desativada);
+      const inexistente = emailNovo();
+      const mensagensAntes = caixa.mensagens.length;
+
+      const respostas = await Promise.all(
+        [ativa, desativada, inexistente].map((email) =>
+          enviar(app, "/senha/esqueci", { email }),
+        ),
+      );
+      for (const resposta of respostas) {
+        expect(resposta.status).toBe(202);
+        expect(resposta.body).toEqual(respostas[0]?.body);
+      }
+      const novas = caixa.mensagens.slice(mensagensAntes);
+      expect(novas.map((mensagem) => mensagem.destinatario)).toEqual([ativa]);
+      expect(novas[0]?.assunto).toBe(ASSUNTOS_DE_ACESSO.recuperacao);
+
+      const { rows } = await migrador.query<{ total: number }>(
+        `SELECT count(*)::int AS total FROM app.verification_codes
+          WHERE identity_id = $1 AND purpose = 'PASSWORD_RESET'`,
+        [idDesativada],
+      );
+      expect(rows[0]?.total).toBe(0);
+    },
+    ESPERA_LONGA,
+  );
+
+  it(
+    "[CA-4] conta desativada entre a busca e o pedido: recusa própria, sem 500, e a transação da requisição segue utilizável",
+    async () => {
+      const email = await clienteVerificado(app, caixa, emailNovo());
+      const id = await desativarConta(email);
+      const repositorio = repositorioDeRecuperacaoNoBanco(() => acesso);
+
+      const depoisDaRecusa = await comoVisitante(() =>
+        acesso.emTransacao(async (tx) => {
+          await expect(
+            repositorio.criarPedido({
+              identidadeId: id,
+              resumoDoToken: createHash("sha256")
+                .update("token-da-corrida")
+                .digest("hex"),
+              expiraEm: new Date(Date.now() + 60 * 60 * 1000),
+            }),
+          ).rejects.toBeInstanceOf(ErroDeContaSemRecuperacao);
+          // A mesma transação continua viva depois da recusa (SAVEPOINT).
+          const [linha] = await tx.$queryRaw<
+            { um: number }[]
+          >`SELECT 1::int AS um`;
+          return linha?.um;
+        }),
+      );
+      expect(depoisDaRecusa).toBe(1);
+      const { rows } = await migrador.query<{ total: number }>(
+        `SELECT count(*)::int AS total FROM app.verification_codes
+          WHERE identity_id = $1`,
+        [id],
+      );
+      expect(rows[0]?.total).toBe(0);
     },
     ESPERA_LONGA,
   );

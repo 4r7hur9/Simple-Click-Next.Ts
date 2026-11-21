@@ -12,6 +12,7 @@ import { randomUUID } from "node:crypto";
 import { esquemaDoEu, permissoesDoPapel } from "@simpleclick/contracts";
 import {
   bancoDoArquivo,
+  comoAdministracao,
   conectarNoBancoDoArquivo,
   criarIdentidade,
   criarLoja,
@@ -271,6 +272,37 @@ describe("quem sou eu (GET /v1/eu)", () => {
     const resposta = await eu(`Bearer ${token(randomUUID(), "OWNER")}`);
     expect(resposta.status).toBe(401);
     expect(resposta.body).toEqual({ erro: "nao_autenticado" });
+  });
+
+  it("[CA-4] conta desativada pela administração recebe 401 com o token ainda no prazo, e reativada volta a 200", async () => {
+    const pessoa = await criarIdentidade({ nome: "Conta que será desativada" });
+    const dona = await criarIdentidade({ nome: "Dona que será desativada" });
+    await criarLoja({ dono: dona });
+    const desativar = (id: string, desativada: boolean) =>
+      comoAdministracao((tx) =>
+        tx.query(
+          `UPDATE app.identities
+              SET disabled_at = CASE WHEN $2 THEN now() ELSE NULL END
+            WHERE id = $1`,
+          [id, desativada],
+        ),
+      );
+    const doCliente = `Bearer ${token(pessoa.id, "CUSTOMER")}`;
+    const daDona = `Bearer ${token(dona.id, "OWNER")}`;
+    expect((await eu(doCliente)).status).toBe(200);
+    expect((await eu(daDona)).status).toBe(200);
+
+    await desativar(pessoa.id, true);
+    await desativar(dona.id, true);
+    for (const autorizacao of [doCliente, daDona]) {
+      const resposta = await eu(autorizacao);
+      expect(resposta.status).toBe(401);
+      expect(resposta.body).toEqual({ erro: "nao_autenticado" });
+      expect(resposta.headers["cache-control"]).toBe("no-store");
+    }
+
+    await desativar(pessoa.id, false);
+    expect((await eu(doCliente)).status).toBe(200);
   });
 
   it("@spec:AC-134 a função do banco só abre as lojas da identidade e do papel do contexto", async () => {

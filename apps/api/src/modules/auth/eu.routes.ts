@@ -100,7 +100,8 @@ async function lerEu(papel: PapelDaSessao): Promise<EuNoContrato | null> {
     }[]
   >`SELECT id::text AS id, email_norm, display_name, phone_e164
       FROM app.identities
-     WHERE id = app.current_user_id() AND anonymized_at IS NULL`;
+     WHERE id = app.current_user_id() AND anonymized_at IS NULL
+       AND disabled_at IS NULL`;
   const identidade = identidades[0];
   if (identidade === undefined) return null;
 
@@ -162,8 +163,9 @@ export function criarRotaDoEu(opcoes: OpcoesDoEu = {}): Router {
         },
         () => acesso().emTransacao(() => lerEu(pessoa.papel)),
       );
-      // Identidade anonimizada ou inexistente: o token não fala mais de
-      // ninguém, e a resposta é a mesma de token inválido.
+      // Identidade anonimizada, desativada pela administração (card #170) ou
+      // inexistente: o token ainda dentro do prazo não fala mais de ninguém, e
+      // a resposta é a mesma de token inválido — o site leva para a entrada.
       if (eu === null) {
         resposta.status(401).json({ erro: "nao_autenticado" });
         return;
