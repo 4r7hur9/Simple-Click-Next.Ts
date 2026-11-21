@@ -10,6 +10,7 @@ import {
   consultaDaApi,
   filtrarLojasDaConta,
   ordensDaAba,
+  temLocal,
   type ConsultaDoFeed,
 } from "../../../features/feed/consulta.ts";
 import type { ConteudoDoFeed } from "../../../features/feed/TelaDoFeed.tsx";
@@ -227,7 +228,12 @@ export async function lojasParaConhecer(
       busca: undefined,
       categoria: undefined,
       atacado: false,
-      ordem: ordensDaAba("lojas").includes(consulta.ordem) ? consulta.ordem : "relevancia",
+      // Com a região escolhida (card #152), as mais perto vêm primeiro.
+      ordem: temLocal(consulta)
+        ? "distancia"
+        : ordensDaAba("lojas").includes(consulta.ordem)
+          ? consulta.ordem
+          : "relevancia",
       pagina: 1,
     }),
   );

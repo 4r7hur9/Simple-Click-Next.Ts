@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { LojaDoFeed, ProdutoDoFeed } from "@simpleclick/contracts";
-import { Chip, FaixaDeChips, IconeAvancar } from "@simpleclick/ui";
+import { Chip, Esqueleto, FaixaDeChips, IconeAvancar } from "@simpleclick/ui";
 
 import { comDestino } from "../../lib/destino-seguro.ts";
 import { CartaoDeLoja, CartaoDeProduto } from "./Cartoes.tsx";
@@ -158,7 +158,7 @@ export function Destaques({
             aba === "atacado"
               ? "/explorar/produtos?atacado=1"
               : "/explorar/produtos?ordem=recentes",
-          rotulo: "Ver tudo",
+          rotulo: "Ver todos",
         }}
       />
       {produtos.length === 0 ? (
@@ -182,6 +182,65 @@ export function Destaques({
           ))}
         </ul>
       )}
+    </section>
+  );
+}
+
+/**
+ * Destaques de lojas da vitrine mista (card #152): com a região escolhida, as
+ * mais perto; sem ela, as lojas públicas. "Ver todas" abre a lista de lojas.
+ */
+export function LojasPerto({
+  lojas,
+  comRegiao,
+  logado,
+  voltarPara,
+  verTodas,
+}: {
+  readonly lojas: readonly LojaDoFeed[];
+  readonly comRegiao: boolean;
+  readonly logado: boolean;
+  readonly voltarPara: string;
+  readonly verTodas: string;
+}) {
+  return (
+    <section className="sc-inicio__secao" aria-labelledby="sc-lojas-perto">
+      <CabecaDaSecao
+        id="sc-lojas-perto"
+        sobretitulo={comRegiao ? "Na sua região" : "Lojas do SimpleClick"}
+        titulo={comRegiao ? "Lojas perto de você" : "Lojas para conhecer"}
+        verTudo={{ href: verTodas, rotulo: "Ver todas" }}
+      />
+      {lojas.length === 0 ? (
+        <p className="sc-inicio__vazio-secao">
+          {comRegiao
+            ? "Nenhuma loja encontrada na sua região por enquanto."
+            : "As lojas ainda não apareceram por aqui."}{" "}
+          <Link className="sc-feed__chamada" href={verTodas}>
+            Ver todas as lojas
+          </Link>
+        </p>
+      ) : (
+        <ul className="sc-inicio__lojas">
+          {lojas.map((loja) => (
+            <CartaoDeLoja
+              key={loja.apelido}
+              loja={loja}
+              logado={logado}
+              voltarPara={voltarPara}
+            />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** O que cada seção mostra enquanto lê no servidor (card #152). */
+export function SecaoCarregando({ rotulo }: { readonly rotulo: string }) {
+  return (
+    <section className="sc-inicio__secao" aria-busy="true">
+      <Esqueleto linhas={3} rotulo={rotulo} />
     </section>
   );
 }

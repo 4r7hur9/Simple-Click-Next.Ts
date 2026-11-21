@@ -87,16 +87,17 @@ export function TelaDoFeed({
 }) {
   const aqui = enderecoDoFeed(consulta, { pagina: consulta.pagina });
   const produtos = consulta.aba === "produtos";
-  const inicio = produtos && !emBusca(consulta);
+  // Card #152: a vitrine mista é só o /explorar; a lista de produtos não a repete.
+  const inicio = produtos && consulta.inicio === true && !emBusca(consulta);
   return (
     <main className="sc-feed" id="conteudo" data-aba={consulta.aba}>
-      <h1 className={produtos ? "sc-feed__oculto" : "sc-feed__titulo"}>
-        {produtos ? "Explorar produtos e lojas" : "Lojas"}
+      <h1 className={inicio ? "sc-feed__oculto" : "sc-feed__titulo"}>
+        {inicio ? "Explorar produtos e lojas" : produtos ? "Produtos" : "Lojas"}
       </h1>
 
       <BarraDoFeed consulta={consulta} />
 
-      {produtos
+      {inicio
         ? (secoes?.stories ?? (
             <FileiraDeStories lojas={stories} aoVerNaApi={acoes?.storyVisto} />
           ))
@@ -122,7 +123,6 @@ export function TelaDoFeed({
 
       {inicio ? (
         <>
-          <Abertura consulta={consulta} />
           {secoes?.suasLojas}
           {secoes?.destaques}
         </>
@@ -184,41 +184,6 @@ export function TelaDoFeed({
         />
       </section>
     </main>
-  );
-}
-
-/**
- * A abertura do início no computador (card #128): o convite do Stitch, com
- * atalhos só para filtros que existem. Sem loja em destaque (Q-10603 aberta).
- */
-function Abertura({ consulta }: { readonly consulta: ConsultaDoFeed }) {
-  const atalhos: readonly { readonly rotulo: string; readonly href: string }[] = [
-    { rotulo: "Preço de atacado", href: enderecoDoFeed(consulta, { atacado: true }) },
-    { rotulo: "Com entrega", href: enderecoDoFeed(consulta, { entrega: "entrega" }) },
-    { rotulo: "Retirar na loja", href: enderecoDoFeed(consulta, { entrega: "retirada" }) },
-    { rotulo: "Todas as lojas", href: "/explorar/lojas" },
-  ];
-  return (
-    <section className="sc-abertura" aria-labelledby="sc-abertura-titulo">
-      <p className="sc-abertura__selo">Lojas do seu bairro</p>
-      <h2 id="sc-abertura-titulo" className="sc-abertura__titulo">
-        Encontre tudo perto de você no <span>SimpleClick</span>
-      </h2>
-      <p className="sc-abertura__texto">
-        Produtos e lojas da sua região, com o preço que a própria loja publicou.
-        Você pede direto para quem vende.
-      </p>
-      <nav className="sc-abertura__atalhos" aria-label="Atalhos de busca">
-        <span className="sc-abertura__rotulo" aria-hidden="true">
-          Rápido:
-        </span>
-        {atalhos.map((atalho) => (
-          <Link key={atalho.rotulo} className="sc-abertura__atalho" href={atalho.href}>
-            {atalho.rotulo}
-          </Link>
-        ))}
-      </nav>
-    </section>
   );
 }
 

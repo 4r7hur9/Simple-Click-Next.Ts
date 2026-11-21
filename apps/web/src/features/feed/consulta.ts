@@ -33,6 +33,12 @@ export interface ConsultaDoFeed {
   readonly lista: ListaDeLojas;
   /** Só produtos com preço de atacado (`?atacado=1`, só produtos; card #59). */
   readonly atacado?: boolean | undefined;
+  /**
+   * Card #152: é a vitrine mista em `/explorar` (stories, lojas perto,
+   * destaques e posts), e não a lista de produtos em `/explorar/produtos`.
+   * Só a página define; o endereço nunca traz.
+   */
+  readonly inicio?: boolean | undefined;
 }
 
 /** Quantos cartões por página. */
@@ -182,7 +188,23 @@ export function enderecoDoFeed(
   if (aba === "lojas" && nova.lista !== "todas") p.set("lista", nova.lista);
   if (nova.pagina > 1) p.set("pagina", String(nova.pagina));
   const texto = p.toString();
-  return `/explorar/${aba}${texto === "" ? "" : `?${texto}`}`;
+  // A vitrine mista só existe no lugar da lista de produtos (card #152).
+  const base = nova.inicio === true && aba === "produtos" ? "/explorar" : `/explorar/${aba}`;
+  return `${base}${texto === "" ? "" : `?${texto}`}`;
+}
+
+/** Os filtros que só a lista de produtos entende: limpos ao voltar à vitrine. */
+export const SEM_FILTROS: Partial<Omit<ConsultaDoFeed, "aba">> = {
+  busca: undefined,
+  categoria: undefined,
+  entrega: undefined,
+  atacado: false,
+  ordem: "relevancia",
+};
+
+/** O endereço da vitrine mista, levando só a região e o tipo de negócio. */
+export function enderecoDaVitrine(consulta: ConsultaDoFeed): string {
+  return enderecoDoFeed(consulta, { aba: "produtos", inicio: true, ...SEM_FILTROS });
 }
 
 /** Quantas páginas cabem no total. */

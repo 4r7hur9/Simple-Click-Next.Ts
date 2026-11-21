@@ -8,7 +8,6 @@ import { TelaDoFeed, type ConteudoDoFeed } from "../../../../features/feed/TelaD
 import { buscarTiposDeNegocio } from "../../../../server/feed.ts";
 import { usuarioDoPedidoAtual } from "../../../../server/usuario-da-sessao.ts";
 import * as acoes from "../acoes.ts";
-import { secoesDoInicio } from "../_secoes.tsx";
 import {
   conteudoDosProdutos,
   ouReserva,
@@ -24,8 +23,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * A aba padrão do feed: os produtos que as lojas publicaram, como posts de
- * rede social (card #49), com os stories das lojas no topo.
+ * A lista de produtos do feed (card #152; a vitrine mista é o /explorar):
+ * os produtos que as lojas publicaram, como posts de rede social (card #49).
  */
 export default async function PaginaDeProdutosDoExplorar({
   searchParams,
@@ -33,8 +32,7 @@ export default async function PaginaDeProdutosDoExplorar({
   searchParams: Promise<ParametrosDaPagina>;
 }) {
   // A rolagem infinita sempre começa da primeira página.
-  const parametros = await searchParams;
-  const consulta = { ...lerConsulta("produtos", parametros), pagina: 1 };
+  const consulta = { ...lerConsulta("produtos", await searchParams), pagina: 1 };
   const token = await tokenDaSessao();
   const [tipos, conteudo, usuario, seguidas] = await Promise.all([
     ouReserva(buscarTiposDeNegocio(), []),
@@ -50,7 +48,6 @@ export default async function PaginaDeProdutosDoExplorar({
       tipos={tipos}
       conteudo={conteudo}
       logado={usuario.papel !== "visitante"}
-      secoes={secoesDoInicio(consulta, parametros["destaques"], token, "/explorar/produtos")}
       seguidas={seguidas.apelidos}
       acoes={{
         maisPosts: acoes.maisPosts,

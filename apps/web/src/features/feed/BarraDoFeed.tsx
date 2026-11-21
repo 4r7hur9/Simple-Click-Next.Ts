@@ -14,6 +14,7 @@
  * aqui fica só o "Filtros", na linha dos segmentos. Forma de receber, ordem e
  * localização moram atrás dele, que mostra quantos estão ligados.
  */
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -26,6 +27,7 @@ import {
 
 import {
   arredondarLocal,
+  enderecoDaVitrine,
   enderecoDoFeed,
   NOME_DA_ORDEM,
   ordensDaAba,
@@ -59,8 +61,20 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
 
   useEffect(() => setBusca(consulta.busca ?? ""), [consulta.busca]);
 
-  function irPara(mudancas: Parameters<typeof enderecoDoFeed>[1], substituir = false) {
-    const destino = enderecoDoFeed(consulta, mudancas);
+  /**
+   * Busca, filtros e ordem pedem resultados: na vitrine mista (/explorar,
+   * card #152) levam à lista de produtos. Só a região (`naVitrine`) fica nela.
+   */
+  function irPara(
+    mudancas: Parameters<typeof enderecoDoFeed>[1],
+    substituir = false,
+    naVitrine = false,
+  ) {
+    const saindo = consulta.inicio === true && !naVitrine;
+    const destino = enderecoDoFeed(
+      consulta,
+      saindo ? { ...mudancas, inicio: false } : mudancas,
+    );
     if (substituir) router.replace(destino, { scroll: false });
     else router.push(destino, { scroll: false });
   }
@@ -79,7 +93,9 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
         };
         guardarLocalDoAparelho(local);
         setEstadoDoLocal("parado");
-        irPara({ ...local, ordem }, substituir);
+        // Na vitrine mista a região só filtra as seções; não ordena nem sai dela.
+        if (consulta.inicio === true) irPara(local, substituir, true);
+        else irPara({ ...local, ordem }, substituir);
       },
       () => setEstadoDoLocal("negado"),
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60_000 },
@@ -94,7 +110,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
     jaTentou.current = true;
     const guardado = lerLocalDoAparelho();
     if (guardado !== null) {
-      irPara({ ...guardado, pagina: consulta.pagina }, true);
+      irPara({ ...guardado, pagina: consulta.pagina }, true, true);
     }
     // Só na chegada: depois, quem muda é a própria pessoa.
   }, []);
@@ -112,11 +128,15 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
   function esquecerLocal() {
     guardarLocalDoAparelho(null);
     setEstadoDoLocal("parado");
-    irPara({
-      lat: undefined,
-      lng: undefined,
-      ordem: consulta.ordem === "distancia" ? "relevancia" : consulta.ordem,
-    });
+    irPara(
+      {
+        lat: undefined,
+        lng: undefined,
+        ordem: consulta.ordem === "distancia" ? "relevancia" : consulta.ordem,
+      },
+      false,
+      true,
+    );
   }
 
   const textoDoLocal =
@@ -139,6 +159,7 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
 
   return (
     <div className="sc-feed__barra" data-aberta={aberta || undefined}>
+      <SecoesDoExplorar consulta={consulta} />
       <button
         type="button"
         className="sc-feed__abrir-filtros"
@@ -270,5 +291,43 @@ export function BarraDoFeed({ consulta }: { readonly consulta: ConsultaDoFeed })
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * Explorar · Lojas · Produtos, dentro do feed (card #152). No computador as
+ * mesmas três moram nas abas do topo; no celular a barra de baixo não tem
+ * lugar para "Produtos", e este atalho é o caminho até a lista (o CSS o
+ * esconde onde o topo já mostra as abas).
+ */
+function SecoesDoExplorar({ consulta }: { readonly consulta: ConsultaDoFeed }) {
+  const atual =
+    consulta.inicio === true ? "explorar" : consulta.aba === "lojas" ? "lojas" : "produtos";
+  const itens = [
+    { id: "explorar", rotulo: "Explorar", href: enderecoDaVitrine(consulta) },
+    {
+      id: "lojas",
+      rotulo: "Lojas",
+      href: enderecoDoFeed(consulta, { aba: "lojas", inicio: false, lista: "todas" }),
+    },
+    {
+      id: "produtos",
+      rotulo: "Produtos",
+      href: enderecoDoFeed(consulta, { aba: "produtos", inicio: false }),
+    },
+  ] as const;
+  return (
+    <nav className="sc-feed__secoes" aria-label="Áreas do Explorar">
+      {itens.map((item) => (
+        <Link
+          key={item.id}
+          className="sc-feed__pilula"
+          href={item.href}
+          aria-current={atual === item.id ? "page" : undefined}
+        >
+          {item.rotulo}
+        </Link>
+      ))}
+    </nav>
   );
 }

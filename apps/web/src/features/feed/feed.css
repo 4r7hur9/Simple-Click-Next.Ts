@@ -609,6 +609,39 @@
   box-shadow: var(--sombra-3);
 }
 
+/* Vidro ESTÁTICO nos destaques do Explorar (card #153, vidro.css): a mesma
+   linguagem das superfícies flutuantes (preenchimento translúcido, aresta
+   clara de 1px, brilho e sombra macia), mas SEM desfoque. A grade rola com a
+   página e atrás dela só há o fundo liso, então o desfoque custaria a cada
+   quadro da rolagem sem aparecer. As "Lojas perto" e o feed de posts não
+   mudam. */
+.sc-inicio__produtos .sc-feed__cartao {
+  background-color: color-mix(
+    in srgb,
+    var(--cor-superficie) var(--vidro-opacidade-forte),
+    transparent
+  );
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
+  box-shadow:
+    var(--vidro-sombra-leve),
+    inset 0 0 0 1px var(--vidro-borda),
+    inset 0 1px 0 var(--vidro-realce);
+}
+
+.sc-inicio__produtos .sc-feed__cartao:hover {
+  box-shadow:
+    var(--vidro-sombra-medio),
+    inset 0 0 0 1px var(--vidro-borda),
+    inset 0 1px 0 var(--vidro-realce);
+}
+
 .sc-feed__link {
   display: flex;
   flex: 1;
@@ -2345,4 +2378,27 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--espaco-5);
   }
+}
+
+/* --- áreas do Explorar (card #152) ---------------------------------------
+   No celular a barra de baixo não tem "Produtos": estas três pílulas levam à
+   vitrine, às lojas e à lista de produtos. No computador, as abas do topo já
+   fazem isso. */
+.sc-feed__secoes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+@media (min-width: 64rem) {
+  .sc-feed__secoes {
+    display: none;
+  }
+}
+
+.sc-inicio__vazio-secao {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--texto-sm);
 }
