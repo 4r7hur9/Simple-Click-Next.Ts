@@ -1,0 +1,80 @@
+# Configuração do gitleaks do SimpleClick (card #140).
+#
+# Usa TODAS as regras padrão do gitleaks e só abre exceção para os falsos
+# positivos que a varredura do histórico inteiro encontrou (gitleaks 8.30.1,
+# `gitleaks git --log-opts=--all`, 20/11/2026: 426 commits, 5 achados, nenhum
+# segredo real). Cada exceção é ESTREITA de propósito:
+#   - condition = "AND": vale só quando caminho E linha casam (o padrão do
+#     gitleaks é OR, que liberaria o arquivo inteiro ou o trecho em qualquer
+#     arquivo);
+#   - regexTarget = "line": a regex olha a linha em que o achado está;
+#   - targetRules: só a regra que disparou.
+# Um segredo novo colado em outra linha desses mesmos arquivos CONTINUA sendo
+# acusado — é o que o controle negativo de docs/ambientes-e-deploy.md prova.
+#
+# PONTO CEGO conhecido: as regras padrão não reconhecem `senha: "..."` (a
+# palavra-chave é em português). As senhas das contas de DEMONSTRAÇÃO são
+# públicas por desenho e estão listadas no doc; senha real nunca vai para o
+# código.
+#
+# Quem muda este arquivo muda o que o portão de segredos deixa passar: a
+# alteração deve ser revisada por humano (ver docs/ambientes-e-deploy.md).
+
+title = "SimpleClick"
+
+[extend]
+useDefault = true
+
+# 1. Marcadores do modelo de ambiente: `NOME=TROQUE_POR_UM_SEGREDO_...`.
+#    Impressão digital: 10617783:.env.example:generic-api-key:54
+[[allowlists]]
+description = "marcador TROQUE_ do modelo de ambiente"
+targetRules = ["generic-api-key"]
+condition = "AND"
+# Âncoras (B-3 da revisão #149), conferidas em modo `git` num repositório
+# descartável: só o .env.example da RAIZ, e só uma linha que é INTEIRA o
+# marcador. O alvo "line" chega com contexto, por isso `(?m)`: sem ele o `^`
+# nunca casa. Casos que voltam a ser acusados: segredo colado depois ou antes
+# do marcador na mesma linha, segredo numa linha vizinha, marcador num
+# .env.example de subpasta.
+paths = ['''^\.env\.example$''']
+regexTarget = "line"
+regexes = ['''(?m)^(#\s*)?[A-Z][A-Z0-9_]*=TROQUE_POR_UM_SEGREDO_[A-Z0-9_]+\s*$''']
+
+# 2. Teste do próprio portão de segredos (arquivo que só existe no histórico,
+#    removido em 261b06f): grava de propósito uma chave Stripe FALSA para
+#    provar que a varredura a pega. Liberado pelos COMMITS, nunca só pelo
+#    caminho — um arquivo novo com esse nome volta a ser varrido.
+#    Impressões digitais:
+#      770ac27d:infra/tests/portao.test.ts:stripe-access-token:601
+#      7f9d8363:infra/tests/portao.test.ts:stripe-access-token:795
+[[allowlists]]
+description = "chave Stripe falsa do teste do portão de segredos (histórico)"
+targetRules = ["stripe-access-token", "generic-api-key"]
+condition = "AND"
+commits = [
+  "770ac27d355e109cd4557c6477f0e236272edb98",
+  "7f9d836369bff8f0fc3368b8cd59095ad19519e1",
+]
+paths = ['''(^|/)infra/tests/portao\.test\.ts$''']
+
+# 3. Token de acompanhamento FALSO de um teste de interface.
+#    Impressão digital: f60a8ae3:apps/web/tests/area-do-cliente-acompanhamento.onp.test.tsx:generic-api-key:79
+[[allowlists]]
+description = "token de fixture do teste de acompanhamento do pedido"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)apps/web/tests/area-do-cliente-acompanhamento\.onp\.test\.tsx$''']
+regexTarget = "line"
+regexes = ['''const TOKEN = "[A-Za-z0-9]{22}";''']
+
+# 4. Valor de mentira que o teste do registro usa para provar que segredo
+#    não vai para o log.
+#    Impressão digital: 60b7b2c3:apps/api/src/core/log.test.ts:generic-api-key:51
+[[allowlists]]
+description = "valor falso do teste de higiene do registro"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)apps/api/src/core/log\.test\.ts$''']
+regexTarget = "line"
+regexes = ['''const VALOR_SECRETO = "abacaxi-de-mentira-\d+";''']

@@ -7,6 +7,8 @@ coverage/
 .turbo/
 playwright-report/
 test-results/
+# Saída do k6 e dos relatórios de desempenho (tests/performance/ambiente/).
+tests/performance/saida/
 
 # Arquivos gerados
 # Documento de contrato: quem o escreve é `apps/api/src/contracts/gerar.ts`

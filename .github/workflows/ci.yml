@@ -1,0 +1,397 @@
+# CI do SimpleClick (Projeto A, card #141): lint, tipos, testes, cobertura,
+# SCA das dependências, segredos no histórico, lint do OpenAPI e build.
+#
+# Roda em PR e em push para a main. Cada job é independente e começa pelo
+# mesmo preparo (Node 24, pnpm do `packageManager`, `pnpm install
+# --frozen-lockfile` com cache do pnpm); os que falam com banco e cache sobem
+# PostgreSQL 16 e Redis 7 como serviços do próprio job, com segredos de TESTE
+# fixos no YAML (nunca valores reais: a API recusa iniciar sem eles, então
+# algum valor precisa existir, e estes só valem dentro do runner descartável).
+#
+# O mínimo de cobertura NÃO mora aqui: é `coverage.thresholds` em
+# vitest.config.ts, para a mesma régua valer na máquina e no CI. O job de
+# cobertura falha quando a suíte fica abaixo dela e publica o relatório
+# (html + lcov + resumo) como artefato.
+#
+# O que é exceção justificada (auditoria, Trivy) está em docs/ci.md.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: "24"
+  # Sem cores ANSI nos logs e sem telemetria das ferramentas.
+  FORCE_COLOR: "0"
+  TURBO_TELEMETRY_DISABLED: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # 1 · Lint, tipos e testes de unidade: sem serviço nenhum, responde rápido.
+  qualidade:
+    name: Lint, tipos e unidade
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint, raiz do monorepo)
+        run: pnpm lint
+
+      - name: Tipos (tsc em todos os pacotes)
+        run: pnpm typecheck
+
+      - name: Testes de unidade
+        run: pnpm test:unit
+
+  # 2 · Testes de integração: PostgreSQL e Redis de verdade, descartáveis.
+  integracao:
+    name: Integração (PostgreSQL + Redis)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # Mesmos nomes do .env.example. Valores só de teste, visíveis de
+      # propósito: o runner é descartável e nada aqui abre porta pública.
+      NODE_ENV: test
+      LOG_LEVEL: warn
+      # Superusuário do serviço: a primeira migração cria os papéis
+      # (sc_migrator, sc_app, sc_admin) e o apoio de teste cria um banco por
+      # arquivo — os dois exigem mais poder do que a credencial de migração.
+      DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
+      DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+      DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+      SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
+      SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
+      SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
+      REDIS_URL: redis://localhost:6379/0
+      REDIS_URL_TEST: redis://localhost:6379/1
+      JWT_SECRET: ci_jwt_de_teste_sem_valor_real_0123456789abcdef
+      SEGREDO_DE_REVALIDACAO: ci_revalidacao_de_teste_sem_valor_real_0123456789
+      ORIGENS_PERMITIDAS: https://simpleclick.localhost,https://api.simpleclick.localhost
+      NEXT_PUBLIC_API_URL: http://localhost:3101
+      URL_DO_SITE: http://localhost:3100
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Cliente do PostgreSQL (pg_dump/pg_restore/psql da prova AC-052)
+        # A imagem ubuntu-24.04 já traz o cliente 16, da mesma versão do
+        # serviço; o passo só confere e falha cedo com mensagem clara.
+        run: |
+          for ferramenta in pg_dump pg_restore psql; do
+            command -v "$ferramenta" >/dev/null || { echo "::error::$ferramenta não encontrado no runner"; exit 1; }
+          done
+          pg_dump --version
+
+      - name: Testes de integração
+        run: pnpm test:int
+
+  # 3 · Cobertura: a suíte inteira (unidade + integração) numa só execução do
+  #     Vitest, para o relatório ser um só e o mínimo valer para o todo.
+  cobertura:
+    name: Cobertura (mínimo em vitest.config.ts)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      NODE_ENV: test
+      LOG_LEVEL: warn
+      DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
+      DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+      DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+      SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
+      SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
+      SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
+      REDIS_URL: redis://localhost:6379/0
+      REDIS_URL_TEST: redis://localhost:6379/1
+      JWT_SECRET: ci_jwt_de_teste_sem_valor_real_0123456789abcdef
+      SEGREDO_DE_REVALIDACAO: ci_revalidacao_de_teste_sem_valor_real_0123456789
+      ORIGENS_PERMITIDAS: https://simpleclick.localhost,https://api.simpleclick.localhost
+      NEXT_PUBLIC_API_URL: http://localhost:3101
+      URL_DO_SITE: http://localhost:3100
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Suíte completa com cobertura (falha abaixo do mínimo declarado)
+        run: pnpm test:coverage
+
+      - name: Resumo da cobertura no sumário da execução
+        if: always()
+        run: |
+          {
+            echo "## Cobertura (v8)"
+            echo
+            echo '```'
+            node --input-type=module -e '
+              import { readFileSync } from "node:fs";
+              const r = JSON.parse(readFileSync("coverage/coverage-summary.json", "utf8")).total;
+              for (const k of ["lines", "statements", "functions", "branches"])
+                console.log(k.padEnd(11), String(r[k].pct).padStart(6) + "%", "(" + r[k].covered + "/" + r[k].total + ")");
+            '
+            echo '```'
+            echo
+            echo "Mínimo declarado: \`coverage.thresholds\` em \`vitest.config.ts\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Relatório de cobertura (artefato)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cobertura-${{ github.sha }}
+          path: coverage/
+          if-no-files-found: error
+          retention-days: 30
+
+  # 4 · SCA das dependências: pnpm audit (high+) e Trivy no sistema de arquivos.
+  sca:
+    name: SCA (pnpm audit + Trivy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: pnpm audit (nível high; exceções em package.json › pnpm.auditConfig e docs/ci.md)
+        run: pnpm audit --audit-level high
+
+      - name: Trivy fs (vulnerabilidades, má configuração e segredos; HIGH e CRITICAL)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+          format: table
+
+  # 5 · Segredos no histórico: gitleaks com a configuração do projeto.
+  gitleaks:
+    name: Gitleaks (histórico completo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GITLEAKS_VERSION: "8.30.1"
+    steps:
+      - name: Código da revisão (histórico inteiro, para varrer cada commit)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: gitleaks ${{ env.GITLEAKS_VERSION }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL --retry 3 -o /tmp/gitleaks.tgz "$url"
+          curl -fsSL --retry 3 -o /tmp/gitleaks_checksums.txt \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          (cd /tmp && grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" gitleaks_checksums.txt | sha256sum -c -)
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Varredura do histórico (config .gitleaks.toml)
+        env:
+          BRANCH_BASE: ${{ github.event.pull_request.base.ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          gitleaks version
+          # A configuração vem do BRANCH BASE (docs/ambientes-e-deploy.md §4.3,
+          # card #140): um PR não pode afrouxar a regra que o julga. Se o base
+          # ainda não tiver o arquivo, cai para o do checkout.
+          cfg="$RUNNER_TEMP/gitleaks.toml"
+          if git show "origin/${BRANCH_BASE}:.gitleaks.toml" > "$cfg" 2>/dev/null; then
+            echo "config: origin/${BRANCH_BASE}:.gitleaks.toml"
+          else
+            echo "::notice::origin/${BRANCH_BASE} não tem .gitleaks.toml; usando o do checkout"
+            cp .gitleaks.toml "$cfg"
+          fi
+          # Mesma varredura do card #140: histórico inteiro, todas as referências.
+          # (Nunca `gitleaks dir` na raiz: leria um .env real, se existisse.)
+          gitleaks git --config "$cfg" --log-opts=--all --no-banner --redact \
+            --report-format sarif --report-path gitleaks.sarif .
+
+      - name: Relatório do gitleaks (artefato)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gitleaks-${{ github.sha }}
+          path: gitleaks.sarif
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # 6 · OpenAPI: o documento publicado está em dia com o contrato Zod e passa
+  #     no Spectral (regras em .spectral.yaml). Comandos do card #137.
+  openapi:
+    name: OpenAPI (em dia + Spectral)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Contrato publicado em dia (contrato/openapi.json e docs/openapi.yaml)
+        run: pnpm openapi:verificar
+
+      - name: Spectral (docs/openapi.yaml, falha em warn)
+        run: pnpm openapi:lint
+
+  # 7 · Build de todos os pacotes (API com tsc, site com next build).
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # O build do site lê estas variáveis no `next.config.ts`/páginas; são
+      # valores de build, não de execução.
+      NEXT_PUBLIC_API_URL: http://localhost:3101
+      URL_DO_SITE: http://localhost:3100
+      NEXT_PUBLIC_DEV_STORE_SLUG: pastelaria-da-vila
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build com turbo (API, site e pacotes)
+        run: pnpm build

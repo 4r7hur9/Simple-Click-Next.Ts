@@ -1,0 +1,278 @@
+# Desempenho: smoke, carga e estresse (k6). Estruturação 5.
+#
+#   smoke    em PR para a main e por disparo manual: 1 usuário virtual, 1 jornada
+#            dirigida. Qualquer divergência bloqueia a sequência.
+#   carga    só por disparo manual, depois do smoke (needs): 1→20 usuários
+#            virtuais em 2 min, 20 por 5 min, →0 em 1 min.
+#   estresse só por disparo manual, depois da carga (needs): patamares de 20, 40
+#            e 60 usuários virtuais e recuperação.
+#
+# O `needs` só controla a ORDEM. Cada job roda em seu próprio runner e prepara a
+# sua cópia descartável da mesma base: Postgres e Redis próprios (containers com
+# senha aleatória), migrações, seed de simulação (100 lojas, 1.000 pedidos), API
+# e site de produção servindo as imagens do seed. Os passos de preparo, medição
+# e fechamento ficam em tests/performance/ambiente/ — o YAML só os chama, e
+# são os mesmos que rodam no computador (local.sh). Os números iniciais são
+# valores de homologação, não metas do produto: meça a primeira execução antes
+# de adotá-los.
+#
+# Os artefatos (resumo JSON, tabela legível, validação do seed, reconciliação
+# dos pedidos, SHA, k6, semente, data de referência, runner e intervalo) são
+# publicados SEMPRE, mesmo quando uma etapa falha.
+name: Desempenho
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desempenho-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  K6_VERSION: "1.3.0"
+  NODE_VERSION: "24"
+  SEMENTE: sc-2026
+  REFERENCIA: "2026-11-01T18:00:00-03:00"
+  K6_NO_USAGE_REPORT: "true"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # 1 · Smoke: em PR para a main e por disparo manual.
+  smoke:
+    name: Smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ETAPA: smoke
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: k6 ${{ env.K6_VERSION }}
+        uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1.3.0
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Postgres e Redis próprios do job
+        run: |
+          bash tests/performance/ambiente/servicos.sh subir
+          while IFS='=' read -r nome valor; do
+            [ -n "$nome" ] || continue
+            echo "::add-mask::$valor"
+            senha_da_url="$(printf '%s' "$valor" | sed -n 's#^[a-z]*://[^:]*:\([^@]*\)@.*#\1#p')"
+            [ -z "$senha_da_url" ] || echo "::add-mask::$senha_da_url"
+            echo "$nome=$valor" >> "$GITHUB_ENV"
+          done < tests/performance/.servicos.env
+
+      - name: Preparo (migrações, seed, API e site, validação, linha de base)
+        run: bash tests/performance/ambiente/preparar.sh "$ETAPA"
+
+      - name: Medição (smoke)
+        run: bash tests/performance/ambiente/executar-k6.sh "$ETAPA"
+
+      - name: Reconciliação e relatório
+        if: always()
+        run: bash tests/performance/ambiente/finalizar.sh "$ETAPA"
+
+      - name: Resumo no painel da execução
+        if: always()
+        run: |
+          arquivo="tests/performance/saida/$ETAPA/relatorio.md"
+          if [ -f "$arquivo" ]; then
+            cat "$arquivo" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Sem relatório de $ETAPA: o preparo não chegou ao fim." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Artefatos de smoke
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desempenho-smoke
+          path: |
+            tests/performance/saida/smoke/
+            !tests/performance/saida/smoke/site/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Remove os serviços descartáveis
+        if: always()
+        run: bash tests/performance/ambiente/servicos.sh derrubar
+
+  # 2 · Carga: só por disparo manual, depois do smoke.
+  carga:
+    name: Carga
+    needs: smoke
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      ETAPA: carga
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: k6 ${{ env.K6_VERSION }}
+        uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1.3.0
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Postgres e Redis próprios do job
+        run: |
+          bash tests/performance/ambiente/servicos.sh subir
+          while IFS='=' read -r nome valor; do
+            [ -n "$nome" ] || continue
+            echo "::add-mask::$valor"
+            senha_da_url="$(printf '%s' "$valor" | sed -n 's#^[a-z]*://[^:]*:\([^@]*\)@.*#\1#p')"
+            [ -z "$senha_da_url" ] || echo "::add-mask::$senha_da_url"
+            echo "$nome=$valor" >> "$GITHUB_ENV"
+          done < tests/performance/.servicos.env
+
+      - name: Preparo (migrações, seed, API e site, validação, linha de base)
+        run: bash tests/performance/ambiente/preparar.sh "$ETAPA"
+
+      - name: Medição (carga)
+        run: bash tests/performance/ambiente/executar-k6.sh "$ETAPA"
+
+      - name: Reconciliação e relatório
+        if: always()
+        run: bash tests/performance/ambiente/finalizar.sh "$ETAPA"
+
+      - name: Resumo no painel da execução
+        if: always()
+        run: |
+          arquivo="tests/performance/saida/$ETAPA/relatorio.md"
+          if [ -f "$arquivo" ]; then
+            cat "$arquivo" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Sem relatório de $ETAPA: o preparo não chegou ao fim." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Artefatos de carga
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desempenho-carga
+          path: |
+            tests/performance/saida/carga/
+            !tests/performance/saida/carga/site/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Remove os serviços descartáveis
+        if: always()
+        run: bash tests/performance/ambiente/servicos.sh derrubar
+
+  # 3 · Estresse: só por disparo manual, depois da carga, em runner próprio.
+  estresse:
+    name: Estresse
+    needs: carga
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      ETAPA: estresse
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: k6 ${{ env.K6_VERSION }}
+        uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1.3.0
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Postgres e Redis próprios do job
+        run: |
+          bash tests/performance/ambiente/servicos.sh subir
+          while IFS='=' read -r nome valor; do
+            [ -n "$nome" ] || continue
+            echo "::add-mask::$valor"
+            senha_da_url="$(printf '%s' "$valor" | sed -n 's#^[a-z]*://[^:]*:\([^@]*\)@.*#\1#p')"
+            [ -z "$senha_da_url" ] || echo "::add-mask::$senha_da_url"
+            echo "$nome=$valor" >> "$GITHUB_ENV"
+          done < tests/performance/.servicos.env
+
+      - name: Preparo (migrações, seed, API e site, validação, linha de base)
+        run: bash tests/performance/ambiente/preparar.sh "$ETAPA"
+
+      - name: Medição (estresse)
+        run: bash tests/performance/ambiente/executar-k6.sh "$ETAPA"
+
+      - name: Reconciliação e relatório
+        if: always()
+        run: bash tests/performance/ambiente/finalizar.sh "$ETAPA"
+
+      - name: Resumo no painel da execução
+        if: always()
+        run: |
+          arquivo="tests/performance/saida/$ETAPA/relatorio.md"
+          if [ -f "$arquivo" ]; then
+            cat "$arquivo" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Sem relatório de $ETAPA: o preparo não chegou ao fim." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Artefatos de estresse
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desempenho-estresse
+          path: |
+            tests/performance/saida/estresse/
+            !tests/performance/saida/estresse/site/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Remove os serviços descartáveis
+        if: always()
+        run: bash tests/performance/ambiente/servicos.sh derrubar

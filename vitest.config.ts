@@ -20,6 +20,14 @@ if (existsSync(arquivoDeAmbiente)) process.loadEnvFile(arquivoDeAmbiente);
 // componente daquele projeto ilegível.
 const conversaoDeJsx = { jsx: { runtime: "automatic" as const } };
 
+/**
+ * Redis dos limites de requisição nas provas de API: o servidor de
+ * `REDIS_URL_TEST`, no índice 15. Sem `REDIS_URL_TEST` definida, nada muda.
+ */
+const urlDoRedisDasProvasDeApi = process.env.REDIS_URL_TEST?.trim()
+  ? process.env.REDIS_URL_TEST.trim().replace(/\/\d+$/, "") + "/15"
+  : undefined;
+
 const excluidos = [
   ...configDefaults.exclude,
   "**/.next/**",
@@ -80,6 +88,41 @@ export default defineConfig({
   oxc: conversaoDeJsx,
   test: {
     exclude: excluidos,
+    // Cobertura (`pnpm test:coverage`, job "cobertura" do CI). Só liga com
+    // `--coverage`: as execuções do dia a dia não pagam a instrumentação.
+    //
+    // O MÍNIMO mora aqui, e não no YAML do CI, para a mesma régua valer na
+    // máquina e no GitHub. Os números vêm da medição real da suíte inteira
+    // (unidade + integração, 20/11/2026, registrada em docs/ci.md) com uma
+    // folga pequena: a suíte cumpre hoje, e o piso sobe junto com a cobertura
+    // — baixá-lo é decisão escrita, nunca ajuste silencioso.
+    coverage: {
+      provider: "v8",
+      // Só código de produto. Testes, apoio de teste, código gerado pelo
+      // Prisma e a saída do Next não contam nem a favor nem contra.
+      include: ["apps/*/src/**", "packages/*/src/**"],
+      exclude: [
+        "**/*.test.{ts,tsx}",
+        "**/*.prova.{ts,tsx}",
+        "**/tests/**",
+        "**/.next/**",
+        "packages/database/gerado/**",
+        "packages/testing/**",
+        "packages/contracts/.provas-de-tipo/**",
+        "apps/web/src/features/__cores-temp/**",
+      ],
+      reportsDirectory: "coverage",
+      reporter: ["text-summary", "html", "lcov", "json-summary"],
+      // Suíte vermelha ainda publica o relatório: o CI mostra o que foi
+      // coberto mesmo quando um teste falha.
+      reportOnFailure: true,
+      thresholds: {
+        lines: 75,
+        statements: 73,
+        functions: 75,
+        branches: 66,
+      },
+    },
     // O arquivo de comparação nasce AO LADO do teste, e não em `__snapshots__`:
     // o Prettier reescreve `__snapshots__` como negrito (`**snapshots**`) em
     // markdown, e sem underscore duplo o caminho sobrevive à formatação.
@@ -159,6 +202,22 @@ export default defineConfig({
           // existe por causa das migrações.
           exclude: [...excluidos, ...provaDeCache, "apps/api/src/jobs/**"],
           setupFiles: preparacaoDeBanco,
+          // Os limites de requisição da API (catálogo, login, cadastro…)
+          // contam por endereço no Redis, e todo arquivo deste projeto chega
+          // de 127.0.0.1. Com o Redis de desenvolvimento e o limite de
+          // produção (60 consultas por minuto), as requisições de uma suíte
+          // bloqueavam as vizinhas — e o bloqueio sobrevivia por horas, também
+          // entre execuções: 429 em quem não tinha nada a ver com isso. Aqui
+          // o contador vai para um índice só destas provas (o 15, nem o de
+          // desenvolvimento nem o de `REDIS_URL_TEST`) e o teto do catálogo é
+          // praticamente desligado. O comportamento do limitador é provado por
+          // `limite-do-catalogo.test.ts`, com o ambiente injetado.
+          env: {
+            VITRINE_CATALOGO_LIMITE: "1000000",
+            ...(urlDoRedisDasProvasDeApi === undefined
+              ? {}
+              : { REDIS_URL: urlDoRedisDasProvasDeApi }),
+          },
           ...esperaDeIntegracao,
         },
       },

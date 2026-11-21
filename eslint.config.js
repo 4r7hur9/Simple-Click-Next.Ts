@@ -3,6 +3,12 @@ import { configBase } from "@simpleclick/config-eslint";
 export default [
   ...configBase(),
   {
+    // Ferramentas versionadas fora do produto: o Workflow IA (.claude) e as
+    // capturas de tela dos cards (.rmcode) são scripts de apoio, escritos e
+    // atualizados por outras ferramentas. O lint do produto não os examina.
+    ignores: [".claude/**", ".rmcode/**"],
+  },
+  {
     // Scripts de linha de comando e configuração rodam fora das camadas, e
     // imprimir na tela é a função deles — não um descuido de depuração.
     files: [

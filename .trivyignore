@@ -1,0 +1,19 @@
+# Exceções do Trivy (job "SCA" do .github/workflows/ci.yml).
+#
+# Uma linha por identificador (CVE-..., GHSA-..., AVD-...), SEMPRE com o motivo
+# e a data de revisão em comentário logo acima, e a mesma entrada em docs/ci.md
+# (seção "Exceções do SCA"). Exceção sem motivo escrito não entra: o Trivy
+# aceita, a revisão não. O par deste arquivo para o `pnpm audit` é
+# `pnpm.auditConfig.ignoreGhsas` em package.json.
+#
+# As chaves TLS locais (infra/traefik/certs/*.key) que o Trivy aponta como
+# segredo na máquina do desenvolvedor não chegam ao CI: estão no .gitignore
+# (só o .gitkeep é versionado). Por isso não precisam de exceção.
+
+# deepmerge-ts 7.1.5 (GHSA-ggr8-5vv4-36mx): prototype pollution no merge.
+# Chega só por @prisma/config, que o CLI do Prisma usa para ler o
+# prisma.config.ts na hora de `prisma generate`/migrações — nunca na API em
+# execução nem com entrada de usuário. A correção exige MAJOR (8.0.0), que o
+# @prisma/config 7.10.0 ainda não pede; reavaliar no próximo bump do Prisma.
+# Revisão: 2026-11-20 (card #141). Expira: 2027-02-20.
+CVE-2026-40345

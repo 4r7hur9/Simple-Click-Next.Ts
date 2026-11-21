@@ -23,16 +23,29 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { chromium } from "../../e2e/node_modules/@playwright/test/index.mjs";
+import {
+  CONTA_ADMIN,
+  CONTA_CLIENTE,
+  CONTA_DONO,
+} from "../../packages/database/seed/demo/contas.ts";
 
 const SITE = process.argv[2] ?? "http://localhost:3000";
+// O script DIGITA as senhas de demonstração no site: só numa máquina local.
+// Apontado para homologação ou produção, entregaria a credencial a esse host.
+if (!["localhost", "127.0.0.1"].includes(new URL(SITE).hostname)) {
+  console.error(`Recusado: ${SITE} não é local (use localhost ou 127.0.0.1).`);
+  process.exit(1);
+}
 const FILTRO = process.argv[3] ?? "";
 const DESTINO = "/tmp/sc72";
 mkdirSync(DESTINO, { recursive: true });
 
+// As contas de DEMONSTRAÇÃO vêm de uma fonte só, o seed (card #140): a senha
+// não é repetida aqui. Elas valem apenas na base local carregada pelo `demo`.
 const CONTAS = {
-  dono: { email: "dono.demo@simpleclick.test", senha: "DemoSimpleClick2026" },
-  cliente: { email: "ana.ribeiro@cliente.test", senha: "SenhaTeste!2026x" },
-  admin: { email: "maria.card6@exemplo.test", senha: "ArthurBruno2k@" },
+  dono: CONTA_DONO,
+  cliente: CONTA_CLIENTE,
+  admin: CONTA_ADMIN,
 };
 
 const APARELHOS = {
