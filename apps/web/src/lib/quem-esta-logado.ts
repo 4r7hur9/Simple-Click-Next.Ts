@@ -335,8 +335,9 @@ export function itensDoUsuario(
         {
           id: "admin",
           rotulo: "Administração",
-          href: "/admin/lojas",
+          href: "/admin",
           icone: "admin",
+          exato: true,
         },
         {
           id: "auditoria",
@@ -344,7 +345,7 @@ export function itensDoUsuario(
           href: "/admin/auditoria",
           icone: "auditoria",
         },
-        EXPLORAR,
+        // Sem Explorar: a administração não tem itens de cliente (card #169).
         MINHA_CONTA,
       ];
   }

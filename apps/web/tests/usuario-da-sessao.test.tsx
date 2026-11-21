@@ -214,7 +214,6 @@ describe("os cinco papéis no menu da conta", () => {
     expect(rotulos(ADMIN)).toEqual([
       "Administração",
       "Auditoria",
-      "Explorar",
       "Minha conta",
     ]);
   });

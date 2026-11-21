@@ -149,8 +149,8 @@ describe("a navegação montada com a sessão", () => {
 describe("as três molduras", () => {
   const filho = <main id="conteudo" />;
 
-  it("[CA-24] @spec:AC-10504 explorar: topo, conteúdo, rodapé e barra; sem a lateral", () => {
-    const arvore = LayoutDoExplorar({ children: filho });
+  it("[CA-24] @spec:AC-10504 explorar: topo, conteúdo, rodapé e barra; sem a lateral", async () => {
+    const arvore = await LayoutDoExplorar({ children: filho });
     const t = tipos(arvore);
     expect(t.has(NavegacaoDaSessao)).toBe(true);
     expect(t.has(BarraInferiorDaSessao)).toBe(true);
@@ -193,8 +193,10 @@ describe("as três molduras", () => {
     expect(topo.props.loja?.apelido).toBe("padaria");
   });
 
-  it("[CA-24] @spec:AC-10504 a ordem do Tab: topo antes do conteúdo e a barra depois", () => {
-    const arvore = LayoutDoExplorar({ children: filho }) as ReactElement<{
+  it("[CA-24] @spec:AC-10504 a ordem do Tab: topo antes do conteúdo e a barra depois", async () => {
+    const arvore = (await LayoutDoExplorar({
+      children: filho,
+    })) as ReactElement<{
       children: ReactNode[];
     }>;
     const ordem = arvore.props.children.map((f) =>

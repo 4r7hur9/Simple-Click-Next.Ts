@@ -4,15 +4,20 @@ import { ListaDeLojas, ListaDeProdutosFavoritos } from "../../../../features/con
 import { Erro } from "@simpleclick/ui";
 import { PaginaDaConta } from "../../../../features/conta/PaginaDaConta.tsx";
 import { buscarFavoritos, buscarRecentes } from "../../../../lib/conta-do-cliente.ts";
+import { desviarAdministradorDasAreasDeCliente } from "../../../../server/area-do-papel.ts";
 import { tokenOuEntrar } from "../_token.ts";
 import { comDestino } from "../../../../lib/destino-seguro.ts";
 
 export const metadata = { title: "Favoritos | SimpleClick" };
 export const dynamic = "force-dynamic";
 
-/** Lojas favoritas e vistas recentemente. */
+/**
+ * Lojas favoritas e vistas recentemente. A administração não tem favoritos: o
+ * servidor a leva para `/admin` (card #170).
+ */
 export default async function PaginaDeFavoritos() {
   const token = await tokenOuEntrar("/conta/favoritos");
+  await desviarAdministradorDasAreasDeCliente();
   const [favoritos, recentes] = await Promise.all([buscarFavoritos(token), buscarRecentes(token)]);
   if (favoritos.estado === "nao-autenticado") redirect(comDestino("/entrar", "/conta/favoritos"));
 

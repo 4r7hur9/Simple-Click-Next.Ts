@@ -5,6 +5,7 @@ import {
   type ParametrosDaPagina,
 } from "../../../../features/feed/consulta.ts";
 import { TelaDoFeed, type ConteudoDoFeed } from "../../../../features/feed/TelaDoFeed.tsx";
+import { desviarAdministradorDasAreasDeCliente } from "../../../../server/area-do-papel.ts";
 import { buscarTiposDeNegocio } from "../../../../server/feed.ts";
 import { usuarioDoPedidoAtual } from "../../../../server/usuario-da-sessao.ts";
 import * as acoes from "../acoes.ts";
@@ -18,13 +19,15 @@ export const metadata: Metadata = {
 
 /**
  * As lojas do feed, uma por vez como post (card #49), com favoritas e vistas
- * há pouco para quem tem conta.
+ * há pouco para quem tem conta. O administrador confirmado vai para `/admin`
+ * (card #170).
  */
 export default async function PaginaDeLojasDoExplorar({
   searchParams,
 }: {
   searchParams: Promise<ParametrosDaPagina>;
 }) {
+  await desviarAdministradorDasAreasDeCliente();
   // A rolagem infinita sempre começa da primeira página.
   const consulta = { ...lerConsulta("lojas", await searchParams), pagina: 1 };
   const token = await tokenDaSessao();

@@ -211,6 +211,9 @@ function enderecaDaAba(
 export function itensPrincipais(
   contexto: ContextoDaNavegacao,
 ): readonly ItemDaNavegacao[] {
+  // A administração não tem itens de cliente (card #169): nada de Explorar,
+  // Lojas, Favoritos, Pedidos nem Perfil; a navegação é a sidebar do /admin.
+  if (contexto.usuario.papel === "admin") return [];
   const ativoAgora = itemPrincipalAtivo(contexto.caminho);
   // Em /explorar/produtos o destino "Explorar" da barra fica atual: é a
   // área a que a lista pertence no celular.
@@ -233,6 +236,7 @@ export function itensPrincipais(
 export function abasDoTopo(
   contexto: ContextoDaNavegacao,
 ): readonly ItemDaNavegacao[] {
+  if (contexto.usuario.papel === "admin") return [];
   const ativoAgora = itemPrincipalAtivo(contexto.caminho);
   const [explorar, lojas, favoritos, pedidos] = itensPrincipais(contexto);
   if (

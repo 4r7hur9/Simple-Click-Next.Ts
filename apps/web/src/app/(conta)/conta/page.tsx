@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { PAGINA_DE_FUNDO_DO_MODAL, textoDaConsulta } from "../../../lib/abas-da-conta.ts";
 import { lerPeriodoDaVisao } from "../../../lib/conta-do-cliente.ts";
+import { desviarAdministradorDasAreasDeCliente } from "../../../server/area-do-papel.ts";
 import { tokenOuEntrar } from "./_token.ts";
 
 export const metadata = { title: "Minha conta | SimpleClick" };
@@ -14,7 +15,8 @@ export const dynamic = "force-dynamic";
  * o "Perfil" de versões anteriores) e leva para lá, no servidor. O período da
  * antiga Visão geral (`?periodo=`, `de`, `ate`) vira o `?resumo=` de Pedidos,
  * já conferido por `lerPeriodoDaVisao`: nada do que veio na URL é repassado
- * como está.
+ * como está. A administração não tem conta de cliente: o servidor a leva para
+ * `/admin` (card #170).
  */
 export default async function PaginaInicialDaConta({
   searchParams,
@@ -22,6 +24,7 @@ export default async function PaginaInicialDaConta({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await tokenOuEntrar("/conta");
+  await desviarAdministradorDasAreasDeCliente();
   const consulta = await searchParams;
   const periodo = lerPeriodoDaVisao(
     {

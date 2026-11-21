@@ -51,12 +51,15 @@ export function UsuarioNoMenu({ usuario, sair }: UsuarioNoMenuProps) {
           )}
         </span>
       </div>
-      <Link href="/explorar" className="sc-usuario-menu__acao">
-        <IconeExplorar aria-hidden="true" />
-        <span className="sc-usuario-menu__rotulo">Explorar</span>
-      </Link>
+      {usuario.papel !== "admin" && (
+        <Link href="/explorar" className="sc-usuario-menu__acao">
+          <IconeExplorar aria-hidden="true" />
+          <span className="sc-usuario-menu__rotulo">Explorar</span>
+        </Link>
+      )}
       <Link
         href="/conta/dados"
+        {...(usuario.papel === "admin" ? { "data-abre-conta": "dados" } : {})}
         aria-current={naConta ? "page" : undefined}
         className="sc-usuario-menu__acao"
       >

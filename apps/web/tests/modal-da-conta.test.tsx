@@ -406,6 +406,53 @@ describe("acessibilidade e fechamento", () => {
   });
 });
 
+describe("por cima do /admin (card #169)", () => {
+  function noAdmin(consulta: string) {
+    nav.busca = new URLSearchParams(consulta);
+    window.history.replaceState(null, "", `/admin${consulta === "" ? "" : `?${consulta}`}`);
+  }
+
+  it("[CA-19] ?conta=dados em /admin abre o modal na aba Dados sobre a tela atual", async () => {
+    api();
+    noAdmin("conta=dados");
+    montar(<Cena />);
+    await esperar();
+    expect(aberta()).toBe(true);
+    expect(abaSelecionada()).toBe("Dados");
+    expect(window.location.pathname).toBe("/admin");
+  });
+
+  it("[CA-19] 'Minha conta' do admin (data-abre-conta) abre o modal sem sair do /admin", async () => {
+    api();
+    noAdmin("");
+    montar(<Cena />);
+    clicarComoPessoa(exigir(document.body, "#item-do-menu"));
+    await esperar();
+    expect(aberta()).toBe(true);
+    expect(window.location.pathname).toBe("/admin");
+    expect(window.location.search).toBe("?conta=dados");
+  });
+
+  it("[CA-19] aba fora da lista fechada é ignorada em /admin", async () => {
+    api();
+    noAdmin("conta=painel");
+    montar(<Cena />);
+    await esperar();
+    expect(aberta()).toBe(false);
+  });
+
+  it("[CA-19] o layout do admin monta o modal pela sessão, depois da guarda", () => {
+    const layout = readFileSync(
+      join(process.cwd(), "apps", "web", "src", "app", "(admin)", "admin", "layout.tsx"),
+      "utf8",
+    );
+    expect(layout).toContain("<ModalDaContaDaSessao");
+    expect(layout.indexOf("exigirAdministracaoDaPlataforma")).toBeLessThan(
+      layout.indexOf("<ModalDaContaDaSessao"),
+    );
+  });
+});
+
 describe("o servidor não leva dado da conta para toda página", () => {
   it("[CA-5] sessao.tsx só passa o e-mail e as ações: não importa as leituras da conta", () => {
     const fonte = readFileSync(

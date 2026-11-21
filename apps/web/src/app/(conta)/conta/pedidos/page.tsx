@@ -19,6 +19,7 @@ import {
   lojasDosPedidos,
 } from "../../../../lib/conta-do-cliente.ts";
 import { buscarMeusPedidos } from "../../../../lib/meus-pedidos.ts";
+import { desviarAdministradorDasAreasDeCliente } from "../../../../server/area-do-papel.ts";
 import { tokenOuEntrar } from "../_token.ts";
 import { comDestino } from "../../../../lib/destino-seguro.ts";
 
@@ -37,6 +38,11 @@ export const dynamic = "force-dynamic";
  *
  * Também é a página de fundo do modal: `/conta`, `/conta/dados`,
  * `/conta/enderecos` e `/conta/seguranca` terminam aqui.
+ *
+ * A administração não tem Pedidos: o servidor a leva para `/admin`, e a aba do
+ * modal (da lista fechada) e o `?estado=erro` seguem junto (card #170). O desvio
+ * de verdade (307) é o do `layout.tsx` desta pasta, acima do `loading.tsx`; a
+ * guarda daqui cobre a navegação parcial e carrega a aba do modal.
  */
 export default async function PaginaDeMeusPedidos({
   searchParams,
@@ -48,6 +54,9 @@ export default async function PaginaDeMeusPedidos({
   const aba = lerAbaDaConta(textoDaConsulta(consulta["conta"]));
   const caminho = aba === null ? PAGINA_DE_FUNDO_DO_MODAL : `${PAGINA_DE_FUNDO_DO_MODAL}?conta=${aba}`;
   const token = await tokenOuEntrar(caminho);
+  await desviarAdministradorDasAreasDeCliente(
+    aba === null ? undefined : { aba, estado: textoDaConsulta(consulta["estado"]) },
+  );
 
   const filtro = lerFiltro({
     situacao: textoDaConsulta(consulta["situacao"]),

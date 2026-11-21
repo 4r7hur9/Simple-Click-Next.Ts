@@ -100,3 +100,23 @@ export async function UsuarioDoMenuDaSessao() {
   const usuario = await usuarioDoPedidoAtual();
   return <UsuarioNoMenu usuario={usuario} sair={sairPelaBarra} />;
 }
+
+/**
+ * O modal "Minha conta" montado com a sessão deste pedido (card #169): o
+ * layout da administração, que não tem o topo do cliente, o monta para o
+ * "Minha conta" do menu lateral e para o desvio `/admin?conta=` abrirem a
+ * conta por cima da tela atual. Visitante não recebe o modal.
+ */
+export async function ModalDaContaDaSessao() {
+  const usuario = await usuarioDoPedidoAtual();
+  if (usuario.papel === "visitante") return null;
+  return (
+    <Suspense fallback={null}>
+      <ModalDaConta
+        key={usuario.email}
+        email={usuario.email}
+        acoes={{ sairDaConta, encerrarTodasAsSessoes, sairDepoisDeExcluirAConta }}
+      />
+    </Suspense>
+  );
+}

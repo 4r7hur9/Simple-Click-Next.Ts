@@ -111,7 +111,7 @@ export function BarraInferiorDoCliente({
   readonly usuario: UsuarioDaBarra;
 }) {
   const caminho = usePathname();
-  if (caminhoSemBarra(caminho)) return null;
+  if (caminhoSemBarra(caminho) || usuario.papel === "admin") return null;
   return (
     <div className="sc-barra-cliente">
       <Suspense fallback={<Barra usuario={usuario} />}>

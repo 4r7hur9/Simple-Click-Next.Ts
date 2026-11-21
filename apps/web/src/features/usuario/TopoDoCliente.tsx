@@ -201,6 +201,7 @@ export function TopoDoCliente({
   }, [caminho]);
 
   if (caminhoSemBarra(caminho)) return null;
+  const admin = usuario.papel === "admin";
 
   function aoBuscar(evento: MouseEvent<HTMLAnchorElement>) {
     // Já está no feed: só move o foco, sem recarregar a página.
@@ -211,10 +212,10 @@ export function TopoDoCliente({
     <header className="sc-topo-cliente">
       <div className="sc-topo-cliente__fileira">
         <Link
-          href="/explorar"
+          href={admin ? "/admin" : "/explorar"}
           prefetch={false}
           className="sc-topo-cliente__marca"
-          aria-label="SimpleClick, explorar"
+          aria-label={admin ? "SimpleClick, administração" : "SimpleClick, explorar"}
         >
           <span className="sc-topo-cliente__nome" aria-hidden="true">
             Simple<span>Click</span>
@@ -224,31 +225,37 @@ export function TopoDoCliente({
 
         <div className="sc-topo-cliente__local">{localizacao}</div>
 
-        <Suspense fallback={<BuscaDoTopo />}>
-          <BuscaComEndereco />
-        </Suspense>
+        {!admin && (
+          <Suspense fallback={<BuscaDoTopo />}>
+            <BuscaComEndereco />
+          </Suspense>
+        )}
 
         <div className="sc-topo-cliente__acoes">
-          <Link
-            href={DESTINO_DA_BUSCA}
-            prefetch={false}
-            className="sc-topo-cliente__botao"
-            aria-label="Buscar"
-            data-navegacao="buscar"
-            onClick={aoBuscar}
-          >
-            <IconeBuscar aria-hidden="true" />
-          </Link>
+          {!admin && (
+            <Link
+              href={DESTINO_DA_BUSCA}
+              prefetch={false}
+              className="sc-topo-cliente__botao"
+              aria-label="Buscar"
+              data-navegacao="buscar"
+              onClick={aoBuscar}
+            >
+              <IconeBuscar aria-hidden="true" />
+            </Link>
+          )}
           {sacola}
           <MenuDaConta usuario={usuario} loja={loja ?? lojaDeOrigem} sair={sair} />
         </div>
       </div>
 
-      <nav className="sc-topo-cliente__abas" aria-label="Áreas do cliente">
-        <Suspense fallback={<AbasDoTopo usuario={usuario} />}>
-          <AbasComBusca usuario={usuario} />
-        </Suspense>
-      </nav>
+      {!admin && (
+        <nav className="sc-topo-cliente__abas" aria-label="Áreas do cliente">
+          <Suspense fallback={<AbasDoTopo usuario={usuario} />}>
+            <AbasComBusca usuario={usuario} />
+          </Suspense>
+        </nav>
+      )}
     </header>
   );
 }

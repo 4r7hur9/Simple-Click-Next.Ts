@@ -196,7 +196,7 @@ describe("itens por papel", () => {
   });
 
   it("[CA-8] @spec:AC-10515 só o administrador recebe /admin", () => {
-    expect(hrefsDoMenu(comoLogado("admin"))).toContain("/admin/lojas");
+    expect(hrefsDoMenu(comoLogado("admin"))).toContain("/admin");
   });
 
   it("[CA-8] @spec:AC-10515 o papel vem só do usuário recebido, nunca do endereço", () => {
