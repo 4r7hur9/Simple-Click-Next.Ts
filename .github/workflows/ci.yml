@@ -48,7 +48,7 @@ env:
   # migração pelo sc_migrator, como no ambiente real (a API recusa credencial
   # de superusuário e cadeias iguais). Os papéis nascem na migração, feita por
   # um passo que usa o superusuário do serviço (ver "Banco de desenvolvimento").
-  DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
+  DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5433/postgres
   DATABASE_URL: postgresql://sc_app:ci_senha_aplicacao_teste_0001@localhost:5432/simpleclick_dev?pgbouncer=true
   DATABASE_URL_DIRETA: postgresql://sc_migrator:ci_senha_migrador_teste_0001@localhost:5432/simpleclick_dev
   SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
@@ -105,13 +105,28 @@ jobs:
     env:
       NODE_ENV: test
     services:
-      postgres:
+      # Dois servidores, como na máquina de quem desenvolve: os testes de
+      # separação (AC-003) provam que o banco efêmero NUNCA nasce no servidor de
+      # desenvolvimento, então os dois precisam ser servidores distintos.
+      postgres-dev:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci_postgres_teste_2026
           POSTGRES_DB: postgres
         ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5433:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
@@ -166,13 +181,28 @@ jobs:
     env:
       NODE_ENV: test
     services:
-      postgres:
+      # Dois servidores, como na máquina de quem desenvolve: os testes de
+      # separação (AC-003) provam que o banco efêmero NUNCA nasce no servidor de
+      # desenvolvimento, então os dois precisam ser servidores distintos.
+      postgres-dev:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci_postgres_teste_2026
           POSTGRES_DB: postgres
         ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5433:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
@@ -237,13 +267,28 @@ jobs:
     env:
       NODE_ENV: test
     services:
-      postgres:
+      # Dois servidores, como na máquina de quem desenvolve: os testes de
+      # separação (AC-003) provam que o banco efêmero NUNCA nasce no servidor de
+      # desenvolvimento, então os dois precisam ser servidores distintos.
+      postgres-dev:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci_postgres_teste_2026
           POSTGRES_DB: postgres
         ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5433:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
