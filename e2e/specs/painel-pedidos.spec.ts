@@ -86,7 +86,7 @@ test("@spec:AC-600 o pedido fechado na vitrine aparece na fila do dono sem recar
 
       // O pedido aparece na fila, em destaque, marcado como novo.
       const cartao = grupo.getByRole("article", {
-        name: `Pedido número ${pedido.numero}, novo`,
+        name: `Pedido ${pedido.codigo}, novo`,
       });
       await expect(cartao).toBeVisible({ timeout: 20_000 });
       await expect(cartao).toContainText(nomeDoCliente);

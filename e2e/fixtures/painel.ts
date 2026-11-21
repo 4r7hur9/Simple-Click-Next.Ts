@@ -29,6 +29,8 @@ import type { BrowserContext } from "@playwright/test";
 import { Client } from "pg";
 
 import { abrirODiaInteiro } from "./loja-de-teste.ts";
+import { prepararContaParaATela } from "./redesign-lojas.ts";
+import { jaEscolheuOsCookies } from "./redesign.ts";
 
 /** O apelido da loja do painel — o mesmo que o site do ponta a ponta usa. */
 export const APELIDO_DO_PAINEL = "e2e-painel";
@@ -111,6 +113,10 @@ export async function garantirDonoDaLoja(
            invite_accepted_at = coalesce(store_members.invite_accepted_at, now())`,
     [lojaId, identidadeId],
   );
+  // Aceites legais vigentes (com os Termos do Lojista) e o tutorial de
+  // primeiro acesso já visto: sem isso a API recusa com 403 `aceite_pendente`
+  // e o tutorial cobre a tela. Os dois têm prova própria.
+  await prepararContaParaATela(identidadeId, "dono");
   return identidadeId;
 }
 
@@ -120,6 +126,8 @@ export async function entrarComoDono(
   enderecoDoSite: string,
 ): Promise<void> {
   const dono = donoDoPainel ?? (await garantirLojaDoPainel()).donoId;
+  // O aviso de cookies não cobre o painel: a escolha já vem dada.
+  await jaEscolheuOsCookies(contexto, enderecoDoSite);
   await contexto.addCookies([
     {
       name: "sc_access",
@@ -138,6 +146,113 @@ export async function entrarComoDono(
  */
 export function nomeUnico(prefixo: string, projeto: string): string {
   return `${prefixo} ${projeto} ${randomUUID().slice(0, 8)}`;
+}
+
+/**
+ * O fim de um nome feito por `nomeUnico`: o projeto do Playwright e 8 dígitos
+ * hexadecimais. É assim que se reconhece o que um cenário gravou.
+ */
+const FIM_DE_NOME_UNICO = " (publico|celular) [0-9a-f]{8}$";
+
+/**
+ * Quanto tempo um dado de cenário precisa ter para contar como SOBRA. Mais
+ * que o maior arquivo do painel leva para rodar: o outro projeto (os dois
+ * rodam ao mesmo tempo contra a mesma loja) nunca perde o que acabou de
+ * gravar.
+ */
+const IDADE_DE_SOBRA = "15 minutes";
+
+/**
+ * Tira da loja do painel o que as RODADAS ANTERIORES deixaram (card #133).
+ *
+ * A loja é uma só e dura entre rodadas, e cada rodada grava dados novos com
+ * nome único. Sem faxina, eles se acumulam até quebrar cenários que nada têm
+ * de errado:
+ *
+ * - categorias: a loja tem limite de 50 (card #25, migração 0051), e passado
+ *   dele a criação responde 409 — a tela diz "Não foi possível criar";
+ * - pedidos: a lista dos mais vendidos tem dez lugares, e os produtos das
+ *   rodadas da semana empurram para fora o de cinco dias atrás.
+ *
+ * Só sai o que tem nome de `nomeUnico` E foi gravado há mais de
+ * `IDADE_DE_SOBRA`. A categoria e os produtos dela saem pela remoção lógica
+ * (`deleted_at`), como a tela faz; os pedidos, que não têm remoção lógica,
+ * são apagados com os itens (ON DELETE CASCADE).
+ */
+export async function limparSobrasDoPainel(lojaId: string): Promise<void> {
+  const cliente = conectar();
+  await cliente.connect();
+  try {
+    await cliente.query("BEGIN");
+    await cliente.query(
+      `WITH sobras AS (
+         SELECT id FROM app.categories
+          WHERE store_id = $1 AND deleted_at IS NULL
+            AND name ~ $2 AND created_at < now() - $3::interval
+       ), produtos AS (
+         UPDATE app.products p SET deleted_at = now()
+          WHERE p.store_id = $1 AND p.deleted_at IS NULL AND p.name ~ $2
+            AND EXISTS (SELECT 1 FROM app.product_categories pc
+                         WHERE pc.product_id = p.id
+                           AND pc.category_id IN (SELECT id FROM sobras))
+         RETURNING p.id
+       )
+       UPDATE app.categories SET deleted_at = now()
+        WHERE id IN (SELECT id FROM sobras)`,
+      [lojaId, FIM_DE_NOME_UNICO, IDADE_DE_SOBRA],
+    );
+    // O pedido sai só se TODOS os itens forem de cenário: pedido de outra
+    // origem na loja do painel continua.
+    await cliente.query(
+      `DELETE FROM app.orders o
+        WHERE o.store_id = $1 AND o.updated_at < now() - $3::interval
+          AND EXISTS (SELECT 1 FROM app.order_items i WHERE i.order_id = o.id)
+          AND NOT EXISTS (SELECT 1 FROM app.order_items i
+                           WHERE i.order_id = o.id AND i.product_name !~ $2)`,
+      [lojaId, FIM_DE_NOME_UNICO, IDADE_DE_SOBRA],
+    );
+    await cliente.query("COMMIT");
+  } catch (erro) {
+    await cliente.query("ROLLBACK").catch(() => undefined);
+    throw erro;
+  } finally {
+    await cliente.end();
+  }
+}
+
+/**
+ * Apaga os pedidos que um cenário gravou em rodadas ANTERIORES, deste mesmo
+ * projeto do Playwright, sem olhar a idade (card #133).
+ *
+ * `limparSobrasDoPainel` só leva o que tem mais de 15 minutos; o cenário que
+ * disputa os dez lugares dos mais vendidos não pode esperar isso entre uma
+ * rodada e a seguinte. Aqui o recorte é pelo NOME: os prefixos do cenário e o
+ * projeto (`nomeUnico` põe o projeto no nome), então o outro projeto, que roda
+ * ao mesmo tempo contra a mesma loja, não perde nada. Só serve a cenário que
+ * roda num trabalhador só por projeto (`mode: "serial"`).
+ */
+export async function apagarPedidosDoCenario(
+  lojaId: string,
+  prefixos: readonly string[],
+  projeto: string,
+): Promise<void> {
+  const escapar = (texto: string) =>
+    texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const nomes = `^(${prefixos.map(escapar).join("|")}) ${escapar(projeto)} [0-9a-f]{8}$`;
+  const cliente = conectar();
+  await cliente.connect();
+  try {
+    await cliente.query(
+      `DELETE FROM app.orders o
+        WHERE o.store_id = $1
+          AND EXISTS (SELECT 1 FROM app.order_items i WHERE i.order_id = o.id)
+          AND NOT EXISTS (SELECT 1 FROM app.order_items i
+                           WHERE i.order_id = o.id AND i.product_name !~ $2)`,
+      [lojaId, nomes],
+    );
+  } finally {
+    await cliente.end();
+  }
 }
 
 /** A loja do painel montada: o identificador dela e o do dono dela. */

@@ -6,6 +6,10 @@ import { join, resolve } from "node:path";
 const raiz = resolve(import.meta.dirname, "..");
 const ambiente = {
   ...process.env,
+  // O .env do repositório é o de DESENVOLVIMENTO (NODE_ENV=development), e nele
+  // o login do dono pula o segundo fator por e-mail. O ponta a ponta prova o
+  // segundo fator de verdade, então a API sobe como "test".
+  NODE_ENV: "test",
   PORT: "3101",
   API_PORT: "3101",
   ORIGENS_PERMITIDAS: "http://localhost:3100",

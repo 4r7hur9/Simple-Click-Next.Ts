@@ -104,10 +104,12 @@ export async function fazerPedidoNaVitrine(
   return token;
 }
 
-/** O pedido que o link alcança: identificador e número. */
+/** O pedido que o link alcança: identificador, número e o código das telas. */
 export interface PedidoDoLink {
   readonly id: string;
   readonly numero: number;
+  /** O código que toda tela mostra ("A-0004", card #135). */
+  readonly codigo: string;
 }
 
 /** Procura no banco o pedido do código público do link. */
@@ -115,14 +117,18 @@ export async function pedidoDoLink(token: string): Promise<PedidoDoLink> {
   const cliente = conectar();
   await cliente.connect();
   try {
-    const { rows } = await cliente.query<{ id: string; number: string }>(
-      `SELECT id, number FROM app.orders WHERE public_token = $1`,
+    const { rows } = await cliente.query<{
+      id: string;
+      number: string;
+      code: string;
+    }>(
+      `SELECT id, number, code FROM app.orders WHERE public_token = $1`,
       [token],
     );
     const linha = rows[0];
     if (linha === undefined)
       throw new Error(`nenhum pedido com o link ${token}`);
-    return { id: linha.id, numero: Number(linha.number) };
+    return { id: linha.id, numero: Number(linha.number), codigo: linha.code };
   } finally {
     await cliente.end();
   }

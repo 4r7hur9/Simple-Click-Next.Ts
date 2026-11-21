@@ -18,7 +18,9 @@ import {
   entrarComoAdministrador,
   NOME_DO_ADMINISTRADOR,
 } from "../fixtures/admin.ts";
+import { resolverAvisoDeCookies } from "../fixtures/acesso.ts";
 import { nomeUnico } from "../fixtures/painel.ts";
+import { escolherNoSeletor } from "../fixtures/seletor.ts";
 import { ENDERECO_DA_API, ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 /** Um PDF mínimo: o que importa para a conferência são os bytes do começo. */
@@ -50,9 +52,13 @@ test("@spec:AC-203 @spec:AC-204 @spec:AC-205 o contrato em PDF entra, o disfarç
 
   // Pela ficha, o caminho que a pessoa faz.
   await page.goto(`/admin/lojas/${loja.id}`);
-  await page.getByRole("link", { name: "Ver contrato e documentos" }).click();
+  await resolverAvisoDeCookies(page);
+  await page
+    .getByRole("navigation", { name: "Seções da loja" })
+    .getByRole("link", { name: "Contrato e documentos" })
+    .click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Contrato e documentos" }),
+    page.getByRole("heading", { level: 2, name: "Contrato e documentos" }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Nenhum documento enviado ainda")).toBeVisible();
 
@@ -60,7 +66,11 @@ test("@spec:AC-203 @spec:AC-204 @spec:AC-205 o contrato em PDF entra, o disfarç
   const enviar = page.getByRole("button", { name: "Enviar documento" });
 
   // O DISFARCE: nome .pdf e tipo application/pdf, conteúdo de executável.
-  await page.locator("#documento-tipo").selectOption("CONTRATO");
+  await escolherNoSeletor(
+    page,
+    page.locator("#documento-tipo"),
+    "Contrato assinado",
+  );
   await arquivo.setInputFiles({
     name: "contrato.pdf",
     mimeType: "application/pdf",

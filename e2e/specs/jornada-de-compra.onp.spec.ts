@@ -405,14 +405,13 @@ test.describe("fechamento", () => {
     await adicionarSimples(page, loja.coxinhaId);
     const codigo = await confirmarRetirando(page);
 
-    // A confirmação mostra o código ("A-0004"); Meus pedidos mostra o número
-    // ("Pedido nº 4"). É o mesmo pedido: o número sai do código.
-    const numero = Number(/(\d+)$/.exec(codigo)?.[1]);
-    expect(numero, "o código termina no número do pedido").toBeGreaterThan(0);
+    // A confirmação e Meus pedidos mostram o MESMO código ("A-0004", card
+    // #135): cliente e loja falam do mesmo número.
+    expect(codigo, "o código do pedido").toMatch(/^[A-Z]-\d{4}$/);
     const doPedido = (p: Page) =>
       p
         .getByRole("region", { name: "Lanchonete da Jornada" })
-        .getByText(`Pedido nº ${numero}`, { exact: true });
+        .getByText(`Pedido ${codigo}`, { exact: true });
 
     await page.goto("/conta/pedidos");
     await expect(doPedido(page)).toBeVisible({ timeout: 15_000 });

@@ -6,12 +6,17 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 
+import { avisarOSite } from "../fixtures/config-loja.ts";
 import { garantirPastelariaDeTesteAberta } from "../fixtures/loja-de-teste.ts";
+import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 const LOJA = "pastelaria-da-vila";
 
 test.beforeAll(async () => {
   await garantirPastelariaDeTesteAberta();
+  // Outro cenário pode ter lido a loja ainda fechada: o site guarda a vitrine
+  // por até um minuto, e o botão sairia "Indisponível". O aviso a renova.
+  await avisarOSite(ENDERECO_DO_SITE, LOJA);
 });
 
 async function abrirOPastel(page: Page) {
@@ -22,6 +27,11 @@ async function abrirOPastel(page: Page) {
     .click();
   const janela = page.locator("dialog.sc-janela-produto[open]");
   await expect(janela).toBeVisible();
+  // A folha entra animada (escala e deslize): mede-se depois que a animação
+  // termina, e não no meio dela (386 px em vez de 390).
+  await janela.evaluate((el) =>
+    Promise.all(el.getAnimations().map((animacao) => animacao.finished)),
+  );
   return janela;
 }
 
@@ -36,19 +46,28 @@ test("[CA-26] @spec:AC-10925 no celular o detalhe é uma folha e a barra de adic
   expect(caixa?.height).toBeCloseTo(780, 0);
 
   const barra = page.locator(".sc-produto__acao");
-  await janela.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
-  const naBarra = await barra.boundingBox();
-  expect(naBarra).not.toBeNull();
-  expect((naBarra?.y ?? 0) + (naBarra?.height ?? 0)).toBeLessThanOrEqual(780);
-
-  // A barra não cobre o último campo: ela vem depois dele.
   const ultimo = page
     .locator(".sc-produto__formulario > :not(.sc-produto__acao)")
     .last();
-  const noUltimo = await ultimo.boundingBox();
-  expect((noUltimo?.y ?? 0) + (noUltimo?.height ?? 0)).toBeLessThanOrEqual(
-    (naBarra?.y ?? 0) + 1,
-  );
+  // Rola até o fim e mede de novo até a altura assentar: fotos e opções que
+  // terminam de carregar depois aumentam a folha, e uma só rolagem fica curta.
+  await expect
+    .poll(
+      async () => {
+        await janela.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+        const naBarra = await barra.boundingBox();
+        const noUltimo = await ultimo.boundingBox();
+        if (naBarra === null || noUltimo === null) return Infinity;
+        return noUltimo.y + noUltimo.height - naBarra.y;
+      },
+      { timeout: 10_000 },
+    )
+    .toBeLessThanOrEqual(1);
+
+  // A barra fica dentro da tela.
+  const naBarra = await barra.boundingBox();
+  expect(naBarra).not.toBeNull();
+  expect((naBarra?.y ?? 0) + (naBarra?.height ?? 0)).toBeLessThanOrEqual(780);
 
   await janela.evaluate((el) => el.scrollTo({ top: 0 }));
   const galeria = await page.locator(".sc-detalhe__fotos").boundingBox();

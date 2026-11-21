@@ -20,6 +20,19 @@ export const LARGURAS_POR_PROJETO = {
   publico: [768, 1024, 1280],
 } as const;
 
+/**
+ * As larguras em que o axe roda nos specs do redesign (D-8 do #114, aplicado no
+ * #135): a menor do celular e a do computador. Nas outras larguras a tela
+ * continua aberta e medida (rolagem lateral, borda, movimento), só sem o axe,
+ * que é a etapa mais cara; o portão de 15 minutos não comportava o axe em
+ * todas. Os dois temas passam pelo axe nas duas larguras.
+ */
+export const LARGURAS_DO_AXE = [344, 1280] as const;
+
+/** Verdadeiro quando a largura é uma das que passam pelo axe. */
+export const rodaAxeEm = (largura: number): boolean =>
+  (LARGURAS_DO_AXE as readonly number[]).includes(largura);
+
 /** 200% de zoom num computador de 1280px deixa 640px de largura útil (Q-11411). */
 export const LARGURA_DO_ZOOM_200 = 640;
 

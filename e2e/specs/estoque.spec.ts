@@ -9,6 +9,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import {
+  criarClienteDeTeste,
+  tokenDoCliente,
+} from "../fixtures/redesign-lojas.ts";
 import { ENDERECO_DA_API, ENDERECO_DO_SITE } from "../playwright.config.ts";
 import {
   APELIDO_DO_PAINEL,
@@ -42,7 +46,13 @@ test("@spec:AC-331 a venda de três M aparece no estoque do dono, com o moviment
   // guardada no próprio contexto de requisição.
   const cliente = await playwright.request.newContext({
     baseURL: ENDERECO_DA_API,
-    extraHTTPHeaders: { Origin: ENDERECO_DO_SITE },
+    extraHTTPHeaders: {
+      Origin: ENDERECO_DO_SITE,
+      // O pedido exige conta: o cliente da prova entra com a dele.
+      authorization: `Bearer ${tokenDoCliente(
+        (await criarClienteDeTeste("Cliente da API")).identidadeId,
+      )}`,
+    },
   });
   const item = await cliente.post(
     `/v1/vitrine/${APELIDO_DO_PAINEL}/carrinho/itens`,
@@ -94,8 +104,10 @@ test("@spec:AC-331 a venda de três M aparece no estoque do dono, com o moviment
   await expect(historico.getByRole("listitem").first()).toContainText("10 → 7");
 
   // A CONTAGEM FÍSICA, com motivo.
-  await page.getByLabel("Nova quantidade").fill("12");
-  await page.getByLabel("Motivo").fill("Contagem física de sábado");
+  await page.getByRole("spinbutton", { name: /^Nova quantidade/ }).fill("12");
+  await page
+    .getByRole("textbox", { name: /^Motivo/ })
+    .fill("Contagem física de sábado");
   await page.getByRole("button", { name: "Ajustar estoque" }).click();
   await expect(
     page.getByText("Estoque ajustado e movimento registrado."),

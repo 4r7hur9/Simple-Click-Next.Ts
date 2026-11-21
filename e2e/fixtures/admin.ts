@@ -16,6 +16,8 @@ import { createHmac, randomInt, randomUUID } from "node:crypto";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { Client } from "pg";
 
+import { prepararContaParaATela } from "./redesign-lojas.ts";
+
 /** O e-mail do administrador do ponta a ponta. Domínio reservado a teste. */
 const EMAIL_DO_ADMINISTRADOR = "admin@e2e-admin.test";
 
@@ -84,10 +86,13 @@ export async function garantirAdministrador(): Promise<string> {
       [id],
     );
     administrador = id;
-    return id;
   } finally {
     await cliente.end();
   }
+  // Toda conta precisa dos aceites vigentes (403 `aceite_pendente` sem eles)
+  // e do tutorial já visto; a janela de novo aceite tem prova própria.
+  await prepararContaParaATela(administrador, "cliente");
+  return administrador;
 }
 
 /** Põe a sessão do administrador no navegador do cenário. */

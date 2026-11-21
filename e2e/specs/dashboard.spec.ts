@@ -18,9 +18,11 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 import {
+  apagarPedidosDoCenario,
   criarPedidoAceito,
   entrarComoDono,
   garantirLojaDoPainel,
+  limparSobrasDoPainel,
   nomeUnico,
 } from "../fixtures/painel.ts";
 
@@ -50,6 +52,14 @@ interface ProdutosDoCenario {
   readonly cincoDias: string;
 }
 
+/** Os prefixos dos nomes deste cenário (o resto do nome é de `nomeUnico`). */
+const PREFIXOS_DO_CENARIO = [
+  "Pastel de feira",
+  "Bandeja família",
+  "Caldo de cana",
+  "Coxinha",
+] as const;
+
 const produtosPorProjeto = new Map<string, ProdutosDoCenario>();
 let cincoDiasAtras: Date;
 
@@ -64,6 +74,13 @@ test.describe.configure({ mode: "serial", timeout: 60_000 });
 test.beforeAll(async () => {
   const { id: lojaId } = await garantirLojaDoPainel();
   const projeto = test.info().project.name;
+  // A loja do painel dura entre rodadas: os pedidos das rodadas anteriores
+  // disputariam os dez lugares dos mais vendidos com os deste cenário
+  // (card #133). Saem as sobras antigas de qualquer cenário e, sem esperar,
+  // as deste cenário NESTE projeto; o outro projeto, que roda ao mesmo
+  // tempo, mantém os seus.
+  await limparSobrasDoPainel(lojaId);
+  await apagarPedidosDoCenario(lojaId, PREFIXOS_DO_CENARIO, projeto);
   const produtos: ProdutosDoCenario = {
     muitasUnidades: nomeUnico("Pastel de feira", projeto),
     muitoValor: nomeUnico("Bandeja família", projeto),
@@ -124,7 +141,7 @@ test("@spec:AC-800 o painel abre com os números de hoje e os produtos vendidos 
 
   await page.goto("/painel");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Hoje na sua loja" }),
+    page.getByRole("heading", { level: 1, name: "Resumo da loja" }),
   ).toBeVisible();
   await expect(page.locator('[data-estado="sucesso"]')).toBeVisible(
     PRIMEIRA_LEITURA,
@@ -205,11 +222,11 @@ test("@spec:AC-803 @spec:AC-807 hoje, três e sete dias recalculam a lista, e el
   ]);
 
   // Três dias: entra o de anteontem, o de cinco dias ainda não (AC-803).
-  await page.getByRole("button", { name: "Últimos 3 dias" }).click();
+  // O seletor do painel ganhou "Hoje", "7 dias" e o calendário (card #34); o
+  // recorte de três dias segue valendo pelo endereço, sem botão próprio.
+  await page.goto("/painel/metricas?periodo=3d");
+  await esperarNumeros(page);
   await expect(page).toHaveURL(/[?&]periodo=3d(&|$)/);
-  await expect(
-    page.getByRole("button", { name: "Últimos 3 dias" }),
-  ).toHaveAttribute("aria-pressed", "true");
   await expect(noRanking(page, produtos.anteontem)).toBeVisible();
   await expect(noRanking(page, produtos.cincoDias)).toHaveCount(0);
   const tresDias = page.locator("[data-periodo-em-vigor] time");
@@ -224,7 +241,7 @@ test("@spec:AC-803 @spec:AC-807 hoje, três e sete dias recalculam a lista, e el
   );
 
   // Sete dias: entra o de cinco dias, e a evolução por dia aparece.
-  await page.getByRole("button", { name: "Últimos 7 dias" }).click();
+  await page.getByRole("button", { name: "7 dias", exact: true }).click();
   await expect(page).toHaveURL(/[?&]periodo=7d(&|$)/);
   await expect(noRanking(page, produtos.cincoDias)).toBeVisible();
   await expect(noRanking(page, produtos.anteontem)).toBeVisible();
@@ -252,9 +269,22 @@ test("@spec:AC-806 @spec:AC-815 o intervalo escolhido fica no endereço, sobrevi
   await page.goto("/painel/metricas");
   await esperarNumeros(page);
 
-  await page.getByLabel("De", { exact: true }).fill(dia);
-  await page.getByLabel("Até", { exact: true }).fill(dia);
-  await page.getByRole("button", { name: "Aplicar datas" }).click();
+  // O intervalo vem do calendário (card #34): abre, toca o mesmo dia duas
+  // vezes (início e fim) e aplica.
+  await page.getByRole("button", { name: /Escolher outro período/ }).click();
+  const calendario = page.getByRole("dialog");
+  const diaNoCalendario = calendario.locator(`[data-iso="${dia}"]`).first();
+  for (let voltas = 0; voltas < 3; voltas++) {
+    if ((await diaNoCalendario.count()) > 0) break;
+    await calendario.getByRole("button", { name: "Mês anterior" }).click();
+  }
+  await diaNoCalendario.click();
+  await diaNoCalendario.click();
+  // Prazo curto: se o botão ficar fora da tela (defeito D-5), a falha diz
+  // isso em segundos, e não só "tempo esgotado" do cenário inteiro.
+  await calendario
+    .getByRole("button", { name: "Aplicar", exact: true })
+    .click({ timeout: 10_000 });
 
   const esperado = new RegExp(
     `[?&]periodo=personalizado&de=${dia}&ate=${dia}(&|$)`,

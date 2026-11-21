@@ -3,10 +3,10 @@ import { expect, test, type Browser } from "@playwright/test";
 import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 const HISTORIA = [
-  "Seu cardápio online sem pagar mensalidade",
-  "O cliente monta, você só prepara",
-  "Você sabe quanto entrou, e de quê",
-  "Nada, e sem asterisco",
+  "Seu cardápio. Seu link. Seu lucro.",
+  "O cliente pede em três toques.",
+  "O dia inteiro numa tela só.",
+  "Grátis. Sem comissão. Sem mensalidade.",
 ];
 
 async function abrirSemScript(browser: Browser) {
@@ -28,8 +28,10 @@ test("@spec:AC-934 a landing entrega a história e os caminhos sem script", asyn
     await expect(pagina.getByText(trecho, { exact: true })).toBeVisible();
   }
 
-  const capitulos = pagina.locator("[data-capitulo]");
-  await expect(capitulos).toHaveCount(6);
+  // Os "capítulos" são as sete cenas da narrativa (início, vitrine, pedido,
+  // painel, resumo, qualquer ramo, autopeça): `article.sc-lp-momento`.
+  const capitulos = pagina.locator("article.sc-lp-momento");
+  await expect(capitulos).toHaveCount(7);
   for (let indice = 0; indice < (await capitulos.count()); indice += 1) {
     await expect(capitulos.nth(indice)).not.toBeEmpty();
   }
@@ -67,7 +69,7 @@ test("@spec:AC-938 a landing cabe na largura mínima e em telas altas", async ({
       larguraDaJanela: window.innerWidth,
       larguraDoDocumento: document.documentElement.scrollWidth,
       capitulos: Array.from(
-        document.querySelectorAll("[data-capitulo]"),
+        document.querySelectorAll("article.sc-lp-momento"),
         (elemento) => {
           const caixa = elemento.getBoundingClientRect();
           return { altura: caixa.height, topo: caixa.top + window.scrollY };
@@ -79,7 +81,7 @@ test("@spec:AC-938 a landing cabe na largura mínima e em telas altas", async ({
       medidas.larguraDoDocumento,
       `estouro em ${viewport.width}x${viewport.height}`,
     ).toBeLessThanOrEqual(medidas.larguraDaJanela);
-    expect(medidas.capitulos.length).toBe(6);
+    expect(medidas.capitulos.length).toBe(7);
     for (const capitulo of medidas.capitulos) {
       expect(
         capitulo.altura,
@@ -91,7 +93,7 @@ test("@spec:AC-938 a landing cabe na largura mínima e em telas altas", async ({
       .getByRole("link", { name: /começar|criar|montar/i })
       .last();
     await expect(chamada).toBeVisible();
-    await expect(chamada).toHaveAttribute("href", "/entrar");
+    await expect(chamada).toHaveAttribute("href", "/cadastrar?tipo=dono");
 
     await contexto.close();
   }

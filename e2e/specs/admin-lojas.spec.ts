@@ -18,7 +18,9 @@ import {
   entrarComoAdministrador,
   porLojaNoAr,
 } from "../fixtures/admin.ts";
+import { resolverAvisoDeCookies } from "../fixtures/acesso.ts";
 import { nomeUnico } from "../fixtures/painel.ts";
+import { escolherNoSeletor } from "../fixtures/seletor.ts";
 import { ENDERECO_DA_API, ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 test.beforeEach(async ({ context }) => {
@@ -31,6 +33,7 @@ test("@spec:AC-200 @spec:AC-214 a administração cadastra a loja pela tela e tr
   const nome = nomeUnico("Cantina", info.project.name);
 
   await page.goto("/admin/lojas/nova");
+  await resolverAvisoDeCookies(page);
   await expect(
     page.getByRole("heading", { name: "Cadastrar loja" }),
   ).toBeVisible();
@@ -39,7 +42,7 @@ test("@spec:AC-200 @spec:AC-214 a administração cadastra a loja pela tela e tr
   await page.locator("#nova-loja-documento").fill(cnpjValido());
   const tipo = page.locator("#nova-loja-tipoDeNegocio");
   await expect(tipo).toBeVisible();
-  await tipo.selectOption("FOOD_RESTAURANT");
+  await escolherNoSeletor(page, tipo, "Restaurante");
   await page.locator("#nova-loja-responsavelNome").fill("Maria do Ponta");
   await page
     .locator("#nova-loja-responsavelEmail")
@@ -50,7 +53,7 @@ test("@spec:AC-200 @spec:AC-214 a administração cadastra a loja pela tela e tr
   await page.locator("#nova-loja-numero").fill("1000");
   await page.locator("#nova-loja-bairro").fill("Bela Vista");
   await page.locator("#nova-loja-cidade").fill("São Paulo");
-  await page.locator("#nova-loja-uf").selectOption("SP");
+  await escolherNoSeletor(page, page.locator("#nova-loja-uf"), "SP");
 
   await page
     .getByRole("button", { name: "Criar loja e enviar convite" })
@@ -64,10 +67,19 @@ test("@spec:AC-200 @spec:AC-214 a administração cadastra a loja pela tela e tr
   await expect(page.getByRole("heading", { level: 1, name: nome })).toBeVisible(
     { timeout: 15_000 },
   );
+  // O tipo de negócio mora na aba Cadastro da ficha.
+  await page
+    .getByRole("navigation", { name: "Seções da loja" })
+    .getByRole("link", { name: "Cadastro", exact: true })
+    .click();
   await expect(page.getByText("Tipo atual:")).toContainText("Restaurante");
 
   // A TROCA do tipo de negócio, em dois passos: escolher e confirmar.
-  await page.locator("#ficha-tipo-de-negocio").selectOption("APPAREL");
+  await escolherNoSeletor(
+    page,
+    page.locator("#ficha-tipo-de-negocio"),
+    "Roupas",
+  );
   await page.getByRole("button", { name: "Trocar tipo de negócio" }).click();
   await expect(page.getByText(`Trocar ${nome} para Roupas?`)).toBeVisible();
   await page.getByRole("button", { name: "Confirmar a troca" }).click();
@@ -96,23 +108,21 @@ test("@spec:AC-209 @spec:AC-210 suspender tira a vitrine do ar com o motivo, e r
   const motivo = "Mensalidade em atraso desde o mês passado.";
 
   await page.goto(`/admin/lojas/${loja.id}`);
+  await resolverAvisoDeCookies(page);
   await expect(
     page.getByRole("heading", { level: 1, name: loja.nome }),
   ).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText("A loja está no ar.")).toBeVisible();
+  await expect(page.getByText("Ativa", { exact: true })).toBeVisible();
 
-  // SUSPENDER: o motivo, o segundo passo com as consequências, e a recusa
-  // vazia antes de qualquer envio.
-  await page.getByRole("button", { name: "Suspender loja" }).click();
-  await expect(page.locator("#ficha-motivo-da-suspensao-erro")).toBeVisible();
-  await page.locator("#ficha-motivo-da-suspensao").fill(motivo);
-  await page.getByRole("button", { name: "Suspender loja" }).click();
-  await expect(page.getByText(`Suspender ${loja.nome}?`)).toBeVisible();
-  await page.getByRole("button", { name: "Confirmar a suspensão" }).click();
-  await expect(
-    page.getByText("Loja suspensa. A vitrine saiu do ar."),
-  ).toBeVisible();
-  await expect(page.getByText(/^Loja suspensa desde /)).toBeVisible();
+  // DESATIVAR (a antiga suspensão, card #29): o botão do cabeçalho abre a
+  // janela com as consequências e o motivo, e só o segundo clique age.
+  await page.getByRole("button", { name: "Desativar loja" }).click();
+  await expect(page.getByText(`Desativar ${loja.nome}?`)).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Motivo da desativação (opcional)" })
+    .fill(motivo);
+  await page.getByRole("button", { name: "Confirmar desativação" }).click();
+  await expect(page.getByText(/^Loja inativa desde /)).toBeVisible();
   await expect(page.getByText(motivo).first()).toBeVisible();
 
   // A VITRINE saiu do ar: a API não serve a loja e o site mostra o aviso.
@@ -125,14 +135,11 @@ test("@spec:AC-209 @spec:AC-210 suspender tira a vitrine do ar com o motivo, e r
   ).toBeVisible();
   await vitrine.close();
 
-  // REATIVAR: a loja volta ao ar.
-  await page.getByRole("button", { name: "Reativar loja" }).click();
-  await expect(page.getByText(`Reativar ${loja.nome}?`)).toBeVisible();
-  await page.getByRole("button", { name: "Confirmar a reativação" }).click();
-  await expect(
-    page.getByText("Loja reativada. A vitrine voltou a atender."),
-  ).toBeVisible();
-  await expect(page.getByText("A loja está no ar.")).toBeVisible();
+  // ATIVAR: a loja volta ao ar.
+  await page.getByRole("button", { name: "Ativar loja" }).click();
+  await expect(page.getByText(`Ativar ${loja.nome}?`)).toBeVisible();
+  await page.getByRole("button", { name: "Confirmar ativação" }).click();
+  await expect(page.getByText("Ativa", { exact: true })).toBeVisible();
   const deVolta = await api.get(`/v1/vitrine/${loja.apelido}`);
   expect(deVolta.status()).toBe(200);
 
@@ -151,7 +158,9 @@ test("@spec:AC-211 excluir exige digitar o nome da loja e deixa restaurar dentro
   );
   await porLojaNoAr(loja.id);
 
-  await page.goto(`/admin/lojas/${loja.id}`);
+  // A exclusão mora na aba Cadastro da ficha.
+  await page.goto(`/admin/lojas/${loja.id}/cadastro`);
+  await resolverAvisoDeCookies(page);
   await expect(
     page.getByRole("heading", { level: 1, name: loja.nome }),
   ).toBeVisible({ timeout: 15_000 });
@@ -185,7 +194,7 @@ test("@spec:AC-211 excluir exige digitar o nome da loja e deixa restaurar dentro
   await page.getByRole("button", { name: "Restaurar loja" }).click();
   await page.getByRole("button", { name: "Confirmar a restauração" }).click();
   await expect(page.getByText("Loja restaurada.")).toBeVisible();
-  await expect(page.getByText("A loja está no ar.")).toBeVisible();
+  await expect(page.getByText("Ativa", { exact: true })).toBeVisible();
 
   await api.dispose();
 });

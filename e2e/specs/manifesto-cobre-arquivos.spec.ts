@@ -35,6 +35,16 @@ const FORA_DO_INVENTARIO = new Set([
   "/ui",
 ]);
 
+/**
+ * As subtelas da vitrine do design system (`/ui/capas`, `/ui/catalogo`,
+ * `/ui/landing-secoes`, `/ui/recortador`…) são da mesma ferramenta de quem
+ * constrói: a exceção vale para `/ui` e para tudo o que mora embaixo dele,
+ * e não só para a página-índice. Só o prefixo `/ui/` — `/uivo` não passa.
+ */
+function ehDaVitrineDoDesignSystem(rota: string): boolean {
+  return rota === "/ui" || rota.startsWith("/ui/");
+}
+
 async function arquivosDePagina(pasta: string): Promise<string[]> {
   const entradas = await readdir(pasta, { withFileTypes: true });
   const achados: string[] = [];
@@ -60,7 +70,12 @@ test("@spec:AC-016 toda tela do código tem linha no manifesto", async () => {
   const semLinha = arquivos
     .map((arquivo) => rotaDoArquivo(arquivo))
     .filter((rota): rota is string => rota !== null)
-    .filter((rota) => !declaradas.has(rota) && !FORA_DO_INVENTARIO.has(rota));
+    .filter(
+      (rota) =>
+        !declaradas.has(rota) &&
+        !FORA_DO_INVENTARIO.has(rota) &&
+        !ehDaVitrineDoDesignSystem(rota),
+    );
 
   expect(
     semLinha,
@@ -95,7 +110,10 @@ test("@spec:AC-016 o inventário conta quantas telas faltam construir", async ()
     (tela) => tela.arquivo !== undefined,
   );
 
-  // 53 linhas no mapa de telas; três delas declaram duas rotas cada.
-  expect(MANIFESTO_DE_ROTAS.length).toBe(56);
+  // O número é fixado de propósito: tela nova no manifesto obriga a subir
+  // este valor junto, e a mudança fica à vista na revisão. Eram 56 antes do
+  // redesign e das telas de feed, estoque, equipe e administração; hoje o
+  // manifesto declara 79 rotas.
+  expect(MANIFESTO_DE_ROTAS.length).toBe(79);
   expect(construidas.length).toBeGreaterThan(0);
 });

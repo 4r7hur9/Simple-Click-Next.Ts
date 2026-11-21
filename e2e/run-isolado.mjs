@@ -61,6 +61,9 @@ try {
   await administrativa.query(`CREATE DATABASE ${nome} TEMPLATE template0`);
   await executar(["packages/database/src/migrate.ts", "aplicar"]);
   await executar(["packages/database/seed/index.ts"]);
+  // A carga de exemplo grande (lojas de todos os ramos) que os cenários do
+  // redesign exigem e que o banco de desenvolvimento já tem (`pnpm demo`).
+  await executar(["packages/database/seed/demo/index.ts"]);
   await executar([
     resolve(raiz, "e2e/node_modules/@playwright/test/cli.js"),
     "test",

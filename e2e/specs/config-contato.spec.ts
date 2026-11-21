@@ -17,6 +17,7 @@ import {
   comALojaDoPainelSoParaMim,
   irAoFechamentoCom,
 } from "../fixtures/config-loja.ts";
+import { clienteLogado } from "../fixtures/redesign-lojas.ts";
 import { interceptarWhatsApp, janelasAbertas } from "../fixtures/intercepts.ts";
 import {
   criarProdutoSimples,
@@ -45,7 +46,7 @@ test("@spec:AC-913 @spec:AC-915 o número e a saudação salvos no painel são o
   await comALojaDoPainelSoParaMim(ENDERECO_DO_SITE, async ({ apelido }) => {
     await interceptarWhatsApp(page);
     await page.goto("/painel/config/contato");
-    const numero = page.getByLabel("WhatsApp da loja");
+    const numero = page.locator("#contato-numero");
 
     // NÚMERO IMPOSSÍVEL é recusado na hora, dizendo o que falta.
     await numero.fill("1234");
@@ -58,7 +59,9 @@ test("@spec:AC-913 @spec:AC-915 o número e a saudação salvos no painel são o
     );
 
     // A SAUDAÇÃO aparece na prévia, com as partes do pedido que não saem.
-    await page.getByLabel("Saudação da mensagem").fill(saudacao);
+    await page
+      .getByRole("textbox", { name: "Saudação da mensagem", exact: true })
+      .fill(saudacao);
     const previa = page.locator('[data-previa="mensagem"]');
     await expect(previa).toContainText(saudacao);
     await expect(previa).not.toContainText("SimpleClick");
@@ -71,11 +74,12 @@ test("@spec:AC-913 @spec:AC-915 o número e a saudação salvos no painel são o
     ).toBeVisible();
 
     // O CLIENTE fecha o pedido e envia pelo WhatsApp.
+    // O pedido exige conta: quem fecha é um cliente (o nome vem da conta).
+    await clienteLogado(page.context(), ENDERECO_DO_SITE, "Cliente do Contato");
     await irAoFechamentoCom(page, apelido, [produto]);
-    await page.getByLabel("Retirar no local").check();
-    await page.getByLabel("Seu nome").fill("Cliente do Contato");
-    await page.getByLabel("Seu WhatsApp").fill("11955554444");
-    await page.getByRole("button", { name: "Fechar pedido" }).click();
+    await page.getByLabel(/Retirar no local/).check();
+    await page.getByLabel(/Seu WhatsApp/).fill("11955554444");
+    await page.getByRole("button", { name: "Confirmar pedido" }).click();
     await page.getByRole("button", { name: /Enviar pelo WhatsApp/ }).click();
 
     const abertas = await janelasAbertas(page);

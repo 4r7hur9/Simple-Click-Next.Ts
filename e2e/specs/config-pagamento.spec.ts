@@ -17,8 +17,10 @@ import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 import {
   comALojaDoPainelSoParaMim,
   irAoFechamentoCom,
+  preencherWhatsAppSeFaltar,
 } from "../fixtures/config-loja.ts";
 import { interceptarWhatsApp } from "../fixtures/intercepts.ts";
+import { escolherNoSeletor } from "../fixtures/seletor.ts";
 import {
   criarProdutoSimples,
   entrarComoDono,
@@ -55,10 +57,10 @@ test("@spec:AC-900 @spec:AC-902 a chave PIX salva no painel aparece no checkout,
 
     // O DONO cadastra a chave pela tela.
     await page.goto("/painel/config/pagamento");
-    await expect(page.getByLabel("PIX")).toBeChecked();
-    await page.getByLabel("Tipo da chave").selectOption("EMAIL");
-    await page.getByLabel("Chave", { exact: true }).fill(chave);
-    await page.getByLabel("Nome de quem recebe").fill("Malharia do Painel");
+    await expect(page.getByRole("checkbox", { name: "PIX" })).toBeChecked();
+    await escolherNoSeletor(page, page.locator("#pix-tipo"), "E-mail");
+    await page.locator("#pix-chave").fill(chave);
+    await page.locator("#pix-titular").fill("Malharia do Painel");
     await page.getByRole("button", { name: "Salvar pagamento" }).click();
     await expect(
       page.getByText(
@@ -101,13 +103,17 @@ test("@spec:AC-905 @spec:AC-906 @spec:AC-907 @spec:AC-908 taxa, entrega grátis,
     // O DONO: taxa de R$ 8,00 com nome próprio, grátis acima de R$ 60,00 e
     // mínimo de R$ 25,00 só para entrega.
     await page.goto("/painel/config/entrega");
-    await expect(page.getByLabel("Entrega", { exact: true })).toBeChecked();
-    await expect(page.getByLabel("Retirada no local")).toBeChecked();
-    await page.getByLabel("Taxa de entrega (R$)").fill("8,00");
-    await page.getByLabel("Nome da taxa").fill("Frete da malharia");
-    await page.getByLabel("Entrega grátis acima de (R$)").fill("60,00");
-    await page.getByLabel("Mínimo para entrega (R$)").fill("25,00");
-    await page.getByLabel("Mínimo para retirada (R$)").fill("");
+    await expect(
+      page.getByRole("checkbox", { name: "Entrega", exact: true }),
+    ).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Retirada no local" }),
+    ).toBeChecked();
+    await page.locator("#entrega-taxaCentavos").fill("8,00");
+    await page.locator("#entrega-nomeDaTaxa").fill("Frete da malharia");
+    await page.locator("#entrega-gratisAcimaDeCentavos").fill("60,00");
+    await page.locator("#entrega-minimoParaEntregaCentavos").fill("25,00");
+    await page.locator("#entrega-minimoParaRetiradaCentavos").fill("");
     await page.getByRole("button", { name: "Salvar entrega" }).click();
     await expect(
       page.getByText("Entrega salva. O checkout já usa estes valores."),
@@ -128,9 +134,9 @@ test("@spec:AC-905 @spec:AC-906 @spec:AC-907 @spec:AC-908 taxa, entrega grátis,
 
     // A RETIRADA CONTINUA PERMITIDA abaixo do mínimo da entrega.
     await page.getByLabel("Retirar no local").check();
-    await page.getByLabel("Seu nome").fill("Cliente da Retirada");
-    await page.getByLabel("Seu WhatsApp").fill("11988887777");
-    await page.getByRole("button", { name: "Fechar pedido" }).click();
+    // O nome vem da conta que entrou; o WhatsApp é pedido ao primeiro pedido.
+    await preencherWhatsAppSeFaltar(page, "11988887777");
+    await page.getByRole("button", { name: "Confirmar pedido" }).click();
     await expect(
       page.getByRole("button", { name: /Enviar pelo WhatsApp/ }),
     ).toBeVisible();
@@ -147,7 +153,9 @@ test("@spec:AC-905 @spec:AC-906 @spec:AC-907 @spec:AC-908 taxa, entrega grátis,
 
     // SÓ RETIRADA: desligar a entrega tira a opção do checkout.
     await page.goto("/painel/config/entrega");
-    await page.getByLabel("Entrega", { exact: true }).uncheck();
+    await page
+      .getByRole("checkbox", { name: "Entrega", exact: true })
+      .uncheck();
     await page.getByRole("button", { name: "Salvar entrega" }).click();
     await expect(
       page.getByText("Entrega salva. O checkout já usa estes valores."),

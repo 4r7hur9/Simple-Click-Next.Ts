@@ -18,6 +18,7 @@ import {
   comALojaDoPainelSoParaMim,
   diaDaSemanaNaLoja,
   irAoFechamentoCom,
+  preencherWhatsAppSeFaltar,
 } from "../fixtures/config-loja.ts";
 import { interceptarWhatsApp } from "../fixtures/intercepts.ts";
 import {
@@ -59,10 +60,10 @@ function situacao(pagina: Page) {
 /** O cliente tenta fechar um pedido para retirar, com o que está no carrinho. */
 async function tentarFechar(pagina: Page, apelido: string): Promise<void> {
   await pagina.goto(`/loja/${apelido}/checkout`);
-  await pagina.getByLabel("Retirar no local").check();
-  await pagina.getByLabel("Seu nome").fill("Cliente do Horário");
-  await pagina.getByLabel("Seu WhatsApp").fill("11977776666");
-  await pagina.getByRole("button", { name: "Fechar pedido" }).click();
+  // O nome vem da conta que entrou (o pedido exige conta): só o WhatsApp.
+  await pagina.getByLabel(/Retirar no local/).check();
+  await preencherWhatsAppSeFaltar(pagina, "11977776666");
+  await pagina.getByRole("button", { name: "Confirmar pedido" }).click();
 }
 
 test("@spec:AC-911 fechar agora pelo painel impede o cliente de pedir, e desligar volta a receber sem mexer na semana", async ({

@@ -89,6 +89,7 @@ export async function enviarLogin(
   senha: string,
 ): Promise<void> {
   await page.goto("/entrar");
+  await resolverAvisoDeCookies(page);
   await campo(page, "E-mail").fill(email);
   await campo(page, "Senha").fill(senha);
   await page.getByRole("button", { name: "Entrar" }).click();
@@ -111,7 +112,7 @@ export async function entrarComCodigoDoEmail(
   const codigo = codigoDoEmail(
     await esperarEmail(email, ASSUNTOS.codigoDoLogin, antes),
   );
-  await campo(page, "Código de seis dígitos").fill(codigo);
+  await campo(page, "Código de verificação (6 dígitos)").fill(codigo);
   await page.getByRole("button", { name: "Confirmar código" }).click();
   return { codigo, desafioId };
 }
@@ -174,7 +175,27 @@ export async function definirSenhaPeloLink(
   senha: string,
 ): Promise<void> {
   await page.goto(link);
+  await resolverAvisoDeCookies(page);
   await campo(page, "Nova senha").fill(senha);
   await campo(page, "Confirme a nova senha").fill(senha);
   await page.getByRole("button", { name: "Salvar nova senha" }).click();
+}
+
+/**
+ * Resolve o aviso de cookies como a pessoa resolveria: "Recusar não
+ * essenciais". O cartão cobre o canto da tela e intercepta o clique de quem
+ * está embaixo dele (ex.: "Salvar nova senha"), então o cenário o fecha antes
+ * de agir. Sem o aviso (consentimento já gravado), não faz nada.
+ */
+export async function resolverAvisoDeCookies(page: Page): Promise<void> {
+  const aviso = page.getByRole("dialog", {
+    name: "Sua privacidade, sua escolha",
+  });
+  await aviso
+    .waitFor({ state: "visible", timeout: 10_000 })
+    .catch(() => undefined);
+  if (await aviso.isVisible()) {
+    await aviso.getByRole("button", { name: "Recusar não essenciais" }).click();
+    await expect(aviso).toBeHidden();
+  }
 }

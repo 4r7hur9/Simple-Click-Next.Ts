@@ -46,6 +46,24 @@ async function jaEscolheuOsCookies(page: Page) {
   ]);
 }
 
+/** Espera o React assumir o elemento (hidratação concluída e efeitos ligados). */
+async function esperarAHidratacao(page: Page, seletor: string) {
+  await page.waitForFunction((alvo) => {
+    const elemento = document.querySelector(alvo);
+    return (
+      elemento !== null &&
+      Object.keys(elemento).some((chave) => chave.startsWith("__reactFiber$"))
+    );
+  }, seletor);
+  // Os efeitos passivos rodam logo depois do commit de hidratação.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolver) =>
+        requestAnimationFrame(() => setTimeout(resolver, 0)),
+      ),
+  );
+}
+
 test.describe("uma navegação por largura", () => {
   for (const largura of LARGURAS) {
     test(`@spec:AC-10504 em ${largura}px só uma navegação aparece`, async ({
@@ -159,8 +177,26 @@ test.describe("teclado virtual e foco", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/explorar/produtos");
     await expect(barra(page)).toBeVisible();
+    // O ouvinte do teclado só existe depois da hidratação: focar antes dela
+    // perderia o `focusin` (e o encolhimento da janela viraria a referência).
+    await esperarAHidratacao(page, 'nav[aria-label="Navegação principal"]');
 
-    await page.locator("#sc-feed-busca").focus();
+    // A tela ainda pode refazer o campo ao terminar de carregar e tirar o
+    // foco: foca de novo até o foco ficar.
+    await expect(async () => {
+      await page.locator("#sc-feed-busca").focus();
+      await expect(page.locator("#sc-feed-busca")).toBeFocused({
+        timeout: 1_000,
+      });
+    }).toPass({ timeout: 10_000 });
+    // Deixa o ouvinte de `focusin` registrar a altura de referência antes de
+    // a janela encolher (senão o encolhimento vira a própria referência).
+    await page.evaluate(
+      () =>
+        new Promise<void>((pronto) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => pronto())),
+        ),
+    );
     // O teclado virtual encolhe a área visível: simulado pela altura da janela.
     await page.setViewportSize({ width: 390, height: 420 });
     await expect(barra(page)).toBeHidden();
@@ -191,10 +227,21 @@ test.describe("teclado virtual e foco", () => {
         );
         const dentroDoTopo = foco.closest(".sc-topo-cliente") !== null;
         const dentroDaBarra = foco.closest(".sc-barra-inferior") !== null;
+        // Dentro de uma janela modal (camada de cima do navegador) o topo e a
+        // barra ficam ATRÁS dela: o que importa é se algo cobre o foco.
+        const dentroDeJanela = foco.closest("dialog[open]") !== null;
+        const alvo = document.elementFromPoint(
+          caixa.left + caixa.width / 2,
+          caixa.top + caixa.height / 2,
+        );
+        const coberto =
+          alvo === null || !(foco.contains(alvo) || alvo.contains(foco));
         return {
           nome: foco.textContent?.trim().slice(0, 30) ?? foco.tagName,
           dentroDoTopo,
           dentroDaBarra,
+          dentroDeJanela,
+          coberto,
           abaixoDoTopo: topo === undefined || caixa.top >= topo.bottom - 1,
           acimaDaBarra:
             barraDeBaixo === null ||
@@ -203,8 +250,10 @@ test.describe("teclado virtual e foco", () => {
       });
       if (medida === null || medida.dentroDoTopo || medida.dentroDaBarra)
         continue;
-      if (!medida.abaixoDoTopo || !medida.acimaDaBarra)
-        encoberto.push(medida.nome);
+      const escondido = medida.dentroDeJanela
+        ? medida.coberto
+        : !medida.abaixoDoTopo || !medida.acimaDaBarra;
+      if (escondido) encoberto.push(medida.nome);
     }
     expect(encoberto).toEqual([]);
   });
@@ -217,8 +266,10 @@ test.describe("sacola e retorno", () => {
     await jaEscolheuOsCookies(page);
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`/loja/${loja.apelido}/produto/${loja.produtoId}`);
-    await page.getByRole("button", { name: /Adicionar/ }).click();
-    await expect(page.getByText("Adicionado ao carrinho")).toBeVisible();
+    await page.getByRole("button", { name: /Adicionar à sacola/ }).click();
+    // No computador o aviso é só para o leitor de tela; a coluna da sacola
+    // mostra o item (mesmo padrão de `irAoFechamentoCom`).
+    await expect(page.getByText(/Adicionado à sacola/).first()).toBeAttached();
     await expect(
       page.getByRole("button", { name: "Sacola, 1 item" }),
     ).toBeVisible();

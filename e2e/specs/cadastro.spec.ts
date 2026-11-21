@@ -2,8 +2,8 @@
  * Ponta a ponta do cadastro do cliente (T-114, substitui a prova da T-110).
  *
  * Navegador de verdade contra a API de verdade, num banco descartável
- * (`run-isolado.mjs`): a pessoa se cadastra, não entra antes de confirmar,
- * confirma pelo link que chegou na caixa de e-mail de prova, entra, e sai.
+ * (`run-isolado.mjs`): a pessoa escolhe comprar, se cadastra, já entra com a
+ * conta (sem confirmar e-mail, desde os cards #21 e #28) e sai.
  * O que se confere no fim é o que importa para a segurança: a sessão mora em
  * cookie que script nenhum lê, e sair revoga o token no servidor — não basta
  * o cookie sumir do navegador.
@@ -14,63 +14,43 @@ import { ENDERECO_DA_API, ENDERECO_DO_SITE } from "../playwright.config.ts";
 import {
   campo,
   cookiesDaSessao,
-  enviarLogin,
   renovarDireto,
   FRASE_FORTE_DE_PROVA,
+  resolverAvisoDeCookies,
   expect,
 } from "../fixtures/acesso.ts";
-import {
-  ASSUNTOS,
-  enderecoUnico,
-  esperarEmail,
-  linkDoEmail,
-} from "../fixtures/caixa-de-email.ts";
+import { enderecoUnico } from "../fixtures/caixa-de-email.ts";
 
 // Cada Argon2 custa perto de um segundo com a máquina carregada, e o cenário
 // deriva a senha várias vezes.
 test.describe.configure({ timeout: 90_000 });
 
-test("@spec:AC-100 @spec:AC-103 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente se cadastra, confirma o e-mail pelo link, entra direto e sai de verdade", async ({
+test("@spec:AC-100 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente se cadastra, já entra na conta e sai de verdade", async ({
   page,
   context,
 }, info) => {
   const email = enderecoUnico("cliente", info.project.name);
 
-  // AC-100: cadastro válido cria a conta pendente.
+  // AC-100: a pessoa escolhe comprar e o cadastro válido cria a conta. Desde
+  // os cards #21 e #28 a conta de cliente nasce com o e-mail verificado: não
+  // há link de confirmação nem bloqueio do primeiro login (o link segue
+  // valendo para quem ainda o recebe, como o convite da equipe).
   await page.goto("/cadastrar");
-  await campo(page, "Nome").fill("Ana Souza");
+  await page.getByRole("link", { name: /comprar/i }).click();
+  await expect(page).toHaveURL(/\/cadastrar\?tipo=cliente/);
+  await resolverAvisoDeCookies(page);
+  await campo(page, "Seu nome").fill("Ana Souza");
   await campo(page, "E-mail").fill(email);
-  await campo(page, "Celular com DDD").fill("11 91234-5678");
+  await campo(page, "WhatsApp com DDD").fill("11 91234-5678");
   await campo(page, "Senha").fill(FRASE_FORTE_DE_PROVA);
+  await page.getByRole("checkbox", { name: /Li e aceito/ }).check();
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(
-    page.getByText("Conta criada. Falta confirmar o e-mail."),
-  ).toBeVisible();
 
-  // Antes de confirmar, a conta não entra.
-  await enviarLogin(page, email, FRASE_FORTE_DE_PROVA);
-  await expect(
-    page.getByText("Confirme seu e-mail antes de entrar."),
-  ).toBeVisible();
-  expect((await cookiesDaSessao(context)).renovacao).toBeUndefined();
-
-  // AC-103: o link do e-mail confirma, e só uma vez. Abrir o link não gasta
-  // nada; quem confirma é o botão.
-  const link = linkDoEmail(await esperarEmail(email, ASSUNTOS.verificacao));
-  expect(link.startsWith(`${ENDERECO_DO_SITE}/verificar-email?token=`)).toBe(
-    true,
-  );
-  await page.goto(link);
-  await page.getByRole("button", { name: "Confirmar meu e-mail" }).click();
-  await expect(page.getByText("E-mail verificado.")).toBeVisible();
-
-  await page.goto(link);
-  await page.getByRole("button", { name: "Confirmar meu e-mail" }).click();
-  await expect(page.getByText("Link inválido")).toBeVisible();
-
-  // AC-108: cliente sem segundo fator entra direto na conta dele. A tela de
-  // pedidos só abre com sessão aceita pela API — sem ela, volta ao login.
-  await enviarLogin(page, email, FRASE_FORTE_DE_PROVA);
+  // AC-108: cliente sem segundo fator entra direto na conta dele, já com a
+  // sessão aberta pelo cadastro. A tela de pedidos só abre com sessão aceita
+  // pela API — sem ela, volta ao login.
+  await expect(page).toHaveURL(/\/explorar\/produtos$/);
+  await page.goto("/conta/pedidos");
   await expect(page).toHaveURL(/\/conta\/pedidos$/);
   await expect(
     page.getByRole("heading", { name: "Meus pedidos" }),
@@ -103,5 +83,5 @@ test("@spec:AC-100 @spec:AC-103 @spec:AC-108 @spec:AC-109 @spec:AC-112 o cliente
     await renovarDireto(ENDERECO_DA_API, ENDERECO_DO_SITE, tokenAnterior),
   ).toBe(401);
   await page.goto("/conta/pedidos");
-  await expect(page).toHaveURL(/\/entrar$/);
+  await expect(page).toHaveURL(/\/entrar\?proximo=%2Fconta%2Fpedidos$/);
 });

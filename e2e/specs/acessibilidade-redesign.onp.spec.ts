@@ -17,8 +17,11 @@
  *   medido depois de rolar a página (o que entra ao rolar também conta).
  *
  * LARGURAS PELO PROJETO (sem `test.skip`): `celular` mede 344 e 390;
- * `publico`, 768, 1024, 1280 e o zoom. O tema claro roda numa largura por
- * projeto (390 e 1280), o escuro em todas — orçamento do portão (D-8).
+ * `publico`, 768, 1024, 1280 e o zoom. O axe roda só em 344 e 1280
+ * (`LARGURAS_DO_AXE`, D-8 do #114, aplicado no #135), nos dois temas; as
+ * outras larguras seguem medindo rolagem lateral, borda e movimento no tema
+ * escuro. O tema claro roda na largura do axe de cada projeto (344 e 1280)
+ * — orçamento do portão de 15 minutos.
  */
 import { expect, test } from "@playwright/test";
 
@@ -42,6 +45,7 @@ import {
   medirEstouro,
   origemDoSite,
   prepararPagina,
+  rodaAxeEm,
   rodarAxe,
   type DadosDasTelas,
   type Tema,
@@ -73,7 +77,7 @@ for (const tela of TELAS_DO_REDESIGN) {
         "Cliente da Acessibilidade",
       );
     }
-    const larguraDoClaro = ehCelular(info) ? 390 : 1280;
+    const larguraDoClaro = ehCelular(info) ? 344 : 1280;
 
     for (const largura of larguras(info)) {
       const temas: Tema[] =
@@ -91,14 +95,16 @@ for (const tela of TELAS_DO_REDESIGN) {
           await esperarAssentar(page);
           const onde = `${tela.id} ${largura}px ${tema}`;
 
-          const axe = await rodarAxe(page);
-          const naoRodaram = REGRAS_QUE_PRECISAM_RODAR.filter(
-            (regra) => !axe.rodadas.includes(regra),
-          );
-          expect
-            .soft(naoRodaram, `regras mínimas sem rodar em ${onde}`)
-            .toEqual([]);
-          expect.soft(axe.graves, `axe em ${onde}`).toEqual([]);
+          if (rodaAxeEm(largura)) {
+            const axe = await rodarAxe(page);
+            const naoRodaram = REGRAS_QUE_PRECISAM_RODAR.filter(
+              (regra) => !axe.rodadas.includes(regra),
+            );
+            expect
+              .soft(naoRodaram, `regras mínimas sem rodar em ${onde}`)
+              .toEqual([]);
+            expect.soft(axe.graves, `axe em ${onde}`).toEqual([]);
+          }
 
           const estouro = await medirEstouro(page);
           expect

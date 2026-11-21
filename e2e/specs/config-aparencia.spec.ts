@@ -56,45 +56,46 @@ test("@spec:AC-916 a apresentação editada no painel aparece na página públic
   const boasVindas = `Bem-vindo à malharia ${marca}.`;
   const sobre = `Tricô feito à mão desde 1998 — ${marca}.`;
   const logo = `${DOMINIO_DAS_IMAGENS}/logo-${marca}.png`;
-  const capa = `${DOMINIO_DAS_IMAGENS}/capa-${marca}.png`;
 
   await comALojaDoPainelSoParaMim(ENDERECO_DO_SITE, async ({ apelido }) => {
     await servirImagens(page);
 
     await page.goto("/painel/aparencia");
-    await page.getByLabel("Nome de exibição").fill(nome);
-    await page.getByLabel("Mensagem de boas-vindas").fill(boasVindas);
-    await page.getByLabel(/Sobre o negócio/).fill(sobre);
+    await page.locator('input[name="nome"]').fill(nome);
+    await page.locator('textarea[name="boasVindas"]').fill(boasVindas);
+    await page.locator('textarea[name="sobre"]').fill(sobre);
     await page.locator('input[name="logo"]').fill(logo);
-    await page.locator('input[name="capa"]').fill(capa);
 
-    // A PRÉVIA, antes de publicar.
-    const previa = page.locator('[data-previa="apresentacao"]');
-    await expect(previa.locator("[data-previa-nome]")).toHaveText(nome);
-    await expect(previa.locator("[data-previa-boas-vindas]")).toHaveText(
+    // A PRÉVIA, antes de publicar: é a loja de verdade numa moldura (card
+    // #36), com o rascunho. O quadro do computador mostra nome e descrição.
+    const quadro = page
+      .locator("[data-quadro-da-previa]")
+      .first()
+      .frameLocator("iframe:visible");
+    await expect(quadro.getByRole("heading", { level: 1 })).toHaveText(nome, {
+      timeout: 30_000,
+    });
+    await expect(quadro.locator(".sc-loja__boas-vindas")).toHaveText(
       boasVindas,
     );
-    await expect(previa.locator("[data-previa-sobre]")).toHaveText(sobre);
     await esperarCarregada(page, logo);
-    await esperarCarregada(page, capa);
 
-    await page.getByRole("button", { name: "Publicar apresentação" }).click();
+    await page.getByRole("button", { name: "Salvar e publicar" }).click();
     await expect(
       page.getByText(
-        "Apresentação publicada. A página da sua loja já mostra o que está na prévia.",
+        "Aparência publicada. A página da sua loja já mostra o que está na prévia.",
       ),
     ).toBeVisible();
 
     // A PÁGINA DA LOJA: nome, boas-vindas e logo.
     await page.goto(`/loja/${apelido}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
-    await expect(page.getByText(boasVindas)).toBeVisible();
+    await expect(page.locator(".sc-loja__boas-vindas")).toHaveText(boasVindas);
     await esperarCarregada(page, logo);
 
     // A PÁGINA SOBRE: o texto do negócio e a capa.
     await page.goto(`/loja/${apelido}/sobre`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(nome);
     await expect(page.getByText(sobre)).toBeVisible();
-    await esperarCarregada(page, capa);
   });
 });

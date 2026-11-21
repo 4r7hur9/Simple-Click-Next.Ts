@@ -148,7 +148,10 @@ async function restaurar(
  * quando o dono salva (dívida 93). Sem ele, a restauração direta no banco
  * ficaria invisível por até um minuto para o cenário seguinte.
  */
-export async function avisarOSite(enderecoDoSite: string): Promise<void> {
+export async function avisarOSite(
+  enderecoDoSite: string,
+  apelido: string = APELIDO_DO_PAINEL,
+): Promise<void> {
   const segredo = process.env["SEGREDO_DE_REVALIDACAO"]?.trim();
   if (segredo === undefined || segredo === "") return;
   await fetch(`${enderecoDoSite}/api/revalidate`, {
@@ -157,7 +160,7 @@ export async function avisarOSite(enderecoDoSite: string): Promise<void> {
       "content-type": "application/json",
       "x-simpleclick-revalidacao": segredo,
     },
-    body: JSON.stringify({ apelido: APELIDO_DO_PAINEL }),
+    body: JSON.stringify({ apelido }),
     signal: AbortSignal.timeout(5_000),
   }).catch(() => undefined);
 }
@@ -237,4 +240,21 @@ export async function irAoFechamentoCom(
     ).toBeAttached();
   }
   await pagina.goto(`/loja/${apelido}/checkout`);
+}
+
+/**
+ * O WhatsApp do fechamento só é pedido enquanto a conta não o tem: o primeiro
+ * pedido o guarda na conta (e a conta do dono do painel é a mesma nos dois
+ * projetos e em todas as tentativas). Espera a região "Quem está pedindo"
+ * carregar e preenche o campo quando ele existe.
+ */
+export async function preencherWhatsAppSeFaltar(
+  pagina: Page,
+  numero: string,
+): Promise<void> {
+  await expect(
+    pagina.getByRole("region", { name: "Quem está pedindo" }),
+  ).toBeVisible();
+  const campo = pagina.getByLabel(/Seu WhatsApp/);
+  if ((await campo.count()) > 0) await campo.fill(numero);
 }

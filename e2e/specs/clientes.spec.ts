@@ -130,39 +130,51 @@ test("@spec:AC-703 @spec:AC-707 @spec:AC-711 o dono cadastra o cliente, lança o
 
   // A busca por parte do telefone, com outra pontuação, acha o cliente.
   await page.goto("/painel/clientes");
-  await page
-    .getByLabel("Buscar por nome ou telefone")
-    .fill(telefone.replace(/\D/g, "").slice(2, 9));
-  await page.getByRole("button", { name: "Buscar" }).click();
+  // A busca é do servidor, com a espera do digitado; Enter a manda na hora.
+  const busca = page.getByRole("searchbox", { name: "Buscar clientes" });
+  await busca.fill(telefone.replace(/\D/g, "").slice(2, 9));
+  await busca.press("Enter");
   await expect(page.getByRole("link", { name: nome })).toBeVisible();
 
   // Pedido pela ficha, com o grupo obrigatório escolhido (AC-707).
   await page.goto(ficha);
-  await page.getByRole("link", { name: `Novo pedido para ${nome}` }).click();
-  await expect(page.getByText(`Pedido para ${nome}`)).toBeVisible();
   await page
-    .getByLabel("Acrescentar produto")
-    .selectOption({ label: `${lanche} — R$ 20,00` });
+    .getByRole("main")
+    .getByRole("link", { name: "Novo pedido", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/painel\/pedidos\/novo\?cliente=/);
+  await expect(page.getByText(`Pedido para ${nome}`)).toBeVisible();
+  // O produto vem do seletor do pacote (lista própria, não <select>).
+  await page
+    .getByRole("combobox", { name: "Adicionar produto ao pedido" })
+    .click();
+  await page.getByRole("option", { name: `${lanche} — R$ 20,00` }).click();
   await page.getByLabel("Ketchup").check();
   await page.getByRole("button", { name: /^Adicionar/ }).click();
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
-  const lancado = page.getByText(/Pedido #\d+ lançado/);
+  const lancado = page.getByText(/Pedido [A-Z]-\d{4} lançado/);
   await expect(lancado).toBeVisible();
-  const numero = (await lancado.textContent())?.match(/#(\d+)/)?.[1];
-  expect(numero).toBeTruthy();
+  const codigo = (await lancado.textContent())?.match(/[A-Z]-\d{4}/)?.[0];
+  expect(codigo).toBeTruthy();
 
   // O histórico da ficha mostra o pedido (AC-711).
   await page.goto(ficha);
   await expect(
-    page.getByRole("link", { name: `Pedido #${numero}` }),
+    page.getByRole("button", { name: `Abrir o pedido ${codigo}` }),
   ).toBeVisible();
 
   // Repetir monta o pedido novo pronto, e ele é lançado com número próprio.
   await page.getByRole("link", { name: "Repetir pedido" }).first().click();
   await expect(
-    page.getByRole("list", { name: "Itens do pedido" }),
-  ).toContainText(`${lanche} — Ketchup`);
+    page.getByRole("list", { name: "Itens do pedido", exact: true }),
+  ).toContainText(lanche);
+  // DEFEITO D-2 (card de defeito pendente): a repetição mantém a opção, mas
+  // a descrição do item perde "— Ketchup" (a página monta os produtos sem os
+  // grupos). Asserção estrita e "soft", para o resto do cenário continuar.
+  await expect
+    .soft(page.getByRole("list", { name: "Itens do pedido", exact: true }))
+    .toContainText(`${lanche} — Ketchup`);
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
-  await expect(page.getByText(/Pedido #\d+ lançado/)).toBeVisible();
-  await expect(page.getByText(`Pedido #${numero} lançado`)).toHaveCount(0);
+  await expect(page.getByText(/Pedido [A-Z]-\d{4} lançado/)).toBeVisible();
+  await expect(page.getByText(`Pedido ${codigo} lançado`)).toHaveCount(0);
 });

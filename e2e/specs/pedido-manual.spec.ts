@@ -105,17 +105,30 @@ test("@spec:AC-707 o dono lança o pedido de quem não quer cadastro, o grupo ob
   await lancheComMolho(lojaId, lanche);
 
   await page.goto("/painel/pedidos/novo");
-  await page.getByLabel("Nome").fill(quemPede);
-  await page.getByLabel("Telefone").fill("(11) 96000-1234");
-
+  // Quem não quer cadastro é "Cliente novo": basta nome e telefone.
+  await page.getByRole("button", { name: "Cliente novo" }).click();
+  await page.getByLabel("Nome de quem pede").fill(quemPede);
+  // Telefone novo a cada execução: com o mesmo telefone o sistema reaproveita
+  // a ficha do primeiro cliente e o pedido sairia no nome dele, não no daqui.
+  const fim = String(Math.floor(Math.random() * 1e8)).padStart(8, "0");
   await page
-    .getByLabel("Acrescentar produto")
-    .selectOption({ label: `${lanche} — R$ 20,00` });
+    .getByLabel("Telefone com DDD")
+    .fill(`(11) 9${fim.slice(0, 4)}-${fim.slice(4)}`);
+
+  // O produto vem do seletor do pacote (lista própria, não <select>).
+  await page
+    .getByRole("combobox", { name: "Adicionar produto ao pedido" })
+    .click();
+  await page.getByRole("option", { name: `${lanche} — R$ 20,00` }).click();
   await page.getByRole("button", { name: /^Adicionar/ }).click();
-  // A mesma frase que a página do produto mostra ao cliente (AC-708).
+  // A mesma frase que a página do produto mostra ao cliente (AC-708): sem a
+  // opção obrigatória o item não entra no pedido.
   await expect(
     page.getByText("Escolha 1 opção em Molho.").first(),
   ).toBeVisible();
+  await expect(page.getByRole("list", { name: "Itens do pedido" })).toHaveCount(
+    0,
+  );
 
   await page.getByLabel("Mostarda").check();
   await page.getByRole("button", { name: /^Adicionar/ }).click();
@@ -123,13 +136,36 @@ test("@spec:AC-707 o dono lança o pedido de quem não quer cadastro, o grupo ob
     page.getByRole("list", { name: "Itens do pedido" }),
   ).toContainText(`${lanche} — Mostarda`);
 
+  // No celular o aviso de cookies cobre o fim do formulário e o clique no
+  // botão de baixo não chega. A pessoa o dispensa antes de confirmar; o teste
+  // faz o mesmo (só os essenciais, que é a escolha que não grava nada a mais).
+  const recusar = page.getByRole("button", { name: "Recusar não essenciais" });
+  if (await recusar.isVisible()) await recusar.click();
   await page.getByRole("button", { name: "Confirmar pedido" }).click();
-  const lancado = page.getByText(/Pedido #\d+ lançado/);
+  const lancado = page.getByText(/Pedido [A-Z]-\d{4} lançado/);
   await expect(lancado).toBeVisible();
-  const numero = (await lancado.textContent())?.match(/#(\d+)/)?.[1];
+  const codigo = (await lancado.textContent())?.match(/[A-Z]-\d{4}/)?.[0];
 
   await page.goto("/painel/pedidos");
-  const cartao = page.getByRole("article", { name: `Pedido número ${numero}` });
-  await expect(cartao).toContainText(quemPede);
+  const cartao = page.getByRole("article", {
+    name: `Pedido ${codigo}`,
+  });
+  // O quadro mostra só os primeiros cartões de cada coluna e guarda o resto
+  // atrás de "Mostrar mais" ou "Mostrar os outros N". Num dia com muitos pedidos o novo (o mais recente,
+  // no fim da coluna) fica escondido até a pessoa abrir a lista.
+  await expect(
+    page.getByRole("region", { name: "Pedidos em Pedido gerado" }),
+  ).toBeVisible();
+  const mostrarMais = page.getByRole("button", {
+    name: /^Mostrar (mais|os outros)/,
+  });
+  for (let volta = 0; volta < 20; volta += 1) {
+    if (await cartao.isVisible()) break;
+    if (!(await mostrarMais.first().isVisible())) break;
+    await mostrarMais.first().click();
+  }
+  // O quadro lê os pedidos do dia pela API ao abrir; na primeira carga depois
+  // de o site subir ele passa dos 5 s padrão sem nada errado.
+  await expect(cartao).toContainText(quemPede, { timeout: 20_000 });
   await expect(cartao).toContainText("Balcão");
 });

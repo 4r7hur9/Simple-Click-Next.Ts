@@ -9,7 +9,11 @@ test("@spec:AC-404 a vitrine lista somente as categorias visíveis na ordem do d
 
   await expect(page.locator(".sc-vitrine__secao h2")).toHaveText([
     "Pastéis",
+    "Pastéis Doces",
+    "Salgados",
+    "Combos",
     "Bebidas",
+    "Sobremesas",
   ]);
   await expect(
     page.getByRole("link", { name: /Pastel de Carne/ }).first(),

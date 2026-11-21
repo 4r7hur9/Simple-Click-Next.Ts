@@ -14,6 +14,7 @@ import {
   definirSenhaPeloLink,
   entrarComCodigoDoEmail,
   prepararDonoPeloConvite,
+  resolverAvisoDeCookies,
   FRASE_FORTE_DE_PROVA,
   expect,
 } from "../fixtures/acesso.ts";
@@ -44,11 +45,12 @@ test("@spec:AC-114 @spec:AC-115 o pedido responde igual com ou sem conta, e a se
   const outro = await outroContexto.newPage();
   await prepararDonoPeloConvite(outro, email, ENDERECO_DO_SITE);
   await entrarComCodigoDoEmail(outro, email, FRASE_FORTE_DE_PROVA);
-  await expect(outro).toHaveURL(/\/painel$/);
+  await expect(outro).toHaveURL(/\/painel(\?|$)/);
 
   // AC-114: a mesma confirmação para o e-mail sem conta e para o com conta.
   const pedir = async (endereco: string) => {
     await page.goto("/recuperar-senha");
+    await resolverAvisoDeCookies(page);
     await expect(
       page.getByRole("heading", { name: "Esqueceu sua senha?" }),
     ).toBeVisible();
@@ -76,11 +78,12 @@ test("@spec:AC-114 @spec:AC-115 o pedido responde igual com ou sem conta, e a se
 
   // A senha antiga não entra; a nova entra até o painel.
   await page.goto("/entrar");
+  await resolverAvisoDeCookies(page);
   await campo(page, "E-mail").fill(email);
   await campo(page, "Senha").fill(FRASE_FORTE_DE_PROVA);
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page.getByText("E-mail ou senha incorretos.")).toBeVisible();
 
   await entrarComCodigoDoEmail(page, email, FRASE_NOVA_DE_PROVA);
-  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page).toHaveURL(/\/painel(\?|$)/);
 });

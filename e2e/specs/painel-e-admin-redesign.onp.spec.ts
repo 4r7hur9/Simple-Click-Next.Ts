@@ -15,7 +15,9 @@
  * - #113: a janela de confirmação fecha com Esc e devolve o foco a quem a
  *   abriu (sem confirmar nada).
  *
- * Larguras pelo projeto: `celular` 344; `publico` 768 e 1280.
+ * Larguras pelo projeto: `celular` 344; `publico` 768 e 1280. O axe roda só
+ * em 344 e 1280 (`LARGURAS_DO_AXE`, D-8 do #114, aplicado no #135); em 768 a
+ * tela segue medida por rolagem lateral e borda.
  */
 import { expect, test, type Page } from "@playwright/test";
 
@@ -33,6 +35,7 @@ import {
   medirEstouro,
   origemDoSite,
   prepararPagina,
+  rodaAxeEm,
   rodarAxe,
 } from "../fixtures/redesign.ts";
 
@@ -79,7 +82,9 @@ test.describe("painel do lojista (#112)", () => {
           await page.goto(rota);
           await esperarAssentar(page);
           await semEstouro(page, `${rota} ${largura}px`);
-          await semBarreiraSeria(page, `${rota} ${largura}px`);
+          if (rodaAxeEm(largura)) {
+            await semBarreiraSeria(page, `${rota} ${largura}px`);
+          }
         });
       }
     });
@@ -165,7 +170,9 @@ test.describe("administração (#113)", () => {
           await page.goto(rota);
           await esperarAssentar(page);
           await semEstouro(page, `${rota} ${largura}px`);
-          await semBarreiraSeria(page, `${rota} ${largura}px`);
+          if (rodaAxeEm(largura)) {
+            await semBarreiraSeria(page, `${rota} ${largura}px`);
+          }
           if (rota !== "/admin") {
             // A faixa de filtros (Chip + FaixaDeChips, #113) rola dentro dela.
             const faixa = page

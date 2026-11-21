@@ -96,7 +96,7 @@ test("@spec:AC-604 @spec:AC-612 @spec:AC-613 o dono aceita, prepara, despacha e 
       await expect(
         page.getByRole("heading", {
           level: 1,
-          name: `Pedido nº ${pedido.numero}`,
+          name: `Pedido ${pedido.codigo}`,
         }),
       ).toBeVisible();
       const status = page.locator("[data-status-atual]");

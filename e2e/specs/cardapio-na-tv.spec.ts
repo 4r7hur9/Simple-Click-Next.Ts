@@ -67,7 +67,18 @@ test("@spec:AC-925 a televisão mostra o cardápio sem barra de rolagem, sem cur
       rolaNaVertical: raiz.scrollHeight > raiz.clientHeight,
       rolaNaHorizontal: raiz.scrollWidth > raiz.clientWidth,
       cursor: estilo?.cursor ?? "",
-      interativos: document.querySelectorAll("button, a, input, select").length,
+      // O que a pessoa poderia tocar: controles VISÍVEIS. A janela de acesso
+      // global fica no HTML, fechada, e não conta.
+      interativos: [
+        ...document.querySelectorAll("button, a, input, select"),
+      ].filter((elemento) => {
+        const caixa = elemento.getBoundingClientRect();
+        return (
+          caixa.width > 0 &&
+          caixa.height > 0 &&
+          getComputedStyle(elemento).visibility !== "hidden"
+        );
+      }).length,
     };
   });
 
@@ -145,7 +156,9 @@ test("@spec:AC-925 o código para o celular está na tela, grande, e leva à vit
   // 44% do lado menor de 1080 px: cerca de 475 px. Elemento grande, e não
   // selo de canto.
   expect(caixa?.width ?? 0).toBeGreaterThan(400);
-  await expect(page.getByText(`/loja/${APELIDO_DA_LOJA}/cardapio`)).toBeVisible();
+  await expect(
+    page.getByText(`/loja/${APELIDO_DA_LOJA}/cardapio`),
+  ).toBeVisible();
 });
 
 test("@spec:AC-929 com a rede cortada, a exibição continua de pé e volta a atualizar quando a rede retorna", async ({

@@ -88,7 +88,15 @@ test("@spec:AC-416 a vitrine publica srcset e reserva a moldura da foto", async 
   expect(atributos.length).toBeGreaterThan(0);
   for (const imagem of atributos) {
     expect(imagem.src).not.toContain("w_1200");
-    expect(imagem.srcset).toContain("w_");
+    // Candidatas por largura (`256w, 384w, …`). As fotos da carga demo são
+    // arquivos locais; as hospedadas na Cloudinary levam também a largura
+    // pedida na própria URL (`w_<n>`).
+    const candidatas = imagem.srcset.split(",").map((c) => c.trim());
+    expect(candidatas.length).toBeGreaterThan(1);
+    for (const candidata of candidatas) expect(candidata).toMatch(/ \d+w$/);
+    if (imagem.src.includes("res.cloudinary.com")) {
+      expect(imagem.srcset).toContain("w_");
+    }
     // O cartão do catálogo (#108) reserva 96px no celular, um terço da
     // largura no tablet e 320px no computador (`SIZES_DO_CATALOGO`). O
     // "720px" de antes saiu do código no 7e81202 e o teste não acompanhou.

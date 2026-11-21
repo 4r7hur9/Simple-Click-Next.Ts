@@ -12,6 +12,10 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 
+import {
+  criarClienteDeTeste,
+  tokenDoCliente,
+} from "../fixtures/redesign-lojas.ts";
 import { ENDERECO_DA_API, ENDERECO_DO_SITE } from "../playwright.config.ts";
 import {
   chaveDeIdempotencia,
@@ -55,7 +59,13 @@ test("@spec:AC-919 @spec:AC-920 o papel e o conteúdo escolhidos no painel valem
     // O PEDIDO, com entrega e endereço.
     const cliente = await playwright.request.newContext({
       baseURL: ENDERECO_DA_API,
-      extraHTTPHeaders: { Origin: ENDERECO_DO_SITE },
+      extraHTTPHeaders: {
+        Origin: ENDERECO_DO_SITE,
+        // O pedido exige conta: o cliente da prova entra com a dele.
+        authorization: `Bearer ${tokenDoCliente(
+          (await criarClienteDeTeste("Cliente da API")).identidadeId,
+        )}`,
+      },
     });
     const item = await cliente.post(`/v1/vitrine/${apelido}/carrinho/itens`, {
       data: { produtoId: produto, quantidade: 1, escolhas: [] },

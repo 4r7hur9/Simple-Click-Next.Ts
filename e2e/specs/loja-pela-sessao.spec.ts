@@ -10,11 +10,12 @@
  */
 import { randomUUID } from "node:crypto";
 
-import { expect, test, type BrowserContext } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { Client } from "pg";
 
 import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 import { garantirDonoDaLoja, tokenDoDono } from "../fixtures/painel.ts";
+import { jaEscolheuOsCookies } from "../fixtures/redesign.ts";
 
 /** Uma loja do cenário: apelido, nome, a seção que só ela tem e o dono. */
 interface LojaDoCenario {
@@ -33,6 +34,10 @@ interface Cenario {
   readonly segundaDaMarta: LojaDoCenario;
 }
 
+// A jornada de duas lojas troca de loja várias vezes, cada uma com a página
+// do painel carregando por trás: o prazo padrão de 30 s é curto no celular.
+test.describe.configure({ timeout: 90_000 });
+
 let cenario: Cenario;
 
 function conectar(): Client {
@@ -50,20 +55,32 @@ async function montarLoja(
   nome: string,
 ): Promise<{ readonly id: string; readonly loja: LojaDoCenario }> {
   // Repetível: a mesma execução local pode rodar de novo sobre o mesmo banco.
-  const achada = await banco.query<{ id: string }>(
-    `SELECT id FROM app.stores WHERE lower(slug) = lower($1) AND deleted_at IS NULL`,
-    [apelido],
-  );
-  const id =
-    achada.rows[0]?.id ??
+  // E concorrente: o `beforeAll` roda em cada processo que pega um cenário do
+  // arquivo, então duas montagens da mesma loja podem se cruzar — quem perde a
+  // corrida (violação da unicidade do apelido) lê a loja que o outro criou.
+  const procurar = async () =>
     (
       await banco.query<{ id: string }>(
-        `INSERT INTO app.stores (code, name, slug, status, vertical_code)
-         VALUES ($1, $2, $3, 'ACTIVE', 'APPAREL')
-         RETURNING id`,
-        [apelido.toUpperCase(), nome, apelido],
+        `SELECT id FROM app.stores WHERE lower(slug) = lower($1) AND deleted_at IS NULL`,
+        [apelido],
       )
     ).rows[0]?.id;
+  let id = await procurar();
+  if (id === undefined) {
+    try {
+      id = (
+        await banco.query<{ id: string }>(
+          `INSERT INTO app.stores (code, name, slug, status, vertical_code)
+           VALUES ($1, $2, $3, 'ACTIVE', 'APPAREL')
+           RETURNING id`,
+          [apelido.toUpperCase(), nome, apelido],
+        )
+      ).rows[0]?.id;
+    } catch (erro) {
+      if ((erro as { code?: string }).code !== "23505") throw erro;
+      id = await procurar();
+    }
+  }
   if (id === undefined) throw new Error(`não consegui criar a loja ${apelido}`);
   const secao = `Seção de ${nome} ${randomUUID().slice(0, 6)}`;
   await banco.query(
@@ -74,8 +91,19 @@ async function montarLoja(
   return { id, loja: { apelido, nome, secao } };
 }
 
+/**
+ * No celular o menu do painel é uma gaveta fechada: abre antes de procurar os
+ * links dele. No computador o menu já está à vista e nada se faz.
+ */
+async function abrirOMenuSeFechado(pagina: Page): Promise<void> {
+  const abrir = pagina.getByRole("button", { name: "Abrir menu" });
+  if (await abrir.isVisible()) await abrir.click();
+}
+
 /** Põe a sessão do dono no navegador do cenário. */
 async function entrarComo(contexto: BrowserContext, dono: string) {
+  // O aviso de cookies cobriria os botões da escolha de loja no celular.
+  await jaEscolheuOsCookies(contexto, ENDERECO_DO_SITE);
   await contexto.addCookies([
     {
       name: "sc_access",
@@ -157,13 +185,22 @@ test("@spec:AC-135 dois donos de lojas diferentes, cada um vê só a própria lo
 
     await pagina.goto("/painel/categorias");
     await expect(pagina).toHaveURL(/\/painel\/categorias$/);
-    await expect(pagina.getByText(`Loja: ${propria.nome}`)).toBeVisible();
-    await expect(pagina.getByText(propria.secao)).toBeVisible({
+    // O nome da loja da sessão aparece no cabeçalho do painel.
+    await expect(
+      pagina
+        .getByText(propria.nome, { exact: true })
+        .locator("visible=true")
+        .first(),
+    ).toBeVisible();
+    await expect(
+      pagina.getByRole("heading", { name: propria.secao }),
+    ).toBeVisible({
       timeout: 30_000,
     });
     await expect(pagina.getByText(alheia.secao)).toHaveCount(0);
+    await abrirOMenuSeFechado(pagina);
     await expect(
-      pagina.getByRole("link", { name: "Ver minha loja" }),
+      pagina.getByRole("link", { name: /^Ver loja/ }),
     ).toHaveAttribute("href", `/loja/${propria.apelido}`);
     // Uma loja só: não há o que trocar.
     await expect(
@@ -185,27 +222,36 @@ test("@spec:AC-136 dona de duas lojas escolhe, troca, e escolha alheia ou vencid
   await page
     .getByRole("button", { name: `Abrir ${cenario.segundaDaMarta.nome}` })
     .click();
-  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page).toHaveURL(/\/painel(\?|$)/);
 
   const cookie = (await context.cookies()).find((c) => c.name === "sc_loja");
   expect(cookie?.value).toBe(cenario.segundaDaMarta.apelido);
   expect(cookie?.httpOnly).toBe(true);
 
   await page.goto("/painel/categorias");
-  await expect(page.getByText(cenario.segundaDaMarta.secao)).toBeVisible({
+  await expect(
+    page.getByRole("heading", {
+      name: cenario.segundaDaMarta.secao,
+    }),
+  ).toBeVisible({
     timeout: 30_000,
   });
   await expect(page.getByText(cenario.primeiraDaMarta.secao)).toHaveCount(0);
 
   // Trocar de loja pelo painel.
-  await page.getByRole("link", { name: "Trocar de loja" }).click();
+  await abrirOMenuSeFechado(page);
+  await page.getByRole("link", { name: "Trocar de loja" }).first().click();
   await expect(page).toHaveURL(/\/escolher-loja$/);
   await page
     .getByRole("button", { name: `Abrir ${cenario.primeiraDaMarta.nome}` })
     .click();
-  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page).toHaveURL(/\/painel(\?|$)/);
   await page.goto("/painel/categorias");
-  await expect(page.getByText(cenario.primeiraDaMarta.secao)).toBeVisible({
+  await expect(
+    page.getByRole("heading", {
+      name: cenario.primeiraDaMarta.secao,
+    }),
+  ).toBeVisible({
     timeout: 30_000,
   });
   await expect(page.getByText(cenario.segundaDaMarta.secao)).toHaveCount(0);

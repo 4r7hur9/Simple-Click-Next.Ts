@@ -62,11 +62,12 @@ test("@spec:AC-105 @spec:AC-106 o dono define a primeira senha pelo convite, ent
     email,
     FRASE_FORTE_DE_PROVA,
   );
-  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page).toHaveURL(/\/painel(\?|$)/);
   await page.goto("/painel/categorias");
-  await expect(
-    page.getByRole("status").filter({ hasText: /categoria/ }),
-  ).toBeVisible();
+  // A tela de categorias abre com a sessão aceita pela API (acaba o
+  // carregamento em vez de voltar ao login).
+  await expect(page).toHaveURL(/\/painel\/categorias$/);
+  await expect(page.getByText("Carregando categorias…")).toHaveCount(0);
 
   // O mesmo código, no mesmo desafio, não abre outra sessão: a resposta é
   // uma recusa, e nenhum cookie novo sai dela.
@@ -86,7 +87,7 @@ test("@spec:AC-109 @spec:AC-110 a renovação troca o par, e o token antigo reap
   const email = enderecoUnico("dono-renova", info.project.name);
   await prepararDonoPeloConvite(page, email, ENDERECO_DO_SITE);
   await entrarComCodigoDoEmail(page, email, FRASE_FORTE_DE_PROVA);
-  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page).toHaveURL(/\/painel(\?|$)/);
 
   const primeiro = (await cookiesDaSessao(context)).renovacao;
   expect(primeiro).toMatchObject({ httpOnly: true, secure: true });
