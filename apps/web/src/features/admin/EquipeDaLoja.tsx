@@ -104,14 +104,23 @@ export function EquipeDaLoja({ lojaId }: { readonly lojaId: string }) {
       tituloVazio="Ninguém com acesso"
       descricaoVazio="Esta loja ficou sem dono nem equipe."
       rodape={
-        leitura.fase === "erro" ? (
-          <Botao
-            variante="secundaria"
-            onClick={() => setTentativa((n) => n + 1)}
+        <span className="flex flex-wrap items-center gap-3">
+          <Link
+            className="sc-botao sc-botao--secundaria"
+            href={`/admin/donos-e-equipes?loja=${encodeURIComponent(lojaId)}`}
+            prefetch={false}
           >
-            Tentar de novo
-          </Botao>
-        ) : undefined
+            Gerenciar donos e equipe
+          </Link>
+          {leitura.fase === "erro" && (
+            <Botao
+              variante="secundaria"
+              onClick={() => setTentativa((n) => n + 1)}
+            >
+              Tentar de novo
+            </Botao>
+          )}
+        </span>
       }
     >
       <ListaDaEquipe membros={membros} />
