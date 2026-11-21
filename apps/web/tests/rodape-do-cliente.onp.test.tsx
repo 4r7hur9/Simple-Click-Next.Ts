@@ -132,18 +132,21 @@ describe("links do rodapé", () => {
 
   it("[CA-31] @spec:AC-10522 todo link do topo, da barra e do menu da conta também leva a uma página que existe", () => {
     const sair = vi.fn(async () => undefined);
-    const telas = [
-      montar(<TopoDoCliente usuario={cliente} sair={sair} />),
-      montar(<BarraInferiorDoCliente usuario={cliente} />),
-      montar(<MenuDaConta usuario={cliente} sair={sair} />),
-    ];
-    const hrefs = new Set(
-      telas.flatMap((tela) =>
-        [...tela.querySelectorAll("a")].map(
-          (a) => a.getAttribute("href") ?? "",
-        ),
-      ),
-    );
+    // Uma raiz por vez: `montar` guarda só a última, e uma raiz esquecida
+    // ficaria agendando trabalho do React depois de o jsdom ser desmontado
+    // (erro "window is not defined" sob a carga do CI).
+    const hrefs = new Set<string>();
+    for (const elemento of [
+      <TopoDoCliente key="topo" usuario={cliente} sair={sair} />,
+      <BarraInferiorDoCliente key="barra" usuario={cliente} />,
+      <MenuDaConta key="menu" usuario={cliente} sair={sair} />,
+    ]) {
+      const tela = montar(elemento);
+      for (const a of tela.querySelectorAll("a")) {
+        hrefs.add(a.getAttribute("href") ?? "");
+      }
+      desmontar();
+    }
     for (const href of hrefs) {
       const semAncora = href.split("#")[0] ?? href;
       expect(existe(semAncora), `${href} não tem página`).toBe(true);
@@ -163,14 +166,16 @@ describe("o que o rodapé não promete", () => {
 
   it("[CA-32] @spec:AC-10523 o topo, a barra e o menu também não usam dado ilustrativo do Stitch", () => {
     const sair = vi.fn(async () => undefined);
-    for (const tela of [
-      montar(<TopoDoCliente usuario={cliente} sair={sair} />),
-      montar(<BarraInferiorDoCliente usuario={cliente} />),
+    for (const elemento of [
+      <TopoDoCliente key="topo" usuario={cliente} sair={sair} />,
+      <BarraInferiorDoCliente key="barra" usuario={cliente} />,
     ]) {
+      const tela = montar(elemento);
       for (const proibido of PROIBIDOS) {
         expect(tela.textContent ?? "").not.toMatch(proibido);
       }
       expect(tela.textContent).not.toMatch(/entregar em/i);
+      desmontar();
     }
   });
 
