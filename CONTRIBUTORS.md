@@ -1,14 +1,22 @@
 # Contribuidores
 
-Projeto **individual** (Projeto Final Full Cycle, nível A).
+Projeto **individual** (Projeto Final Full Cycle 4, Projeto A).
 
-| Pessoa | Papel |
+| Campo | Registro |
 |---|---|
-| **Arthur Bruno Morais Moreira Araujo** | Autor único: produto, arquitetura, implementação, testes e operação |
+| **Nome completo** | PREENCHER: nome completo, como no curso |
+| **Turma** | PREENCHER: turma |
+| **Usuário no GitHub** | `4r7hur9` |
+| **Papel** | Autor único: produto, arquitetura, implementação, testes e operação |
+| **Declaração pessoal** | PREENCHER: declaração de autoria e do uso de IA, com as suas palavras (o que você fez, o que a IA fez e como você revisou) |
+
+## Uso de IA
+
+O uso de ferramentas de IA como assistente está registrado em [`docs/ia.md`](docs/ia.md). Os agentes não são contribuidores deste repositório: o autor decide o que entra, revisa e publica.
 
 ## O que foi feito por módulo
 
-> **PENDENTE — Arthur confirma/ajusta.** Preenchido pelo agente a partir da estrutura do repositório; o uso de IA como assistente está registrado em [`docs/ia.md`](docs/ia.md).
+> **PENDENTE — Arthur confirma/ajusta.** Preenchido a partir da estrutura do repositório, sem medir a autoria por linha de código.
 
 | Módulo | Contribuição |
 |---|---|
@@ -21,4 +29,4 @@ Projeto **individual** (Projeto Final Full Cycle, nível A).
 | `packages/ui` | Componentes e estilos |
 | `infra/` | Compose, Traefik com TLS local, scripts de ambiente, Prometheus/Jaeger |
 | `tests/` e `e2e/` | Testes de desempenho (k6) e ponta a ponta |
-| `docs/` | ADRs, C4, OpenAPI, observabilidade, estruturação |
+| `docs/` | ADRs, C4, OpenAPI, observabilidade, desempenho, deploy e estruturação |
