@@ -44,7 +44,8 @@ describe("metadados do início", () => {
     }
   });
 
-  it("[CA-29] @spec:AC-10629 /explorar continua levando a /explorar/produtos", () => {
-    expect(ler("page.tsx")).toContain('redirect("/explorar/produtos")');
+  it("[CA-29] @spec:AC-10629 /explorar não redireciona mais: é a vitrine mista (card #152)", () => {
+    expect(ler("page.tsx")).not.toContain("redirect(");
+    expect(ler("page.tsx")).toContain("inicio: true");
   });
 });

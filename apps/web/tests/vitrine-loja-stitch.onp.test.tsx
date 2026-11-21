@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /**
- * Card #129 · a vitrine da loja no layout do Stitch: cartão compacto com capa,
+ * Card #129 (sem spec própria: as provas ficam sem @spec) · a vitrine da loja
+ * no layout do Stitch: cartão compacto com capa,
  * logo, nome e ações na mesma linha; botão do catálogo de largura total;
  * destaques em grade; nada dos enfeites antigos; só dado real.
  */
@@ -23,7 +24,7 @@ function fonte(caminho: string): string {
 }
 
 describe("vitrine da loja no layout do Stitch", () => {
-  it("[CA-1] @spec:AC-12901 o cartão da loja traz capa, situação, logo, nome sem marca-texto e ações na mesma identidade", () => {
+  it("[CA-1] o cartão da loja traz capa, situação, logo, nome sem marca-texto e ações na mesma identidade", () => {
     const pagina = desenharPerfil({
       loja: {
         ...LOJA_DO_PERFIL,
@@ -49,7 +50,7 @@ describe("vitrine da loja no layout do Stitch", () => {
     );
   });
 
-  it("[CA-2] @spec:AC-12902 a descrição curta vem numa faixa própria e o catálogo é um link de largura total com 'Explorar'", () => {
+  it("[CA-2] a descrição curta vem numa faixa própria e o catálogo é um link de largura total com 'Explorar'", () => {
     const pagina = desenharPerfil({ contagemDeItens: 11 });
     expect(pagina.querySelector(".sc-loja__descricao")?.textContent).toContain(
       "Tudo fresquinho.",
@@ -65,7 +66,7 @@ describe("vitrine da loja no layout do Stitch", () => {
     ).toBe("true");
   });
 
-  it("[CA-3] @spec:AC-12903 os destaques da página da loja são uma grade, e não a tira que rola", () => {
+  it("[CA-3] os destaques da página da loja são uma grade, e não a tira que rola", () => {
     const pagina = desenharPerfil({
       destaques: [destaque("a", "Pastel"), destaque("b", "Coxinha")],
     });
@@ -79,7 +80,7 @@ describe("vitrine da loja no layout do Stitch", () => {
     ).toBe("Adicionar Pastel à sacola");
   });
 
-  it("[CA-4] @spec:AC-12904 nada de nota, avaliação, selo, parcela ou compatibilidade na página", () => {
+  it("[CA-4] nada de nota, avaliação, selo, parcela ou compatibilidade na página", () => {
     const pagina = desenharPerfil({
       destaques: [destaque("a", "Pastel")],
       loja: {
@@ -92,14 +93,14 @@ describe("vitrine da loja no layout do Stitch", () => {
     );
   });
 
-  it("[CA-5] @spec:AC-12905 a folha da loja não usa cor por loja nem o marca-texto antigo no nome", () => {
+  it("[CA-5] a folha da loja não usa cor por loja nem o marca-texto antigo no nome", () => {
     const css = fonte("packages/ui/styles/narrativa.css");
     const blocoDaLoja = css.slice(css.indexOf(".sc-loja {"));
     expect(blocoDaLoja).not.toMatch(/--cor-marca\b|--cor-sobre-marca/);
     expect(blocoDaLoja).not.toMatch(/\.sc-loja__(padrao|trama|base|topo)\s*\{/);
   });
 
-  it("[CA-6] @spec:AC-12906 as publicações são uma grade compacta de até 6, com 'Ver todas' só quando há mais", () => {
+  it("[CA-6] as publicações são uma grade compacta de até 6, com 'Ver todas' só quando há mais", () => {
     const oito = Array.from({ length: 8 }, (_, i) =>
       post(`p${i}`, `Item ${i}`),
     );

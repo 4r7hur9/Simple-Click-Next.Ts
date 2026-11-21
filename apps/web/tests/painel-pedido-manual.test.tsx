@@ -315,7 +315,7 @@ describe("o pedido manual é lançado pela loja (AC-707, AC-709)", () => {
       observacao: null,
     });
     expect(JSON.stringify(lancamento?.corpo)).not.toMatch(/centavos/i);
-    expect(tela.textContent).toContain("Pedido #57 lançado");
+    expect(tela.textContent).toContain("Pedido A-0057 lançado");
     expect(
       tela.querySelector(`a[href="/painel/pedidos/${PEDIDO_CRIADO.id}"]`),
     ).not.toBeNull();
@@ -355,7 +355,7 @@ describe("o pedido manual é lançado pela loja (AC-707, AC-709)", () => {
         telefone: "(11) 96000-1234",
       },
     });
-    expect(tela.textContent).toContain("Pedido #57 lançado");
+    expect(tela.textContent).toContain("Pedido A-0057 lançado");
   });
 
   it("cliente cadastrado: escolhe na lista e o pedido vai com a ficha dele", async () => {
@@ -399,7 +399,7 @@ describe("o pedido manual é lançado pela loja (AC-707, AC-709)", () => {
       cliente: { tipo: "cadastrado", clienteId: CLIENTE.id },
       entrega: "PICKUP",
     });
-    expect(tela.textContent).toContain("Pedido #57 lançado");
+    expect(tela.textContent).toContain("Pedido A-0057 lançado");
   });
 
   it("cliente novo é guardado na lista antes do pedido, que sai com a ficha criada", async () => {
@@ -522,5 +522,57 @@ describe("a repetição chega preenchida com os preços de hoje (AC-712)", () =>
     expect(tela.textContent).toContain(
       "Batata frita saiu do catálogo — custava R$ 9,00.",
     );
+  });
+
+  it("D-2 a descrição da repetição nomeia a opção mesmo com a lista do balcão sem grupos", async () => {
+    simularApi((chamada) =>
+      chamada.url.endsWith("/repetir")
+        ? {
+            status: 200,
+            corpo: {
+              pedidoOriginal: {
+                id: "88888888-8888-4888-8888-888888888888",
+                codigo: "A-0007",
+              },
+              clienteId: null,
+              entrega: "PICKUP",
+              itens: [
+                {
+                  produtoId: LANCHE.id,
+                  variacaoId: null,
+                  nome: "X-Salada",
+                  variacao: null,
+                  quantidade: 1,
+                  escolhas: [
+                    {
+                      grupoId: "22222222-2222-4222-8222-222222222222",
+                      opcaoId: "33333333-3333-4333-8333-333333333333",
+                      quantidade: 1,
+                    },
+                  ],
+                  observacao: null,
+                  precoUnitarioCentavos: 2000,
+                  totalDaLinhaCentavos: 2000,
+                  precoUnitarioDaEpocaCentavos: 2000,
+                  pendencias: [],
+                },
+              ],
+              indisponiveis: [],
+              subtotalCentavos: 2000,
+            },
+          }
+        : { status: 201, corpo: PEDIDO_CRIADO },
+    );
+    const tela = montar(
+      <MontarPedido
+        produtos={[{ ...LANCHE, grupos: [], variacoes: [] }]}
+        carregarDetalhe={async () => LANCHE}
+        repetirPedidoId="88888888-8888-4888-8888-888888888888"
+      />,
+    );
+    await esperar();
+    const itens = exigir(tela, 'ul[aria-label="Itens do pedido"]');
+    expect(itens.textContent).toContain("1× X-Salada — Ketchup");
+    expect(itens.textContent).toContain("R$ 20,00");
   });
 });

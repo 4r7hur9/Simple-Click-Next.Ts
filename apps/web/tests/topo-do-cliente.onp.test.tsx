@@ -69,7 +69,7 @@ describe("marca e abas", () => {
     expect(marca.getAttribute("aria-label")).toContain("SimpleClick");
   });
 
-  it("[CA-11] @spec:AC-10501 as quatro abas são links e só a atual leva aria-current", () => {
+  it("[CA-11] @spec:AC-10501 as cinco abas são links e só a atual leva aria-current", () => {
     rota.caminho = "/explorar/lojas";
     const tela = topo(cliente);
     const abas = [
@@ -78,12 +78,14 @@ describe("marca e abas", () => {
     expect(abas.map((a) => a.textContent)).toEqual([
       "Explorar",
       "Lojas",
+      "Produtos",
       "Favoritos",
       "Pedidos",
     ]);
     expect(abas.map((a) => a.getAttribute("href"))).toEqual([
-      "/explorar/produtos",
+      "/explorar",
       "/explorar/lojas",
+      "/explorar/produtos",
       "/conta/favoritos",
       "/conta/pedidos",
     ]);
@@ -222,13 +224,17 @@ describe("menu da conta", () => {
     expect(painel(tela).hidden).toBe(true);
   });
 
-  it("[CA-13] @spec:AC-10515 o cliente vê os itens da conta e nunca o painel nem a administração", () => {
+  it("[CA-6] @spec:AC-10515 o cliente vê só Minha conta (abre o modal), sem o que as abas do topo já têm, e nunca o painel nem a administração", () => {
     const tela = menu(cliente);
     const hrefs = [...tela.querySelectorAll("a")].map((a) =>
       a.getAttribute("href"),
     );
-    expect(hrefs).toContain("/conta/pedidos");
-    expect(hrefs).toContain("/conta/favoritos");
+    // Pedidos e Favoritos estão nas abas do topo; Dados, Endereços e Segurança, no modal.
+    expect(hrefs).toEqual(["/conta/dados"]);
+    expect(
+      tela.querySelector('a[data-abre-conta="dados"]')?.textContent,
+    ).toContain("Minha conta");
+    expect(tela.querySelector("[data-ver-tutorial]")).not.toBeNull();
     expect(
       hrefs.some((h) => h?.startsWith("/painel") || h?.startsWith("/admin")),
     ).toBe(false);
@@ -301,12 +307,17 @@ describe("menu da conta", () => {
     expect(window.localStorage.getItem("sc:feed:stories-vistos")).toBeNull();
   });
 
-  it("[CA-13] @spec:AC-10501 o item da página atual leva aria-current no menu", () => {
-    rota.caminho = "/conta/pedidos";
-    const tela = menu(cliente);
+  it("[CA-13] @spec:AC-10501 o item da página atual leva aria-current no menu (o dono, em Explorar)", () => {
+    rota.caminho = "/explorar/produtos";
+    const tela = menu(dono);
     const atual = tela.querySelectorAll(
       '.sc-menu-conta__item[aria-current="page"]',
     );
-    expect([...atual].map((a) => a.textContent)).toEqual(["Pedidos"]);
+    expect([...atual].map((a) => a.textContent)).toEqual(["Explorar"]);
+    // O modal abre sobre qualquer página: "Minha conta" nunca é a página atual.
+    rota.caminho = "/conta/pedidos";
+    expect(
+      menu(cliente).querySelectorAll('.sc-menu-conta__item[aria-current="page"]'),
+    ).toHaveLength(0);
   });
 });

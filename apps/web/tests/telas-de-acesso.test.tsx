@@ -59,7 +59,7 @@ import PaginaDeCadastro from "../src/app/(conta)/cadastrar/page.tsx";
 import PaginaDeDefinicaoDeSenha from "../src/app/(conta)/definir-senha/page.tsx";
 import PaginaDeEntrar from "../src/app/(conta)/entrar/page.tsx";
 import PaginaDeVerificacao from "../src/app/(conta)/entrar/verificacao/page.tsx";
-import PaginaDeSeguranca from "../src/app/(conta)/conta/seguranca/page.tsx";
+import { PainelDeSeguranca } from "../src/features/conta/SegurancaDaConta.tsx";
 import PaginaDeRecuperacaoDeSenha from "../src/app/(conta)/recuperar-senha/page.tsx";
 import PaginaDeVerificacaoDeEmail from "../src/app/(conta)/verificar-email/page.tsx";
 import { TotpForm } from "../src/features/auth/TotpForm.tsx";
@@ -447,12 +447,25 @@ describe("telas sem script: e-mail, senha e segurança", () => {
   });
 
   it("@spec:AC-112 @spec:AC-113 @spec:AC-108 a segurança separa sair deste dispositivo de encerrar todas, e oferece o segundo fator", async () => {
-    const tela = await noServidor(PaginaDeSeguranca);
+    // A tela virou a aba Segurança do modal "Minha conta" (card #151).
+    const acoes = {
+      sairDaConta: vi.fn(),
+      encerrarTodasAsSessoes: vi.fn(),
+      sairDepoisDeExcluirAConta: vi.fn(),
+    };
+    const tela = renderToStaticMarkup(
+      <PainelDeSeguranca comAplicativo={false} sessoes={{ estado: "carregando" }} acoes={acoes} />,
+    );
     expect(tela).toContain("Sair deste dispositivo");
     expect(tela).toContain("Encerrar todas as sessões");
     expect(tela).toContain('href="/conta/seguranca/aplicativo"');
+    expect(tela).not.toContain("Não foi possível encerrar a sessão.");
 
-    const comErro = await noServidor(PaginaDeSeguranca, { estado: "erro" });
+    const comErro = renderToStaticMarkup(
+      <PainelDeSeguranca comAplicativo sessoes={{ estado: "erro" }} acaoFalhou acoes={acoes} />,
+    );
     expect(comErro).toContain("Não foi possível encerrar a sessão.");
+    expect(comErro).toContain("Não deu para listar as conexões agora.");
+    expect(comErro).not.toContain('href="/conta/seguranca/aplicativo"');
   });
 });

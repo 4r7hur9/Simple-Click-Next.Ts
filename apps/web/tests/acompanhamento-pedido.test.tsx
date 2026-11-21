@@ -153,7 +153,7 @@ describe("a página mostra o estado atual e o que já passou (AC-612)", () => {
       }),
     );
 
-    expect(tela.querySelector("h1")?.textContent).toBe("Pedido nº 42");
+    expect(tela.querySelector("h1")?.textContent).toBe("Pedido A-0042");
     expect(tela.textContent).toContain("A-0042");
     expect(tela.querySelector("[data-status-atual]")?.textContent).toBe(
       "Em preparo",

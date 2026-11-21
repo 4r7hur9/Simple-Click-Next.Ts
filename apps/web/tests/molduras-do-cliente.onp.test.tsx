@@ -5,6 +5,7 @@
  * servidor, a janela de acesso da loja continua montada e o tutorial aponta
  * para elementos que ainda existem.
  */
+import { existsSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -68,7 +69,6 @@ import { JanelaDeAcesso } from "../src/features/auth/JanelaDeAcesso.tsx";
 import { RodapeLegal } from "../src/features/legal/RodapeLegal.tsx";
 import { PASSOS_DO_TUTORIAL } from "../src/features/tutorial/passos.ts";
 import { Tutorial } from "../src/features/tutorial/Tutorial.tsx";
-import { LateralDoUsuario } from "../src/features/usuario/LateralDoUsuario.tsx";
 
 const cliente = {
   papel: "cliente",
@@ -155,16 +155,18 @@ describe("as três molduras", () => {
     expect(t.has(NavegacaoDaSessao)).toBe(true);
     expect(t.has(BarraInferiorDaSessao)).toBe(true);
     expect(t.has(RodapeLegal)).toBe(true);
-    expect(t.has(LateralDoUsuario)).toBe(false);
     expect(t.has("main")).toBe(true);
+    // A lateral antiga não existe mais (card #135): nenhuma moldura a monta.
+    expect(
+      existsSync(new URL("../src/features/usuario/LateralDoUsuario.tsx", import.meta.url)),
+    ).toBe(false);
   });
 
-  it("[CA-24] @spec:AC-10504 conta: topo, conteúdo, rodapé e barra; sem a lateral", () => {
-    const t = tipos(LayoutDaMinhaConta({ children: filho }));
+  it("[CA-24] @spec:AC-10504 conta: topo, conteúdo, rodapé e barra; sem a lateral", async () => {
+    const t = tipos(await LayoutDaMinhaConta({ children: filho }));
     expect(t.has(NavegacaoDaSessao)).toBe(true);
     expect(t.has(BarraInferiorDaSessao)).toBe(true);
     expect(t.has(RodapeLegal)).toBe(true);
-    expect(t.has(LateralDoUsuario)).toBe(false);
   });
 
   it("[CA-24] @spec:AC-10511 loja: topo, rodapé, barra e a janela de acesso continua montada", async () => {
@@ -177,7 +179,6 @@ describe("as três molduras", () => {
     expect(t.has(BarraInferiorDaSessao)).toBe(true);
     expect(t.has(RodapeLegal)).toBe(true);
     expect(t.has(JanelaDeAcesso)).toBe(true);
-    expect(t.has(LateralDoUsuario)).toBe(false);
   });
 
   it("[CA-24] @spec:AC-10509 a loja entrega o apelido ao topo (e a sacola dele)", async () => {

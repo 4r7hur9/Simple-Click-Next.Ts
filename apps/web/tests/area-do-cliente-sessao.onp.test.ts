@@ -52,7 +52,8 @@ describe("Sair sempre apaga os cookies deste navegador (AC-11119)", () => {
   it("[CA-19] @spec:AC-11119 com a API confirmando, sai e vai para a entrada", async () => {
     vi.stubGlobal("fetch", async () => Response.json({ encerrada: true }));
     await rodar(() => sairDaConta());
-    expect(nomes()).toEqual(["sc_access", "sc_refresh"]);
+    // A loja de origem (card #135) sai junto: não fica para o próximo do aparelho.
+    expect(nomes()).toEqual(["sc_access", "sc_loja_de_origem", "sc_refresh"]);
     expect(redirecionado.para).toBe("/entrar");
   });
 
@@ -71,7 +72,8 @@ describe("Sair sempre apaga os cookies deste navegador (AC-11119)", () => {
     async (_nome, resposta) => {
       vi.stubGlobal("fetch", resposta);
       await rodar(() => sairDaConta());
-      expect(nomes()).toEqual(["sc_access", "sc_refresh"]);
+      // A loja de origem (card #135) sai junto: não fica para o próximo do aparelho.
+    expect(nomes()).toEqual(["sc_access", "sc_loja_de_origem", "sc_refresh"]);
       expect(redirecionado.para).toBe("/entrar?saida=parcial");
     },
   );
@@ -89,7 +91,8 @@ describe("Sair sempre apaga os cookies deste navegador (AC-11119)", () => {
   it("[CA-19] @spec:AC-11119 o Sair da barra (também usado no painel) segue a mesma regra", async () => {
     vi.stubGlobal("fetch", async () => new Response("{}", { status: 500 }));
     await rodar(() => sairPelaBarra("/painel/pedidos"));
-    expect(nomes()).toEqual(["sc_access", "sc_refresh"]);
+    // A loja de origem (card #135) sai junto: não fica para o próximo do aparelho.
+    expect(nomes()).toEqual(["sc_access", "sc_loja_de_origem", "sc_refresh"]);
     expect(redirecionado.para).toBe("/entrar?saida=parcial");
 
     apagados.length = 0;

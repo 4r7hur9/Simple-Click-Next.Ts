@@ -42,7 +42,7 @@ const comoLogado = (
 
 const TABELA: readonly (readonly [string, IdDoItemPrincipal | null])[] = [
   ["/explorar", "explorar"],
-  ["/explorar/produtos", "explorar"],
+  ["/explorar/produtos", "produtos"],
   ["/explorar/lojas", "lojas"],
   ["/loja/padaria", "lojas"],
   ["/loja/padaria/sobre", "lojas"],
@@ -107,15 +107,32 @@ describe("um item ativo por rota", () => {
       "Perfil",
     ]);
     expect(itens.map((i) => i.href)).toEqual([
-      "/explorar/produtos",
+      "/explorar",
       "/explorar/lojas",
       "/conta/favoritos",
       "/conta/pedidos",
-      "/conta",
+      "/conta/dados",
     ]);
   });
 
-  it("[CA-7] @spec:AC-10501 as abas do topo são as quatro primeiras; Perfil é o avatar", () => {
+  it("[CA-6] o Perfil de quem tem sessão abre o modal Minha conta; o visitante só entra", () => {
+    const perfil = (usuario: UsuarioDaBarra) =>
+      itensPrincipais({ usuario, caminho: "/explorar/produtos" }).find(
+        (i) => i.id === "perfil",
+      );
+    expect(perfil(comoLogado("cliente"))?.atributos).toEqual({
+      "data-abre-conta": "dados",
+    });
+    expect(perfil(VISITANTE)?.atributos).toBeUndefined();
+    // Favoritos e Pedidos continuam links comuns.
+    const outros = itensPrincipais({
+      usuario: comoLogado("cliente"),
+      caminho: "/explorar/produtos",
+    }).filter((i) => i.id !== "perfil");
+    expect(outros.every((i) => i.atributos === undefined)).toBe(true);
+  });
+
+  it("[CA-7] @spec:AC-10501 as abas do topo são Explorar, Lojas, Produtos, Favoritos e Pedidos; Perfil é o avatar", () => {
     const abas = abasDoTopo({
       usuario: comoLogado("cliente"),
       caminho: "/conta/dados",
@@ -123,6 +140,7 @@ describe("um item ativo por rota", () => {
     expect(abas.map((a) => a.id)).toEqual([
       "explorar",
       "lojas",
+      "produtos",
       "favoritos",
       "pedidos",
     ]);
@@ -198,7 +216,7 @@ describe("itens por papel", () => {
     const porId = Object.fromEntries(itens.map((i) => [i.id, i.href]));
     expect(porId["favoritos"]).toBe("/entrar?proximo=%2Fconta%2Ffavoritos");
     expect(porId["pedidos"]).toBe("/entrar?proximo=%2Fconta%2Fpedidos");
-    expect(porId["perfil"]).toBe("/entrar?proximo=%2Fconta");
+    expect(porId["perfil"]).toBe("/entrar?proximo=%2Fconta%2Fdados");
     expect(itens.every((i) => i.atributos === undefined)).toBe(true);
   });
 
@@ -285,5 +303,44 @@ describe("uma regra só de sem barra", () => {
     rota.caminho = "/loja/padaria/cardapio";
     expect(renderToStaticMarkup(<RodapeLegal />)).toContain("sc-rodape-legal");
     rota.caminho = "/explorar/produtos";
+  });
+});
+
+describe("abas do topo no feed (card #152)", () => {
+  const usuario = comoLogado("cliente");
+
+  it.each([
+    ["/explorar", "explorar"],
+    ["/explorar/produtos", "produtos"],
+    ["/explorar/lojas", "lojas"],
+  ])("[CA-1] em %s só a aba %s está ativa", (caminho, esperada) => {
+    const abas = abasDoTopo({ usuario, caminho });
+    expect(abas.filter((a) => a.ativo).map((a) => a.id)).toEqual([esperada]);
+  });
+
+  it("[CA-1] cada aba leva ao endereço certo", () => {
+    const hrefs = abasDoTopo({ usuario, caminho: "/conta/pedidos" }).map((a) => a.href);
+    expect(hrefs).toEqual([
+      "/explorar",
+      "/explorar/lojas",
+      "/explorar/produtos",
+      "/conta/favoritos",
+      "/conta/pedidos",
+    ]);
+  });
+
+  it("[CA-1] Lojas e Produtos levam busca e filtros; Explorar leva só a região", () => {
+    const busca = new URLSearchParams("busca=pizza&entrega=entrega&lat=-23.55&lng=-46.63");
+    const abas = abasDoTopo({ usuario, caminho: "/explorar/produtos", busca });
+    const href = (id: string) => abas.find((a) => a.id === id)?.href ?? "";
+    expect(href("lojas")).toContain("/explorar/lojas?");
+    expect(href("lojas")).toContain("busca=pizza");
+    expect(href("produtos")).toMatch(/^\/explorar\/produtos\?.*busca=pizza/);
+    expect(href("explorar")).toBe("/explorar?lat=-23.55&lng=-46.63");
+  });
+
+  it("[CA-2] a barra do celular segue com 5 destinos e sem Produtos", () => {
+    const ids = itensPrincipais({ usuario, caminho: "/explorar" }).map((i) => i.id);
+    expect(ids).toEqual(["explorar", "lojas", "favoritos", "pedidos", "perfil"]);
   });
 });

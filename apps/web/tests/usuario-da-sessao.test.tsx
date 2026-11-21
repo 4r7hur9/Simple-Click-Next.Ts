@@ -1,21 +1,26 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 /**
- * Prova da lateral do usuário (card #22): os cinco papéis (visitante, cliente,
- * dono, equipe, administração), o item ativo pela rota, o caminho de volta do
- * "Entrar", o bloco da pessoa no menu lateral do painel, e a API fora do ar
- * mostrando visitante sem quebrar a página.
+ * Quem está logado e o que cada papel vê (cards #22, #105 e #135): os cinco
+ * papéis (visitante, cliente, dono, equipe, administração) no menu da conta do
+ * topo, que ficou no lugar da lateral flutuante; o item ativo pela rota; o
+ * caminho de volta do "Entrar"; o bloco da pessoa no menu lateral do painel; e
+ * a API fora do ar mostrando visitante sem quebrar a página.
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 const rota = vi.hoisted(() => ({ caminho: "/loja/pastelaria/cardapio" }));
-vi.mock("next/navigation", () => ({ usePathname: () => rota.caminho }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => rota.caminho,
+  useSearchParams: () => new URLSearchParams(),
+}));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers(),
   cookies: async () => ({ get: () => undefined, delete: () => undefined }),
 }));
 
-import { LateralDoUsuario } from "../src/features/usuario/LateralDoUsuario.tsx";
+import { MenuDaConta } from "../src/features/usuario/MenuDaConta.tsx";
+import { TopoDoCliente } from "../src/features/usuario/TopoDoCliente.tsx";
 import { UsuarioNoMenu } from "../src/features/usuario/UsuarioNoMenu.tsx";
 import {
   caminhoSemBarra,
@@ -64,7 +69,14 @@ const ADMIN = usuarioDoEu(eu("ADMIN"));
 
 function desenhar(usuario: UsuarioDaBarra): string {
   return renderToStaticMarkup(
-    <LateralDoUsuario usuario={usuario} loja={PASTELARIA} sair={sair} />,
+    <MenuDaConta usuario={usuario} loja={PASTELARIA} sair={sair} />,
+  );
+}
+
+/** O texto dos itens marcados como a página atual. */
+function atuais(html: string): string[] {
+  return [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>([\s\S]*?)<\/a>/g)].map(
+    (m) => (m[1] ?? "").replace(/<[^>]+>/g, "").trim(),
   );
 }
 
@@ -119,7 +131,7 @@ describe("o papel vem de /v1/eu", () => {
   });
 });
 
-describe("os cinco papéis na lateral", () => {
+describe("os cinco papéis no menu da conta", () => {
   it("visitante: marca no topo, Entrar e Criar conta (em destaque) com volta", () => {
     rota.caminho = "/loja/pastelaria/cardapio";
     const html = desenhar(VISITANTE);
@@ -133,38 +145,47 @@ describe("os cinco papéis na lateral", () => {
     expect(destacado).toContain('data-abre-acesso="criar"');
     expect(html).toContain('data-abre-acesso="entrar"');
     expect(html).not.toContain("Sair");
-    expect(html).not.toContain("sc-usuario-lateral__selo");
+    expect(html).not.toContain("sc-menu-conta__selo");
   });
 
-  it("só o item ativo tem fundo verde cheio: o destaque é só contorno", () => {
+  it("a lateral flutuante saiu: nem o componente nem o estilo dela existem", () => {
+    expect(
+      existsSync(new URL("../src/features/usuario/LateralDoUsuario.tsx", import.meta.url)),
+    ).toBe(false);
     const css = readFileSync(
       new URL("../../../packages/ui/styles/usuario.css", import.meta.url),
       "utf8",
     );
-    const cheio = [...css.matchAll(/([^{}]+)\{[^}]*background-color: var\(--cor-primaria\)/g)].map(
-      (m) => m[1] ?? "",
-    );
-    expect(cheio.join(" ")).not.toContain("data-destaque");
-    expect(css).toMatch(/\[data-destaque\]:not\(\[aria-current="page"\]\)\s*\{\s*box-shadow: inset/);
+    expect(css).not.toContain("sc-usuario-lateral");
+    // O que ficou na folha é só a pessoa no menu lateral do painel.
+    expect(css).toContain(".sc-usuario-menu__avatar");
+    expect(css).toContain(".sc-usuario-menu__selo");
   });
 
   it("cliente: iniciais, selo Cliente, a loja, a conta e Sair no rodapé", () => {
     const html = desenhar(CLIENTE);
     expect(html).toContain(">AR<");
     expect(html).toContain(">Cliente<");
-    expect(rotulos(CLIENTE)).toEqual([
-      "Voltar à loja",
-      "Explorar",
-      "Visão geral",
-      "Pedidos",
-      "Dados",
-      "Endereços",
-      "Segurança",
-      "Favoritos",
-    ]);
+    // Explorar, Pedidos e Favoritos já estão no topo; Dados, Endereços e
+    // Segurança, no modal que "Minha conta" abre (card #151).
+    expect(rotulos(CLIENTE)).toEqual(["Voltar à loja", "Minha conta"]);
     expect(html).toContain("Ver tutorial");
-    expect(html).toContain("sc-usuario-lateral__rodape");
+    expect(html).toContain("sc-menu-conta__rodape");
     expect(html).toContain("Sair");
+  });
+
+  it("[CA-6] 'Minha conta' abre o modal: link com data-abre-conta, href de reserva e sem os itens repetidos", () => {
+    const html = desenhar(CLIENTE);
+    expect(html).toMatch(/<a[^>]*href="\/conta\/dados"[^>]*data-abre-conta="dados"/);
+    expect(html).toContain('aria-haspopup="dialog"');
+    for (const repetido of ["Visão geral", "Endereços", "Segurança", "Favoritos", "Explorar"]) {
+      expect(rotulos(CLIENTE)).not.toContain(repetido);
+    }
+    // Dono, equipe e administração também abrem o modal; o visitante nunca.
+    for (const papel of [DONO, EQUIPE, ADMIN]) {
+      expect(desenhar(papel)).toContain('data-abre-conta="dados"');
+    }
+    expect(desenhar(VISITANTE)).not.toContain("data-abre-conta");
   });
 
   it("dono: selo Dono, painel, loja, conta e troca de loja", () => {
@@ -198,24 +219,23 @@ describe("os cinco papéis na lateral", () => {
     ]);
   });
 
-  it("cada item tem nome para o leitor de tela e o atual é marcado pela rota", () => {
+  it("cada item tem o nome escrito nele e o atual é marcado pela rota", () => {
+    // O modal abre sobre qualquer página: "Minha conta" nunca fica marcada.
     rota.caminho = "/conta/pedidos";
-    const html = desenhar(CLIENTE);
-    expect(html).toMatch(/aria-label="Pedidos" aria-current="page"/);
-    expect(html).not.toMatch(/aria-label="Segurança" aria-current/);
-    // A Visão geral só vale no endereço exato: em /conta/pedidos ele fica apagado.
-    expect(html).not.toMatch(/aria-label="Visão geral" aria-current/);
-    rota.caminho = "/conta";
-    expect(desenhar(CLIENTE)).toMatch(/aria-label="Visão geral" aria-current="page"/);
-    rota.caminho = "/conta/pedidos";
+    expect(atuais(desenhar(CLIENTE))).toEqual([]);
+    expect(atuais(desenhar(DONO))).toEqual([]);
     expect(itemAtivo("/loja/pastelaria/cardapio", "/loja/pastelaria")).toBe(true);
     expect(itemAtivo("/loja/pastelaria-2", "/loja/pastelaria")).toBe(false);
     rota.caminho = "/loja/pastelaria/cardapio";
   });
 
-  it("some no cardápio da TV", () => {
+  it("o topo (e com ele o menu) some no cardápio da TV", () => {
     rota.caminho = "/loja/pastelaria/tv";
-    expect(desenhar(CLIENTE)).toBe("");
+    expect(
+      renderToStaticMarkup(
+        <TopoDoCliente usuario={CLIENTE} loja={PASTELARIA} sair={sair} />,
+      ),
+    ).toBe("");
     rota.caminho = "/loja/pastelaria/cardapio";
     expect(caminhoSemBarra("/tv")).toBe(true);
     expect(caminhoSemBarra("/loja/pastelaria/tvs")).toBe(false);
@@ -230,7 +250,8 @@ describe("no menu lateral do painel e da administração", () => {
     );
     expect(html).toContain("Ana Ribeiro");
     expect(html).toContain(">Dono<");
-    expect(html).toContain('href="/conta"');
+    // "Minha conta" leva a /conta/dados, que abre o modal da conta (card #151).
+    expect(html).toContain('href="/conta/dados"');
     // O feed é público: dono, equipe e admin também chegam a ele (card #37).
     expect(html).toContain('href="/explorar"');
     expect(html).toContain("Sair");

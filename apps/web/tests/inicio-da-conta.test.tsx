@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 import { VisaoGeralDaConta, horaDePico, variacaoDe } from "../src/features/conta/VisaoGeralDaConta.tsx";
 import { calcularMetricas, lerPeriodoDaVisao } from "../src/lib/conta-do-cliente.ts";
@@ -19,7 +22,7 @@ const zerada = {
 };
 
 describe("visão geral da conta", () => {
-  it("sem pedidos mostra indicadores zerados e o convite, sem saudação", () => {
+  it("[CA-3] no período sem pedidos mostra os indicadores zerados, sem saudação e sem 'Últimos pedidos'", () => {
     const html = renderToStaticMarkup(
       <VisaoGeralDaConta
         periodo={lerPeriodoDaVisao({}, "2026-10-17")}
@@ -29,7 +32,10 @@ describe("visão geral da conta", () => {
     );
     expect(html).toMatch(/R\$\s0,00/);
     expect(html).toContain("Pedidos");
-    expect(html).toContain("Explorar lojas");
+    // O convite "Explorar lojas" é da lista de Pedidos (um só estado vazio).
+    expect(html).not.toContain("Explorar lojas");
+    expect(html).not.toContain("Últimos pedidos");
+    expect(html).not.toContain("Pedir de novo");
     expect(html).not.toContain("Olá");
   });
 

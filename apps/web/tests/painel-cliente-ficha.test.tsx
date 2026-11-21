@@ -123,7 +123,7 @@ describe("a ficha mostra o histórico e o que saiu do catálogo (AC-711, AC-713)
       "55555555-5555-4555-8555-555555555555",
     ]);
     const [recente] = cartoes;
-    expect(recente?.textContent).toContain("Pedido #42");
+    expect(recente?.textContent).toContain("Pedido A-0042");
     expect(recente?.textContent).toContain("20/09/2026");
     expect(recente?.textContent).toContain("Confirmado");
     expect(recente?.textContent).toContain("R$ 25,00");
@@ -210,7 +210,7 @@ describe("a ficha mostra o histórico e o que saiu do catálogo (AC-711, AC-713)
     await esperar();
 
     const janela = exigir(tela, "dialog[open]");
-    expect(janela.textContent).toContain("Pedido #42");
+    expect(janela.textContent).toContain("Pedido A-0042");
     expect(janela.textContent).toContain("Itens");
     expect(janela.textContent).toContain("Imprimir cupom");
   });

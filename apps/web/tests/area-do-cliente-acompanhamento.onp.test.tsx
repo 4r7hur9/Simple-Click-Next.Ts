@@ -42,7 +42,7 @@ type Pedido = AcompanhamentoNoContrato["pedido"];
 
 const PEDIDO: Pedido = {
   numero: 9,
-  codigo: "B-0009",
+  codigo: "A-0009",
   status: "ACCEPTED",
   entrega: "DELIVERY",
   formaDePagamento: "PIX",
@@ -108,8 +108,7 @@ describe("só os campos permitidos aparecem (AC-11111)", () => {
     await act(async () => {});
     const texto = raiz.textContent ?? "";
     for (const esperado of [
-      "Pedido nº 9",
-      "B-0009",
+      "Pedido A-0009",
       "Pedido aceito",
       "Entrega",
       "PIX",

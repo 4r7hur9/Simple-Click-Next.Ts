@@ -112,7 +112,7 @@ describe("a conta mostra todos os pedidos, de todas as lojas (AC-616)", () => {
     ]);
 
     const emPreparo = tela.querySelector(`[data-pedido="${ID_A2}"]`);
-    expect(emPreparo?.textContent).toContain("Pedido nº 43");
+    expect(emPreparo?.textContent).toContain("Pedido A-0043");
     expect(emPreparo?.textContent).toContain("Em preparo");
     expect(emPreparo?.querySelector("[data-total]")?.textContent).toBe(
       escreverDinheiro(900),

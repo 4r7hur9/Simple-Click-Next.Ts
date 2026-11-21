@@ -69,4 +69,34 @@ describe("ListaDaColuna", () => {
     expect(regiao?.getAttribute("tabindex")).toBe("0");
     expect(tela.querySelector("button")).toBeNull();
   });
+
+  it("D-6 [AC-600] pedido novo além do lote aparece visível, sem tocar em Mostrar", () => {
+    container = document.createElement("div");
+    document.body.append(container);
+    raiz = createRoot(container);
+    const itens = Array.from({ length: 16 }, (_, i) => `#${i + 1}`);
+    act(() =>
+      raiz?.render(
+        <ListaDaColuna
+          itens={itens}
+          rotulo="Pedido gerado"
+          lote={8}
+          destacar={(item) => item === "#16"}
+          desenhar={(item) => (
+            <p key={item} data-item>
+              {item}
+            </p>
+          )}
+        />,
+      ),
+    );
+    const textos = Array.from(container.querySelectorAll("[data-item]")).map(
+      (e) => e.textContent,
+    );
+    expect(textos).toContain("#16");
+    expect(textos).toHaveLength(9);
+    expect(container.querySelector("button")?.textContent).toBe(
+      "Mostrar os outros 7",
+    );
+  });
 });

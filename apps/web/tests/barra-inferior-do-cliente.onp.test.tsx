@@ -69,12 +69,16 @@ describe("a barra", () => {
       "Perfil",
     ]);
     expect(itens.map((i) => i.getAttribute("href"))).toEqual([
-      "/explorar/produtos",
+      "/explorar",
       "/explorar/lojas",
       "/conta/favoritos",
       "/conta/pedidos",
-      "/conta",
+      "/conta/dados",
     ]);
+    // O Perfil abre o modal Minha conta (card #151); os outros quatro navegam.
+    expect(
+      itens.map((i) => i.getAttribute("data-abre-conta")),
+    ).toEqual([null, null, null, null, "dados"]);
     // O rótulo é texto visível, não só o ícone.
     expect(tela.querySelectorAll(".sc-barra-inferior__rotulo")).toHaveLength(5);
   });
@@ -110,7 +114,7 @@ describe("a barra", () => {
         ?.getAttribute("href");
     expect(href("Favoritos")).toBe("/entrar?proximo=%2Fconta%2Ffavoritos");
     expect(href("Pedidos")).toBe("/entrar?proximo=%2Fconta%2Fpedidos");
-    expect(href("Perfil")).toBe("/entrar?proximo=%2Fconta");
+    expect(href("Perfil")).toBe("/entrar?proximo=%2Fconta%2Fdados");
     expect(tela.querySelector("[data-abre-acesso]")).toBeNull();
   });
 

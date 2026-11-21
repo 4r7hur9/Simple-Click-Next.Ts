@@ -174,8 +174,8 @@ describe("Destaques e ofertas", () => {
     expect(vazio).toContain("Ver as lojas");
   });
 
-  it("[CA-3] @spec:AC-10603 a seção tem 'Ver tudo' para a lista completa", () => {
-    expect(html).toContain("Ver tudo");
+  it("[CA-3] @spec:AC-10603 a seção tem 'Ver todos' para a lista completa", () => {
+    expect(html).toContain("Ver todos");
   });
 });
 

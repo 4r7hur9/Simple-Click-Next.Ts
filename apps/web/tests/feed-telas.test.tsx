@@ -111,7 +111,8 @@ describe("TelaDoFeed", () => {
     );
     // As áreas Explorar/Lojas são as abas do topo (card #128): a tela diz qual é a dela.
     expect(tela.querySelector("main")?.getAttribute("data-aba")).toBe("produtos");
-    expect(tela.querySelector("h1")?.textContent).toBe("Explorar produtos e lojas");
+    // A lista de produtos é /explorar/produtos; a vitrine mista é o /explorar (card #152).
+    expect(tela.querySelector("h1")?.textContent).toBe("Produtos");
     expect(tela.querySelector('.sc-feed__categoria[aria-current="true"]')?.textContent).toBe("Comida");
     const cartao = tela.querySelector('[data-produto="p1"]');
     expect(cartao?.querySelector("a")?.getAttribute("href")).toBe(

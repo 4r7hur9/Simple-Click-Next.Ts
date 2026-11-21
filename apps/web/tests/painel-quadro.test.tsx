@@ -258,7 +258,7 @@ describe("as seis colunas do dia", () => {
       ),
     );
     const texto = cartao(tela, "12").textContent ?? "";
-    expect(texto).toContain("#12");
+    expect(texto).toContain("A-0012");
     expect(texto).toContain("Cliente 12");
     expect(texto).toContain("2× Pastel de Carne · 1× Suco e mais 2");
     expect(texto).toContain("R$");
@@ -624,7 +624,7 @@ describe("abrir o pedido", () => {
     expect(janela).not.toBeNull();
     expect(detalhe).toHaveBeenCalled();
     const texto = janela.textContent ?? "";
-    expect(texto).toContain("Pedido #1");
+    expect(texto).toContain("Pedido A-0001");
     expect(texto).toContain("2× Pastel de Carne");
     expect(texto).toContain("Sem cebola");
     expect(texto).toContain("Rua A, 10");
