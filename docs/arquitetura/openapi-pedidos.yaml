@@ -1,0 +1,357 @@
+# Trecho OpenAPI dos dois endpoints do pedido da vitrine.
+#
+# POR QUE ESTE ARQUIVO EXISTE: contrato/openapi.json é GERADO a partir de
+# packages/contracts (comando: pnpm --filter @simpleclick/api run contrato:escrever,
+# gerador em apps/api/src/contracts/gerar.ts). O gerado hoje
+#   - descreve o POST só com a resposta 200 (não distingue 201 de criação);
+#   - NÃO tem o GET /v1/vitrine/{apelido}/pedido/{token};
+#   - não traz exemplos.
+# Este trecho é a referência humana, conferida contra a rota
+# (apps/api/src/modules/orders/pedidos.routes.ts:251 e :527), o contrato
+# (packages/contracts/src/carrinho.ts:302-376) e os testes
+# (apps/api/tests/carrinho-convertido.int.test.ts, pedido-idempotente.test.ts).
+# Se a fonte mudar, este arquivo precisa mudar junto. Todos os exemplos são fictícios.
+openapi: 3.1.0
+info:
+  title: SimpleClick — pedido da vitrine (trecho)
+  version: "1"
+servers:
+  - url: /v1
+paths:
+  /vitrine/{apelido}/pedidos:
+    post:
+      operationId: post_v1_vitrine_por_apelido_pedidos
+      summary: Fecha o pedido
+      description: |
+        Exige conta logada (Bearer ou cookie `sc_access`); sem sessão, 401 `conta_obrigatoria`.
+        Os itens NÃO vêm no corpo: são os do carrinho da sessão (cookie de carrinho), e o
+        preço é o que o servidor lê do catálogo. A mesma `chaveDeIdempotencia` devolve o
+        mesmo pedido, nunca um segundo.
+
+        - **201**: pedido criado agora (`jaExistia: false`).
+        - **200**: reenvio da mesma tentativa já gravada (`jaExistia: true`). A resposta sai
+          do pedido guardado, não do carrinho, que já foi convertido.
+      tags: [carrinho]
+      parameters:
+        - $ref: "#/components/parameters/apelido"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoParaCriar" }
+            examples:
+              retirada:
+                summary: Retirada no balcão, pagando em dinheiro
+                value:
+                  entrega: PICKUP
+                  formaDePagamento: CASH
+                  trocoParaCentavos: 5000
+                  observacao: Sem cebola, por favor.
+                  chaveDeIdempotencia: tentativa-7f3a9c21
+                  totalVistoCentavos: 3200
+                  subtotalVistoCentavos: 3200
+      responses:
+        "201":
+          description: Pedido criado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PedidoCriado" }
+              examples:
+                criacao:
+                  value:
+                    id: 3f1c2a52-6a41-4c0e-9d2e-0b7c5a8d1e10
+                    numero: 42
+                    codigo: A-0042
+                    tokenPublico: Xk3p9QwR7tYb2LmN8vCzA1sD4fGhJ6 # gitleaks:allow (exemplo fictício)
+                    status: PENDING
+                    jaExistia: false
+                    subtotalCentavos: 3200
+                    taxaDeEntregaCentavos: 0
+                    totalCentavos: 3200
+                    whatsapp:
+                      endereco: "https://wa.me/5500000000000?text=Pedido%20A-0042..."
+                      texto: "Olá! Pedido A-0042 em Lanches da Praça..."
+                      completo: true
+        "200":
+          description: "Reenvio com a mesma chave: mesmo pedido, `jaExistia` verdadeiro."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PedidoCriado" }
+              examples:
+                reenvio:
+                  value:
+                    id: 3f1c2a52-6a41-4c0e-9d2e-0b7c5a8d1e10
+                    numero: 42
+                    codigo: A-0042
+                    tokenPublico: Xk3p9QwR7tYb2LmN8vCzA1sD4fGhJ6 # gitleaks:allow (exemplo fictício)
+                    status: PENDING
+                    jaExistia: true
+                    subtotalCentavos: 3200
+                    taxaDeEntregaCentavos: 0
+                    totalCentavos: 3200
+                    whatsapp:
+                      endereco: "https://wa.me/5500000000000?text=Pedido%20A-0042..."
+                      texto: "Olá! Pedido A-0042 em Lanches da Praça..."
+                      completo: true
+        "400": { $ref: "#/components/responses/Erro" }
+        "401":
+          description: Sem conta logada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Erro" }
+              examples:
+                semConta:
+                  value:
+                    erro: conta_obrigatoria
+                    mensagem: Entre ou crie sua conta para fechar o pedido.
+        "404":
+          description: Loja inexistente (`nao_encontrado`).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Erro" }
+        "409":
+          description: |
+            Recusa de negócio, com o carrinho intacto: loja fechada, carrinho vazio, subtotal
+            abaixo do mínimo, entrega que a loja não faz, preço que mudou desde a conferência
+            (`subtotalVistoCentavos` diferente do recalculado) ou carrinho que já virou pedido.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Erro" }
+              examples:
+                conflito:
+                  value:
+                    erro: conflito
+                    mensagem: A operação conflita com o estado atual do recurso.
+        "422":
+          description: |
+            Recusa que a pessoa resolve na tela: `telefone_obrigatorio`,
+            `endereco_obrigatorio`, `endereco_nao_encontrado`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Erro" }
+  /vitrine/{apelido}/pedido/{token}:
+    get:
+      operationId: get_v1_vitrine_por_apelido_pedido_por_token
+      summary: Acompanha o pedido pelo endereço secreto
+      description: |
+        Quem tem o `tokenPublico` vê o pedido; por isso a rota não exige login. Responde
+        `Cache-Control: no-store`. Token fora do formato (`^[A-Za-z0-9_-]{22,128}$`), token
+        que não existe, token de outra loja e loja inexistente respondem **todos** 404
+        `nao_encontrado`, sem distinguir. Loja suspensa continua acompanhável.
+      tags: [pedido]
+      parameters:
+        - $ref: "#/components/parameters/apelido"
+        - name: token
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[A-Za-z0-9_-]{22,128}$" }
+      responses:
+        "200":
+          description: O pedido.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pedido]
+                properties:
+                  pedido: { $ref: "#/components/schemas/PedidoAcompanhado" }
+              examples:
+                recuperacao:
+                  value:
+                    pedido:
+                      numero: 42
+                      codigo: A-0042
+                      status: PENDING
+                      entrega: PICKUP
+                      formaDePagamento: CASH
+                      totalCentavos: 3200
+                      criadoEm: "2026-11-19T15:04:05.000Z"
+                      whatsappConfirmadoEm: null
+                      cliente: { nome: Ana Paula, telefoneMascarado: "(11) *****-2222" }
+                      loja: { nome: Lanches da Praça, whatsappPublico: null }
+                      itens:
+                        - nome: X-Burguer
+                          variacao: null
+                          quantidade: 2
+                          totalCentavos: 3200
+                          opcoes:
+                            - { grupo: Ponto da carne, nome: Ao ponto, quantidade: 1 }
+                      historico:
+                        - { de: null, para: PENDING, motivo: null, ocorridoEm: "2026-11-19T15:04:05.000Z" }
+        "404":
+          description: Pedido inexistente (ou token malformado, de outra loja, loja inexistente).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Erro" }
+              examples:
+                inexistente:
+                  value: { erro: nao_encontrado }
+components:
+  parameters:
+    apelido:
+      name: apelido
+      in: path
+      required: true
+      schema: { type: string, minLength: 2, maxLength: 80, pattern: "^[a-z0-9-]+$" }
+      example: lanches-da-praca
+  responses:
+    Erro:
+      description: Entrada recusada pelo contrato.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+  schemas:
+    Erro:
+      type: object
+      required: [erro]
+      additionalProperties: false
+      properties:
+        erro: { type: string, pattern: "^[a-z][a-z0-9_]*$" }
+        mensagem: { type: string, minLength: 1, maxLength: 200 }
+        referencia: { type: string, pattern: "^ref-[0-9a-z]{4,32}$" }
+    # Copiado de esquemaDoPedidoParaCriar (packages/contracts/src/carrinho.ts:302). strictObject: campo extra é 400.
+    PedidoParaCriar:
+      type: object
+      required: [entrega, chaveDeIdempotencia]
+      additionalProperties: false
+      properties:
+        contato:
+          description: Formato antigo, aceito por compatibilidade. Com conta logada, nome e e-mail vêm da conta.
+          type: object
+          required: [nome, telefone]
+          additionalProperties: false
+          properties:
+            nome: { type: string, minLength: 2, maxLength: 120 }
+            telefone: { type: string, minLength: 8, maxLength: 24 }
+            email: { type: [string, "null"], format: email }
+            logradouro: { type: [string, "null"], maxLength: 160 }
+            numero: { type: [string, "null"], maxLength: 24 }
+            complemento: { type: [string, "null"], maxLength: 80 }
+            bairro: { type: [string, "null"], maxLength: 80 }
+            cidade: { type: [string, "null"], maxLength: 80 }
+            estado: { type: [string, "null"], maxLength: 2 }
+            cep: { type: [string, "null"], maxLength: 9 }
+        telefone:
+          description: Só exigido quando a conta ainda não tem telefone; fica salvo na conta.
+          type: string
+          minLength: 8
+          maxLength: 24
+        enderecoId:
+          description: Na entrega, um endereço salvo da conta.
+          type: string
+          format: uuid
+        endereco:
+          description: Na entrega, um endereço novo, que fica salvo na conta (esquemaDoEnderecoParaSalvar).
+          type: object
+          required: [logradouro]
+          additionalProperties: false
+          properties:
+            rotulo: { type: [string, "null"], maxLength: 40 }
+            destinatario: { type: [string, "null"], maxLength: 120 }
+            logradouro: { type: string, minLength: 3, maxLength: 160 }
+            numero: { type: [string, "null"], maxLength: 24 }
+            complemento: { type: [string, "null"], maxLength: 80 }
+            bairro: { type: [string, "null"], maxLength: 80 }
+            cidade: { type: [string, "null"], maxLength: 80 }
+            estado: { type: [string, "null"], minLength: 2, maxLength: 2 }
+            cep: { type: [string, "null"], maxLength: 9 }
+            pontoDeReferencia: { type: [string, "null"], maxLength: 200 }
+            padrao: { type: boolean, default: false }
+        entrega: { type: string, enum: [DELIVERY, PICKUP] }
+        formaDePagamento:
+          description: "`PIX`, `CASH`, `CARD_ON_DELIVERY` (o contrato aceita texto livre ou nulo)."
+          type: [string, "null"]
+        trocoParaCentavos: { type: [integer, "null"], minimum: 0 }
+        observacao: { type: [string, "null"], maxLength: 500 }
+        chaveDeIdempotencia:
+          description: Obrigatória. Uma por tentativa de fechar. A mesma chave na mesma loja devolve o mesmo pedido.
+          type: string
+          minLength: 8
+          maxLength: 64
+        totalVistoCentavos:
+          description: O total que a tela mostrou. Só serve para registrar divergência; nunca compõe o total.
+          type: [integer, "null"]
+          minimum: 0
+        subtotalVistoCentavos:
+          description: O subtotal da conferência. Se não bater com o recalculado, 409.
+          type: [integer, "null"]
+          minimum: 0
+    # Copiado de esquemaDoPedidoCriado (packages/contracts/src/carrinho.ts:338).
+    PedidoCriado:
+      type: object
+      additionalProperties: false
+      required: [id, numero, codigo, tokenPublico, status, jaExistia, subtotalCentavos, taxaDeEntregaCentavos, totalCentavos, whatsapp]
+      properties:
+        id: { type: string, format: uuid }
+        numero: { type: integer, minimum: 1, description: "Número por loja." }
+        codigo: { type: string }
+        tokenPublico: { type: string, description: "Segredo de quem pediu; dá acesso ao GET de acompanhamento." }
+        status: { type: string }
+        jaExistia: { type: boolean, description: "Verdadeiro quando este envio reencontrou um pedido que já existia." }
+        subtotalCentavos: { type: integer, minimum: 0 }
+        taxaDeEntregaCentavos: { type: integer, minimum: 0 }
+        totalCentavos: { type: integer, minimum: 0 }
+        whatsapp:
+          description: Mensagem pronta e link wa.me. O número da loja não é campo, só vem embutido no endereço. Nulo quando a loja não cadastrou número.
+          type: [object, "null"]
+          required: [endereco, texto, completo]
+          additionalProperties: false
+          properties:
+            endereco: { type: string }
+            texto: { type: string }
+            completo: { type: boolean, description: "Falso quando o texto foi resumido." }
+    # Copiado de PedidoAcompanhado (apps/api/src/modules/orders/acompanhar.usecase.ts).
+    # ATENÇÃO: este formato é o tipo do caso de uso, NÃO um esquema Zod em packages/contracts.
+    PedidoAcompanhado:
+      type: object
+      required: [numero, codigo, status, entrega, formaDePagamento, totalCentavos, criadoEm, whatsappConfirmadoEm, cliente, loja, itens, historico]
+      properties:
+        numero: { type: integer }
+        codigo: { type: string }
+        status: { type: string }
+        entrega: { type: string }
+        formaDePagamento: { type: [string, "null"] }
+        totalCentavos: { type: integer }
+        criadoEm: { type: string, format: date-time }
+        whatsappConfirmadoEm: { type: [string, "null"], format: date-time }
+        cliente:
+          type: object
+          required: [nome, telefoneMascarado]
+          properties:
+            nome: { type: string }
+            telefoneMascarado: { type: string }
+        loja:
+          type: object
+          required: [nome, whatsappPublico]
+          properties:
+            nome: { type: string }
+            whatsappPublico: { type: [string, "null"] }
+        itens:
+          type: array
+          items:
+            type: object
+            required: [nome, variacao, quantidade, totalCentavos, opcoes]
+            properties:
+              nome: { type: string }
+              variacao: { type: [string, "null"] }
+              quantidade: { type: integer }
+              totalCentavos: { type: integer }
+              opcoes:
+                type: array
+                items:
+                  type: object
+                  required: [grupo, nome, quantidade]
+                  properties:
+                    grupo: { type: string }
+                    nome: { type: string }
+                    quantidade: { type: integer }
+        historico:
+          type: array
+          items:
+            type: object
+            required: [de, para, motivo, ocorridoEm]
+            properties:
+              de: { type: [string, "null"] }
+              para: { type: string }
+              motivo: { type: [string, "null"] }
+              ocorridoEm: { type: string, format: date-time }
