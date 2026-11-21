@@ -218,7 +218,7 @@ describe("o menu da conta oferece a volta", () => {
   it("[CA-2] @spec:AC-11123 o cliente vê 'Voltar à loja' levando à vitrine da loja de origem, sem a sacola dela", async () => {
     ambiente.usuario = CLIENTE;
     const topo = await acharTopo(
-      await NavegacaoDaSessao({ lojaDeOrigem: PADARIA }),
+      await NavegacaoDaSessao({ lerLojaDeOrigem: async () => PADARIA }),
     );
     expect(topo).not.toBeNull();
     const html = renderToStaticMarkup(topo as ReactElement);
@@ -240,11 +240,43 @@ describe("o menu da conta oferece a volta", () => {
       papel: "dono",
       loja: { apelido: "minha", nome: "Minha" },
     };
+    const lerDoDono = vi.fn(async () => PADARIA);
     const topoDoDono = await acharTopo(
-      await NavegacaoDaSessao({ lojaDeOrigem: PADARIA }),
+      await NavegacaoDaSessao({ lerLojaDeOrigem: lerDoDono }),
     );
     expect(
       (topoDoDono?.props as { lojaDeOrigem?: unknown }).lojaDeOrigem,
     ).toBeUndefined();
+    // [CA-7] (card #137) e a API nem é consultada para quem não é cliente.
+    expect(lerDoDono).not.toHaveBeenCalled();
+  });
+
+  it("[CA-7] a loja de origem só é consultada para o cliente, e em paralelo com a cidade e o tutorial", async () => {
+    for (const papel of ["visitante", "dono", "equipe", "admin"]) {
+      ambiente.usuario = { ...CLIENTE, papel };
+      const ler = vi.fn(async () => PADARIA);
+      await NavegacaoDaSessao({ lerLojaDeOrigem: ler });
+      expect(ler, papel).not.toHaveBeenCalled();
+    }
+
+    ambiente.usuario = CLIENTE;
+    const ler = vi.fn(async () => PADARIA);
+    const topo = await acharTopo(await NavegacaoDaSessao({ lerLojaDeOrigem: ler }));
+    expect(ler).toHaveBeenCalledTimes(1);
+    expect((topo?.props as { lojaDeOrigem?: unknown }).lojaDeOrigem).toEqual(PADARIA);
+  });
+
+  it("[CA-7] a moldura da conta não espera a API antes de montar: só passa o leitor", async () => {
+    const { default: LayoutDaMinhaConta } = await import(
+      "../src/app/(conta)/conta/layout.tsx"
+    );
+    const arvore = LayoutDaMinhaConta({ children: null });
+    // Síncrona: nenhuma ida à API acontece antes da navegação saber o papel.
+    expect(arvore).not.toBeInstanceOf(Promise);
+    const props = (arvore as ReactElement<{ children: ReactNode }>).props;
+    const navegacao = (Array.isArray(props.children) ? props.children : [props.children]).find(
+      (filho: unknown) => isValidElement(filho) && filho.type === NavegacaoDaSessao,
+    ) as ReactElement<{ lerLojaDeOrigem?: unknown }> | undefined;
+    expect(navegacao?.props.lerLojaDeOrigem).toBe(lojaDeOrigemDoPedidoAtual);
   });
 });

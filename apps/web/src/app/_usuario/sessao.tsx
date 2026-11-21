@@ -44,29 +44,34 @@ import { usuarioDoPedidoAtual } from "../../server/usuario-da-sessao.ts";
  * só cidade e UF seguem para o navegador); a sacola só existe dentro de uma
  * loja; o tutorial do cliente continua montado junto.
  *
- * `lojaDeOrigem` (card #135) é a loja de onde o cliente veio, já conferida na
- * API: fora da loja, o menu da conta oferece "Voltar à loja" para ela. Só o
- * cliente a recebe (é o papel que tem esse item).
+ * `lerLojaDeOrigem` (card #135) lê a loja de onde o cliente veio, conferida
+ * na API: fora da loja, o menu da conta oferece "Voltar à loja" para ela. Só
+ * o cliente tem esse item, então a leitura SÓ acontece para o cliente (card
+ * #137) — dono, equipe e visitante não pagam a ida à API — e corre em
+ * paralelo com a cidade e o tutorial, depois de a sessão dizer o papel.
  */
 export async function NavegacaoDaSessao({
   loja,
-  lojaDeOrigem,
+  lerLojaDeOrigem,
 }: {
   readonly loja?: LojaNaBarra | undefined;
-  readonly lojaDeOrigem?: LojaNaBarra | undefined;
+  readonly lerLojaDeOrigem?: (() => Promise<LojaNaBarra | undefined>) | undefined;
 }) {
   const usuario = await usuarioDoPedidoAtual();
   const cliente = usuario.papel === "cliente";
-  const [cidade, jaViu] = await Promise.all([
+  const [cidade, jaViu, lojaDeOrigem] = await Promise.all([
     cliente ? cidadeDoPedidoAtual() : Promise.resolve(null),
     cliente ? tutorialJaVistoNestePedido("cliente") : Promise.resolve(true),
+    cliente && lerLojaDeOrigem !== undefined
+      ? lerLojaDeOrigem()
+      : Promise.resolve(undefined),
   ]);
   return (
     <>
       <TopoDoCliente
         usuario={usuario}
         loja={loja}
-        lojaDeOrigem={cliente ? lojaDeOrigem : undefined}
+        lojaDeOrigem={lojaDeOrigem}
         sair={sairPelaBarra}
         localizacao={<LocalizacaoDoTopo cidade={cidade} />}
         sacola={loja === undefined ? undefined : <SacolaDoTopo apelido={loja.apelido} />}
