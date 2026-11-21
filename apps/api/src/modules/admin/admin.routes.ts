@@ -16,6 +16,8 @@
  * em `app.ts` e chega aqui por parâmetro: módulo não importa módulo.
  */
 
+import { createHash, randomBytes } from "node:crypto";
+
 import express, {
   Router,
   type NextFunction,
@@ -33,6 +35,7 @@ import { bancoDaAdministracao, type AcessoAoBanco } from "../../core/db.ts";
 import { registrar } from "../../core/log.ts";
 import { validar } from "../../core/validar.ts";
 import {
+  esquemaDaConsultaDaAuditoriaDaPlataforma,
   LIMITE_DO_PDF_EM_BYTES,
   MENSAGEM_DE_APELIDO_EM_USO,
   MENSAGEM_DE_CONFIRMACAO_DIFERENTE,
@@ -78,11 +81,17 @@ import {
   type DependenciasDoCadastro,
 } from "./criar-loja.usecase.ts";
 import { repositorioDaAuditoria } from "./auditoria-consulta.repo.ts";
+import { consultarAuditoriaDaPlataforma } from "./auditoria-da-plataforma.repo.ts";
 import { consultarAuditoria, lojasDaPagina } from "./auditoria.usecase.ts";
 import { editarLoja } from "./editar-loja.usecase.ts";
 import { montarRotasDasFuncionalidades } from "./funcionalidades.routes.ts";
 import { montarRotasDaAprovacao } from "./aprovacao.routes.ts";
 import { montarRotasDaGestao } from "./gestao.routes.ts";
+import {
+  montarRotasDePessoas,
+  type EnviarAcessoDaPessoa,
+} from "./pessoas.routes.ts";
+import { montarRotasDosVinculos } from "./vinculos.routes.ts";
 import { listarLojas } from "./listar-lojas.usecase.ts";
 import { repositorioDaSituacao } from "./situacao.repo.ts";
 import {
@@ -144,6 +153,16 @@ export interface OpcoesDaAdministracao {
    * travas que as rotas daqui usam.
    */
   readonly rotasDeOutrosModulos?: readonly RotasDeOutroModulo[];
+  /**
+   * Link de acesso de uso único das pessoas (card #170). O token e o resumo
+   * seguem o formato da recuperação de senha, que é quem consome o link; a
+   * borda passa as funções do módulo de identidade. Padrão: 32 bytes
+   * aleatórios e sha256 em hexadecimal, o mesmo formato.
+   */
+  readonly gerarTokenDeAcesso?: () => string;
+  readonly resumirTokenDeAcesso?: (token: string) => string;
+  /** Manda o link à pessoa. Padrão: não manda (`false`). */
+  readonly enviarAcessoDaPessoa?: EnviarAcessoDaPessoa;
 }
 
 /** Como um módulo de fora acrescenta rotas ao roteador da administração. */
@@ -323,6 +342,32 @@ export function criarRotasDaAdministracao(
             }
             return encontrada;
           });
+          resposta.setHeader("cache-control", "no-store");
+          resposta.json(pagina);
+        });
+      } catch (causa) {
+        proximo(causa);
+      }
+    },
+  );
+
+  // ── Trilha da plataforma (card #170) ────────────────────────────────────
+  // O que não é de loja nenhuma: atos sobre pessoas, pedidos do titular
+  // (LGPD) e limites. Ler a trilha não grava consulta: não há loja nem pessoa
+  // lida, só o histórico dos próprios atos da administração.
+  const entradaDaAuditoriaDaPlataforma = validar({
+    query: esquemaDaConsultaDaAuditoriaDaPlataforma,
+  });
+  rotas.get(
+    "/auditoria/plataforma",
+    entradaDaAuditoriaDaPlataforma,
+    async (requisicao, resposta, proximo) => {
+      try {
+        const { query } = entradaDaAuditoriaDaPlataforma.dados(requisicao);
+        await comoAdministrador(resposta, async () => {
+          const pagina = await acesso().emTransacao(() =>
+            consultarAuditoriaDaPlataforma(query),
+          );
           resposta.setHeader("cache-control", "no-store");
           resposta.json(pagina);
         });
@@ -1023,6 +1068,21 @@ export function criarRotasDaAdministracao(
   montarRotasDaAprovacao(rotas, { acesso, agora, comoAdministrador });
   // Métricas e equipe por loja, e as contas (card #29).
   montarRotasDaGestao(rotas, { acesso, agora, comoAdministrador });
+  // Pessoas: lista, ficha, cadastro, edição, desativação e link (card #170).
+  montarRotasDePessoas(rotas, {
+    acesso,
+    agora,
+    comoAdministrador,
+    gerarToken:
+      opcoes.gerarTokenDeAcesso ??
+      (() => randomBytes(32).toString("base64url")),
+    resumirToken:
+      opcoes.resumirTokenDeAcesso ??
+      ((token) => createHash("sha256").update(token).digest("hex")),
+    enviarAcesso: opcoes.enviarAcessoDaPessoa ?? (() => Promise.resolve(false)),
+  });
+  // Donos e equipes: pôr, trocar e tirar vínculos (card #170, T-4).
+  montarRotasDosVinculos(rotas, { acesso, agora, comoAdministrador });
   for (const montar of opcoes.rotasDeOutrosModulos ?? []) {
     montar(rotas, { acesso, comoAdministrador });
   }
