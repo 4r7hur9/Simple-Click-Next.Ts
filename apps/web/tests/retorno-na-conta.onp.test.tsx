@@ -5,12 +5,17 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const ambiente = vi.hoisted(() => ({ token: undefined as string | undefined }));
+const ambiente = vi.hoisted(() => ({
+  token: undefined as string | undefined,
+  /** O cabeçalho `cookie` do pedido (lido pelas guardas de papel, card #170). */
+  cookie: undefined as string | undefined,
+}));
 
 vi.mock("next/headers", () => ({
-  headers: async () => new Headers(),
+  headers: async () =>
+    new Headers(ambiente.cookie === undefined ? {} : { cookie: ambiente.cookie }),
   cookies: async () => ({
     get: () =>
       ambiente.token === undefined ? undefined : { value: ambiente.token },
@@ -73,6 +78,12 @@ import PaginaDoAplicativoAutenticador from "../src/app/(conta)/conta/seguranca/a
 import PaginaDeEscolhaDaLoja from "../src/app/(conta)/escolher-loja/page.tsx";
 import PaginaDeNovaLoja from "../src/app/(conta)/escolher-loja/nova/page.tsx";
 import { destinoDepoisDoSegundoFator } from "../src/features/auth/respostas-de-acesso.ts";
+import {
+  ABAS_DA_CONTA,
+  enderecoDoModal,
+  PAGINA_DE_FUNDO_DO_MODAL,
+  PAGINAS_DE_FUNDO_DO_MODAL,
+} from "../src/lib/abas-da-conta.ts";
 
 async function paraOndeVai(execucao: () => unknown): Promise<string> {
   try {
@@ -334,5 +345,149 @@ describe("com sessão, /conta e as rotas antigas viram redirect (card #151)", ()
         ),
       ).toBe("/conta/pedidos?conta=seguranca");
     }
+  });
+});
+
+/** A API de mentira: `GET /v1/eu` de um administrador (ou de um cliente). */
+function apiDoEu(administrador: boolean): void {
+  vi.stubGlobal("fetch", (async (url: RequestInfo | URL) =>
+    String(url).endsWith("/v1/eu")
+      ? Response.json({
+          identidade: {
+            id: "5d1f0c7a-2b3e-4c5d-8e9f-0a1b2c3d4e5f",
+            email: "pessoa@exemplo.test",
+            nome: "Pessoa",
+            papel: administrador ? "ADMIN" : "CUSTOMER",
+          },
+          lojas: [],
+          adminDaPlataforma: administrador,
+        })
+      : Response.json({ erro: "indisponivel" }, { status: 503 })) as typeof fetch);
+}
+
+describe("o endereço do modal e a página de fundo (card #170, T-6)", () => {
+  it("[CA-19] sem página de fundo, o modal abre sobre Meus pedidos, como antes", () => {
+    expect(enderecoDoModal("dados")).toBe("/conta/pedidos?conta=dados");
+    expect(enderecoDoModal("seguranca", "erro")).toBe(
+      "/conta/pedidos?conta=seguranca&estado=erro",
+    );
+  });
+
+  it("[CA-19] a administração abre o modal sobre /admin e preserva o estado de erro", () => {
+    expect(enderecoDoModal("dados", undefined, "/admin")).toBe(
+      "/admin?conta=dados",
+    );
+    expect(enderecoDoModal("seguranca", "erro", "/admin")).toBe(
+      "/admin?conta=seguranca&estado=erro",
+    );
+  });
+
+  it("[CA-19] só `erro` sobrevive em estado, e só a lista fechada vale como aba e como fundo", () => {
+    expect(PAGINAS_DE_FUNDO_DO_MODAL).toEqual(["/conta/pedidos", "/admin"]);
+    expect(PAGINA_DE_FUNDO_DO_MODAL).toBe("/conta/pedidos");
+    for (const estado of ["outro", "erro&conta=dados", "", undefined]) {
+      expect(enderecoDoModal("dados", estado, "/admin")).toBe(
+        "/admin?conta=dados",
+      );
+    }
+    // Valor de fora (JavaScript sem tipos): cai no padrão, nunca é refletido.
+    expect(
+      enderecoDoModal("dados", undefined, "https://golpe.example" as never),
+    ).toBe("/conta/pedidos?conta=dados");
+    expect(enderecoDoModal("<script>" as never)).toBe("/conta/pedidos?conta=dados");
+    for (const aba of ABAS_DA_CONTA) {
+      expect(enderecoDoModal(aba, undefined, "/admin")).toBe(
+        `/admin?conta=${aba}`,
+      );
+    }
+  });
+});
+
+describe("com sessão de administrador, o modal da conta abre sobre /admin (card #170, T-6)", () => {
+  beforeEach(() => {
+    ambiente.token = "tok";
+    ambiente.cookie = "sc_access=tok";
+    apiDoEu(true);
+  });
+
+  afterEach(() => {
+    ambiente.cookie = undefined;
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it.each([
+    ["dados", () => PaginaDeDados()],
+    ["enderecos", () => PaginaDosMeusEnderecos()],
+    ["seguranca", () => PaginaDeSeguranca({ searchParams: parametros({}) })],
+  ] as const)(
+    "[CA-19] /conta/%s do administrador abre o modal na aba, sobre /admin",
+    async (aba, abrir) => {
+      expect(await paraOndeVai(abrir)).toBe(`/admin?conta=${aba}`);
+    },
+  );
+
+  it("[CA-19] /conta/seguranca preserva ?estado=erro (e só esse valor exato) no caminho do administrador", async () => {
+    expect(
+      await paraOndeVai(() =>
+        PaginaDeSeguranca({ searchParams: parametros({ estado: "erro" }) }),
+      ),
+    ).toBe("/admin?conta=seguranca&estado=erro");
+    for (const estado of ["erro&conta=dados", ["erro", "erro"], "outro"]) {
+      expect(
+        await paraOndeVai(() =>
+          PaginaDeSeguranca({ searchParams: parametros({ estado }) }),
+        ),
+      ).toBe("/admin?conta=seguranca");
+    }
+  });
+
+  it("[CA-19] /conta/pedidos?conta=<aba> do administrador vai para /admin?conta=<aba>; aba fora da lista é ignorada", async () => {
+    for (const [conta, esperado] of [
+      ["seguranca", "/admin?conta=seguranca"],
+      ["dados", "/admin?conta=dados"],
+      ["excluida", "/admin"],
+      ["<script>", "/admin"],
+    ] as const) {
+      expect(
+        await paraOndeVai(() =>
+          PaginaDeMeusPedidos({ searchParams: parametros({ conta }) }),
+        ),
+      ).toBe(esperado);
+    }
+  });
+
+  it("[CA-15] /conta, Pedidos e Favoritos do administrador vão para /admin, sem levar a consulta", async () => {
+    expect(
+      await paraOndeVai(() =>
+        PaginaInicialDaConta({
+          searchParams: parametros({ periodo: "90d", de: "2026-05-01" }),
+        }),
+      ),
+    ).toBe("/admin");
+    expect(
+      await paraOndeVai(() =>
+        PaginaDeMeusPedidos({
+          searchParams: parametros({ situacao: "entregue", resumo: "90d" }),
+        }),
+      ),
+    ).toBe("/admin");
+    expect(await paraOndeVai(() => PaginaDeFavoritos())).toBe("/admin");
+  });
+
+  it("[CA-15] a mesma sessão, sem grant, segue o caminho de sempre (nada muda para o cliente)", async () => {
+    apiDoEu(false);
+    expect(await paraOndeVai(() => PaginaDeDados())).toBe(
+      "/conta/pedidos?conta=dados",
+    );
+    expect(
+      await paraOndeVai(() => PaginaDeSeguranca({ searchParams: parametros({ estado: "erro" }) })),
+    ).toBe("/conta/pedidos?conta=seguranca&estado=erro");
+  });
+
+  it("[CA-15] sem sessão, o administrador (ainda) não é reconhecido: vai entrar e volta à página", async () => {
+    ambiente.token = undefined;
+    ambiente.cookie = undefined;
+    expect(await paraOndeVai(() => PaginaDeDados())).toBe(ir("/conta/dados"));
   });
 });

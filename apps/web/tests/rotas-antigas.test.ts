@@ -1,6 +1,6 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import configuracao from "../next.config";
 import { MANIFESTO_DE_ROTAS, rotaDoArquivo } from "../src/lib/routes";
@@ -13,7 +13,32 @@ function paginasDe(pasta: string): string[] {
   });
 }
 
+const redirecionar = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({ redirect: redirecionar }));
+vi.mock("../src/server/acesso-da-administracao.ts", () => ({
+  exigirAdministracaoDaPlataforma: vi.fn(async () => undefined),
+}));
+vi.mock("../src/features/admin/ListaLojas.tsx", () => ({
+  ListaLojas: () => null,
+}));
+
+import PaginaDeLojas from "../src/app/(admin)/admin/lojas/page";
+
 describe("as rotas antigas levam às novas", () => {
+  it("[CA-12] /admin/lojas?situacao=PENDING_APPROVAL redireciona para /admin/aprovacoes", async () => {
+    redirecionar.mockClear();
+    await PaginaDeLojas({
+      searchParams: Promise.resolve({ situacao: "PENDING_APPROVAL" }),
+    });
+    expect(redirecionar).toHaveBeenCalledWith("/admin/aprovacoes");
+
+    redirecionar.mockClear();
+    await PaginaDeLojas({
+      searchParams: Promise.resolve({ situacao: "ACTIVE" }),
+    });
+    expect(redirecionar).not.toHaveBeenCalled();
+  });
+
   it("redireciona de forma permanente /l, /minha-conta e a aparência fora da config", async () => {
     const regras = await configuracao.redirects?.();
 

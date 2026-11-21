@@ -1,11 +1,13 @@
 /**
- * Guarda da administração no servidor (card #163, T-1).
+ * Guarda da administração no servidor (card #163, T-1; card #170, T-6).
  *
  * Nenhuma tela de `/admin` sai do servidor sem a API confirmar, ao vivo, o
  * grant de administração (`adminDaPlataforma` do `GET /v1/eu`). Visitante ou
- * token vencido vão para `/entrar` com o destino conferido; qualquer outra
- * conta, ou qualquer falha da API, recebe 404 (fail closed). A varredura no
- * fim trava que toda página e layout do grupo `(admin)` chame a guarda.
+ * token vencido vão para `/entrar` com o destino conferido (só o caminho);
+ * qualquer outra conta é levada para a área do próprio papel (nunca 404 por
+ * falta de permissão); qualquer falha da API é erro (fail closed). A
+ * varredura no fim trava que toda página e layout do grupo `(admin)` chame a
+ * guarda.
  */
 import { existsSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -55,20 +57,37 @@ vi.mock("../src/features/admin/HistoricoDaLoja.tsx", () => ({
 
 import PaginaInicialDaAdministracao from "../src/app/(admin)/admin/page.tsx";
 import PaginaDoHistorico from "../src/app/(admin)/admin/lojas/[id]/historico/page.tsx";
-import {
-  acessoDaAdministracao,
-  exigirAdministracaoDaPlataforma,
-} from "../src/server/acesso-da-administracao.ts";
+import { exigirAdministracaoDaPlataforma } from "../src/server/acesso-da-administracao.ts";
+import { AreaIndisponivel } from "../src/server/area-do-papel.ts";
 
 const TOKEN = "token-de-acesso-de-teste";
 const COOKIE = `sc_access=${TOKEN}`;
 const ID_DA_LOJA = "5c1d0e2f-0000-4000-8000-000000000001";
 
-const EU_DO_ADMIN = {
-  identidade: { id: "1", email: "admin@exemplo.test", papel: "ADMIN" },
-  lojas: [],
-  adminDaPlataforma: true,
-};
+const EU_DO_ADMIN = corpoDoEu({ adminDaPlataforma: true }, "ADMIN");
+
+const LOJA = {
+  apelido: "pastelaria-da-vila",
+  nome: "Pastelaria da Vila",
+  situacao: "ACTIVE",
+} as const;
+
+/** O corpo de `GET /v1/eu` que passa pelo contrato do site. */
+function corpoDoEu(
+  extras: Record<string, unknown> = {},
+  papelDoToken = "CUSTOMER",
+) {
+  return {
+    identidade: {
+      id: "5d1f0c7a-2b3e-4c5d-8e9f-0a1b2c3d4e5f",
+      email: "pessoa@exemplo.test",
+      nome: "Pessoa",
+      papel: papelDoToken,
+    },
+    lojas: [],
+    ...extras,
+  };
+}
 
 function resposta(status: number, corpo: unknown): Response {
   return new Response(
@@ -140,44 +159,77 @@ describe("[CA-1] visitante e token vencido vão para /entrar", () => {
   });
 });
 
-describe("[CA-2] conta logada sem grant recebe 404 neutro", () => {
-  const SEM_GRANT: readonly (readonly [string, unknown])[] = [
-    ["dono", { identidade: { papel: "OWNER" }, adminDaPlataforma: false }],
-    ["equipe", { identidade: { papel: "STAFF" }, adminDaPlataforma: false }],
+describe("[CA-15] conta logada sem grant vai para a área do próprio papel", () => {
+  const SEM_GRANT: readonly (readonly [string, unknown, string])[] = [
+    [
+      "dono",
+      corpoDoEu(
+        {
+          adminDaPlataforma: false,
+          lojas: [{ ...LOJA, papel: "OWNER" }],
+          lojasDaConta: [{ ...LOJA, papel: "OWNER" }],
+        },
+        "OWNER",
+      ),
+      "/painel",
+    ],
+    [
+      "equipe",
+      corpoDoEu({
+        adminDaPlataforma: false,
+        lojasDaConta: [{ ...LOJA, papel: "STAFF" }],
+      }),
+      "/painel",
+    ],
     [
       "cliente",
-      { identidade: { papel: "CUSTOMER" }, adminDaPlataforma: false },
+      corpoDoEu({ adminDaPlataforma: false }),
+      "/explorar/produtos",
     ],
     // O claim do token dizer ADMIN não basta: vale o grant ao vivo.
     [
       "claim ADMIN sem grant",
-      { identidade: { papel: "ADMIN" }, adminDaPlataforma: false },
+      corpoDoEu({ adminDaPlataforma: false }, "ADMIN"),
+      "/explorar/produtos",
+    ],
+    [
+      "claim ADMIN e grant ausente na resposta",
+      corpoDoEu({}, "ADMIN"),
+      "/explorar/produtos",
     ],
   ];
 
-  for (const [quem, corpo] of SEM_GRANT) {
-    it(`[CA-2] ${quem}: notFound, sem redirect`, async () => {
+  for (const [quem, corpo, destino] of SEM_GRANT) {
+    it(`[CA-15] ${quem}: redirect para ${destino}, nunca 404`, async () => {
       cookieDoPedido.valor = COOKIE;
       buscar.mockResolvedValue(resposta(200, corpo));
       const erro = await recusa(exigirAdministracaoDaPlataforma("/admin"));
-      expect(erro).toBeInstanceOf(NaoEncontrado);
+      expect(erro).toBeInstanceOf(Redirecionou);
+      expect((erro as Redirecionou).destino).toBe(destino);
     });
   }
 
-  it("[CA-2] 403 do /v1/eu também é 404", async () => {
+  it("[CA-15] a página inicial de um dono não renderiza o painel: vai para /painel", async () => {
     cookieDoPedido.valor = COOKIE;
-    buscar.mockResolvedValue(resposta(403, { erro: "proibido" }));
-    expect(
-      await recusa(exigirAdministracaoDaPlataforma("/admin")),
-    ).toBeInstanceOf(NaoEncontrado);
+    buscar.mockResolvedValue(
+      resposta(
+        200,
+        corpoDoEu({ lojasDaConta: [{ ...LOJA, papel: "OWNER" }] }, "OWNER"),
+      ),
+    );
+    const erro = await recusa(PaginaInicialDaAdministracao());
+    expect(erro).toBeInstanceOf(Redirecionou);
+    expect((erro as Redirecionou).destino).toBe("/painel");
   });
 
-  it("[CA-2] a página inicial de um dono não renderiza o painel", async () => {
+  it("[CA-15] a ficha de uma loja, para o cliente, também vai para a área dele (sem HTML da administração)", async () => {
     cookieDoPedido.valor = COOKIE;
-    buscar.mockResolvedValue(resposta(200, { adminDaPlataforma: false }));
-    expect(await recusa(PaginaInicialDaAdministracao())).toBeInstanceOf(
-      NaoEncontrado,
+    buscar.mockResolvedValue(resposta(200, corpoDoEu()));
+    const erro = await recusa(
+      PaginaDoHistorico({ params: Promise.resolve({ id: ID_DA_LOJA }) }),
     );
+    expect(erro).toBeInstanceOf(Redirecionou);
+    expect((erro as Redirecionou).destino).toBe("/explorar/produtos");
   });
 });
 
@@ -208,9 +260,10 @@ describe("[CA-3] conta com grant ativo passa", () => {
   });
 });
 
-describe("[CA-4] falha da API fecha (404)", () => {
+describe("[CA-15] falha da API fecha com erro (nunca 404)", () => {
   const FALHAS: readonly (readonly [string, () => Promise<Response>])[] = [
     ["500", async () => resposta(500, { erro: "interno" })],
+    ["403 do /v1/eu", async () => resposta(403, { erro: "proibido" })],
     [
       "tempo esgotado",
       async () => {
@@ -221,28 +274,38 @@ describe("[CA-4] falha da API fecha (404)", () => {
     ["JSON malformado", async () => resposta(200, "{não é json")],
     ["corpo não objeto", async () => resposta(200, [true])],
     ["corpo nulo", async () => resposta(200, "null")],
-    ["adminDaPlataforma ausente", async () => resposta(200, { lojas: [] })],
+    ["identidade ausente", async () => resposta(200, { lojas: [] })],
     [
       "adminDaPlataforma como texto",
-      async () => resposta(200, { adminDaPlataforma: "true" }),
+      async () => resposta(200, corpoDoEu({ adminDaPlataforma: "true" })),
     ],
   ];
 
   for (const [falha, simular] of FALHAS) {
-    it(`[CA-4] ${falha}: 404`, async () => {
+    it(`[CA-15] ${falha}: erro de API indisponível`, async () => {
       cookieDoPedido.valor = COOKIE;
       buscar.mockImplementation(simular);
-      expect(await acessoDaAdministracao(COOKIE, buscar)).toBe("negado");
-      expect(
-        await recusa(exigirAdministracaoDaPlataforma("/admin")),
-      ).toBeInstanceOf(NaoEncontrado);
+      const erro = await recusa(exigirAdministracaoDaPlataforma("/admin"));
+      expect(erro).toBeInstanceOf(AreaIndisponivel);
+      expect(erro).not.toBeInstanceOf(NaoEncontrado);
+      expect(erro).not.toBeInstanceOf(Redirecionou);
     });
   }
+
+  it("[CA-15] a página inicial não renderiza o painel quando a API não confirma quem é a pessoa", async () => {
+    cookieDoPedido.valor = COOKIE;
+    buscar.mockResolvedValue(resposta(500, { erro: "interno" }));
+    expect(await recusa(PaginaInicialDaAdministracao())).toBeInstanceOf(
+      AreaIndisponivel,
+    );
+  });
 });
 
 const RAIZ_DO_REPOSITORIO = join(RAIZ_WEB, "../..");
 const GRUPO_ADMIN = join(RAIZ_WEB, "src/app/(admin)");
 const HELPER = join(RAIZ_WEB, "src/server/acesso-da-administracao.ts");
+const DECISAO = join(RAIZ_WEB, "src/server/area-do-papel.ts");
+const LEITURA_DO_EU = join(RAIZ_WEB, "src/server/eu-do-pedido.ts");
 
 function semComentarios(codigo: string): string {
   return codigo
@@ -315,13 +378,25 @@ describe("[CA-4] varredura: todo page/layout de (admin) chama a guarda", () => {
     expect(todos.filter((a) => /\/loading\.(t|j)sx?$/.test(a))).toEqual([]);
   });
 
-  it("[CA-4] a guarda decide pelo grant ao vivo, sem claim do JWT nem e-mail fixo", () => {
+  it("[CA-15] a guarda decide pelo grant ao vivo, sem claim do JWT, sem e-mail fixo e sem 404", () => {
     expect(existsSync(HELPER)).toBe(true);
-    const codigo = semComentarios(ler(HELPER));
-    expect(codigo).toContain("/v1/eu");
-    expect(codigo).toContain('"adminDaPlataforma"');
-    expect(codigo).toMatch(/cache:\s*"no-store"/);
-    expect(codigo).not.toMatch(/jwt|decode|atob|Buffer\.from|papel/i);
-    expect(codigo).not.toMatch(/@[a-z0-9-]+\.[a-z]/i);
+    expect(existsSync(DECISAO)).toBe(true);
+    expect(existsSync(LEITURA_DO_EU)).toBe(true);
+    // A leitura ao vivo: /v1/eu, sem cache, e nada do token é decodificado.
+    const leitura = semComentarios(ler(LEITURA_DO_EU));
+    expect(leitura).toContain("/v1/eu");
+    expect(leitura).toMatch(/cache:\s*"no-store"/);
+    // A decisão: o grant que a API informa agora.
+    const decisao = semComentarios(ler(DECISAO));
+    expect(decisao).toContain("adminDaPlataforma");
+    expect(decisao).toContain("euDoPedidoAtual");
+    // A guarda pública da administração continua sendo só um delegado.
+    const guarda = semComentarios(ler(HELPER));
+    expect(guarda).toContain("exigirAreaDaAdministracao");
+    for (const codigo of [leitura, decisao, guarda]) {
+      expect(codigo).not.toMatch(/jwt|decode|atob|Buffer\.from/i);
+      expect(codigo).not.toMatch(/@[a-z0-9-]+\.[a-z]/i);
+      expect(codigo).not.toMatch(/notFound/);
+    }
   });
 });

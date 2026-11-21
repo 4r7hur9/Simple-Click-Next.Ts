@@ -12,12 +12,33 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const sessaoDoPedido = vi.hoisted(() => ({ cookie: null as string | null }));
+
+// Só as guardas do painel (card #170) leem os cabeçalhos do pedido em curso;
+// as provas de AC-135/AC-136 passam o cookie por parâmetro, como sempre.
+vi.mock("next/headers", () => ({
+  headers: async () =>
+    new Headers(
+      sessaoDoPedido.cookie === null ? {} : { cookie: sessaoDoPedido.cookie },
+    ),
+  cookies: async () => ({ set: vi.fn(), get: () => undefined }),
+}));
+vi.mock("next/navigation", () => ({
+  redirect: (destino: string) => {
+    throw new Error(`redirecionou:${destino}`);
+  },
+}));
+
+import PaginaDeEscolhaDaLoja from "../src/app/(conta)/escolher-loja/page";
+import { responderLojaPropria } from "../src/app/(conta)/escolher-loja/propria/responder-loja-propria";
 import { GET as lerCategorias } from "../src/app/api/catalogo/categorias/route";
 import { PUT as gravarSecao } from "../src/app/api/loja/[secao]/route";
 import { GET as lerFila } from "../src/app/api/painel/pedidos/route";
 import { emitirCupomParaImprimir } from "../src/server/cupom";
+import { exigirLojaDaPagina } from "../src/server/loja-da-pagina";
 import {
   lojaDoPainel,
   lojaEscolhivel,
@@ -283,5 +304,258 @@ describe("dono de mais de uma loja escolhe (AC-136)", () => {
     expect(
       lojaEscolhivel({ estado: "sem-sessao" }, LOJA_DA_SESSAO.apelido),
     ).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Card #170, T-6 (CA-16): a escolha guardada que não vale mais
+// ---------------------------------------------------------------------------
+
+const LOJA_QUE_SAIU = "loja-que-saiu";
+
+/** `GET /v1/eu` de uma pessoa, em qualquer papel, e a API fora do ar. */
+function apiComEu(
+  corpo: unknown,
+  falha: "fora" | undefined = undefined,
+): typeof fetch {
+  return (async (url: RequestInfo | URL) => {
+    if (falha === "fora") throw new TypeError("fetch failed");
+    return String(url).endsWith("/v1/eu")
+      ? Response.json(corpo)
+      : Response.json({ itens: [] });
+  }) as typeof fetch;
+}
+
+/** Para onde a guarda do painel manda a pessoa, ou "abre" se ela passa. */
+async function destinoDaGuarda(cookie: string | null): Promise<string> {
+  sessaoDoPedido.cookie = cookie;
+  try {
+    await exigirLojaDaPagina();
+  } catch (erro) {
+    const mensagem = erro instanceof Error ? erro.message : String(erro);
+    if (mensagem.startsWith("redirecionou:")) return mensagem.slice(13);
+    throw erro;
+  }
+  return "abre";
+}
+
+describe("cookie sc_loja que não vale mais (card #170, CA-16)", () => {
+  beforeEach(() => {
+    sessaoDoPedido.cookie = null;
+  });
+
+  it("[CA-16] cookie de loja alheia com UMA loja na sessão passa por escolher-loja/propria", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    expect(
+      await destinoDaGuarda(
+        `sc_access=token-da-ana; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+      ),
+    ).toBe("/escolher-loja/propria");
+    // Loja que não existe: o site não diz qual é o caso, e faz o mesmo.
+    expect(
+      await destinoDaGuarda(`sc_access=token-da-ana; sc_loja=${LOJA_QUE_SAIU}`),
+    ).toBe("/escolher-loja/propria");
+  });
+
+  it("[CA-16] com várias lojas vai para /escolher-loja, igual para loja inexistente e para loja alheia", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    const alheia = await destinoDaGuarda(
+      `sc_access=token-de-duas-lojas; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+    );
+    const inexistente = await destinoDaGuarda(
+      `sc_access=token-de-duas-lojas; sc_loja=${LOJA_QUE_SAIU}`,
+    );
+    const semEscolha = await destinoDaGuarda("sc_access=token-de-duas-lojas");
+    expect(alheia).toBe("/escolher-loja");
+    expect(inexistente).toBe(alheia);
+    expect(semEscolha).toBe(alheia);
+    // Neutro: nada no endereço diz se a loja não existe ou é de outra pessoa.
+    expect(alheia).not.toMatch(/[?&]/);
+  });
+
+  it("[CA-16] o texto da escolha de loja é idêntico para loja inexistente e para loja alheia", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    async function html(cookie: string): Promise<string> {
+      sessaoDoPedido.cookie = cookie;
+      return renderToStaticMarkup(
+        await PaginaDeEscolhaDaLoja({ searchParams: Promise.resolve({}) }),
+      );
+    }
+    const alheia = await html(
+      `sc_access=token-de-duas-lojas; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+    );
+    const inexistente = await html(
+      `sc_access=token-de-duas-lojas; sc_loja=${LOJA_QUE_SAIU}`,
+    );
+    expect(alheia).toContain("A loja escolhida antes não abre mais");
+    expect(inexistente).toBe(alheia);
+    expect(alheia).not.toContain(LOJA_DO_BRUNO.apelido);
+    expect(alheia).not.toContain(LOJA_QUE_SAIU);
+  });
+
+  it("[CA-16] sessaoParaEncaminhar continua 409 loja_nao_escolhida (as rotas de API não mudam)", async () => {
+    const api = apiDeMentira();
+    for (const token of ["token-da-ana", "token-de-duas-lojas"]) {
+      const resposta = await sessaoParaEncaminhar(
+        pedido("/x", `sc_access=${token}; sc_loja=${LOJA_DO_BRUNO.apelido}`),
+        api.buscar,
+      );
+      expect((resposta as Response).status).toBe(409);
+      expect(await (resposta as Response).json()).toEqual({
+        erro: "loja_nao_escolhida",
+      });
+    }
+    expect(api.encaminhadas).toHaveLength(0);
+  });
+
+  it("[CA-16] cliente sem vínculo em /painel vai para /explorar/produtos; administrador sem loja, para /admin", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    // A API de mentira devolve lojas vazias para este token: conta de cliente.
+    expect(await destinoDaGuarda("sc_access=token-sem-loja")).toBe(
+      "/explorar/produtos",
+    );
+    vi.stubGlobal(
+      "fetch",
+      apiComEu({
+        ...quemSouEu([]),
+        identidade: { ...quemSouEu([]).identidade, papel: "ADMIN" },
+        adminDaPlataforma: true,
+      }),
+    );
+    expect(await destinoDaGuarda("sc_access=token-do-admin")).toBe("/admin");
+  });
+
+  it("[CA-16] visitante vai para /entrar levando só /painel; API fora do ar fecha na escolha da loja", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    expect(await destinoDaGuarda(null)).toBe("/entrar?proximo=%2Fpainel");
+    expect(await destinoDaGuarda("sc_access=token-vencido")).toBe(
+      "/entrar?proximo=%2Fpainel",
+    );
+    vi.stubGlobal("fetch", apiDeMentira({ foraDoAr: true }).buscar);
+    expect(await destinoDaGuarda("sc_access=token-da-ana")).toBe(
+      "/escolher-loja",
+    );
+  });
+
+  it("[CA-16] dono e equipe com a loja certa abrem o painel", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    expect(await destinoDaGuarda("sc_access=token-da-ana")).toBe("abre");
+    expect(
+      await destinoDaGuarda(
+        `sc_access=token-da-ana; sc_loja=${LOJA_DA_SESSAO.apelido}`,
+      ),
+    ).toBe("abre");
+  });
+});
+
+describe("escolher-loja/propria regrava a escolha com a única loja (card #170, CA-16)", () => {
+  function pedidoDaLojaPropria(cookie: string | undefined, busca = ""): Request {
+    return new Request(`https://simpleclick.test/escolher-loja/propria${busca}`, {
+      headers: cookie === undefined ? {} : { cookie },
+    });
+  }
+
+  it("[CA-16] regrava sc_loja com a loja da sessão e abre o painel com o aviso", async () => {
+    const api = apiDeMentira();
+    const resposta = await responderLojaPropria(
+      pedidoDaLojaPropria(
+        `sc_access=token-da-ana; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+      ),
+      api.buscar,
+    );
+    expect(resposta.status).toBe(303);
+    expect(resposta.headers.get("location")).toBe(
+      "https://simpleclick.test/painel?loja=trocada",
+    );
+    expect(resposta.headers.get("cache-control")).toBe("no-store");
+    const cookie = resposta.headers.get("set-cookie") ?? "";
+    expect(cookie).toContain(`sc_loja=${LOJA_DA_SESSAO.apelido}`);
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("Secure");
+    expect(cookie).toContain("SameSite=Lax");
+    expect(cookie).toContain("Path=/");
+    expect(cookie).toContain(`Max-Age=${30 * 24 * 60 * 60}`);
+    // A loja alheia do cookie antigo não volta em lugar nenhum.
+    expect(JSON.stringify([...resposta.headers])).not.toContain(
+      LOJA_DO_BRUNO.apelido,
+    );
+  });
+
+  it("[CA-16] depois da troca o painel abre sem voltar à escolha (sem laço)", async () => {
+    vi.stubGlobal("fetch", apiDeMentira().buscar);
+    const resposta = await responderLojaPropria(
+      pedidoDaLojaPropria(
+        `sc_access=token-da-ana; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+      ),
+      apiDeMentira().buscar,
+    );
+    const novoCookie = (resposta.headers.get("set-cookie") ?? "").split(";")[0];
+    expect(await destinoDaGuarda(`sc_access=token-da-ana; ${novoCookie}`)).toBe(
+      "abre",
+    );
+  });
+
+  it("[CA-16] nada do endereço escolhe a loja: a consulta é ignorada", async () => {
+    const resposta = await responderLojaPropria(
+      pedidoDaLojaPropria(
+        `sc_access=token-da-ana; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+        `?apelido=${LOJA_DO_BRUNO.apelido}&loja=${LOJA_DO_BRUNO.apelido}&proximo=https://golpe.example`,
+      ),
+      apiDeMentira().buscar,
+    );
+    expect(resposta.headers.get("set-cookie")).toContain(
+      `sc_loja=${LOJA_DA_SESSAO.apelido}`,
+    );
+    expect(resposta.headers.get("location")).toBe(
+      "https://simpleclick.test/painel?loja=trocada",
+    );
+  });
+
+  it("[CA-16] com várias lojas não grava nada e vai para /escolher-loja", async () => {
+    const resposta = await responderLojaPropria(
+      pedidoDaLojaPropria(
+        `sc_access=token-de-duas-lojas; sc_loja=${LOJA_DO_BRUNO.apelido}`,
+      ),
+      apiDeMentira().buscar,
+    );
+    expect(resposta.headers.get("location")).toBe(
+      "https://simpleclick.test/escolher-loja",
+    );
+    expect(resposta.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("[CA-16] sem sessão, sem loja ou com a API fora do ar não grava cookie nenhum", async () => {
+    const api = apiDeMentira();
+    const semSessao = await responderLojaPropria(
+      pedidoDaLojaPropria(undefined),
+      api.buscar,
+    );
+    expect(semSessao.headers.get("location")).toBe(
+      "https://simpleclick.test/entrar?proximo=%2Fpainel",
+    );
+    const vencida = await responderLojaPropria(
+      pedidoDaLojaPropria("sc_access=token-vencido"),
+      api.buscar,
+    );
+    expect(vencida.headers.get("location")).toBe(
+      "https://simpleclick.test/entrar?proximo=%2Fpainel",
+    );
+    const semLoja = await responderLojaPropria(
+      pedidoDaLojaPropria("sc_access=token-sem-loja"),
+      api.buscar,
+    );
+    expect(semLoja.headers.get("location")).toBe(
+      "https://simpleclick.test/explorar/produtos",
+    );
+    const foraDoAr = await responderLojaPropria(
+      pedidoDaLojaPropria("sc_access=token-da-ana"),
+      apiDeMentira({ foraDoAr: true }).buscar,
+    );
+    expect(foraDoAr.headers.get("location")).toBe(
+      "https://simpleclick.test/escolher-loja",
+    );
+    for (const r of [semSessao, vencida, semLoja, foraDoAr]) {
+      expect(r.headers.get("set-cookie")).toBeNull();
+    }
   });
 });
