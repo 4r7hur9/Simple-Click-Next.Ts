@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 
-import type { FiltroDePedidos, Situacao } from "../../lib/conta-do-cliente.ts";
+import type { FiltroDePedidos, PeriodoDaVisao, Situacao } from "../../lib/conta-do-cliente.ts";
 import { Chip, FaixaDeChips, Seletor } from "@simpleclick/ui";
 
 const SITUACOES: readonly { valor: Situacao; rotulo: string }[] = [
@@ -22,9 +22,24 @@ const PERIODOS: readonly { valor: string; rotulo: string }[] = [
   { valor: "90", rotulo: "Últimos 90 dias" },
 ];
 
-function endereco(filtro: FiltroDePedidos, troca: Partial<FiltroDePedidos>): string {
+/**
+ * O que o resumo do topo (`?resumo=`, `de`, `ate`) leva na URL, para trocar o
+ * filtro da lista NÃO desfazer o período do resumo (e o contrário também).
+ */
+function consultaDoResumo(resumo: PeriodoDaVisao | undefined): [string, string][] {
+  if (resumo === undefined || resumo.atalho === "30d") return [];
+  return resumo.atalho === "personalizado"
+    ? [["resumo", resumo.atalho], ["de", resumo.de], ["ate", resumo.ate]]
+    : [["resumo", resumo.atalho]];
+}
+
+function endereco(
+  filtro: FiltroDePedidos,
+  troca: Partial<FiltroDePedidos>,
+  resumo?: PeriodoDaVisao,
+): string {
   const f = { ...filtro, ...troca };
-  const q = new URLSearchParams();
+  const q = new URLSearchParams(consultaDoResumo(resumo));
   if (f.situacao !== "todos") q.set("situacao", f.situacao);
   if (f.periodo !== "todos") q.set("periodo", f.periodo);
   if (f.loja !== "") q.set("loja", f.loja);
@@ -35,9 +50,12 @@ function endereco(filtro: FiltroDePedidos, troca: Partial<FiltroDePedidos>): str
 export function FiltrosDePedidos({
   filtro,
   lojas,
+  resumo,
 }: {
   readonly filtro: FiltroDePedidos;
   readonly lojas: readonly { apelido: string; nome: string }[];
+  /** O período do resumo do topo, que os filtros preservam. */
+  readonly resumo?: PeriodoDaVisao | undefined;
 }) {
   const ativo = filtro.situacao !== "todos" || filtro.periodo !== "todos" || filtro.loja !== "";
   return (
@@ -46,7 +64,7 @@ export function FiltrosDePedidos({
         {SITUACOES.map((s) => (
           <Chip
             key={s.valor}
-            href={endereco(filtro, { situacao: s.valor })}
+            href={endereco(filtro, { situacao: s.valor }, resumo)}
             ativo={filtro.situacao === s.valor}
             componenteDeLink={Link}
           >
@@ -56,6 +74,9 @@ export function FiltrosDePedidos({
       </FaixaDeChips>
       <form className="sc-meus-pedidos__form" method="get" action="/conta/pedidos" aria-label="Filtrar por loja e período">
         {filtro.situacao === "todos" ? null : <input type="hidden" name="situacao" value={filtro.situacao} />}
+        {consultaDoResumo(resumo).map(([nome, valor]) => (
+          <input key={nome} type="hidden" name={nome} value={valor} />
+        ))}
         <label>
           <span>Loja</span>
           <Seletor name="loja" defaultValue={filtro.loja}>
@@ -74,7 +95,7 @@ export function FiltrosDePedidos({
           </Seletor>
         </label>
         <button type="submit" className="sc-botao sc-botao--secundaria">Filtrar</button>
-        {ativo ? <Link href="/conta/pedidos">Limpar filtros</Link> : null}
+        {ativo ? <Link href={endereco({ situacao: "todos", periodo: "todos", loja: "" }, {}, resumo)}>Limpar filtros</Link> : null}
       </form>
     </div>
   );

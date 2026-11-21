@@ -17,7 +17,6 @@ export default async function PaginaDoAplicativoAutenticador() {
   await tokenOuEntrar("/conta/seguranca/aplicativo");
   return (
     <PaginaDaConta
-      atual="seguranca"
       titulo="Proteger a conta com aplicativo"
       descricao="Com o aplicativo autenticador, o login pede o código que aparece no seu celular. Invadir o seu e-mail deixa de bastar para entrar na conta."
     >

@@ -3,7 +3,9 @@
  * gastos em todas as lojas. Os cartões e gráficos seguem o padrão do painel do
  * dono (`features/dashboard`): mesmos cartões, `GraficoDeBarras` e seta de
  * variação. Os números vêm de `GET /v1/conta/metricas`; o pedido em andamento
- * e os últimos pedidos, da lista de pedidos da conta.
+ * vem da lista de pedidos da conta. Desde o card #151 ela é o resumo no topo de
+ * Meus pedidos (a tela /conta deixou de existir), sem "Últimos pedidos": a lista
+ * logo abaixo já é isso.
  */
 import {
   IconeDinheiro,
@@ -14,10 +16,9 @@ import {
   IconeProduto,
   IconeRelogio,
   Selo,
-  Vazio,
   type Icone,
 } from "@simpleclick/ui";
-import type { MetricasDaContaNoContrato, PedidoDaContaNoContrato, VariacaoDeMetricaNoContrato } from "@simpleclick/contracts";
+import type { MetricasDaContaNoContrato, VariacaoDeMetricaNoContrato } from "@simpleclick/contracts";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -28,17 +29,10 @@ import { VariacaoEmSeta } from "../dashboard/VariacaoEmSeta.tsx";
 import { rotuloDoStatus } from "../pedido/LinhaDoTempo.tsx";
 import { SeletorDoPeriodoDaConta } from "./SeletorDoPeriodoDaConta.tsx";
 import { caminhoDoMeuPedido, tomDoStatus } from "./MeusPedidos.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-
-function quando(data: string): string {
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(data));
-}
-
-export function pedirDeNovo(pedido: PedidoDaContaNoContrato): string {
-  return `/loja/${encodeURIComponent(pedido.loja.apelido)}/cardapio`;
-}
 
 /** A variação de uma medida contra o período anterior, no formato do painel. */
 export function variacaoDe(atual: number, anterior: number): VariacaoDeMetricaNoContrato {
@@ -151,12 +145,11 @@ export interface VisaoGeralDaContaProps {
   readonly periodo: PeriodoDaVisao;
   /** Nulo quando a API de métricas não respondeu. */
   readonly metricas: MetricasDaContaNoContrato | null;
-  /** Pedidos em andamento e últimos pedidos, da lista da conta. */
-  readonly lista: Pick<MetricasDoCliente, "emAndamento" | "ultimos" | "totalDePedidos">;
+  /** Os pedidos em andamento, da lista da conta. */
+  readonly lista: Pick<MetricasDoCliente, "emAndamento">;
 }
 
 export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaContaProps) {
-  const semPedidoNenhum = lista.totalDePedidos === 0;
   const r = m?.resumo;
   const ant = m?.resumoAnterior;
 
@@ -187,7 +180,7 @@ export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaC
               <li key={p.id} className="sc-andamento" data-pedido={p.id}>
                 <div>
                   <p className="sc-andamento__loja">{p.loja.nome}</p>
-                  <p className="sc-andamento__resumo">Pedido nº {p.numero} · {escreverDinheiro(p.totalCentavos)}</p>
+                  <p className="sc-andamento__resumo">Pedido {codigoDoPedido(p.numero)} · {escreverDinheiro(p.totalCentavos)}</p>
                   <Selo tom={tomDoStatus(p.status)}>{rotuloDoStatus(p.status)}</Selo>
                 </div>
                 <Link className="sc-botao sc-botao--primaria" href={caminhoDoMeuPedido(p.id)}>Acompanhar</Link>
@@ -217,14 +210,7 @@ export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaC
             ]}
           />
 
-          {semPedidoNenhum ? (
-            <Vazio
-              titulo="Você ainda não fez nenhum pedido"
-              descricao="Quando você pedir em uma loja com a sua conta, seus gastos, lojas e produtos favoritos aparecem aqui."
-              acao={<Link className="sc-botao sc-botao--primaria" href="/explorar">Explorar lojas</Link>}
-            />
-          ) : (
-            <>
+          <>
               <Secao id="visao-meses" titulo="Gasto nos últimos 6 meses">
                 <GraficoDeBarras
                   pontos={mesesDoGrafico}
@@ -327,36 +313,10 @@ export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaC
                   />
                 </Secao>
               </div>
-            </>
-          )}
+          </>
         </>
       )}
 
-      {lista.ultimos.length > 0 ? (
-        <section aria-labelledby="visao-ultimos">
-          <div className="sc-inicio__cabeca">
-            <h2 id="visao-ultimos" className="sc-inicio__titulo">Últimos pedidos</h2>
-            <Link href="/conta/pedidos">Ver todos</Link>
-          </div>
-          <ul className="sc-inicio__lista">
-            {lista.ultimos.map((p) => (
-              <li key={p.id} className="sc-meus-pedidos__pedido" data-pedido={p.id}>
-                <div className="sc-meus-pedidos__topo">
-                  <p className="sc-meus-pedidos__numero">{p.loja.nome}</p>
-                  <Selo tom={tomDoStatus(p.status)}>{rotuloDoStatus(p.status)}</Selo>
-                </div>
-                <p className="sc-meus-pedidos__resumo">
-                  Pedido nº {p.numero} · <time dateTime={p.criadoEm}>{quando(p.criadoEm)}</time> · {escreverDinheiro(p.totalCentavos)}
-                </p>
-                <div className="sc-minha-conta__acao">
-                  <Link className="sc-botao sc-botao--secundaria" href={caminhoDoMeuPedido(p.id)}>Ver pedido</Link>
-                  <Link className="sc-botao sc-botao--discreta" href={pedirDeNovo(p)}>Pedir de novo</Link>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </div>
   );
 }

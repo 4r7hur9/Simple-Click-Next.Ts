@@ -16,6 +16,7 @@ import {
 } from "../../lib/meus-pedidos.ts";
 import { escreverDinheiro } from "../../lib/produto.ts";
 import { rotuloDoStatus } from "../pedido/LinhaDoTempo.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 /** O que a página entrega: quem não está logado nem chega a esta lista. */
 export type EstadoDosMeusPedidos = Exclude<
@@ -78,7 +79,7 @@ function CartaoDoPedido({
       data-status={pedido.status}
     >
       <div className="sc-meus-pedidos__topo">
-        <p className="sc-meus-pedidos__numero">Pedido nº {pedido.numero}</p>
+        <p className="sc-meus-pedidos__numero">Pedido {codigoDoPedido(pedido.numero)}</p>
         <Selo tom={tomDoStatus(pedido.status)}>
           {rotuloDoStatus(pedido.status)}
         </Selo>
@@ -94,7 +95,7 @@ function CartaoDoPedido({
       </p>
       <div className="sc-minha-conta__acao">
         <Link className="sc-meus-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
-          Ver o pedido nº {pedido.numero}
+          Ver o pedido {codigoDoPedido(pedido.numero)}
         </Link>
         <Link
           className="sc-meus-pedidos__ver"
@@ -156,12 +157,12 @@ export function MeusPedidos({ leitura, filtrada = false }: MeusPedidosProps) {
           aria-labelledby={`loja-${grupo.apelido}`}
           data-loja={grupo.apelido}
         >
-          <h2 id={`loja-${grupo.apelido}`} className="sc-meus-pedidos__loja">
+          <h3 id={`loja-${grupo.apelido}`} className="sc-meus-pedidos__loja">
             <span className="sc-meus-pedidos__loja-icone" aria-hidden="true">
               <IconeLoja />
             </span>
             {grupo.nome}
-          </h2>
+          </h3>
           <ol className="sc-meus-pedidos__lista">
             {grupo.pedidos.map((pedido) => (
               <CartaoDoPedido key={pedido.id} pedido={pedido} />

@@ -34,7 +34,14 @@ function cpfParaTela(cpf: string | null): string {
   return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
 }
 
-export function DadosDaConta({ inicial }: { readonly inicial: Dados }) {
+export function DadosDaConta({
+  inicial,
+  aoSalvar,
+}: {
+  readonly inicial: Dados;
+  /** Depois de salvar com sucesso (o modal atualiza o nome e as iniciais do topo). */
+  readonly aoSalvar?: (() => void) | undefined;
+}) {
   const [nome, setNome] = useState(inicial.nome ?? "");
   const [telefone, setTelefone] = useState(telefoneParaTela(inicial.telefone));
   const [cpf, setCpf] = useState(cpfParaTela(inicial.cpf));
@@ -53,6 +60,7 @@ export function DadosDaConta({ inicial }: { readonly inicial: Dados }) {
       aceitaOfertas: ofertas,
     });
     setEnviando(false);
+    if (resposta.ok) aoSalvar?.();
     setResultado(
       resposta.ok
         ? { tom: "sucesso", texto: "Dados salvos." }

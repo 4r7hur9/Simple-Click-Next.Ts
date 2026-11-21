@@ -18,7 +18,6 @@ export default async function PaginaDeFavoritos() {
 
   return (
     <PaginaDaConta
-      atual="favoritos"
       titulo="Favoritos"
       descricao="As lojas e os produtos que você marcou, e as lojas que visitou há pouco, para voltar com um toque."
     >

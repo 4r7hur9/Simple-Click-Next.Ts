@@ -10,7 +10,6 @@ import { PaginaDaConta } from "../../../../../features/conta/PaginaDaConta.tsx";
 export default function PedidoDaContaNaoEncontrado() {
   return (
     <PaginaDaConta
-      atual="pedidos"
       titulo="Pedido não encontrado"
       descricao="Este pedido não está na sua conta. Confira se você abriu o link certo, ou veja a lista dos seus pedidos."
     >

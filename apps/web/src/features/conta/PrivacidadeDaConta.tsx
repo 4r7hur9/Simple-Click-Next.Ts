@@ -41,8 +41,15 @@ function quando(iso: string): string {
 
 export function HistoricoDeConsentimentos({
   situacao,
+  antesDeMudarCookies,
 }: {
   readonly situacao: SituacaoDosAceites;
+  /**
+   * Chamado antes de abrir as preferências de cookies. No modal "Minha conta"
+   * (card #151) ele fecha o modal: o aviso de cookies fica fora do modal e,
+   * com ele aberto, ficaria inerte.
+   */
+  readonly antesDeMudarCookies?: (() => void) | undefined;
 }) {
   // O cookie só existe no navegador: lê depois de montar (HTML igual ao do servidor).
   const [cookies, setCookies] = useState<ConsentimentoGravado | null | undefined>();
@@ -110,7 +117,14 @@ export function HistoricoDeConsentimentos({
         </ul>
       )}
       <div className="sc-privacidade__acoes" style={{ marginBlockStart: "var(--espaco-4)" }}>
-        <Botao variante="secundaria" type="button" onClick={abrirPreferenciasDeCookies}>
+        <Botao
+          variante="secundaria"
+          type="button"
+          onClick={() => {
+            antesDeMudarCookies?.();
+            abrirPreferenciasDeCookies();
+          }}
+        >
           Mudar preferências de cookies
         </Botao>
       </div>

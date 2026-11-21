@@ -6,9 +6,8 @@ import { PaginaDaConta } from "../../../../features/conta/PaginaDaConta.tsx";
 export default function CarregandoMeusPedidos() {
   return (
     <PaginaDaConta
-      atual="pedidos"
       titulo="Meus pedidos"
-      descricao="Tudo que você pediu, em todas as lojas, com o status de agora. Abra um pedido para acompanhá-lo sem precisar do link."
+      descricao="Tudo que você pediu, em todas as lojas, com o status de agora e o resumo dos seus gastos. Abra um pedido para acompanhá-lo sem precisar do link."
     >
       <Esqueleto linhas={4} rotulo="Carregando seus pedidos…" />
     </PaginaDaConta>

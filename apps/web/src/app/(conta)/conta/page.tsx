@@ -1,46 +1,42 @@
 import { hojeNoFuso } from "@simpleclick/ui";
 import { redirect } from "next/navigation";
 
-import { PaginaDaConta } from "../../../features/conta/PaginaDaConta.tsx";
-import { VisaoGeralDaConta } from "../../../features/conta/VisaoGeralDaConta.tsx";
-import { buscarMetricasDaConta, calcularMetricas, lerPeriodoDaVisao } from "../../../lib/conta-do-cliente.ts";
-import { buscarMeusPedidos } from "../../../lib/meus-pedidos.ts";
-import { Erro } from "@simpleclick/ui";
+import { PAGINA_DE_FUNDO_DO_MODAL, textoDaConsulta } from "../../../lib/abas-da-conta.ts";
+import { lerPeriodoDaVisao } from "../../../lib/conta-do-cliente.ts";
 import { tokenOuEntrar } from "./_token.ts";
-import { comDestino } from "../../../lib/destino-seguro.ts";
 
-export const metadata = { title: "Visão geral | SimpleClick" };
+export const metadata = { title: "Minha conta | SimpleClick" };
 export const dynamic = "force-dynamic";
 
-/** A visão geral da conta: pedidos e gastos do cliente, em todas as lojas. */
+/**
+ * `/conta` deixou de ser uma tela (card #151): o resumo que ela mostrava mora
+ * no topo de Meus pedidos. O endereço continua valendo (links antigos, e-mails,
+ * o "Perfil" de versões anteriores) e leva para lá, no servidor. O período da
+ * antiga Visão geral (`?periodo=`, `de`, `ate`) vira o `?resumo=` de Pedidos,
+ * já conferido por `lerPeriodoDaVisao`: nada do que veio na URL é repassado
+ * como está.
+ */
 export default async function PaginaInicialDaConta({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: string; de?: string; ate?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const token = await tokenOuEntrar("/conta");
-  const periodo = lerPeriodoDaVisao(await searchParams, hojeNoFuso("America/Sao_Paulo"));
-  const [pedidos, metricas] = await Promise.all([
-    buscarMeusPedidos(token),
-    buscarMetricasDaConta(token, periodo),
-  ]);
-  if (pedidos.estado === "nao-autenticado" || metricas.estado === "nao-autenticado") redirect(comDestino("/entrar", "/conta"));
-
-  return (
-    <PaginaDaConta
-      atual="inicio"
-      titulo="Visão geral"
-      descricao="Acompanhe seus pedidos e seus gastos em todas as lojas."
-    >
-      {pedidos.estado === "indisponivel" ? (
-        <Erro titulo="Não deu para carregar seu resumo" mensagem="Tente de novo em instantes." />
-      ) : (
-        <VisaoGeralDaConta
-          periodo={periodo}
-          metricas={metricas.estado === "ok" ? metricas.dados : null}
-          lista={calcularMetricas(pedidos.pedidos, new Date())}
-        />
-      )}
-    </PaginaDaConta>
+  await tokenOuEntrar("/conta");
+  const consulta = await searchParams;
+  const periodo = lerPeriodoDaVisao(
+    {
+      periodo: textoDaConsulta(consulta["periodo"]),
+      de: textoDaConsulta(consulta["de"]),
+      ate: textoDaConsulta(consulta["ate"]),
+    },
+    hojeNoFuso("America/Sao_Paulo"),
   );
+  const destino = new URLSearchParams();
+  if (periodo.atalho !== "30d") destino.set("resumo", periodo.atalho);
+  if (periodo.atalho === "personalizado") {
+    destino.set("de", periodo.de);
+    destino.set("ate", periodo.ate);
+  }
+  const texto = destino.toString();
+  redirect(texto === "" ? PAGINA_DE_FUNDO_DO_MODAL : `${PAGINA_DE_FUNDO_DO_MODAL}?${texto}`);
 }

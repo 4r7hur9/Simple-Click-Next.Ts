@@ -1,12 +1,27 @@
 "use client";
 
 /**
- * As peças da tela de Segurança que falam com a API (card #35): trocar a
- * senha, ver e encerrar as conexões abertas, desligar o app autenticador e
- * excluir a conta. Cada ação pede a senha quando mexe no que protege a conta.
+ * As peças da aba Segurança do modal "Minha conta" que falam com a API (cards
+ * #35 e #151): trocar a senha, ver e encerrar as conexões abertas, desligar o
+ * app autenticador e excluir a conta. Cada ação pede a senha quando mexe no
+ * que protege a conta. `PainelDeSeguranca` junta tudo, no lugar da antiga
+ * página `/conta/seguranca`.
  */
 import { useState, type FormEvent } from "react";
-import { Aviso, Botao, Campo, CampoDeSenha, Selo } from "@simpleclick/ui";
+import {
+  Aviso,
+  Botao,
+  Campo,
+  CampoDeSenha,
+  Cartao,
+  IconeAlerta,
+  IconeConfirmar,
+  IconeExcluir,
+  IconeMenu,
+  IconeSair,
+  IconeSeguranca,
+  Selo,
+} from "@simpleclick/ui";
 import { PALAVRA_DE_CONFIRMACAO_DA_EXCLUSAO } from "@simpleclick/contracts";
 
 import type { SessaoAberta } from "../../lib/conta-do-cliente.ts";
@@ -226,5 +241,133 @@ export function ExcluirConta({
         return null;
       }}
     />
+  );
+}
+
+/** As conexões abertas, como a aba Segurança as recebe (carregam ao abrir a aba). */
+export type SessoesDoPainel =
+  | { readonly estado: "carregando" }
+  | { readonly estado: "ok"; readonly dados: readonly SessaoAberta[] }
+  | { readonly estado: "erro" };
+
+export interface AcoesDoServidorDaConta {
+  /** Sai só deste navegador (revoga a sessão e vai para a entrada). */
+  readonly sairDaConta: () => Promise<void>;
+  /** Sai de todos os aparelhos. */
+  readonly encerrarTodasAsSessoes: () => Promise<void>;
+  /** Depois de excluir a conta: apaga os cookies e leva ao início. */
+  readonly sairDepoisDeExcluirAConta: () => Promise<void>;
+}
+
+/**
+ * A aba Segurança: senha, verificação em duas etapas, aparelhos conectados,
+ * sair, encerrar todas e, no fim, a zona de risco (excluir a conta). Ações
+ * separadas, para a pessoa não encerrar todos os aparelhos por engano. As
+ * ações de sair vão como formulário para o servidor, que nunca expõe o cookie
+ * de renovação ao código do navegador (P-008).
+ */
+export function PainelDeSeguranca({
+  comAplicativo,
+  sessoes,
+  acaoFalhou = false,
+  acoes,
+}: {
+  readonly comAplicativo: boolean;
+  readonly sessoes: SessoesDoPainel;
+  /** `?estado=erro`: "Encerrar todas as sessões" falhou na última tentativa. */
+  readonly acaoFalhou?: boolean;
+  readonly acoes: AcoesDoServidorDaConta;
+}) {
+  return (
+    <div className="sc-minha-conta__blocos">
+      {acaoFalhou ? (
+        <Aviso tom="erro">Não foi possível encerrar a sessão. Tente novamente.</Aviso>
+      ) : null}
+
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeSeguranca />}
+        titulo="Trocar senha"
+        descricao="Ao trocar, os outros aparelhos saem da conta em até 15 minutos (o tempo de a conexão deles ser renovada). Use 12 caracteres ou mais."
+      >
+        <TrocarSenha />
+      </Cartao>
+
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeConfirmar />}
+        titulo="Verificação em duas etapas"
+        descricao={
+          comAplicativo
+            ? "Ativa: entrar pede também o código do aplicativo autenticador."
+            : "Opcional para clientes. Com o aplicativo autenticador, entrar pede também o código do seu celular."
+        }
+      >
+        {comAplicativo ? (
+          <DesativarAplicativo />
+        ) : (
+          <p className="sc-minha-conta__acao">
+            <a className="sc-botao sc-botao--secundaria" href="/conta/seguranca/aplicativo">
+              Configurar aplicativo autenticador
+            </a>
+          </p>
+        )}
+      </Cartao>
+
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeMenu />}
+        titulo="Aparelhos conectados"
+        descricao="Onde sua conta está aberta agora. Encerre os que você não reconhece."
+      >
+        {sessoes.estado === "ok" ? (
+          <SessoesAbertas inicial={sessoes.dados} />
+        ) : sessoes.estado === "carregando" ? (
+          <p role="status" className="sc-minha-conta__descricao">
+            Carregando suas conexões…
+          </p>
+        ) : (
+          <Aviso tom="erro">Não deu para listar as conexões agora.</Aviso>
+        )}
+      </Cartao>
+
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeSair />}
+        titulo="Sair deste dispositivo"
+        descricao="Encerra somente a sessão usada neste navegador."
+      >
+        <form action={acoes.sairDaConta} className="sc-minha-conta__acao">
+          <Botao type="submit" variante="secundaria" icone={<IconeSair />}>
+            Sair
+          </Botao>
+        </form>
+      </Cartao>
+
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeAlerta />}
+        titulo="Encerrar todas as sessões"
+        descricao="Desconecta sua conta de todos os dispositivos. Para voltar, será preciso entrar novamente em cada um deles."
+      >
+        <form action={acoes.encerrarTodasAsSessoes} className="sc-minha-conta__acao">
+          <Botao type="submit" variante="perigo">
+            Encerrar todas as sessões
+          </Botao>
+        </form>
+      </Cartao>
+
+      <p className="sc-seguranca__risco" role="presentation">
+        Zona de risco
+      </p>
+      <Cartao
+        nivelDoTitulo={3}
+        icone={<IconeExcluir />}
+        titulo="Excluir minha conta"
+        descricao="Apaga seus dados pessoais e desconecta todos os aparelhos. Não dá para desfazer."
+      >
+        <ExcluirConta sairDepois={acoes.sairDepoisDeExcluirAConta} />
+      </Cartao>
+    </div>
   );
 }

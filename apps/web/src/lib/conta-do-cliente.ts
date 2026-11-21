@@ -77,35 +77,42 @@ async function ler<T>(
   }
 }
 
+/**
+ * As conferências do corpo das três leituras da conta. São puras e públicas:
+ * o servidor (`buscar*`) e o modal "Minha conta" (card #151), que lê pelo
+ * navegador, usam as MESMAS, e o que não passar vira "indisponível".
+ */
+export function lerDadosDaConta(corpo: unknown): DadosDaConta | null {
+  return ehObjeto(corpo) && typeof corpo["email"] === "string"
+    ? (corpo as unknown as DadosDaConta)
+    : null;
+}
+
+export function lerSessoesAbertas(corpo: unknown): readonly SessaoAberta[] | null {
+  return ehObjeto(corpo) && Array.isArray(corpo["sessoes"])
+    ? (corpo["sessoes"] as SessaoAberta[])
+    : null;
+}
+
+export function lerAceitesDaConta(corpo: unknown): SituacaoDosAceites | null {
+  return ehObjeto(corpo) &&
+    Array.isArray(corpo["pendentes"]) &&
+    Array.isArray(corpo["historico"])
+    ? (corpo as unknown as SituacaoDosAceites)
+    : null;
+}
+
 export function buscarDadosDaConta(token: string, buscar: typeof fetch = fetch) {
-  return ler<DadosDaConta>(
-    "/v1/conta/dados",
-    token,
-    (c) => (ehObjeto(c) && typeof c["email"] === "string" ? (c as unknown as DadosDaConta) : null),
-    buscar,
-  );
+  return ler<DadosDaConta>("/v1/conta/dados", token, lerDadosDaConta, buscar);
 }
 
 export function buscarSessoesAbertas(token: string, buscar: typeof fetch = fetch) {
-  return ler<readonly SessaoAberta[]>(
-    "/v1/conta/sessoes",
-    token,
-    (c) => (ehObjeto(c) && Array.isArray(c["sessoes"]) ? (c["sessoes"] as SessaoAberta[]) : null),
-    buscar,
-  );
+  return ler<readonly SessaoAberta[]>("/v1/conta/sessoes", token, lerSessoesAbertas, buscar);
 }
 
 /** O que a conta já aceitou e o que falta (`GET /v1/conta/aceites`, card #79). */
 export function buscarAceites(token: string, buscar: typeof fetch = fetch) {
-  return ler<SituacaoDosAceites>(
-    "/v1/conta/aceites",
-    token,
-    (c) =>
-      ehObjeto(c) && Array.isArray(c["pendentes"]) && Array.isArray(c["historico"])
-        ? (c as unknown as SituacaoDosAceites)
-        : null,
-    buscar,
-  );
+  return ler<SituacaoDosAceites>("/v1/conta/aceites", token, lerAceitesDaConta, buscar);
 }
 
 /** As lojas e os produtos favoritos (`GET /v1/feed/favoritos`). */
