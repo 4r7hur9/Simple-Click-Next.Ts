@@ -36,12 +36,42 @@ function conectar(): Client {
   return new Client({ connectionString: url });
 }
 
+/**
+ * TRAVA (card #163, D-6): esta montagem reativa e cria administradores
+ * direto no banco, então só roda em banco descartável de teste. Recusa
+ * qualquer outro `current_database()` (ex.: o de desenvolvimento do `.env`).
+ */
+const BANCO_DE_TESTE = /^(simpleclick_test|sc_e2e_[a-z0-9_]+)$/;
+
+export async function conectarEmBancoDeTeste(): Promise<Client> {
+  const cliente = conectar();
+  await cliente.connect();
+  try {
+    const resposta = await cliente.query<{ banco: string }>(
+      "SELECT current_database() AS banco",
+    );
+    const banco = resposta.rows[0]?.banco ?? "";
+    if (!BANCO_DE_TESTE.test(banco)) {
+      throw new Error(
+        `o ponta a ponta da administração recusa o banco "${banco}": só roda em simpleclick_test ou sc_e2e_* (use "pnpm --filter @simpleclick/e2e test:e2e:isolado")`,
+      );
+    }
+    return cliente;
+  } catch (erro) {
+    await cliente.end();
+    throw erro;
+  }
+}
+
 function base64Url(valor: unknown): string {
   return Buffer.from(JSON.stringify(valor)).toString("base64url");
 }
 
 /** O token de acesso de um administrador, no formato que a API confere. */
-export function tokenDoAdministrador(identidadeId: string): string {
+export function tokenDoAdministrador(
+  identidadeId: string,
+  papel: "ADMIN" | "OWNER" | "CUSTOMER" = "ADMIN",
+): string {
   const segredo = process.env["JWT_SECRET"]?.trim();
   if (segredo === undefined || segredo === "") {
     throw new Error("o ponta a ponta da administração precisa de JWT_SECRET");
@@ -49,7 +79,7 @@ export function tokenDoAdministrador(identidadeId: string): string {
   const agora = Math.floor(Date.now() / 1_000);
   const conteudo = `${base64Url({ alg: "HS256", typ: "JWT" })}.${base64Url({
     sub: identidadeId,
-    role: "ADMIN",
+    role: papel,
     sid: randomUUID(),
     fid: randomUUID(),
     iat: agora,
@@ -68,8 +98,7 @@ export function tokenDoAdministrador(identidadeId: string): string {
  */
 export async function garantirAdministrador(): Promise<string> {
   if (administrador !== undefined) return administrador;
-  const cliente = conectar();
-  await cliente.connect();
+  const cliente = await conectarEmBancoDeTeste();
   try {
     const identidade = await cliente.query<{ id: string }>(
       `INSERT INTO app.identities (email_norm, display_name, email_verified_at)
@@ -193,8 +222,7 @@ export async function criarLojaPelaAdministracao(
 
 /** Põe a loja no ar (ACTIVE), como a publicação faria. */
 export async function porLojaNoAr(lojaId: string): Promise<void> {
-  const cliente = conectar();
-  await cliente.connect();
+  const cliente = await conectarEmBancoDeTeste();
   try {
     await cliente.query(
       `UPDATE app.stores SET status = 'ACTIVE' WHERE id = $1`,
