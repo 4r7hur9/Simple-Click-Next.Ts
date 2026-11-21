@@ -666,7 +666,10 @@ describe("custo das consultas novas numa loja de 10.000 produtos", () => {
     return mediana;
   }
 
-  const EXTRA_MAXIMO_EM_MS = 45;
+  // Com cobertura ligada (SC_COM_COBERTURA, vitest.config.ts) o código roda
+  // instrumentado e mais lento: o custo extra tolerado sobe na mesma proporção.
+  const FATOR_DA_COBERTURA = process.env.SC_COM_COBERTURA === "1" ? 3 : 1;
+  const EXTRA_MAXIMO_EM_MS = 45 * FATOR_DA_COBERTURA;
   const casos: Array<[string, string]> = [
     // Sem filtro nenhum: o custo que a loja já tinha, para comparar.
     ["base: página sem filtro", "catalogo/produtos?limite=48"],
@@ -705,7 +708,9 @@ describe("custo das consultas novas numa loja de 10.000 produtos", () => {
               : "base: página sem filtro"
           ] ?? 0);
       // O desconto de atacado é a conta mais pesada (preço + faixas por produto).
-      const extra = nome.startsWith("maior-desconto") ? 60 : EXTRA_MAXIMO_EM_MS;
+      const extra = nome.startsWith("maior-desconto")
+        ? 60 * FATOR_DA_COBERTURA
+        : EXTRA_MAXIMO_EM_MS;
       const teto = base + extra;
       expect(mediana).toBeLessThan(teto);
     });

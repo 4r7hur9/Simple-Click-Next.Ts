@@ -101,6 +101,25 @@ passam em `pnpm test:int` sem instrumentação (#136). Também
 só a janela de tempo desses testes **quando a cobertura está ligada** (ou
 mover a prova de custo para o workflow de desempenho), nunca desligar o teste.
 
+**Resolvido (card #156):** `vitest.config.ts` define `SC_COM_COBERTURA=1` quando
+o comando leva `--coverage`, e as duas provas de tempo
+(`metricas-desempenho.test.ts` e `vitrine-filtros-e-ordens.onp.int.test.ts`)
+multiplicam o limite por 3 só nesse modo. Sem cobertura os limites são os de
+sempre (1 s e 45/60 ms de custo extra); o teste continua rodando e medindo a
+mesma coisa.
+
+### Ambiente do CI (como o `.env` é reproduzido)
+
+O `.env` nunca é versionado, então o `ci.yml` declara no nível do workflow as
+mesmas variáveis do `.env.example`, com valores só de teste, e o
+`globalPassThroughEnv` do `turbo.json` as repassa às tarefas. Os jobs que rodam
+testes de API sobem **dois** PostgreSQL (5432 = desenvolvimento, 5433 = teste:
+o AC-003 prova que o banco efêmero nunca nasce no servidor de desenvolvimento)
+e um Redis; o passo "Banco de desenvolvimento" cria `simpleclick_dev` e aplica
+as migrações com o superusuário do serviço, o que cria os papéis `sc_migrator`,
+`sc_app` e `sc_admin`. A API conecta como `sc_app` (ela recusa superusuário e
+cadeias iguais em `DATABASE_URL` e `DATABASE_URL_DIRETA`).
+
 ## SCA — pnpm audit e Trivy
 
 Medição de 20/11/2026 na `main` **antes** das correções deste card:

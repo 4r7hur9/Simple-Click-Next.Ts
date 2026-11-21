@@ -8,6 +8,13 @@ import { configDefaults, defineConfig } from "vitest/config";
 const arquivoDeAmbiente = fileURLToPath(new URL(".env", import.meta.url));
 if (existsSync(arquivoDeAmbiente)) process.loadEnvFile(arquivoDeAmbiente);
 
+// Com `--coverage` o v8 instrumenta o código e tudo fica mais lento, o que
+// quebra as poucas provas que AFIRMAM TEMPO (limites em milissegundos). Elas
+// leem esta marca e multiplicam o limite por 3 só nesse modo: o limite normal
+// não muda, e a prova continua medindo a mesma coisa. Definida aqui, antes de
+// os processos de teste nascerem, para que eles a herdem.
+if (process.argv.includes("--coverage")) process.env.SC_COM_COBERTURA = "1";
+
 // O Next obriga `jsx: "preserve"` no tsconfig do site — ele reescreve a
 // opção sozinho a cada build. Com isso o transformador do Vitest recebe JSX
 // cru e falha ao ler o arquivo. Aqui declaramos a mesma conversão que o Next

@@ -61,7 +61,13 @@ const PEDIDOS_DA_LOJA = 36_500;
 /** A vizinha divide a tabela, para o filtro por loja ter o que separar. */
 const PEDIDOS_DA_VIZINHA = 20_000;
 /** O teto do critério, em milissegundos. */
-const LIMITE_MS = 1_000;
+/**
+ * Com cobertura ligada (`SC_COM_COBERTURA`, vitest.config.ts) o código roda
+ * instrumentado e mais lento: o limite sobe na mesma proporção, e fora dela
+ * continua sendo um segundo.
+ */
+const FATOR_DA_COBERTURA = process.env.SC_COM_COBERTURA === "1" ? 3 : 1;
+const LIMITE_MS = 1_000 * FATOR_DA_COBERTURA;
 
 /** 14h32 de 27/09/2026 em São Paulo. */
 const AGORA = new Date("2026-09-27T14:32:00-03:00");
