@@ -10,6 +10,7 @@
  * Mora em `lib/` porque o proxy e o servidor usam a mesma regra.
  */
 import { destinoSeguro } from "./destino-seguro.ts";
+import { ehRotaDaTv } from "./rota-da-tv.ts";
 
 export const COOKIE_DA_LOJA_DE_ORIGEM = "sc_loja_de_origem";
 
@@ -32,13 +33,16 @@ export function apelidoDeOrigemValido(valor: unknown): string | undefined {
 /**
  * O apelido da loja de um caminho do site (`/loja/<apelido>` e o que vem
  * depois). O caminho passa antes pelo `destinoSeguro` do #105, e o cardápio
- * da TV não conta (é a tela da loja, não uma visita de cliente).
+ * da TV não conta (é a tela da loja, não uma visita de cliente). O que é "a
+ * rota da TV" tem UMA definição, `ehRotaDaTv`, a mesma que tira o aviso de
+ * cookies da TV (card #137).
  */
 export function apelidoDaLojaNoCaminho(caminho: string): string | undefined {
   const seguro = destinoSeguro(caminho);
   if (seguro === undefined) return undefined;
-  const achado = /^\/loja\/([^/?#]+)(\/[^?#]*)?/.exec(seguro);
+  const soCaminho = seguro.split(/[?#]/, 1)[0] ?? "";
+  if (ehRotaDaTv(soCaminho)) return undefined;
+  const achado = /^\/loja\/([^/]+)/.exec(soCaminho);
   if (achado === null) return undefined;
-  if (/^\/tv(?:\/|$)/.test(achado[2] ?? "")) return undefined;
   return apelidoDeOrigemValido(achado[1]);
 }
