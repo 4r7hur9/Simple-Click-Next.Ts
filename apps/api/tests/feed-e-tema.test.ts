@@ -386,8 +386,11 @@ describe("o tema da vitrine", () => {
       comoDono,
     );
     expect(gravado.status).toBe(200);
+    // Não há cor própria por loja (`temaDaLoja`, contrato do tema): a cor
+    // enviada é validada e aceita, mas a vitrine segue com a cor do
+    // SimpleClick. A imagem, essa, é gravada e volta.
     expect(gravado.body).toEqual({
-      corDestaque: "#ff0055",
+      corDestaque: "#b7ff00",
       corDeFundo: "#000000",
       fundoVitrine: "https://img.exemplo.test/fundo.jpg",
       topoCardapio: null,
@@ -403,7 +406,7 @@ describe("o tema da vitrine", () => {
     expect(vitrine.body.loja.tema).toEqual(gravado.body);
 
     const noFeed = await http.get("/v1/feed/lojas?tipo=FOOD_SNACK");
-    expect(noFeed.body.lojas[0].corDestaque).toBe("#ff0055");
+    expect(noFeed.body.lojas[0].corDestaque).toBe("#b7ff00");
 
     const trilha = await migrador.query(
       `SELECT action FROM app.audit_log WHERE store_id = $1 AND action = 'TEMA_ALTERADO'`,

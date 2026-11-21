@@ -76,6 +76,7 @@ beforeAll(async () => {
 
   const pedido = await fecharPeloSite(api.app, loja, produto, {
     autorizacao: sessao(contaB.id).authorization,
+    origem: sessao(contaB.id).origin,
   });
   idDoPedidoDeB = pedido.id;
 }, ESPERA_DA_ADMINISTRACAO);

@@ -20,7 +20,10 @@ import {
 } from "@simpleclick/testing";
 
 import { emailNovo } from "./apoio-da-conta.ts";
-import { OUTRA_FRASE_DA_PROVA } from "./apoio-da-identidade.ts";
+import {
+  ASSINATURA_DA_PROVA,
+  OUTRA_FRASE_DA_PROVA,
+} from "./apoio-da-identidade.ts";
 import {
   caixaDeEmail,
   clienteVerificado,
@@ -50,13 +53,24 @@ let acesso: AcessoAoBanco;
 let app: Express;
 const caixa = caixaDeEmail();
 
+// O módulo de identidade recebe o segredo pela `fonte` injetada (`montarApi`),
+// mas as rotas internas da conta (`/v1/conta/senha`, `/v1/conta/sessoes`…)
+// conferem o Bearer com `process.env.JWT_SECRET`, como em produção, onde as
+// duas leituras são o mesmo valor. Aqui o token é assinado com o segredo da
+// prova, então o ambiente do arquivo passa a usar o mesmo — sem isso a conta
+// recebia 401 por um token que ela nunca poderia validar.
+const segredoDoAmbiente = process.env.JWT_SECRET;
+
 beforeAll(async () => {
+  process.env.JWT_SECRET = ASSINATURA_DA_PROVA;
   migrador = await conectarNoBancoDoArquivo();
   acesso = abrirAcessoDaAplicacao(bancoDoArquivo().url, { maxDeConexoes: 4 });
   app = montarApi(acesso, { caixa });
 }, ESPERA_LONGA);
 
 afterAll(async () => {
+  if (segredoDoAmbiente === undefined) delete process.env.JWT_SECRET;
+  else process.env.JWT_SECRET = segredoDoAmbiente;
   await acesso?.encerrar();
   await migrador?.end();
 }, ESPERA_LONGA);
@@ -174,19 +188,28 @@ describe("sessões e recuperação de senha", () => {
         .set(comBearer(sessaoDeB));
       expect(listaDeA.status).toBe(200);
       expect(listaDeB.status).toBe(200);
-      expect(listaDeA.body.sessoes).toHaveLength(1);
-      expect(listaDeB.body.sessoes).toHaveLength(1);
-      const idDeB = String(listaDeB.body.sessoes[0].id);
-      expect(listaDeA.body.sessoes.map((s: { id: string }) => s.id)).not.toContain(
-        idDeB,
-      );
+      // O cadastro já abre uma sessão (migração 0047) e o login abre outra:
+      // cada conta tem DUAS conexões, e só a do login é a "atual" de quem lista.
+      type Conexao = { id: string; atual: boolean };
+      const conexoesDeA = listaDeA.body.sessoes as Conexao[];
+      const conexoesDeB = listaDeB.body.sessoes as Conexao[];
+      expect(conexoesDeA).toHaveLength(2);
+      expect(conexoesDeB).toHaveLength(2);
+      expect(conexoesDeA.filter((c) => c.atual)).toHaveLength(1);
+      expect(conexoesDeB.filter((c) => c.atual)).toHaveLength(1);
+      // As listas não se tocam: nenhuma conexão de B aparece na lista de A.
+      const idsDeA = conexoesDeA.map((c) => c.id);
+      for (const conexao of conexoesDeB) {
+        expect(idsDeA).not.toContain(conexao.id);
+      }
+      const idDeB = String(conexoesDeB.find((c) => c.atual)?.id);
 
       const tentativaDeA = await request(app)
         .delete(`/v1/conta/sessoes/${idDeB}`)
         .set("Origin", "https://site.exemplo.test")
         .set(comBearer(sessaoDeA));
       expect(tentativaDeA.status).toBe(404);
-      expect(tentativaDeA.body).toEqual({ erro: "nao_encontrada" });
+      expect(tentativaDeA.body).toEqual({ erro: "nao_encontrado" });
 
       const renovadaDeB = await enviar(
         app,

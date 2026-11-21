@@ -108,6 +108,10 @@ export function montarApi(
       ...(extra.caixa === undefined ? {} : { email: extra.caixa.saida }),
       cacheDoLimite: (extra.limite ?? cacheDoLimiteDeProva()).cache,
     },
+    // As rotas internas da conta (dados, senha, sessões) leem do mesmo banco
+    // da prova: sem isto elas abriam o acesso padrão do ambiente e não
+    // achavam a identidade criada aqui (401 `nao_autenticado`).
+    contaInterna: { acesso },
   });
 }
 

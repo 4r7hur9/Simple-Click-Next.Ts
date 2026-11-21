@@ -82,6 +82,12 @@ export interface OpcoesDaCompra {
   readonly contato?: { readonly nome: string; readonly telefone: string };
   /** Sem conta nenhuma: para provar o 401 `conta_obrigatoria`. */
   readonly semConta?: boolean | undefined;
+  /**
+   * A origem (cabeçalho `Origin`) que a app da prova autoriza. O padrão é a do
+   * painel; quem monta a API completa (`montarApiCompleta`) autoriza a da
+   * administração e passa aquela aqui.
+   */
+  readonly origem?: string | undefined;
 }
 
 /**
@@ -97,9 +103,10 @@ export async function fecharPeloSite(
   item: ProdutoDeTeste,
   opcoes: OpcoesDaCompra = {},
 ): Promise<PedidoFechado> {
+  const origem = opcoes.origem ?? ORIGEM_DO_PAINEL;
   const acrescentado = await request(app)
     .post(`/v1/vitrine/${alvo.apelido}/carrinho/itens`)
-    .set("Origin", ORIGEM_DO_PAINEL)
+    .set("Origin", origem)
     .send({ produtoId: item.id, quantidade: 1, escolhas: [] });
   if (acrescentado.status !== 201) {
     throw new Error(
@@ -110,7 +117,7 @@ export async function fecharPeloSite(
 
   let fechamento = request(app)
     .post(`/v1/vitrine/${alvo.apelido}/pedidos`)
-    .set("Origin", ORIGEM_DO_PAINEL)
+    .set("Origin", origem)
     .set(
       "Cookie",
       opcoes.cookieDeAcesso === undefined

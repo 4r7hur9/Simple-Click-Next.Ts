@@ -22,6 +22,7 @@ import {
 } from "@simpleclick/testing";
 
 import { ESPERA_DA_ADMINISTRACAO } from "./apoio-da-administracao.ts";
+import { esquemaPublicadoDaResposta } from "./apoio-do-contrato.ts";
 import {
   cliente,
   montarApiCompleta,
@@ -165,6 +166,11 @@ describe("a loja aberta pelo lojista nasce aguardando aprovação", () => {
       tipoDeNegocio: "NAO_EXISTE",
     });
     expect(tipo.status).toBe(400);
+    // [CA-1] (card #137) o 400 escrito à mão passa pelo esquema publicado no
+    // contrato: o cliente nativo gerado dele consegue ler esta recusa.
+    expect(tipo.body.erro).toBe("tipo_desconhecido");
+    const publicado = esquemaPublicadoDaResposta("/v1/auth/lojas", "post", 400);
+    expect(publicado.safeParse(tipo.body).success).toBe(true);
   });
 });
 
