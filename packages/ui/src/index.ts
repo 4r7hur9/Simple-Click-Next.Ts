@@ -65,6 +65,11 @@ export type {
 
 export { Selo } from "./selo";
 export type { SeloProps, TomDeSelo } from "./selo";
+export {
+  SeloDaAdministracao,
+  TEXTO_DO_SELO_DA_ADMINISTRACAO,
+} from "./selo-da-administracao";
+export type { SeloDaAdministracaoProps } from "./selo-da-administracao";
 
 export { Sanfona } from "./sanfona";
 export type { SanfonaProps } from "./sanfona";
@@ -164,6 +169,10 @@ export type {
 } from "./selo-de-status";
 
 export {
+  ADMINISTRACAO_CLARA,
+  ADMINISTRACAO_ESCURA,
+  NOME_NO_CSS_DA_ADMINISTRACAO,
+  PALETAS_DA_ADMINISTRACAO,
   BRILHO_DO_CTA,
   COR_DA_ESTRELA_NO_ESCURO,
   ESCALA_TIPOGRAFICA,
@@ -180,6 +189,7 @@ export {
 } from "./tokens";
 export type {
   NomeDoTema,
+  PaletaDaAdministracao,
   PaletaDeCores,
   PapelTipografico,
   TipoDoPapel,

@@ -19,6 +19,7 @@
 @import "./calendario.css";
 @import "./info.css";
 @import "./recortador.css"; /* recorte de imagem (card #82) */
+@import "./administracao-da-plataforma.css"; /* modo administração (card #170) */
 @import "./contexto-da-foto.css"; /* "como vai aparecer" das fotos da loja (card #36) */
 
 :root {
@@ -249,6 +250,17 @@
   --vidro-sombra-acima: 0 -8px 24px rgb(11 15 13 / 10%);
   --vidro-sobreposicao: rgb(11 15 13 / 60%);
 
+  /* administração da plataforma (card #170) - o que muda com o tema */
+  --admin-menu-fundo: #dff3b5;
+  --admin-menu-tinta: #0b0f0d;
+  --admin-menu-tinta-suave: #34401f;
+  --admin-menu-borda: #5f7a3f;
+  --admin-menu-ativo-fundo: #b7ff00;
+  --admin-menu-ativo-tinta: #0b0f0d;
+  --admin-faixa: #3f7900;
+  --admin-selo-fundo: #3f7900;
+  --admin-selo-tinta: #ffffff;
+
   /* --- alvo de toque: o dedo, e não o cursor, é a medida --- */
   --altura-toque: 2.75rem;
   --altura-toque-grande: 3rem;
@@ -429,6 +441,17 @@
     --vidro-sombra-forte: 0 28px 72px rgb(0 0 0 / 65%);
     --vidro-sombra-acima: 0 -8px 24px rgb(0 0 0 / 40%);
     --vidro-sobreposicao: rgb(0 0 0 / 70%);
+
+    /* administração da plataforma (card #170) - o que muda com o tema */
+    --admin-menu-fundo: #12260f;
+    --admin-menu-tinta: #ffffff;
+    --admin-menu-tinta-suave: #b4c4a6;
+    --admin-menu-borda: #5f8a3a;
+    --admin-menu-ativo-fundo: #b7ff00;
+    --admin-menu-ativo-tinta: #0b0f0d;
+    --admin-faixa: #b7ff00;
+    --admin-selo-fundo: #b7ff00;
+    --admin-selo-tinta: #0b0f0d;
   }
 }
 
@@ -491,6 +514,17 @@
   --vidro-sombra-forte: 0 28px 72px rgb(0 0 0 / 65%);
   --vidro-sombra-acima: 0 -8px 24px rgb(0 0 0 / 40%);
   --vidro-sobreposicao: rgb(0 0 0 / 70%);
+
+  /* administração da plataforma (card #170) - o que muda com o tema */
+  --admin-menu-fundo: #12260f;
+  --admin-menu-tinta: #ffffff;
+  --admin-menu-tinta-suave: #b4c4a6;
+  --admin-menu-borda: #5f8a3a;
+  --admin-menu-ativo-fundo: #b7ff00;
+  --admin-menu-ativo-tinta: #0b0f0d;
+  --admin-faixa: #b7ff00;
+  --admin-selo-fundo: #b7ff00;
+  --admin-selo-tinta: #0b0f0d;
 }
 
 /* Trecho claro dentro de página escura: repete as cores do `:root`, que só a
@@ -548,6 +582,17 @@
   --vidro-sombra-forte: 0 24px 64px rgb(11 15 13 / 22%);
   --vidro-sombra-acima: 0 -8px 24px rgb(11 15 13 / 10%);
   --vidro-sobreposicao: rgb(11 15 13 / 60%);
+
+  /* administração da plataforma (card #170) - o que muda com o tema */
+  --admin-menu-fundo: #dff3b5;
+  --admin-menu-tinta: #0b0f0d;
+  --admin-menu-tinta-suave: #34401f;
+  --admin-menu-borda: #5f7a3f;
+  --admin-menu-ativo-fundo: #b7ff00;
+  --admin-menu-ativo-tinta: #0b0f0d;
+  --admin-faixa: #3f7900;
+  --admin-selo-fundo: #3f7900;
+  --admin-selo-tinta: #ffffff;
 }
 
 /* Os nomes antigos apontam para a cor do TRECHO, e não para a da raiz. */

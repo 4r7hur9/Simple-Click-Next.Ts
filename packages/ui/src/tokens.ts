@@ -299,6 +299,66 @@ export const BRILHO_DO_CTA = Object.freeze({
   forcaNoClaro: "0%",
 });
 
+// ---------------------------------------------------------------------------
+// Modo administração da plataforma (card #170)
+// ---------------------------------------------------------------------------
+
+/** As cores do modo administração, por tema (tokens `--admin-*`). */
+export type PaletaDaAdministracao = {
+  readonly menuFundo: string;
+  readonly menuTinta: string;
+  readonly menuTintaSuave: string;
+  readonly menuBorda: string;
+  readonly menuAtivoFundo: string;
+  readonly menuAtivoTinta: string;
+  readonly faixa: string;
+  readonly seloFundo: string;
+  readonly seloTinta: string;
+};
+
+export const NOME_NO_CSS_DA_ADMINISTRACAO: Readonly<
+  Record<keyof PaletaDaAdministracao, string>
+> = {
+  menuFundo: "--admin-menu-fundo",
+  menuTinta: "--admin-menu-tinta",
+  menuTintaSuave: "--admin-menu-tinta-suave",
+  menuBorda: "--admin-menu-borda",
+  menuAtivoFundo: "--admin-menu-ativo-fundo",
+  menuAtivoTinta: "--admin-menu-ativo-tinta",
+  faixa: "--admin-faixa",
+  seloFundo: "--admin-selo-fundo",
+  seloTinta: "--admin-selo-tinta",
+};
+
+export const ADMINISTRACAO_CLARA: PaletaDaAdministracao = {
+  menuFundo: "#dff3b5",
+  menuTinta: "#0b0f0d",
+  menuTintaSuave: "#34401f",
+  menuBorda: "#5f7a3f",
+  menuAtivoFundo: "#b7ff00",
+  menuAtivoTinta: "#0b0f0d",
+  faixa: "#3f7900",
+  seloFundo: "#3f7900",
+  seloTinta: "#ffffff",
+};
+
+export const ADMINISTRACAO_ESCURA: PaletaDaAdministracao = {
+  menuFundo: "#12260f",
+  menuTinta: "#ffffff",
+  menuTintaSuave: "#b4c4a6",
+  menuBorda: "#5f8a3a",
+  menuAtivoFundo: "#b7ff00",
+  menuAtivoTinta: "#0b0f0d",
+  faixa: "#b7ff00",
+  seloFundo: "#b7ff00",
+  seloTinta: "#0b0f0d",
+};
+
+export const PALETAS_DA_ADMINISTRACAO = {
+  claro: ADMINISTRACAO_CLARA,
+  escuro: ADMINISTRACAO_ESCURA,
+} as const;
+
 /** Valores cromáticos publicados no manual oficial, sem derivação semântica. */
 export const PALETA_OFICIAL = Object.freeze({
   verdeClick: "#b7ff00",
