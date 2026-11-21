@@ -3,8 +3,9 @@
  *
  * Sempre escuro (preto/grafite), como a câmera do celular: a cor de destaque
  * da loja vem em --sc-story-destaque (e a tinta legível sobre ela em
- * --sc-story-sobre-destaque), definidas pelo componente. Sem backdrop-filter e
- * sem biblioteca de animação: só transform e opacidade, e o
+ * --sc-story-sobre-destaque), definidas pelo componente. Os controles de vidro
+ * leem `--vidro-sobre-midia` (theme.css, card #153) e não desfocam nada. Sem
+ * biblioteca de animação: só transform e opacidade, e o
  * prefers-reduced-motion do site já corta as transições.
  */
 
@@ -15,7 +16,7 @@
   --sc-story-grafite: #141a17;
   --sc-story-grafite-alto: #1d2521;
   --sc-story-linha: rgb(255 255 255 / 18%);
-  --sc-story-vidro: rgb(255 255 255 / 14%);
+  --sc-story-vidro: var(--vidro-sobre-midia);
   position: fixed;
   inset: 0;
   z-index: 1000;

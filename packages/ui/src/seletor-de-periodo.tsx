@@ -158,6 +158,9 @@ export function SeletorDePeriodo({
       if (topo + altura > window.innerHeight - MARGEM_DA_TELA && acima >= MARGEM_DA_TELA) {
         topo = acima;
       }
+      // Nunca termina abaixo da tela: a altura já é limitada pelo CSS, então
+      // subir o topo basta para o Aplicar ficar alcançável.
+      topo = Math.min(topo, window.innerHeight - altura - MARGEM_DA_TELA);
       caixa.style.left = `${esquerda}px`;
       caixa.style.top = `${Math.max(MARGEM_DA_TELA, topo)}px`;
     }

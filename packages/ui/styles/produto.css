@@ -28,7 +28,6 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--cor-fundo);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
   overflow-y: auto;
@@ -846,13 +845,12 @@ p.sc-produto__grupo-regra {
 
 .sc-aviso-rapido__texto {
   padding: var(--espaco-3) var(--espaco-4);
-  border: 1px solid var(--cor-borda-forte);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--raio-completo);
-  background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font-size: var(--texto-sm);
   font-weight: var(--peso-forte);
-  box-shadow: var(--sombra-3);
   animation: sc-aviso-entra 200ms ease-out;
 }
 
@@ -874,9 +872,9 @@ p.sc-produto__grupo-regra {
     inline-size: min(60rem, calc(100vw - 3rem));
     block-size: min(45rem, calc(100dvh - 3rem));
     margin: auto;
-    border: 1px solid var(--cor-borda);
+    border-width: 1px;
+    border-style: solid;
     border-radius: var(--raio-janela);
-    box-shadow: var(--sombra-3);
     overflow: hidden;
   }
 

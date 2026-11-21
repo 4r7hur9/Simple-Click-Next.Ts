@@ -16,7 +16,7 @@
   );
   inset-inline: max(var(--espaco-3), env(safe-area-inset-left))
     max(var(--espaco-3), env(safe-area-inset-right));
-  /* Abaixo da sacola flutuante (20) e da lateral (30/40): nunca as cobre. */
+  /* Abaixo da sacola (20) e do topo do cliente: nunca os cobre. */
   z-index: 15;
   box-sizing: border-box;
   /* Deixa o topo livre (Entrar/Menu) e rola por dentro se não couber. */
@@ -24,11 +24,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--espaco-4);
-  border: 1px solid var(--cor-borda);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--raio-janela);
-  background: var(--cor-superficie);
   color: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
   font-family: var(--fonte-corpo);
 }
 
@@ -207,18 +206,13 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
 }
 
 /* Computador: cartão no canto de baixo à direita (painel, administração,
-   landing, login, e agora também o topo do cliente) ou, onde há a lateral do
-   usuário (painel e administração), logo ao lado dela. */
+   landing, login e as áreas do cliente). */
 @media (min-width: 64rem) {
   .sc-cookies {
     inset-block-end: max(var(--espaco-5), env(safe-area-inset-bottom));
     inset-inline: auto max(var(--espaco-5), env(safe-area-inset-right));
     inline-size: min(26rem, calc(100vw - 2 * var(--espaco-5)));
     max-block-size: calc(100dvh - 2 * var(--espaco-5));
-  }
-
-  body:has(.sc-usuario-lateral) .sc-cookies {
-    inset-inline: calc(var(--largura-da-lateral, 0px) + var(--espaco-5)) auto;
   }
 }
 

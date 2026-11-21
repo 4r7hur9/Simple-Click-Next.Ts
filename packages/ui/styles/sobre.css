@@ -6,7 +6,8 @@
  * janela. No celular a janela é uma gaveta que sobe da base, quase tela cheia;
  * do tablet em diante, um painel centrado com rolagem própria.
  *
- * Sem `backdrop-filter` (proibido no projeto): o fundo escurece só com cor.
+ * O fundo, a sombra e o desfoque da folha são do vidro (vidro.css, card #153)
+ * e o fundo da página escurece só com cor, sem desfoque.
  * Nenhuma cor é escrita aqui — toda cor vem de valor declarado (AC-014).
  */
 
@@ -21,13 +22,10 @@
   padding: 0;
   border: 0;
   border-radius: var(--raio-janela) var(--raio-janela) 0 0;
-  background: var(--cor-superficie);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
   overflow-y: auto;
   overscroll-behavior: contain;
-  box-shadow: 0 -24px 60px -24px
-    color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent);
 }
 
 .sc-sobre-janela[open] {
@@ -624,7 +622,6 @@ html:has(.sc-sobre-janela[open]) {
     max-block-size: calc(100dvh - 2rem);
     margin: auto;
     border-radius: var(--raio-janela);
-    box-shadow: var(--sombra-larga);
   }
 
   .sc-sobre-janela[open]:not(:modal) {

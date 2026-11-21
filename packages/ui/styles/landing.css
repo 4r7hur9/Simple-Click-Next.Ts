@@ -272,8 +272,13 @@ html:has(.sc-lp) body {
   inset-block-start: 0;
   z-index: 50;
   border-block-end: 1px solid var(--cor-borda);
-  background: color-mix(in oklab, var(--cor-fundo) 86%, transparent);
-  backdrop-filter: blur(12px);
+  background: color-mix(
+    in oklab,
+    var(--cor-fundo) var(--vidro-opacidade-medio),
+    transparent
+  );
+  -webkit-backdrop-filter: var(--vidro-filtro-leve);
+  backdrop-filter: var(--vidro-filtro-leve);
 }
 
 .sc-lp-topo__dentro {

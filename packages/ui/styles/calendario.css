@@ -64,6 +64,10 @@
   box-sizing: border-box;
   inline-size: max-content;
   max-inline-size: calc(100vw - var(--espaco-4) * 2);
+  /* Janela baixa (1280×720): o painel cabe na tela e rola por dentro, para o
+     Aplicar nunca ficar fora do alcance (D-5). 1rem = a margem do script. */
+  max-block-size: calc(100dvh - 1rem);
+  overflow-y: auto;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-janela);
   background-color: var(--cor-superficie);

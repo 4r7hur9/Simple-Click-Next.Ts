@@ -276,14 +276,19 @@ html:has(.sc-tema-loja) body {
   margin: 0;
   padding: 0.375rem 0.75rem;
   border-radius: var(--raio-completo);
-  background: color-mix(in srgb, var(--cor-fundo) 82%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--cor-fundo) var(--vidro-opacidade-leve),
+    transparent
+  );
   color: var(--cor-tinta);
   font-size: var(--texto-xs);
   font-weight: var(--peso-negrito);
   letter-spacing: 0.04em;
   line-height: 1.2;
   text-transform: uppercase;
-  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: var(--vidro-filtro-leve);
+  backdrop-filter: var(--vidro-filtro-leve);
 }
 
 .sc-loja__pulso {

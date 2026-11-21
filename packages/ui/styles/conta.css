@@ -367,12 +367,6 @@
   margin-inline: auto;
 }
 
-
-
-
-
-
-
 .sc-minha-conta__cabecalho {
   display: grid;
   gap: var(--espaco-2);
@@ -818,7 +812,8 @@
  *
  * Mesma família das janelas do Sobre e do carrinho: no celular uma gaveta
  * que sobe da base, quase tela cheia; do tablet em diante, um cartão
- * centrado. Sem `backdrop-filter`: o fundo escurece só com cor.
+ * centrado. O fundo, a sombra e o desfoque da folha são do vidro (vidro.css,
+ * card #153): este bloco só cuida de tamanho e posição.
  */
 
 .sc-acesso-janela {
@@ -830,13 +825,10 @@
   padding: 0;
   border: 0;
   border-radius: var(--raio-janela) var(--raio-janela) 0 0;
-  background: var(--cor-superficie-alta);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
   overflow-y: auto;
   overscroll-behavior: contain;
-  box-shadow: 0 -24px 60px -24px
-    color-mix(in srgb, var(--marca-preto-tecnologico) 60%, transparent);
 }
 
 .sc-acesso-janela[open] {
@@ -1004,7 +996,6 @@ html:has(.sc-acesso-janela[open]) {
     max-block-size: calc(100dvh - 2rem);
     margin: auto;
     border-radius: var(--raio-janela);
-    box-shadow: var(--sombra-larga);
   }
 
   .sc-acesso-janela__moldura {
@@ -1013,9 +1004,6 @@ html:has(.sc-acesso-janela[open]) {
 }
 
 /* --- conta (card #35): navegação rolável, início, filtros, dados, segurança --- */
-
-
-
 
 .sc-inicio,
 .sc-dados,
@@ -1304,7 +1292,6 @@ html:has(.sc-acesso-janela[open]) {
   .sc-dados__grade {
     grid-template-columns: minmax(0, 1fr);
   }
-
 }
 
 @media (min-width: 64rem) {
@@ -1375,7 +1362,6 @@ html:has(.sc-acesso-janela[open]) {
   margin-block-start: var(--espaco-3);
 }
 
-
 /* --- conta: seções e moldura (card #111) -------------------------------- */
 
 /* A barra inferior do cliente (#105) cobre o pé da página no celular. */
@@ -1395,92 +1381,77 @@ html:has(.sc-acesso-janela[open]) {
   min-inline-size: 0;
 }
 
-.sc-secoes-da-conta__lista {
-  display: flex;
-  gap: var(--espaco-2);
-  margin: 0;
-  padding: 0 0 var(--espaco-1);
-  overflow-x: auto;
-  scrollbar-width: none;
-  list-style: none;
-}
-
-.sc-secoes-da-conta__lista::-webkit-scrollbar {
-  display: none;
-}
-
-.sc-secoes-da-conta__link {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--altura-toque);
-  padding: 0 var(--espaco-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-completo);
-  background-color: var(--cor-superficie-alta);
-  color: var(--cor-tinta);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.sc-secoes-da-conta__link[aria-current="page"] {
-  border-color: var(--cor-primaria);
-  background-color: var(--cor-primaria);
-  color: var(--cor-em-primaria, var(--cor-tinta-extrema-escura));
-  font-weight: var(--peso-forte);
-}
-
-.sc-secoes-da-conta__link:focus-visible {
-  outline: 2px solid var(--cor-foco, var(--cor-primaria-texto));
-  outline-offset: 2px;
-}
-
-/* Em /conta, no celular, a lista é a página inicial das seções. */
-@media (max-width: 63.99rem) {
-  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__lista {
-    display: grid;
-    overflow: visible;
-  }
-
-  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link {
-    justify-content: space-between;
-    min-block-size: 3.25rem;
-    border-radius: var(--raio-cartao);
-    font-size: var(--texto-base);
-  }
-
-  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link::after {
-    content: "›";
-    color: var(--cor-tinta-suave);
-  }
-
-  .sc-secoes-da-conta[data-hub] .sc-secoes-da-conta__link[aria-current="page"]::after {
-    color: inherit;
-  }
-}
-
+/* Em tela larga a conta é uma coluna só, mais larga que no celular. */
 @media (min-width: 64rem) {
   .sc-minha-conta__miolo {
-    grid-template-columns: 13rem minmax(0, 1fr);
-    align-items: start;
-    gap: var(--espaco-6);
-    inline-size: min(100%, 68rem);
+    inline-size: min(100%, 56rem);
   }
+}
 
-  .sc-secoes-da-conta {
-    position: sticky;
-    inset-block-start: var(--espaco-5);
-  }
+/* --- modal "Minha conta" (card #151) -------------------------------------
+   A `Gaveta` do DS (dialog com `showModal`) com a classe `sc-conta-modal`: no
+   celular é uma folha de tela cheia (cobre também a barra inferior, que fica
+   na página); a partir de 48rem, uma janela centralizada. O seletor com as
+   duas classes vence `.sc-gaveta-modal--direita` sem depender da ordem.
 
-  .sc-secoes-da-conta__lista {
-    display: grid;
-    overflow: visible;
-  }
+   Superfície (vidro do #153): o fundo, a borda, a sombra e o desfoque da
+   janela vêm do vidro do DS (vidro.css, nível forte, forma camada); a janela
+   inteira é `dialog.sc-conta-modal` e o cabeçalho, o corpo e o rodapé são
+   `.sc-gaveta-modal__cabeca`, `__corpo` e `__rodape`. Este bloco cuida do
+   TAMANHO, da posição e do que faz dela o destaque: a aresta de cima com um
+   toque do verde e o fundo da página escurecido e desfocado (só a partir de
+   48rem: no celular a janela cobre a tela toda e o desfoque não apareceria).
+   A lógica do `ModalDaConta` não escreve cor nenhuma. */
+.sc-gaveta-modal.sc-conta-modal {
+  inset: 0;
+  margin: auto;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100dvh;
+  max-block-size: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
 
-  .sc-secoes-da-conta__link {
-    border-radius: var(--raio-botao);
+@media (min-width: 48rem) {
+  .sc-gaveta-modal.sc-conta-modal {
+    inline-size: min(56rem, calc(100% - var(--espaco-6)));
+    block-size: min(48rem, calc(100dvh - var(--espaco-6)));
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-janela);
   }
+}
+
+/* O destaque: a aresta de cima ganha um toque do verde. */
+.sc-gaveta-modal.sc-conta-modal::before {
+  box-shadow: inset 0 1px 0
+    color-mix(in srgb, var(--cor-primaria) 60%, var(--vidro-realce));
+}
+
+/* O fundo da página, mais escuro que o dos outros modais, e desfocado. */
+.sc-gaveta-modal.sc-conta-modal::backdrop {
+  background-color: var(--vidro-sobreposicao);
+}
+
+@media (min-width: 48rem) {
+  .sc-gaveta-modal.sc-conta-modal::backdrop {
+    -webkit-backdrop-filter: blur(var(--vidro-desfoque-do-fundo));
+    backdrop-filter: blur(var(--vidro-desfoque-do-fundo));
+  }
+}
+
+/* A página de fundo não rola com o modal aberto. */
+html:has(.sc-conta-modal[open]) {
+  overflow: hidden;
+}
+
+.sc-conta-modal .sc-gaveta-modal__corpo {
+  overscroll-behavior: contain;
+}
+
+.sc-conta-modal__abas {
+  display: grid;
+  gap: var(--espaco-4);
 }
 
 /* --- conta: pedidos (card #111) ------------------------------------------

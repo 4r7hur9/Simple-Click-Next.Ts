@@ -402,11 +402,10 @@
   max-block-size: calc(100dvh - 1.5rem);
   margin: auto;
   padding: 0;
-  border: 1px solid var(--cor-borda);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--raio-janela);
-  background: var(--cor-fundo);
   color: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
   overflow: hidden;
 }
 

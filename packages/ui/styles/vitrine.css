@@ -565,9 +565,7 @@
     calc(var(--espaco-5) + env(safe-area-inset-bottom));
   border: none;
   border-radius: var(--raio-janela) var(--raio-janela) 0 0;
-  background: var(--cor-fundo);
   color: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -2750,6 +2748,9 @@
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+    /* Bloco estático na lateral, que rola com a página: sem desfoque. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     overflow: visible;
     animation: none;
     position-area: none;

@@ -15,6 +15,7 @@
  */
 
 @import "./componentes.css";
+@import "./vidro.css"; /* vidro líquido das superfícies flutuantes (card #153) */
 @import "./calendario.css";
 @import "./info.css";
 @import "./recortador.css"; /* recorte de imagem (card #82) */
@@ -215,6 +216,39 @@
   --sombra-3: 0 12px 32px rgb(11 15 13 / 18%);
   --sombra-larga: 0 8px 24px rgb(11 15 13 / 8%);
 
+  /* --- vidro líquido (card #153) ---
+     Superfícies flutuantes translúcidas, com desfoque, borda interna clara e
+     sombra macia. Os tokens abaixo só existem aqui na raiz, e é por isso que
+     o fallback no fim deste arquivo vence em qualquer tema ou trecho com
+     data-tema. A cor do vidro (borda, realce e sombras) muda com o tema e
+     fica nos blocos de cada tema. As regras estão em vidro.css. */
+  --vidro-opacidade-leve: 91%;
+  --vidro-opacidade-medio: 93%;
+  --vidro-opacidade-forte: 96%;
+  --vidro-blur-leve: 12px;
+  --vidro-blur-medio: 20px;
+  --vidro-blur-forte: 28px;
+  --vidro-saturacao: 160%;
+  --vidro-filtro-leve: blur(var(--vidro-blur-leve))
+    saturate(var(--vidro-saturacao));
+  --vidro-filtro-medio: blur(var(--vidro-blur-medio))
+    saturate(var(--vidro-saturacao));
+  --vidro-filtro-forte: blur(var(--vidro-blur-forte))
+    saturate(var(--vidro-saturacao));
+  --vidro-brilho-alfa: 0.3;
+  --vidro-desfoque-do-fundo: 8px;
+  --vidro-sobre-midia: rgb(255 255 255 / 14%);
+
+  /* vidro (card #153) - o que muda com o tema */
+  --vidro-base: var(--cor-superficie-alta);
+  --vidro-borda: rgb(11 15 13 / 10%);
+  --vidro-realce: rgb(255 255 255 / 85%);
+  --vidro-sombra-leve: 0 4px 16px rgb(11 15 13 / 8%);
+  --vidro-sombra-medio: 0 12px 32px rgb(11 15 13 / 14%);
+  --vidro-sombra-forte: 0 24px 64px rgb(11 15 13 / 22%);
+  --vidro-sombra-acima: 0 -8px 24px rgb(11 15 13 / 10%);
+  --vidro-sobreposicao: rgb(11 15 13 / 60%);
+
   /* --- alvo de toque: o dedo, e não o cursor, é a medida --- */
   --altura-toque: 2.75rem;
   --altura-toque-grande: 3rem;
@@ -385,6 +419,16 @@
     --sombra-2: 0 2px 8px rgb(0 0 0 / 45%);
     --sombra-3: 0 12px 32px rgb(0 0 0 / 60%);
     --sombra-larga: 0 8px 24px rgb(0 0 0 / 40%);
+
+    /* vidro (card #153) - o que muda com o tema */
+    --vidro-base: var(--cor-fundo);
+    --vidro-borda: rgb(255 255 255 / 14%);
+    --vidro-realce: rgb(255 255 255 / 22%);
+    --vidro-sombra-leve: 0 4px 16px rgb(0 0 0 / 35%);
+    --vidro-sombra-medio: 0 12px 32px rgb(0 0 0 / 50%);
+    --vidro-sombra-forte: 0 28px 72px rgb(0 0 0 / 65%);
+    --vidro-sombra-acima: 0 -8px 24px rgb(0 0 0 / 40%);
+    --vidro-sobreposicao: rgb(0 0 0 / 70%);
   }
 }
 
@@ -437,6 +481,16 @@
   --sombra-2: 0 2px 8px rgb(0 0 0 / 45%);
   --sombra-3: 0 12px 32px rgb(0 0 0 / 60%);
   --sombra-larga: 0 8px 24px rgb(0 0 0 / 40%);
+
+  /* vidro (card #153) - o que muda com o tema */
+  --vidro-base: var(--cor-fundo);
+  --vidro-borda: rgb(255 255 255 / 14%);
+  --vidro-realce: rgb(255 255 255 / 22%);
+  --vidro-sombra-leve: 0 4px 16px rgb(0 0 0 / 35%);
+  --vidro-sombra-medio: 0 12px 32px rgb(0 0 0 / 50%);
+  --vidro-sombra-forte: 0 28px 72px rgb(0 0 0 / 65%);
+  --vidro-sombra-acima: 0 -8px 24px rgb(0 0 0 / 40%);
+  --vidro-sobreposicao: rgb(0 0 0 / 70%);
 }
 
 /* Trecho claro dentro de página escura: repete as cores do `:root`, que só a
@@ -484,6 +538,16 @@
   --sombra-2: 0 2px 8px rgb(11 15 13 / 10%);
   --sombra-3: 0 12px 32px rgb(11 15 13 / 18%);
   --sombra-larga: 0 8px 24px rgb(11 15 13 / 8%);
+
+  /* vidro (card #153) - o que muda com o tema */
+  --vidro-base: var(--cor-superficie-alta);
+  --vidro-borda: rgb(11 15 13 / 10%);
+  --vidro-realce: rgb(255 255 255 / 85%);
+  --vidro-sombra-leve: 0 4px 16px rgb(11 15 13 / 8%);
+  --vidro-sombra-medio: 0 12px 32px rgb(11 15 13 / 14%);
+  --vidro-sombra-forte: 0 24px 64px rgb(11 15 13 / 22%);
+  --vidro-sombra-acima: 0 -8px 24px rgb(11 15 13 / 10%);
+  --vidro-sobreposicao: rgb(11 15 13 / 60%);
 }
 
 /* Os nomes antigos apontam para a cor do TRECHO, e não para a da raiz. */
@@ -604,4 +668,57 @@
 .sc-barra-cliente,
 .sc-rodape-legal {
   --altura-toque: var(--altura-toque-cliente);
+}
+
+/* --- vidro: o fallback sólido (card #153) -----------------------------------
+ *
+ * Vem POR ÚLTIMO de propósito: o @import de vidro.css está no topo e perderia
+ * para os blocos de tema. Só mexe em tokens que existem apenas em `:root`
+ * (opacidade, filtro, brilho e desfoque do fundo), então nem os blocos
+ * escuros nem um trecho com `data-tema` próprio os redeclaram.
+ *
+ *  - sem `backdrop-filter` no navegador, o desfoque não existe e o texto não
+ *    pode ficar sobre um fundo que mostra o que está atrás;
+ *  - quem pede menos transparência recebe a superfície inteira, sem brilho;
+ *  - quem pede mais contraste também.
+ */
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  :root {
+    --vidro-opacidade-leve: 100%;
+    --vidro-opacidade-medio: 100%;
+    --vidro-opacidade-forte: 100%;
+    --vidro-filtro-leve: none;
+    --vidro-filtro-medio: none;
+    --vidro-filtro-forte: none;
+    --vidro-brilho-alfa: 0;
+    --vidro-desfoque-do-fundo: 0px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --vidro-opacidade-leve: 100%;
+    --vidro-opacidade-medio: 100%;
+    --vidro-opacidade-forte: 100%;
+    --vidro-filtro-leve: none;
+    --vidro-filtro-medio: none;
+    --vidro-filtro-forte: none;
+    --vidro-brilho-alfa: 0;
+    --vidro-desfoque-do-fundo: 0px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --vidro-opacidade-leve: 100%;
+    --vidro-opacidade-medio: 100%;
+    --vidro-opacidade-forte: 100%;
+    --vidro-filtro-leve: none;
+    --vidro-filtro-medio: none;
+    --vidro-filtro-forte: none;
+    --vidro-brilho-alfa: 0;
+    --vidro-desfoque-do-fundo: 0px;
+  }
 }

@@ -1,0 +1,323 @@
+/*
+ * Vidro líquido das superfícies flutuantes (card #153).
+ *
+ * Superfície translúcida sobre o fundo escuro (ou claro) do SimpleClick:
+ * preenchimento leve, desfoque com saturação, borda interna clara de 1px
+ * (o realce, só na aresta de cima), um brilho especular nos 40% de cima e
+ * sombra macia. Os valores moram em theme.css (`--vidro-*`); aqui só estão as
+ * regras. Os tokens e o fallback sólido (sem `backdrop-filter`, com
+ * `prefers-reduced-transparency` ou `prefers-contrast: more`) ficam em
+ * theme.css, por último.
+ *
+ * EXCEÇÃO AO AC-950 (identidade visual global): a spec pede texto sobre
+ * superfície sólida, e botões e campos continuam assim. O pedido do Arthur
+ * abre uma exceção SÓ para as superfícies flutuantes listadas aqui (topo,
+ * menus, janelas, gavetas, barras fixas, avisos). O que mantém a leitura:
+ * o preenchimento de cada nível foi fixado pelo teste de contraste (AA no pior
+ * fundo, sem contar o desfoque), e este arquivo NUNCA mira botão nem campo.
+ *
+ * Como o desfoque é aplicado (decisão do card, três formas):
+ *
+ *  - DIRETA: `backdrop-filter` no próprio elemento. Para quem não tem filho
+ *    `position: fixed` que não seja `popover` (menus, seletor, avisos, barras,
+ *    cookies, sobre, acesso).
+ *  - CAMADA: o desfoque, o brilho e o realce vão num `::before` (atrás do
+ *    conteúdo, `z-index: -1`) e o elemento fica com `isolation: isolate`.
+ *    Para as janelas e gavetas, que têm filho fixo (o calendário do período) e
+ *    NÃO rolam por dentro (o corpo é que rola): `backdrop-filter` no elemento
+ *    prenderia esse filho à janela em vez da tela. O preenchimento, a borda e
+ *    a sombra de fora ficam sempre no próprio elemento, então o texto tem o
+ *    preenchimento certo em qualquer ponto da rolagem e a sombra não é cortada
+ *    pelo `overflow`.
+ *  - ESTÁTICA: sem desfoque. Para o que rola junto com a página ou rola por
+ *    dentro e tem filho fixo.
+ *
+ * Uma superfície, um dono: o fundo, a sombra e o desfoque destes elementos
+ * NÃO são declarados em nenhuma outra folha (o teste de superfícies confere).
+ */
+
+/* --- níveis ---------------------------------------------------------------
+ * `--v-opacidade`, `--v-filtro` e `--v-sombra` são locais de cada elemento.
+ * `--v-base` é a cor sob o vidro, resolvida NO elemento: assim um trecho com
+ * `data-tema` próprio (os cookies) usa a paleta dele. */
+
+.sc-vidro,
+.sc-menu__painel,
+.sc-seletor__painel,
+.sc-barra-inferior,
+.sc-painel,
+.sc-janela-pedido {
+  --v-opacidade: var(--vidro-opacidade-medio);
+  --v-filtro: var(--vidro-filtro-medio);
+  --v-sombra: var(--vidro-sombra-medio);
+}
+
+.sc-vidro--leve {
+  --v-opacidade: var(--vidro-opacidade-leve);
+  --v-filtro: var(--vidro-filtro-leve);
+  --v-sombra: var(--vidro-sombra-leve);
+}
+
+.sc-vidro--forte,
+.sc-aviso-flutuante__cartao,
+.sc-aviso-rapido__texto,
+.sc-acesso-janela,
+.sc-sobre-janela,
+.sc-cookies,
+.sc-sacola-barra,
+.sc-gaveta-modal,
+.sc-dialogo,
+.sc-janela-produto,
+.sc-flutuante__gaveta.sc-carrinho-janela {
+  --v-opacidade: var(--vidro-opacidade-forte);
+  --v-filtro: var(--vidro-filtro-forte);
+  --v-sombra: var(--vidro-sombra-forte);
+}
+
+/* Barras coladas no pé da tela: a sombra sobe. */
+.sc-barra-inferior,
+.sc-sacola-barra {
+  --v-sombra: var(--vidro-sombra-acima);
+}
+
+@media (max-width: 47.49rem) {
+  /* Folhas que sobem do pé (acesso e "sobre a loja"). */
+  .sc-acesso-janela,
+  .sc-sobre-janela {
+    --v-sombra: var(--vidro-sombra-acima);
+  }
+}
+
+/* A cor sob o vidro é uma só por tema (`--vidro-base`, em theme.css): a que dá
+   mais contraste ao texto no pior fundo. */
+.sc-vidro,
+.sc-menu__painel,
+.sc-seletor__painel,
+.sc-barra-inferior,
+.sc-painel,
+.sc-aviso-flutuante__cartao,
+.sc-aviso-rapido__texto,
+.sc-acesso-janela,
+.sc-sobre-janela,
+.sc-cookies,
+.sc-sacola-barra,
+.sc-gaveta-modal,
+.sc-dialogo,
+.sc-flutuante__gaveta.sc-carrinho-janela,
+.sc-janela-pedido,
+.sc-janela-produto {
+  --v-base: var(--vidro-base);
+}
+
+/* --- forma DIRETA -----------------------------------------------------------
+ * Preenchimento, brilho, realce, sombra e desfoque no próprio elemento. */
+
+.sc-vidro,
+.sc-menu__painel,
+.sc-seletor__painel,
+.sc-barra-inferior,
+.sc-painel,
+.sc-aviso-flutuante__cartao,
+.sc-aviso-rapido__texto,
+.sc-acesso-janela,
+.sc-sobre-janela,
+.sc-cookies,
+.sc-sacola-barra {
+  background-color: color-mix(
+    in srgb,
+    var(--v-base) var(--v-opacidade),
+    transparent
+  );
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
+  box-shadow:
+    var(--v-sombra),
+    inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--v-filtro);
+  backdrop-filter: var(--v-filtro);
+}
+
+/* A borda que já existe passa a ser a aresta do vidro. As folhas que sobem do
+   pé (acesso, sobre) e a barra inferior não têm borda de lado a lado: o
+   realce de cima faz a aresta. */
+.sc-vidro,
+.sc-menu__painel,
+.sc-seletor__painel,
+.sc-aviso-flutuante__cartao,
+.sc-aviso-rapido__texto,
+.sc-cookies {
+  border-color: var(--vidro-borda);
+}
+
+.sc-barra-inferior {
+  border-block-start-color: var(--vidro-borda);
+}
+
+/* O aviso de erro mantém a borda de erro: o tom não depende do vidro. */
+.sc-aviso-flutuante__cartao--erro {
+  border-color: var(--cor-erro);
+}
+
+/* --- forma CAMADA ------------------------------------------------------------
+ * Janelas e gavetas: o desfoque vai num `::before` atrás do conteúdo. */
+
+.sc-gaveta-modal:not(.sc-gaveta-modal--embutida),
+.sc-dialogo[aria-modal],
+.sc-flutuante__gaveta.sc-carrinho-janela,
+.sc-janela-pedido {
+  isolation: isolate;
+  background-color: color-mix(
+    in srgb,
+    var(--v-base) var(--v-opacidade),
+    transparent
+  );
+  border-color: var(--vidro-borda);
+  box-shadow: var(--v-sombra);
+}
+
+.sc-gaveta-modal:not(.sc-gaveta-modal--embutida)::before,
+.sc-dialogo[aria-modal]::before,
+.sc-flutuante__gaveta.sc-carrinho-janela::before,
+.sc-janela-pedido::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
+  box-shadow: inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--v-filtro);
+  backdrop-filter: var(--v-filtro);
+}
+
+/* Entrada só por `transform`: animar `opacity` no elemento o transformaria num
+   "backdrop root" durante a animação e o desfoque do `::before` só apareceria
+   no fim. O esmaecer fica no `::backdrop`. */
+@keyframes sc-vidro-entrar {
+  from {
+    transform: translateY(2rem);
+  }
+}
+
+@keyframes sc-vidro-entrar-lateral {
+  from {
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes sc-vidro-surgir {
+  from {
+    transform: translateY(var(--espaco-2)) scale(0.97);
+  }
+}
+
+@keyframes sc-vidro-janela-aparece {
+  from {
+    transform: translateY(1rem) scale(0.98);
+  }
+}
+
+.sc-gaveta-modal:not(.sc-gaveta-modal--embutida) {
+  animation-name: sc-vidro-entrar;
+}
+
+@media (min-width: 48rem) {
+  .sc-gaveta-modal--direita:not(.sc-gaveta-modal--embutida) {
+    animation-name: sc-vidro-entrar-lateral;
+  }
+}
+
+.sc-dialogo[aria-modal] {
+  animation-name: sc-vidro-surgir;
+}
+
+.sc-flutuante__gaveta.sc-carrinho-janela[open] {
+  animation-name: sc-vidro-janela-aparece;
+}
+
+.sc-gaveta-modal:not(.sc-gaveta-modal--embutida)::backdrop {
+  animation: sc-esmaecer var(--transicao-media) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-gaveta-modal:not(.sc-gaveta-modal--embutida),
+  .sc-gaveta-modal--direita:not(.sc-gaveta-modal--embutida),
+  .sc-gaveta-modal:not(.sc-gaveta-modal--embutida)::backdrop,
+  .sc-dialogo[aria-modal],
+  .sc-flutuante__gaveta.sc-carrinho-janela[open] {
+    animation: none;
+  }
+}
+
+/* --- forma ESTÁTICA -----------------------------------------------------------
+ * Sem desfoque: o que rola com a página ou rola por dentro e tem filho fixo.
+ * Sem desfoque, ver o que está atrás só atrapalha a leitura: o preenchimento
+ * é inteiro. */
+
+.sc-janela-produto,
+.sc-dialogo:not([aria-modal]) {
+  --v-opacidade: 100%;
+  background-color: color-mix(
+    in srgb,
+    var(--v-base) var(--v-opacidade),
+    transparent
+  );
+  border-color: var(--vidro-borda);
+  box-shadow: var(--v-sombra);
+}
+
+/* Modificador do utilitário: o mesmo visual, sem desfoque. */
+.sc-vidro--estatico {
+  --v-filtro: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* --- contraste forçado ------------------------------------------------------
+ * O sistema pinta as cores. O vidro some e fica a aresta. */
+@media (forced-colors: active) {
+  .sc-vidro,
+  .sc-menu__painel,
+  .sc-seletor__painel,
+  .sc-barra-inferior,
+  .sc-painel,
+  .sc-aviso-flutuante__cartao,
+  .sc-aviso-rapido__texto,
+  .sc-acesso-janela,
+  .sc-sobre-janela,
+  .sc-cookies,
+  .sc-sacola-barra,
+  .sc-gaveta-modal:not(.sc-gaveta-modal--embutida),
+  .sc-dialogo,
+  .sc-flutuante__gaveta.sc-carrinho-janela,
+  .sc-janela-pedido,
+  .sc-janela-produto {
+    background-color: Canvas;
+    background-image: none;
+    border-color: CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .sc-gaveta-modal:not(.sc-gaveta-modal--embutida)::before,
+  .sc-dialogo[aria-modal]::before,
+  .sc-flutuante__gaveta.sc-carrinho-janela::before,
+  .sc-janela-pedido::before {
+    content: none;
+  }
+}
