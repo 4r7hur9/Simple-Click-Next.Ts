@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import express from "express";
 import request from "supertest";
 import { InMemorySpanExporter } from "@opentelemetry/sdk-trace";
@@ -94,6 +96,44 @@ describe("rastreamento", () => {
     expect(spans).toHaveLength(1);
     expect(spans[0]?.status.code).toBe(SpanStatusCode.ERROR);
     expect(spans[0]?.attributes["error.type"]).toBe("503");
+  });
+
+  it("[CA-6] o contexto do trace sobrevive ao leitor de corpo (express.json) sem passo de reentrada", async () => {
+    // Era o motivo do `reentrarNoRastreio` (card #137): no Node 24 com o
+    // express 5, o AsyncLocalStorage atravessa a leitura do corpo, mesmo com
+    // o corpo chegando em vários pedaços.
+    const memoria = new InMemorySpanExporter();
+    rastreamento = iniciarRastreamento({ exportador: memoria });
+    const app = express();
+    app.use(middlewareDeRastreamento());
+    app.use(middlewareDeRegistro());
+    app.use(express.json({ limit: "1mb" }));
+    app.post("/v1/coisa", async (req, res) => {
+      await medirEtapa("coisa.criar", async () => esperar(1));
+      res.json({ recebidos: (req.body as { itens: unknown[] }).itens.length });
+    });
+
+    const itens = Array.from({ length: 5000 }, (_, i) => ({ nome: `item-${i}` }));
+    const resposta = await request(app).post("/v1/coisa").send({ itens });
+    expect(resposta.body).toEqual({ recebidos: 5000 });
+    await esperar(30);
+
+    const spans = memoria.getFinishedSpans();
+    const servidor = spans.find((s) => s.name === "POST /v1/coisa");
+    const filho = spans.find((s) => s.name === "coisa.criar");
+    expect(servidor).toBeDefined();
+    expect(filho?.spanContext().traceId).toBe(servidor?.spanContext().traceId);
+    expect(filho?.parentSpanContext?.spanId).toBe(servidor?.spanContext().spanId);
+  });
+
+  it("[CA-9] a sonda que não gera trace é o MESMO prefixo onde a saúde é montada", async () => {
+    const { PREFIXO_DE_SAUDE } = await import("./prefixo-de-saude.ts");
+    const { PREFIXO_DE_SAUDE: doApp } = await import("../app.ts");
+    expect(doApp).toBe(PREFIXO_DE_SAUDE);
+    const fonte = readFileSync(new URL("./rastreamento.ts", import.meta.url), "utf8");
+    expect(fonte).toContain('from "./prefixo-de-saude.ts"');
+    expect(fonte).not.toMatch(/["']\/v1\/health["']/);
+    expect(fonte).not.toMatch(/reentrarNoRastreio|spansDasRequisicoes/);
   });
 
   it("encerrar desfaz o registro e permite iniciar de novo", async () => {

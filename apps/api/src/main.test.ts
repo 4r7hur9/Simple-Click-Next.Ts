@@ -551,6 +551,57 @@ describe("observabilidade na partida (#139)", () => {
     expect(rastreamentoAtivo()).toBe(false);
   }, 30000);
 
+  it("[CA-5] falha da partida DEPOIS do rastreamento (aviso do site pela metade) desliga o rastreamento, e a próxima partida no mesmo processo sobe", async () => {
+    const porta = await portaLivre();
+    await expect(
+      iniciarApi({
+        fonte: ambienteDeProva({
+          PORT: String(porta),
+          OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:9",
+          // Sem URL_DO_SITE o aviso ao site recusa a partida (dívida 93),
+          // lá dentro da montagem da aplicação.
+          SEGREDO_DE_REVALIDACAO: "s".repeat(40),
+        }),
+        registrador: capturarRegistro().registrador,
+      }),
+    ).rejects.toThrow(/URL_DO_SITE/);
+    expect(rastreamentoAtivo()).toBe(false);
+
+    const api = await iniciarApi({
+      fonte: ambienteDeProva({
+        PORT: String(porta),
+        OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:9",
+      }),
+      registrador: capturarRegistro().registrador,
+    });
+    emPe = api;
+    expect(rastreamentoAtivo()).toBe(true);
+    expect((await fetch(`http://127.0.0.1:${porta}/v1/health/live`)).status).toBe(200);
+    expect((await api.desligar("teste")).limpo).toBe(true);
+    emPe = undefined;
+    expect(rastreamentoAtivo()).toBe(false);
+  }, 30000);
+
+  it("[CA-5] porta ocupada com rastreamento ligado também desliga o rastreamento", async () => {
+    const porta = await portaLivre();
+    const ocupante = createServer();
+    await new Promise<void>((resolver) => ocupante.listen(porta, resolver));
+    try {
+      await expect(
+        iniciarApi({
+          fonte: ambienteDeProva({
+            PORT: String(porta),
+            OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:9",
+          }),
+          registrador: capturarRegistro().registrador,
+        }),
+      ).rejects.toThrow(/EADDRINUSE/);
+      expect(rastreamentoAtivo()).toBe(false);
+    } finally {
+      await new Promise((resolver) => ocupante.close(resolver));
+    }
+  }, 30000);
+
   it("/metrics com token: 401 sem ele e 200 com ele", async () => {
     const porta = await portaLivre();
     const token = "m".repeat(40);

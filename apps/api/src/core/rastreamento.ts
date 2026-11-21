@@ -39,6 +39,8 @@ import {
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 
 import { exportadorHigienizado } from "./exportador-higienizado.ts";
+// A sonda de saúde roda a cada poucos segundos e não gera trace.
+import { PREFIXO_DE_SAUDE } from "./prefixo-de-saude.ts";
 import { rotaDaRequisicao } from "./log.ts";
 import type { ConfiguracaoDoExportador } from "./observabilidade.ts";
 
@@ -49,8 +51,6 @@ const NOME_DO_ESCOPO = "simpleclick-api";
 const FORMA_DE_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Caminho que não gera trace: a sonda de saúde roda a cada poucos segundos. */
-const PREFIXO_DAS_SONDAS = "/v1/health";
 
 export interface OpcoesDoRastreamento {
   /** Destino OTLP (produção/local). Ignorado quando `exportador` é dado. */
@@ -167,8 +167,6 @@ export function medirEtapa<T>(
     });
 }
 
-const spansDasRequisicoes = new WeakMap<object, Span>();
-
 /**
  * Abre o span SERVER como RAIZ e roda o resto da cadeia dentro dele.
  * Montado antes do registro de requisição, que então já enxerga o trace.
@@ -179,7 +177,7 @@ export function middlewareDeRastreamento(): RequestHandler {
     res: Response,
     next: NextFunction,
   ): void {
-    if (!ativo || req.path.startsWith(PREFIXO_DAS_SONDAS)) {
+    if (!ativo || req.path.startsWith(PREFIXO_DE_SAUDE)) {
       next();
       return;
     }
@@ -195,7 +193,6 @@ export function middlewareDeRastreamento(): RequestHandler {
         },
         ROOT_CONTEXT,
       );
-    spansDasRequisicoes.set(req, span);
     let encerrado = false;
 
     function encerrar(cancelada: boolean): void {
@@ -228,18 +225,3 @@ export function middlewareDeRastreamento(): RequestHandler {
   };
 }
 
-/**
- * Devolve a cadeia ao contexto do span da requisição. O leitor de corpo do
- * Express chama `next()` de dentro de um evento do socket, que não herda o
- * contexto; este passo, depois dele, o restaura.
- */
-export function reentrarNoRastreio(): RequestHandler {
-  return function reentrar(req: Request, _res: Response, next: NextFunction): void {
-    const span = spansDasRequisicoes.get(req);
-    if (span === undefined) {
-      next();
-      return;
-    }
-    context.with(trace.setSpan(ROOT_CONTEXT, span), next);
-  };
-}

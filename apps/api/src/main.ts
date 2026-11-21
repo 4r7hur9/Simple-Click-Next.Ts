@@ -231,7 +231,14 @@ export async function iniciarApi(
   // mesmo processo recusaria "já iniciado" (card #137).
   const abertos: { segundoPlano?: SegundoPlano | undefined } = {};
   try {
-    return await partir(opcoes, fonte, ambiente, observabilidade, rastreamento, abertos);
+    return await partir({
+      opcoes,
+      fonte,
+      ambiente,
+      observabilidade,
+      rastreamento,
+      abertos,
+    });
   } catch (erro) {
     await abertos.segundoPlano?.fechar().catch(() => undefined);
     await rastreamento?.encerrar().catch(() => undefined);
@@ -240,14 +247,21 @@ export async function iniciarApi(
 }
 
 /** O resto da partida, depois do rastreamento; quem desfaz em falha é `iniciarApi`. */
-async function partir(
-  opcoes: OpcoesDaPartida,
-  fonte: NodeJS.ProcessEnv,
-  ambiente: ReturnType<typeof carregarAmbiente>,
-  observabilidade: ReturnType<typeof lerConfiguracaoDeObservabilidade>,
-  rastreamento: Rastreamento | undefined,
-  abertos: { segundoPlano?: SegundoPlano | undefined },
-): Promise<ApiEmPe> {
+async function partir({
+  opcoes,
+  fonte,
+  ambiente,
+  observabilidade,
+  rastreamento,
+  abertos,
+}: {
+  readonly opcoes: OpcoesDaPartida;
+  readonly fonte: NodeJS.ProcessEnv;
+  readonly ambiente: ReturnType<typeof carregarAmbiente>;
+  readonly observabilidade: ReturnType<typeof lerConfiguracaoDeObservabilidade>;
+  readonly rastreamento: Rastreamento | undefined;
+  readonly abertos: { segundoPlano?: SegundoPlano | undefined };
+}): Promise<ApiEmPe> {
   const registro =
     opcoes.registrador ??
     criarRegistrador({

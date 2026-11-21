@@ -29,10 +29,8 @@ import {
 } from "./modules/auth/senha.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
 import { criarMetricas } from "./core/metricas.ts";
-import {
-  middlewareDeRastreamento,
-  reentrarNoRastreio,
-} from "./core/rastreamento.ts";
+import { middlewareDeRastreamento } from "./core/rastreamento.ts";
+import { PREFIXO_DE_SAUDE } from "./core/prefixo-de-saude.ts";
 import type { AcessoAoMetricas } from "./core/observabilidade.ts";
 import { criarRotaDasMetricas } from "./core/rota-das-metricas.ts";
 import { conferirAntesDeFechar } from "./modules/cart/conferir-preco.usecase.ts";
@@ -209,7 +207,7 @@ export const IDENTIFICACAO_DA_API = {
 } as const;
 
 /** Onde as verificações de saúde ficam montadas (AC-023). */
-export const PREFIXO_DE_SAUDE = "/v1/health";
+export { PREFIXO_DE_SAUDE };
 
 /**
  * A sessão do Bearer, de qualquer papel, ou `null` sem token válido. O papel
@@ -387,8 +385,6 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   );
 
   app.use(express.json({ limit: "1mb" }));
-  // O leitor de corpo chama `next()` de um evento do socket, fora do trace.
-  app.use(reentrarNoRastreio());
 
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
