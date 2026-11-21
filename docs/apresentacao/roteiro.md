@@ -1,20 +1,20 @@
 # Roteiro de fala — apresentação do SimpleClick (projeto final Full Cycle 4)
 
-Acompanha `docs/apresentacao/index.html` (42 slides, arquivo único, abre offline). Card #154 do board.
+Acompanha `docs/apresentacao/index.html` (43 slides, arquivo único, abre offline). Card #154 do board; atualizado pelo card #161 (Entrega 7) com CI verde, estresse e lacunas.
 
 - **Abrir:** dois cliques em `index.html` (ou `file:///…/docs/apresentacao/index.html`). Não precisa de servidor nem de internet.
 - **Teclas:** `→` e `←` (ou espaço e PageDown/PageUp) navegam; `Home` e `End` vão às pontas; `I` abre o índice; `T` troca o tema; `F` põe em tela cheia. O endereço guarda o slide (`#s27`).
 - **Em tela pequena** (menos de 900 px de largura) os slides viram uma página que rola; os botões e as setas continuam funcionando.
 - **Prints:** vêm de `apps/web/public/landing/` e mostram dados fictícios do seed de demonstração.
 
-Regra do roteiro: **todo número tem a fonte ao lado**. Onde está escrito "ressalva", diga a ressalva: o curso desconta "número sem medição", e as lacunas estão no slide 29.
+Regra do roteiro: **todo número tem a fonte ao lado**. Onde está escrito "ressalva", diga a ressalva: o curso desconta "número sem medição", e as lacunas (o que foi resolvido e o que ainda falta) estão no slide 30.
 
 ## Duas durações
 
 | Versão | Slides | Tempo |
 |---|---|---|
-| **Completa** | 1 a 42 | 25 a 30 min |
-| **10 minutos (roteiro do curso)** | 1 · 4 · 5 · 7 · 10 · 13 · 23 · 27 · 29 · 31 · 35 · 39 · 41 · 42 | 10 min |
+| **Completa** | 1 a 43 | 25 a 30 min |
+| **10 minutos (roteiro do curso)** | 1 · 4 · 5 · 7 · 10 · 13 · 23 · 27 · 30 · 32 · 36 · 40 · 42 · 43 | 10 min |
 
 Na versão de 10 minutos, a ordem do curso é: problema e nível (1 min) → demonstração (3 min) → uma decisão e a alternativa descartada (3 min) → números e o que faria diferente (3 min). A demonstração ao vivo entra depois do slide 7; o passo a passo dela está em `docs/apresentacao.md` §2.
 
@@ -65,9 +65,9 @@ Aprovação de lojas, contas, métricas da plataforma, auditoria.
 ### 9. Divisória (5 s)
 
 ### 10. A régua: rubrica e placar (1 min)
-"Antes dos detalhes, o placar. Verde é atendido com evidência. Amarelo é atendido com ressalva. Vermelho é o que falta." Não esconda os amarelos: três deles são a mesma causa (nada foi publicado ainda).
+"Antes dos detalhes, o placar. Verde é atendido com evidência. Amarelo é atendido com ressalva. Vermelho é o que falta." Não esconda os amarelos. Desde a atualização, a CI está verde e o compose está como atende; os amarelos que sobram são a publicação (ambientes no Railway) e a medição de SLO em produção.
 
-- Fontes: slides do curso (pesos M1 35, M2 20, M3 15, M4 30 e as tabelas "Projeto A"); as situações estão justificadas nos slides 14 a 29.
+- Fontes: slides do curso (pesos M1 35, M2 20, M3 15, M4 30 e as tabelas "Projeto A"); as situações estão justificadas nos slides 14 a 30.
 
 ### 11. Arquitetura: o monorepo (45 s)
 - Fontes: `README.md`; `CONTRIBUTORS.md`; `apps/api/src/modules/` (16 pastas); `packages/database/migrations/` (70 arquivos, o último é `0074_meus_pedidos_por_loja.sql`).
@@ -87,10 +87,12 @@ Aprovação de lojas, contas, métricas da plataforma, auditoria.
 - 100 lojas × 10 pedidos: `docs/estruturacao/04-simulacao.md`.
 - Ressalva: só na base local `simpleclick_simulacao`.
 
-### 15. M1 — Compose com 1 comando (45 s) · PARCIAL
-Diga a ressalva com as suas palavras: "o compose sobe a infraestrutura com um comando; a API e o site ainda sobem com `pnpm dev`".
+### 15. M1 — Compose com 1 comando (45 s) · ATENDE
+"O compose da raiz sobe PostgreSQL, Redis, a migração, a API e o site, todos construídos do repositório, com `docker compose up --build`."
+Ressalva a dizer: "validei a sintaxe; a subida inteira ainda não foi medida nesta entrega. Antes de apresentar, eu subo do zero."
 
-- Fontes: `docker-compose.yml`; `infra/compose/docker-compose.yml` (serviços `api` e `web` com `image: nginx:1.27-alpine`); `README.md` › "Subir com 1 comando (Docker)" ("ainda são placeholders nginx"); `docs/apresentacao.md` §4.
+- Fontes: `docker-compose.yml` no HEAD (commit `7f6d4ef`: serviços `postgres`, `redis`, `migrar`, `api`, `web`, com `build:`, sem `nginx`); `README.md` › "Subir com 1 comando (Docker)" (`docker compose up --build`, site `:4000`, API `:4001`); `docs/apresentacao.md` §4.
+- Antes de apresentar: rode `docker compose up --build` do zero. Se subir, mantenha "atende"; se não subir, troque o selo do slide 15 e a linha da tabela do slide 10 por "parcial".
 
 ### 16. M1 — SOLID, pattern e Database Pattern (1 min)
 - Fontes: `docs/adr/0003-ports-e-adapters-solid-armazenamento-de-midia.md`; `docs/adr/0002-database-pattern-prisma-e-sql.md`; testes `apps/api/src/core/armazenamento-de-midia.test.ts`, `apps/api/src/core/db.test.ts`, `apps/api/tests/isolamento-entre-lojas-dono.test.ts`.
@@ -100,20 +102,22 @@ Diga a ressalva com as suas palavras: "o compose sobe a infraestrutura com um co
 - Contrato: `apps/api/tests/contrato-openapi.test.ts`.
 - E2E 338/338, 0 falhas: `docs/estruturacao/10-e2e.md` (20/11/2026).
 - Casos de aceite do checkout: `docs/estruturacao/03-testes-checkout.md` e `07-controle.md` §1.3.
-- Ressalva: medições locais naquelas datas; não é uma execução de CI.
+- Ressalva: medições locais naquelas datas. A execução que vale como CI é a do slide 19 (run 44890192508).
 
 ### 18. M2 — Coverage (45 s)
 - 80,10 / 77,99 / 79,75 / 71,07 e mínimos 75 / 73 / 75 / 66; 570 arquivos, 5.175 testes, 26.223 de 32.735 linhas; só unidade 60,20%: `docs/ci.md` › "Cobertura".
 - Mínimo declarado: `vitest.config.ts` › `coverage.thresholds`.
-- Ressalva: 2 testes de tempo falharam com a instrumentação ligada (`docs/ci.md` › "Risco conhecido").
+- Resolvido: os testes de tempo têm limite proporcional sob cobertura (commit `2ada0f4`, `docs/ci.md`). A execução verde do slide 19 já roda com cobertura.
 
-### 19. M3 — CI (1 min) · PRONTA, NUNCA RODOU NO GITHUB
-"São 7 jobs. O que eu não tenho é o link verde: o workflow nunca rodou no GitHub, porque depende do push."
+### 19. M3 — CI (1 min) · VERDE NO GITHUB
+"São 8 jobs, e a execução verde existe: run 44890192508, no commit 2ada0f4, 8 de 8. Desde então só mudaram documentação, README e CONTRIBUTORS."
 
-- Fontes: `.github/workflows/ci.yml`; `docs/ci.md` (jobs; SCA com 48 vulnerabilidades antes, 4 críticas e 18 altas, e Trivy com 17; correções por atualização e `overrides`; "Ainda não há execução no GitHub").
+- Link para mostrar: `https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/44890192508`.
+- Fontes: `.github/workflows/ci.yml` (8 jobs: qualidade, unitarios, integracao, cobertura, sca, gitleaks, openapi, build); `docs/ci.md` (SCA com 48 vulnerabilidades antes, 4 críticas e 18 altas, e Trivy com 17; correções por atualização e `overrides`).
+- Antes de apresentar: a run do commit de entrega (`cce49fd`) estava em andamento na atualização. Confira o resultado; se ela falhar, troque a frase por "verde no commit 2ada0f4" e diga o motivo da falha.
 
 ### 20. M3 — Ambientes e segredos (45 s) · DESCRITOS, NÃO PUBLICADOS
-- Fontes: `docs/ambientes-e-deploy.md` (linha 11: "Nada disto está publicado"; matriz de variáveis; homologação como `production`); `.env.example`; `.gitleaks.toml`; `apps/api/src/core/env.test.ts`.
+- Fontes: `docs/ambientes-e-deploy.md` (matriz de variáveis; staging como `production`); `docs/deploy-railway.md` (staging = `entrega/projeto-final`, produção = `main`, domínio ainda `DOMINIO`); `.env.example`; `.gitleaks.toml`; `apps/api/src/core/env.test.ts`.
 - Não mostre nem leia nenhum `.env`.
 
 ### 21. M3 — Observabilidade (1 min)
@@ -121,8 +125,8 @@ Diga a ressalva com as suas palavras: "o compose sobe a infraestrutura com um co
 - Ressalva: "declarado e instrumentado"; conformidade só em produção.
 
 ### 22. M3 — Feature flag e deploy (1 min)
-- Fontes: `docs/ambientes-e-deploy.md` §5 (flag `FLAG_VITRINE_PROXIMO_PRECO`, valores, recusa de valor inválido, alternativa Unleash/GrowthBook) e §6 (Vercel + Railway, fluxo, expand/contract); `apps/api/src/core/flags.ts`; `apps/api/tests/flag-proximo-preco.int.test.ts`.
-- Ressalvas: o site ainda não exibe o campo; nenhum deploy foi feito.
+- Fontes: `docs/ambientes-e-deploy.md` §5 (flag `FLAG_VITRINE_PROXIMO_PRECO`, valores, recusa de valor inválido, alternativa Unleash/GrowthBook) e §6 (fluxo, expand/contract); `docs/deploy-railway.md` (Railway para API e site; a Vercel saiu do plano); `apps/api/src/core/flags.ts`; `apps/api/tests/flag-proximo-preco.int.test.ts`.
+- Ressalvas: o site ainda não exibe o campo; nenhum ambiente foi criado no Railway.
 
 ### 23. M4 — ADRs (1 min 30) — a "decisão e a alternativa descartada" do roteiro do curso
 Conte o ADR 0001 como uma história: "a compra foi gravada e a conexão caiu. O que acontece?"
@@ -136,7 +140,7 @@ Conte o ADR 0001 como uma história: "a compra foi gravada e a conexão caiu. O 
 - Fontes: `docs/desempenho.md` §1 (metas), §2.1 (cache com tolerância) e §2.2 (idempotência do pedido, da impressão e do e-mail).
 
 ### 26. M4 — k6 em 3 estágios (1 min)
-- Fontes: `docs/desempenho.md` §3; `tests/performance/k6/comum.js` (`TABELA_DA_CARGA`) e `carga.js`; `.github/workflows/desempenho.yml` (smoke → carga → estresse).
+- Fontes: `docs/desempenho.md` §3; `tests/performance/k6/comum.js` (`TABELA_DA_CARGA`) e `carga.js`; `.github/workflows/desempenho.yml` (smoke → carga → estresse; o ensaio foi rodado localmente, não no Actions).
 
 ### 27. M4 — O gargalo, antes e depois (1 min 30) — os "números" do roteiro do curso
 "Um gargalo, uma hipótese, uma mudança. 481 milissegundos viraram 9, sem índice novo."
@@ -146,105 +150,116 @@ Conte o ADR 0001 como uma história: "a compra foi gravada e a conexão caiu. O 
 - Migração: `packages/database/migrations/0074_meus_pedidos_por_loja.sql`; teste `packages/database/tests/meus-pedidos-por-loja.test.ts`.
 - No gráfico, a barra está na escala da meta (500 ms).
 
-### 28. M4 — Integridade e limites (1 min)
-- Fontes: `docs/desempenho.md` §6 (reconciliação das quatro execuções) e §7 (limites: notebook, horários diferentes, limitador levantado, carga e não estresse).
+### 28. M4 — Estresse com volume (1 min 30) · EXECUTADO
+"Com 101 mil pedidos na base, 20, 40 e 60 usuários virtuais: 57 mil requisições e nenhuma falha. O que eu não consigo dizer é onde o sistema quebra: não chegamos lá."
 
-### 29. Lacunas (1 min 30)
-Leia as quatro caixas. É o slide que dá credibilidade aos outros.
+- Fontes: `docs/desempenho.md` §3.1 (tabela dos patamares, totais, reconciliação e "o que este estresse NÃO mostra"); `docs/desempenho/estresse-volume-3/` (`resumo.md`, `reconciliacao.md`); `tests/performance/k6/estresse.js`; commit `4fbd4db`.
+- Ressalvas a dizer: teto acima de 60 VUs nesta máquina, não limite medido; execução única e válida (as duas tentativas descartadas estão no doc); a 0074 não entra no roteiro do estresse.
 
-| Lacuna | Fonte |
+### 29. M4 — Integridade e limites (1 min)
+- Fontes: `docs/desempenho.md` §6 (reconciliação das quatro execuções) e §7 (limites: notebook, horários diferentes, limitador levantado; carga e estresse agora rodados, o estresse no slide 28).
+
+### 30. Lacunas (1 min 30)
+Comece pelo verde: CI, commits, compose, estresse. Depois leia as caixas de "ainda falta". É o slide que dá credibilidade aos outros.
+
+| Situação | Evidência |
 |---|---|
-| Sem execução verde da CI | `docs/ci.md` › "O que falta para a execução verde no GitHub"; `README.md` ("PENDENTE — só existe após o push") |
-| Trabalho não commitado (HEAD `69cf095`, 254 caminhos no `git status --short` em 21/11/2026) | `git log -1`, `git status --short` em `/Users/stargrupo/Projetos/SC`; `docs/desempenho.md` §7 ("Nada foi commitado") |
-| Nenhum ambiente publicado | `docs/ambientes-e-deploy.md` linha 11 |
-| README ainda marca desempenho como PENDENTE | `README.md` linha 17 |
-| Compose com placeholders nginx | `infra/compose/docker-compose.yml`; `README.md` |
-| Estresse com volume não executado; carga e estresse não rodaram no Actions | `docs/desempenho.md` §7; `docs/estruturacao/05-desempenho.md` |
-| SLO sem medição em produção | `docs/observabilidade.md` › "Limites honestos" |
-| 2 testes de tempo falham sob cobertura | `docs/ci.md` › "Risco conhecido" |
-| Site não exibe o campo da flag | `docs/ambientes-e-deploy.md` §5 |
-| E-mail sem `jobId`; chave sem impressão do corpo | `docs/desempenho.md` §2.2 |
-| `docs/ia.md` e `CONTRIBUTORS.md` com campos PENDENTE | os próprios arquivos |
-| Sem pacote de provas do Workflow IA no disco | não existe `.workflow-ia/tasks/` |
-| Aprovação final do plano do #142 não encontrada | `card-142-v4.json` (gate `NEEDS_REFINEMENT`, `review-missing`) |
+| **Resolvido:** CI verde no GitHub (8/8) | run `44890192508`, commit `2ada0f4` |
+| **Resolvido:** trabalho commitado no branch `entrega/projeto-final` (30 commits sobre `69cf095`, até `cce49fd`) | `git log --oneline 69cf095..HEAD` em `/Users/stargrupo/Projetos/SC`. A árvore local ainda tem alterações de outros cards, fora desta entrega |
+| **Resolvido:** estresse 20/40/60 VUs com volume, 0 falhas, sem saturação até 60 | `docs/desempenho.md` §3.1; commit `4fbd4db` |
+| **Resolvido:** testes de tempo sob cobertura | commit `2ada0f4`; `docs/ci.md` |
+| **Resolvido:** compose sem placeholders nginx (imagens reais) | commit `7f6d4ef`; `docker-compose.yml` no HEAD |
+| **Resolvido:** README sem "PENDENTE" no desempenho | commit `cce49fd`; `README.md` |
+| **Falta:** subida completa do compose não medida nesta entrega | rodar `docker compose up --build` do zero antes de apresentar |
+| **Falta:** carga e estresse não rodaram no GitHub Actions | `.github/workflows/desempenho.yml` existe; os ensaios foram locais |
+| **Falta:** ponto de saturação não encontrado (teto acima de 60 VUs nesta máquina) | `docs/desempenho.md` §3.1 |
+| **Falta:** nenhum ambiente no ar (Railway não criado; domínio é o marcador `DOMINIO`) | `docs/deploy-railway.md`; `README.md` (tabela de ambientes) |
+| **Falta:** SLO de 28 dias só se mede em produção | `docs/observabilidade.md` › "Limites honestos" |
+| **Falta:** site não exibe o campo da feature flag | `docs/ambientes-e-deploy.md` §5 |
+| **Falta:** e-mail sem `jobId` determinístico; chave sem impressão do corpo | `docs/desempenho.md` §2.2 |
+| **Falta (autor):** `docs/ia.md` com decisões humanas PENDENTE e modelos/versões em branco; confirmar ausência de dado real na IA | os próprios arquivos |
+| **Falta (autor):** `CONTRIBUTORS.md` com nome, turma e declaração pessoal PENDENTE | o próprio arquivo |
+| **Falta:** sem pacote de provas do Workflow IA no disco | não existe `.workflow-ia/tasks/` |
+| **Falta:** aprovação final do plano do #142 não encontrada | `card-142-v4.json` (gate `NEEDS_REFINEMENT`, `review-missing`) |
 
 ## Parte 3 — Como foi desenvolvido
 
-### 30. Divisória (5 s)
+### 31. Divisória (5 s)
 
-### 31. A base do desenvolvimento (1 min)
+### 32. A base do desenvolvimento (1 min)
 "Code Crew organiza quem faz o quê. Workflow IA organiza como um card é feito. Nos dois, um portão que roda na minha máquina decide se pode avançar."
 
 - Fontes: `CLAUDE.md` do projeto; `.workflow-ia/README.md`; `.rmcode/plans/`; o aplicativo em `/Applications/Code Crew.app`.
 
-### 32. Code Crew — o board (1 min)
+### 33. Code Crew — o board (1 min)
 Cards numerados, um agente por card (Claude ou Codex), um gerente que coordena, informe ao fim de cada turno.
 
 - Fontes: o próprio board (a lista de cards mostra o agente de cada um; este card é o #154); os estados do informe (done, needs_input, paused) são os do protocolo do card.
 
-### 33. Code Crew — coordenação (1 min)
+### 34. Code Crew — coordenação (1 min)
 Reservas, dependências, memória do time.
 
 - Fontes: notas do board (memória do time), por exemplo a nota do #142 sobre a migração 0074 e o disco cheio, e a do ambiente de preview (portas 3000/3001); `card-153-v4.json` (apontamento "T-2 bloqueada até o #151 liberar").
 
-### 34. Code Crew — risco decide modelo e rigor (1 min)
+### 35. Code Crew — risco decide modelo e rigor (1 min)
 - Tabela de modelos: contagem do campo `subtasks[].execution.model` por `subtasks[].complexity` nas 44 versões de `/Users/stargrupo/Projetos/SC/.rmcode/plans/card-*-v*.json` (LOW: haiku 4, sonnet 71, opus 4; MEDIUM: sonnet 77, opus 57; HIGH: opus 34). A contagem repete a subtarefa a cada versão do plano e ignora as que não declararam modelo.
 - Regras de HIGH e CRITICAL: mensagens do gate nos mesmos arquivos ("HIGH/CRITICAL exige a revisão adversarial", "Mudança CRITICAL exige rollback ou estratégia de recuperação", "valem as exigências de CRITICAL").
 - MEDIUM sem revisão obrigatória: `card-107-v2.json` (gate READY sem `reviewRequired`).
 
-### 35. Code Crew — o gate do plano (1 min 30)
+### 36. Code Crew — o gate do plano (1 min 30)
 "O agente não começa a editar antes de o plano passar. E o plano é conferido contra o repositório: se cita um arquivo que não existe, reprova."
 
 - As 8 conferências: campo `gate.checklist` de qualquer `card-*-v*.json`.
 - 44 versões, 14 cards, 1 aprovado de primeira (#111), 12 terminaram READY (#100 e #101 ficaram em NEEDS_REFINEMENT nos arquivos): contagem em `/Users/stargrupo/Projetos/SC/.rmcode/plans/`.
 - Falhas mais comuns (`gate.failures[].code`): `command-unknown` 59, `path-outside-root` 39, `symbol-missing` 22, `review-missing` 20, `file-missing` 11.
 
-### 36. Card real #153 — vidro líquido (1 min 30)
+### 37. Card real #153 — vidro líquido (1 min 30)
 Conte as quatro versões como uma escada.
 
 - Fontes: `/Users/stargrupo/Documents/SC/.rmcode/plans/card-153-v1.json` a `v4.json` (pasta do board). v1: 6 de 8, 25 falhas (17 `symbol-missing`, 6 `command-unknown`, 1 `review-missing`, 1 divergência de classificação). v2: 7 de 8, 48 `path-outside-root`. v3: 7 de 8, 1 `review-missing`. v4: READY, 8 de 8, 26 apontamentos de revisão, 11 requisitos, 11 CA, 4 subtarefas, 8 decisões.
 - O que ficou: `packages/ui/styles/vidro.css`; `packages/ui/tests/vidro.test.ts` (tags `[CA-1]`…); nota do #153 no mural.
 
-### 37. Card real #142 — desempenho (1 min 30)
+### 38. Card real #142 — desempenho (1 min 30)
 Ligue com o slide 27: "aquele número saiu deste card".
 
 - Fontes: `card-142-v1.json` a `v4.json` (mesma pasta do board): 6 subtarefas, 7 CA, 11 decisões, revisão de arquitetura + segurança em 2 rodadas com 23 apontamentos (as frases citadas estão em `plan.review.findings`); `docs/desempenho.md`; `packages/database/tests/meus-pedidos-por-loja.test.ts` (5 testes `[CA-5]`).
 - Ressalva a dizer: a v4 salva ainda marca `review-missing`; a aprovação final não está nos arquivos.
 
-### 38. Workflow IA — o fluxo (1 min 30)
+### 39. Workflow IA — o fluxo (1 min 30)
 Spec → plano → testes RED → implementação → gate → revisão paralela → triagem → correção em loop → verificador final → pacote de provas.
 
 - Fontes: `CLAUDE.md` do projeto (seção "Workflow IA"); `.workflow-ia/README.md`; `.workflow-ia/config.json` (`limites.maxIteracoes` 5, `limites.maxRodadasPlano` 3, `severidades`); README do plugin Workflow IA 0.9.0 (13 subagentes; estado só pela CLI).
 - Ressalva: não há task registrada em `.workflow-ia/tasks/` para abrir ao vivo.
 
-### 39. Workflow IA — gates offline (1 min 30)
+### 40. Workflow IA — gates offline (1 min 30)
 "Offline quer dizer três coisas: roda na máquina, não depende de serviço externo e não deixa passar sem prova."
 
 - Fontes: `.workflow-ia/config.json` › `gate.etapas` (as 9 etapas e quais são obrigatórias), `comandos` (o comando de cada uma), `provas.exigirCI: false`, `ci.ativo: false`, `gate.falharRapido: true`; `CLAUDE.md` (regras: sem `--no-verify`, sem `.env`, sem push em branch protegido, config só por humanos); hooks `pre-commit` e `pre-push` presentes em `.git/hooks/`.
 
-### 40. Critérios CA-n (45 s)
+### 41. Critérios CA-n (45 s)
 - Fontes: `CLAUDE.md` (regra da tag `[CA-n]`); `card-142-v4.json` (R-4 → CA-5); `packages/database/tests/meus-pedidos-por-loja.test.ts`; `packages/ui/tests/vidro.test.ts`; `[CA-9]` citado em `docs/ci.md`.
 
-### 41. O papel do humano e o `docs/ia.md` (1 min 30)
+### 42. O papel do humano e o `docs/ia.md` (1 min 30)
 "A IA propôs e executou. Decidir o produto, aprovar e publicar continuam comigo."
 
 - Fontes: `docs/ia.md` (4 registros; registro 1 com as 3 mutações; "Decisão humana: PENDENTE"); `CLAUDE.md` (PR e merge do humano); `docs/ambientes-e-deploy.md` §6.2 (promoção manual); `CONTRIBUTORS.md`.
-- **Antes de apresentar:** preencha as decisões humanas do `docs/ia.md`. Se estiverem preenchidas, atualize este slide e o 29.
+- **Antes de apresentar:** preencha as decisões humanas do `docs/ia.md`. Se estiverem preenchidas, atualize este slide e o 30.
 
-### 42. Fechamento (45 s)
-- "O que faria diferente": `docs/apresentacao.md` §4 e `docs/desempenho.md` §8 (imagens reais no compose, homologação para ensaiar a virada de preço, impressão do corpo na idempotência, mesma correção em `app.meus_itens_de_pedidos()`).
+### 43. Fechamento (45 s)
+- "O que faria diferente": `docs/apresentacao.md` §4 e `docs/desempenho.md` §8 (imagens reais no compose, já feitas; homologação para ensaiar a virada de preço; impressão do corpo na idempotência; mesma correção em `app.meus_itens_de_pedidos()`).
+- "O que está provado" agora inclui CI verde e o estresse de 20/40/60 VUs; o próximo passo é subir o compose do zero e publicar o staging.
 
 ---
 
 ## Antes de apresentar: o que pode ter mudado
 
-Os slides são uma fotografia de 21/11/2026. Confira e ajuste o HTML se algum destes tiver mudado:
+Os slides são uma fotografia de 21/11/2026, depois da Entrega 7 (CI verde no commit 2ada0f4, estresse em 4fbd4db, commits até cce49fd). Confira e ajuste o HTML se algum destes tiver mudado:
 
-1. **Commit e push feitos?** Atualize os slides 10, 19, 29 e 42 e cole o link da CI verde.
-2. **`docs/ia.md` e `CONTRIBUTORS.md` confirmados?** Atualize os slides 29 e 41.
-3. **README corrigido** (desempenho deixou de ser "PENDENTE")? Tire a linha do slide 29.
-4. **Compose com imagens reais?** O slide 15 passa a "atende".
+1. **Run da CI do commit de entrega (`cce49fd`) verde?** Se sim, o slide 19 pode citar o novo link. Se não, troque a frase por "verde no commit 2ada0f4" e explique a falha. Os slides 10, 19 e 30 citam o link de 2ada0f4.
+2. **Compose subiu do zero** (`docker compose up --build`)? Se sim, o slide 15 fica "atende". Se não, troque o selo do slide 15 e a linha do slide 10 para "parcial".
+3. **Ambientes criados no Railway?** Se sim, troque "nada está no ar" (slides 20 e 30) pelos domínios reais e tire o marcador `DOMINIO` do README.
+4. **`docs/ia.md` e `CONTRIBUTORS.md` preenchidos?** Atualize os slides 30 e 42, e tire as linhas PENDENTE do slide 30.
 
 ## O que esta apresentação não contém
 
-Nenhum e-mail, telefone real, segredo ou conteúdo de `.env`. Os nomes e valores nos prints são do seed de demonstração. Nenhum servidor foi iniciado e nenhuma suíte foi rodada para montar os slides: tudo foi lido dos arquivos citados.
+Nenhum e-mail, telefone real, segredo ou conteúdo de `.env`. Os nomes e valores nos prints são do seed de demonstração. Nenhum servidor foi iniciado para montar os slides da Entrega 7: os números de CI e de estresse vêm dos arquivos e das execuções citadas (run 44890192508 e `docs/desempenho/estresse-volume-3/`), e nenhuma suíte foi rodada nesta atualização.

@@ -362,17 +362,17 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <thead><tr><th>Módulo</th><th>Exigência do Projeto A</th><th>Situação</th></tr></thead>
     <tbody>
       <tr><td>Sistema</td><td>Monólito modular com 100 mil pedidos sintéticos</td><td><span class="selo ok">atende</span></td></tr>
-      <tr><td>M1</td><td>Compose que sobe com 1 comando</td><td><span class="selo parcial">parcial</span></td></tr>
+      <tr><td>M1</td><td>Compose que sobe com 1 comando</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M1</td><td>SOLID, 1 pattern justificado e 1 Database Pattern com decisão registrada</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M2</td><td>Testes unitários, de integração e de contrato; coverage mínimo no pipeline</td><td><span class="selo ok">atende</span></td></tr>
-      <tr><td>M3</td><td>CI com lint, testes, coverage e SCA</td><td><span class="selo parcial">pronta, nunca rodou no GitHub</span></td></tr>
+      <tr><td>M3</td><td>CI com lint, testes, coverage e SCA</td><td><span class="selo ok">verde no GitHub</span></td></tr>
       <tr><td>M3</td><td>Dois ambientes, segredos fora do código</td><td><span class="selo parcial">descritos, não publicados</span></td></tr>
       <tr><td>M3</td><td>pino, métricas RED, 1 trace e 1 SLO</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M3</td><td>1 feature flag e a estratégia de deploy</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M4</td><td>ADR com alternativa descartada, C4 de contexto e de contêiner</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M4</td><td>OpenAPI 3.1 com lint no pipeline</td><td><span class="selo ok">atende</span></td></tr>
       <tr><td>M4</td><td>Plano de p95; k6 em 3 estágios com gargalo antes e depois</td><td><span class="selo ok">atende</span></td></tr>
-      <tr><td>Entrega</td><td>Link da execução verde da CI</td><td><span class="selo falta">lacuna</span></td></tr>
+      <tr><td>Entrega</td><td>Execução verde da CI: <a href="https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/44890192508">run 44890192508</a>, 8 de 8 jobs</td><td><span class="selo ok">atende</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -479,13 +479,13 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <section class="slide" data-parte="Parte 2 · Pela régua do curso" data-titulo="M1 — Compose com 1 comando">
 <div class="in">
-  <div class="cabeca"><p class="olho">M1 · 35 pontos <span class="selo parcial">parcial</span></p><h2>Compose que sobe com 1 comando.</h2></div>
+  <div class="cabeca"><p class="olho">M1 · 35 pontos <span class="selo ok">atende</span></p><h2>Compose que sobe com 1 comando.</h2></div>
   <div class="trio">
     <div class="pede"><h3>O curso pede</h3><p>Um <code>docker-compose.yml</code> na raiz que sobe o projeto com um comando.</p></div>
     <div class="atende"><h3>Como o SimpleClick atende</h3>
       <ul>
-        <li>O compose da raiz estende <code>infra/compose/</code> e sobe 5 serviços: Traefik, PostgreSQL, Redis, <code>api</code> e <code>web</code>.</li>
-        <li>Um comando, depois do <code>setup.sh</code>: <code>docker compose up -d</code>.</li>
+        <li>O compose da raiz (commit <code>7f6d4ef</code>) sobe PostgreSQL, Redis, um serviço <code>migrar</code> que aplica o SQL, a <code>api</code> e o <code>web</code>, todos com imagem construída do próprio repositório.</li>
+        <li>Um comando: <code>docker compose up --build</code> (site em <code>:4000</code>, API em <code>:4001</code>).</li>
         <li>Há um perfil extra <code>obs</code> com Prometheus e Jaeger.</li>
       </ul>
     </div>
@@ -497,7 +497,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       </ul>
     </div>
   </div>
-  <div class="cartao" style="border-color:var(--parcial)"><h3>O que falta, dito sem enfeite</h3><p>No compose, <code>api</code> e <code>web</code> ainda são <strong>placeholders nginx</strong>. A API e o site reais sobem com <code>pnpm dev</code>, depois de migrar e plantar os dados (7 passos no README). O comando único sobe a infraestrutura, não a aplicação. Está no próprio README e em “o que faria diferente”.</p></div>
+  <div class="cartao" style="border-color:var(--parcial)"><h3>O que ainda não foi medido</h3><p>Os placeholders nginx saíram: <code>api</code> e <code>web</code> são imagens reais no HEAD. Nesta atualização eu só validei a sintaxe do compose do HEAD (<code>docker compose config</code>, sem erro); <strong>não subi a pilha inteira</strong>. Antes de apresentar, rode <code>docker compose up --build</code> do zero e confirme o site e a API. Com o compose subindo, o pré-requisito de “1 comando” fica medido, e não só descrito.</p></div>
 </div>
 </section>
 
@@ -571,9 +571,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <section class="slide" data-parte="Parte 2 · Pela régua do curso" data-titulo="M3 — CI com lint, testes, coverage e SCA">
 <div class="in">
-  <div class="cabeca"><p class="olho">M3 · 15 pontos <span class="selo parcial">pronta, nunca rodou no GitHub</span></p><h2>Uma CI de 7 jobs.</h2></div>
+  <div class="cabeca"><p class="olho">M3 · 15 pontos <span class="selo ok">verde no GitHub</span></p><h2>Uma CI de 8 jobs, verde no GitHub.</h2></div>
   <ol class="fluxo sem-numero" aria-label="Jobs do ci.yml">
-    <li><b>qualidade</b><span>lint · tipos · unidade</span></li>
+    <li><b>qualidade</b><span>lint (ESLint) · tipos (tsc)</span></li>
+    <li><b>unitarios</b><span>testes de unidade, job próprio</span></li>
     <li><b>integracao</b><span>PostgreSQL 16 + Redis 7</span></li>
     <li><b>cobertura</b><span>mínimo declarado</span></li>
     <li class="portao"><b>sca</b><span>pnpm audit (high) + Trivy fs</span></li>
@@ -584,7 +585,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <div class="grade dois">
     <div class="cartao"><h3>SCA: o que o card achou e corrigiu</h3><p>Antes: <code>pnpm audit</code> com <strong>48 vulnerabilidades</strong> (4 críticas, 18 altas) e Trivy com 17 no lockfile; nenhuma do código do projeto. Todas tinham correção publicada, menos uma: resolvidas por atualização direta (<code>next</code> 16.4.0 → 16.4.1) e por <code>overrides</code>. Exceção só com motivo e data.</p>
       <ul class="caminhos"><li><code>.github/workflows/ci.yml</code></li><li><code>docs/ci.md</code></li><li><code>pnpm-workspace.yaml</code> › <code>overrides</code></li></ul></div>
-    <div class="cartao" style="border-color:var(--parcial)"><h3>A ressalva que mais pesa</h3><p>O workflow foi validado com <code>actionlint</code> e cada comando rodado à mão, mas <strong>ainda não há execução no GitHub</strong>: ela só existe depois do push, que é decisão do autor. O link da execução verde, que a entrega pede, <strong>não existe hoje</strong>.</p></div>
+    <div class="cartao" style="border-color:var(--ok)"><h3>A evidência</h3><p>Execução verde no GitHub: <a href="https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/44890192508">run 44890192508</a>, commit <code>2ada0f4</code>, 8 de 8 jobs, 14 min 30 s. Desde esse commit só mudaram documentação, README e CONTRIBUTORS: o código de aplicação é o mesmo. A execução do commit de entrega (<code>cce49fd</code>) estava em andamento na hora desta atualização: <strong>confira o resultado antes de apresentar</strong>.</p></div>
   </div>
 </div>
 </section>
@@ -596,7 +597,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div class="pede"><h3>O curso pede</h3><p>Dois ambientes, configuração vinda do ambiente e segredos fora do repositório.</p></div>
     <div class="atende"><h3>Como o SimpleClick atende</h3>
       <ul>
-        <li><strong>Homologação e produção</strong> definidas (além de dev e teste), com a matriz de variáveis de cada uma. Homologação roda como <code>production</code>, para as travas valerem lá também.</li>
+        <li><strong>Staging</strong> (<code>entrega/projeto-final</code>) e <strong>produção</strong> (<code>main</code>) definidos, com a matriz de variáveis de cada um. Staging roda como <code>production</code>, para as travas valerem lá também.</li>
         <li>A API <strong>recusa partir</strong> em produção com o marcador <code>TROQUE_</code> do <code>.env.example</code> ou com segredo fraco.</li>
         <li><code>.gitleaks.toml</code> com exceções estreitas; gitleaks no gate do Workflow IA e num job próprio da CI.</li>
       </ul>
@@ -610,7 +611,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       </ul>
     </div>
   </div>
-  <div class="cartao" style="border-color:var(--parcial)"><h3>Ressalva</h3><p>O documento diz na linha 11: <strong>“Nada disto está publicado.”</strong> Não existe conta nem ambiente criado no GitHub, na Railway ou na Vercel. O que há é o mecanismo e o passo a passo; criar os ambientes é tarefa humana, na fase de publicação.</p></div>
+  <div class="cartao" style="border-color:var(--parcial)"><h3>Ressalva</h3><p><strong>Nada está no ar ainda.</strong> O roteiro do Railway (<code>docs/deploy-railway.md</code>) e o <code>railway.json</code> de API e site existem, mas a criação dos ambientes é tarefa humana, e o domínio segue como marcador <code>DOMINIO</code> no README. Na Railway, o site substitui o antigo plano com a Vercel.</p></div>
 </div>
 </section>
 
@@ -644,10 +645,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       </ul>
       <ul class="caminhos"><li><code>apps/api/src/core/flags.ts</code></li><li><code>apps/api/tests/flag-proximo-preco.int.test.ts</code></li></ul>
     </div>
-    <div class="cartao"><h3>Deploy: Vercel + Railway</h3>
+    <div class="cartao"><h3>Deploy: Railway (API e site)</h3>
       <ol class="fluxo" style="flex-direction:column">
-        <li><b>Homologação</b><span>deploy contínuo da <code>main</code>: imagem nova → migração no pré-deploy → troca → <code>/v1/health/ready</code> 200 → ensaio</span></li>
-        <li class="humano"><b>Produção</b><span>promoção <strong>manual</strong> do mesmo commit, com as flags desligadas até a decisão de ligar</span></li>
+        <li><b>Staging</b><span>branch <code>entrega/projeto-final</code>: imagem nova → migração no pré-deploy → troca → <code>/v1/health/ready</code> 200 → ensaio</span></li>
+        <li class="humano"><b>Produção</b><span>branch <code>main</code>, com merge e promoção <strong>manuais</strong>, com as flags desligadas até a decisão de ligar</span></li>
       </ol>
       <p>Migrações em <strong>expand/contract</strong>: primeiro só acrescenta, depois remove.</p>
       <ul class="caminhos"><li><code>docs/ambientes-e-deploy.md</code> §5 e §6</li></ul>
@@ -780,6 +781,48 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 </div>
 </section>
 
+<section class="slide" data-parte="Parte 2 · Pela régua do curso" data-titulo="M4 — Estresse com volume (20, 40 e 60 VUs)">
+<div class="in">
+  <div class="cabeca"><p class="olho">M4 · 30 pontos <span class="selo ok">executado</span></p><h2>Estresse com 101 mil pedidos: 20, 40 e 60 usuários, zero falhas.</h2></div>
+  <div class="duas-colunas t60">
+    <div class="rolavel" tabindex="0" role="group" aria-label="Patamares do estresse com volume">
+    <table>
+      <thead><tr><th>Patamar</th><th class="n">VUs</th><th class="n">req/s</th><th class="n">p95 catálogo</th><th class="n">p95 criação</th><th class="n">falhas</th></tr></thead>
+      <tbody>
+        <tr><td>rampa até 20</td><td class="n">20</td><td class="n">2,21</td><td class="n">32 ms</td><td class="n">41 ms</td><td class="n">0,00%</td></tr>
+        <tr class="realce"><td>patamar 20</td><td class="n">20</td><td class="n">8,68</td><td class="n">29 ms</td><td class="n">42 ms</td><td class="n">0,00%</td></tr>
+        <tr><td>rampa até 40</td><td class="n">40</td><td class="n">6,45</td><td class="n">19 ms</td><td class="n">33 ms</td><td class="n">0,00%</td></tr>
+        <tr class="realce"><td>patamar 40</td><td class="n">40</td><td class="n">17,41</td><td class="n">16 ms</td><td class="n">30 ms</td><td class="n">0,00%</td></tr>
+        <tr><td>rampa até 60</td><td class="n">60</td><td class="n">10,78</td><td class="n">14 ms</td><td class="n">28 ms</td><td class="n">0,00%</td></tr>
+        <tr class="realce"><td>patamar 60</td><td class="n">60</td><td class="n">26,31</td><td class="n">12 ms</td><td class="n">26 ms</td><td class="n">0,00%</td></tr>
+        <tr><td>descida (1 VU)</td><td class="n">1</td><td class="n">6,80</td><td class="n">18 ms</td><td class="n">35 ms</td><td class="n">0,00%</td></tr>
+        <tr><td>recuperação (1 VU)</td><td class="n">1</td><td class="n">0,44</td><td class="n">33 ms</td><td class="n">55 ms</td><td class="n">0,00%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="cartao"><h3>O que o teste mostra</h3>
+      <ul>
+        <li>Vazão proporcional à carga: 8,7 → 17,4 → 26,3 req/s para 20 → 40 → 60 VUs.</li>
+        <li>A latência não subiu: o p95 do catálogo caiu de 29 para 12 ms, e a criação ficou entre 26 e 42 ms nos patamares.</li>
+        <li><strong>57.139 requisições, 0 falhas.</strong> 1.639 compras (201) e 1.639 replays corretos, sem duplicidade.</li>
+        <li>Reconciliado com o banco: 102.639 pedidos = 101.000 da base + 1.639 novos.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grade dois">
+    <div class="cartao foco"><h3>Ponto de saturação: não encontrado</h3><p>Até 60 VUs nada passou da meta. Isso dá um <strong>teto acima de 60 VUs nesta máquina</strong>, e não um limite medido.</p></div>
+    <div class="cartao" style="border-color:var(--parcial)"><h3>O que não mostra</h3>
+      <ul>
+        <li>Não é a capacidade do sistema: os VUs têm pausas de leitura, então 60 VUs geram só ~26 req/s.</li>
+        <li>A migração 0074 não é exercida por este roteiro; o ganho dela está medido na carga.</li>
+        <li>Uma execução válida, em notebook, com a API em <code>NODE_ENV=development</code>. As duas tentativas descartadas estão registradas.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="nota">Evidência: <code>docs/desempenho.md</code> §3.1; <code>docs/desempenho/estresse-volume-3/</code> (resumo.md, reconciliacao.md); <code>tests/performance/k6/estresse.js</code>; commit <code>4fbd4db</code>.</p>
+</div>
+</section>
+
 <section class="slide" data-parte="Parte 2 · Pela régua do curso" data-titulo="M4 — Integridade e limites da medição">
 <div class="in">
   <div class="cabeca"><p class="olho">M4 · número com medição</p><h2>O número só vale se o pedido estiver certo.</h2></div>
@@ -802,7 +845,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
         <li>É um <strong>notebook</strong>, não produção. O ruído aparece: os dois “antes” deram 588 e 374 ms.</li>
         <li>“Antes” e “depois” não rodaram na mesma hora; o “depois” teve a máquina mais quieta. A janela de controle ficou igual dos dois lados.</li>
         <li>O limitador do catálogo foi levantado para o k6.</li>
-        <li><strong>Carga, não estresse:</strong> 20/40/60 VUs com volume não foi rodado.</li>
+        <li><strong>Carga e estresse:</strong> o estresse de 20/40/60 VUs foi rodado depois, com 101 mil pedidos (slide seguinte). Ele não mede a capacidade do sistema.</li>
         <li>As demais operações não mudaram (catálogo 26 → 26 ms; fila 18 → 18 ms).</li>
       </ul>
     </div>
@@ -813,36 +856,40 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <section class="slide denso" data-parte="Parte 2 · Pela régua do curso" data-titulo="Lacunas">
 <div class="in">
-  <div class="cabeca"><p class="olho">Sem inventar <span class="selo falta">lacunas</span></p><h2 class="largo">O que não está atendido, ou não tem evidência hoje.</h2></div>
+  <div class="cabeca"><p class="olho">Atualizado em 21/11/2026 <span class="selo falta">lacunas</span></p><h2 class="largo">O que foi resolvido, com evidência, e o que ainda falta.</h2></div>
   <div class="grade dois">
-    <div class="cartao" style="border-color:var(--falta)"><h3>Entrega</h3>
+    <div class="cartao" style="border-color:var(--ok)"><h3>Resolvido</h3>
       <ul>
-        <li><strong>Não há execução verde da CI.</strong> Nenhum workflow rodou no GitHub; depende do push (<code>docs/ci.md</code>).</li>
-        <li><strong>O trabalho da estruturação não está commitado.</strong> O <code>HEAD</code> é <code>69cf095</code> e o <code>git status</code> lista 254 caminhos alterados ou novos em 21/11/2026. O curso avalia o histórico.</li>
-        <li><strong>Nenhum ambiente publicado</strong> (GitHub Environments, Railway, Vercel): <code>docs/ambientes-e-deploy.md</code>, linha 11.</li>
-        <li>O <code>README.md</code> ainda marca o desempenho como “PENDENTE (#142)”, embora <code>docs/desempenho.md</code> exista.</li>
+        <li><strong>CI verde no GitHub:</strong> <a href="https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/44890192508">run 44890192508</a>, commit <code>2ada0f4</code>, 8 de 8 jobs.</li>
+        <li><strong>Trabalho commitado</strong> no branch <code>entrega/projeto-final</code>: 30 commits sobre <code>69cf095</code>, até <code>cce49fd</code>. A árvore local ainda tem alterações de outros cards, fora desta entrega.</li>
+        <li><strong>Estresse com volume</strong> (20/40/60 VUs): 57.139 requisições, 0 falhas, sem saturação até 60 VUs (<code>4fbd4db</code>).</li>
+        <li><strong>Cobertura sob carga:</strong> os testes de tempo passaram a ter limite proporcional (<code>2ada0f4</code>).</li>
+        <li><strong>Compose sem placeholders:</strong> <code>api</code> e <code>web</code> são imagens reais (<code>7f6d4ef</code>).</li>
+        <li><strong>README:</strong> o desempenho deixou de ser “PENDENTE” e aponta para <code>docs/desempenho.md</code> (<code>cce49fd</code>).</li>
       </ul>
     </div>
-    <div class="cartao" style="border-color:var(--parcial)"><h3>Técnica</h3>
+    <div class="cartao" style="border-color:var(--parcial)"><h3>Ainda falta: técnica</h3>
       <ul>
-        <li><strong>Compose:</strong> <code>api</code> e <code>web</code> são placeholders nginx; a aplicação sobe com <code>pnpm dev</code>.</li>
-        <li><strong>Estresse</strong> (20/40/60 VUs) com volume não foi executado; carga e estresse no GitHub Actions também não.</li>
-        <li><strong>SLO:</strong> conformidade em 28 dias só se mede em produção.</li>
-        <li><strong>Cobertura:</strong> 2 testes de tempo falham com a instrumentação ligada sob carga.</li>
+        <li><strong>Subida do compose</strong> não medida nesta entrega: validei só a sintaxe. Falta <code>docker compose up --build</code> do zero.</li>
+        <li><strong>Carga e estresse no GitHub Actions</strong> não rodaram: o <code>desempenho.yml</code> existe, mas os ensaios foram locais.</li>
+        <li><strong>Ponto de saturação</strong> não encontrado: o teto está acima de 60 VUs nesta máquina.</li>
+        <li><strong>SLO:</strong> a conformidade em 28 dias só se mede em produção.</li>
         <li>O site ainda não exibe o campo da feature flag.</li>
         <li>E-mail sem <code>jobId</code> determinístico; a chave de idempotência não guarda a impressão do corpo.</li>
       </ul>
     </div>
-    <div class="cartao" style="border-color:var(--parcial)"><h3>Declarações que dependem do autor</h3>
+    <div class="cartao" style="border-color:var(--falta)"><h3>Ainda falta: entrega</h3>
       <ul>
-        <li><code>docs/ia.md</code>: os 4 campos “Decisão humana” estão <strong>PENDENTE</strong>.</li>
-        <li><code>CONTRIBUTORS.md</code>: a tabela por módulo está “PENDENTE — Arthur confirma/ajusta”.</li>
+        <li><strong>Nenhum ambiente no ar.</strong> Staging e produção no Railway não foram criados; o domínio segue como marcador <code>DOMINIO</code> no README.</li>
+        <li><strong>Não há pacote de provas do Workflow IA</strong> em <code>.workflow-ia/tasks/</code> para mostrar. Os cards citados passaram pelo gate do plano do Code Crew.</li>
+        <li>No #142, a última versão salva do plano (v4) ainda marca <code>review-missing</code>; a aprovação final não está nos arquivos lidos.</li>
       </ul>
     </div>
-    <div class="cartao" style="border-color:var(--parcial)"><h3>Processo (Parte 3)</h3>
+    <div class="cartao" style="border-color:var(--parcial)"><h3>Declarações que dependem do autor</h3>
       <ul>
-        <li>Não existe pasta <code>.workflow-ia/tasks/&lt;ID&gt;/</code> no disco: <strong>não há pacote de provas do Workflow IA para mostrar</strong>. Os cards citados passaram pelo gate do plano do Code Crew.</li>
-        <li>No #142, a última versão salva do plano (v4) ainda marca <code>review-missing</code>; a aprovação final não está nos arquivos lidos.</li>
+        <li><code>docs/ia.md</code>: as “Decisões humanas” dos registros 1 a 4 estão <strong>PENDENTE</strong>, e os modelos e versões usados não foram preenchidos.</li>
+        <li><code>docs/ia.md</code>: confirmar que nenhum dado de cliente, <code>.env</code> ou log real foi entregue à IA. O repositório não permite verificar isso.</li>
+        <li><code>CONTRIBUTORS.md</code>: nome completo, turma e declaração pessoal estão <strong>PENDENTE</strong>.</li>
       </ul>
     </div>
   </div>
@@ -1134,8 +1181,8 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div class="cartao" style="border-color:var(--parcial)"><h3>O que ainda é meu a fazer</h3>
       <ul>
         <li>Preencher as “Decisões humanas” do <code>docs/ia.md</code>, hoje <strong>PENDENTE</strong>.</li>
-        <li>Confirmar o <code>CONTRIBUTORS.md</code>.</li>
-        <li>Revisar, fazer o commit e o push, e colar o link da CI verde no README.</li>
+        <li>Preencher os campos pessoais do <code>CONTRIBUTORS.md</code>.</li>
+        <li>Decidir quando criar staging e produção no Railway, e trocar o marcador <code>DOMINIO</code> pelo domínio real.</li>
       </ul>
     </div>
   </div>
@@ -1148,9 +1195,9 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <p class="olho">Fechamento</p>
   <h1>Engenharia, <em>não tamanho</em>.</h1>
   <div class="grade">
-    <div class="cartao"><h3>O que está provado</h3><p>Pedido idempotente em transação única, isolamento entre lojas, 101 mil pedidos, k6 em 3 estágios e um gargalo corrigido de 481 ms para 9 ms.</p></div>
+    <div class="cartao"><h3>O que está provado</h3><p>Pedido idempotente em transação única, isolamento entre lojas, 101 mil pedidos, CI verde no GitHub, k6 em 3 estágios, estresse de 20/40/60 VUs sem falhas e um gargalo corrigido de 481 ms para 9 ms.</p></div>
     <div class="cartao"><h3>O que faria diferente</h3><p>Imagens reais de <code>api</code> e <code>web</code> no compose; um ambiente de homologação para ensaiar a virada de preço; o hash do corpo junto da chave de idempotência.</p></div>
-    <div class="cartao foco"><h3>O próximo passo</h3><p>Commit e push, CI verde, link no README. Depois: estresse com volume e a mesma correção em <code>app.meus_itens_de_pedidos()</code>.</p></div>
+    <div class="cartao foco"><h3>O próximo passo</h3><p>Subir o compose do zero, publicar o staging no Railway e preencher os campos humanos do <code>docs/ia.md</code>. Depois: a mesma correção em <code>app.meus_itens_de_pedidos()</code>.</p></div>
   </div>
   <p class="lead">Obrigado. Perguntas?</p>
   <p class="nota">Roteiro de fala e fontes de cada número: <code>docs/apresentacao/roteiro.md</code>.</p>
