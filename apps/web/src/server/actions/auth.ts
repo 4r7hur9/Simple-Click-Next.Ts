@@ -16,6 +16,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { COOKIE_DA_LOJA_DE_ORIGEM } from "../../lib/loja-de-origem.ts";
 import { destinoDepoisDeSair } from "../../lib/quem-esta-logado.ts";
 import { enderecoDaApi } from "../api-client.ts";
 import {
@@ -81,6 +82,9 @@ async function apagarCookiesDaSessao(): Promise<void> {
       ...(dominio === undefined ? {} : { domain: dominio }),
     });
   }
+  // A loja de onde a pessoa veio (card #135) não fica para quem usar o
+  // aparelho depois.
+  armazenamento.delete({ name: COOKIE_DA_LOJA_DE_ORIGEM, path: "/" });
 }
 
 /** Sai apenas deste navegador, revogando antes o token na API. */

@@ -45,6 +45,11 @@ const DESTINO_DA_BUSCA = `/explorar/produtos#${ID_DO_CAMPO_DE_BUSCA}`;
 export interface TopoDoClienteProps {
   readonly usuario: UsuarioDaBarra;
   readonly loja?: LojaNaBarra | undefined;
+  /**
+   * Fora da loja, a loja de onde o cliente veio (já conferida na API): o menu
+   * da conta oferece "Voltar à loja" para ela. Não traz a sacola.
+   */
+  readonly lojaDeOrigem?: LojaNaBarra | undefined;
   readonly sair: (caminho: string) => Promise<void>;
   /** O indicador de localização (o servidor já leu a cidade). */
   readonly localizacao?: ReactNode;
@@ -168,6 +173,7 @@ function focarNaBusca(): boolean {
 export function TopoDoCliente({
   usuario,
   loja,
+  lojaDeOrigem,
   sair,
   localizacao,
   sacola,
@@ -234,7 +240,7 @@ export function TopoDoCliente({
             <IconeBuscar aria-hidden="true" />
           </Link>
           {sacola}
-          <MenuDaConta usuario={usuario} loja={loja} sair={sair} />
+          <MenuDaConta usuario={usuario} loja={loja ?? lojaDeOrigem} sair={sair} />
         </div>
       </div>
 

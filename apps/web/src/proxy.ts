@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { anotarLojaDeOrigem } from "./server/anotar-loja-de-origem";
 import { redirecionarApelidoAntigo } from "./server/apelido-antigo";
 import { renovarAcessoSeVenceu } from "./server/renovar-acesso";
 
@@ -31,7 +32,7 @@ export default async function proxy(
   // Acesso vencido e renovação à mão: troca antes da página renderizar, para
   // a pessoa não virar visitante no meio do uso (sumia o sair e o menu).
   const renovado = await renovarAcessoSeVenceu(requisicao);
-  return renovado ?? NextResponse.next();
+  return anotarLojaDeOrigem(requisicao, renovado ?? NextResponse.next());
 }
 
 export const config = {

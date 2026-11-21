@@ -7,6 +7,7 @@
  * como visitante. Quem decide acesso continua sendo a API, em cada rota; a
  * barra só mostra atalhos.
  */
+import type { AbaDaConta } from "./abas-da-conta.ts";
 import { comDestino, destinoSeguro } from "./destino-seguro.ts";
 
 /** Os cinco jeitos de a barra se apresentar. */
@@ -210,13 +211,7 @@ export type IconeDoItem =
   | "entrar"
   | "criar-conta"
   | "loja"
-  | "inicio"
-  | "pedidos"
-  | "dados"
-  | "enderecos"
-  | "favoritos"
   | "explorar"
-  | "seguranca"
   | "painel"
   | "ver-loja"
   | "conta"
@@ -231,8 +226,13 @@ export interface ItemDoUsuario {
   readonly icone: IconeDoItem;
   /** A ação principal do papel, pintada no verde da marca. */
   readonly destaque?: boolean;
-  /** Ativo só no endereço exato (a Visão geral da conta não vale para /conta/*). */
+  /** Ativo só no endereço exato. */
   readonly exato?: boolean;
+  /**
+   * O item abre o modal "Minha conta" nesta aba (card #151) em vez de navegar:
+   * o link leva `data-abre-conta`. O `href` é a reserva sem script.
+   */
+  readonly abreConta?: AbaDaConta;
 }
 
 /** O feed (/explorar) é público: todo papel tem o caminho para ele. */
@@ -243,11 +243,16 @@ const EXPLORAR: ItemDoUsuario = {
   icone: "explorar",
 };
 
+/**
+ * "Minha conta" abre o modal (card #151). O `href` é `/conta/dados`, que vai
+ * para Pedidos com o modal aberto na aba Dados quando o script não rodou.
+ */
 const MINHA_CONTA: ItemDoUsuario = {
   id: "conta",
   rotulo: "Minha conta",
-  href: "/conta",
+  href: "/conta/dados",
   icone: "conta",
+  abreConta: "dados",
 };
 
 /**
@@ -289,13 +294,9 @@ export function itensDoUsuario(
                 icone: "loja",
               } satisfies ItemDoUsuario,
             ]),
-        EXPLORAR,
-        { id: "inicio", rotulo: "Visão geral", href: "/conta", icone: "inicio", exato: true },
-        { id: "pedidos", rotulo: "Pedidos", href: "/conta/pedidos", icone: "pedidos" },
-        { id: "dados", rotulo: "Dados", href: "/conta/dados", icone: "dados" },
-        { id: "enderecos", rotulo: "Endereços", href: "/conta/enderecos", icone: "enderecos" },
-        { id: "seguranca", rotulo: "Segurança", href: "/conta/seguranca", icone: "seguranca" },
-        { id: "favoritos", rotulo: "Favoritos", href: "/conta/favoritos", icone: "favoritos" },
+        // Explorar, Pedidos e Favoritos já estão nas abas do topo e na barra
+        // inferior; Dados, Endereços e Segurança, no modal.
+        MINHA_CONTA,
       ];
     case "dono":
     case "equipe":

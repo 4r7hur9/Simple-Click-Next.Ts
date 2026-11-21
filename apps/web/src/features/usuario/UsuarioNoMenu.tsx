@@ -2,9 +2,9 @@
 
 /**
  * Quem está logado, no pé do menu lateral do painel e da administração
- * (card #22). Lá a lateral flutuante não aparece — o menu lateral já é a
- * navegação —, então a pessoa, "Explorar" (o feed é público), "Minha conta"
- * e "Sair" entram aqui, sem repetir os itens do menu.
+ * (card #22). O menu lateral já é a navegação, então a pessoa, "Explorar"
+ * (o feed é público), "Minha conta" e "Sair" entram aqui, sem repetir os
+ * itens do menu.
  *
  * Na faixa só de ícones do tablet (md até lg) ficam só o avatar e os ícones;
  * o nome de cada ação continua no texto, para o leitor de tela.
@@ -36,17 +36,18 @@ export function UsuarioNoMenu({ usuario, sair }: UsuarioNoMenuProps) {
 
   const selo = SELO_DO_PAPEL[usuario.papel];
   const naConta = itemAtivo(caminho, "/conta");
+  // "Minha conta" leva a /conta/dados, que abre o modal da conta (card #151).
 
   return (
     <div className="sc-usuario-menu">
       <div className="sc-usuario-menu__pessoa">
-        <span className="sc-usuario-lateral__avatar" aria-hidden="true">
+        <span className="sc-usuario-menu__avatar" aria-hidden="true">
           <span>{usuario.iniciais}</span>
         </span>
         <span className="sc-usuario-menu__quem">
           <strong className="sc-usuario-menu__nome">{nomeLegivel(usuario.nome)}</strong>
           {selo !== null && (
-            <span className="sc-usuario-lateral__selo">{selo}</span>
+            <span className="sc-usuario-menu__selo">{selo}</span>
           )}
         </span>
       </div>
@@ -55,7 +56,7 @@ export function UsuarioNoMenu({ usuario, sair }: UsuarioNoMenuProps) {
         <span className="sc-usuario-menu__rotulo">Explorar</span>
       </Link>
       <Link
-        href="/conta"
+        href="/conta/dados"
         aria-current={naConta ? "page" : undefined}
         className="sc-usuario-menu__acao"
       >

@@ -98,6 +98,8 @@ export function LocalizacaoDoTopo({ cidade }: LocalizacaoDoTopoProps) {
         lat: local?.lat,
         lng: local?.lng,
         pagina: 1,
+        // Na vitrine mista (/explorar) a região fica nela (card #152).
+        ...(caminho === "/explorar" ? { inicio: true } : {}),
       }),
       { scroll: false },
     );

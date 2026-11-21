@@ -3,7 +3,7 @@
  * PARA CADA TELA, em português, curta e previsível:
  *
  *   /                      landing de venda do SimpleClick (só ela)
- *   /explorar              feed dos clientes (/produtos é a aba padrão, /lojas)
+ *   /explorar              vitrine mista dos clientes (/produtos lista produtos, /lojas lista lojas)
  *   /loja/{slug}           a loja pública; /cardapio /carrinho /checkout
  *                          /produto/{id} /sobre /pedido/{token} /tv
  *   /conta                 a conta do cliente; /pedidos /pedidos/{id} /dados
@@ -107,7 +107,7 @@ const TELAS_DA_LOJA: readonly LinhaDoMapa[] = [
 // prettier-ignore
 const TELAS_DA_PLATAFORMA_E_DA_CONTA: readonly LinhaDoMapa[] = [
   ["/", "Página inicial da plataforma (landing de venda)", "PUBLICO", false, "—", "page.tsx"],
-  ["/explorar", "Feed dos clientes (leva à aba de produtos)", "PUBLICO", false, "—", "(explorar)/explorar/page.tsx"],
+  ["/explorar", "Explorar: vitrine mista (stories, lojas perto, destaques e posts)", "PUBLICO", false, "—", "(explorar)/explorar/page.tsx"],
   ["/explorar/produtos", "Feed dos clientes: produtos", "PUBLICO", false, "—", "(explorar)/explorar/produtos/page.tsx"],
   ["/explorar/lojas", "Feed dos clientes: lojas", "PUBLICO", false, "—", "(explorar)/explorar/lojas/page.tsx"],
   ["/entrar", "Login (e-mail e senha)", "PUBLICO", true, "AC-105, AC-108, AC-119, AC-120", "(conta)/entrar/page.tsx"],
@@ -122,13 +122,13 @@ const TELAS_DA_PLATAFORMA_E_DA_CONTA: readonly LinhaDoMapa[] = [
   ["/lgpd", "Direitos do titular (LGPD) e encarregado", "PUBLICO", false, "—", "(site)/lgpd/page.tsx"],
   ["/nao-encontrado", "Página de erro e não encontrado", "PUBLICO", false, "AC-024"],
   ["/erro", "Página de erro e não encontrado", "PUBLICO", false, "AC-024"],
-  ["/conta", "Minha conta (leva aos pedidos)", "PUBLICO", true, "AC-509", "(conta)/conta/page.tsx"],
-  ["/conta/dados", "Meus dados", "PUBLICO", false, "AC-509", "(conta)/conta/dados/page.tsx"],
+  ["/conta", "Minha conta (redireciona para /conta/pedidos)", "PUBLICO", true, "AC-509", "(conta)/conta/page.tsx"],
+  ["/conta/dados", "Minha conta, aba Dados (abre o modal sobre Pedidos)", "PUBLICO", false, "AC-509", "(conta)/conta/dados/page.tsx"],
   ["/conta/favoritos", "Favoritos", "PUBLICO", false, "—", "(conta)/conta/favoritos/page.tsx"],
-  ["/conta/pedidos", "Meus pedidos (todas as lojas)", "PUBLICO", true, "AC-616", "(conta)/conta/pedidos/page.tsx"],
+  ["/conta/pedidos", "Meus pedidos (todas as lojas) com o resumo no topo", "PUBLICO", true, "AC-616", "(conta)/conta/pedidos/page.tsx"],
   ["/conta/pedidos/{id}", "Detalhe do meu pedido", "PUBLICO", true, "AC-616, AC-713", "(conta)/conta/pedidos/[id]/page.tsx"],
-  ["/conta/enderecos", "Meus endereços", "PUBLICO", true, "AC-509", "(conta)/conta/enderecos/page.tsx"],
-  ["/conta/seguranca", "Senha, segundo fator e sessões", "PUBLICO", true, "AC-108, AC-112, AC-113", "(conta)/conta/seguranca/page.tsx"],
+  ["/conta/enderecos", "Minha conta, aba Endereços (abre o modal sobre Pedidos)", "PUBLICO", true, "AC-509", "(conta)/conta/enderecos/page.tsx"],
+  ["/conta/seguranca", "Minha conta, aba Segurança (abre o modal sobre Pedidos)", "PUBLICO", true, "AC-108, AC-112, AC-113", "(conta)/conta/seguranca/page.tsx"],
   ["/conta/seguranca/aplicativo", "Ativar o aplicativo autenticador", "CLIENTE", true, "AC-121, AC-123", "(conta)/conta/seguranca/aplicativo/page.tsx"],
   ["/vender", "Como vender com o SimpleClick", "PUBLICO", false, "—", "(conta)/vender/page.tsx"],
   ["/escolher-loja", "Escolha da loja do painel", "DONO", true, "AC-135, AC-136", "(conta)/escolher-loja/page.tsx"],

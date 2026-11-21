@@ -7,26 +7,34 @@
  * com a ação de sair.
  *
  * - `NavegacaoDaSessao` e `BarraInferiorDaSessao` (card #105): o topo e a barra
- *   inferior do cliente, que substituíram a lateral na loja, no explorar e na
- *   conta. Em cada moldura o topo vem antes do conteúdo e a barra depois (a
- *   ordem do Tab).
- * - `LateralDaSessao`: a lateral flutuante (fora das molduras do cliente desde
- *   o #105; a remoção é do #111).
- * - O tutorial do cliente (card #39) vem junto da lateral: ela está em toda
- *   página do cliente (loja, explorar, conta) e é onde fica "Ver tutorial".
+ *   inferior do cliente, na loja, no explorar e na conta. Em cada moldura o
+ *   topo vem antes do conteúdo e a barra depois (a ordem do Tab).
+ * - O tutorial do cliente (card #39) vem junto do topo: ele está em toda
+ *   página do cliente e o menu da conta é onde fica "Ver tutorial".
+ * - O modal "Minha conta" (card #151) também: quem tem sessão o abre pelo
+ *   avatar ou pelo "Perfil", em qualquer uma dessas telas. Só o e-mail da
+ *   conta e as ações de sair seguem para o navegador; os dados do modal são
+ *   lidos lá, ao abrir.
  * - `UsuarioDoMenuDaSessao`: o pé do menu lateral do painel e da
- *   administração (lá a lateral flutuante não entra, para não duplicar menu).
+ *   administração.
  */
+import { Suspense } from "react";
+
+import { ModalDaConta } from "../../features/conta/ModalDaConta.tsx";
 import { Tutorial } from "../../features/tutorial/Tutorial.tsx";
 import { BarraInferiorDoCliente } from "../../features/usuario/BarraInferiorDoCliente.tsx";
 import { LocalizacaoDoTopo } from "../../features/usuario/LocalizacaoDoTopo.tsx";
 import { SacolaDoTopo } from "../../features/usuario/SacolaDoTopo.tsx";
 import { TopoDoCliente } from "../../features/usuario/TopoDoCliente.tsx";
-import { LateralDoUsuario } from "../../features/usuario/LateralDoUsuario.tsx";
 import { UsuarioNoMenu } from "../../features/usuario/UsuarioNoMenu.tsx";
 import type { LojaNaBarra } from "../../lib/quem-esta-logado.ts";
 import { cidadeDoPedidoAtual } from "../../server/cidade-do-topo.ts";
-import { sairPelaBarra } from "../../server/actions/auth.ts";
+import {
+  encerrarTodasAsSessoes,
+  sairDaConta,
+  sairPelaBarra,
+} from "../../server/actions/auth.ts";
+import { sairDepoisDeExcluirAConta } from "../../server/actions/conta.ts";
 import { tutorialJaVistoNestePedido } from "../../server/tutorial-da-sessao.ts";
 import { usuarioDoPedidoAtual } from "../../server/usuario-da-sessao.ts";
 
@@ -35,11 +43,17 @@ import { usuarioDoPedidoAtual } from "../../server/usuario-da-sessao.ts";
  * aqui no servidor. A cidade do endereço padrão só é lida para o cliente (e
  * só cidade e UF seguem para o navegador); a sacola só existe dentro de uma
  * loja; o tutorial do cliente continua montado junto.
+ *
+ * `lojaDeOrigem` (card #135) é a loja de onde o cliente veio, já conferida na
+ * API: fora da loja, o menu da conta oferece "Voltar à loja" para ela. Só o
+ * cliente a recebe (é o papel que tem esse item).
  */
 export async function NavegacaoDaSessao({
   loja,
+  lojaDeOrigem,
 }: {
   readonly loja?: LojaNaBarra | undefined;
+  readonly lojaDeOrigem?: LojaNaBarra | undefined;
 }) {
   const usuario = await usuarioDoPedidoAtual();
   const cliente = usuario.papel === "cliente";
@@ -52,10 +66,21 @@ export async function NavegacaoDaSessao({
       <TopoDoCliente
         usuario={usuario}
         loja={loja}
+        lojaDeOrigem={cliente ? lojaDeOrigem : undefined}
         sair={sairPelaBarra}
         localizacao={<LocalizacaoDoTopo cidade={cidade} />}
         sacola={loja === undefined ? undefined : <SacolaDoTopo apelido={loja.apelido} />}
       />
+      {usuario.papel !== "visitante" && (
+        // `useSearchParams` do modal pede o `Suspense` (como o topo faz).
+        <Suspense fallback={null}>
+          <ModalDaConta
+            key={usuario.email}
+            email={usuario.email}
+            acoes={{ sairDaConta, encerrarTodasAsSessoes, sairDepoisDeExcluirAConta }}
+          />
+        </Suspense>
+      )}
       {cliente && <Tutorial papel="cliente" abrirSozinho={!jaViu} />}
     </>
   );
@@ -64,22 +89,6 @@ export async function NavegacaoDaSessao({
 /** A barra inferior do celular (a pergunta da sessão é uma só por pedido). */
 export async function BarraInferiorDaSessao() {
   return <BarraInferiorDoCliente usuario={await usuarioDoPedidoAtual()} />;
-}
-
-export async function LateralDaSessao({
-  loja,
-}: {
-  readonly loja?: LojaNaBarra | undefined;
-}) {
-  const usuario = await usuarioDoPedidoAtual();
-  const cliente = usuario.papel === "cliente";
-  const jaViu = cliente ? await tutorialJaVistoNestePedido("cliente") : true;
-  return (
-    <>
-      <LateralDoUsuario usuario={usuario} loja={loja} sair={sairPelaBarra} />
-      {cliente && <Tutorial papel="cliente" abrirSozinho={!jaViu} />}
-    </>
-  );
 }
 
 export async function UsuarioDoMenuDaSessao() {

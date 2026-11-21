@@ -13,6 +13,13 @@
  * Na loja, "Entrar" e "Criar conta" abrem a janela de acesso sem sair da
  * página (um `<a>` comum com `data-abre-acesso`, porque o `Link` do Next trata
  * o toque antes e a janela, que escuta no documento, não abriria).
+ *
+ * "Minha conta" (card #151) abre o modal da conta, por cima da página em que a
+ * pessoa está: um `<a data-abre-conta>` cujo `href` é a reserva sem script. O
+ * `ModalDaConta` escuta o clique no documento, na fase de captura, e devolve o
+ * foco ao avatar ao fechar. Para o cliente o menu fica só com "Voltar à loja"
+ * (quando há), "Minha conta", "Ver tutorial" e "Sair": Explorar, Pedidos e
+ * Favoritos estão nas abas do topo.
  */
 import { IconeInfo, IconeSair, IconeUsuario } from "@simpleclick/ui";
 import Link from "next/link";
@@ -33,7 +40,7 @@ import { limparDadosLocaisDoCliente } from "./local-do-aparelho.ts";
 
 export interface MenuDaContaProps {
   readonly usuario: UsuarioDaBarra;
-  /** A loja aberta, quando o topo está numa página de loja. */
+  /** A loja aberta ou, fora dela, a loja de onde o cliente veio (card #135). */
   readonly loja?: LojaNaBarra | undefined;
   /** A ação do servidor que encerra a sessão e volta para `caminho`. */
   readonly sair: (caminho: string) => Promise<void>;
@@ -91,7 +98,6 @@ export function MenuDaConta({ usuario, loja, sair }: MenuDaContaProps) {
         type="button"
         className="sc-menu-conta__botao"
         data-menu-da-conta=""
-        data-abre-lateral=""
         aria-expanded={aberto}
         aria-controls={idDoPainel}
         aria-label={
@@ -132,6 +138,7 @@ export function MenuDaConta({ usuario, loja, sair }: MenuDaContaProps) {
               const Desenho = ICONES_DO_USUARIO[item.icone];
               const atual = itemAtivo(caminho, item.href, item.exato === true);
               const aba = abaDeAcesso(item.id, loja);
+              const abreConta = item.abreConta;
               const conteudo = (
                 <>
                   <Desenho aria-hidden="true" />
@@ -140,7 +147,17 @@ export function MenuDaConta({ usuario, loja, sair }: MenuDaContaProps) {
               );
               return (
                 <li key={item.id}>
-                  {aba !== undefined ? (
+                  {abreConta !== undefined ? (
+                    <a
+                      href={item.href}
+                      className="sc-menu-conta__item"
+                      data-abre-conta={abreConta}
+                      aria-haspopup="dialog"
+                      onClick={() => setAberto(false)}
+                    >
+                      {conteudo}
+                    </a>
+                  ) : aba !== undefined ? (
                     <a
                       href={item.href}
                       className="sc-menu-conta__item"

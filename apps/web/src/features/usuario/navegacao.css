@@ -36,12 +36,41 @@
   inset-block-start: 0;
   z-index: 30;
   padding-block-start: env(safe-area-inset-top);
-  background: color-mix(in srgb, var(--cor-fundo) 90%, transparent);
-  box-shadow: 0 4px 24px rgb(0 0 0 / 22%);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  /* Vidro (card #153, vidro.css): o preenchimento, a sombra e a aresta de
+     baixo ficam aqui e o desfoque vai no `::before`. O desfoque NÃO fica no
+     próprio topo: um elemento com `backdrop-filter` vira a raiz do fundo dos
+     filhos, e o menu do avatar e a região só enxergariam o topo, não a
+     página. */
+  isolation: isolate;
+  background-color: color-mix(
+    in srgb,
+    var(--vidro-base) var(--vidro-opacidade-medio),
+    transparent
+  );
+  box-shadow:
+    var(--vidro-sombra-medio),
+    inset 0 -1px 0 var(--vidro-borda);
   color: var(--cor-tinta);
   font-family: var(--fonte-base);
+}
+
+.sc-topo-cliente::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
+  box-shadow: inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--vidro-filtro-medio);
+  backdrop-filter: var(--vidro-filtro-medio);
 }
 
 .sc-topo-cliente__fileira {
@@ -307,11 +336,28 @@
   max-block-size: calc(100dvh - 5rem);
   overflow-y: auto;
   padding: var(--espaco-2);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--vidro-borda);
   border-radius: var(--raio-cartao);
-  background: var(--cor-superficie-alta);
+  /* Vidro (card #153): forma direta, o painel rola por dentro. */
+  background-color: color-mix(
+    in srgb,
+    var(--vidro-base) var(--vidro-opacidade-medio),
+    transparent
+  );
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
   color: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
+  box-shadow:
+    var(--vidro-sombra-medio),
+    inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--vidro-filtro-medio);
+  backdrop-filter: var(--vidro-filtro-medio);
 }
 
 .sc-menu-conta__painel[hidden] {
@@ -424,11 +470,8 @@
    ícone num anel verde e o rótulo em verde (o texto continua dizendo onde se
    está). Só dentro da navegação do cliente; a peça do #104 não muda. */
 .sc-barra-cliente .sc-barra-inferior {
-  border-block-start-color: color-mix(in srgb, var(--cor-borda) 50%, transparent);
-  background-color: color-mix(in srgb, var(--cor-fundo) 94%, transparent);
-  box-shadow: 0 -8px 24px rgb(0 0 0 / 18%);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  /* O vidro (fundo, sombra e desfoque) é do DS: vidro.css, card #153. */
+  border-block-start-color: var(--vidro-borda);
 }
 
 .sc-barra-cliente .sc-barra-inferior__item {
@@ -548,11 +591,28 @@
   display: grid;
   gap: var(--espaco-3);
   padding: var(--espaco-4);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--vidro-borda);
   border-radius: var(--raio-cartao);
-  background: var(--cor-superficie-alta);
+  /* Vidro (card #153): forma direta. */
+  background-color: color-mix(
+    in srgb,
+    var(--vidro-base) var(--vidro-opacidade-medio),
+    transparent
+  );
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
   color: var(--cor-tinta);
-  box-shadow: var(--sombra-3);
+  box-shadow:
+    var(--vidro-sombra-medio),
+    inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--vidro-filtro-medio);
+  backdrop-filter: var(--vidro-filtro-medio);
 }
 
 .sc-local-topo__painel[hidden] {
@@ -653,9 +713,14 @@ html:has(.sc-topo-cliente):not(:has(.sc-pagina-da-loja)) {
 @media (max-width: 63.99rem) {
   /* A página reserva espaço embaixo para a barra e a área segura: o último
      conteúdo e o último botão ficam acima dela. */
+  /* A altura da barra (4,5rem) é maior que o conteúdo dela (ícone + rótulo +
+     respiro = 68px), para a barra nunca crescer além do que se reserva; e a
+     reserva soma o filete de 1px do topo da barra (D-4: antes faltavam 5px e o
+     rodapé legal terminava atrás dela). */
   body:has(.sc-barra-cliente) {
+    --altura-da-barra-inferior: 4.5rem;
     padding-block-end: calc(
-      var(--altura-da-barra-inferior) + env(safe-area-inset-bottom, 0px)
+      var(--altura-da-barra-inferior) + 1px + env(safe-area-inset-bottom, 0px)
     );
   }
 

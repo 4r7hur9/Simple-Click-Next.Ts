@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 import { BannerDeCookies } from "../features/legal/BannerDeCookies.tsx";
+import { ForaDaTv } from "../features/tv/ForaDaTv.tsx";
 import { JanelaDeNovoAceite } from "../features/legal/JanelaDeNovoAceite.tsx";
 
 /**
@@ -88,7 +89,10 @@ export default function LayoutRaiz({ children }: { children: ReactNode }) {
       <body className="sc-raiz min-h-dvh antialiased">
         {children}
         {/* Aviso de cookies (card #78): sem aceite, nada não essencial carrega. */}
-        <BannerDeCookies />
+        {/* Na TV (quiosque sem teclado) o aviso não monta: ver features/tv/rota-da-tv.ts. */}
+        <ForaDaTv>
+          <BannerDeCookies />
+        </ForaDaTv>
         {/* Novo aceite dos termos (card #79): só aparece para quem está logado e tem versão pendente. */}
         <JanelaDeNovoAceite />
       </body>
