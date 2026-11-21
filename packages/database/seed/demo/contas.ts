@@ -4,8 +4,9 @@
  * QUATRO CONTAS DE TESTE, com senha conhecida e regravada a cada carga (quem
  * trocou a senha no teste volta a entrar com a documentada):
  *
- *   ADMIN    maria.card6@exemplo.test     administração da plataforma e dona
- *            de 2 lojas (Pastelaria da Vila e Marmitaria Sabor de Casa)
+ *   DONO     maria.card6@exemplo.test     dona de 2 lojas (Pastelaria da Vila
+ *            e Marmitaria Sabor de Casa), SEM administração da plataforma
+ *            (card #163: a carga revoga o acesso de admin que ela tiver)
  *   DONO     dono.demo@simpleclick.test   dono de 2 lojas (Pastelaria da Vila
  *            e Moda Boa Vista): o seletor de loja e o limite de 2 lojas
  *   EQUIPE   staff.demo@simpleclick.test  equipe da Pastelaria da Vila
@@ -15,6 +16,10 @@
  * Além delas: um dono por loja nova (mesma senha da demonstração, para quem
  * quiser entrar no painel de uma loja específica) e as pessoas que curtem e
  * comentam (sem senha: não entram, só aparecem).
+ *
+ * A demonstração NUNCA concede administração da plataforma (card #163, D-5):
+ * admin não vem de carga com senha pública. Quem administra é concedido à
+ * parte, pela credencial de administração.
  */
 
 import { argon2, randomBytes } from "node:crypto";
@@ -23,14 +28,15 @@ import type { ClienteSql } from "../../src/migrate.ts";
 import { gravar, id } from "./escrita.ts";
 
 export interface ContaDeTeste {
-  readonly papel: "ADMIN" | "DONO" | "EQUIPE" | "CLIENTE";
+  readonly papel: "DONO" | "EQUIPE" | "CLIENTE";
   readonly email: string;
   readonly senha: string;
   readonly nome: string;
 }
 
-export const CONTA_ADMIN: ContaDeTeste = {
-  papel: "ADMIN",
+/** A Maria: dona da demonstração, sem administração (card #163). */
+export const CONTA_DONA_DA_DEMO: ContaDeTeste = {
+  papel: "DONO",
   email: "maria.card6@exemplo.test",
   senha: "demo-admin-simpleclick",
   nome: "Maria Teste",
@@ -58,7 +64,7 @@ export const CONTA_CLIENTE: ContaDeTeste = {
 };
 
 export const CONTAS_DE_TESTE = [
-  CONTA_ADMIN,
+  CONTA_DONA_DA_DEMO,
   CONTA_DONO,
   CONTA_EQUIPE,
   CONTA_CLIENTE,
@@ -186,19 +192,24 @@ export async function vincular(
   });
 }
 
-/** Administração da plataforma (reaproveita a concessão que já existe). */
-export async function concederAdministracao(
+/**
+ * Tira da conta a administração da plataforma (card #163, D-5): encerra a
+ * concessão ativa e as sessões ADMIN abertas (motivo `ADMIN_REVOKED`). Não
+ * apaga nada: o histórico da concessão e das sessões fica. Idempotente: sem
+ * concessão nem sessão ativa, não muda nenhuma linha.
+ */
+export async function revogarAdministracaoDaDemonstracao(
   cliente: ClienteSql,
   contaId: string,
 ): Promise<void> {
   await cliente.query(
-    `INSERT INTO app.platform_admins (identity_id, granted_at)
-     SELECT $1, $2
-      WHERE NOT EXISTS (SELECT 1 FROM app.platform_admins WHERE identity_id = $1)`,
-    [contaId, DESDE],
+    `UPDATE app.platform_admins SET revoked_at = now()
+      WHERE identity_id = $1 AND revoked_at IS NULL`,
+    [contaId],
   );
   await cliente.query(
-    "UPDATE app.platform_admins SET revoked_at = NULL WHERE identity_id = $1",
+    `UPDATE app.sessions SET revoked_at = now(), revoked_reason = 'ADMIN_REVOKED'
+      WHERE identity_id = $1 AND role_at_issue = 'ADMIN' AND revoked_at IS NULL`,
     [contaId],
   );
 }

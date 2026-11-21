@@ -27,10 +27,12 @@ pnpm --filter @simpleclick/database demo -- --sem-videos   # mais rápido: não 
 
 | Papel | E-mail | O que vê |
 |---|---|---|
-| Admin da plataforma | maria.card6@exemplo.test | /admin; dona da Pastelaria da Vila e da Marmitaria Sabor de Casa |
+| Dona | maria.card6@exemplo.test | Pastelaria da Vila e Marmitaria Sabor de Casa (sem administração da plataforma) |
 | Dono | dono.demo@simpleclick.test | Pastelaria da Vila e Moda Boa Vista (seletor de loja; no limite de 2 lojas) |
 | Equipe | staff.demo@simpleclick.test | Equipe da Pastelaria da Vila |
 | Cliente | ana.ribeiro@cliente.test | Pedidos em várias lojas (um a caminho hoje), favoritos, recentes, curtidas e comentários (aprovados e aguardando) |
+
+A demonstração **não concede administração da plataforma** (card #163): a cada carga ela revoga a concessão ativa da Maria e as sessões ADMIN abertas dela, sem apagar contas, lojas nem vínculos. Admin não vem de carga com senha pública; quem administra é concedido à parte, com a credencial de administração.
 
 Os donos das lojas novas (`<nome>@<apelido>.test`) usam a mesma senha do dono da demonstração.
 

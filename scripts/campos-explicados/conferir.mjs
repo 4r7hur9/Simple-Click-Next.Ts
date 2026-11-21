@@ -24,7 +24,6 @@ import { join } from "node:path";
 
 import { chromium } from "../../e2e/node_modules/@playwright/test/index.mjs";
 import {
-  CONTA_ADMIN,
   CONTA_CLIENTE,
   CONTA_DONO,
 } from "../../packages/database/seed/demo/contas.ts";
@@ -45,8 +44,9 @@ mkdirSync(DESTINO, { recursive: true });
 const CONTAS = {
   dono: CONTA_DONO,
   cliente: CONTA_CLIENTE,
-  admin: CONTA_ADMIN,
 };
+// Sem conta de administração (card #163): a demonstração não concede admin, e
+// as telas /admin ficam fora deste roteiro.
 
 const APARELHOS = {
   1400: { viewport: { width: 1400, height: 900 } },
@@ -240,49 +240,6 @@ const ROTEIRO = [
   { conta: "dono", nome: "painel-stories", caminho: "/painel/stories" },
   { conta: "dono", nome: "painel-comentarios", caminho: "/painel/comentarios" },
   { conta: "dono", nome: "escolher-loja-nova", caminho: "/escolher-loja/nova" },
-  // --- admin -------------------------------------------------------------
-  { conta: "admin", nome: "admin-home", caminho: "/admin" },
-  { conta: "admin", nome: "admin-lojas", caminho: "/admin/lojas" },
-  { conta: "admin", nome: "admin-loja-nova", caminho: "/admin/lojas/nova" },
-  {
-    conta: "admin",
-    nome: "admin-loja",
-    descobrir: { de: "/admin/lojas", padrao: "^/admin/lojas/(?!nova)[^/]+$" },
-  },
-  {
-    conta: "admin",
-    nome: "admin-loja-cadastro",
-    descobrir: {
-      de: "/admin/lojas",
-      padrao: "^/admin/lojas/(?!nova)[^/]+$",
-      sufixo: "/cadastro",
-    },
-  },
-  {
-    conta: "admin",
-    nome: "admin-loja-funcionalidades",
-    descobrir: {
-      de: "/admin/lojas",
-      padrao: "^/admin/lojas/(?!nova)[^/]+$",
-      sufixo: "/funcionalidades",
-    },
-  },
-  {
-    conta: "admin",
-    nome: "admin-loja-documentos",
-    descobrir: {
-      de: "/admin/lojas",
-      padrao: "^/admin/lojas/(?!nova)[^/]+$",
-      sufixo: "/documentos",
-    },
-  },
-  { conta: "admin", nome: "admin-contas", caminho: "/admin/contas" },
-  {
-    conta: "admin",
-    nome: "admin-conta",
-    descobrir: { de: "/admin/contas", padrao: "^/admin/contas/[^/]+$" },
-  },
-  { conta: "admin", nome: "admin-auditoria", caminho: "/admin/auditoria" },
 ];
 
 /** Tutorial e avisos do Next não entram no print nem atrapalham o clique. */
@@ -746,7 +703,7 @@ const telas = ROTEIRO.filter(
     !FILTRO || t.nome.includes(FILTRO) || (t.caminho ?? "").includes(FILTRO),
 );
 for (const largura of Object.keys(APARELHOS)) {
-  for (const conta of [null, "cliente", "dono", "admin"]) {
+  for (const conta of [null, "cliente", "dono"]) {
     const daConta = telas.filter((t) => t.conta === conta);
     if (!daConta.length) continue;
     const contexto = await navegador.newContext({

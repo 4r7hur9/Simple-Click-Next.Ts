@@ -45,14 +45,14 @@ import {
 } from "../index.ts";
 import { LOJAS } from "../lojas.ts";
 import {
-  concederAdministracao,
-  CONTA_ADMIN,
   CONTA_CLIENTE,
+  CONTA_DONA_DA_DEMO,
   CONTA_DONO,
   CONTA_EQUIPE,
   CONTAS_DE_TESTE,
   garantirConta,
   PESSOAS_DO_FEED,
+  revogarAdministracaoDaDemonstracao,
   SENHA_DOS_DONOS,
   vincular,
 } from "./contas.ts";
@@ -1236,11 +1236,11 @@ async function criarLojaNova(
   ordem: number,
 ): Promise<{ lojaId: string; donaId: string }> {
   const nova = loja.nova!;
-  const ehAdmin = nova.dono.email.toLowerCase() === CONTA_ADMIN.email;
+  const ehMaria = nova.dono.email.toLowerCase() === CONTA_DONA_DA_DEMO.email;
   const donaId = await garantirConta(cliente, {
     email: nova.dono.email,
-    nome: ehAdmin ? CONTA_ADMIN.nome : nova.dono.nome,
-    senha: ehAdmin ? CONTA_ADMIN.senha : SENHA_DOS_DONOS,
+    nome: ehMaria ? CONTA_DONA_DA_DEMO.nome : nova.dono.nome,
+    senha: ehMaria ? CONTA_DONA_DA_DEMO.senha : SENHA_DOS_DONOS,
   });
   const lojaId = id(`loja:${loja.chave}`);
   // Aprovadas aos poucos desde agosto: a administração vê lojas "novas".
@@ -1298,8 +1298,8 @@ const HOSTS_LOCAIS = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
 /**
  * A trava de produção do `demo` (M-2 da revisão #149).
  *
- * Esta carga cria uma conta ADMINISTRADORA com senha pública (contas.ts) e a
- * vincula como dona de lojas. Só o rótulo `NODE_ENV=production` não basta: o
+ * Esta carga cria contas com senha pública (contas.ts) e as vincula como
+ * donas de lojas (administração ela nunca concede, card #163). Só o rótulo `NODE_ENV=production` não basta: o
  * caso perigoso é o rótulo ESQUECIDO num servidor. Por isso três camadas:
  * o rótulo (como antes), nenhum marcador de provedor de hospedagem no
  * processo e, quando a URL é conhecida, banco só nesta máquina. A recusa nunca
@@ -1355,8 +1355,10 @@ export async function carregarDemonstracao({
   await cliente.query("BEGIN");
   try {
     // As contas de teste primeiro: a Ana é cliente das lojas.
-    const adminId = await garantirConta(cliente, CONTA_ADMIN);
-    await concederAdministracao(cliente, adminId);
+    // A Maria é dona, sem administração: a carga tira o admin que ela tiver
+    // (card #163, D-5) — senha pública não abre a administração.
+    const mariaId = await garantirConta(cliente, CONTA_DONA_DA_DEMO);
+    await revogarAdministracaoDaDemonstracao(cliente, mariaId);
     const donoId = await garantirConta(cliente, CONTA_DONO);
     const equipeId = await garantirConta(cliente, CONTA_EQUIPE);
     const anaId = await garantirConta(cliente, {
@@ -1424,7 +1426,7 @@ export async function carregarDemonstracao({
     // Vínculos das contas de teste.
     const pastelaria = LOJAS.find((l) => l.chave === "pastelaria")!.id;
     const moda = LOJAS.find((l) => l.chave === "moda")!.id;
-    await vincular(cliente, pastelaria, adminId, "OWNER");
+    await vincular(cliente, pastelaria, mariaId, "OWNER");
     await vincular(cliente, pastelaria, donoId, "OWNER");
     await vincular(cliente, moda, donoId, "OWNER");
     await vincular(cliente, pastelaria, equipeId, "STAFF");

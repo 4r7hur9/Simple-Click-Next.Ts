@@ -180,6 +180,8 @@ describe("carga da demonstração", () => {
   let administracao: pg.Client;
   let contagemDaPrimeira: Record<string, number>;
   let contagemDaSegunda: Record<string, number>;
+  let mariaAdminDepoisDaPrimeira: boolean;
+  const SESSAO_ADMIN_DA_MARIA = "00000000-0000-4000-8000-000000163007";
 
   const TABELAS = [
     "stores",
@@ -224,6 +226,25 @@ describe("carga da demonstração", () => {
     await carregarDadosDeExemplo({ cliente: administracao, ambiente: { NODE_ENV: "development" } });
     await carregarDemonstracao({ cliente: administracao, agora: AGORA, semVideos: true });
     contagemDaPrimeira = await contar();
+    // [CA-7] O banco de quem já rodou a demonstração antiga: a Maria com
+    // concessão ATIVA de administração e uma sessão ADMIN aberta. A segunda
+    // carga precisa tirar as duas.
+    const maria = "(SELECT id FROM app.identities WHERE email_norm = 'maria.card6@exemplo.test')";
+    mariaAdminDepoisDaPrimeira = (
+      await administracao.query(
+        `SELECT EXISTS (SELECT 1 FROM app.platform_admins WHERE identity_id = ${maria} AND revoked_at IS NULL) AS ativo`,
+      )
+    ).rows[0].ativo;
+    await administracao.query(
+      `INSERT INTO app.platform_admins (identity_id, granted_at) SELECT ${maria}, $1
+       ON CONFLICT (identity_id) DO UPDATE SET revoked_at = NULL`,
+      [AGORA],
+    );
+    await administracao.query(
+      `INSERT INTO app.sessions (id, identity_id, family_id, token_sha256, role_at_issue, client_kind, issued_at, expires_at)
+       SELECT $1::uuid, ${maria}, $1::uuid, repeat('a', 64), 'ADMIN', 'WEB', now(), now() + interval '30 days'`,
+      [SESSAO_ADMIN_DA_MARIA],
+    );
     await carregarDemonstracao({ cliente: administracao, agora: AGORA, semVideos: true });
     contagemDaSegunda = await contar();
   }, ESPERA);
@@ -269,7 +290,7 @@ describe("carga da demonstração", () => {
     );
     const por = Object.fromEntries(r.rows.map((l) => [l.email_norm, l]));
     for (const conta of CONTAS_DE_TESTE) expect(por[conta.email]?.tem_senha, conta.email).toBe(true);
-    expect(por["maria.card6@exemplo.test"].admin).toBe(true);
+    expect(por["maria.card6@exemplo.test"].admin).toBe(false);
     expect(por["maria.card6@exemplo.test"].vinculos).toEqual(
       [`OWNER:marmitaria-sabor-de-casa`, `OWNER:${PASTELARIA.slug}`].sort(),
     );
@@ -278,6 +299,32 @@ describe("carga da demonstração", () => {
     );
     expect(por["staff.demo@simpleclick.test"].vinculos).toEqual([`STAFF:${PASTELARIA.slug}`]);
     expect(por["ana.ribeiro@cliente.test"].vinculos).toBeNull();
+  });
+
+  it("[CA-7] a carga não concede admin à Maria e revoga o que ela tinha, mantendo os vínculos OWNER", async () => {
+    expect(mariaAdminDepoisDaPrimeira).toBe(false);
+    const maria = "(SELECT id FROM app.identities WHERE email_norm = 'maria.card6@exemplo.test')";
+    const concessao = await administracao.query(
+      `SELECT revoked_at FROM app.platform_admins WHERE identity_id = ${maria}`,
+    );
+    // Revogada, e não apagada: o histórico da concessão fica.
+    expect(concessao.rows).toHaveLength(1);
+    expect(concessao.rows[0].revoked_at).not.toBeNull();
+    const sessao = await administracao.query(
+      "SELECT revoked_at, revoked_reason FROM app.sessions WHERE id = $1",
+      [SESSAO_ADMIN_DA_MARIA],
+    );
+    expect(sessao.rows).toHaveLength(1);
+    expect(sessao.rows[0].revoked_at).not.toBeNull();
+    expect(sessao.rows[0].revoked_reason).toBe("ADMIN_REVOKED");
+    const vinculos = await migrador.query(
+      `SELECT array_agg(m.role || ':' || s.slug ORDER BY s.slug) AS v FROM app.store_members m
+         JOIN app.stores s ON s.id = m.store_id
+        WHERE m.identity_id = ${maria} AND m.revoked_at IS NULL`,
+    );
+    expect(vinculos.rows[0].v).toEqual(
+      [`OWNER:marmitaria-sabor-de-casa`, `OWNER:${PASTELARIA.slug}`].sort(),
+    );
   });
 
   it("dá à cliente de teste pedidos, favoritos, recentes e comentários", async () => {
