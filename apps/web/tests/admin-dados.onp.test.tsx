@@ -8,8 +8,8 @@
  * inteiro (atributos incluídos), não só o texto visível.
  */
 import type {
-  ListaDeContasNoContrato,
   ListaDeLojasNoContrato,
+  ListaDePessoasNoContrato,
 } from "@simpleclick/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
@@ -27,25 +27,29 @@ const CNPJ = "11.222.333/0001-81";
 const CNPJ_PURO = "11222333000181";
 const TERMO = "marina-busca@exemplo.test";
 
-const CONTAS: ListaDeContasNoContrato = {
-  contas: [
-    {
-      identidadeId: "9a9b9c9d-0000-4000-8000-000000000001",
-      nome: "Bia Torres",
-      email: EMAIL,
-      telefone: TELEFONE,
-      criadaEm: "2026-10-16T12:00:00.000Z",
-      tipo: "DONO",
-      lojas: [],
-      pendentes: 0,
-      lojasEmUso: 0,
-      limiteDeLojas: 2,
-    },
-  ],
+/**
+ * O contrato da lista já não traz telefone; o item recebe um de propósito
+ * (cast) para provar que a tela não o desenharia nem se ele chegasse.
+ */
+const PESSOA_COM_TELEFONE = {
+  identidadeId: "9a9b9c9d-0000-4000-8000-000000000001",
+  nome: "Bia Torres",
+  email: EMAIL,
+  telefone: TELEFONE,
+  criadaEm: "2026-10-16T12:00:00.000Z",
+  desativada: false,
+  temSenha: true,
+  donoDeLojas: 1,
+  equipeDeLojas: 0,
+  protegida: false,
+};
+
+const CONTAS: ListaDePessoasNoContrato = {
+  pessoas: [PESSOA_COM_TELEFONE],
   total: 1,
   pagina: 1,
   porPagina: 25,
-  contagens: { donos: 1, equipe: 0 },
+  contagens: { todas: 1, clientes: 0, donos: 1, equipe: 0 },
 };
 
 const LOJAS: ListaDeLojasNoContrato = {
@@ -108,12 +112,18 @@ function contas(
 ): string {
   return html(
     <TabelaDeContas
-      consulta={{ tipo: "donos", busca: termo, pagina: 1 }}
+      consulta={{
+        tipo: "donos",
+        situacao: "ativas",
+        busca: termo,
+        pagina: 1,
+      }}
       termo={termo}
       estado={estado}
       aoMudarTermo={() => undefined}
       aoBuscar={() => undefined}
       aoMudarTipo={() => undefined}
+      aoMudarSituacao={() => undefined}
       aoTentarDeNovo={() => undefined}
       aoIrParaPagina={() => undefined}
     />,
@@ -130,13 +140,21 @@ afterEach(() => {
 });
 
 describe("inventário de dado pessoal por tela", () => {
-  it("[CA-8] @spec:AC-11305 a lista de contas mostra o e-mail e não o telefone; nenhum documento", () => {
+  it("[CA-8] @spec:AC-11305 a lista de pessoas mostra o e-mail e não o telefone; nenhum documento", () => {
     const marcacao = contas({ fase: "pronta", lista: CONTAS });
     expect(marcacao).toContain(EMAIL);
     expect(marcacao).not.toContain(TELEFONE);
     expect(marcacao).not.toContain("11955550123");
     expect(marcacao).not.toContain(CNPJ);
     expect(marcacao).not.toContain(CNPJ_PURO);
+  });
+
+  it("[CA-1] a lista de pessoas não traz telefone, CPF nem endereço", () => {
+    const marcacao = contas({ fase: "pronta", lista: CONTAS });
+    expect(marcacao).not.toMatch(/\+55\d{10,11}/);
+    expect(marcacao).not.toMatch(/cpf|endere[cç]o/i);
+    const links = marcacao.match(/<a [^>]*href="\/admin\/contas\/[^"]+"[^>]*>/g);
+    expect(links?.length).toBeGreaterThan(0);
   });
 
   it("[CA-8] @spec:AC-11305 a lista de lojas mostra o nome do dono e nenhum e-mail, telefone nem documento", () => {
@@ -186,7 +204,7 @@ describe("o termo buscado não vai para título, link nem mensagem", () => {
         contas(
           {
             fase: "pronta",
-            lista: { ...CONTAS, contas: [], total: 0 },
+            lista: { ...CONTAS, pessoas: [], total: 0 },
           },
           TERMO,
         ),

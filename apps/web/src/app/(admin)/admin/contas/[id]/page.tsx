@@ -1,6 +1,7 @@
 /**
- * A ficha de uma conta na administração (card #29): dados, lojas e o limite
- * de lojas do dono. Quem decide se a pessoa pode ver é a API.
+ * A ficha de uma pessoa na administração (cards #29 e #170): dados, vínculos,
+ * pedidos, limite de lojas, ações e histórico. Quem decide se a pessoa pode
+ * ver é a API.
  */
 import type { Metadata } from "next";
 
@@ -8,7 +9,7 @@ import { FichaDaConta } from "../../../../../features/admin/FichaDaConta.tsx";
 import { exigirAdministracaoDaPlataforma } from "../../../../../server/acesso-da-administracao.ts";
 
 export const metadata: Metadata = {
-  title: "Conta | Administração SimpleClick",
+  title: "Pessoa | Administração SimpleClick",
 };
 
 interface ParametrosDaPagina {

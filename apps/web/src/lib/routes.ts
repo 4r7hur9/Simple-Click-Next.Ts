@@ -174,6 +174,7 @@ const TELAS_DO_PAINEL: readonly LinhaDoMapa[] = [
 // prettier-ignore
 const TELAS_DA_ADMINISTRACAO: readonly LinhaDoMapa[] = [
   ["/admin", "Visão geral da plataforma (leva às lojas)", "PUBLICO", true, "Q-802", "(admin)/admin/page.tsx"],
+  ["/admin/aprovacoes", "Aprovações: lojas esperando a decisão da administração", "PUBLICO", true, "—", "(admin)/admin/aprovacoes/page.tsx"],
   ["/admin/lojas", "Lojas (lista, busca, filtros e aprovação)", "PUBLICO", true, "AC-206", "(admin)/admin/lojas/page.tsx"],
   ["/admin/lojas/nova", "Cadastro de loja", "PUBLICO", true, "AC-200..AC-202", "(admin)/admin/lojas/nova/page.tsx"],
   ["/admin/lojas/{id}", "Ficha da loja: resumo, números, equipe e limites", "PUBLICO", true, "AC-207..AC-211, AC-214", "(admin)/admin/lojas/[id]/page.tsx"],
@@ -181,9 +182,12 @@ const TELAS_DA_ADMINISTRACAO: readonly LinhaDoMapa[] = [
   ["/admin/lojas/{id}/historico", "Histórico de alterações da loja", "PUBLICO", true, "AC-207, AC-118", "(admin)/admin/lojas/[id]/historico/page.tsx"],
   ["/admin/lojas/{id}/documentos", "Contrato e documentos", "PUBLICO", true, "AC-203..AC-205", "(admin)/admin/lojas/[id]/documentos/page.tsx"],
   ["/admin/lojas/{id}/funcionalidades", "Funcionalidades liberadas", "PUBLICO", true, "AC-212, AC-213", "(admin)/admin/lojas/[id]/funcionalidades/page.tsx"],
-  ["/admin/contas", "Contas da plataforma: donos e equipe", "PUBLICO", true, "—", "(admin)/admin/contas/page.tsx"],
-  ["/admin/contas/{id}", "Conta: lojas e limite de lojas do dono", "PUBLICO", true, "—", "(admin)/admin/contas/[id]/page.tsx"],
-  ["/admin/auditoria", "Histórico de auditoria", "PUBLICO", true, "AC-118, AC-922, AC-215", "(admin)/admin/auditoria/page.tsx"],
+  ["/admin/contas", "Pessoas da plataforma", "PUBLICO", true, "—", "(admin)/admin/contas/page.tsx"],
+  ["/admin/contas/nova", "Cadastrar pessoa (gera o link único de acesso)", "PUBLICO", true, "—", "(admin)/admin/contas/nova/page.tsx"],
+  ["/admin/contas/{id}", "Ficha da pessoa: vínculos, pedidos, limite de lojas e ações", "PUBLICO", true, "—", "(admin)/admin/contas/[id]/page.tsx"],
+  ["/admin/donos-e-equipes", "Donos e equipes: atribuir, trocar e remover vínculos (aceita ?loja= e ?pessoa=)", "PUBLICO", true, "—", "(admin)/admin/donos-e-equipes/page.tsx"],
+  ["/admin/auditoria", "Histórico de auditoria (abas Lojas e Plataforma pela consulta ?aba=)", "PUBLICO", true, "AC-118, AC-922, AC-215", "(admin)/admin/auditoria/page.tsx"],
+  ["/admin/configuracoes", "Configurações: limites padrão da plataforma", "PUBLICO", true, "—", "(admin)/admin/configuracoes/page.tsx"],
 ];
 
 /** O cupom para impressão por clique, fora da moldura do painel. */

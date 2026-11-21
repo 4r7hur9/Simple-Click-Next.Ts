@@ -49,6 +49,20 @@ describe("ponte da administração: o que continua recusado", () => {
     ["limites", "DELETE"],
     ["lojas", "DELETE"],
     [`contas/${UUID}`, "PATCH"],
+    // O `/contas` antigo saiu da ponte (card #170, T-9): só /pessoas.
+    ["contas", "GET"],
+    [`contas/${UUID}`, "GET"],
+    // Pessoas: só os métodos de cada entrada, e nada fora do desenho.
+    ["pessoas", "DELETE"],
+    [`pessoas/${UUID}`, "DELETE"],
+    [`pessoas/${UUID}`, "PUT"],
+    [`pessoas/${UUID}/acesso`, "GET"],
+    [`pessoas/${UUID}/acesso`, "PUT"],
+    [`pessoas/${UUID}/desativacao`, "POST"],
+    [`pessoas/${UUID}/reativacao`, "GET"],
+    [`pessoas/${UUID}/senha`, "POST"],
+    [`pessoas/${UUID}/admin`, "PUT"],
+    ["pessoas/nao-e-uuid", "GET"],
     [`lojas/${UUID}/metricas`, "PUT"],
   ];
 
@@ -90,6 +104,114 @@ describe("ponte da administração: o que continua recusado", () => {
       expect(resposta.headers.get("cache-control")).toBe("no-store");
     }
     expect(buscar).not.toHaveBeenCalled();
+  });
+});
+
+describe("ponte da administração: pessoas", () => {
+  const COOKIE = "sc_access=abc.def.ghi";
+  const PERMITIDOS: readonly (readonly [string, string])[] = [
+    ["pessoas", "GET"],
+    ["pessoas", "POST"],
+    [`pessoas/${UUID}`, "GET"],
+    [`pessoas/${UUID}`, "PATCH"],
+    [`pessoas/${UUID}/desativacao`, "PUT"],
+    [`pessoas/${UUID}/reativacao`, "PUT"],
+    [`pessoas/${UUID}/acesso`, "POST"],
+  ];
+
+  it.each(PERMITIDOS)("%s (%s) está na lista", (caminho, metodo) => {
+    expect(caminhoPermitido(caminho, metodo)).toBe(true);
+  });
+
+  function daFicha(destino: string | null): Request {
+    return new Request(
+      `https://simpleclick.localhost/api/admin/pessoas/${UUID}`,
+      {
+        headers: {
+          cookie: COOKIE,
+          ...(destino === null ? {} : { "sec-fetch-site": destino }),
+        },
+      },
+    );
+  }
+
+  it("[CA-2] a ficha só abre quando o pedido é do próprio site (Sec-Fetch-Site: same-origin)", async () => {
+    const buscar = vi.fn<typeof fetch>(
+      async () => new Response("{}", { status: 200 }),
+    );
+    for (const destino of [null, "cross-site", "same-site", "none", ""]) {
+      const resposta = await encaminharParaAdministracao(
+        daFicha(destino),
+        ["pessoas", UUID],
+        buscar,
+      );
+      expect(resposta.status).toBe(403);
+      expect(resposta.headers.get("cache-control")).toBe("no-store");
+    }
+    expect(buscar).not.toHaveBeenCalled();
+
+    const aberta = await encaminharParaAdministracao(
+      daFicha("same-origin"),
+      ["pessoas", UUID],
+      buscar,
+    );
+    expect(aberta.status).toBe(200);
+    expect(buscar).toHaveBeenCalledTimes(1);
+  });
+
+  it("[CA-2] a lista não exige o cabeçalho (ela não traz telefone)", async () => {
+    const buscar = vi.fn<typeof fetch>(
+      async () => new Response("{}", { status: 200 }),
+    );
+    const resposta = await encaminharParaAdministracao(
+      pedido("pessoas?busca=ana", { cookie: COOKIE }),
+      ["pessoas"],
+      buscar,
+    );
+    expect(resposta.status).toBe(200);
+    expect(String(buscar.mock.calls[0]?.[0])).toMatch(
+      /\/v1\/admin\/pessoas\?busca=ana$/,
+    );
+  });
+
+  it("[CA-6] o link único volta uma vez, sem cache, e a ponte não o guarda nem o repassa em cabeçalho", async () => {
+    const buscar = vi.fn<typeof fetch>(
+      async () =>
+        new Response(
+          JSON.stringify({
+            caminho: "/definir-senha?token=segredo",
+            expiraEm: "2026-11-21T15:00:00.000Z",
+            emailEnviado: false,
+          }),
+          {
+            status: 201,
+            headers: {
+              "content-type": "application/json",
+              "cache-control": "no-store",
+              location: "/nao/deveria/passar",
+            },
+          },
+        ),
+    );
+    const resposta = await encaminharParaAdministracao(
+      new Request(
+        `https://simpleclick.localhost/api/admin/pessoas/${UUID}/acesso`,
+        {
+          method: "POST",
+          headers: {
+            cookie: COOKIE,
+            "content-type": "application/json",
+            "sec-fetch-site": "same-origin",
+          },
+          body: JSON.stringify({ motivo: "Esqueceu a senha" }),
+        },
+      ),
+      ["pessoas", UUID, "acesso"],
+      buscar,
+    );
+    expect(resposta.status).toBe(201);
+    expect(resposta.headers.get("cache-control")).toBe("no-store");
+    expect(resposta.headers.get("location")).toBeNull();
   });
 });
 

@@ -1,20 +1,28 @@
 "use client";
 
 /**
- * As contas da plataforma na administração (card #29): donos de um lado,
- * equipe do outro. Mostra quantas lojas cada dono tem contra o limite dele e
- * quantas estão esperando aprovação. A consulta mora no endereço da página
- * (`?tipo=equipe&busca=`), como a lista de lojas.
+ * As pessoas da plataforma na administração (card #170, T-9): clientes, donos
+ * e equipe numa lista só, com a situação de cada conta. A consulta mora no
+ * endereço da página (`?tipo=donos&situacao=desativadas&busca=`), como a lista
+ * de lojas.
+ *
+ * A lista mostra o mínimo (D-9): nome, e-mail, tipo e situação. Telefone só na
+ * ficha; documento e endereço em lugar nenhum. A busca é por nome ou e-mail, e
+ * o termo digitado nunca vai para título, link nem mensagem: os links para a
+ * ficha levam só o identificador e não fazem prefetch.
  *
  * `TabelaDeContas` só desenha; `ListaDeContas` guarda a consulta e fala com a
  * rede.
  */
 
 import {
-  esquemaDaListaDeContas,
-  type ContaNaAdministracaoNoContrato,
-  type ListaDeContasNoContrato,
-  type TipoDeContaNaAdministracao,
+  esquemaDaListaDePessoas,
+  SITUACOES_DA_PESSOA,
+  TIPOS_DE_PESSOA,
+  type ItemDePessoaNoContrato,
+  type ListaDePessoasNoContrato,
+  type SituacaoDaPessoa,
+  type TipoDePessoa,
 } from "@simpleclick/contracts";
 import {
   Botao,
@@ -44,7 +52,8 @@ import {
 import { PilulasDeFiltro } from "./PilulasDeFiltro.tsx";
 
 export interface ConsultaDeContas {
-  readonly tipo: TipoDeContaNaAdministracao;
+  readonly tipo: TipoDePessoa;
+  readonly situacao: SituacaoDaPessoa;
   readonly busca: string;
   readonly pagina: number;
 }
@@ -52,14 +61,30 @@ export interface ConsultaDeContas {
 export type EstadoDasContas =
   | { readonly fase: "carregando" }
   | { readonly fase: "erro"; readonly mensagem: string }
-  | { readonly fase: "pronta"; readonly lista: ListaDeContasNoContrato };
+  | { readonly fase: "pronta"; readonly lista: ListaDePessoasNoContrato };
+
+const TIPO_PADRAO: TipoDePessoa = "todas";
+const SITUACAO_PADRAO: SituacaoDaPessoa = "ativas";
+
+function daLista<T extends string>(
+  valor: string | null,
+  validos: readonly T[],
+  padrao: T,
+): T {
+  return validos.find((candidato) => candidato === valor) ?? padrao;
+}
 
 export function consultaDeContasDoEndereco(
   parametros: Pick<URLSearchParams, "get">,
 ): ConsultaDeContas {
   const pagina = Number.parseInt(parametros.get("pagina") ?? "1", 10);
   return {
-    tipo: parametros.get("tipo") === "equipe" ? "equipe" : "donos",
+    tipo: daLista(parametros.get("tipo"), TIPOS_DE_PESSOA, TIPO_PADRAO),
+    situacao: daLista(
+      parametros.get("situacao"),
+      SITUACOES_DA_PESSOA,
+      SITUACAO_PADRAO,
+    ),
     busca: parametros.get("busca") ?? "",
     pagina: Number.isFinite(pagina) && pagina >= 1 ? pagina : 1,
   };
@@ -67,7 +92,10 @@ export function consultaDeContasDoEndereco(
 
 export function enderecoDaPaginaDeContas(consulta: ConsultaDeContas): string {
   const parametros = new URLSearchParams();
-  if (consulta.tipo === "equipe") parametros.set("tipo", "equipe");
+  if (consulta.tipo !== TIPO_PADRAO) parametros.set("tipo", consulta.tipo);
+  if (consulta.situacao !== SITUACAO_PADRAO) {
+    parametros.set("situacao", consulta.situacao);
+  }
   if (consulta.busca.trim() !== "")
     parametros.set("busca", consulta.busca.trim());
   if (consulta.pagina > 1) parametros.set("pagina", String(consulta.pagina));
@@ -78,11 +106,12 @@ export function enderecoDaPaginaDeContas(consulta: ConsultaDeContas): string {
 export function enderecoDaListaDeContas(consulta: ConsultaDeContas): string {
   const parametros = new URLSearchParams({
     tipo: consulta.tipo,
+    situacao: consulta.situacao,
     pagina: String(consulta.pagina),
   });
   if (consulta.busca.trim() !== "")
     parametros.set("busca", consulta.busca.trim());
-  return `/api/admin/contas?${parametros.toString()}`;
+  return `/api/admin/pessoas?${parametros.toString()}`;
 }
 
 export interface TabelaDeContasProps {
@@ -91,10 +120,18 @@ export interface TabelaDeContasProps {
   readonly estado: EstadoDasContas;
   readonly aoMudarTermo: (termo: string) => void;
   readonly aoBuscar: (evento: FormEvent<HTMLFormElement>) => void;
-  readonly aoMudarTipo: (tipo: TipoDeContaNaAdministracao) => void;
+  readonly aoMudarTipo: (tipo: TipoDePessoa) => void;
+  readonly aoMudarSituacao: (situacao: SituacaoDaPessoa) => void;
   readonly aoTentarDeNovo: () => void;
   readonly aoIrParaPagina: (pagina: number) => void;
 }
+
+const NOME_DO_TIPO: Readonly<Record<TipoDePessoa, string>> = {
+  todas: "Todas as pessoas",
+  clientes: "Clientes",
+  donos: "Donos de loja",
+  equipe: "Equipe das lojas",
+};
 
 export function TabelaDeContas(props: TabelaDeContasProps) {
   const { estado, consulta, termo } = props;
@@ -105,26 +142,29 @@ export function TabelaDeContas(props: TabelaDeContasProps) {
       className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-5"
     >
       <h2 id="lista-de-contas" className="sc-so-leitor">
-        Contas da plataforma
+        Pessoas da plataforma
       </h2>
       <Cartao>
         <div className="grid gap-4">
           <PilulasDeFiltro
-            rotulo="Tipo de conta"
-            pilulas={[
-              {
-                valor: "donos",
-                rotulo: "Donos de loja",
-                quantidade: lista?.contagens.donos,
-              },
-              {
-                valor: "equipe",
-                rotulo: "Equipe das lojas",
-                quantidade: lista?.contagens.equipe,
-              },
-            ]}
+            rotulo="Tipo de pessoa"
+            pilulas={TIPOS_DE_PESSOA.map((valor) => ({
+              valor,
+              rotulo: NOME_DO_TIPO[valor],
+              quantidade: lista?.contagens[valor],
+            }))}
             valor={consulta.tipo}
             aoEscolher={props.aoMudarTipo}
+          />
+          <PilulasDeFiltro
+            rotulo="Situação da conta"
+            pilulas={[
+              { valor: "ativas", rotulo: "Ativas" },
+              { valor: "desativadas", rotulo: "Desativadas" },
+              { valor: "todas", rotulo: "Todas as situações" },
+            ]}
+            valor={consulta.situacao}
+            aoEscolher={props.aoMudarSituacao}
           />
           <form
             role="search"
@@ -135,14 +175,14 @@ export function TabelaDeContas(props: TabelaDeContasProps) {
               className="grid min-w-[16rem] flex-1 gap-1 text-sm font-medium"
               htmlFor="busca-de-contas"
             >
-              Buscar por nome, e-mail ou telefone
+              Buscar por nome ou e-mail
               <input
                 id="busca-de-contas"
                 name="busca"
                 type="search"
                 className="sc-campo__controle"
                 value={termo}
-                placeholder="Marina, marina@… ou 11 91111-0001"
+                placeholder="Marina ou marina@…"
                 autoComplete="off"
                 onChange={(evento) => props.aoMudarTermo(evento.target.value)}
               />
@@ -150,13 +190,20 @@ export function TabelaDeContas(props: TabelaDeContasProps) {
             <Botao type="submit" variante="secundaria" icone={<IconeBuscar />}>
               Buscar
             </Botao>
+            <Link
+              className="sc-botao sc-botao--primaria"
+              href="/admin/contas/nova"
+              prefetch={false}
+            >
+              Cadastrar pessoa
+            </Link>
           </form>
         </div>
       </Cartao>
 
       {estado.fase === "erro" && (
         <Erro
-          titulo="As contas não carregaram"
+          titulo="As pessoas não carregaram"
           mensagem={estado.mensagem}
           acao={
             <Botao variante="secundaria" onClick={props.aoTentarDeNovo}>
@@ -167,27 +214,25 @@ export function TabelaDeContas(props: TabelaDeContasProps) {
       )}
       {estado.fase === "carregando" && (
         <Cartao
-          titulo="Contas"
+          titulo="Pessoas"
           estado="carregando"
           esperaComEsqueleto
-          rotuloDeEspera="Carregando contas…"
+          rotuloDeEspera="Carregando pessoas…"
         />
       )}
-      {lista !== null && lista.contas.length === 0 && (
+      {lista !== null && lista.pessoas.length === 0 && (
         <Cartao
           estado="vazio"
-          tituloVazio="Nenhuma conta encontrada"
+          tituloVazio="Nenhuma pessoa encontrada"
           descricaoVazio={
             consulta.busca.trim() === ""
-              ? consulta.tipo === "donos"
-                ? "Quando alguém abrir uma loja, a conta do dono aparece aqui."
-                : "Quando um dono adicionar alguém à equipe, a conta aparece aqui."
-              : "Confira o nome, o e-mail ou o telefone e busque de novo."
+              ? "Quando alguém criar uma conta ou você cadastrar uma pessoa, ela aparece aqui."
+              : "Confira o nome ou o e-mail e busque de novo. O telefone não entra na busca."
           }
         />
       )}
-      {lista !== null && lista.contas.length > 0 && (
-        <ContasProntas
+      {lista !== null && lista.pessoas.length > 0 && (
+        <PessoasProntas
           lista={lista}
           tipo={consulta.tipo}
           aoIrParaPagina={props.aoIrParaPagina}
@@ -197,126 +242,132 @@ export function TabelaDeContas(props: TabelaDeContasProps) {
   );
 }
 
-function ContasProntas({
+/** Os selos de tipo de uma pessoa: o que ela é nas lojas. */
+export function SelosDoTipoDaPessoa({
+  pessoa,
+}: {
+  readonly pessoa: Pick<
+    ItemDePessoaNoContrato,
+    "donoDeLojas" | "equipeDeLojas" | "protegida"
+  >;
+}) {
+  const semVinculo = pessoa.donoDeLojas === 0 && pessoa.equipeDeLojas === 0;
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {pessoa.donoDeLojas > 0 && (
+        <Selo tom="info" semBolinha>
+          Dono de {plural(pessoa.donoDeLojas, "loja", "lojas")}
+        </Selo>
+      )}
+      {pessoa.equipeDeLojas > 0 && (
+        <Selo tom="neutro" semBolinha>
+          Equipe em {plural(pessoa.equipeDeLojas, "loja", "lojas")}
+        </Selo>
+      )}
+      {semVinculo && !pessoa.protegida && (
+        <Selo tom="neutro" semBolinha>
+          Cliente
+        </Selo>
+      )}
+      {pessoa.protegida && (
+        <Selo tom="atencao" semBolinha>
+          Conta protegida
+        </Selo>
+      )}
+    </span>
+  );
+}
+
+/** A situação da conta: desativada, ainda sem senha ou ativa. */
+export function SeloDaSituacaoDaPessoa({
+  pessoa,
+}: {
+  readonly pessoa: Pick<ItemDePessoaNoContrato, "desativada" | "temSenha">;
+}) {
+  if (pessoa.desativada) return <Selo tom="erro">Desativada</Selo>;
+  if (!pessoa.temSenha) return <Selo tom="atencao">Sem senha ainda</Selo>;
+  return <Selo tom="sucesso">Ativa</Selo>;
+}
+
+function PessoasProntas({
   lista,
   tipo,
   aoIrParaPagina,
 }: {
-  readonly lista: ListaDeContasNoContrato;
-  readonly tipo: TipoDeContaNaAdministracao;
+  readonly lista: ListaDePessoasNoContrato;
+  readonly tipo: TipoDePessoa;
   readonly aoIrParaPagina: (pagina: number) => void;
 }) {
   const totalDePaginas = Math.max(1, Math.ceil(lista.total / lista.porPagina));
-  const colunas: ColunaDaTabela<ContaNaAdministracaoNoContrato>[] = [
+  const colunas: ColunaDaTabela<ItemDePessoaNoContrato>[] = [
     {
-      chave: "conta",
-      titulo: "Conta",
-      celula: (conta) => (
+      chave: "pessoa",
+      titulo: "Pessoa",
+      celula: (pessoa) => (
         <>
           <Link
             className="font-medium text-[var(--cor-primaria-texto)] underline-offset-2 hover:underline"
-            href={`/admin/contas/${conta.identidadeId}`}
+            href={`/admin/contas/${pessoa.identidadeId}`}
+            prefetch={false}
           >
-            {conta.nome ?? conta.email}
+            {pessoa.nome ?? pessoa.email}
           </Link>
-          {conta.nome !== null && (
+          {pessoa.nome !== null && (
             <span className="block text-xs text-[var(--cor-tinta-suave)]">
-              {conta.email}
+              {pessoa.email}
             </span>
           )}
         </>
       ),
     },
-  ];
-  if (tipo === "donos") {
-    colunas.push({
-      chave: "limite",
-      titulo: "Lojas / limite",
-      celula: (conta) => (
-        <span className="tabular-nums">
-          {conta.lojasEmUso} de {conta.limiteDeLojas ?? "—"}
-        </span>
-      ),
-    });
-  }
-  colunas.push(
     {
-      chave: "lojas",
-      titulo: "Lojas",
-      celula: (conta) => (
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          {conta.lojas.slice(0, 2).map((loja) => (
-            <Link
-              key={loja.id}
-              className="underline-offset-2 hover:underline"
-              href={`/admin/lojas/${loja.id}`}
-            >
-              {loja.nome}
-            </Link>
-          ))}
-          {conta.lojas.length > 2 && (
-            <span className="text-xs text-[var(--cor-tinta-suave)]">
-              +{conta.lojas.length - 2}
-            </span>
-          )}
-        </span>
-      ),
+      chave: "tipo",
+      titulo: "Tipo",
+      celula: (pessoa) => <SelosDoTipoDaPessoa pessoa={pessoa} />,
     },
     {
-      chave: "pendentes",
-      titulo: "Pendentes",
-      celula: (conta) =>
-        conta.pendentes > 0 ? (
-          <Link
-            href={`/admin/contas/${conta.identidadeId}`}
-            // O nome acessível COMEÇA pelo texto do selo ("1 pendente"): quem
-            // usa comando de voz fala o que vê (axe label-content-name-mismatch).
-            aria-label={`${plural(conta.pendentes, "pendente", "pendentes")} de aprovação, nas lojas de ${conta.nome ?? conta.email}`}
-          >
-            <Selo tom="atencao">
-              {plural(conta.pendentes, "pendente", "pendentes")}
-            </Selo>
-          </Link>
-        ) : (
-          <span className="text-[var(--cor-tinta-suave)]">—</span>
-        ),
+      chave: "situacao",
+      titulo: "Situação",
+      celula: (pessoa) => <SeloDaSituacaoDaPessoa pessoa={pessoa} />,
     },
     {
       chave: "criadaEm",
       titulo: "Criada em",
-      celula: (conta) => (
-        <time dateTime={conta.criadaEm}>{dataCurta(conta.criadaEm)}</time>
+      celula: (pessoa) => (
+        <time dateTime={pessoa.criadaEm}>{dataCurta(pessoa.criadaEm)}</time>
       ),
     },
     {
       chave: "acoes",
       titulo: "Ações",
-      celula: (conta) => (
+      celula: (pessoa) => (
         <Link
           className="text-sm font-medium text-[var(--cor-primaria-texto)] underline-offset-2 hover:underline"
-          href={`/admin/contas/${conta.identidadeId}`}
+          href={`/admin/contas/${pessoa.identidadeId}`}
+          prefetch={false}
         >
-          Abrir conta
+          Abrir ficha
         </Link>
       ),
     },
+  ];
+  const resumo = plural(
+    lista.total,
+    "pessoa encontrada",
+    "pessoas encontradas",
   );
-  const resumo = plural(lista.total, "conta encontrada", "contas encontradas");
   return (
     <div>
       <p role="status" className="sc-so-leitor">
         {resumo}.
       </p>
-      <Cartao
-        titulo={tipo === "donos" ? "Donos de loja" : "Equipe das lojas"}
-        descricao={`${resumo}.`}
-      >
+      <Cartao titulo={NOME_DO_TIPO[tipo]} descricao={`${resumo}.`}>
         <Tabela
-          legenda={tipo === "donos" ? "Donos de loja" : "Equipe das lojas"}
+          legenda={NOME_DO_TIPO[tipo]}
           legendaEscondida
           colunas={colunas}
-          linhas={lista.contas}
-          chaveDaLinha={(conta) => conta.identidadeId}
+          linhas={lista.pessoas}
+          chaveDaLinha={(pessoa) => pessoa.identidadeId}
           noCelular="cartoes"
         />
         {totalDePaginas > 1 && (
@@ -369,10 +420,10 @@ export function ListaDeContas() {
 
   const carregar = useCallback(async () => {
     setEstado({ fase: "carregando" });
-    const leitura: LeituraDaApi<ListaDeContasNoContrato> = await lerDaApi(
+    const leitura: LeituraDaApi<ListaDePessoasNoContrato> = await lerDaApi(
       enderecoDaListaDeContas(consulta),
-      (corpo) => esquemaDaListaDeContas.parse(corpo),
-      "Não foi possível carregar as contas agora. Tente de novo em instantes.",
+      (corpo) => esquemaDaListaDePessoas.parse(corpo),
+      "Não foi possível carregar as pessoas agora. Tente de novo em instantes.",
     );
     setEstado(
       leitura.fase === "pronta"
@@ -382,7 +433,7 @@ export function ListaDeContas() {
             mensagem:
               leitura.fase === "erro"
                 ? leitura.mensagem
-                : "As contas não foram encontradas.",
+                : "As pessoas não foram encontradas.",
           },
     );
   }, [consulta]);
@@ -408,6 +459,7 @@ export function ListaDeContas() {
         ir({ ...consulta, busca: termo, pagina: 1 });
       }}
       aoMudarTipo={(tipo) => ir({ ...consulta, tipo, pagina: 1 })}
+      aoMudarSituacao={(situacao) => ir({ ...consulta, situacao, pagina: 1 })}
       aoTentarDeNovo={() => setTentativa((n) => n + 1)}
       aoIrParaPagina={(pagina) => ir({ ...consulta, pagina })}
     />

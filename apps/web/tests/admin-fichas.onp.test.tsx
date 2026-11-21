@@ -2,12 +2,12 @@
 /**
  * Fichas da administração (card #113, T-11304 e T-11305): as cinco abas da
  * loja são páginas com `aria-current`, o cabeçalho mostra nome, situação em
- * selo com texto e o ato disponível, e a ficha da conta mostra o contato, as
- * lojas e o limite de lojas do dono com a mesma regra de edição de hoje.
+ * selo com texto e o ato disponível, e a ficha da pessoa mostra o contato, os
+ * vínculos e o limite de lojas do dono com a mesma regra de edição de hoje.
  */
 import type {
-  ContaNaAdministracaoNoContrato,
   FichaDaLojaNoContrato,
+  FichaDaPessoaNoContrato,
   SituacaoDaLoja,
 } from "@simpleclick/contracts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -174,25 +174,29 @@ describe("cabeçalho da ficha da loja", () => {
 });
 
 describe("ficha da conta do dono", () => {
-  const CONTA: ContaNaAdministracaoNoContrato = {
+  const CONTA: FichaDaPessoaNoContrato = {
     identidadeId: DONO_ID,
     nome: "Bia Torres",
     email: "bia-unica@exemplo.test",
     telefone: "+5511900001111",
     criadaEm: "2026-10-16T12:00:00.000Z",
-    tipo: "DONO",
-    lojas: [
+    desativada: false,
+    desativadaEm: null,
+    temSenha: true,
+    donoDeLojas: 1,
+    equipeDeLojas: 0,
+    protegida: false,
+    vinculos: [
       {
-        id: LOJA_ID,
+        lojaId: LOJA_ID,
         nome: "Doceria da Bia",
         apelido: "doceria-da-bia",
         status: "PENDING_APPROVAL",
         papel: "OWNER",
       },
     ],
-    pendentes: 1,
-    lojasEmUso: 1,
-    limiteDeLojas: 2,
+    pedidos: { total: 0, ultimoEm: null, porLoja: [] },
+    historico: [],
   };
 
   function conta() {

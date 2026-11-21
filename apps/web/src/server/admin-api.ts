@@ -18,10 +18,7 @@
 import { enderecoDaApi } from "./api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
 import { renovarVitrineDaLoja } from "./renovar-vitrine.ts";
-import {
-  recusarAcaoDeFora,
-  recusarOrigemDeFora,
-} from "./protecao-da-conta.ts";
+import { recusarAcaoDeFora, recusarOrigemDeFora } from "./protecao-da-conta.ts";
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
@@ -66,6 +63,8 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
   // O histórico de auditoria consultável (T-208, AC-215); os filtros vão na
   // consulta, que o repasse leva junto.
   { padrao: /^auditoria$/, metodos: ["GET"] },
+  // Atos da plataforma (pessoas, LGPD, limites): a aba Plataforma (card #170, T-11).
+  { padrao: /^auditoria\/plataforma$/, metodos: ["GET"] },
   // Funcionalidades liberadas por loja (T-207, AC-212, AC-213).
   {
     padrao: new RegExp(`^lojas/${UUID}/funcionalidades$`),
@@ -82,16 +81,55 @@ export const CAMINHOS_DA_ADMINISTRACAO: readonly {
   },
   // Números e equipe de cada loja, e os limites editáveis (card #29).
   { padrao: new RegExp(`^lojas/${UUID}/metricas$`), metodos: ["GET"] },
-  { padrao: new RegExp(`^lojas/${UUID}/equipe$`), metodos: ["GET"] },
+  { padrao: new RegExp(`^lojas/${UUID}/equipe$`), metodos: ["GET", "POST"] },
   { padrao: new RegExp(`^lojas/${UUID}/limites$`), metodos: ["GET", "PATCH"] },
-  // Contas da plataforma (donos e equipe) e o limite de lojas de cada dono.
-  // Painel de crescimento da home da administração (card #30).
+  // Painel de crescimento da home da administração (card #30) e o limite de
+  // lojas de cada dono.
   { padrao: /^metricas$/, metodos: ["GET"] },
-  { padrao: /^limites$/, metodos: ["GET"] },
-  { padrao: /^contas$/, metodos: ["GET"] },
-  { padrao: new RegExp(`^contas/${UUID}$`), metodos: ["GET"] },
+  { padrao: /^limites$/, metodos: ["GET", "PATCH"] },
   { padrao: new RegExp(`^donos/${UUID}/limites$`), metodos: ["GET", "PATCH"] },
+  // Pessoas da plataforma (card #170, T-9): a lista, o cadastro, a ficha, a
+  // edição de nome e telefone, a desativação, a reativação e o link único.
+  // O `/contas` antigo saiu: a tela Pessoas lê só destes caminhos.
+  { padrao: /^pessoas$/, metodos: ["GET", "POST"] },
+  { padrao: new RegExp(`^pessoas/${UUID}$`), metodos: ["GET", "PATCH"] },
+  {
+    padrao: new RegExp(`^pessoas/${UUID}/(desativacao|reativacao)$`),
+    metodos: ["PUT"],
+  },
+  { padrao: new RegExp(`^pessoas/${UUID}/acesso$`), metodos: ["POST"] },
+  // Donos e equipes (card #170, T-10): a lista de vínculos, atribuir, trocar
+  // e remover dono, atribuir e remover equipe. Só a tela /admin/donos-e-equipes
+  // as usa; as fichas apenas linkam para ela.
+  { padrao: /^vinculos$/, metodos: ["GET"] },
+  { padrao: new RegExp(`^lojas/${UUID}/donos$`), metodos: ["POST"] },
+  { padrao: new RegExp(`^lojas/${UUID}/donos/${UUID}$`), metodos: ["DELETE"] },
+  {
+    padrao: new RegExp(`^lojas/${UUID}/donos/${UUID}/substituicao$`),
+    metodos: ["PUT"],
+  },
+  { padrao: new RegExp(`^lojas/${UUID}/equipe/${UUID}$`), metodos: ["DELETE"] },
 ];
+
+/**
+ * A ficha de uma pessoa traz o telefone: só abre quando o navegador diz que o
+ * pedido partiu do próprio site (`Sec-Fetch-Site: same-origin`, que a página
+ * não consegue mudar). Sem o cabeçalho, ou com outro valor, é recusado — o
+ * navegador sempre o manda; quem não manda não é a tela (D-9, revisão 16 e 17).
+ */
+const FICHA_DA_PESSOA = new RegExp(`^pessoas/${UUID}$`);
+
+function recusarFichaDeFora(
+  requisicao: Request,
+  caminho: string,
+  metodo: string,
+): Response | null {
+  if (metodo !== "GET" || !FICHA_DA_PESSOA.test(caminho)) return null;
+  const destino = requisicao.headers.get("sec-fetch-site");
+  return destino?.toLowerCase() === "same-origin"
+    ? null
+    : respostaJson(403, { erro: "origem_recusada" });
+}
 
 /** Cabeçalhos da requisição que seguem para a API. Nenhum outro. */
 const CABECALHOS_REPASSADOS = ["content-type", "x-nome-do-arquivo"];
@@ -184,6 +222,8 @@ export async function encaminharParaAdministracao(
       ? recusarOrigemDeFora(requisicao)
       : await recusarAcaoDeFora(requisicao);
   if (recusa !== null) return recusa;
+  const deFora = recusarFichaDeFora(requisicao, caminho, metodo);
+  if (deFora !== null) return deFora;
 
   const token = lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie"));
   if (token === undefined) {

@@ -8,10 +8,9 @@
  * `admin-ficha-loja.test.tsx`; os endpoints, em `apps/api`.
  */
 import type {
-  ContaNaAdministracaoNoContrato,
   FichaDaLojaNoContrato,
   LimitesDaLojaNoContrato,
-  ListaDeContasNoContrato,
+  ListaDePessoasNoContrato,
 } from "@simpleclick/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -211,108 +210,145 @@ describe("os limites da loja", () => {
   });
 });
 
-const CONTA: ContaNaAdministracaoNoContrato = {
+const PESSOA = {
   identidadeId: DONO,
   nome: "Bia Torres",
   email: "bia@exemplo.test",
-  telefone: null,
   criadaEm: "2026-10-16T12:00:00.000Z",
-  tipo: "DONO",
-  lojas: [
-    {
-      id: LOJA,
-      nome: "Doceria da Bia",
-      apelido: "doceria-da-bia",
-      status: "PENDING_APPROVAL",
-      papel: "OWNER",
-    },
-  ],
-  pendentes: 1,
-  lojasEmUso: 1,
-  limiteDeLojas: 2,
+  desativada: false,
+  temSenha: true,
+  donoDeLojas: 1,
+  equipeDeLojas: 0,
+  protegida: false,
 };
 
-const LISTA_DE_CONTAS: ListaDeContasNoContrato = {
-  contas: [CONTA],
+const LISTA_DE_PESSOAS: ListaDePessoasNoContrato = {
+  pessoas: [PESSOA],
   total: 1,
   pagina: 1,
   porPagina: 25,
-  contagens: { donos: 7, equipe: 2 },
+  contagens: { todas: 9, clientes: 0, donos: 7, equipe: 2 },
 };
 
-describe("as contas", () => {
-  it("a consulta vai e volta do endereço; equipe só aparece quando pedida", () => {
+const CONSULTA = {
+  tipo: "todas",
+  situacao: "ativas",
+  busca: "",
+  pagina: 1,
+} as const;
+
+function desenharPessoas(
+  estado: Parameters<typeof TabelaDeContas>[0]["estado"],
+  consulta: Parameters<typeof TabelaDeContas>[0]["consulta"] = CONSULTA,
+): string {
+  document.body.innerHTML = renderToStaticMarkup(
+    <TabelaDeContas
+      consulta={consulta}
+      termo=""
+      estado={estado}
+      aoMudarTermo={() => undefined}
+      aoBuscar={() => undefined}
+      aoMudarTipo={() => undefined}
+      aoMudarSituacao={() => undefined}
+      aoTentarDeNovo={() => undefined}
+      aoIrParaPagina={() => undefined}
+    />,
+  );
+  return document.body.textContent ?? "";
+}
+
+describe("as pessoas (antes, contas)", () => {
+  it("a consulta vai e volta do endereço; só o que foge do padrão aparece", () => {
     expect(
       consultaDeContasDoEndereco(
-        new URLSearchParams("tipo=equipe&busca=jo&pagina=3"),
+        new URLSearchParams(
+          "tipo=equipe&situacao=desativadas&busca=jo&pagina=3",
+        ),
       ),
-    ).toEqual({ tipo: "equipe", busca: "jo", pagina: 3 });
-    expect(consultaDeContasDoEndereco(new URLSearchParams("tipo=x"))).toEqual({
-      tipo: "donos",
-      busca: "",
-      pagina: 1,
+    ).toEqual({
+      tipo: "equipe",
+      situacao: "desativadas",
+      busca: "jo",
+      pagina: 3,
     });
     expect(
-      enderecoDaPaginaDeContas({ tipo: "donos", busca: "", pagina: 1 }),
-    ).toBe("/admin/contas");
+      consultaDeContasDoEndereco(new URLSearchParams("tipo=x&situacao=y")),
+    ).toEqual(CONSULTA);
+    expect(enderecoDaPaginaDeContas(CONSULTA)).toBe("/admin/contas");
     expect(
-      enderecoDaListaDeContas({ tipo: "equipe", busca: " jo ", pagina: 2 }),
-    ).toBe("/api/admin/contas?tipo=equipe&pagina=2&busca=jo");
+      enderecoDaPaginaDeContas({ ...CONSULTA, tipo: "clientes", pagina: 2 }),
+    ).toBe("/admin/contas?tipo=clientes&pagina=2");
+    expect(
+      enderecoDaListaDeContas({
+        tipo: "equipe",
+        situacao: "desativadas",
+        busca: " jo ",
+        pagina: 2,
+      }),
+    ).toBe(
+      "/api/admin/pessoas?tipo=equipe&situacao=desativadas&pagina=2&busca=jo",
+    );
   });
 
-  it("a lista de donos mostra lojas contra o limite e as pendentes, e leva à conta", () => {
-    document.body.innerHTML = renderToStaticMarkup(
-      <TabelaDeContas
-        consulta={{ tipo: "donos", busca: "", pagina: 1 }}
-        termo=""
-        estado={{ fase: "pronta", lista: LISTA_DE_CONTAS }}
-        aoMudarTermo={() => undefined}
-        aoBuscar={() => undefined}
-        aoMudarTipo={() => undefined}
-        aoTentarDeNovo={() => undefined}
-        aoIrParaPagina={() => undefined}
-      />,
-    );
+  it("a lista mostra o tipo e a situação de cada pessoa e leva à ficha", () => {
+    desenharPessoas({ fase: "pronta", lista: LISTA_DE_PESSOAS });
     const linha = document.querySelector("tbody tr");
     expect(linha?.textContent).toContain("Bia Torres");
-    expect(linha?.textContent).toContain("1 de 2");
-    expect(linha?.textContent).toContain("1 pendente");
+    expect(linha?.textContent).toContain("Dono de 1 loja");
+    expect(linha?.textContent).toContain("Ativa");
     expect(
       linha?.querySelector(`a[href="/admin/contas/${DONO}"]`),
     ).not.toBeNull();
     expect(
-      document.querySelector('[role="group"][aria-label="Tipo de conta"]')?.textContent,
+      document.querySelector('[role="group"][aria-label="Tipo de pessoa"]')
+        ?.textContent,
     ).toContain("Equipe das lojas");
+    // O botão de cadastro leva à página nova.
+    expect(
+      document.querySelector('a[href="/admin/contas/nova"]')?.textContent,
+    ).toBe("Cadastrar pessoa");
+  });
+
+  it("cliente, desativada e sem senha ganham selo com texto", () => {
+    const texto = desenharPessoas({
+      fase: "pronta",
+      lista: {
+        ...LISTA_DE_PESSOAS,
+        pessoas: [
+          {
+            ...PESSOA,
+            identidadeId: "11111111-1111-4111-8111-111111111111",
+            donoDeLojas: 0,
+            desativada: true,
+          },
+          {
+            ...PESSOA,
+            identidadeId: "22222222-2222-4222-8222-222222222222",
+            donoDeLojas: 0,
+            temSenha: false,
+          },
+        ],
+        total: 2,
+      },
+    });
+    expect(texto).toContain("Cliente");
+    expect(texto).toContain("Desativada");
+    expect(texto).toContain("Sem senha ainda");
   });
 
   it("os estados de carregando, erro e vazio têm texto próprio", () => {
-    const desenhar = (
-      estado: Parameters<typeof TabelaDeContas>[0]["estado"],
-    ) => {
-      document.body.innerHTML = renderToStaticMarkup(
-        <TabelaDeContas
-          consulta={{ tipo: "equipe", busca: "", pagina: 1 }}
-          termo=""
-          estado={estado}
-          aoMudarTermo={() => undefined}
-          aoBuscar={() => undefined}
-          aoMudarTipo={() => undefined}
-          aoTentarDeNovo={() => undefined}
-          aoIrParaPagina={() => undefined}
-        />,
-      );
-      return document.body.textContent ?? "";
-    };
-    expect(desenhar({ fase: "carregando" })).toContain("Carregando contas");
-    expect(desenhar({ fase: "erro", mensagem: "falhou" })).toContain(
-      "As contas não carregaram",
+    expect(desenharPessoas({ fase: "carregando" })).toContain(
+      "Carregando pessoas",
+    );
+    expect(desenharPessoas({ fase: "erro", mensagem: "falhou" })).toContain(
+      "As pessoas não carregaram",
     );
     expect(
-      desenhar({
+      desenharPessoas({
         fase: "pronta",
-        lista: { ...LISTA_DE_CONTAS, contas: [], total: 0 },
+        lista: { ...LISTA_DE_PESSOAS, pessoas: [], total: 0 },
       }),
-    ).toContain("Nenhuma conta encontrada");
+    ).toContain("Nenhuma pessoa encontrada");
   });
 
   it("o limite de lojas do dono: vazio é o padrão, número é número, o resto é recusado", () => {
@@ -326,23 +362,33 @@ describe("as contas", () => {
 });
 
 describe("o menu da administração", () => {
-  it("tem todas as funções à vista, em seções, com o número de lojas pendentes", () => {
+  it("[CA-12] é plano: sete itens, um por tela, sem href repetido e com o contador em Aprovações", () => {
     const { secoes, atalhos } = secoesDaAdministracao(3);
     const itens = secoes.flatMap((secao) => secao.itens);
     expect(itens.map((item) => item.rotulo)).toEqual([
-      "Início",
-      "Todas as lojas",
-      "Pendentes",
-      "Nova loja",
-      "Contas",
+      "Visão geral",
+      "Aprovações",
+      "Lojas",
+      "Pessoas",
+      "Donos e equipes",
       "Auditoria",
+      "Configurações",
     ]);
-    expect(itens.find((item) => item.rotulo === "Pendentes")).toMatchObject({
-      href: "/admin/lojas?situacao=PENDING_APPROVAL",
+    expect(itens.find((item) => item.rotulo === "Aprovações")).toMatchObject({
+      href: "/admin/aprovacoes",
       contador: 3,
     });
+    expect(new Set(itens.map((item) => item.href)).size).toBe(itens.length);
     expect(itens.every((item) => !("subitens" in item))).toBe(true);
-    expect(atalhos).toHaveLength(5);
+    // Nova loja e Cadastrar pessoa são botões das listas, não itens.
+    expect(itens.map((item) => item.href)).not.toContain("/admin/lojas/nova");
+    expect(itens.map((item) => item.href)).not.toContain("/admin/contas/nova");
+    expect(atalhos.map((item) => item.rotulo)).toEqual([
+      "Visão geral",
+      "Aprovações",
+      "Lojas",
+      "Pessoas",
+    ]);
   });
 });
 
@@ -355,14 +401,34 @@ describe("o repasse do site até a administração", () => {
     expect(caminhoPermitido(`lojas/${LOJA}/aprovar`, "GET")).toBe(false);
     expect(caminhoPermitido(`lojas/${LOJA}/metricas`, "GET")).toBe(true);
     expect(caminhoPermitido(`lojas/${LOJA}/equipe`, "GET")).toBe(true);
-    expect(caminhoPermitido(`lojas/${LOJA}/equipe`, "POST")).toBe(false);
+    // Atribuir equipe e as rotas de vínculo (T-10) passam; só a tela Donos e
+    // equipes as chama.
+    expect(caminhoPermitido(`lojas/${LOJA}/equipe`, "POST")).toBe(true);
+    expect(caminhoPermitido(`lojas/${LOJA}/equipe`, "DELETE")).toBe(false);
+    expect(caminhoPermitido("vinculos", "GET")).toBe(true);
+    expect(caminhoPermitido("vinculos", "POST")).toBe(false);
+    expect(caminhoPermitido(`lojas/${LOJA}/donos`, "POST")).toBe(true);
+    expect(caminhoPermitido(`lojas/${LOJA}/donos/${DONO}`, "DELETE")).toBe(
+      true,
+    );
+    expect(
+      caminhoPermitido(`lojas/${LOJA}/donos/${DONO}/substituicao`, "PUT"),
+    ).toBe(true);
+    expect(caminhoPermitido(`lojas/${LOJA}/equipe/${DONO}`, "DELETE")).toBe(
+      true,
+    );
+    expect(caminhoPermitido(`lojas/${LOJA}/donos/${DONO}`, "PUT")).toBe(false);
     expect(caminhoPermitido(`lojas/${LOJA}/limites`, "PATCH")).toBe(true);
     expect(caminhoPermitido(`donos/${DONO}/limites`, "PATCH")).toBe(true);
     expect(caminhoPermitido("limites", "GET")).toBe(true);
-    expect(caminhoPermitido("limites", "PATCH")).toBe(false);
-    expect(caminhoPermitido("contas", "GET")).toBe(true);
-    expect(caminhoPermitido(`contas/${DONO}`, "GET")).toBe(true);
-    expect(caminhoPermitido(`contas/${DONO}`, "DELETE")).toBe(false);
-    expect(caminhoPermitido("contas/qualquer-coisa", "GET")).toBe(false);
+    // O PATCH dos limites padrão entrou na ponte com as Configurações (T-11).
+    expect(caminhoPermitido("limites", "PATCH")).toBe(true);
+    // O `/contas` antigo saiu da ponte: a tela lê as pessoas.
+    expect(caminhoPermitido("contas", "GET")).toBe(false);
+    expect(caminhoPermitido(`contas/${DONO}`, "GET")).toBe(false);
+    expect(caminhoPermitido("pessoas", "GET")).toBe(true);
+    expect(caminhoPermitido(`pessoas/${DONO}`, "GET")).toBe(true);
+    expect(caminhoPermitido(`pessoas/${DONO}`, "DELETE")).toBe(false);
+    expect(caminhoPermitido("pessoas/qualquer-coisa", "GET")).toBe(false);
   });
 });

@@ -1,17 +1,21 @@
 "use client";
 
 /**
- * A ficha de uma conta na administração (card #29): quem é, o limite de lojas
- * (quando é dono), e as lojas dela — com Aprovar e Recusar nas que esperam.
- * Trocar o limite de lojas do dono grava na auditoria da plataforma.
+ * A ficha de uma pessoa na administração (cards #29 e #170): quem é, a situação
+ * da conta, os vínculos com lojas (com Aprovar e Recusar nas que esperam), os
+ * pedidos em números, o limite de lojas (quando é dono), as ações e o histórico.
+ *
+ * Só números agregados de pedidos e o telefone: nunca CPF, endereço nem itens
+ * (D-9). A leitura da ficha fica na auditoria da plataforma, na API. Os links
+ * não fazem prefetch, para o carregamento adiantado não abrir ficha nenhuma.
  */
 
 import {
-  esquemaDaContaNaAdministracao,
+  esquemaDaFichaDaPessoa,
   esquemaDoLimiteDoDono,
   esquemaDosPadroesDeLimite,
   LIMITES_PADRAO,
-  type ContaNaAdministracaoNoContrato,
+  type FichaDaPessoaNoContrato,
   type LimiteDoDonoNoContrato,
 } from "@simpleclick/contracts";
 import {
@@ -36,11 +40,18 @@ import {
   lerDaApi,
   mensagemDaApi,
   NOME_DA_SITUACAO,
+  plural,
   TOM_DA_SITUACAO,
 } from "./apresentacao.ts";
+import { AcoesDaPessoa } from "./AcoesDaPessoa.tsx";
 import { AtosDeAprovacao } from "./AtosDeAprovacao.tsx";
 import { BarraDeUso } from "./BarraDeUso.tsx";
 import { INFO_DO_LIMITE_DE_LOJAS } from "./explicacoes.ts";
+import { ListaDaTrilha } from "./ListaDaTrilha.tsx";
+import {
+  SeloDaSituacaoDaPessoa,
+  SelosDoTipoDaPessoa,
+} from "./ListaDeContas.tsx";
 
 /** O que foi digitado no campo, no corpo que a API pede: vazio é o padrão. */
 export function lojasDoCampo(
@@ -208,34 +219,50 @@ function LimiteDeLojasDoDono({
   );
 }
 
-/** Só desenha as lojas da conta. */
-export function LojasDaConta({
-  conta,
+/** Só desenha os vínculos da pessoa com as lojas. */
+export function VinculosDaPessoa({
+  ficha,
   aoMudar,
 }: {
-  readonly conta: ContaNaAdministracaoNoContrato;
+  readonly ficha: FichaDaPessoaNoContrato;
   readonly aoMudar: () => void;
 }) {
+  const pendentes = ficha.vinculos.filter(
+    (v) => v.papel === "OWNER" && v.status === "PENDING_APPROVAL",
+  ).length;
   return (
     <Cartao
-      titulo="Lojas"
+      titulo="Vínculos com lojas"
       nivelDoTitulo={2}
       descricao={
-        conta.pendentes > 0
-          ? `${conta.pendentes} esperando aprovação.`
-          : "Lojas em que esta conta tem acesso."
+        pendentes > 0
+          ? `${pendentes} esperando aprovação.`
+          : "Lojas em que esta pessoa tem acesso."
+      }
+      estado={ficha.vinculos.length === 0 ? "vazio" : "pronto"}
+      tituloVazio="Sem vínculo com loja"
+      descricaoVazio="Esta pessoa é só cliente: não é dona nem da equipe de nenhuma loja."
+      rodape={
+        <Link
+          className="sc-botao sc-botao--secundaria"
+          href={`/admin/donos-e-equipes?pessoa=${encodeURIComponent(ficha.identidadeId)}`}
+          prefetch={false}
+        >
+          Gerenciar donos e equipe
+        </Link>
       }
     >
       <ul className="divide-y divide-[var(--cor-borda)] pt-4">
-        {conta.lojas.map((loja) => (
+        {ficha.vinculos.map((loja) => (
           <li
-            key={loja.id}
+            key={`${loja.lojaId}-${loja.papel}`}
             className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
           >
             <div className="min-w-0">
               <Link
                 className="font-medium underline-offset-2 hover:underline"
-                href={`/admin/lojas/${loja.id}`}
+                href={`/admin/lojas/${loja.lojaId}`}
+                prefetch={false}
               >
                 {loja.nome}
               </Link>
@@ -250,7 +277,11 @@ export function LojasDaConta({
               </Selo>
               {loja.papel === "OWNER" && loja.status === "PENDING_APPROVAL" && (
                 <AtosDeAprovacao
-                  loja={loja}
+                  loja={{
+                    id: loja.lojaId,
+                    nome: loja.nome,
+                    status: loja.status,
+                  }}
                   tamanho="pequeno"
                   aoMudar={aoMudar}
                 />
@@ -263,32 +294,83 @@ export function LojasDaConta({
   );
 }
 
+/** Os pedidos da pessoa como cliente: números, sem itens nem endereço. */
+export function PedidosDaPessoa({
+  pedidos,
+}: {
+  readonly pedidos: FichaDaPessoaNoContrato["pedidos"];
+}) {
+  return (
+    <Cartao
+      titulo="Pedidos"
+      nivelDoTitulo={2}
+      descricao="Só os números: a administração não vê itens, endereço nem documento."
+      estado={pedidos.total === 0 ? "vazio" : "pronto"}
+      tituloVazio="Nenhum pedido ainda"
+    >
+      <dl className="grid gap-3 pt-4 text-sm">
+        <div className="flex flex-wrap justify-between gap-2">
+          <dt className="font-medium">Pedidos feitos</dt>
+          <dd className="tabular-nums">{inteiro(pedidos.total)}</dd>
+        </div>
+        <div className="flex flex-wrap justify-between gap-2">
+          <dt className="font-medium">Último pedido</dt>
+          <dd>
+            {pedidos.ultimoEm === null ? (
+              "—"
+            ) : (
+              <time dateTime={pedidos.ultimoEm}>
+                {dataCurta(pedidos.ultimoEm)}
+              </time>
+            )}
+          </dd>
+        </div>
+      </dl>
+      {pedidos.porLoja.length > 0 && (
+        <ul className="mt-4 divide-y divide-[var(--cor-borda)] text-sm">
+          {pedidos.porLoja.map((loja) => (
+            <li
+              key={loja.lojaId}
+              className="flex flex-wrap items-center justify-between gap-2 py-2"
+            >
+              <span>{loja.nome}</span>
+              <span className="tabular-nums">
+                {plural(loja.total, "pedido", "pedidos")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Cartao>
+  );
+}
+
+type EstadoDaFicha =
+  | { readonly fase: "carregando" }
+  | { readonly fase: "nao-encontrada" }
+  | { readonly fase: "erro"; readonly mensagem: string }
+  | { readonly fase: "pronta"; readonly ficha: FichaDaPessoaNoContrato };
+
 export function FichaDaConta({
   identidadeId,
 }: {
   readonly identidadeId: string;
 }) {
   const roteador = useRouter();
-  const [conta, setConta] = useState<
-    | { readonly fase: "carregando" }
-    | { readonly fase: "nao-encontrada" }
-    | { readonly fase: "erro"; readonly mensagem: string }
-    | {
-        readonly fase: "pronta";
-        readonly conta: ContaNaAdministracaoNoContrato;
-      }
-  >({ fase: "carregando" });
+  const [estado, setEstado] = useState<EstadoDaFicha>({ fase: "carregando" });
   const [padrao, setPadrao] = useState<number>(LIMITES_PADRAO.lojasPorDono);
   const [tentativa, setTentativa] = useState(0);
 
   const carregar = useCallback(async () => {
     const lida = await lerDaApi(
-      `/api/admin/contas/${encodeURIComponent(identidadeId)}`,
-      (corpo) => esquemaDaContaNaAdministracao.parse(corpo),
+      `/api/admin/pessoas/${encodeURIComponent(identidadeId)}`,
+      (corpo) => esquemaDaFichaDaPessoa.parse(corpo),
     );
-    setConta(
-      lida.fase === "pronta" ? { fase: "pronta", conta: lida.dados } : lida,
-    );
+    setEstado((atual) => {
+      if (lida.fase === "pronta") return { fase: "pronta", ficha: lida.dados };
+      // Recarga depois de um ato: se falhar, a ficha que já está na tela fica.
+      return atual.fase === "pronta" ? atual : lida;
+    });
   }, [identidadeId]);
 
   useEffect(() => {
@@ -311,39 +393,40 @@ export function FichaDaConta({
     <Link
       className="inline-flex items-center gap-2 text-sm font-medium text-[var(--cor-primaria-texto)]"
       href="/admin/contas"
+      prefetch={false}
     >
       <IconeVoltar aria-hidden="true" />
-      Voltar para as contas
+      Voltar para as pessoas
     </Link>
   );
 
-  if (conta.fase === "carregando") {
+  if (estado.fase === "carregando") {
     return (
       <>
         {voltar}
-        <Carregando rotulo="Carregando a conta…" className="mt-6" />
+        <Carregando rotulo="Carregando a ficha…" className="mt-6" />
       </>
     );
   }
-  if (conta.fase === "nao-encontrada") {
+  if (estado.fase === "nao-encontrada") {
     return (
       <>
         {voltar}
         <Vazio
-          titulo="Conta não encontrada"
-          descricao="Esta conta não existe ou não tem acesso a nenhuma loja."
+          titulo="Pessoa não encontrada"
+          descricao="Esta conta não existe."
           className="mt-6"
         />
       </>
     );
   }
-  if (conta.fase === "erro") {
+  if (estado.fase === "erro") {
     return (
       <>
         {voltar}
         <Erro
-          titulo="A conta não carregou"
-          mensagem={conta.mensagem}
+          titulo="A ficha não carregou"
+          mensagem={estado.mensagem}
           className="mt-6"
           acao={
             <Botao
@@ -358,7 +441,10 @@ export function FichaDaConta({
     );
   }
 
-  const dados = conta.conta;
+  const ficha = estado.ficha;
+  const pendentes = ficha.vinculos.filter(
+    (v) => v.papel === "OWNER" && v.status === "PENDING_APPROVAL",
+  ).length;
   return (
     <article aria-labelledby="conta-titulo">
       {voltar}
@@ -367,56 +453,90 @@ export function FichaDaConta({
           id="conta-titulo"
           className="text-4xl font-semibold tracking-[-0.04em]"
         >
-          {dados.nome ?? dados.email}
+          {ficha.nome ?? ficha.email}
         </h1>
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <Selo tom={dados.tipo === "DONO" ? "info" : "neutro"} semBolinha>
-            {dados.tipo === "DONO" ? "Dono de loja" : "Equipe"}
-          </Selo>
-          <span>{dados.email}</span>
-          {dados.telefone !== null && <span>{dados.telefone}</span>}
+          <SelosDoTipoDaPessoa pessoa={ficha} />
+          <SeloDaSituacaoDaPessoa pessoa={ficha} />
+          <span>{ficha.email}</span>
+          {ficha.telefone !== null && <span>{ficha.telefone}</span>}
           <span className="text-sm text-[var(--cor-tinta-suave)]">
-            Conta criada em {dataCurta(dados.criadaEm)}
+            Conta criada em {dataCurta(ficha.criadaEm)}
           </span>
         </p>
+        <div className="mt-5">
+          <AcoesDaPessoa
+            ficha={ficha}
+            aoMudar={(nova) => {
+              setEstado({ fase: "pronta", ficha: nova });
+              roteador.refresh();
+            }}
+            aoRecarregar={() => void carregar()}
+          />
+        </div>
       </header>
 
-      {dados.pendentes > 0 && (
+      {ficha.desativada && (
+        <Aviso
+          tom="atencao"
+          aoVivo={false}
+          titulo="Conta desativada"
+          className="mt-5"
+        >
+          <p>
+            {ficha.desativadaEm !== null
+              ? `Desativada em ${dataCurta(ficha.desativadaEm)}. `
+              : ""}
+            A pessoa não entra até a conta ser reativada.
+          </p>
+        </Aviso>
+      )}
+
+      {pendentes > 0 && (
         <Aviso
           tom="atencao"
           aoVivo={false}
           titulo={
-            dados.pendentes === 1
-              ? "1 loja desta conta espera aprovação"
-              : `${dados.pendentes} lojas desta conta esperam aprovação`
+            pendentes === 1
+              ? "1 loja desta pessoa espera aprovação"
+              : `${pendentes} lojas desta pessoa esperam aprovação`
           }
           className="mt-5"
         >
-          <p>Aprove ou recuse na lista de lojas abaixo.</p>
+          <p>Aprove ou recuse na lista de vínculos abaixo.</p>
         </Aviso>
       )}
 
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">
-        <LojasDaConta
-          conta={dados}
+        <VinculosDaPessoa
+          ficha={ficha}
           aoMudar={() => {
             setTentativa((n) => n + 1);
             roteador.refresh();
           }}
         />
-        {dados.tipo === "DONO" ? (
+        <PedidosDaPessoa pedidos={ficha.pedidos} />
+        {ficha.donoDeLojas > 0 && (
           <LimiteDeLojasDoDono
-            identidadeId={dados.identidadeId}
+            identidadeId={ficha.identidadeId}
             padrao={padrao}
             aoSalvar={() => setTentativa((n) => n + 1)}
           />
-        ) : (
-          <Cartao
-            titulo="Acesso da equipe"
-            nivelDoTitulo={2}
-            descricao="Quem entra pela equipe não abre lojas: o limite de pessoas é da loja, e quem o ajusta é a ficha da loja."
-          />
         )}
+      </div>
+
+      <div className="mt-8">
+        <Cartao
+          titulo="Histórico da conta"
+          nivelDoTitulo={2}
+          descricao="Os atos da administração sobre esta pessoa, do mais novo para o mais antigo."
+          estado={ficha.historico.length === 0 ? "vazio" : "pronto"}
+          tituloVazio="Nenhum ato registrado ainda"
+        >
+          <div className="pt-4">
+            <ListaDaTrilha registros={ficha.historico} />
+          </div>
+        </Cartao>
       </div>
     </article>
   );

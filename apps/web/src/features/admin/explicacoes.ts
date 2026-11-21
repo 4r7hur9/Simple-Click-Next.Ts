@@ -168,3 +168,35 @@ export const INFO_DO_DASHBOARD = {
       "Pessoas da equipe das lojas (não donas) com acesso ativo ao painel. Quem trabalha em duas lojas conta uma vez.",
   },
 } as const satisfies Record<string, ConteudoDoInfo>;
+
+// ---------------------------------------------------------------------------
+// Pessoas (card #170, T-9)
+// ---------------------------------------------------------------------------
+
+export const INFO_DO_EMAIL_DA_PESSOA: ConteudoDoInfo = {
+  texto:
+    "É o e-mail com que a pessoa entra. Ele identifica a conta e não muda depois do cadastro. Se já houver uma conta com este e-mail, a tela abre a ficha dela em vez de criar outra.",
+  exemplo: "marina@exemplo.com.br.",
+};
+
+export const INFO_DO_TELEFONE_DA_PESSOA: ConteudoDoInfo = {
+  texto:
+    "Telefone com DDD, para a administração falar com a pessoa. Só você e a administração veem este número; ele não aparece na lista nem entra na busca.",
+  exemplo: "(11) 91111-0001.",
+};
+
+export const INFO_DO_MOTIVO_DO_ATO: ConteudoDoInfo = {
+  texto:
+    "Diga por que está fazendo isto. O motivo fica na auditoria da plataforma, com o seu nome e a data. Não escreva senha, link nem documento da pessoa.",
+  exemplo: "pediu ajuda por telefone: não recebeu o e-mail de recuperação.",
+};
+
+export const INFO_DO_LINK_DE_ACESSO: ConteudoDoInfo = {
+  texto:
+    "Um link que só vale uma vez e por 60 minutos. Quem abrir define a própria senha e entra. Ele aparece uma única vez, nesta tela: copie e entregue à pessoa por um meio seguro. Gerar outro link cancela o anterior e qualquer convite pendente.",
+};
+
+export const INFO_DA_DESATIVACAO_DA_PESSOA: ConteudoDoInfo = {
+  texto:
+    "A pessoa deixa de entrar e as sessões abertas caem na hora. Nada é apagado: os pedidos e os vínculos com lojas continuam, e reativar devolve o acesso. Se ela é a única dona de uma loja, a tela avisa antes.",
+};

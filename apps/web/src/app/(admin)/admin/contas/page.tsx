@@ -1,7 +1,8 @@
 /**
- * Contas da plataforma na administração (card #29): donos com a quantidade de
- * lojas e o limite, e a equipe das lojas. A consulta mora no endereço
- * (`?tipo=equipe`), por isso a lista fica dentro de `Suspense`.
+ * Pessoas da plataforma na administração (cards #29 e #170): clientes, donos e
+ * equipe, com a situação de cada conta. A consulta mora no endereço
+ * (`?tipo=donos&situacao=desativadas`), por isso a lista fica dentro de
+ * `Suspense`. A rota segue `/admin/contas`; o rótulo é Pessoas.
  */
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -10,7 +11,7 @@ import { ListaDeContas } from "../../../../features/admin/ListaDeContas.tsx";
 import { exigirAdministracaoDaPlataforma } from "../../../../server/acesso-da-administracao.ts";
 
 export const metadata: Metadata = {
-  title: "Contas | Administração SimpleClick",
+  title: "Pessoas | Administração SimpleClick",
 };
 
 export default async function PaginaDasContas() {
@@ -22,11 +23,11 @@ export default async function PaginaDasContas() {
           Administração da plataforma
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-          Contas
+          Pessoas
         </h1>
         <p className="mt-3 text-lg leading-8 text-[var(--cor-tinta-suave)]">
-          Donos de loja e a equipe deles. Abra uma conta para ver as lojas e
-          trocar o limite de lojas do dono.
+          Clientes, donos de loja e equipe. Abra a ficha para ver os vínculos
+          com lojas, gerar um link de acesso ou desativar a conta.
         </p>
       </header>
       <Suspense fallback={null}>
