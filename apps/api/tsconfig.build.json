@@ -8,5 +8,14 @@
     // olhado pela checagem de tipos como qualquer outro código.
     "rootDir": "src"
   },
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "tests"]
+  // `src/administracao-local*.ts` é ferramenta de quem opera o banco LOCAL
+  // (#163): roda pelo código-fonte (`pnpm administracao:local`) e não pode
+  // existir na imagem da API.
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "tests",
+    "src/administracao-local*.ts"
+  ]
 }
