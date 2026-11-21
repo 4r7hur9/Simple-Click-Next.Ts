@@ -60,14 +60,11 @@
   opacity: 0.75;
 }
 
-/* O aviso de cookies é fixo no pé da tela: enquanto ele existe, o rodapé
-   ganha embaixo a altura dele (medida pelo próprio aviso em
-   --altura-do-aviso-de-cookies) para nada ficar escondido atrás. */
+/* O aviso de cookies é fixo no pé da tela. Enquanto ele existe, o rodapé ganha
+   só uma folga fixa embaixo (não a altura do aviso, que no celular com
+   "Personalizar" passa de 400 px e fazia a página ficar longa demais). */
 body:has(.sc-cookies) .sc-rodape {
-  padding-block-end: calc(
-    var(--espaco-6) + env(safe-area-inset-bottom) +
-      var(--altura-do-aviso-de-cookies, 0px)
-  );
+  padding-block-end: calc(var(--espaco-8) + env(safe-area-inset-bottom));
 }
 
 .sc-rodape__dentro {

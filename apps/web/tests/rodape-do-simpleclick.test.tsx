@@ -108,7 +108,8 @@ describe("estilo do rodapé", () => {
     expect(CSS).toMatch(/@media \(min-width: 64rem\) \{\s*\.sc-rodape__grade \{\s*grid-template-columns: minmax\(18rem, 1\.6fr\) repeat\(3, minmax\(0, 1fr\)\)/);
   });
 
-  it("o aviso de cookies fixo não cobre o fim do rodapé", () => {
-    expect(CSS).toMatch(/body:has\(\.sc-cookies\) \.sc-rodape \{[^}]*--altura-do-aviso-de-cookies/);
+  it("com o aviso aberto, o rodapé ganha só uma folga fixa (não a altura do aviso)", () => {
+    expect(CSS).toMatch(/body:has\(\.sc-cookies\) \.sc-rodape \{[^}]*--espaco-8/);
+    expect(CSS).not.toMatch(/--altura-do-aviso-de-cookies/);
   });
 });

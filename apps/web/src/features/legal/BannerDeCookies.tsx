@@ -75,11 +75,14 @@ export function BannerDeCookies() {
     const el = caixa.current;
     if (!aberto || el === null) return;
     const raiz = document.documentElement;
+    let ultimaAltura = -1;
     const medir = () => {
-      raiz.style.setProperty(
-        "--altura-do-aviso-de-cookies",
-        `${el.getBoundingClientRect().height}px`,
-      );
+      const altura = el.getBoundingClientRect().height;
+      // Só avisa o resto da página quando a altura muda de fato: cada `resize`
+      // faz a landing recalcular as seções fixadas e a sacola re-medir.
+      if (altura === ultimaAltura) return;
+      ultimaAltura = altura;
+      raiz.style.setProperty("--altura-do-aviso-de-cookies", `${altura}px`);
       // A sacola re-mede a área dela quando a janela muda de tamanho.
       window.dispatchEvent(new Event("resize"));
     };

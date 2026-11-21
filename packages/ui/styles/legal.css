@@ -10,19 +10,32 @@
 .sc-cookies {
   position: fixed;
   /* Celular e tablet: janela de baixo em largura total, acima da barra de
-     atalhos do painel e da barra de ação do produto, dentro da área segura. */
+     atalhos do painel e da barra de ação do produto, dentro da área segura
+     (a margem ou a área segura do aparelho, a que for maior). */
   inset-block-end: calc(
     max(var(--espaco-3), env(safe-area-inset-bottom)) + var(--sc-cookies-sobe, 0px)
   );
   inset-inline: max(var(--espaco-3), env(safe-area-inset-left))
     max(var(--espaco-3), env(safe-area-inset-right));
+  /* Nunca mais largo que a tela menos as margens (a janela não extravasa). */
+  max-inline-size: calc(100vw - 2 * var(--espaco-3));
+  min-inline-size: 0;
   /* Abaixo da sacola (20) e do topo do cliente: nunca os cobre. */
   z-index: 15;
   box-sizing: border-box;
-  /* Deixa o topo livre (Entrar/Menu) e rola por dentro se não couber. */
-  max-block-size: calc(100dvh - 8rem);
+  /* Altura: deixa o topo livre (Entrar/Menu) e a faixa da barra embaixo. Se o
+     "Personalizar" não couber, a janela rola por dentro, sem sair da tela. */
+  max-block-size: calc(
+    100vh - 8rem - max(var(--espaco-3), env(safe-area-inset-bottom)) - var(--sc-cookies-sobe, 0px)
+  );
+  max-block-size: calc(
+    100dvh - 8rem - max(var(--espaco-3), env(safe-area-inset-bottom)) - var(--sc-cookies-sobe, 0px)
+  );
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Texto longo ou palavra sem espaço quebra dentro da janela. */
+  overflow-wrap: anywhere;
   padding: var(--espaco-4);
   border-width: 1px;
   border-style: solid;
@@ -86,6 +99,8 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
 
 .sc-cookies__categorias {
   display: grid;
+  /* Fieldset tem largura mínima = conteúdo por padrão: zerada para não estourar a janela. */
+  min-inline-size: 0;
   gap: var(--espaco-2);
   margin: 0 0 var(--espaco-3);
   padding: 0;
@@ -109,6 +124,10 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
   border-radius: var(--raio-cartao);
   background: var(--cor-fundo);
   font-size: var(--texto-sm);
+}
+
+.sc-cookies__categoria > span {
+  min-inline-size: 0;
 }
 
 .sc-cookies__categoria input {
@@ -137,6 +156,7 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
    toque do cliente, 48px (card #132). */
 .sc-cookies__botao {
   min-block-size: var(--altura-toque-cliente);
+  max-inline-size: 100%;
   padding: 0 var(--espaco-4);
   border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-completo);
@@ -191,12 +211,14 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
 
   .sc-cookies__acoes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sc-cookies__botao {
     inline-size: 100%;
+    min-inline-size: 0;
     padding-inline: var(--espaco-2);
+    overflow-wrap: anywhere;
   }
 
   .sc-cookies__botao--discreto {
