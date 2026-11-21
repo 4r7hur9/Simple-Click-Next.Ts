@@ -1,0 +1,871 @@
+{
+  "etapa": "estresse",
+  "perfil": "completo",
+  "rodada": "c57df0e7",
+  "duracaoMs": 722535.814,
+  "todosOsThresholdsOk": true,
+  "metas": {
+    "catalogoP95Ms": 500,
+    "criarP95Ms": 1000,
+    "falhasMax": 0.01
+  },
+  "operacoes": {
+    "cadastro": {
+      "requisicoes": 60,
+      "porSegundo": 0.08304086640056849,
+      "p50": 103.26650000000001,
+      "p90": 117.11900000000001,
+      "p95": 124.585,
+      "p99": 149.10572,
+      "max": 176.949,
+      "falhasHttp": 0
+    },
+    "vitrine": {
+      "requisicoes": 8196,
+      "porSegundo": 11.343382350317656,
+      "p50": 6.5545,
+      "p90": 12.794500000000001,
+      "p95": 17.11625,
+      "p99": 23.42855,
+      "max": 53.707,
+      "falhasHttp": 0
+    },
+    "pagina": {
+      "requisicoes": 2019,
+      "porSegundo": 2.7943251543791296,
+      "p50": 11.739,
+      "p90": 23.797400000000003,
+      "p95": 31.439299999999996,
+      "p99": 45.60371999999999,
+      "max": 75.718,
+      "falhasHttp": 0
+    },
+    "catalogo": {
+      "requisicoes": 13114,
+      "porSegundo": 18.149965366284253,
+      "p50": 8.006,
+      "p90": 14.727200000000002,
+      "p95": 18.746699999999997,
+      "p99": 29.379959999999986,
+      "max": 72.371,
+      "falhasHttp": 0
+    },
+    "produto": {
+      "requisicoes": 4244,
+      "porSegundo": 5.873757283400211,
+      "p50": 9.761,
+      "p90": 17.2073,
+      "p95": 21.60384999999999,
+      "p99": 30.87598,
+      "max": 60.933,
+      "falhasHttp": 0
+    },
+    "imagem": {
+      "requisicoes": 19671,
+      "porSegundo": 27.22494804942638,
+      "p50": 0.453,
+      "p90": 1.076,
+      "p95": 1.573,
+      "p99": 4.496299999999989,
+      "max": 29.219,
+      "falhasHttp": 0
+    },
+    "fechamento": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 5.935,
+      "p90": 10.776,
+      "p95": 13.429799999999997,
+      "p99": 18.557239999999997,
+      "max": 34.093,
+      "falhasHttp": 0
+    },
+    "carrinho": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 11.683,
+      "p90": 17.6798,
+      "p95": 20.781399999999994,
+      "p99": 28.41988,
+      "max": 83.962,
+      "falhasHttp": 0
+    },
+    "conferencia": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 5.703,
+      "p90": 8.9168,
+      "p95": 10.631499999999999,
+      "p99": 14.334,
+      "max": 22.368,
+      "falhasHttp": 0
+    },
+    "criar": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 20.469,
+      "p90": 28.4016,
+      "p95": 33.380999999999986,
+      "p99": 42.63711999999998,
+      "max": 94.775,
+      "falhasHttp": 0
+    },
+    "replay": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 10.715,
+      "p90": 14.7216,
+      "p95": 16.8677,
+      "p99": 24.77322,
+      "max": 54.565,
+      "falhasHttp": 0
+    },
+    "consulta": {
+      "requisicoes": 1639,
+      "porSegundo": 2.268399667175529,
+      "p50": 5.056,
+      "p90": 6.365600000000001,
+      "p95": 7.461699999999994,
+      "p99": 10.377759999999997,
+      "max": 21.268,
+      "falhasHttp": 0
+    },
+    "login": {
+      "requisicoes": 0,
+      "porSegundo": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "falhasHttp": 0
+    },
+    "meus_pedidos": {
+      "requisicoes": 0,
+      "porSegundo": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "falhasHttp": 0
+    },
+    "fila": {
+      "requisicoes": 0,
+      "porSegundo": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "falhasHttp": 0
+    },
+    "fila_cruzada": {
+      "requisicoes": 0,
+      "porSegundo": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "falhasHttp": 0
+    },
+    "preparo": {
+      "requisicoes": 0,
+      "porSegundo": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "falhasHttp": 0
+    }
+  },
+  "contadores": {
+    "compras_criadas": 1639,
+    "criacoes_incertas": 0,
+    "compras_recuperadas": 0,
+    "replays_ok": 1639,
+    "replay_divergente": 0,
+    "totais_errados": 0,
+    "recusas_negocio": 0,
+    "falhas_infra": 0,
+    "rejeicoes_inesperadas": 0,
+    "erro500_replay": 0,
+    "infra_timeout": 0,
+    "infra_429": 0,
+    "infra_5xx": 0,
+    "recusa_loja_fechada": 0,
+    "recusa_minimo": 0,
+    "compras_preparo": 0,
+    "isolamento_violado": 0,
+    "vazamento_painel": 0
+  },
+  "taxaDeFalhasInesperadas": 0,
+  "checks": {
+    "passam": 58777,
+    "falham": 0,
+    "taxa": 1,
+    "essenciais": null
+  },
+  "lentidao": [],
+  "vazao": {
+      "requisicoesPorSegundo": 79.08120108770139,
+      "requisicoes": 57139,
+      "iteracoesPorSegundo": 11.343382350317656,
+      "compras": 1639,
+      "comprasDoPreparo": 0
+    },
+  "validade": {
+      "ok": true,
+      "thresholds": [
+        {
+          "metrica": "totais_errados",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "replay_divergente",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        }
+      ]
+    },
+  "metasDeP95": {
+      "ok": true,
+      "thresholds": [
+        {
+          "metrica": "http_req_duration{op:criar,patamar:recuperacao}",
+          "expressao": "p(95)<1000",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:catalogo,patamar:recuperacao}",
+          "expressao": "p(95)<500",
+          "ok": true,
+          "neutro": false
+        }
+      ]
+    },
+  "janelaDeControle": {
+      "catalogoP95": null,
+      "criarP95": null,
+      "catalogoP95ForaDoControle": null,
+      "criarP95ForaDoControle": null
+    },
+  "trabalhoFixo": {
+      "iteracoesDaConta": null,
+      "descartadasDaConta": 0,
+      "linhasPorChamada": {
+        "min": null,
+        "med": null,
+        "max": null
+      }
+    },
+  "lojas": {
+      "comTrafego": null,
+      "total": 100
+    },
+  "patamares": {
+      "todos": [
+        {
+          "patamar": "rampa-20",
+          "requisicoes": 1598,
+          "porSegundo": 2.2116550751351407,
+          "p95Catalogo": 32.2587,
+          "p95Criar": 41.2604,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 20
+        },
+        {
+          "patamar": "p20",
+          "requisicoes": 6273,
+          "porSegundo": 8.681922582179435,
+          "p95Catalogo": 28.647299999999994,
+          "p95Criar": 41.97359999999998,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 20
+        },
+        {
+          "patamar": "rampa-40",
+          "requisicoes": 4662,
+          "porSegundo": 6.452275319324172,
+          "p95Catalogo": 19.178549999999994,
+          "p95Criar": 33.4749,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 40
+        },
+        {
+          "patamar": "p40",
+          "requisicoes": 12579,
+          "porSegundo": 17.409517640879184,
+          "p95Catalogo": 15.531199999999998,
+          "p95Criar": 30.292799999999996,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 40
+        },
+        {
+          "patamar": "rampa-60",
+          "requisicoes": 7786,
+          "porSegundo": 10.77593642991377,
+          "p95Catalogo": 14.0522,
+          "p95Criar": 28.342449999999992,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 60
+        },
+        {
+          "patamar": "p60",
+          "requisicoes": 19009,
+          "porSegundo": 26.308730490140107,
+          "p95Catalogo": 12.060699999999999,
+          "p95Criar": 26.324199999999998,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 60
+        },
+        {
+          "patamar": "descida",
+          "requisicoes": 4915,
+          "porSegundo": 6.802430972646569,
+          "p95Catalogo": 17.88615,
+          "p95Criar": 34.96549999999999,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 1
+        },
+        {
+          "patamar": "recuperacao",
+          "requisicoes": 316,
+          "porSegundo": 0.437348563042994,
+          "p95Catalogo": 33.23734999999999,
+          "p95Criar": 54.9888,
+          "falhas": 0,
+          "acimaDaMeta": [],
+          "vus": 1
+        }
+      ],
+      "primeiroAcimaDaMeta": null,
+      "maiorCargaVerificada": "60 usuários virtuais (todos os patamares dentro da meta)",
+      "recuperou": true
+    },
+  "thresholds": [
+      {
+        "metrica": "http_reqs{op:cadastro}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:preparo}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:cadastro}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:fechamento}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:conferencia}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:criar}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:p60}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:meus_pedidos}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:rampa-20}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:p20}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:meus_pedidos}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:vitrine}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:fila}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:preparo}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:p20}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:replay}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:catalogo}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:recuperacao}",
+        "expressao": "p(95)<1000",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:p40}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:criar}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:imagem}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:p20}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:conferencia}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:descida}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:login}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:meus_pedidos}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:p60}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:pagina}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:rampa-40}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:imagem}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:pagina}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:carrinho}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:rampa-40}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:consulta}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:vitrine}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:pagina}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:consulta}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:consulta}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:replay}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:p20}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "totais_errados",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:p40}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:fila}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:fila}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:descida}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:produto}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:rampa-20}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:rampa-20}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:cadastro}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:recuperacao}",
+        "expressao": "p(95)<500",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{patamar:p40}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:rampa-20}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:rampa-60}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:produto}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:produto}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:recuperacao}",
+        "expressao": "rate<0.01",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:fila_cruzada}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:carrinho}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:rampa-60}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:replay}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:fechamento}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:login}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:rampa-40}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:p40}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:conferencia}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:carrinho}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,patamar:rampa-60}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:catalogo}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:rampa-40}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas{patamar:descida}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:vitrine}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:recuperacao}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:fila_cruzada}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:preparo}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:imagem}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{patamar:p60}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:rampa-60}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:descida}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:login}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:fila_cruzada}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:fechamento}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,patamar:p60}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "replay_divergente",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      }
+    ]
+}

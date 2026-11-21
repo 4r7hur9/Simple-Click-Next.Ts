@@ -1,4 +1,4 @@
-# Desempenho — plano de p95, gargalo, antes e depois (card #142)
+# Desempenho — plano de p95, gargalo, antes e depois, e estresse com volume (cards #142 e #159)
 
 O curso (M4) pede *plano de p95: cache com tolerância, idempotência da fila* e *k6 em 3 estágios e relatório com
 gargalo, antes e depois*. Este documento entrega os dois, **só com números medidos**: cada valor abaixo sai de um
@@ -11,6 +11,7 @@ arquivo em [`docs/desempenho/`](desempenho/) (cópia saneada da saída do k6, da
 | Cache com tolerância | [seção 2.1](#21-onde-há-cache-hoje-e-quanta-defasagem-cada-leitura-aceita) |
 | Idempotência da fila | [seção 2.2](#22-idempotência-das-filas--o-mecanismo-real) |
 | k6 em 3 estágios | [seção 3](#3-a-carga-k6-em-3-estágios-contra-101-mil-pedidos) |
+| Estresse com volume (20/40/60 VUs) | [seção 3.1](#31-o-estresse-20-40-e-60-usuários-virtuais-contra-101-mil-pedidos) |
 | Gargalo (EXPLAIN ANALYZE) | [seção 4](#4-o-gargalo-appmeus_pedidos) |
 | Antes e depois | [seção 5](#5-antes--depois) |
 
@@ -19,6 +20,12 @@ lenta com 101 mil pedidos na base. Uma migração (`0074_meus_pedidos_por_loja.s
 junções da função `app.meus_pedidos`. Sob a mesma carga, o p95 caiu de **481 ms** (588 e 374 nas duas execuções)
 para **9 ms** (9 e 9), e a consulta de uma conta com 167 pedidos caiu de **~2,0 s** para **0,7 ms**. Nenhuma outra
 operação piorou e a integridade dos pedidos ficou exata nas quatro execuções.
+
+**Estresse com volume (card #159):** com os mesmos 101.000 pedidos e a migração 0074 vigente, 20, 40 e 60 usuários
+virtuais sustentados por 2 min cada, **nenhum patamar passou da meta** (maior p95 de catálogo 33 ms e de criação
+55 ms, contra metas de 500 ms e 1.000 ms), **0 falhas** em 57.139 requisições, 1.639 compras sem duplicidade e
+com a base reconciliada. **O ponto de saturação não foi encontrado** até 60 VUs: a vazão cresceu em linha reta
+com a carga (8,7 → 17,4 → 26,3 req/s nos patamares). A seção 3.1 diz o que isso permite e o que não permite concluir.
 
 ## 1. Plano de p95 por operação
 
@@ -128,6 +135,61 @@ Cada resposta de `meus pedidos` precisa ser **exatamente** a lista da conta (20 
 outra loja precisa ser recusada. Uma execução só vale como medida se esses contadores ficarem em zero.
 
 **Máquina:** notebook Apple M4, 10 CPUs, 16 GB, k6 v1.3.0, Node 24.18. Não é produção (ver a seção 7).
+
+### 3.1 O estresse: 20, 40 e 60 usuários virtuais contra 101 mil pedidos
+
+O terceiro estágio do curso. O perfil é o `tests/performance/k6/estresse.js`: patamares de 20, 40 e 60 usuários
+virtuais (rampa de 1 min + 2 min sustentados em cada um), descida a 1 usuário e 2 min de observação da
+recuperação, 12 min no total. Mesmo roteiro da carga (vitrine → catálogo → produto → criar pedido → replay →
+consulta). Mesma base descartável da seção 3, com a migração 0074 vigente: **101.000 pedidos antes do k6**, e
+`VOLUME=sim`. Rodada `estresse-volume-3`, em 21/11, com a máquina livre (preview e suítes dos outros trabalhos
+parados) e o Mac impedido de dormir.
+
+| patamar | VUs | requisições | req/s | p95 catálogo | p95 criação | falhas |
+|---|---:|---:|---:|---:|---:|---:|
+| rampa-20 | 20 | 1.598 | 2,21 | 32 ms | 41 ms | 0,00% |
+| **p20** | 20 | 6.273 | 8,68 | 29 ms | 42 ms | 0,00% |
+| rampa-40 | 40 | 4.662 | 6,45 | 19 ms | 33 ms | 0,00% |
+| **p40** | 40 | 12.579 | 17,41 | 16 ms | 30 ms | 0,00% |
+| rampa-60 | 60 | 7.786 | 10,78 | 14 ms | 28 ms | 0,00% |
+| **p60** | 60 | 19.009 | 26,31 | 12 ms | 26 ms | 0,00% |
+| descida | 1 | 4.915 | 6,80 | 18 ms | 35 ms | 0,00% |
+| recuperação | 1 | 316 | 0,44 | 33 ms | 55 ms | 0,00% |
+
+Totais (de `resumo.md`): 57.139 requisições em 722,5 s = **79,08 req/s** em média; 1.639 compras (201) e 1.639
+replays corretos (200, mesmo pedido e total); 0 criações incertas; 0 total incorreto; 0 rejeição inesperada.
+Por operação, no teste inteiro: criar pedido p95 **33 ms** (p99 43, máx 95), catálogo p95 **19 ms** (p99 29, máx 72),
+vitrine p95 17 ms, produto p95 22 ms.
+
+**Integridade.** A reconciliação com o banco passou: 101.000 pedidos iniciais idênticos à linha de base (impressão
+igual), 1.639 chaves de compra com um pedido cada, 102.639 pedidos na base = 101.000 + 1.639, e nenhum total,
+subtotal ou linha de item que não fecha em centavos. Metas de p95/p99 atingidas e recuperação ok na janela final.
+
+**Ponto de saturação: não encontrado.** O harness só marca "primeiro patamar acima da meta", e ele não existe:
+até 60 VUs nada passou da meta. A vazão por patamar sustentado foi 8,68 → 17,41 → 26,31 req/s para 20 → 40 → 60
+VUs, ou seja, **proporcional à carga** (≈ 0,43–0,44 req/s por VU nos três), e as latências **não subiram** com
+a carga (o p95 do catálogo caiu de 29 para 12 ms, coerente com cache e conexões já quentes). Um sistema perto da
+saturação mostraria a vazão achatando e o p95 subindo; nenhum dos dois aconteceu. A conclusão honesta é de **teto
+acima de 60 VUs nesta máquina**, e não de um limite medido.
+
+**O que este estresse NÃO mostra:**
+
+- Não é a capacidade do sistema. Os VUs têm pausas de leitura (ritmo humano), então 60 VUs geram só ~26 req/s.
+  Para achar o joelho da curva seria preciso um patamar maior ou um executor de taxa de chegada
+  (`constant-arrival-rate`), o que o perfil atual não faz e este card não alterou.
+- A migração 0074 (`meus pedidos`) **não é exercida** pelo roteiro do estresse: ele não tem o cenário `conta`
+  da seção 3. O ganho da 0074 está medido na carga (seção 5), não aqui. O estresse confirma que, com a 0074
+  e 101 mil pedidos, as operações de compra e de leitura do catálogo seguem folgadas sob 3× a carga.
+- Valem as mesmas ressalvas da seção 7 (notebook, API em `NODE_ENV=development`, limitador do catálogo levantado,
+  catálogo de 8 produtos por loja). Uma única execução válida: sem a repetição que a carga teve, não há medida
+  de variação entre execuções.
+
+**Tentativas que não valem (registradas para o número não parecer mais limpo do que foi).** Houve três execuções.
+(1) `estresse-volume-1` foi cancelada por mim aos 7 min: o Mac suspendeu e retomou no meio do teste (em 15 min de
+relógio o k6 avançou 11 s), o que contamina as latências; descartada, sem nenhum número aproveitado. (2)
+`estresse-volume-2` reprovou no preparo, sem rodar o k6: o site e a API órfãos da tentativa 1 seguravam a porta
+3300. (3) `estresse-volume-3`, a repetição sob `caffeinate`, com portas livres, é a única que vale e a única cujos
+números estão acima e em `docs/desempenho/estresse-volume-3/`.
 
 ## 4. O gargalo: `app.meus_pedidos`
 
@@ -271,8 +333,10 @@ de trocar a função e **recusa aplicar** se houver algum. A mesma consulta est�
   idênticos, mas são da mesma ordem.
 - **Catálogo pequeno** (8 produtos por loja): o volume é de pedidos, não de produtos. O catálogo não foi
   estressado por tamanho.
-- **Carga, não estresse.** O perfil é o de carga do #131 (1→20 VUs, 8 min). O estresse (20/40/60 VUs) com volume
-  não foi rodado neste card.
+- **Carga e estresse são execuções diferentes.** A comparação antes × depois (seção 5) usa o perfil de carga do
+  #131 (1→20 VUs, 8 min). O estresse (20/40/60 VUs) com volume foi rodado no card #159 (seção 3.1), **só no
+  "depois"** (com a 0074): não há estresse "antes", então ele não mede o ganho da migração, e o ponto de saturação
+  não foi alcançado.
 - **Nada foi commitado nem rodado no GitHub Actions**: as execuções são locais, com alterações não commitadas. O
   `metadados.json` de cada execução traz o SHA curto da base e o hash do conteúdo do harness (`hashDoHarness`),
   que é o que identifica o código que rodou.
@@ -307,6 +371,15 @@ node tests/performance/ambiente/comparar.ts carga-antes-1 carga-antes-2 -- carga
 node tests/performance/ambiente/artefatos.ts carga-antes-1 carga-antes-2 carga-depois-1 carga-depois-2
 ```
 
+O estresse com volume (card #159) roda do mesmo jeito, com a etapa `estresse` (≈ 35 min de preparo, com a espera do
+autoanalyze, + 12 min de k6). Em notebook, use `caffeinate` para o Mac não dormir no meio e confira que as portas
+3300 e 3301 estão livres:
+
+```bash
+VOLUME=sim PERFIL=completo ROTULO=estresse-volume-3 caffeinate -dimsu bash tests/performance/ambiente/local.sh estresse
+node tests/performance/ambiente/artefatos.ts estresse-volume-3
+```
+
 O "antes" foi medido antes de a migração 0074 existir na pasta de migrações; para refazê-lo hoje é preciso tirá-la
 da pasta durante a execução. O harness está descrito em
 [`docs/estruturacao/05-desempenho.md`](estruturacao/05-desempenho.md) (seção 10).
@@ -315,6 +388,7 @@ da pasta durante a execução. O harness está descrito em
 |---|---|
 | `carga-antes-1/`, `carga-antes-2/` | função da 0029 vigente: `resumo.md/json` (k6), `relatorio.md`, `reconciliacao.md`, `k6.json`, `metadados.json`, `explain/` |
 | `carga-depois-1/`, `carga-depois-2/` | o mesmo, com a 0074 vigente |
+| `estresse-volume-3/` | estresse 20/40/60 VUs com 101 mil pedidos (card #159): `resumo.md/json`, `relatorio.md`, `reconciliacao.md`, `k6.json`, `metadados.json`, `explain/` |
 | `comparacao.md`, `comparacao.json` | a tabela da seção 5, como o `comparar.ts` gravou |
 
 Identidade das quatro execuções: base `69cf0958ae92` com alterações não commitadas, harness `ec5f6b422c14`

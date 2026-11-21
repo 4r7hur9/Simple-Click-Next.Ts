@@ -1,0 +1,8 @@
+{
+  "etapa": "estresse",
+  "perfil": "completo",
+  "versao": "k6 v1.3.0 (commit/5870e99ae8, go1.25.1, darwin/arm64)",
+  "inicio": "2026-11-21T12:34:43Z",
+  "fim": "2026-11-21T12:46:46Z",
+  "codigoDeSaida": 0
+}
