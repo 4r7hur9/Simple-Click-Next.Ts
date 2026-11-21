@@ -9,7 +9,7 @@
  * que saiu do catálogo.
  */
 import axe from "axe-core";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   MontarPedido,
@@ -24,6 +24,7 @@ import {
   esperar,
   exigir,
   montar,
+  renderizarDeNovo,
   simularApi,
 } from "./apoio-config.tsx";
 import { opcoesDoSeletor } from "./apoio-seletor.ts";
@@ -574,5 +575,163 @@ describe("a repetição chega preenchida com os preços de hoje (AC-712)", () =>
     const itens = exigir(tela, 'ul[aria-label="Itens do pedido"]');
     expect(itens.textContent).toContain("1× X-Salada — Ketchup");
     expect(itens.textContent).toContain("R$ 20,00");
+  });
+});
+
+describe("a repetição não atropela o operador (card #137, achado 4)", () => {
+  const ID_ANTIGO = "88888888-8888-4888-8888-888888888888";
+
+  function repeticaoDe(produtos: readonly ProdutoParaMontar[]) {
+    return {
+      pedidoOriginal: { id: ID_ANTIGO, codigo: "A-0007" },
+      clienteId: null,
+      entrega: "PICKUP",
+      itens: produtos.map((produto) => ({
+        produtoId: produto.id,
+        variacaoId: null,
+        nome: produto.nome,
+        variacao: null,
+        quantidade: 1,
+        escolhas:
+          produto.id === LANCHE.id || produto.grupos.length > 0
+            ? [
+                {
+                  grupoId: "22222222-2222-4222-8222-222222222222",
+                  opcaoId: "33333333-3333-4333-8333-333333333333",
+                  quantidade: 1,
+                },
+              ]
+            : [],
+        observacao: null,
+        precoUnitarioCentavos: 2000,
+        totalDaLinhaCentavos: 2000,
+        precoUnitarioDaEpocaCentavos: 2000,
+        pendencias: [],
+      })),
+      indisponiveis: [],
+      subtotalCentavos: 2000 * produtos.length,
+    };
+  }
+
+  /** A rede com a repetição presa até a prova soltar. */
+  function repeticaoPresa(corpo: unknown) {
+    let soltar: () => void = () => undefined;
+    const portao = new Promise<void>((resolver) => {
+      soltar = resolver;
+    });
+    const chamadas: string[] = [];
+    vi.stubGlobal("fetch", async (endereco: RequestInfo | URL) => {
+      chamadas.push(String(endereco));
+      await portao;
+      return new Response(JSON.stringify(corpo), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    return { soltar: () => soltar(), chamadas };
+  }
+
+  const linhas = (tela: HTMLElement) =>
+    [...exigir(tela, 'ul[aria-label="Itens do pedido"]').querySelectorAll("li")].map(
+      (li) => li.textContent ?? "",
+    );
+
+  it("[CA-4] a repetição atrasada entra sem apagar o item que o operador já pôs", async () => {
+    const rede = repeticaoPresa(repeticaoDe([LANCHE]));
+    const tela = montar(
+      <MontarPedido produtos={[LANCHE, SUCO]} repetirPedidoId={ID_ANTIGO} />,
+    );
+    await esperar();
+
+    // Enquanto a repetição carrega, o operador monta o suco à mão.
+    escolherProduto(tela, SUCO.id);
+    clicar(botao(tela, "Adicionar"));
+    expect(linhas(tela).join("|")).toContain("Suco de laranja");
+
+    rede.soltar();
+    await esperar();
+    const itens = linhas(tela).join("|");
+    expect(itens).toContain("1× X-Salada — Ketchup");
+    expect(itens).toContain("Suco de laranja");
+  });
+
+  it("[CA-4] trocar a identidade de produtos e carregarDetalhe não reaplica a repetição", async () => {
+    simularApi(() => ({ status: 200, corpo: repeticaoDe([LANCHE]) }));
+    const resumo = { ...LANCHE, grupos: [], variacoes: [] };
+    const tela = montar(
+      <MontarPedido
+        produtos={[resumo, SUCO]}
+        carregarDetalhe={async () => LANCHE}
+        repetirPedidoId={ID_ANTIGO}
+      />,
+    );
+    await esperar();
+    expect(linhas(tela)).toHaveLength(1);
+
+    // O operador tira o lanche repetido; a página renderiza de novo com
+    // listas e funções novas (como o servidor faz).
+    clicar(botao(tela, "Tirar"));
+    expect(tela.querySelector('ul[aria-label="Itens do pedido"]')).toBeNull();
+    renderizarDeNovo(
+      <MontarPedido
+        produtos={[{ ...resumo }, { ...SUCO }]}
+        carregarDetalhe={async () => ({ ...LANCHE })}
+        repetirPedidoId={ID_ANTIGO}
+      />,
+    );
+    await esperar();
+    expect(tela.querySelector('ul[aria-label="Itens do pedido"]')).toBeNull();
+  });
+
+  it("[CA-4] resultado de uma repetição que deixou de valer é descartado", async () => {
+    const rede = repeticaoPresa(repeticaoDe([LANCHE]));
+    const tela = montar(
+      <MontarPedido produtos={[LANCHE, SUCO]} repetirPedidoId={ID_ANTIGO} />,
+    );
+    await esperar();
+    // O operador desiste da repetição antes de ela chegar.
+    renderizarDeNovo(<MontarPedido produtos={[LANCHE, SUCO]} repetirPedidoId={null} />);
+    rede.soltar();
+    await esperar();
+    expect(tela.querySelector('ul[aria-label="Itens do pedido"]')).toBeNull();
+    expect(rede.chamadas.filter((url) => url.endsWith("/repetir"))).toHaveLength(1);
+  });
+
+  it("[CA-4] lê as fichas da repetição no máximo três por vez, só as que precisam", async () => {
+    const muitos = Array.from({ length: 8 }, (_, indice) => ({
+      ...LANCHE,
+      id: `11111111-1111-4111-8111-${String(indice).padStart(12, "0")}`,
+      nome: `Lanche ${indice}`,
+      grupos: [],
+    }));
+    simularApi(() => ({
+      status: 200,
+      corpo: repeticaoDe(muitos.map((produto) => ({ ...produto, grupos: LANCHE.grupos }))),
+    }));
+    let emVoo = 0;
+    let pico = 0;
+    const lidos: string[] = [];
+    const tela = montar(
+      <MontarPedido
+        produtos={[...muitos, SUCO]}
+        carregarDetalhe={async (id) => {
+          lidos.push(id);
+          emVoo += 1;
+          pico = Math.max(pico, emVoo);
+          await new Promise((resolver) => setTimeout(resolver, 1));
+          emVoo -= 1;
+          const base = muitos.find((produto) => produto.id === id);
+          return base ? { ...base, grupos: LANCHE.grupos } : null;
+        }}
+        repetirPedidoId={ID_ANTIGO}
+      />,
+    );
+    for (let vez = 0; vez < 6; vez += 1) await esperar();
+
+    expect(pico).toBeLessThanOrEqual(3);
+    expect(new Set(lidos).size).toBe(8);
+    expect(lidos).not.toContain(SUCO.id);
+    expect(linhas(tela)).toHaveLength(8);
+    expect(linhas(tela).join("|")).toContain("Lanche 7 — Ketchup");
   });
 });

@@ -29,6 +29,11 @@ export function montar(elemento: ReactElement): HTMLElement {
   return container;
 }
 
+/** Renderiza de novo a mesma raiz com outras props (identidades novas). */
+export function renderizarDeNovo(elemento: ReactElement): void {
+  act(() => raiz?.render(elemento));
+}
+
 /** Desfaz a montagem e o `fetch` trocado. Vai no `afterEach`. */
 export function desmontar(): void {
   if (raiz) act(() => raiz?.unmount());
