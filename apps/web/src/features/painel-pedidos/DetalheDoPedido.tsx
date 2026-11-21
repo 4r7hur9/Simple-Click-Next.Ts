@@ -16,7 +16,7 @@ import { AcoesDeStatus, type OpcaoDeStatusNaTela } from "./AcoesDeStatus.tsx";
 import { SeloDeStatus, rotuloDoStatus } from "./SeloDeStatus.tsx";
 import { rotuloDaEntrega, rotuloDoCanal } from "../../lib/fila-de-pedidos.ts";
 import { rotuloDoPagamento } from "../../lib/quadro-de-pedidos.ts";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 export interface PedidoDetalhado {
   readonly id: string;
@@ -193,7 +193,7 @@ export function DetalheDoPedido({
         <div>
           <p className="sc-detalhe-pedido__codigo">Pedido</p>
           <p className="sc-detalhe-pedido__numero">
-            {codigoDoPedido(pedido.numero)}
+            {codigoDoPedidoNaTela(pedido)}
           </p>
         </div>
         <span data-status-atual={pedido.status}>

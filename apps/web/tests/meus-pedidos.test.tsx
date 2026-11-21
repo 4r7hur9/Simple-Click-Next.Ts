@@ -64,6 +64,7 @@ function emDuasLojas(): PedidoDaContaNoContrato[] {
     pedido({
       id: ID_A2,
       numero: 43,
+      codigo: "A-0043",
       status: "PREPARING",
       criadoEm: "2026-09-22T12:10:00.000Z",
     }),
@@ -71,6 +72,7 @@ function emDuasLojas(): PedidoDaContaNoContrato[] {
       id: ID_B1,
       loja: { nome: "Açaí da Conta", apelido: "acai-da-conta" },
       numero: 7,
+      codigo: "A-0007",
       status: "OUT_FOR_DELIVERY",
       entrega: "DELIVERY",
       totalCentavos: 2_500,
@@ -130,6 +132,24 @@ describe("a conta mostra todos os pedidos, de todas as lojas (AC-616)", () => {
     // Nenhum código interno de status vaza para a tela.
     expect(tela.textContent).not.toContain("OUT_FOR_DELIVERY");
     expect(tela.textContent).not.toContain("PREPARING");
+  });
+
+  it("[CA-2] mostra o código GRAVADO que a API envia, e número 0 não derruba a tela", async () => {
+    // O seed grava "A-1000"/"B-1003" com outros números; a tela não recalcula.
+    const tela = await montar({
+      estado: "ok",
+      pedidos: [
+        pedido({ id: ID_A2, numero: 4, codigo: "B-1003" }),
+        pedido({ id: ID_A1, numero: 0, codigo: "A-1000" }),
+      ],
+    });
+    expect(tela.querySelector(`[data-pedido="${ID_A2}"]`)?.textContent).toContain(
+      "Pedido B-1003",
+    );
+    expect(tela.textContent).not.toContain("A-0004");
+    expect(tela.querySelector(`[data-pedido="${ID_A1}"]`)?.textContent).toContain(
+      "Pedido A-1000",
+    );
   });
 
   it("@spec:AC-616 o caminho do detalhe é o da conta, e não o link público", () => {

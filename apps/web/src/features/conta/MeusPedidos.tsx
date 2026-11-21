@@ -16,7 +16,7 @@ import {
 } from "../../lib/meus-pedidos.ts";
 import { escreverDinheiro } from "../../lib/produto.ts";
 import { rotuloDoStatus } from "../pedido/LinhaDoTempo.tsx";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 /** O que a página entrega: quem não está logado nem chega a esta lista. */
 export type EstadoDosMeusPedidos = Exclude<
@@ -79,7 +79,7 @@ function CartaoDoPedido({
       data-status={pedido.status}
     >
       <div className="sc-meus-pedidos__topo">
-        <p className="sc-meus-pedidos__numero">Pedido {codigoDoPedido(pedido.numero)}</p>
+        <p className="sc-meus-pedidos__numero">Pedido {codigoDoPedidoNaTela(pedido)}</p>
         <Selo tom={tomDoStatus(pedido.status)}>
           {rotuloDoStatus(pedido.status)}
         </Selo>
@@ -95,7 +95,7 @@ function CartaoDoPedido({
       </p>
       <div className="sc-minha-conta__acao">
         <Link className="sc-meus-pedidos__ver" href={caminhoDoMeuPedido(pedido.id)}>
-          Ver o pedido {codigoDoPedido(pedido.numero)}
+          Ver o pedido {codigoDoPedidoNaTela(pedido)}
         </Link>
         <Link
           className="sc-meus-pedidos__ver"

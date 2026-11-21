@@ -77,7 +77,7 @@ import {
   SeletorDePagamento,
   type FormaParaEscolher,
 } from "./SeletorDePagamento.tsx";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 export type { EntregaDaLojaNaTela, FormasDaLoja, PixDaLoja };
 
@@ -1059,7 +1059,7 @@ function PedidoCriado({
       <>
         <ValoresGravados pedido={pedido} />
         <EnvioWhatsApp
-          codigoDoPedido={codigoDoPedido(pedido.numero)}
+          codigoDoPedido={codigoDoPedidoNaTela(pedido)}
           enderecoDaConversa={whatsapp.endereco}
           textoDoPedido={whatsapp.texto}
           linkDeAcompanhamento={acompanhamento}
@@ -1075,7 +1075,7 @@ function PedidoCriado({
 
   return (
     <section className="sc-fechamento__pronto" aria-live="polite">
-      <h3>Pedido {codigoDoPedido(pedido.numero)} registrado</h3>
+      <h3>Pedido {codigoDoPedidoNaTela(pedido)} registrado</h3>
       <p>Guarde este código: é por ele que a loja encontra seu pedido.</p>
       <ValoresGravados pedido={pedido} />
       <p>

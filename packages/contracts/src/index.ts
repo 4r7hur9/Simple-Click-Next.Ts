@@ -417,4 +417,9 @@ export * from "./importacao-clientes.ts";
 // LGPD funcional: aceite versionado dos documentos e direitos do titular (card #79).
 export * from "./legal.ts";
 
-export { codigoDoPedido } from "./codigo-do-pedido.ts";
+export {
+  CODIGO_DO_PEDIDO_INDISPONIVEL,
+  codigoDoPedido,
+  codigoDoPedidoNaTela,
+} from "./codigo-do-pedido.ts";
+export type { PedidoComCodigo } from "./codigo-do-pedido.ts";

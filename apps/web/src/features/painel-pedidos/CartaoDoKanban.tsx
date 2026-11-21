@@ -35,7 +35,7 @@ import {
   type PedidoDoQuadro,
 } from "../../lib/quadro-de-pedidos.ts";
 import { SeloAguardando } from "./SeloAguardando.tsx";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 export interface CartaoDoKanbanProps {
   readonly pedido: PedidoDoQuadro;
@@ -77,7 +77,7 @@ export function CartaoDoKanban({
 
   return (
     <article
-      aria-label={`Pedido ${codigoDoPedido(pedido.numero)}${novo ? ", novo" : ""}`}
+      aria-label={`Pedido ${codigoDoPedidoNaTela(pedido)}${novo ? ", novo" : ""}`}
       data-pedido={pedido.id}
       data-status={pedido.status}
       data-novo={novo}
@@ -104,7 +104,7 @@ export function CartaoDoKanban({
         <span className="sc-cartao-pedido__topo">
           <span>
             <span className="sc-cartao-pedido__numero">
-              {codigoDoPedido(pedido.numero)}
+              {codigoDoPedidoNaTela(pedido)}
               {" · "}
               <time dateTime={pedido.criadoEm}>
                 {escreverHorarioDaFila(pedido.criadoEm)}

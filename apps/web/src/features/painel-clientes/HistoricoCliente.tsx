@@ -29,7 +29,7 @@ import {
 import { escreverDinheiro } from "../../lib/dinheiro.ts";
 import { JanelaDoPedido } from "../painel-pedidos/JanelaDoPedido.tsx";
 import { SeloDeStatus } from "../painel-pedidos/SeloDeStatus.tsx";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 type PedidoDoHistorico = FichaComHistorico["pedidos"][number];
 
@@ -57,10 +57,10 @@ function LinhaDoPedido({
               type="button"
               className="sc-ficha-pedido__abrir"
               data-abrir-pedido={pedido.id}
-              aria-label={`Abrir o pedido ${codigoDoPedido(pedido.numero)}`}
+              aria-label={`Abrir o pedido ${codigoDoPedidoNaTela(pedido)}`}
               onClick={() => aoAbrir(pedido)}
             >
-              Pedido {codigoDoPedido(pedido.numero)}
+              Pedido {codigoDoPedidoNaTela(pedido)}
             </button>
           </h3>
           <p className="sc-ficha-pedido__meta">
@@ -83,7 +83,7 @@ function LinhaDoPedido({
 
       <ul
         className="sc-ficha-pedido__itens"
-        aria-label={`Itens do pedido ${codigoDoPedido(pedido.numero)}`}
+        aria-label={`Itens do pedido ${codigoDoPedidoNaTela(pedido)}`}
       >
         {pedido.itens.map((item, indice) => (
           <li
@@ -180,7 +180,7 @@ export function HistoricoCliente({
       )}
       <JanelaDoPedido
         pedidoId={aberto?.id ?? null}
-        numero={aberto?.numero}
+        codigo={aberto === null ? undefined : codigoDoPedidoNaTela(aberto)}
         aoFechar={() => setAberto(null)}
       />
     </section>

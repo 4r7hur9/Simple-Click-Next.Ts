@@ -29,7 +29,7 @@ import { VariacaoEmSeta } from "../dashboard/VariacaoEmSeta.tsx";
 import { rotuloDoStatus } from "../pedido/LinhaDoTempo.tsx";
 import { SeletorDoPeriodoDaConta } from "./SeletorDoPeriodoDaConta.tsx";
 import { caminhoDoMeuPedido, tomDoStatus } from "./MeusPedidos.tsx";
-import { codigoDoPedido } from "@simpleclick/contracts";
+import { codigoDoPedidoNaTela } from "@simpleclick/contracts";
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
@@ -180,7 +180,7 @@ export function VisaoGeralDaConta({ periodo, metricas: m, lista }: VisaoGeralDaC
               <li key={p.id} className="sc-andamento" data-pedido={p.id}>
                 <div>
                   <p className="sc-andamento__loja">{p.loja.nome}</p>
-                  <p className="sc-andamento__resumo">Pedido {codigoDoPedido(p.numero)} · {escreverDinheiro(p.totalCentavos)}</p>
+                  <p className="sc-andamento__resumo">Pedido {codigoDoPedidoNaTela(p)} · {escreverDinheiro(p.totalCentavos)}</p>
                   <Selo tom={tomDoStatus(p.status)}>{rotuloDoStatus(p.status)}</Selo>
                 </div>
                 <Link className="sc-botao sc-botao--primaria" href={caminhoDoMeuPedido(p.id)}>Acompanhar</Link>

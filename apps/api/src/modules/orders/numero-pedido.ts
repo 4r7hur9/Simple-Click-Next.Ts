@@ -15,11 +15,21 @@
  */
 import { randomBytes } from "node:crypto";
 
+import { codigoDoPedido as formatarCodigoDoPedido } from "@simpleclick/contracts";
+
 /**
- * A conta do código mora no contrato (card #135): o site formata o número com
- * a MESMA função, e cliente, cozinha e quadro de pedidos leem o mesmo código.
+ * O código GRAVADO do pedido. A conta mora no contrato (card #135), mas lá ela
+ * é formatação de reserva e nunca lança (card #137); aqui, onde o código vai
+ * para o banco, número inválido é recusado em vez de gravar `—`.
  */
-export { codigoDoPedido } from "@simpleclick/contracts";
+export function codigoDoPedido(numero: number): string {
+  if (!Number.isInteger(numero) || numero < 1) {
+    throw new RangeError(
+      `número de pedido precisa ser inteiro positivo, recebeu ${numero}`,
+    );
+  }
+  return formatarCodigoDoPedido(numero);
+}
 
 /** Bytes do endereço público. 16 bytes são 128 bits (AC-518). */
 const BYTES_DO_TOKEN = 16;
