@@ -276,6 +276,8 @@ Ganho: trocar a flag sem reiniciar e liberar por porcentagem ou por loja. Custo:
 
 ### 6.1 Onde e por quê
 
+> **Atualização (card #158, 21/11/2026):** o site passou a rodar **também na Railway** (`apps/web/Dockerfile`, com dois ambientes: `staging` e `production`), em vez da Vercel. O passo a passo, as tabelas de variáveis por serviço e ambiente, o DNS e o rollback estão em [`docs/deploy-railway.md`](deploy-railway.md). Onde este documento diz "Vercel", leia "serviço `web` da Railway"; o resto (segredos, flag, expand/contract) continua valendo.
+
 A decisão já estava registrada desde agosto em `arquivo/docs/publicacao.md`:
 
 - **site na Vercel**, construído do repositório;
