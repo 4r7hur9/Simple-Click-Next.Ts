@@ -102,6 +102,7 @@ export function useRecorteDeImagem({
   const espaco = espacoDeImagem(idDoEspaco);
   const [fila, setFila] = useState<readonly File[]>([]);
   const [total, setTotal] = useState(0);
+  const [origemSubstituida, setOrigemSubstituida] = useState(false);
   const [pausada, setPausada] = useState(false);
 
   const escolher = useCallback(
@@ -119,6 +120,7 @@ export function useRecorteDeImagem({
         }
       }
       aoRecusar?.(recusa);
+      setOrigemSubstituida(false);
       setFila(aceitos);
       setTotal(aceitos.length);
       setPausada(false);
@@ -138,7 +140,12 @@ export function useRecorteDeImagem({
     <RecortadorDeImagem
       arquivo={atual}
       espaco={espacoDaJanela ?? espaco}
-      ajusteInicial={ajusteInicial}
+      ajusteInicial={origemSubstituida ? undefined : ajusteInicial}
+      aoTrocarArquivo={(arquivo) => {
+        setOrigemSubstituida(true);
+        setFila((restante) => [arquivo, ...restante.slice(1)]);
+        aoRecusar?.(null);
+      }}
       guardarOriginal={guardarOriginal}
       posicaoNaFila={
         total > 1 ? { atual: total - fila.length + 1, total } : undefined

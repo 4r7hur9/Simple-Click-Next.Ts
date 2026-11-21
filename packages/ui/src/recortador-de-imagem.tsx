@@ -188,6 +188,8 @@ export interface RecortadorDeImagemProps {
     resultado: ResultadoDoRecorte,
   ) => void | string | Promise<void | string>;
   readonly aoCancelar: () => void;
+  /** Substitui a origem de todos os enquadramentos, sem confirmar o envio. */
+  readonly aoTrocarArquivo?: ((arquivo: File) => void) | undefined;
 }
 
 /** O fundo das sobras no modo "ajustar". */
@@ -545,9 +547,11 @@ function JanelaDoRecorte({
   guardarOriginal = false,
   aoConfirmar,
   aoCancelar,
+  aoTrocarArquivo,
 }: RecortadorDeImagemProps & { readonly arquivo: File }) {
   const id = useId();
   const janela = useRef<HTMLDialogElement>(null);
+  const entradaDeFoto = useRef<HTMLInputElement>(null);
   const molduraNaTela = useRef<HTMLDivElement>(null);
   const imagemLida = useRef<HTMLImageElement | null>(null);
 
@@ -1052,6 +1056,44 @@ function JanelaDoRecorte({
             <span className="sc-so-leitor">Cancelar e fechar</span>
           </button>
         </div>
+
+        {aoTrocarArquivo === undefined ? null : (
+          <div className="sc-recortador__grupo">
+            <Botao
+              variante="secundaria"
+              desabilitado={gerando}
+              onClick={() => entradaDeFoto.current?.click()}
+            >
+              Escolher outra foto
+            </Botao>
+            <input
+              ref={entradaDeFoto}
+              type="file"
+              hidden
+              aria-label="Escolher outra foto"
+              accept={tiposAceitos.join(",")}
+              disabled={gerando}
+              onChange={(evento) => {
+                const nova = evento.currentTarget.files?.[0];
+                evento.currentTarget.value = "";
+                if (nova === undefined || gerando) return;
+                const recusa = validarArquivoDeImagem(nova, {
+                  tipos: tiposAceitos,
+                  limiteEmBytes: limiteDaFotoEmBytes,
+                });
+                setErroDaSaida(recusa);
+                if (recusa === null) aoTrocarArquivo(nova);
+              }}
+            />
+          </div>
+        )}
+        {temAbas ? (
+          <p className="sc-recortador__dica">
+            Uma única foto para computador e celular. Adaptamos os dois
+            enquadramentos automaticamente, sem esticar a imagem. Se quiser,
+            ajuste cada tela nas abas abaixo.
+          </p>
+        ) : null}
 
         {temAbas && carga.fase !== "erro" ? (
           <div className="sc-recortador__abas-caixa">

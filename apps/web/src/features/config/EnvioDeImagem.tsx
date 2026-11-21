@@ -180,13 +180,14 @@ export function EnvioDeImagem({
   const [reedicao, setReedicao] = useState<{
     readonly ajuste: AjusteDoRecorte | undefined;
     readonly originalGuardado: string | null;
+    readonly arquivo: File;
   } | null>(null);
   const [abrindo, setAbrindo] = useState(false);
 
   /** Recebe as fotos já recortadas (WebP; uma por aba) e as envia. */
   async function enviar(
     arquivo: File,
-    _original: File,
+    original: File,
     resultado: ResultadoDoRecorte,
   ): Promise<string | undefined> {
     setRecusa(null);
@@ -211,32 +212,36 @@ export function EnvioDeImagem({
       }
       // O ORIGINAL fica guardado para reabrir o ajuste sem perda: se a foto
       // aberta já é o original guardado, o endereço continua o mesmo.
-      let ajusteNovo: AjusteDaFoto | null = null;
-      if (resultado.original !== undefined) {
-        let enderecoDoOriginal = reedicao?.originalGuardado ?? null;
-        if (enderecoDoOriginal === null) {
-          const guardado = await enviarArquivo("original", resultado.original);
-          if ("url" in guardado) enderecoDoOriginal = guardado.url;
-          // Sem original guardado a foto vale do mesmo jeito; só não reabre com perda zero.
-        }
-        if (enderecoDoOriginal !== null) {
-          ajusteNovo = {
-            original: enderecoDoOriginal,
-            computador,
-            celular: celular === "" ? null : celular,
-            iguais: resultado.ajuste.iguais,
-            fundo:
-              resultado.ajuste.fundo.tipo === "cor"
-                ? { tipo: "cor", cor: resultado.ajuste.fundo.cor }
-                : { tipo: resultado.ajuste.fundo.tipo },
-            estados: resultado.ajuste.estados,
-          };
-        }
+      const enderecoGuardado =
+        reedicao?.arquivo === original ? reedicao.originalGuardado : null;
+      const guardado =
+        resultado.original === undefined
+          ? null
+          : enderecoGuardado === null
+            ? await enviarArquivo("original", resultado.original)
+            : { url: enderecoGuardado };
+      if (guardado !== null && "erro" in guardado) {
+        setRecusa(guardado.erro);
+        return guardado.erro;
       }
+      const ajusteNovo: AjusteDaFoto | null =
+        guardado === null
+          ? null
+          : {
+              original: guardado.url,
+              computador,
+              celular: celular === "" ? null : celular,
+              iguais: resultado.ajuste.iguais,
+              fundo:
+                resultado.ajuste.fundo.tipo === "cor"
+                  ? { tipo: "cor", cor: resultado.ajuste.fundo.cor }
+                  : { tipo: resultado.ajuste.fundo.tipo },
+              estados: resultado.ajuste.estados,
+            };
       aoMudar(computador, celular, ajusteNovo);
       setReedicao(null);
       setAviso(
-        "Fotos enviadas (computador e celular). Elas já aparecem na prévia; clique em Salvar e publicar para colocar no ar.",
+        "Foto adaptada para computador e celular. Os dois enquadramentos já aparecem na prévia; clique em Salvar e publicar para colocar no ar.",
       );
       return undefined;
     } finally {
@@ -292,6 +297,7 @@ export function EnvioDeImagem({
       const origemDaFoto = guardado ? ajuste.original : valor;
       const arquivo = await buscarFotoDaLoja(origemDaFoto, tipo);
       setReedicao({
+        arquivo,
         ajuste: guardado ? ajusteParaORecorte(ajuste) : undefined,
         originalGuardado: guardado ? ajuste.original : null,
       });
@@ -324,6 +330,10 @@ export function EnvioDeImagem({
       </legend>
       <p className="text-sm text-[var(--cor-tinta-suave)]">{ajuda}</p>
       <DicaDoEspaco espaco={ESPACO_DE_CADA_FOTO[tipo]} />
+      <p className="text-sm text-[var(--cor-tinta-suave)]">
+        Escolha uma única foto: ela será adaptada para computador e celular. Os
+        ajustes de cada tela são opcionais.
+      </p>
 
       <div className="flex flex-wrap items-end gap-4">
         <figure className="m-0 min-w-0 flex-1 basis-56 space-y-1.5">
