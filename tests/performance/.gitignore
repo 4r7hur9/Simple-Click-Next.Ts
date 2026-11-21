@@ -1,0 +1,4 @@
+# Tudo que um ensaio gera (resumos, reconciliação, PIDs, logs): nunca vai para o git.
+saida/
+# Senhas efêmeras dos serviços descartáveis (servicos.sh): nunca no git, nunca em artefato.
+.servicos*.env

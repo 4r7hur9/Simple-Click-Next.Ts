@@ -1,0 +1,101 @@
+{
+  "valida": true,
+  "antes": [
+    "carga-antes-1",
+    "carga-antes-2"
+  ],
+  "depois": [
+    "carga-depois-1",
+    "carga-depois-2"
+  ],
+  "linhas": [
+    {
+      "op": "meus_pedidos",
+      "p95Antes": 480.5905,
+      "p95Depois": 9.00965,
+      "p99Antes": 574.508,
+      "p99Depois": 11.365635000000001,
+      "rpsAntes": 3.056992241585912,
+      "rpsDepois": 3.0702777991341055,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "fila",
+      "p95Antes": 17.862399999999997,
+      "p95Depois": 17.9209,
+      "p99Antes": 23.755704999999995,
+      "p99Depois": 20.33634,
+      "rpsAntes": 0.24439644836129876,
+      "rpsDepois": 0.24554043220778904,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "catalogo",
+      "p95Antes": 25.58835,
+      "p95Depois": 26.448274999999995,
+      "p99Antes": 37.128889999999984,
+      "p99Depois": 31.116194999999998,
+      "rpsAntes": 9.625018510451177,
+      "rpsDepois": 9.651781024449766,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "criar",
+      "p95Antes": 57.031399999999984,
+      "p95Depois": 41.034774999999996,
+      "p99Antes": 87.62173999999999,
+      "p99Depois": 48.24704,
+      "rpsAntes": 1.203634182344448,
+      "rpsDepois": 1.207240458354963,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "replay",
+      "p95Antes": 32.015499999999996,
+      "p95Depois": 21.098824999999998,
+      "p99Antes": 47.07589999999998,
+      "p99Depois": 26.455695,
+      "rpsAntes": 1.203634182344448,
+      "rpsDepois": 1.207240458354963,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "consulta",
+      "p95Antes": 13.088099999999997,
+      "p95Depois": 9.002799999999997,
+      "p99Antes": 22.166799999999988,
+      "p99Depois": 11.386724999999998,
+      "rpsAntes": 1.203634182344448,
+      "rpsDepois": 1.207240458354963,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "vitrine",
+      "p95Antes": 19.8707,
+      "p95Depois": 20.043374999999997,
+      "p99Antes": 38.48724,
+      "p99Depois": 25.066685,
+      "rpsAntes": 6.0161434375700376,
+      "rpsDepois": 6.033130970579846,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    },
+    {
+      "op": "produto",
+      "p95Antes": 27.708125,
+      "p95Depois": 25.725575,
+      "p99Antes": 45.401599999999995,
+      "p99Depois": 31.033404999999995,
+      "rpsAntes": 3.092610483011583,
+      "rpsDepois": 3.0917729159141416,
+      "falhasAntes": 0,
+      "falhasDepois": 0
+    }
+  ]
+}

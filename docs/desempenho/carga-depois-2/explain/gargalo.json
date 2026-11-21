@@ -1,0 +1,37 @@
+{
+  "geradoEm": "2026-11-21T04:39:06.224Z",
+  "corpoVigente": "0074",
+  "impressaoDaFuncao": "b8a8173f3ecfaecf2a0d03c6a58837944747fb1b75ef9adfc5d7e6728992d174",
+  "vinculosEntreLojas": {
+    "clientes": 0,
+    "itens": 0
+  },
+  "identidadeMedida": {
+    "pedidos": 167,
+    "lojas": 5
+  },
+  "medidas": [
+    {
+      "rotulo": "meus-pedidos-chamada",
+      "tempoMs": 0.681,
+      "linhas": 167,
+      "seqScanEm": []
+    },
+    {
+      "rotulo": "meus-pedidos-corpo-0029",
+      "tempoMs": 2029.44,
+      "linhas": 167,
+      "seqScanEm": [
+        "order_items",
+        "orders"
+      ]
+    },
+    {
+      "rotulo": "meus-pedidos-corpo-0074",
+      "tempoMs": 0.399,
+      "linhas": 167,
+      "seqScanEm": []
+    }
+  ],
+  "observacao": "Passada 2 de 2 (cache possivelmente quente). Corpos executados a partir dos textos versionados; a chamada como sc_app em contexto CUSTOMER."
+}

@@ -1,0 +1,32 @@
+Sort  (cost=59.13..59.13 rows=1 width=187) (actual time=0.367..0.371 rows=167 loops=1)
+  Sort Key: o.placed_at DESC, o.id DESC
+  Sort Method: quicksort  Memory: 61kB
+  Buffers: shared hit=991
+  ->  Result  (cost=0.72..59.12 rows=1 width=187) (actual time=0.023..0.336 rows=167 loops=1)
+        One-Time Filter: ((COALESCE(NULLIF(current_setting('app.role'::text, true), ''::text), 'PUBLIC'::text) = 'CUSTOMER'::text) AND ((NULLIF(current_setting('app.user_id'::text, true), ''::text))::uuid IS NOT NULL))
+        Buffers: shared hit=991
+        ->  Nested Loop  (cost=0.72..54.66 rows=1 width=179) (actual time=0.014..0.134 rows=167 loops=1)
+              Join Filter: (c.store_id = s.id)
+              Buffers: shared hit=489
+              ->  Nested Loop  (cost=0.56..54.47 rows=1 width=146) (actual time=0.010..0.067 rows=167 loops=1)
+                    Buffers: shared hit=155
+                    ->  Index Scan using store_customers_identidade_ix on store_customers c  (cost=0.14..12.23 rows=5 width=32) (actual time=0.004..0.005 rows=5 loops=1)
+                          Index Cond: (identity_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::uuid)
+                          Buffers: shared hit=6
+                    ->  Index Scan using orders_do_cliente_idx on orders o  (cost=0.42..8.44 rows=1 width=146) (actual time=0.002..0.010 rows=33 loops=5)
+                          Index Cond: ((store_id = c.store_id) AND (store_customer_id = c.id))
+                          Buffers: shared hit=149
+              ->  Index Scan using stores_pkey on stores s  (cost=0.14..0.17 rows=1 width=65) (actual time=0.000..0.000 rows=1 loops=167)
+                    Index Cond: (id = o.store_id)
+                    Buffers: shared hit=334
+        SubPlan 1
+          ->  Aggregate  (cost=4.44..4.45 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=167)
+                Buffers: shared hit=502
+                ->  Index Only Scan using order_items_do_pedido_idx on order_items i  (cost=0.42..4.44 rows=1 width=0) (actual time=0.001..0.001 rows=2 loops=167)
+                      Index Cond: ((store_id = o.store_id) AND (order_id = o.id))
+                      Heap Fetches: 0
+                      Buffers: shared hit=502
+Planning:
+  Buffers: shared hit=15
+Planning Time: 0.278 ms
+Execution Time: 0.412 ms

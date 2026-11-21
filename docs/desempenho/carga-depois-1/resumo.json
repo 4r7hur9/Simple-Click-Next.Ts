@@ -1,0 +1,1373 @@
+{
+  "etapa": "carga",
+  "perfil": "completo",
+  "rodada": "490a61a6",
+  "duracaoMs": 489047.04,
+  "todosOsThresholdsOk": true,
+  "metas": {
+    "catalogoP95Ms": 500,
+    "criarP95Ms": 1000,
+    "falhasMax": 0.01
+  },
+  "operacoes": {
+    "cadastro": {
+      "requisicoes": 20,
+      "porSegundo": 0.040895861469686025,
+      "p50": 113.726,
+      "p90": 130.7718,
+      "p95": 136.0584,
+      "p99": 140.92847999999998,
+      "max": 142.146,
+      "falhasHttp": 0
+    },
+    "vitrine": {
+      "requisicoes": 2950,
+      "porSegundo": 6.032139566778689,
+      "p50": 10.654,
+      "p90": 17.3372,
+      "p95": 18.549349999999997,
+      "p99": 22.615109999999998,
+      "max": 35.298,
+      "falhasHttp": 0
+    },
+    "pagina": {
+      "requisicoes": 726,
+      "porSegundo": 1.4845197713496028,
+      "p50": 20.506999999999998,
+      "p90": 34.43,
+      "p95": 45.520999999999994,
+      "p99": 56.9825,
+      "max": 68.518,
+      "falhasHttp": 0
+    },
+    "catalogo": {
+      "requisicoes": 4720,
+      "porSegundo": 9.651423306845903,
+      "p50": 11.819,
+      "p90": 22.514499999999998,
+      "p95": 24.743049999999997,
+      "p99": 27.498799999999996,
+      "max": 40.163,
+      "falhasHttp": 0
+    },
+    "produto": {
+      "requisicoes": 1504,
+      "porSegundo": 3.075368782520389,
+      "p50": 14.3675,
+      "p90": 22.2445,
+      "p95": 24.4741,
+      "p99": 28.428819999999998,
+      "max": 42.663,
+      "falhasHttp": 0
+    },
+    "imagem": {
+      "requisicoes": 7080,
+      "porSegundo": 14.477134960268852,
+      "p50": 0.742,
+      "p90": 1.723,
+      "p95": 2.1912499999999984,
+      "p99": 4.110399999999991,
+      "max": 20.236,
+      "falhasHttp": 0
+    },
+    "fechamento": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 9.935500000000001,
+      "p90": 13.3497,
+      "p95": 14.6191,
+      "p99": 17.49083,
+      "max": 22.008,
+      "falhasHttp": 0
+    },
+    "carrinho": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 16.0855,
+      "p90": 23.294300000000003,
+      "p95": 25.184349999999995,
+      "p99": 28.34804,
+      "max": 41.296,
+      "falhasHttp": 0
+    },
+    "conferencia": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 7.866,
+      "p90": 11.5933,
+      "p95": 12.314549999999997,
+      "p99": 14.407699999999997,
+      "max": 21.898,
+      "falhasHttp": 0
+    },
+    "criar": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 25.7985,
+      "p90": 36.7839,
+      "p95": 39.09374999999999,
+      "p99": 43.98085,
+      "max": 50.976,
+      "falhasHttp": 0
+    },
+    "replay": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 13.118500000000001,
+      "p90": 18.9725,
+      "p95": 20.043799999999997,
+      "p99": 23.25763,
+      "max": 33.433,
+      "falhasHttp": 0
+    },
+    "consulta": {
+      "requisicoes": 590,
+      "porSegundo": 1.2064279133557378,
+      "p50": 5.654,
+      "p90": 7.893700000000002,
+      "p95": 8.645799999999998,
+      "p99": 11.167509999999998,
+      "max": 18.012,
+      "falhasHttp": 0
+    },
+    "login": {
+      "requisicoes": 22,
+      "porSegundo": 0.04498544761665463,
+      "p50": 88.5565,
+      "p90": 99.8224,
+      "p95": 105.25734999999999,
+      "p99": 106.97012,
+      "max": 107.354,
+      "falhasHttp": 0
+    },
+    "meus_pedidos": {
+      "requisicoes": 1501,
+      "porSegundo": 3.0692344032999364,
+      "p50": 4.555,
+      "p90": 8.172,
+      "p95": 8.763,
+      "p99": 10.446,
+      "max": 22.623,
+      "falhasHttp": 0
+    },
+    "fila": {
+      "requisicoes": 120,
+      "porSegundo": 0.24537516881811616,
+      "p50": 10.691,
+      "p90": 16.3369,
+      "p95": 17.3162,
+      "p99": 19.470489999999998,
+      "max": 19.59,
+      "falhasHttp": 0
+    },
+    "fila_cruzada": {
+      "requisicoes": 2,
+      "porSegundo": 0.004089586146968602,
+      "p50": 4.2855,
+      "p90": 4.660299999999999,
+      "p95": 4.7071499999999995,
+      "p99": 4.74463,
+      "max": 4.754,
+      "falhasHttp": 0
+    },
+    "preparo": {
+      "requisicoes": 670,
+      "porSegundo": 1.3700113592344818,
+      "p50": 8.344999999999999,
+      "p90": 18.526600000000002,
+      "p95": 20.144650000000002,
+      "p99": 88.55117,
+      "max": 100.326,
+      "falhasHttp": 0
+    }
+  },
+  "contadores": {
+    "compras_criadas": 590,
+    "criacoes_incertas": 0,
+    "compras_recuperadas": 0,
+    "replays_ok": 590,
+    "replay_divergente": 0,
+    "totais_errados": 0,
+    "recusas_negocio": 0,
+    "falhas_infra": 0,
+    "rejeicoes_inesperadas": 0,
+    "erro500_replay": 0,
+    "infra_timeout": 0,
+    "infra_429": 0,
+    "infra_5xx": 0,
+    "recusa_loja_fechada": 0,
+    "recusa_minimo": 0,
+    "compras_preparo": 200,
+    "isolamento_violado": 0,
+    "vazamento_painel": 0
+  },
+  "taxaDeFalhasInesperadas": 0,
+  "checks": {
+    "passam": 22775,
+    "falham": 0,
+    "taxa": 1,
+    "essenciais": 1
+  },
+  "lentidao": [],
+  "vazao": {
+      "requisicoesPorSegundo": 46.73579048755719,
+      "requisicoes": 22856,
+      "iteracoesPorSegundo": 9.346749138896742,
+      "compras": 590,
+      "comprasDoPreparo": 200
+    },
+  "validade": {
+      "ok": true,
+      "thresholds": [
+        {
+          "metrica": "isolamento_violado",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "dropped_iterations{scenario:conta}",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "replay_divergente",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "falhas_inesperadas",
+          "expressao": "rate<0.01",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "checks{essencial:sim}",
+          "expressao": "rate>0.99",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "vazamento_painel",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "totais_errados",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_reqs{op:fila}",
+          "expressao": "count>0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "erro500_replay",
+          "expressao": "count==0",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_reqs{op:meus_pedidos}",
+          "expressao": "count>0",
+          "ok": true,
+          "neutro": false
+        }
+      ]
+    },
+  "metasDeP95": {
+      "ok": true,
+      "thresholds": [
+        {
+          "metrica": "http_req_duration{op:fila,expected_response:true}",
+          "expressao": "p(95)<500",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:meus_pedidos,expected_response:true}",
+          "expressao": "p(95)<500",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:catalogo,expected_response:true}",
+          "expressao": "p(95)<500",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:criar,expected_response:true}",
+          "expressao": "p(95)<1000",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:criar,expected_response:true}",
+          "expressao": "p(99)<1000",
+          "ok": true,
+          "neutro": false
+        },
+        {
+          "metrica": "http_req_duration{op:replay,expected_response:true}",
+          "expressao": "p(95)<500",
+          "ok": true,
+          "neutro": false
+        }
+      ]
+    },
+  "janelaDeControle": {
+      "catalogoP95": 25.7309,
+      "criarP95": 40.0843,
+      "catalogoP95ForaDoControle": 24.2988,
+      "criarP95ForaDoControle": 38.74405
+    },
+  "trabalhoFixo": {
+      "iteracoesDaConta": 1501,
+      "descartadasDaConta": 0,
+      "linhasPorChamada": {
+        "min": 20,
+        "med": 20,
+        "max": 20
+      }
+    },
+  "lojas": {
+      "comTrafego": 100,
+      "total": 100
+    },
+  "patamares": null,
+  "thresholds": [
+      {
+        "metrica": "lojas_visitadas{loja:farmacia-do-montese}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:mercadinho-do-jardim-cearense}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:papelaria-de-genibau}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "isolamento_violado",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:adega-do-pirambu}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:hamburgueria-de-sao-joao-do-tauape}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:mercadinho-do-castelao}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:livraria-da-cidade-2000}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:produto}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:criar}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:floricultura-do-aeroporto}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:produto}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:farmacia-do-conjunto-palmeiras}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:brinquedos-da-praia-do-futuro}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "dropped_iterations{scenario:conta}",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:cozinha-do-jangurussu}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:cadastro}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:acaiteria-de-moura-brasil}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "replay_divergente",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:login}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,janela:controle,expected_response:true}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pet-shop-de-ancuri}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:hamburgueria-do-alto-da-balanca}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:autopecas-do-jardim-guanabara}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:calcados-de-joaquim-tavora}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pizzaria-do-bom-jardim}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:fila,expected_response:true}",
+        "expressao": "p(95)<500",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:mercadinho-da-vila-peri}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:livraria-de-messejana}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:papelaria-de-paupina}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:meus_pedidos}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "falhas_inesperadas",
+        "expressao": "rate<0.01",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "checks{essencial:sim}",
+        "expressao": "rate>0.99",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:calcados-de-damas}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:conferencia}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:moda-do-coco}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pizzaria-da-vila-velha}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:adega-da-lagoa-redonda}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:adega-de-jacarecanga}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:catalogo}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:vitrine}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:imagem}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pet-shop-de-prefeito-jose-walter}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:cozinha-de-fatima}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:construcao-de-dom-lustosa}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:cadastro}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:mercadinho-de-dionisio-torres}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "vazamento_painel",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:consulta}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:autopecas-do-parque-iracema}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:preparo}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:vitrine}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:cadastro}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:autopecas-do-passare}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:conferencia}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:padaria-do-alagadico-novo}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:cozinha-do-novo-mondubim}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:restaurante-de-couto-fernandes}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:perfumaria-de-vicente-pinzon}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "totais_errados",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:produto}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:cozinha-de-salinas}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pizzaria-do-parque-manibura}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:fila}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:perfumaria-de-mata-galinha}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:tabacaria-de-henrique-jorge}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:farmacia-do-parque-araxa}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:carrinho}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:restaurante-da-barra-do-ceara}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pet-shop-do-cristo-redentor}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:eletronicos-do-barroso}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:conferencia}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:construcao-de-cajazeiras}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:replay}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:bazar-de-rodolfo-teofilo}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:bazar-de-maraponga}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:brinquedos-do-cais-do-porto}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:fila}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:carrinho}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:tabacaria-do-mondubim}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:papelaria-do-meireles}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:criar}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:restaurante-de-bonsucesso}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:replay}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:criar,janela:carga,expected_response:true}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:papelaria-de-luciano-cavalcante}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:tabacaria-do-jardim-iracema}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "erro500_replay",
+        "expressao": "count==0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:imagem}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:adega-da-aldeota}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:acaiteria-do-conjunto-ceara}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:pagina}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:brinquedos-do-joquei-clube}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:fila_cruzada}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:hamburgueria-de-carlito-pamplona}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:fila}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:pagina}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:autopecas-da-floresta}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:perfumaria-da-granja-lisboa}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:acaiteria-do-cambeba}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:vitrine}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:fechamento}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:fila_cruzada}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:preparo}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:meus_pedidos,expected_response:true}",
+        "expressao": "p(95)<500",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:consulta}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:moda-do-parreao}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:tabacaria-do-pici}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:imagem}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:papelaria-de-democrito-rocha}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:login}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,janela:controle,expected_response:true}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,expected_response:true}",
+        "expressao": "p(95)<500",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:restaurante-de-coacu}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:fechamento}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:pagina}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:floricultura-do-itaperi}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "iterations{scenario:conta}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_failed{op:fechamento}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:cozinha-do-benfica}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:criar,expected_response:true}",
+        "expressao": "p(95)<1000",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:criar,expected_response:true}",
+        "expressao": "p(99)<1000",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:adega-da-praia-de-iracema}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:brinquedos-do-mucuripe}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:livraria-de-pedras}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:tabacaria-de-guararapes}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:acaiteria-da-agua-fria}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:bazar-da-varjota}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pizzaria-da-bela-vista}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:meus_pedidos}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_reqs{op:criar}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:construcao-de-farias-brito}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:eletronicos-da-serrinha}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:padaria-de-aracape}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:moda-de-presidente-kennedy}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:livraria-de-joao-xxiii}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:fila_cruzada}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:replay}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pet-shop-de-alvaro-weyne}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:preparo}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:acaiteria-de-manuel-dias-branco}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:farmacia-de-quintino-cunha}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:padaria-da-granja-portugal}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:catalogo}",
+        "expressao": "count>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:eletronicos-do-papicu}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_failed{op:login}",
+        "expressao": "rate>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "http_req_duration{op:consulta}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:calcados-de-parangaba}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:floricultura-da-boa-vista}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:eletronicos-de-sao-gerardo}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:bazar-do-planalto-ayrton-senna}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:hamburgueria-do-panamericano}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:floricultura-da-parquelandia}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:mercadinho-de-canindezinho}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:padaria-de-aerolandia}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:pizzaria-de-siqueira}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:carrinho}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:restaurante-de-dunas}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:moda-do-centro}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_reqs{op:meus_pedidos}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:padaria-de-amadeu-furtado}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:catalogo,janela:carga,expected_response:true}",
+        "expressao": "p(95)>=0",
+        "ok": true,
+        "neutro": true
+      },
+      {
+        "metrica": "lojas_visitadas{loja:construcao-da-cidade-dos-funcionarios}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:calcados-do-parque-dois-irmaos}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:calcados-do-monte-castelo}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "http_req_duration{op:replay,expected_response:true}",
+        "expressao": "p(95)<500",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:perfumaria-de-sapiranga}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:farmacia-da-vila-uniao}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "lojas_visitadas{loja:hamburgueria-de-antonio-bezerra}",
+        "expressao": "count>0",
+        "ok": true,
+        "neutro": false
+      },
+      {
+        "metrica": "checks",
+        "expressao": "rate>0.99",
+        "ok": true,
+        "neutro": false
+      }
+    ]
+}

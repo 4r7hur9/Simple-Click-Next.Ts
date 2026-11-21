@@ -1,0 +1,8 @@
+{
+  "etapa": "carga",
+  "perfil": "completo",
+  "versao": "k6 v1.3.0 (commit/5870e99ae8, go1.25.1, darwin/arm64)",
+  "inicio": "2026-11-20T22:31:05Z",
+  "fim": "2026-11-20T22:39:18Z",
+  "codigoDeSaida": 0
+}

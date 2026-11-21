@@ -1,0 +1,4 @@
+Function Scan on meus_pedidos  (cost=0.25..10.25 rows=1000 width=264) (actual time=2065.654..2065.660 rows=167 loops=1)
+  Buffers: shared hit=1223057 read=417500
+Planning Time: 0.019 ms
+Execution Time: 2065.685 ms

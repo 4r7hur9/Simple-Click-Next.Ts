@@ -1,0 +1,44 @@
+Gather Merge  (cost=6733.97..351955.24 rows=29 width=187) (actual time=40.096..2091.164 rows=167 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=1292250 read=352153
+  ->  Sort  (cost=5733.95..5733.98 rows=12 width=179) (actual time=18.352..18.385 rows=56 loops=3)
+        Sort Key: o.placed_at DESC, o.id DESC
+        Sort Method: quicksort  Memory: 59kB
+        Buffers: shared hit=2008 read=3624
+        Worker 0:  Sort Method: quicksort  Memory: 25kB
+        Worker 1:  Sort Method: quicksort  Memory: 25kB
+        ->  Result  (cost=12.45..5733.73 rows=12 width=179) (actual time=12.409..18.315 rows=56 loops=3)
+              One-Time Filter: ((COALESCE(NULLIF(current_setting('app.role'::text, true), ''::text), 'PUBLIC'::text) = 'CUSTOMER'::text) AND ((NULLIF(current_setting('app.user_id'::text, true), ''::text))::uuid IS NOT NULL))
+              Buffers: shared hit=1976 read=3624
+              ->  Nested Loop  (cost=12.45..5733.73 rows=12 width=179) (actual time=5.392..11.294 rows=56 loops=3)
+                    Buffers: shared hit=1976 read=3624
+                    ->  Hash Join  (cost=12.29..5731.62 rows=12 width=130) (actual time=5.387..11.262 rows=56 loops=3)
+                          Hash Cond: (o.store_customer_id = c.id)
+                          Buffers: shared hit=1642 read=3624
+                          ->  Parallel Seq Scan on orders o  (cost=0.00..5608.83 rows=42083 width=146) (actual time=0.030..9.693 rows=33667 loops=3)
+                                Buffers: shared hit=1564 read=3624
+                          ->  Hash  (cost=12.23..12.23 rows=5 width=16) (actual time=0.029..0.030 rows=5 loops=3)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=20
+                                ->  Index Scan using store_customers_identidade_ix on store_customers c  (cost=0.14..12.23 rows=5 width=16) (actual time=0.017..0.025 rows=5 loops=3)
+                                      Index Cond: (identity_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::uuid)
+                                      Buffers: shared hit=20
+                    ->  Index Scan using stores_pkey on stores s  (cost=0.14..0.17 rows=1 width=65) (actual time=0.000..0.000 rows=1 loops=167)
+                          Index Cond: (id = o.store_id)
+                          Buffers: shared hit=334
+  SubPlan 1
+    ->  Aggregate  (cost=11904.05..11904.06 rows=1 width=8) (actual time=12.366..12.366 rows=1 loops=167)
+          Buffers: shared hit=1290242 read=348529
+          ->  Seq Scan on order_items i  (cost=0.00..11904.05 rows=2 width=0) (actual time=0.503..12.363 rows=2 loops=167)
+                Filter: (order_id = o.id)
+                Rows Removed by Filter: 167282
+                Buffers: shared hit=1290242 read=348529
+Planning:
+  Buffers: shared hit=12
+Planning Time: 0.282 ms
+JIT:
+  Functions: 66
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 1.866 ms, Inlining 0.000 ms, Optimization 0.802 ms, Emission 20.278 ms, Total 22.947 ms
+Execution Time: 2091.993 ms
