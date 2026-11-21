@@ -65,6 +65,7 @@ import { JanelaModal } from "./JanelaModal.tsx";
 import { SeletorDoDia } from "./SeletorDoDia.tsx";
 import { useQuadroDoDia } from "./useQuadroDoDia.ts";
 import "./quadro.css";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 export interface QuadroKanbanProps {
   /** Leitor do quadro. A prova troca por um que responde sem rede. */
@@ -733,6 +734,7 @@ export function QuadroKanban({
                       <ListaDaColuna
                         itens={doGrupo}
                         desenhar={cartao}
+                        destacar={(pedido) => estado.naoVistos.has(pedido.id)}
                         rotulo={etapa.rotulo}
                       />
                     )}
@@ -771,7 +773,7 @@ export function QuadroKanban({
             }}
           >
             <p>
-              Pedido #{cancelando.numero} de {cancelando.cliente}. O cliente lê
+              Pedido {codigoDoPedido(cancelando.numero)} de {cancelando.cliente}. O cliente lê
               o motivo na página de acompanhamento.
             </p>
             <div className="grid gap-2">

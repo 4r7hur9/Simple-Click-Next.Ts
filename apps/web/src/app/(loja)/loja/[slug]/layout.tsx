@@ -17,6 +17,7 @@ import {
 } from "../../../_usuario/sessao.tsx";
 import { RodapeLegal } from "../../../../features/legal/RodapeLegal.tsx";
 import { JanelaDeAcesso } from "../../../../features/auth/JanelaDeAcesso.tsx";
+import { ForaDaTv } from "../../../../features/tv/ForaDaTv.tsx";
 import { buscarVitrine } from "../../../../server/vitrine.ts";
 
 export default async function MolduraDaLoja({
@@ -45,7 +46,9 @@ export default async function MolduraDaLoja({
       <RodapeLegal />
       <BarraInferiorDaSessao />
       {/* Entrar / criar conta sem sair da loja: abrirJanelaDeAcesso(). */}
-      <JanelaDeAcesso />
+      <ForaDaTv>
+        <JanelaDeAcesso />
+      </ForaDaTv>
     </TemaDaMarca>
   );
 }

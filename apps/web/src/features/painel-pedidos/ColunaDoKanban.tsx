@@ -23,6 +23,11 @@ export interface ListaDaColunaProps<T> {
   readonly desenhar: (item: T) => ReactNode;
   readonly rotulo: string;
   readonly lote?: number | undefined;
+  /**
+   * Itens que nunca ficam atrás de "Mostrar os outros N" (pedido novo, AC-600):
+   * se caírem além do lote, entram visíveis depois dos cartões já mostrados.
+   */
+  readonly destacar?: ((item: T) => boolean) | undefined;
 }
 
 export function ListaDaColuna<T>({
@@ -30,11 +35,16 @@ export function ListaDaColuna<T>({
   desenhar,
   rotulo,
   lote = LOTE_DA_COLUNA,
+  destacar,
 }: ListaDaColunaProps<T>) {
   const [limite, setLimite] = useState(lote);
   const lista = useRef<HTMLDivElement>(null);
   const fim = useRef<HTMLDivElement>(null);
-  const faltam = itens.length - limite;
+  const doLote = itens.slice(0, limite);
+  const alemDoLote = itens.slice(limite);
+  const destacados =
+    destacar === undefined ? [] : alemDoLote.filter((item) => destacar(item));
+  const faltam = alemDoLote.length - destacados.length;
 
   useEffect(() => {
     const alvo = fim.current;
@@ -62,7 +72,8 @@ export function ListaDaColuna<T>({
       // Rolagem que dá para alcançar pelo teclado mesmo sem cartão focável.
       tabIndex={0}
     >
-      {itens.slice(0, limite).map(desenhar)}
+      {doLote.map(desenhar)}
+      {destacados.map(desenhar)}
       {faltam > 0 ? (
         <div ref={fim} className="sc-kanban__mais">
           <button

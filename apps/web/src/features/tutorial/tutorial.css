@@ -204,14 +204,6 @@
   }
 }
 
-/* Na pílula fechada do celular só cabe o Sair no rodapé: "Ver tutorial"
-   aparece quando a pessoa abre o menu da conta. */
-@media (max-width: 63.99rem) {
-  .sc-usuario-lateral:not([data-aberta]) [data-ver-tutorial] {
-    display: none;
-  }
-}
-
 @keyframes sc-tutorial-surgir {
   from {
     opacity: 0;

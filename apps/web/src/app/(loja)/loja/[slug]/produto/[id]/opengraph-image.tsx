@@ -18,7 +18,7 @@ import { ImageResponse } from "next/og";
 import { PALETA_CLARA } from "@simpleclick/ui";
 
 import { buscarProduto } from "../../../../../../server/produto.ts";
-import { enderecoDoSite } from "../../../../../../server/endereco-do-site.ts";
+import { fotoParaOg } from "../../../../../../server/imagem-para-og.ts";
 import { buscarVitrine } from "../../../../../../server/vitrine.ts";
 
 export const alt = "Produto no SimpleClick";
@@ -45,24 +45,6 @@ const TINTA_SUAVE = PALETA_CLARA.tintaSuave;
 const VERDE = PALETA_CLARA.primaria;
 const TINTA_SOBRE_O_VERDE = PALETA_CLARA.emPrimaria;
 
-/**
- * `next/og` só desenha foto com endereço ABSOLUTO; com um caminho do próprio
- * site (`/demo/...`) a rota estourava e o robô ficava sem prévia nenhuma. O
- * caminho é resolvido contra o endereço do site; o que não vira http(s) fica
- * de fora e a prévia sai com o fundo verde.
- */
-function enderecoAbsoluto(url: string | null): string | null {
-  if (url === null) return null;
-  try {
-    const absoluto = new URL(url, enderecoDoSite());
-    return absoluto.protocol === "https:" || absoluto.protocol === "http:"
-      ? absoluto.href
-      : null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
   const { slug, id } = await params;
 
@@ -79,7 +61,10 @@ export default async function ImagemDoProduto({ params }: ParametrosDaImagem) {
   // Como na imagem da loja: nada aqui devolve erro. O robô da rede social não
   // sabe ler um 500 — ele mostraria o link sem prévia nenhuma.
   const nome = produto?.nome ?? loja?.nome ?? "SimpleClick";
-  const foto = enderecoAbsoluto(produto?.imagens[0]?.url ?? null);
+  // A foto passa por `fotoParaOg`: só entra o que o `next/og` desenha (PNG,
+  // JPEG, GIF). WebP e foto fora do ar viram fundo verde em vez de derrubar a
+  // resposta (D-7).
+  const foto = await fotoParaOg(produto?.imagens[0]?.url ?? null);
 
   // PREÇO NULO É "DEPENDE DA VARIAÇÃO", e não zero: a faixa mostra o nome da
   // loja no lugar. Escrever "R$ 0,00" prometeria de graça o que custa.

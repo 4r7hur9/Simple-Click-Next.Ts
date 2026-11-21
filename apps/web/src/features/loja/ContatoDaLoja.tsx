@@ -2,7 +2,7 @@
  * "Fale com a loja no WhatsApp" (card #107): um cartão no fim da página.
  *
  * Texto SEMPRE neutro: não promete prazo de resposta nem atendimento "agora", e
- * não fala em placa, chassi nem "técnico" (a loja pode ser de qualquer ramo).
+ * não usa termo de oficina nem "técnico" (a loja pode ser de qualquer ramo).
  * Só existe com o número que o dono marcou como público; sem ele, nada aparece.
  */
 import { IconeConversa } from "@simpleclick/ui";

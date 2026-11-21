@@ -10,6 +10,7 @@
  */
 import { DetalheDoPedido } from "./DetalheDoPedido.tsx";
 import { JanelaModal } from "./JanelaModal.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 export interface JanelaDoPedidoProps {
   /** O pedido aberto, ou `null` com a janela fechada. */
@@ -32,7 +33,7 @@ export function JanelaDoPedido({
     <JanelaModal
       aberta={pedidoId !== null}
       aoFechar={aoFechar}
-      titulo={numero === undefined ? "Pedido" : `Pedido #${numero}`}
+      titulo={numero === undefined ? "Pedido" : `Pedido ${codigoDoPedido(numero)}`}
       acoes={
         pedidoId === null ? null : (
           // `<a>` comum, e não `Link`: abrir o cupom emite uma via, e

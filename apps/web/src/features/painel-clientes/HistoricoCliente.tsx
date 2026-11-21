@@ -29,6 +29,7 @@ import {
 import { escreverDinheiro } from "../../lib/dinheiro.ts";
 import { JanelaDoPedido } from "../painel-pedidos/JanelaDoPedido.tsx";
 import { SeloDeStatus } from "../painel-pedidos/SeloDeStatus.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 type PedidoDoHistorico = FichaComHistorico["pedidos"][number];
 
@@ -56,10 +57,10 @@ function LinhaDoPedido({
               type="button"
               className="sc-ficha-pedido__abrir"
               data-abrir-pedido={pedido.id}
-              aria-label={`Abrir o pedido ${pedido.numero}`}
+              aria-label={`Abrir o pedido ${codigoDoPedido(pedido.numero)}`}
               onClick={() => aoAbrir(pedido)}
             >
-              Pedido #{pedido.numero}
+              Pedido {codigoDoPedido(pedido.numero)}
             </button>
           </h3>
           <p className="sc-ficha-pedido__meta">
@@ -82,7 +83,7 @@ function LinhaDoPedido({
 
       <ul
         className="sc-ficha-pedido__itens"
-        aria-label={`Itens do pedido ${pedido.numero}`}
+        aria-label={`Itens do pedido ${codigoDoPedido(pedido.numero)}`}
       >
         {pedido.itens.map((item, indice) => (
           <li

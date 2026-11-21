@@ -26,6 +26,7 @@ import {
   explicacaoDoStatus,
   rotuloDoStatus,
 } from "./LinhaDoTempo.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 type Pedido = AcompanhamentoNoContrato["pedido"];
 
@@ -125,11 +126,8 @@ export function AcompanhamentoDoPedido({
                 Acompanhamento · {pedido.loja.nome}
               </p>
               <h1 className="mt-1 font-[family-name:var(--fonte-titulo)] text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                Pedido nº {pedido.numero}
+                Pedido {codigoDoPedido(pedido.numero)}
               </h1>
-              <p className="mt-1 text-sm text-[var(--cor-tinta-suave)]">
-                Código {pedido.codigo}
-              </p>
             </div>
             <div
               className="inline-flex min-h-[var(--altura-toque)] items-center gap-2 rounded-full border border-[var(--cor-tinta)] bg-[var(--cor-primaria-suave)] px-4 font-semibold text-[var(--cor-tinta)]"

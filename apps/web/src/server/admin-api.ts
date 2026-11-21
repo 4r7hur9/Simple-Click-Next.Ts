@@ -17,6 +17,7 @@
 
 import { enderecoDaApi } from "./api-client.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
+import { renovarVitrineDaLoja } from "./renovar-vitrine.ts";
 import {
   recusarAcaoDeFora,
   recusarOrigemDeFora,
@@ -116,6 +117,41 @@ function respostaJson(status: number, corpo: unknown): Response {
   });
 }
 
+/**
+ * Atos da administração que mudam se a vitrine pode aparecer (card #145, D-1).
+ *
+ * A API já recusa a vitrine de loja que não está no ar, mas o site guardava a
+ * versão de antes (etiqueta da vitrine e HTML pronto das páginas da loja):
+ * a loja desativada continuava aparecendo até o cache vencer. A resposta de
+ * cada ato é a ficha da loja, que traz o apelido.
+ */
+const ATOS_QUE_MUDAM_A_VISIBILIDADE: readonly {
+  readonly padrao: RegExp;
+  readonly metodo: string;
+}[] = [
+  {
+    padrao: new RegExp(`^lojas/${UUID}/(aprovar|recusar|ativar|desativar)$`),
+    metodo: "POST",
+  },
+  {
+    padrao: new RegExp(`^lojas/${UUID}/(suspensao|reativacao|restauracao)$`),
+    metodo: "PUT",
+  },
+  { padrao: new RegExp(`^lojas/${UUID}$`), metodo: "DELETE" },
+];
+
+/** O apelido da ficha devolvida pela API, ou `null` se o corpo não é ficha. */
+function apelidoDaFicha(corpo: ArrayBuffer): string | null {
+  try {
+    const ficha: unknown = JSON.parse(new TextDecoder().decode(corpo));
+    if (typeof ficha !== "object" || ficha === null) return null;
+    const apelido = (ficha as { apelido?: unknown }).apelido;
+    return typeof apelido === "string" && apelido !== "" ? apelido : null;
+  } catch {
+    return null;
+  }
+}
+
 /** O caminho está na lista, com este método? */
 export function caminhoPermitido(caminho: string, metodo: string): boolean {
   return CAMINHOS_DA_ADMINISTRACAO.some(
@@ -133,6 +169,7 @@ export async function encaminharParaAdministracao(
   requisicao: Request,
   partes: readonly string[],
   buscar: typeof fetch = fetch,
+  renovar: (apelido: string) => void = renovarVitrineDaLoja,
 ): Promise<Response> {
   const caminho = partes.map((parte) => encodeURIComponent(parte)).join("/");
   const metodo = requisicao.method.toUpperCase();
@@ -202,6 +239,23 @@ export async function encaminharParaAdministracao(
   }
 
   const corpo = await resposta.arrayBuffer();
+  // O ato já foi gravado na API: o site esquece a vitrine da loja na hora, e
+  // não só quando o prazo do cache vencer. Falha aqui nunca desfaz o ato.
+  if (
+    resposta.ok &&
+    ATOS_QUE_MUDAM_A_VISIBILIDADE.some(
+      (ato) => ato.metodo === metodo && ato.padrao.test(caminho),
+    )
+  ) {
+    const apelido = apelidoDaFicha(corpo);
+    if (apelido !== null) {
+      try {
+        renovar(apelido);
+      } catch {
+        // o prazo de validade do cache assume
+      }
+    }
+  }
   const cabecalhosDaResposta = new Headers({
     "cache-control": "no-store",
     "content-type": resposta.headers.get("content-type") ?? "application/json",

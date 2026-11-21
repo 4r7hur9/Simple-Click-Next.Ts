@@ -35,6 +35,7 @@ import {
   type PedidoDoQuadro,
 } from "../../lib/quadro-de-pedidos.ts";
 import { SeloAguardando } from "./SeloAguardando.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 export interface CartaoDoKanbanProps {
   readonly pedido: PedidoDoQuadro;
@@ -76,7 +77,7 @@ export function CartaoDoKanban({
 
   return (
     <article
-      aria-label={`Pedido número ${pedido.numero}${novo ? ", novo" : ""}`}
+      aria-label={`Pedido ${codigoDoPedido(pedido.numero)}${novo ? ", novo" : ""}`}
       data-pedido={pedido.id}
       data-status={pedido.status}
       data-novo={novo}
@@ -98,12 +99,12 @@ export function CartaoDoKanban({
         // SEM aria-label: o nome do botão é o que está escrito nele (número,
         // hora, cliente, total, itens). Um rótulo diferente do texto visível
         // quebra o comando de voz (axe label-content-name-mismatch), e o
-        // cartão em volta já se anuncia como "Pedido número N".
+        // cartão em volta já se anuncia como "Pedido A-0004".
       >
         <span className="sc-cartao-pedido__topo">
           <span>
             <span className="sc-cartao-pedido__numero">
-              #{pedido.numero}
+              {codigoDoPedido(pedido.numero)}
               {" · "}
               <time dateTime={pedido.criadoEm}>
                 {escreverHorarioDaFila(pedido.criadoEm)}

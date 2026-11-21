@@ -56,6 +56,7 @@ import {
   type VariacaoNaTela,
 } from "../../lib/produto.ts";
 import { EscolherCliente } from "./EscolherCliente.tsx";
+import { codigoDoPedido } from "@simpleclick/contracts";
 
 /** O produto como a montagem precisa dele: o da página do produto. */
 export interface ProdutoParaMontar {
@@ -441,22 +442,40 @@ export function MontarPedido({
 
   useEffect(() => {
     if (!repetirPedidoId) return;
-    void pedirRepeticao(repetirPedidoId, buscar).then((leitura) => {
+    void pedirRepeticao(repetirPedidoId, buscar).then(async (leitura) => {
       if (leitura.estado !== "ok") {
         setAvisosDaRepeticao([
           "Não foi possível montar a repetição agora. Monte o pedido à mão.",
         ]);
         return;
       }
+      const repeticao = leitura.repeticao;
+      // A lista do balcão vem sem grupos: para nomear as opções da repetição,
+      // lê a ficha completa dos produtos que têm escolhas (D-2).
+      const completos = await Promise.all(
+        produtos.map(async (produto) => {
+          const precisa = repeticao.itens.some(
+            (item) => item.produtoId === produto.id && item.escolhas.length > 0,
+          );
+          if (!precisa || produto.grupos.length > 0 || !carregarDetalhe) {
+            return produto;
+          }
+          try {
+            return (await carregarDetalhe(produto.id)) ?? produto;
+          } catch {
+            return produto;
+          }
+        }),
+      );
       const { itens: prontos, avisos } = itensDaRepeticao(
-        leitura.repeticao,
-        produtos,
+        repeticao,
+        completos,
       );
       setItens(prontos);
       setAvisosDaRepeticao(avisos);
-      if (leitura.repeticao.entrega === "DELIVERY") setEntrega("DELIVERY");
+      if (repeticao.entrega === "DELIVERY") setEntrega("DELIVERY");
     });
-  }, [buscar, produtos, repetirPedidoId]);
+  }, [buscar, carregarDetalhe, produtos, repetirPedidoId]);
 
   const subtotal = useMemo(
     () => itens.reduce((soma, item) => soma + item.totalCentavos, 0),
@@ -624,7 +643,7 @@ export function MontarPedido({
   if (criado !== null) {
     return (
       <Sucesso
-        titulo={`Pedido #${criado.numero} lançado`}
+        titulo={`Pedido ${codigoDoPedido(criado.numero)} lançado`}
         descricao={`Total de ${escreverDinheiro(criado.totalCentavos)}. Ele já está no quadro, em “Pedido gerado”, marcado como balcão.`}
         acao={
           <span className="flex flex-wrap justify-center gap-3">

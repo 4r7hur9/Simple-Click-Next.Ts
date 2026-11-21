@@ -206,9 +206,9 @@ const PASSOS_DO_CLIENTE: readonly PassoDoTutorial[] = [
     id: "rever",
     titulo: "É isso!",
     texto: "Para rever este passo a passo, abra o menu da conta e toque em Ver tutorial.",
-    // O botão do menu da conta (topo do cliente); com o menu aberto, o próprio
-    // "Ver tutorial"; a lateral só existe no painel e na administração.
-    alvos: ["[data-ver-tutorial]", "[data-menu-da-conta]", ".sc-usuario-lateral"],
+    // Com o menu da conta aberto, o próprio "Ver tutorial"; fechado, o botão
+    // do menu da conta no topo do cliente.
+    alvos: ["[data-ver-tutorial]", "[data-menu-da-conta]"],
   },
 ];
 
