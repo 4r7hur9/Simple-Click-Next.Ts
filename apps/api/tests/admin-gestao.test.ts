@@ -1,7 +1,8 @@
 /**
- * Gestão de lojas e contas pela API de verdade (card #29): a lista com dono,
- * pedidos e faturamento, o filtro por tipo, a ordenação e as contagens por
- * situação; os números e a equipe de cada loja; e a lista de contas.
+ * Gestão de lojas pela API de verdade (card #29): a lista com dono, pedidos e
+ * faturamento, o filtro por tipo, a ordenação e as contagens por situação; os
+ * números e a equipe de cada loja. As contas viraram as Pessoas (card #170,
+ * `admin-pessoas.test.ts`); o `/v1/admin/contas` antigo saiu.
  *
  * As lojas entram pelo MESMO cadastro da administração (T-200). Os pedidos
  * entram direto no banco: o que se prova aqui é como a administração os conta,
@@ -12,9 +13,7 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
-  esquemaDaContaNaAdministracao,
   esquemaDaEquipeDaLojaNaAdministracao,
-  esquemaDaListaDeContas,
   esquemaDaListaDeLojas,
   esquemaDasMetricasDaLoja,
   type NovaLojaEnviada,
@@ -341,79 +340,25 @@ describe("os números e a equipe de uma loja (card #29)", () => {
         .get(`/v1/admin/lojas/${moda}/metricas`)
         .set(comoPapel(administradora.id, "OWNER"));
       expect(comoDono.status).toBe(403);
-      const semSessao = await request(api.app).get("/v1/admin/contas");
+      const semSessao = await request(api.app).get("/v1/admin/pessoas");
       expect(semSessao.status).toBe(401);
     },
     ESPERA_DA_ADMINISTRACAO,
   );
 });
 
-describe("as contas (card #29)", () => {
+describe("o /contas antigo saiu (card #170)", () => {
   it(
-    "donos com as lojas, as pendentes e o limite; busca por e-mail; equipe separada",
+    "as duas rotas antigas não existem mais, nem para a administração",
     async () => {
-      const resposta = await request(api.app)
+      const lista = await request(api.app)
         .get("/v1/admin/contas")
-        .query({ busca: "gestao-brecho" })
         .set(comoAdmin());
-      expect(resposta.status).toBe(200);
-      const lista = esquemaDaListaDeContas.parse(resposta.body);
-      expect(lista.contas).toHaveLength(1);
-      expect(lista.contas[0]).toMatchObject({
-        tipo: "DONO",
-        email: "gestao-brecho@exemplo.test",
-        pendentes: 1,
-        lojasEmUso: 1,
-        limiteDeLojas: 2,
-        lojas: [
-          { nome: "Brechó da Lu", status: "PENDING_APPROVAL", papel: "OWNER" },
-        ],
-      });
-
-      const equipe = esquemaDaListaDeContas.parse(
-        (
-          await request(api.app)
-            .get("/v1/admin/contas")
-            .query({ tipo: "equipe" })
-            .set(comoAdmin())
-        ).body,
-      );
-      expect(equipe.contas.every((conta) => conta.tipo === "EQUIPE")).toBe(
-        true,
-      );
-      expect(equipe.contagens.donos).toBeGreaterThanOrEqual(3);
-    },
-    ESPERA_DA_ADMINISTRACAO,
-  );
-
-  it(
-    "abrir a conta traz as lojas dela; id desconhecido é 404 e id malformado é 400",
-    async () => {
-      const lista = esquemaDaListaDeContas.parse(
-        (
-          await request(api.app)
-            .get("/v1/admin/contas")
-            .query({ busca: "gestao-pastel" })
-            .set(comoAdmin())
-        ).body,
-      );
-      const id = lista.contas[0]?.identidadeId ?? "";
-      const conta = esquemaDaContaNaAdministracao.parse(
-        (await request(api.app).get(`/v1/admin/contas/${id}`).set(comoAdmin()))
-          .body,
-      );
-      expect(conta.lojas.map((loja) => loja.apelido)).toEqual([
-        "gestao-pastel",
-      ]);
-
-      const inexistente = await request(api.app)
+      expect(lista.status).toBe(404);
+      const conta = await request(api.app)
         .get("/v1/admin/contas/00000000-0000-4000-8000-000000000000")
         .set(comoAdmin());
-      expect(inexistente.status).toBe(404);
-      const malformado = await request(api.app)
-        .get("/v1/admin/contas/nao-e-uuid")
-        .set(comoAdmin());
-      expect(malformado.status).toBe(400);
+      expect(conta.status).toBe(404);
     },
     ESPERA_DA_ADMINISTRACAO,
   );

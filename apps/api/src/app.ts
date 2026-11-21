@@ -134,6 +134,14 @@ import {
   resumirTokenDeConvite,
 } from "./modules/auth/convite.usecase.ts";
 import {
+  emailDeRecuperacao,
+  linkDeRecuperacao,
+} from "./modules/auth/emails-de-acesso.ts";
+import {
+  gerarTokenDeRecuperacao,
+  resumirTokenDeRecuperacao,
+} from "./modules/auth/recuperar-senha.usecase.ts";
+import {
   enviadorNaoConfigurado,
   saidaDeEmailDoAmbiente,
 } from "./jobs/email.job.ts";
@@ -417,10 +425,14 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   if (fonteDaIdentidade.NODE_ENV !== "production") {
     app.use("/v1/auth", criarRotasDeAutenticacaoDeDesenvolvimento());
   }
+  // A mesma saída de e-mail serve ao link de acesso que a administração gera
+  // para uma pessoa (card #170): sem provedor, o link só aparece na tela.
+  const saidaDeEmail =
+    opcoes.identidade?.email ?? saidaDeEmailDoAmbiente(fonteDaIdentidade);
   app.use(
     "/v1/auth",
     criarRotasDeIdentidade({
-      email: saidaDeEmailDoAmbiente(fonteDaIdentidade),
+      email: saidaDeEmail,
       ...opcoes.identidade,
     }),
   );
@@ -670,6 +682,20 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
         ),
       gerarTokenDeConvite,
       resumirTokenDeConvite,
+      // O link de acesso de uso único é consumido pela recuperação de senha:
+      // mesmo token, mesmo resumo, mesma tela (/definir-senha).
+      gerarTokenDeAcesso: gerarTokenDeRecuperacao,
+      resumirTokenDeAcesso: resumirTokenDeRecuperacao,
+      enviarAcessoDaPessoa: async ({ para, token }) => {
+        if (!saidaDeEmail.disponivel) return false;
+        await saidaDeEmail.enviar(
+          emailDeRecuperacao({
+            para,
+            link: linkDeRecuperacao(fonteDaIdentidade["URL_DO_SITE"] ?? "", token),
+          }),
+        );
+        return true;
+      },
       rotasDeOutrosModulos: [
         montarRotasDasMetricasDoAdmin,
         montarRotasDoLimiteDeStories,

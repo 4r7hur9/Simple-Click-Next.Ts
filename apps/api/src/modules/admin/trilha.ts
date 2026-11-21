@@ -46,6 +46,18 @@ export interface LinhaDaTrilha {
 export const ATOS_SENSIVEIS: ReadonlySet<string> = new Set([
   "CONFIG_SENSIVEL_ALTERADA",
   "DOCUMENTO_BAIXADO",
+  // Card #170: atos sobre a conta de uma pessoa, na trilha da plataforma. O
+  // link de acesso é poder de entrar na conta de alguém: gerar e usar ficam
+  // sempre destacados, como desativar e reativar.
+  "CONTA_DESATIVADA",
+  "CONTA_REATIVADA",
+  "ACESSO_GERADO",
+  "ACESSO_USADO",
+  // Card #170 (T-4): quem manda na loja mudou. Dar, trocar e tirar o dono
+  // ficam sempre destacados, na trilha da loja e na da plataforma.
+  "DONO_ADICIONADO",
+  "DONO_SUBSTITUIDO",
+  "DONO_REMOVIDO",
 ]);
 
 /** Chaves de controle do registro, que não são campo do cadastro. */

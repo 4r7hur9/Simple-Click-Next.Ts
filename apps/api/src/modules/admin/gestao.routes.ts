@@ -1,31 +1,23 @@
 /**
- * Gestão de lojas e contas, na administração da plataforma (card #29):
+ * Gestão de lojas, na administração da plataforma (card #29):
  *
  *   GET /v1/admin/lojas/:id/metricas?dias=30   números da loja
  *   GET /v1/admin/lojas/:id/equipe             dono e equipe da loja
- *   GET /v1/admin/contas?tipo=&busca=          donos e equipe da plataforma
- *   GET /v1/admin/contas/:identidadeId         uma conta e as lojas dela
  *
  * Montadas depois da trava do token, e cada uma passa pela segunda trava
  * (`comoAdministrador`) antes de ler o banco. Quem consulta dados de uma loja
  * deixa o registro da consulta na trilha, como a abertura da ficha.
+ *
+ * As contas (donos e equipe) agora são as Pessoas, em `pessoas.routes.ts`
+ * (card #170): o `/contas` antigo saiu.
  */
 import type { Response, Router } from "express";
-import {
-  esquemaDaConsultaDeContas,
-  esquemaDaConsultaDeMetricasDaLoja,
-} from "@simpleclick/contracts";
-import { z } from "zod";
+import { esquemaDaConsultaDeMetricasDaLoja } from "@simpleclick/contracts";
 
 import type { AcessoAoBanco } from "../../core/db.ts";
 import { validar } from "../../core/validar.ts";
 import { esquemaDoCaminhoDaLoja } from "./admin.schema.ts";
-import {
-  lerConta,
-  lerEquipeDaLoja,
-  lerMetricasDaLoja,
-  listarContas,
-} from "./gestao.repo.ts";
+import { lerEquipeDaLoja, lerMetricasDaLoja } from "./gestao.repo.ts";
 import { registrarConsultaDaAdministracao } from "./lojas.repo.ts";
 
 export interface DependenciasDaGestao {
@@ -36,10 +28,6 @@ export interface DependenciasDaGestao {
     trabalho: (administradorId: string) => Promise<void>,
   ) => Promise<void>;
 }
-
-const esquemaDoCaminhoDaConta = z.object({
-  identidadeId: z.uuid("Conta inválida."),
-});
 
 export function montarRotasDaGestao(
   rotas: Router,
@@ -109,44 +97,6 @@ export function montarRotasDaGestao(
             return;
           }
           resposta.json(equipe);
-        });
-      } catch (causa) {
-        proximo(causa);
-      }
-    },
-  );
-
-  const listagem = validar({ query: esquemaDaConsultaDeContas });
-  rotas.get("/contas", listagem, async (requisicao, resposta, proximo) => {
-    try {
-      const { query } = listagem.dados(requisicao);
-      await comoAdministrador(resposta, async () => {
-        const lista = await acesso().emTransacao(() => listarContas(query));
-        resposta.setHeader("cache-control", "no-store");
-        resposta.json(lista);
-      });
-    } catch (causa) {
-      proximo(causa);
-    }
-  });
-
-  const daConta = validar({ params: esquemaDoCaminhoDaConta });
-  rotas.get(
-    "/contas/:identidadeId",
-    daConta,
-    async (requisicao, resposta, proximo) => {
-      try {
-        const { params } = daConta.dados(requisicao);
-        await comoAdministrador(resposta, async () => {
-          const conta = await acesso().emTransacao(() =>
-            lerConta(params.identidadeId),
-          );
-          resposta.setHeader("cache-control", "no-store");
-          if (conta === null) {
-            resposta.status(404).json({ erro: "nao_encontrado" });
-            return;
-          }
-          resposta.json(conta);
         });
       } catch (causa) {
         proximo(causa);
