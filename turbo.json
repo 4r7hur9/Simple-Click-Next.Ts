@@ -2,6 +2,23 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "stream",
   "agentGuidance": false,
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "LOG_LEVEL",
+    "DATABASE_URL",
+    "DATABASE_URL_DIRETA",
+    "DATABASE_URL_TEST",
+    "SENHA_BANCO_MIGRADOR",
+    "SENHA_BANCO_APLICACAO",
+    "SENHA_BANCO_ADMINISTRACAO",
+    "REDIS_URL",
+    "REDIS_URL_TEST",
+    "JWT_SECRET",
+    "SEGREDO_DE_REVALIDACAO",
+    "ORIGENS_PERMITIDAS",
+    "NEXT_PUBLIC_API_URL",
+    "URL_DO_SITE"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

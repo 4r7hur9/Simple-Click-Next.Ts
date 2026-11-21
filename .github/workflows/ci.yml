@@ -36,15 +36,36 @@ env:
   TURBO_TELEMETRY_DISABLED: "1"
   NEXT_TELEMETRY_DISABLED: "1"
   DO_NOT_TRACK: "1"
+  # Ambiente de teste: mesmos nomes do .env.example, que no CI não existe (o
+  # arquivo nunca é versionado). Valores só de teste, visíveis de propósito: o
+  # runner é descartável e nada aqui abre porta pública. O superusuário do
+  # serviço de PostgreSQL é preciso porque a primeira migração cria os papéis
+  # (sc_migrator, sc_app, sc_admin) e o apoio de teste cria um banco por
+  # arquivo. O turbo só repassa estas variáveis às tarefas por causa do
+  # `globalPassThroughEnv` do turbo.json.
+  LOG_LEVEL: warn
+  DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
+  DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+  DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
+  SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
+  SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
+  SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
+  REDIS_URL: redis://localhost:6379/0
+  REDIS_URL_TEST: redis://localhost:6379/1
+  JWT_SECRET: ci_jwt_de_teste_sem_valor_real_0123456789abcdef
+  SEGREDO_DE_REVALIDACAO: ci_revalidacao_de_teste_sem_valor_real_0123456789
+  ORIGENS_PERMITIDAS: https://simpleclick.localhost,https://api.simpleclick.localhost
+  NEXT_PUBLIC_API_URL: http://localhost:3101
+  URL_DO_SITE: http://localhost:3100
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  # 1 · Lint, tipos e testes de unidade: sem serviço nenhum, responde rápido.
+  # 1 · Lint e tipos: sem serviço nenhum, responde rápido.
   qualidade:
-    name: Lint, tipos e unidade
+    name: Lint e tipos
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -71,14 +92,14 @@ jobs:
       - name: Tipos (tsc em todos os pacotes)
         run: pnpm typecheck
 
-      - name: Testes de unidade
-        run: pnpm test:unit
-
-  # 2 · Testes de integração: PostgreSQL e Redis de verdade, descartáveis.
-  integracao:
-    name: Integração (PostgreSQL + Redis)
+  # 1b · Testes de unidade. Alguns exercitam a montagem da API e o apoio de
+  #      banco, que exigem as variáveis de ambiente e um PostgreSQL de pé.
+  unitarios:
+    name: Unidade
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 25
+    env:
+      NODE_ENV: test
     services:
       postgres:
         image: postgres:16-alpine
@@ -100,27 +121,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-    env:
-      # Mesmos nomes do .env.example. Valores só de teste, visíveis de
-      # propósito: o runner é descartável e nada aqui abre porta pública.
-      NODE_ENV: test
-      LOG_LEVEL: warn
-      # Superusuário do serviço: a primeira migração cria os papéis
-      # (sc_migrator, sc_app, sc_admin) e o apoio de teste cria um banco por
-      # arquivo — os dois exigem mais poder do que a credencial de migração.
-      DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
-      DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
-      DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
-      SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
-      SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
-      SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
-      REDIS_URL: redis://localhost:6379/0
-      REDIS_URL_TEST: redis://localhost:6379/1
-      JWT_SECRET: ci_jwt_de_teste_sem_valor_real_0123456789abcdef
-      SEGREDO_DE_REVALIDACAO: ci_revalidacao_de_teste_sem_valor_real_0123456789
-      ORIGENS_PERMITIDAS: https://simpleclick.localhost,https://api.simpleclick.localhost
-      NEXT_PUBLIC_API_URL: http://localhost:3101
-      URL_DO_SITE: http://localhost:3100
     steps:
       - name: Código da revisão
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -138,6 +138,69 @@ jobs:
 
       - name: Dependências (lockfile congelado)
         run: pnpm install --frozen-lockfile
+
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+        # Os testes que provam a separação entre o banco de teste e o de
+        # desenvolvimento precisam que o segundo exista (vazio basta).
+        env:
+          PGPASSWORD: ci_postgres_teste_2026
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
+
+      - name: Testes de unidade
+        run: pnpm test:unit
+
+  # 2 · Testes de integração: PostgreSQL e Redis de verdade, descartáveis.
+  integracao:
+    name: Integração (PostgreSQL + Redis)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      NODE_ENV: test
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_teste_2026
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Código da revisão
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: pnpm do projeto (versão do packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+        # Os testes que provam a separação entre o banco de teste e o de
+        # desenvolvimento precisam que o segundo exista (vazio basta).
+        env:
+          PGPASSWORD: ci_postgres_teste_2026
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
 
       - name: Cliente do PostgreSQL (pg_dump/pg_restore/psql da prova AC-052)
         # A imagem ubuntu-24.04 já traz o cliente 16, da mesma versão do
@@ -157,6 +220,8 @@ jobs:
     name: Cobertura (mínimo em vitest.config.ts)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      NODE_ENV: test
     services:
       postgres:
         image: postgres:16-alpine
@@ -178,22 +243,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-    env:
-      NODE_ENV: test
-      LOG_LEVEL: warn
-      DATABASE_URL_TEST: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/postgres
-      DATABASE_URL: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
-      DATABASE_URL_DIRETA: postgresql://postgres:ci_postgres_teste_2026@localhost:5432/simpleclick_ci
-      SENHA_BANCO_MIGRADOR: ci_senha_migrador_teste_0001
-      SENHA_BANCO_APLICACAO: ci_senha_aplicacao_teste_0001
-      SENHA_BANCO_ADMINISTRACAO: ci_senha_admin_teste_0001
-      REDIS_URL: redis://localhost:6379/0
-      REDIS_URL_TEST: redis://localhost:6379/1
-      JWT_SECRET: ci_jwt_de_teste_sem_valor_real_0123456789abcdef
-      SEGREDO_DE_REVALIDACAO: ci_revalidacao_de_teste_sem_valor_real_0123456789
-      ORIGENS_PERMITIDAS: https://simpleclick.localhost,https://api.simpleclick.localhost
-      NEXT_PUBLIC_API_URL: http://localhost:3101
-      URL_DO_SITE: http://localhost:3100
     steps:
       - name: Código da revisão
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -211,6 +260,13 @@ jobs:
 
       - name: Dependências (lockfile congelado)
         run: pnpm install --frozen-lockfile
+
+      - name: Banco de desenvolvimento do ambiente de teste (simpleclick_ci)
+        # Os testes que provam a separação entre o banco de teste e o de
+        # desenvolvimento precisam que o segundo exista (vazio basta).
+        env:
+          PGPASSWORD: ci_postgres_teste_2026
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE simpleclick_ci"
 
       - name: Suíte completa com cobertura (falha abaixo do mínimo declarado)
         run: pnpm test:coverage
@@ -295,12 +351,17 @@ jobs:
         run: |
           set -euo pipefail
           url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSL --retry 3 -o /tmp/gitleaks.tgz "$url"
-          curl -fsSL --retry 3 -o /tmp/gitleaks_checksums.txt \
+          # O arquivo de somas cita o nome ORIGINAL do pacote: baixar com outro
+          # nome faria o sha256sum não achar o arquivo.
+          pasta="$RUNNER_TEMP/gitleaks"
+          mkdir -p "$pasta"
+          pacote="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL --retry 3 -o "$pasta/$pacote" "$url"
+          curl -fsSL --retry 3 -o "$pasta/checksums.txt" \
             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
-          (cd /tmp && grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" gitleaks_checksums.txt | sha256sum -c -)
+          (cd "$pasta" && grep " ${pacote}\$" checksums.txt | sha256sum -c -)
           mkdir -p "$HOME/.local/bin"
-          tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+          tar -xzf "$pasta/$pacote" -C "$HOME/.local/bin" gitleaks
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Varredura do histórico (config .gitleaks.toml)
