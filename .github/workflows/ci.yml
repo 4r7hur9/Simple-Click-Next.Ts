@@ -1,7 +1,7 @@
 # CI do SimpleClick (Projeto A, card #141): lint, tipos, testes, cobertura,
 # SCA das dependências, segredos no histórico, lint do OpenAPI e build.
 #
-# Roda em PR e em push para a main. Cada job é independente e começa pelo
+# Roda em todo push e em todo PR. Cada job é independente e começa pelo
 # mesmo preparo (Node 24, pnpm do `packageManager`, `pnpm install
 # --frozen-lockfile` com cache do pnpm); os que falam com banco e cache sobem
 # PostgreSQL 16 e Redis 7 como serviços do próprio job, com segredos de TESTE
@@ -17,10 +17,9 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
+  # Push em qualquer branch (inclui entrega/projeto-final) e todo PR.
   push:
-    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
