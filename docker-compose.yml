@@ -1,42 +1,116 @@
-# Compose da RAIZ — `docker compose up` sobe o ambiente local com 1 comando.
+# SimpleClick — o sistema inteiro com 1 comando:
 #
-# Não duplica configuração: cada serviço ESTENDE o de infra/compose/docker-compose.yml
-# (imagem, portas, volumes, saúde, rótulos do Traefik). O que muda aqui é só
-# `profiles: !reset []`, para que o `up` sem argumentos suba o núcleo (roteador,
-# PostgreSQL, Redis) e os serviços de aplicação. Banco de teste, impressora e
-# observabilidade continuam opcionais: `docker compose --profile test up`.
+#   docker compose up --build
 #
-# Sem segredos: as variáveis vêm de infra/compose/.env.compose (gerado por
-# `bash infra/scripts/setup.sh`, fora do git). O Compose lê esse arquivo pelo
-# `COMPOSE_ENV_FILES` / `--env-file`; o README mostra o comando exato.
-name: ${COMPOSE_PROJECT_NAME:-simpleclick}
-
-x-base: &base
-  file: infra/compose/docker-compose.yml
+# Sobe PostgreSQL, Redis, a migração (roda e sai), a API e o site. Cada serviço
+# espera o anterior ficar saudável (depends_on + healthcheck).
+#
+# Portas no host (escolhidas para NÃO colidir com `pnpm dev`, 3000/3001, nem com
+# bancos locais, 5432/5433/5533). Mude pelo .env ou pelo ambiente:
+#   site  http://localhost:4000   (WEB_PORTA)
+#   API   http://localhost:4001   (API_PORTA)  → /v1/health/live
+#   banco localhost:5544          (POSTGRES_PORTA)
+#   redis localhost:6390          (REDIS_PORTA)
+#
+# Configuração só por variável de ambiente (as mesmas imagens servem o Railway).
+# Os valores padrão abaixo são DESCARTÁVEIS e só valem neste compose local; o
+# modelo documentado está em .env.example (seção "Docker Compose"). Para o
+# ambiente publicado, os segredos vêm do cofre do provedor — nunca daqui.
+#
+# O endereço da API que o NAVEGADOR usa é gravado no pacote do site na
+# construção (NEXT_PUBLIC_API_URL): mudou a porta da API, rode `up --build`.
+name: simpleclick-compose
 
 services:
-  traefik:
-    extends: { <<: *base, service: traefik }
-    profiles: !reset []
-  postgres-dev:
-    extends: { <<: *base, service: postgres-dev }
-    profiles: !reset []
-  redis:
-    extends: { <<: *base, service: redis }
-    profiles: !reset []
-  api:
-    extends: { <<: *base, service: api }
-    profiles: !reset []
-  web:
-    extends: { <<: *base, service: web }
-    profiles: !reset []
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USUARIO:-sc_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_SENHA:-dono-local-Zq7vK2mXp9Lw4Rt}
+      POSTGRES_DB: ${POSTGRES_BANCO:-simpleclick}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      - "${POSTGRES_PORTA:-5544}:5432"
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -q']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
 
-networks:
-  borda:
-    driver: bridge
-  dados:
-    driver: bridge
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "${REDIS_PORTA:-6390}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Roda as migrações com a credencial dona do banco e sai (código 0). É a
+  # imagem da API: ela já carrega packages/database (SQL + aplicador).
+  migrar:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: simpleclick-api:compose
+    restart: "no"
+    command: ["node", "packages/database/src/migrate.ts", "aplicar"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SENHA_BANCO_MIGRADOR: ${SENHA_BANCO_MIGRADOR:-migrador-local-Hn3Bv8Yc5Jd1Qs}
+      SENHA_BANCO_APLICACAO: ${SENHA_BANCO_APLICACAO:-aplicacao-local-Fx6Wg2Tm9Kp4Ue}
+      SENHA_BANCO_ADMINISTRACAO: ${SENHA_BANCO_ADMINISTRACAO:-administracao-local-Rb7Nj3Vz8Cq5Ly}
+      DATABASE_URL_DIRETA: postgresql://${POSTGRES_USUARIO:-sc_owner}:${POSTGRES_SENHA:-dono-local-Zq7vK2mXp9Lw4Rt}@postgres:5432/${POSTGRES_BANCO:-simpleclick}
+
+  api:
+    image: simpleclick-api:compose
+    restart: unless-stopped
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://sc_app:${SENHA_BANCO_APLICACAO:-aplicacao-local-Fx6Wg2Tm9Kp4Ue}@postgres:5432/${POSTGRES_BANCO:-simpleclick}
+      DATABASE_URL_ADMINISTRACAO: postgresql://sc_admin:${SENHA_BANCO_ADMINISTRACAO:-administracao-local-Rb7Nj3Vz8Cq5Ly}@postgres:5432/${POSTGRES_BANCO:-simpleclick}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-jwt-local-Kd8Pq2Wm5Xv9Bn3Zt7Lc4Rh6Ys1Fj0Ag}
+      SEGREDO_DE_REVALIDACAO: ${SEGREDO_DE_REVALIDACAO:-revalida-local-Qw3Er7Ty2Ui9Op5As8Df4Gh1Jk6Lz}
+      CHAVE_CIFRA_TOTP: ${CHAVE_CIFRA_TOTP:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      ORIGENS_PERMITIDAS: http://localhost:${WEB_PORTA:-4000},http://localhost:${API_PORTA:-4001}
+      URL_DO_SITE: http://localhost:${WEB_PORTA:-4000}
+    ports:
+      - "${API_PORTA:-4001}:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:${API_PORTA:-4001}
+    image: simpleclick-web:compose
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PORT: "3000"
+      URL_DO_SITE: http://localhost:${WEB_PORTA:-4000}
+    ports:
+      - "${WEB_PORTA:-4000}:3000"
 
 volumes:
-  dados-postgres-dev:
-    driver: local
+  dados-postgres:
