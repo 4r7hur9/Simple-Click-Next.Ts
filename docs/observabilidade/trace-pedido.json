@@ -1,0 +1,4279 @@
+{
+ "data": [
+  {
+   "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+   "spans": [
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "53c1618ef150a9c8",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "d25fd26b468e256a"
+      }
+     ],
+     "startTime": 1795137940697000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "7874c4a5db056fae",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5534b0e6ff0ebe93"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 438,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "f7d375deabfa0755",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ee0f5eaef6ae8a8d"
+      }
+     ],
+     "startTime": 1795137940671000,
+     "duration": 18,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4597eff0ba1f488f",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "a30c15ef0cc671c1"
+      }
+     ],
+     "startTime": 1795137940684000,
+     "duration": 886,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"store_hour_exceptions\".\"id\", \"app\".\"store_hour_exceptions\".\"on_date\", \"app\".\"store_hour_exceptions\".\"is_closed\", \"app\".\"store_hour_exceptions\".\"opens_at\", \"app\".\"store_hour_exceptions\".\"closes_at\", \"app\".\"store_hour_exceptions\".\"reason\" FROM \"app\".\"store_hour_exceptions\" WHERE (\"app\".\"store_hour_exceptions\".\"on_date\" >= $1 AND \"app\".\"store_hour_exceptions\".\"on_date\" <= $2) ORDER BY \"app\".\"store_hour_exceptions\".\"on_date\" ASC OFFSET $3"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5f6af6d6a8c129e5",
+     "operationName": "pedido.criar",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 8955,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "simpleclick-api"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "67a8407b37323c32",
+     "operationName": "prisma:client:commit_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ac640313afa121ba"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 319,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -1.014667ms"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "f2be095501951cec",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e45cc4b2768ec150"
+      }
+     ],
+     "startTime": 1795137940665000,
+     "duration": 488,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4e13a424a41e0083",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ee0f5eaef6ae8a8d"
+      }
+     ],
+     "startTime": 1795137940671000,
+     "duration": 676,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"cart_items\".\"id\", \"app\".\"cart_items\".\"product_id\", \"app\".\"cart_items\".\"variant_id\", \"app\".\"cart_items\".\"quantity\", \"app\".\"cart_items\".\"notes\", \"app\".\"cart_items\".\"options\" FROM \"app\".\"cart_items\" WHERE \"app\".\"cart_items\".\"cart_id\" = $1 ORDER BY \"app\".\"cart_items\".\"created_at\" ASC OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "aac46d4a0ee16226",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "b8af1848b76129e3"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 19,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "d25fd26b468e256a",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940697000,
+     "duration": 503,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "a7caddb5cb6fa829",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "b3c4fe66316eb7fd"
+      }
+     ],
+     "startTime": 1795137940662000,
+     "duration": 496,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT set_config('app.store_id',    $1,       true),\n           set_config('app.user_id',     $2,    true),\n           set_config('app.role',        $3,              true),\n           set_config('app.order_token', $4, true),\n           set_config('app.checkout_key', $5, true),\n           set_config('app.cart_session', $6, true)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "cf36a971c4b27fe0",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e45cc4b2768ec150"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 402,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "e45cc4b2768ec150",
+     "operationName": "prisma:client:transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "fb32c6091e8619ed"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 1627,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5e8521e974584bab",
+     "operationName": "prisma:client:start_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5534b0e6ff0ebe93"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 271,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "631daac0081d0c55",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4d51d35bd0612f45"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 328,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT set_config('app.store_id',    $1,       true),\n           set_config('app.user_id',     $2,    true),\n           set_config('app.role',        $3,              true),\n           set_config('app.order_token', $4, true),\n           set_config('app.checkout_key', $5, true),\n           set_config('app.cart_session', $6, true)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "170bdb236f1afba5",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "2c62627faaf41b8c"
+      }
+     ],
+     "startTime": 1795137940682000,
+     "duration": 15,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2c62627faaf41b8c",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940682000,
+     "duration": 925,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "87181193bce86bb1",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ad8dcba3e3776863"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 9,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ee0f5eaef6ae8a8d",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940671000,
+     "duration": 791,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1a4a8e2083e1922c",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940676000,
+     "duration": 1037,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "7a231c6382de0b29",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5c98dd0d94059371"
+      }
+     ],
+     "startTime": 1795137940677000,
+     "duration": 638,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"store_hour_exceptions\".\"id\", \"app\".\"store_hour_exceptions\".\"on_date\", \"app\".\"store_hour_exceptions\".\"is_closed\", \"app\".\"store_hour_exceptions\".\"opens_at\", \"app\".\"store_hour_exceptions\".\"closes_at\", \"app\".\"store_hour_exceptions\".\"reason\" FROM \"app\".\"store_hour_exceptions\" WHERE (\"app\".\"store_hour_exceptions\".\"on_date\" >= $1 AND \"app\".\"store_hour_exceptions\".\"on_date\" <= $2) ORDER BY \"app\".\"store_hour_exceptions\".\"on_date\" ASC OFFSET $3"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "777a027f7df306ba",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940683000,
+     "duration": 1252,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "d4f977aab59d3521",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "70d3b71e132a5fb3"
+      }
+     ],
+     "startTime": 1795137940685000,
+     "duration": 754,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"stores\".\"id\", \"app\".\"stores\".\"slug\", \"app\".\"stores\".\"name\", \"app\".\"stores\".\"vertical_code\", \"app\".\"stores\".\"timezone\", \"app\".\"stores\".\"currency\", \"app\".\"stores\".\"fulfillment_modes\", \"app\".\"stores\".\"street\", \"app\".\"stores\".\"number\", \"app\".\"stores\".\"complement\", \"app\".\"stores\".\"neighborhood\", \"app\".\"stores\".\"city\", \"app\".\"stores\".\"uf\" FROM \"app\".\"stores\" WHERE 1=1 LIMIT $1 OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "9a22f4dedb6f43e5",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "eb96335b4c2a878c"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 190,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "RELEASE SAVEPOINT criar_pedido_idempotente"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "600dc550083ec36b",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ed18755827e82223"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 1747,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "INSERT INTO \"app\".\"order_contacts\" (\"order_id\",\"store_id\",\"name\",\"phone_e164\",\"email\",\"street\",\"number\",\"complement\",\"neighborhood\",\"city\",\"uf\",\"zip\",\"created_at\",\"updated_at\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING \"app\".\"order_contacts\".\"order_id\", \"app\".\"order_contacts\".\"store_id\", \"app\".\"order_contacts\".\"name\", \"app\".\"order_contacts\".\"phone_e164\", \"app\".\"order_contacts\".\"phone_hmac\", \"app\".\"order_contacts\".\"email\", \"app\".\"order_contacts\".\"doc_number\", \"app\".\"order_contacts\".\"recipient_name\", \"app\".\"order_contacts\".\"street\", \"app\".\"order_contacts\".\"number\", \"app\".\"order_contacts\".\"complement\", \"app\".\"order_contacts\".\"neighborhood\", \"app\".\"order_contacts\".\"city\", \"app\".\"order_contacts\".\"uf\", \"app\".\"order_contacts\".\"zip\", \"app\".\"order_contacts\".\"reference_point\", \"app\".\"order_contacts\".\"lat\", \"app\".\"order_contacts\".\"lng\", \"app\".\"order_contacts\".\"anonymized_at\", \"app\".\"order_contacts\".\"created_at\", \"app\".\"order_contacts\".\"updated_at\""
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8720bfe8dc6e2334",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "72d4d47d64d2d7dc"
+      }
+     ],
+     "startTime": 1795137940696000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "a30c15ef0cc671c1",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940684000,
+     "duration": 1050,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "38b7b18e51ac1c6b",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940687000,
+     "duration": 568,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ad8dcba3e3776863",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 377,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "e71ee1615e49439a",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "41b96ade28181d0d"
+      }
+     ],
+     "startTime": 1795137940671000,
+     "duration": 465,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"carts\".\"id\" FROM \"app\".\"carts\" WHERE (\"app\".\"carts\".\"store_id\" = $1 AND \"app\".\"carts\".\"session_token\" = $2 AND \"app\".\"carts\".\"converted_at\" IS NULL) LIMIT $3 OFFSET $4"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -943.355µs"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "25b06578b4931025",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "1a4a8e2083e1922c"
+      }
+     ],
+     "startTime": 1795137940676000,
+     "duration": 118,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8c008a3dfbfcbe02",
+     "operationName": "prisma:client:start_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e45cc4b2768ec150"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 268,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2538105d98ab70f2",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "cf36a971c4b27fe0"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 12,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "0f5140b33209e5f6",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "9080901cc67b454a"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "31f280f8b6e8a513",
+     "operationName": "prisma:client:commit_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940698000,
+     "duration": 363,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -14.637625ms"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "0521e50f781f3498",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "b3c4fe66316eb7fd"
+      }
+     ],
+     "startTime": 1795137940662000,
+     "duration": 21,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "b3c4fe66316eb7fd",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ac640313afa121ba"
+      }
+     ],
+     "startTime": 1795137940662000,
+     "duration": 637,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1b92a9314f41a734",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "777a027f7df306ba"
+      }
+     ],
+     "startTime": 1795137940683000,
+     "duration": 1005,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"store_hours\".\"id\", \"app\".\"store_hours\".\"weekday\", \"app\".\"store_hours\".\"opens_at\", \"app\".\"store_hours\".\"closes_at\" FROM \"app\".\"store_hours\" WHERE \"app\".\"store_hours\".\"is_closed\" = $1 ORDER BY \"app\".\"store_hours\".\"weekday\" ASC, \"app\".\"store_hours\".\"sort_order\" ASC OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "fb32c6091e8619ed",
+     "operationName": "POST /v1/vitrine/:apelido/pedidos",
+     "references": [],
+     "startTime": 1795137940661000,
+     "duration": 37166,
+     "tags": [
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 201
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/vitrine/:apelido/pedidos"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "simpleclick-api"
+      },
+      {
+       "key": "simpleclick.requisicao_id",
+       "type": "string",
+       "value": "e7b47206-fe30-4b4d-a35b-d1366ef7e78e"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "server"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "27941d0761d86491",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "b8af1848b76129e3"
+      }
+     ],
+     "startTime": 1795137940690000,
+     "duration": 1052,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "INSERT INTO \"app\".\"orders\" (\"store_id\",\"number\",\"code\",\"public_token\",\"store_customer_id\",\"status\",\"channel\",\"fulfillment\",\"payment_method\",\"change_for_cents\",\"pix_key_snapshot\",\"pix_holder_snapshot\",\"subtotal_cents\",\"items_total_cents\",\"coupon_discount_cents\",\"delivery_fee_cents\",\"delivery_fee_mode\",\"pickup_discount_cents\",\"discount_cents\",\"total_cents\",\"currency\",\"payment_status\",\"pix_key_type_snapshot\",\"customer_note\",\"idempotency_key\",\"updated_at\",\"store_timezone\",\"placed_at\",\"created_at\",\"print_count\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30) RETURNING \"app\".\"orders\".\"id\""
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -899.167µs"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2917c5cb593945c3",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5d7a4a6c91f7ef89"
+      }
+     ],
+     "startTime": 1795137940670000,
+     "duration": 15,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1b390b030e18bf93",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4600597ddcbaa430"
+      }
+     ],
+     "startTime": 1795137940678000,
+     "duration": 18,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "be9595a439c79a98",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ac640313afa121ba"
+      }
+     ],
+     "startTime": 1795137940663000,
+     "duration": 657,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5c98dd0d94059371",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940677000,
+     "duration": 879,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8fe2abeae68aad7e",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "acd67f70d6214a03"
+      }
+     ],
+     "startTime": 1795137940681000,
+     "duration": 17,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ec812836569f9825",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 545,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4325bbc30e877179",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "d25fd26b468e256a"
+      }
+     ],
+     "startTime": 1795137940697000,
+     "duration": 419,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT app.converter_carrinho($1::uuid, $2::uuid) AS convertido"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "0d664ee2f2cfd008",
+     "operationName": "prisma:client:commit_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e45cc4b2768ec150"
+      }
+     ],
+     "startTime": 1795137940665000,
+     "duration": 279,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "a7b701777b070647",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "49a0fe90d4026c0a"
+      }
+     ],
+     "startTime": 1795137940674000,
+     "duration": 554,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"product_prices\".\"id\", \"app\".\"product_prices\".\"product_id\", \"app\".\"product_prices\".\"kind\", \"app\".\"product_prices\".\"label\", \"app\".\"product_prices\".\"amount_cents\", \"app\".\"product_prices\".\"min_quantity\", \"app\".\"product_prices\".\"is_active\", \"app\".\"product_prices\".\"starts_at\", \"app\".\"product_prices\".\"ends_at\", \"app\".\"product_prices\".\"discount_kind\", \"app\".\"product_prices\".\"discount_value\" FROM \"app\".\"product_prices\" WHERE (\"app\".\"product_prices\".\"product_id\" IN ($1) AND \"app\".\"product_prices\".\"variant_id\" IS NULL) OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "a17861687ddfb1a5",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4600597ddcbaa430"
+      }
+     ],
+     "startTime": 1795137940678000,
+     "duration": 810,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"stores\".\"id\", \"app\".\"stores\".\"slug\", \"app\".\"stores\".\"name\", \"app\".\"stores\".\"vertical_code\", \"app\".\"stores\".\"timezone\", \"app\".\"stores\".\"currency\", \"app\".\"stores\".\"fulfillment_modes\", \"app\".\"stores\".\"street\", \"app\".\"stores\".\"number\", \"app\".\"stores\".\"complement\", \"app\".\"stores\".\"neighborhood\", \"app\".\"stores\".\"city\", \"app\".\"stores\".\"uf\" FROM \"app\".\"stores\" WHERE 1=1 LIMIT $1 OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1f2462ce57f92a4f",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "2c62627faaf41b8c"
+      }
+     ],
+     "startTime": 1795137940682000,
+     "duration": 755,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"stores\".\"id\", \"app\".\"stores\".\"timezone\", \"app\".\"stores\".\"open_state\", \"app\".\"stores\".\"temporarily_closed_until\" FROM \"app\".\"stores\" WHERE 1=1 LIMIT $1 OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c64ca93a21b5cc77",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "72d4d47d64d2d7dc"
+      }
+     ],
+     "startTime": 1795137940696000,
+     "duration": 557,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT app.enfileirar_impressao($1::uuid)\n     WHERE app.store_feature_enabled('auto_print')"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "aa36a6767036c8dd",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "1a4a8e2083e1922c"
+      }
+     ],
+     "startTime": 1795137940676000,
+     "duration": 635,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"store_hours\".\"id\", \"app\".\"store_hours\".\"weekday\", \"app\".\"store_hours\".\"opens_at\", \"app\".\"store_hours\".\"closes_at\" FROM \"app\".\"store_hours\" WHERE \"app\".\"store_hours\".\"is_closed\" = $1 ORDER BY \"app\".\"store_hours\".\"weekday\" ASC, \"app\".\"store_hours\".\"sort_order\" ASC OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "fcdf9bfe7c63b65e",
+     "operationName": "prisma:client:start_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ac640313afa121ba"
+      }
+     ],
+     "startTime": 1795137940662000,
+     "duration": 436,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c72cf69a2500aa85",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "2afad6f9a0d3a9fe"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 5,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5355e274408ea5ea",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "acd67f70d6214a03"
+      }
+     ],
+     "startTime": 1795137940681000,
+     "duration": 768,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT * FROM app.checkout_settings()"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ea8231071c49994e",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "38b7b18e51ac1c6b"
+      }
+     ],
+     "startTime": 1795137940687000,
+     "duration": 17,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "3140c4180543920c",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "9080901cc67b454a"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 362,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT * FROM app.store_whatsapp()"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "9080901cc67b454a",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 438,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4bcf47998feddce5",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "31f280f8b6e8a513"
+      }
+     ],
+     "startTime": 1795137940698000,
+     "duration": 322,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "COMMIT"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "9927f2f698cc7049",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "2afad6f9a0d3a9fe"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 492,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"stores\".\"id\", \"app\".\"stores\".\"timezone\" FROM \"app\".\"stores\" WHERE 1=1 LIMIT $1 OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "f016ed27f1a0a225",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "70d3b71e132a5fb3"
+      }
+     ],
+     "startTime": 1795137940685000,
+     "duration": 21,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "63d326c663bcac21",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ec812836569f9825"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 449,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"orders\".\"id\", \"app\".\"orders\".\"number\", \"app\".\"orders\".\"code\", \"app\".\"orders\".\"public_token\", \"app\".\"orders\".\"status\" FROM \"app\".\"orders\" WHERE (\"app\".\"orders\".\"store_id\" = $1 AND \"app\".\"orders\".\"idempotency_key\" = $2) LIMIT $3 OFFSET $4"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "71d9baf75940cf9d",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ec1a13d8e67066d3"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 11,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "15da19bedddd25df",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ed18755827e82223"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ec1a13d8e67066d3",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 243,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2a4ba3f5e1465d2f",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "c6ebde56af104a09"
+      }
+     ],
+     "startTime": 1795137940668000,
+     "duration": 629,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT id FROM app.store_customers\n     WHERE store_id = $1::uuid AND identity_id = $2::uuid\n  "
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2ddfa0e10bcb2b23",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "eab05a01b78b97f2"
+      }
+     ],
+     "startTime": 1795137940672000,
+     "duration": 14,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1066eb5410f1b2ac",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ec812836569f9825"
+      }
+     ],
+     "startTime": 1795137940688000,
+     "duration": 18,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5d7a4a6c91f7ef89",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940670000,
+     "duration": 647,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "eb96335b4c2a878c",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 266,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "87e90bae3ab93714",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "67a8407b37323c32"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 280,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "COMMIT"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c6ebde56af104a09",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5534b0e6ff0ebe93"
+      }
+     ],
+     "startTime": 1795137940668000,
+     "duration": 718,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c7c2681932c17828",
+     "operationName": "prisma:client:commit_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5534b0e6ff0ebe93"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 310,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -1.53798ms"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "e592367468536767",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 576,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "70d3b71e132a5fb3",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940685000,
+     "duration": 1330,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "22f06b031b1695c5",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "7874c4a5db056fae"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 14,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4d51d35bd0612f45",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 416,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "eab05a01b78b97f2",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940672000,
+     "duration": 723,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "dae878457977762e",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4c8706b5b4eb6339"
+      }
+     ],
+     "startTime": 1795137940675000,
+     "duration": 8,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "0ab0262549fc3656",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "700263a56800618d"
+      }
+     ],
+     "startTime": 1795137940680000,
+     "duration": 26,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "6f8eee597b0902ba",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "700263a56800618d"
+      }
+     ],
+     "startTime": 1795137940680000,
+     "duration": 738,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT * FROM app.storefront_settings()"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ed18755827e82223",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 1907,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8dc5d68bccdad0b8",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940695000,
+     "duration": 1482,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c18ae763ef52ecef",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5d7a4a6c91f7ef89"
+      }
+     ],
+     "startTime": 1795137940670000,
+     "duration": 527,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"orders\".\"id\", \"app\".\"orders\".\"public_token\" FROM \"app\".\"orders\" WHERE (\"app\".\"orders\".\"store_id\" = $1 AND \"app\".\"orders\".\"idempotency_key\" = $2) LIMIT $3 OFFSET $4"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "05820b54b86a3f62",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "a30c15ef0cc671c1"
+      }
+     ],
+     "startTime": 1795137940684000,
+     "duration": 37,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4dca824b17950ca4",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940693000,
+     "duration": 1742,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "e32578fdff7a1990",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "49a0fe90d4026c0a"
+      }
+     ],
+     "startTime": 1795137940674000,
+     "duration": 18,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "13881c6c49a07975",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "be9595a439c79a98"
+      }
+     ],
+     "startTime": 1795137940663000,
+     "duration": 563,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT * FROM app.resolve_store($1)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8c2b2fcb5ce274ff",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "c6ebde56af104a09"
+      }
+     ],
+     "startTime": 1795137940668000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "23993894745e64ff",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "41b96ade28181d0d"
+      }
+     ],
+     "startTime": 1795137940670000,
+     "duration": 11,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4c8706b5b4eb6339",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940675000,
+     "duration": 932,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4600597ddcbaa430",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940678000,
+     "duration": 1812,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c5731284e0d30a38",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "be9595a439c79a98"
+      }
+     ],
+     "startTime": 1795137940663000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "ac640313afa121ba",
+     "operationName": "prisma:client:transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "fb32c6091e8619ed"
+      }
+     ],
+     "startTime": 1795137940662000,
+     "duration": 2290,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "dd4d6cc185339381",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "cf36a971c4b27fe0"
+      }
+     ],
+     "startTime": 1795137940664000,
+     "duration": 316,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT set_config('app.store_id',    $1,       true),\n           set_config('app.user_id',     $2,    true),\n           set_config('app.role',        $3,              true),\n           set_config('app.order_token', $4, true),\n           set_config('app.checkout_key', $5, true),\n           set_config('app.cart_session', $6, true)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "df03bc343fdb74ed",
+     "operationName": "prisma:client:start_transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 299,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "41b96ade28181d0d",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940670000,
+     "duration": 578,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "2afad6f9a0d3a9fe",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 547,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4d9b968ece8497fd",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "777a027f7df306ba"
+      }
+     ],
+     "startTime": 1795137940683000,
+     "duration": 36,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "b8af1848b76129e3",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 1254,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "a35fe0c29b819339",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "664f9c4ea42bd13e"
+      }
+     ],
+     "startTime": 1795137940667000,
+     "duration": 17,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "6d142b37f3d0ed05",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "38b7b18e51ac1c6b"
+      }
+     ],
+     "startTime": 1795137940687000,
+     "duration": 475,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT * FROM app.storefront_settings()"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "53319905965a346e",
+     "operationName": "prisma:client:transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "fb32c6091e8619ed"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 29088,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "234c5a497571ae24",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e592367468536767"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 472,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"products\".\"id\", \"app\".\"products\".\"name\", \"app\".\"products\".\"display_price_cents\", \"app\".\"products\".\"is_available\", \"app\".\"products\".\"status\", \"app\".\"products\".\"unavailable_until\", \"app\".\"products\".\"sale_windows\" FROM \"app\".\"products\" WHERE (\"app\".\"products\".\"id\" IN ($1) AND \"app\".\"products\".\"deleted_at\" IS NULL) OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "85ce644c8fdec6e6",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4c8706b5b4eb6339"
+      }
+     ],
+     "startTime": 1795137940675000,
+     "duration": 831,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"stores\".\"id\", \"app\".\"stores\".\"timezone\", \"app\".\"stores\".\"open_state\", \"app\".\"stores\".\"temporarily_closed_until\" FROM \"app\".\"stores\" WHERE 1=1 LIMIT $1 OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "700263a56800618d",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940680000,
+     "duration": 884,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "034f66577f0cc44a",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ec1a13d8e67066d3"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 185,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SAVEPOINT criar_pedido_idempotente"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "62e7e2b2fe3bf840",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "ad8dcba3e3776863"
+      }
+     ],
+     "startTime": 1795137940689000,
+     "duration": 316,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT app.proximo_numero_de_pedido($1::uuid)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "1c5e404b5d12dab4",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "7874c4a5db056fae"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 351,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT set_config('app.store_id',    $1,       true),\n           set_config('app.user_id',     $2,    true),\n           set_config('app.role',        $3,              true),\n           set_config('app.order_token', $4, true),\n           set_config('app.checkout_key', $5, true),\n           set_config('app.cart_session', $6, true)"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "664f9c4ea42bd13e",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5534b0e6ff0ebe93"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 1274,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5133ec1684812384",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4dca824b17950ca4"
+      }
+     ],
+     "startTime": 1795137940693000,
+     "duration": 19,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "d56274011d485099",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4dca824b17950ca4"
+      }
+     ],
+     "startTime": 1795137940693000,
+     "duration": 1565,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "INSERT INTO \"app\".\"order_items\" (\"store_id\",\"order_id\",\"product_id\",\"variant_id\",\"product_name\",\"variant_name\",\"sku_snapshot\",\"quantity\",\"unit_price_cents\",\"compare_at_cents\",\"price_kind_snapshot\",\"wholesale_min_quantity\",\"wholesale_discount_kind\",\"wholesale_discount_value\",\"wholesale_label\",\"attributes_snapshot\",\"options_total_cents\",\"line_total_cents\",\"note\",\"sort_order\",\"created_at\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING \"app\".\"order_items\".\"id\""
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "72d4d47d64d2d7dc",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5f6af6d6a8c129e5"
+      }
+     ],
+     "startTime": 1795137940696000,
+     "duration": 640,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "4341a36087f3a58a",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "f2be095501951cec"
+      }
+     ],
+     "startTime": 1795137940665000,
+     "duration": 13,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "49a0fe90d4026c0a",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940674000,
+     "duration": 654,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "46e68dc2b3c32f72",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "eb96335b4c2a878c"
+      }
+     ],
+     "startTime": 1795137940691000,
+     "duration": 14,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "909617a3669a4275",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "8dc5d68bccdad0b8"
+      }
+     ],
+     "startTime": 1795137940695000,
+     "duration": 14,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "b44ace84f8461a55",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "8dc5d68bccdad0b8"
+      }
+     ],
+     "startTime": 1795137940695000,
+     "duration": 1352,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "INSERT INTO \"app\".\"order_status_history\" (\"store_id\",\"order_id\",\"from_status\",\"to_status\",\"actor_role\",\"occurred_at\",\"created_at\") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING \"app\".\"order_status_history\".\"id\", \"app\".\"order_status_history\".\"store_id\", \"app\".\"order_status_history\".\"order_id\", \"app\".\"order_status_history\".\"from_status\", \"app\".\"order_status_history\".\"to_status\", \"app\".\"order_status_history\".\"changed_by_identity_id\", \"app\".\"order_status_history\".\"actor_role\", \"app\".\"order_status_history\".\"reason\", \"app\".\"order_status_history\".\"occurred_at\", \"app\".\"order_status_history\".\"created_at\""
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "5534b0e6ff0ebe93",
+     "operationName": "prisma:client:transaction",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "fb32c6091e8619ed"
+      }
+     ],
+     "startTime": 1795137940666000,
+     "duration": 3234,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "439a399c443b2edf",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "e592367468536767"
+      }
+     ],
+     "startTime": 1795137940673000,
+     "duration": 17,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "278493de6c1d3bbf",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "5c98dd0d94059371"
+      }
+     ],
+     "startTime": 1795137940677000,
+     "duration": 53,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "acd67f70d6214a03",
+     "operationName": "prisma:client:operation",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "53319905965a346e"
+      }
+     ],
+     "startTime": 1795137940681000,
+     "duration": 898,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "c5e18e74e3f7e5a9",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "0d664ee2f2cfd008"
+      }
+     ],
+     "startTime": 1795137940665000,
+     "duration": 252,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "COMMIT"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "80df8d586d5bf49a",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "664f9c4ea42bd13e"
+      }
+     ],
+     "startTime": 1795137940667000,
+     "duration": 1138,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    INSERT INTO app.store_customers (store_id, identity_id, display_name, phone_e164)\n    VALUES ($1::uuid, $2::uuid, $3, $4)\n    ON CONFLICT (store_id, identity_id) WHERE identity_id IS NOT NULL DO NOTHING\n    RETURNING id\n  "
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -931.771µs"
+     ]
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "87d4c086fbed2df7",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "f2be095501951cec"
+      }
+     ],
+     "startTime": 1795137940665000,
+     "duration": 409,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "\n    SELECT email_norm, display_name, phone_e164\n      FROM app.identities\n     WHERE id = app.current_user_id() AND anonymized_at IS NULL"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "23f087adf26c51c6",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "c7c2681932c17828"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 268,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "COMMIT"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "42e061bf418383a6",
+     "operationName": "prisma:client:serialize",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4d51d35bd0612f45"
+      }
+     ],
+     "startTime": 1795137940669000,
+     "duration": 12,
+     "tags": [
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "e19c5d8f3e29f3a8",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "eab05a01b78b97f2"
+      }
+     ],
+     "startTime": 1795137940672000,
+     "duration": 626,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"cart_items\".\"id\", \"app\".\"cart_items\".\"product_id\", \"app\".\"cart_items\".\"variant_id\", \"app\".\"cart_items\".\"quantity\", \"app\".\"cart_items\".\"options\" FROM \"app\".\"cart_items\" WHERE \"app\".\"cart_items\".\"cart_id\" = $1 ORDER BY \"app\".\"cart_items\".\"created_at\" ASC OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "7c73cf41def485be",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "4600597ddcbaa430"
+      }
+     ],
+     "startTime": 1795137940679000,
+     "duration": 736,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"vertical_presets\".\"code\", \"app\".\"vertical_presets\".\"labels\", \"app\".\"vertical_presets\".\"blocos\", \"app\".\"vertical_presets\".\"is_food\" FROM \"app\".\"vertical_presets\" WHERE \"app\".\"vertical_presets\".\"code\" IN ($1) OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+     "spanID": "8c009bdaa0e7bf32",
+     "operationName": "prisma:client:db_query",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "da86827e7814f978fb064eb3ded3c4bb",
+       "spanID": "70d3b71e132a5fb3"
+      }
+     ],
+     "startTime": 1795137940686000,
+     "duration": 373,
+     "tags": [
+      {
+       "key": "db.query.text",
+       "type": "string",
+       "value": "SELECT \"app\".\"vertical_presets\".\"code\", \"app\".\"vertical_presets\".\"labels\", \"app\".\"vertical_presets\".\"blocos\", \"app\".\"vertical_presets\".\"is_food\" FROM \"app\".\"vertical_presets\" WHERE \"app\".\"vertical_presets\".\"code\" IN ($1) OFFSET $2"
+      },
+      {
+       "key": "db.system.name",
+       "type": "string",
+       "value": "postgresql"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "prisma"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": [
+      "clock skew adjustment disabled; not applying calculated delta of -521.209µs"
+     ]
+    }
+   ],
+   "processes": {
+    "p1": {
+     "serviceName": "simpleclick-api",
+     "tags": [
+      {
+       "key": "deployment.environment.name",
+       "type": "string",
+       "value": "test"
+      }
+     ]
+    }
+   },
+   "warnings": null
+  }
+ ]
+}

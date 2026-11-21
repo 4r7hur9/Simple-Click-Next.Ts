@@ -1,0 +1,32 @@
+# HELP http_requests_total Requisições HTTP atendidas, por método, rota (molde) e status.
+# TYPE http_requests_total counter
+http_requests_total{method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_requests_total{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+# HELP http_request_duration_seconds Duração das requisições HTTP em segundos, por método, rota (molde) e status.
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.005",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 0
+http_request_duration_seconds_bucket{le="0.01",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 0
+http_request_duration_seconds_bucket{le="0.025",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 5
+http_request_duration_seconds_bucket{le="0.05",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 5
+http_request_duration_seconds_bucket{le="0.1",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 5
+http_request_duration_seconds_bucket{le="0.25",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="0.5",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="1",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="2.5",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="5",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="+Inf",method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_sum{method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 0.325691791
+http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/carrinho/itens",status_code="201"} 6
+http_request_duration_seconds_bucket{le="0.005",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 0
+http_request_duration_seconds_bucket{le="0.01",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 0
+http_request_duration_seconds_bucket{le="0.025",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 0
+http_request_duration_seconds_bucket{le="0.05",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 5
+http_request_duration_seconds_bucket{le="0.1",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="0.25",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="0.5",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="1",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="2.5",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="5",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_bucket{le="+Inf",method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6
+http_request_duration_seconds_sum{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 0.276174458
+http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code="201"} 6

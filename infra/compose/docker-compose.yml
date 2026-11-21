@@ -5,6 +5,7 @@
 #   app    site e API
 #   test   banco de teste, efêmero e descartável (AC-003)
 #   print  emulador de impressora térmica
+#   obs    Prometheus (métricas RED + SLO) e Jaeger (traces) — card #139
 #
 # A topologia local é a MESMA que vai para produção: dois nomes sob um domínio
 # comum (app.localhost e api.localhost), servidos com TLS. Isso não é capricho —
@@ -248,6 +249,55 @@ services:
       retries: 6
       start_period: 5s
 
+  # --------------------------------------------------------------------------
+  # Observabilidade (card #139): `docker compose --profile obs up -d`.
+  # Tudo publica só em 127.0.0.1 e numa rede própria, sem acesso aos dados.
+  # A API roda no host (pnpm dev); ver docs/observabilidade.md.
+  # --------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [obs]
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      # 30 dias cobrem a janela de 28 dias do SLO.
+      - --storage.tsdb.retention.time=30d
+      # Sem /-/reload nem API de administração: nada muda o servidor de fora.
+    ports:
+      - "127.0.0.1:${PORTA_PROMETHEUS:-9090}:9090"
+    extra_hosts:
+      # Alcança a API que roda no host (Linux precisa disto; Docker Desktop já tem).
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./regras-slo.yml:/etc/prometheus/regras-slo.yml:ro
+      - dados-prometheus:/prometheus
+    configs:
+      - source: alvos-da-api
+        target: /etc/prometheus/alvos/api.yml
+    networks:
+      - observacao
+
+  jaeger:
+    image: jaegertracing/jaeger:2.10.0
+    profiles: [obs]
+    restart: unless-stopped
+    ports:
+      # Interface do Jaeger e receptor OTLP/HTTP, só no loopback.
+      - "127.0.0.1:${PORTA_JAEGER_UI:-16686}:16686"
+      - "127.0.0.1:${PORTA_OTLP_HTTP:-4318}:4318"
+    networks:
+      - observacao
+
+configs:
+  # Alvo do Prometheus: a porta da API no host é configurável sem editar
+  # prometheus.yml.
+  alvos-da-api:
+    content: |
+      - targets: ["host.docker.internal:${PORTA_API_METRICAS:-3001}"]
+        labels:
+          servico: simpleclick-api
+
 networks:
   # Quem fala com o navegador.
   borda:
@@ -256,9 +306,15 @@ networks:
   # publicados por nome de host.
   dados:
     driver: bridge
+  # Prometheus e Jaeger: rede própria, sem acesso ao banco nem ao roteador.
+  observacao:
+    driver: bridge
 
 volumes:
   # Só o banco de desenvolvimento tem volume. O de teste é efêmero de propósito
   # (AC-003), então não aparece nesta lista.
   dados-postgres-dev:
+    driver: local
+  # Métricas do Prometheus (retenção de 30 dias).
+  dados-prometheus:
     driver: local

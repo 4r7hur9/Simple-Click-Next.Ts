@@ -1,0 +1,26 @@
+# Prometheus do perfil `obs` (card #139).
+#
+# Lê o /metrics da API que roda NO HOST (pnpm dev). O alvo vem do arquivo de
+# descoberta `alvos/api.yml`, que o compose gera com a porta de
+# PORTA_API_METRICAS (padrão 3001) — assim a porta muda sem editar este arquivo.
+#
+# Sem token (desenvolvimento): rode a API com METRICAS_ABERTAS=sim.
+# Com token: descomente `authorization` e monte o arquivo do token no serviço
+# prometheus (o token nunca entra neste arquivo nem no git).
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/regras-slo.yml
+
+scrape_configs:
+  - job_name: simpleclick-api
+    metrics_path: /metrics
+    # authorization:
+    #   type: Bearer
+    #   credentials_file: /etc/prometheus/segredos/metricas_token
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/alvos/api.yml

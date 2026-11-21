@@ -1,0 +1,123 @@
+traceID: da86827e7814f978fb064eb3ded3c4bb  (131 spans)
+- POST /v1/vitrine/:apelido/pedidos (37.2 ms) status=201 route=/v1/vitrine/:apelido/pedidos requisicao_id=e7b47206-fe30-4b4d-a35b-d1366ef7e78e
+  - prisma:client:transaction (2.3 ms)
+    - prisma:client:operation (0.6 ms)
+      - prisma:client:db_query (0.5 ms) sql=     SELECT set_config('app.store_id',    $1,       true),            
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:start_transaction (0.4 ms)
+    - prisma:client:operation (0.7 ms)
+      - prisma:client:db_query (0.6 ms) sql=SELECT * FROM app.resolve_store($1)
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:commit_transaction (0.3 ms)
+      - prisma:client:db_query (0.3 ms) sql=COMMIT
+  - prisma:client:transaction (1.6 ms)
+    - prisma:client:operation (0.4 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.3 ms) sql=     SELECT set_config('app.store_id',    $1,       true),            
+    - prisma:client:start_transaction (0.3 ms)
+    - prisma:client:operation (0.5 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.4 ms) sql=     SELECT email_norm, display_name, phone_e164       FROM app.identi
+    - prisma:client:commit_transaction (0.3 ms)
+      - prisma:client:db_query (0.3 ms) sql=COMMIT
+  - prisma:client:transaction (3.2 ms)
+    - prisma:client:operation (0.4 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.4 ms) sql=     SELECT set_config('app.store_id',    $1,       true),            
+    - prisma:client:start_transaction (0.3 ms)
+    - prisma:client:operation (1.3 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (1.1 ms) sql=     INSERT INTO app.store_customers (store_id, identity_id, display_n
+    - prisma:client:operation (0.7 ms)
+      - prisma:client:db_query (0.6 ms) sql=     SELECT id FROM app.store_customers      WHERE store_id = $1::uuid
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:commit_transaction (0.3 ms)
+      - prisma:client:db_query (0.3 ms) sql=COMMIT
+  - prisma:client:transaction (29.1 ms)
+    - prisma:client:operation (0.4 ms)
+      - prisma:client:db_query (0.3 ms) sql=     SELECT set_config('app.store_id',    $1,       true),            
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:start_transaction (0.3 ms)
+    - prisma:client:operation (0.6 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.5 ms) sql=SELECT "app"."orders"."id", "app"."orders"."public_token" FROM "app"."
+    - prisma:client:operation (0.6 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.5 ms) sql=SELECT "app"."carts"."id" FROM "app"."carts" WHERE ("app"."carts"."sto
+    - prisma:client:operation (0.8 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.7 ms) sql=SELECT "app"."cart_items"."id", "app"."cart_items"."product_id", "app"
+    - prisma:client:operation (0.7 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.6 ms) sql=SELECT "app"."cart_items"."id", "app"."cart_items"."product_id", "app"
+    - prisma:client:operation (0.6 ms)
+      - prisma:client:db_query (0.5 ms) sql=SELECT "app"."products"."id", "app"."products"."name", "app"."products
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:operation (0.5 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.5 ms) sql=SELECT "app"."stores"."id", "app"."stores"."timezone" FROM "app"."stor
+    - prisma:client:operation (0.7 ms)
+      - prisma:client:db_query (0.6 ms) sql=SELECT "app"."product_prices"."id", "app"."product_prices"."product_id
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:operation (0.9 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.8 ms) sql=SELECT "app"."stores"."id", "app"."stores"."timezone", "app"."stores".
+    - prisma:client:operation (1.0 ms)
+      - prisma:client:serialize (0.1 ms)
+      - prisma:client:db_query (0.6 ms) sql=SELECT "app"."store_hours"."id", "app"."store_hours"."weekday", "app".
+    - prisma:client:operation (0.9 ms)
+      - prisma:client:db_query (0.6 ms) sql=SELECT "app"."store_hour_exceptions"."id", "app"."store_hour_exception
+      - prisma:client:serialize (0.1 ms)
+    - prisma:client:operation (1.8 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.8 ms) sql=SELECT "app"."stores"."id", "app"."stores"."slug", "app"."stores"."nam
+      - prisma:client:db_query (0.7 ms) sql=SELECT "app"."vertical_presets"."code", "app"."vertical_presets"."labe
+    - prisma:client:operation (0.9 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.7 ms) sql=SELECT * FROM app.storefront_settings()
+    - prisma:client:operation (0.9 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.8 ms) sql=SELECT * FROM app.checkout_settings()
+    - prisma:client:operation (0.9 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.8 ms) sql=SELECT "app"."stores"."id", "app"."stores"."timezone", "app"."stores".
+    - prisma:client:operation (1.3 ms)
+      - prisma:client:db_query (1.0 ms) sql=SELECT "app"."store_hours"."id", "app"."store_hours"."weekday", "app".
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:operation (1.1 ms)
+      - prisma:client:db_query (0.9 ms) sql=SELECT "app"."store_hour_exceptions"."id", "app"."store_hour_exception
+      - prisma:client:serialize (0.0 ms)
+    - prisma:client:operation (1.3 ms)
+      - prisma:client:db_query (0.8 ms) sql=SELECT "app"."stores"."id", "app"."stores"."slug", "app"."stores"."nam
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.4 ms) sql=SELECT "app"."vertical_presets"."code", "app"."vertical_presets"."labe
+    - prisma:client:operation (0.6 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.5 ms) sql=SELECT * FROM app.storefront_settings()
+    - pedido.criar (9.0 ms)
+      - prisma:client:operation (0.5 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (0.4 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (0.2 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (1.3 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (0.3 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (1.9 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (1.7 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (1.5 ms)
+        - … 2 spans abaixo
+      - prisma:client:operation (0.6 ms)
+        - … 2 spans abaixo
+    - prisma:client:operation (0.4 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.4 ms) sql=SELECT * FROM app.store_whatsapp()
+    - prisma:client:operation (0.5 ms)
+      - prisma:client:serialize (0.0 ms)
+      - prisma:client:db_query (0.4 ms) sql=     SELECT app.converter_carrinho($1::uuid, $2::uuid) AS convertido
+    - prisma:client:commit_transaction (0.4 ms)
+      - prisma:client:db_query (0.3 ms) sql=COMMIT

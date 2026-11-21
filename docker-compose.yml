@@ -1,0 +1,42 @@
+# Compose da RAIZ — `docker compose up` sobe o ambiente local com 1 comando.
+#
+# Não duplica configuração: cada serviço ESTENDE o de infra/compose/docker-compose.yml
+# (imagem, portas, volumes, saúde, rótulos do Traefik). O que muda aqui é só
+# `profiles: !reset []`, para que o `up` sem argumentos suba o núcleo (roteador,
+# PostgreSQL, Redis) e os serviços de aplicação. Banco de teste, impressora e
+# observabilidade continuam opcionais: `docker compose --profile test up`.
+#
+# Sem segredos: as variáveis vêm de infra/compose/.env.compose (gerado por
+# `bash infra/scripts/setup.sh`, fora do git). O Compose lê esse arquivo pelo
+# `COMPOSE_ENV_FILES` / `--env-file`; o README mostra o comando exato.
+name: ${COMPOSE_PROJECT_NAME:-simpleclick}
+
+x-base: &base
+  file: infra/compose/docker-compose.yml
+
+services:
+  traefik:
+    extends: { <<: *base, service: traefik }
+    profiles: !reset []
+  postgres-dev:
+    extends: { <<: *base, service: postgres-dev }
+    profiles: !reset []
+  redis:
+    extends: { <<: *base, service: redis }
+    profiles: !reset []
+  api:
+    extends: { <<: *base, service: api }
+    profiles: !reset []
+  web:
+    extends: { <<: *base, service: web }
+    profiles: !reset []
+
+networks:
+  borda:
+    driver: bridge
+  dados:
+    driver: bridge
+
+volumes:
+  dados-postgres-dev:
+    driver: local

@@ -1,0 +1,43 @@
+# SLO de criação de pedido (card #139) — ver docs/observabilidade.md.
+#
+# "Boa" = criação válida que terminou com 2xx em até 1 s (bucket le="1").
+# "Válida" = POST /v1/vitrine/:apelido/pedidos sem 4xx (erro do cliente) e sem
+# conexão cancelada. Meta: 99% em 28 dias, ou seja, orçamento de erro de 1%.
+
+groups:
+  - name: slo-pedido-criar
+    interval: 30s
+    rules:
+      - record: slo:pedido_criar:razao_de_erro:5m
+        expr: 1 - (sum(rate(http_request_duration_seconds_bucket{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code=~"2..",le=~"1(\\.0)?"}[5m])) / sum(rate(http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code!~"4..|cancelada"}[5m])))
+      - record: slo:pedido_criar:razao_de_erro:30m
+        expr: 1 - (sum(rate(http_request_duration_seconds_bucket{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code=~"2..",le=~"1(\\.0)?"}[30m])) / sum(rate(http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code!~"4..|cancelada"}[30m])))
+      - record: slo:pedido_criar:razao_de_erro:1h
+        expr: 1 - (sum(rate(http_request_duration_seconds_bucket{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code=~"2..",le=~"1(\\.0)?"}[1h])) / sum(rate(http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code!~"4..|cancelada"}[1h])))
+      - record: slo:pedido_criar:razao_de_erro:6h
+        expr: 1 - (sum(rate(http_request_duration_seconds_bucket{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code=~"2..",le=~"1(\\.0)?"}[6h])) / sum(rate(http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code!~"4..|cancelada"}[6h])))
+      # O SLO em si: a janela de 28 dias.
+      - record: slo:pedido_criar:atendimento:28d
+        expr: sum(increase(http_request_duration_seconds_bucket{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code=~"2..",le=~"1(\\.0)?"}[28d])) / sum(increase(http_request_duration_seconds_count{method="POST",route="/v1/vitrine/:apelido/pedidos",status_code!~"4..|cancelada"}[28d]))
+      # Fração do orçamento (1%) já gasta: 1 = acabou.
+      - record: slo:pedido_criar:orcamento_gasto:28d
+        expr: (1 - slo:pedido_criar:atendimento:28d) / 0.01
+
+  - name: slo-pedido-criar-alertas
+    rules:
+      # Queima rápida: 14,4x o ritmo permitido gasta 2% do orçamento em 1 h.
+      - alert: PedidoCriarQueimaRapida
+        expr: slo:pedido_criar:razao_de_erro:1h > (14.4 * 0.01) and slo:pedido_criar:razao_de_erro:5m > (14.4 * 0.01)
+        for: 2m
+        labels:
+          severidade: pagina
+        annotations:
+          resumo: "Criação de pedido gastando o orçamento de erro 14,4x mais rápido que o permitido"
+      # Queima lenta: 6x o ritmo gasta 5% do orçamento em 6 h.
+      - alert: PedidoCriarQueimaLenta
+        expr: slo:pedido_criar:razao_de_erro:6h > (6 * 0.01) and slo:pedido_criar:razao_de_erro:30m > (6 * 0.01)
+        for: 15m
+        labels:
+          severidade: ticket
+        annotations:
+          resumo: "Criação de pedido gastando o orçamento de erro 6x mais rápido que o permitido"
