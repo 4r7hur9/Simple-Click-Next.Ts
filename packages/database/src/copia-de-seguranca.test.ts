@@ -34,11 +34,36 @@ import {
   ensaiarRestauracao,
   PREFIXO_DO_ENSAIO,
 } from "./ensaio-de-restauracao.ts";
+import { localizarFerramenta } from "./ferramentas-do-postgres.ts";
 import {
   aplicarMigracoes,
   derivarUrlDePapel,
   lerMigracoes,
 } from "./migrate.ts";
+
+/**
+ * Sem o cliente do PostgreSQL (`pg_dump`, `pg_restore`, `psql`) na máquina, não
+ * há como provar a cópia nem a restauração: a suíte é PULADA, com o motivo
+ * escrito no aviso, em vez de reprovar por ferramenta ausente. Na CI (`CI`
+ * definida) a falta da ferramenta continua sendo falha: lá ela é pré-requisito
+ * do ambiente, e pular em silêncio esconderia a prova do AC-052. Instalação:
+ * veja "Pré-requisitos" no README (`brew install libpq`, ou `PG_BIN`).
+ */
+const MOTIVO_DE_PULAR: string | null = (() => {
+  if (process.env.CI) return null;
+  try {
+    for (const ferramenta of ["pg_dump", "pg_restore", "psql"] as const) {
+      localizarFerramenta(ferramenta);
+    }
+    return null;
+  } catch (erro) {
+    const motivo = erro instanceof Error ? erro.message : String(erro);
+    console.warn(
+      `[copia-de-seguranca] suíte PULADA (AC-052 não foi provado nesta máquina): ${motivo}`,
+    );
+    return motivo;
+  }
+})();
 
 const ESPERA = 240_000;
 const DIA = 24 * 60 * 60 * 1000;
@@ -84,6 +109,7 @@ function bancosDeEnsaio(): Promise<string[]> {
 }
 
 beforeAll(async () => {
+  if (MOTIVO_DE_PULAR !== null) return;
   await comCliente(SERVIDOR, (c) =>
     c.query(`CREATE DATABASE ${NOME} TEMPLATE template0`),
   );
@@ -122,6 +148,7 @@ beforeAll(async () => {
 }, ESPERA);
 
 afterAll(async () => {
+  if (MOTIVO_DE_PULAR !== null) return;
   await comCliente(SERVIDOR, (c) =>
     c.query(`DROP DATABASE IF EXISTS ${NOME} WITH (FORCE)`),
   );
@@ -140,7 +167,7 @@ function copiaEmOutraPasta(): string {
   return destino;
 }
 
-describe("cópia de segurança", () => {
+describe.skipIf(MOTIVO_DE_PULAR !== null)("cópia de segurança", () => {
   it(
     "@spec:AC-052 sai com data no nome e manifesto do mesmo instante, e a retenção apaga só o que passou de sete dias",
     async () => {
@@ -166,7 +193,7 @@ describe("cópia de segurança", () => {
   );
 });
 
-describe("ensaio de restauração", () => {
+describe.skipIf(MOTIVO_DE_PULAR !== null)("ensaio de restauração", () => {
   it(
     "@spec:AC-052 restaura num banco descartável, confere com o manifesto e apaga o banco no fim",
     async () => {

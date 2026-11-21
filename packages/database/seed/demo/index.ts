@@ -38,7 +38,11 @@ import {
   PRODUTOS,
 } from "../catalogo.ts";
 import { tokenDeExemplo } from "../deterministico.ts";
-import { exigirAmbienteQueNaoEProducao } from "../index.ts";
+import {
+  ErroDeAmbienteDeProducao,
+  exigirAmbienteQueNaoEProducao,
+  type FonteDeAmbiente,
+} from "../index.ts";
 import { LOJAS } from "../lojas.ts";
 import {
   concederAdministracao,
@@ -142,7 +146,7 @@ function sku(produto: ProdutoDemo, variante: string): string {
 // ---------------------------------------------------------------------------
 
 /** A loja em que a carga está trabalhando, e com qual conexão. */
-interface Contexto {
+export interface Contexto {
   readonly cliente: ClienteSql;
   readonly lojaId: string;
   readonly loja: LojaDemo;
@@ -156,7 +160,7 @@ interface Contexto {
 const formasDa = (loja: LojaDemo): readonly ("DELIVERY" | "PICKUP")[] =>
   loja.nova?.formas ?? ["DELIVERY", "PICKUP"];
 
-async function prepararLoja(contexto: Contexto): Promise<void> {
+export async function prepararLoja(contexto: Contexto): Promise<void> {
   const { cliente, lojaId, loja } = contexto;
   const ilustracoes = loja.produtos.map((p) => p.ilustracao);
   const marca = {
@@ -344,7 +348,7 @@ async function gravarArquivo(
 // Catálogo
 // ---------------------------------------------------------------------------
 
-async function plantarCatalogo(contexto: Contexto): Promise<number> {
+export async function plantarCatalogo(contexto: Contexto): Promise<number> {
   const { cliente, lojaId, loja } = contexto;
   for (const [ordem, categoria] of loja.categorias.entries()) {
     const categoriaId = idDaCategoria(loja.chave, categoria.chave);
@@ -403,7 +407,7 @@ function vaiParaOFeed(produto: ProdutoDemo, ordem: number): boolean {
   );
 }
 
-const idDoProdutoDemo = (loja: LojaDemo, chave: string): string =>
+export const idDoProdutoDemo = (loja: LojaDemo, chave: string): string =>
   id(`produto:${loja.chave}:${chave}`);
 const idDoGrupoDemo = (
   loja: LojaDemo,
@@ -789,7 +793,7 @@ const idDoClienteDemo = (loja: LojaDemo, chave: string): string =>
 const clientesDa = (loja: LojaDemo): readonly ClienteDemo[] =>
   loja.clientes ?? clientesGerados(loja);
 
-async function plantarClientes(
+export async function plantarClientes(
   { cliente, lojaId, loja }: Contexto,
   anaId: string,
 ): Promise<void> {
@@ -979,7 +983,7 @@ async function proximoNumero(cliente: ClienteSql, lojaId: string): Promise<numbe
   return Number(resultado.rows[0]!.last_value);
 }
 
-async function plantarPedidos(
+export async function plantarPedidos(
   { cliente, lojaId, loja, donaId }: Contexto,
   agora: Date,
   roteiro: readonly PedidoDoRoteiro[],
@@ -1278,6 +1282,55 @@ export interface ResumoDaDemonstracao {
   readonly lojas: readonly { readonly apelido: string; readonly nome: string; readonly ramo: string }[];
 }
 
+/** Variáveis que só existem quando o processo roda num provedor de hospedagem. */
+const MARCADORES_DE_HOSPEDAGEM = [
+  "RAILWAY_ENVIRONMENT",
+  "RAILWAY_PROJECT_ID",
+  "VERCEL",
+  "VERCEL_ENV",
+  "RENDER",
+  "FLY_APP_NAME",
+] as const;
+
+/** Máquinas aceitas como "esta máquina" na URL do banco. */
+const HOSTS_LOCAIS = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+
+/**
+ * A trava de produção do `demo` (M-2 da revisão #149).
+ *
+ * Esta carga cria uma conta ADMINISTRADORA com senha pública (contas.ts) e a
+ * vincula como dona de lojas. Só o rótulo `NODE_ENV=production` não basta: o
+ * caso perigoso é o rótulo ESQUECIDO num servidor. Por isso três camadas:
+ * o rótulo (como antes), nenhum marcador de provedor de hospedagem no
+ * processo e, quando a URL é conhecida, banco só nesta máquina. A recusa nunca
+ * repete a URL, que leva usuário e senha.
+ */
+export function exigirDestinoLocalDaDemonstracao(
+  ambiente: FonteDeAmbiente,
+  urlDoBanco?: string,
+): void {
+  exigirAmbienteQueNaoEProducao(ambiente);
+  for (const marcador of MARCADORES_DE_HOSPEDAGEM) {
+    if (ambiente[marcador]?.trim()) {
+      throw new ErroDeAmbienteDeProducao(
+        `${marcador} está definida, sinal de que este processo roda num provedor de hospedagem`,
+      );
+    }
+  }
+  if (urlDoBanco === undefined) return;
+  let host: string;
+  try {
+    host = new URL(urlDoBanco).hostname.toLowerCase();
+  } catch {
+    throw new ErroDeAmbienteDeProducao("a URL do banco não pôde ser lida");
+  }
+  if (!HOSTS_LOCAIS.has(host)) {
+    throw new ErroDeAmbienteDeProducao(
+      "o banco de destino não é local (a demonstração só roda contra localhost ou 127.0.0.1)",
+    );
+  }
+}
+
 /** As 24 lojas da demonstração, na ordem da carga. */
 export const TODAS_AS_LOJAS_DEMO: readonly LojaDemo[] = [...LOJAS_DEMO, ...LOJAS_NOVAS];
 
@@ -1287,7 +1340,9 @@ export async function carregarDemonstracao({
   relatar = () => {},
   semVideos = false,
 }: OpcoesDaDemonstracao): Promise<ResumoDaDemonstracao> {
-  exigirAmbienteQueNaoEProducao(process.env);
+  // Rótulo e marcadores de hospedagem; o host do banco é conferido em
+  // `principal`, que é quem conhece a URL (M-2 da revisão #149).
+  exigirDestinoLocalDaDemonstracao(process.env);
 
   // Vídeos antes da transação: gravar é lento (tempo real) e não mexe no banco.
   const videos: ReadonlyMap<string, VideoGravado> = await gravarVideos(
@@ -1381,8 +1436,13 @@ export async function carregarDemonstracao({
     await cliente.query("COMMIT");
 
     for (const conta of CONTAS_DE_TESTE) {
-      relatar(`✔ conta ${conta.papel.padEnd(7)} ${conta.email} / ${conta.senha}`);
+      // A senha NÃO sai no terminal (M-2): ela iria parar em log de terminal e
+      // de CI. Fica documentada num lugar só, contas.ts.
+      relatar(`✔ conta ${conta.papel.padEnd(7)} ${conta.email}`);
     }
+    relatar(
+      "  senhas das contas de demonstração: packages/database/seed/demo/contas.ts (válidas só nesta base local)",
+    );
     return { lojas: resumo };
   } catch (erro) {
     await cliente.query("ROLLBACK");
@@ -1391,7 +1451,7 @@ export async function carregarDemonstracao({
 }
 
 /** Contagem de pedidos e total gasto, como a ficha do cliente mostra. */
-async function atualizarTotaisDosClientes(
+export async function atualizarTotaisDosClientes(
   cliente: ClienteSql,
   lojaId: string,
 ): Promise<void> {
@@ -1447,6 +1507,15 @@ async function principal(): Promise<number> {
   if (!direta || !senha) {
     process.stderr.write(
       "DATABASE_URL_DIRETA e SENHA_BANCO_ADMINISTRACAO precisam estar no .env da raiz.\n",
+    );
+    return 1;
+  }
+  // Antes de conectar: o destino precisa ser esta máquina (M-2).
+  try {
+    exigirDestinoLocalDaDemonstracao(process.env, direta);
+  } catch (erro) {
+    process.stderr.write(
+      `${erro instanceof Error ? erro.message : String(erro)}\n`,
     );
     return 1;
   }

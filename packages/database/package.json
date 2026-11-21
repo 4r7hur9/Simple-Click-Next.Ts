@@ -16,6 +16,10 @@
     "seed": "node --env-file-if-exists=../../.env seed/index.ts",
     "demo": "node --env-file-if-exists=../../.env seed/demo/index.ts",
     "importar:winsis": "node --env-file-if-exists=../../.env seed/winsis/index.ts",
+    "seed:simulacao": "node --env-file-if-exists=../../.env seed/simulacao/index.ts",
+    "seed:simulacao:aplicacao": "node --env-file-if-exists=../../.env seed/simulacao/aplicacao.ts",
+    "seed:simulacao:validar": "node --env-file-if-exists=../../.env seed/simulacao/validar.ts",
+    "seed:volume": "node --env-file-if-exists=../../.env seed/volume/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test:int": "cd ../.. && vitest run --project db-rls packages/database/"

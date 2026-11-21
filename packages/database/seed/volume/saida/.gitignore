@@ -1,0 +1,3 @@
+# Saídas do seed:volume (planos EXPLAIN, validação, carga): geradas e sanitizadas, nunca versionadas.
+*
+!.gitignore

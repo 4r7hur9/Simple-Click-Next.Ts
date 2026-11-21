@@ -32,7 +32,7 @@ export interface ContaDeTeste {
 export const CONTA_ADMIN: ContaDeTeste = {
   papel: "ADMIN",
   email: "maria.card6@exemplo.test",
-  senha: "ArthurBruno2k@",
+  senha: "demo-admin-simpleclick",
   nome: "Maria Teste",
 };
 

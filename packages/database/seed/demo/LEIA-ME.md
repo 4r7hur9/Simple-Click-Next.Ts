@@ -25,19 +25,21 @@ pnpm --filter @simpleclick/database demo -- --sem-videos   # mais rápido: não 
 
 ## Contas de teste
 
-| Papel | E-mail | Senha | O que vê |
-|---|---|---|---|
-| Admin da plataforma | maria.card6@exemplo.test | ArthurBruno2k@ | /admin; dona da Pastelaria da Vila e da Marmitaria Sabor de Casa |
-| Dono | dono.demo@simpleclick.test | DemoSimpleClick2026 | Pastelaria da Vila e Moda Boa Vista (seletor de loja; no limite de 2 lojas) |
-| Equipe | staff.demo@simpleclick.test | DemoSimpleClick2026 | Equipe da Pastelaria da Vila |
-| Cliente | ana.ribeiro@cliente.test | SenhaTeste!2026x | Pedidos em várias lojas (um a caminho hoje), favoritos, recentes, curtidas e comentários (aprovados e aguardando) |
+| Papel | E-mail | O que vê |
+|---|---|---|
+| Admin da plataforma | maria.card6@exemplo.test | /admin; dona da Pastelaria da Vila e da Marmitaria Sabor de Casa |
+| Dono | dono.demo@simpleclick.test | Pastelaria da Vila e Moda Boa Vista (seletor de loja; no limite de 2 lojas) |
+| Equipe | staff.demo@simpleclick.test | Equipe da Pastelaria da Vila |
+| Cliente | ana.ribeiro@cliente.test | Pedidos em várias lojas (um a caminho hoje), favoritos, recentes, curtidas e comentários (aprovados e aguardando) |
 
-Os donos das lojas novas (`<nome>@<apelido>.test`) usam a senha `DemoSimpleClick2026`.
+Os donos das lojas novas (`<nome>@<apelido>.test`) usam a mesma senha do dono da demonstração.
+
+As senhas ficam em [`contas.ts`](contas.ts) (uma fonte só, regravadas a cada carga). São senhas de DEMONSTRAÇÃO, públicas por desenho: valem só na base local carregada por este `demo`, que recusa produção. Nunca reaproveite uma delas em conta real.
 
 ## Lojas por tipo de negócio
 
 | Tipo | Loja | Endereço da loja | Recebe |
-|---|---|---|---|
+|---|---|---|
 | Lanchonete (FOOD_SNACK) | Pastelaria da Vila | /loja/pastelaria-da-vila | entrega e retirada |
 | Lanchonete (FOOD_SNACK) | Brasa Burger Benfica | /loja/brasa-burger | entrega e retirada |
 | Restaurante (FOOD_RESTAURANT) | Restaurante Sertão Arretado | /loja/sertao-arretado | entrega e retirada |
