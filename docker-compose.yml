@@ -82,7 +82,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: "3001"
+      PORT: "${API_PORTA:-4001}"
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://sc_app:${SENHA_BANCO_APLICACAO:-aplicacao-local-Fx6Wg2Tm9Kp4Ue}@postgres:5432/${POSTGRES_BANCO:-simpleclick}
       DATABASE_URL_ADMINISTRACAO: postgresql://sc_admin:${SENHA_BANCO_ADMINISTRACAO:-administracao-local-Rb7Nj3Vz8Cq5Ly}@postgres:5432/${POSTGRES_BANCO:-simpleclick}
@@ -92,8 +92,11 @@ services:
       CHAVE_CIFRA_TOTP: ${CHAVE_CIFRA_TOTP:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
       ORIGENS_PERMITIDAS: http://localhost:${WEB_PORTA:-4000},http://localhost:${API_PORTA:-4001}
       URL_DO_SITE: http://localhost:${WEB_PORTA:-4000}
+    # O site (`web`) usa a rede desta API (network_mode), então as portas dele
+    # são publicadas aqui.
     ports:
-      - "${API_PORTA:-4001}:3001"
+      - "${API_PORTA:-4001}:${API_PORTA:-4001}"
+      - "${WEB_PORTA:-4000}:3000"
 
   web:
     build:
@@ -103,14 +106,23 @@ services:
         NEXT_PUBLIC_API_URL: http://localhost:${API_PORTA:-4001}
     image: simpleclick-web:compose
     restart: unless-stopped
+    # Mesma rede da API: o site renderiza no servidor chamando
+    # NEXT_PUBLIC_API_URL (http://localhost:API_PORTA), o MESMO endereço que o
+    # navegador usa. Sem isto, `localhost` dentro do contêiner do site é o
+    # próprio site e toda página/login que consulta a API falha. Sem mudar código.
+    network_mode: "service:api"
     depends_on:
       api:
         condition: service_healthy
     environment:
       PORT: "3000"
+      # Também em execução: a conferência de partida do site (instrumentation)
+      # exige a variável, e o SSR a lê daqui.
+      NEXT_PUBLIC_API_URL: http://localhost:${API_PORTA:-4001}
       URL_DO_SITE: http://localhost:${WEB_PORTA:-4000}
-    ports:
-      - "${WEB_PORTA:-4000}:3000"
+      # Cookie de sessão para http://localhost (o domínio padrão do código é
+      # simpleclick.localhost e o navegador o descartaria). Publicado: o do deploy.
+      NEXT_PUBLIC_SESSION_COOKIE_DOMAIN: ${COOKIE_DOMINIO:-localhost}
 
 volumes:
   dados-postgres:
