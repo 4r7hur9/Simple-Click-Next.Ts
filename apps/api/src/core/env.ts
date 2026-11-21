@@ -48,6 +48,9 @@ export const PORTA_PADRAO = 3001;
 /** Estados do segundo plano (filas e trabalhadores) neste processo. */
 const ESTADOS_DO_SEGUNDO_PLANO = ["ligado", "desligado"] as const;
 
+/** Estados de uma feature flag de ambiente (mesmo vocabulário do segundo plano). */
+const ESTADOS_DE_UMA_FLAG = ["ligado", "desligado"] as const;
+
 /**
  * Nomes que a API já leu e não lê mais (AC-048).
  *
@@ -141,9 +144,16 @@ const forma = z.object({
     "conexão PostgreSQL da aplicação, pelo agrupador em modo transação — postgresql://usuario:senha@maquina:porta/banco",
   ),
 
-  DATABASE_URL_DIRETA: cadeiaDeConexao(["postgres", "postgresql"]).describe(
-    "conexão PostgreSQL direta, sem agrupador, usada só pelas migrações — postgresql://usuario:senha@maquina:porta/banco",
-  ),
+  // Opcional no ESQUEMA e obrigatória fora de produção pela regra
+  // `problemasDaCredencialDeMigracao` (M-1 da revisão #149): o processo que
+  // atende tráfego nunca abre conexão com ela — só o pré-deploy (migrar) e a
+  // cópia de segurança. Exigi-la na partida obrigava a API de produção a
+  // carregar a credencial dona do esquema sem precisar dela.
+  DATABASE_URL_DIRETA: cadeiaDeConexao(["postgres", "postgresql"])
+    .optional()
+    .describe(
+      "conexão PostgreSQL direta, sem agrupador, usada só pelas migrações — postgresql://usuario:senha@maquina:porta/banco; obrigatória fora de production, dispensável no processo da API em production",
+    ),
 
   DATABASE_URL_TEST: cadeiaDeConexao(["postgres", "postgresql"])
     .optional()
@@ -179,6 +189,18 @@ const forma = z.object({
     .optional()
     .describe(
       `filas e trabalhadores neste processo — ${ESTADOS_DO_SEGUNDO_PLANO.join(" | ")}; sem valor, liga em production e fica desligado fora dela`,
+    ),
+
+  // Feature flag do próximo preço na vitrine (card #140). Opcional e FECHADA:
+  // sem valor, desligado em qualquer ambiente. O catálogo das flags e a leitura
+  // moram em `flags.ts`; aqui só o valor é validado, para que um erro de
+  // digitação (`ligada`, `sim`) recuse a partida em vez de virar "desligado"
+  // em silêncio.
+  FLAG_VITRINE_PROXIMO_PRECO: z
+    .enum(ESTADOS_DE_UMA_FLAG)
+    .optional()
+    .describe(
+      `anuncia na página pública do produto a próxima QUEDA de preço dos próximos 7 dias — ${ESTADOS_DE_UMA_FLAG.join(" | ")}; sem valor, desligado em qualquer ambiente`,
     ),
 
   // Obrigatória só em produção, e a regra mora em `problemasDaChaveDeCifra`:
@@ -243,7 +265,113 @@ function problemasEntreVariaveis(fonte: FonteDeAmbiente): ProblemaDeAmbiente[] {
     ...problemasDoBancoDeTeste(fonte),
     ...problemasDoNomeDaPorta(fonte),
     ...problemasDaChaveDeCifra(fonte),
+    ...problemasDosSegredosDeProducao(fonte),
+    ...problemasDaCredencialDeMigracao(fonte),
   ];
+}
+
+/**
+ * A credencial de migração é obrigatória fora de produção — a máquina do
+ * desenvolvedor e a suíte migram pelo mesmo `.env` — e dispensável no processo
+ * da API em produção, que nunca a usa (M-1 da revisão #149).
+ */
+function problemasDaCredencialDeMigracao(
+  fonte: FonteDeAmbiente,
+): ProblemaDeAmbiente[] {
+  const ambiente = valorDe(fonte, "NODE_ENV") ?? "development";
+  if (ambiente === "production") return [];
+  if (valorDe(fonte, "DATABASE_URL_DIRETA") !== undefined) return [];
+  return [
+    problema(
+      "DATABASE_URL_DIRETA",
+      `ausente — obrigatória quando NODE_ENV não é production (agora é ${ambiente})`,
+    ),
+  ];
+}
+
+/** Prefixo dos marcadores do `.env.example`: texto PÚBLICO no repositório. */
+const MARCADOR_DO_MODELO = "TROQUE_";
+
+/**
+ * Abaixo disto, o segredo é repetição ("a" × 32) e não sorteio. Um valor de
+ * `openssl rand -base64 48` tem dezenas de caracteres distintos; 10 é o piso
+ * que nenhum segredo gerado de verdade deixa de cruzar.
+ */
+const VARIEDADE_MINIMA_DO_SEGREDO = 10;
+
+/** Segredos conferidos por marcador E variedade quando presentes em produção. */
+const SEGREDOS_DE_PRODUCAO = [
+  "JWT_SECRET",
+  "SEGREDO_DE_REVALIDACAO",
+  "SEGREDO_DA_PONTE",
+  "METRICAS_TOKEN",
+] as const;
+
+/** Cadeias que levam credencial: conferidas só pelo marcador. */
+const CONEXOES_DE_PRODUCAO = [
+  "DATABASE_URL",
+  "DATABASE_URL_DIRETA",
+  "DATABASE_URL_ADMINISTRACAO",
+  "REDIS_URL",
+  "CLOUDINARY_URL",
+  "SENHA_BANCO_ADMINISTRACAO",
+] as const;
+
+const COMO_GERAR_UM_SEGREDO =
+  "um segredo gerado só para este ambiente — openssl rand -base64 48";
+
+/**
+ * Produção não parte com segredo de EXEMPLO nem com segredo FRACO (A-1 da
+ * revisão #149).
+ *
+ * O marcador `TROQUE_...` do `.env.example` tem tamanho suficiente para passar
+ * na regra de 32 caracteres, e está publicado no repositório: quem copiasse o
+ * modelo sem regenerar subiria produção com um `JWT_SECRET` que qualquer um
+ * conhece — e com ele forjaria um token de administrador. O gitleaks não
+ * alerta, porque o marcador é justamente uma exceção dele.
+ *
+ * Fora de produção o modelo copiado continua subindo, que é o ponto de ele
+ * existir. A mensagem NUNCA repete o valor recusado.
+ */
+function problemasDosSegredosDeProducao(
+  fonte: FonteDeAmbiente,
+): ProblemaDeAmbiente[] {
+  const ambiente = valorDe(fonte, "NODE_ENV") ?? "development";
+  if (ambiente !== "production") return [];
+
+  const problemas: ProblemaDeAmbiente[] = [];
+  for (const nome of SEGREDOS_DE_PRODUCAO) {
+    const valor = valorDe(fonte, nome);
+    if (valor === undefined) continue;
+    if (valor.includes(MARCADOR_DO_MODELO)) {
+      problemas.push({
+        variavel: nome,
+        motivo:
+          "é o marcador TROQUE_ do .env.example, público no repositório — recusado em production",
+        esperado: COMO_GERAR_UM_SEGREDO,
+      });
+      continue;
+    }
+    const distintos = new Set(valor).size;
+    if (distintos < VARIEDADE_MINIMA_DO_SEGREDO) {
+      problemas.push({
+        variavel: nome,
+        motivo: `segredo fraco: só ${distintos} caracteres distintos (mínimo ${VARIEDADE_MINIMA_DO_SEGREDO}) — recusado em production`,
+        esperado: COMO_GERAR_UM_SEGREDO,
+      });
+    }
+  }
+  for (const nome of CONEXOES_DE_PRODUCAO) {
+    if (valorDe(fonte, nome)?.includes(MARCADOR_DO_MODELO)) {
+      problemas.push({
+        variavel: nome,
+        motivo:
+          "ainda tem o marcador TROQUE_ do .env.example (usuário ou senha de exemplo) — recusado em production",
+        esperado: "a credencial real deste ambiente, guardada no provedor",
+      });
+    }
+  }
+  return problemas;
 }
 
 /**

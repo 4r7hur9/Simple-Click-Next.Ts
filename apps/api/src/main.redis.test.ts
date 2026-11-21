@@ -36,7 +36,15 @@ const CONEXAO_DA_APLICACAO =
 const CONEXAO_DIRETA = "postgresql://migracao:trocar@127.0.0.1:1/sc_partida";
 const CONEXAO_DE_TESTE =
   "postgresql://aplicacao:trocar@127.0.0.1:1/sc_partida_teste";
-const CHAVE_DE_ASSINATURA = "x".repeat(48);
+/**
+ * Segredo de prova com 48 caracteres distintos, montado em código: produção
+ * recusa repetição como "x" × 48 (A-1 da revisão #149). Não é chave real.
+ */
+const CHAVE_DE_ASSINATURA = Array.from(
+  { length: 48 },
+  (_, i) =>
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[(i * 7) % 62],
+).join("");
 /** 32 bytes de exemplo: produção não parte sem a chave da cifra (AC-130). */
 const CHAVE_DE_CIFRA = Buffer.alloc(32, 7).toString("base64");
 

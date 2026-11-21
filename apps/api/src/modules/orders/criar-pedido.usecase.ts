@@ -17,6 +17,7 @@
  */
 import { exigirContexto } from "../../core/contexto.ts";
 import { transacaoAtual, type TransacaoDoBanco } from "../../core/db.ts";
+import { medirEtapa } from "../../core/rastreamento.ts";
 import { codigoDoPedido } from "./numero-pedido.ts";
 
 /** Item já precificado pelo servidor, pronto para virar cópia congelada. */
@@ -200,6 +201,30 @@ async function pedidoJaCriado(
   };
 }
 
+/**
+ * A violação de unicidade que é a corrida da MESMA chave de idempotência.
+ *
+ * Só a constraint `orders_idempotency_uk` interessa: qualquer outra violação
+ * (número de pedido, token público) é defeito de verdade e continua subindo.
+ * O Prisma 7 com adaptador do `pg` nem sempre preenche `meta.target` do mesmo
+ * jeito, então a conferência olha o nome da constraint e as colunas dela.
+ */
+function ehCorridaDeIdempotencia(erro: unknown): boolean {
+  if (typeof erro !== "object" || erro === null) return false;
+  if ((erro as { code?: unknown }).code !== "P2002") return false;
+  let meta: string;
+  try {
+    meta = JSON.stringify((erro as { meta?: unknown }).meta ?? {});
+  } catch {
+    return false;
+  }
+  return (
+    meta.includes("orders_idempotency_uk") ||
+    meta.includes("idempotency_key") ||
+    meta.includes("idempotencyKey")
+  );
+}
+
 /** O preço que valeu e a faixa de atacado, nas colunas de `order_items`. */
 export function colunasDoPreco(item: ItemParaCriar) {
   const faixa = item.faixaDeAtacado ?? null;
@@ -273,6 +298,16 @@ async function gravarItens(
   }
 }
 
+/** Cria o pedido dentro do span `pedido.criar` (trace do #139; sem provedor, chamada direta). */
+export function criarPedido(
+  entrada: PedidoParaCriar,
+  situacao: SituacaoDaLoja,
+): Promise<ResultadoDaCriacao> {
+  return medirEtapa("pedido.criar", () =>
+    criarPedidoSemRastreio(entrada, situacao),
+  );
+}
+
 /**
  * Cria o pedido, ou devolve o que já existia para a mesma chave.
  *
@@ -281,7 +316,7 @@ async function gravarItens(
  * uma posição da sequência a cada toque duplo, e a loja veria buracos na
  * numeração sem ter cancelado nada.
  */
-export async function criarPedido(
+async function criarPedidoSemRastreio(
   entrada: PedidoParaCriar,
   situacao: SituacaoDaLoja,
 ): Promise<ResultadoDaCriacao> {
@@ -345,40 +380,67 @@ export async function criarPedido(
     );
   }
 
-  const numero = await proximoNumero(tx, entrada.lojaId);
-  const codigo = codigoDoPedido(numero);
+  // PONTO DE RETORNO DA CORRIDA. Duas confirmações simultâneas com a mesma chave
+  // passam juntas pela leitura acima; a que perde bate em `orders_idempotency_uk`
+  // ao inserir. No Postgres o erro aborta a transação inteira, então a captura
+  // só funciona com um SAVEPOINT: desfazer até ele limpa o erro E devolve o
+  // número que `proximoNumero` gastou, sem buraco na numeração da loja.
+  const comChave = Boolean(entrada.chaveDeIdempotencia);
+  if (comChave) await tx.$executeRaw`SAVEPOINT criar_pedido_idempotente`;
 
-  const criado = await tx.order.create({
-    data: {
-      storeId: entrada.lojaId,
-      number: BigInt(numero),
-      code: codigo,
-      publicToken: token,
-      storeCustomerId: entrada.clienteDaLojaId ?? null,
-      status: STATUS_INICIAL,
-      channel: entrada.canal ?? "ONLINE",
-      fulfillment: entrada.entrega,
-      paymentMethod: entrada.formaDePagamento ?? null,
-      changeForCents:
-        entrada.trocoParaEmCentavos === null ||
-        entrada.trocoParaEmCentavos === undefined
-          ? null
-          : BigInt(entrada.trocoParaEmCentavos),
-      pixKeySnapshot: entrada.chavePixCopiada ?? null,
-      pixKeyTypeSnapshot: entrada.tipoDaChavePixCopiado ?? null,
-      pixHolderSnapshot: entrada.nomeDoRecebedorCopiado ?? null,
-      subtotalCents: BigInt(entrada.subtotalEmCentavos),
-      itemsTotalCents: BigInt(entrada.subtotalEmCentavos),
-      deliveryFeeCents: BigInt(entrada.taxaDeEntregaEmCentavos),
-      deliveryFeeMode: entrada.modoDaTaxaDeEntrega ?? null,
-      discountCents: BigInt(entrada.descontoEmCentavos ?? 0),
-      totalCents: BigInt(entrada.totalEmCentavos),
-      customerNote: entrada.observacaoDoCliente ?? null,
-      idempotencyKey: entrada.chaveDeIdempotencia ?? null,
-      storeTimezone: situacao.fusoHorario ?? "America/Sao_Paulo",
-    },
-    select: { id: true },
-  });
+  let numero: number;
+  let codigo: string;
+  let criado: { id: string };
+  try {
+    numero = await proximoNumero(tx, entrada.lojaId);
+    codigo = codigoDoPedido(numero);
+    criado = await tx.order.create({
+      data: {
+        storeId: entrada.lojaId,
+        number: BigInt(numero),
+        code: codigo,
+        publicToken: token,
+        storeCustomerId: entrada.clienteDaLojaId ?? null,
+        status: STATUS_INICIAL,
+        channel: entrada.canal ?? "ONLINE",
+        fulfillment: entrada.entrega,
+        paymentMethod: entrada.formaDePagamento ?? null,
+        changeForCents:
+          entrada.trocoParaEmCentavos === null ||
+          entrada.trocoParaEmCentavos === undefined
+            ? null
+            : BigInt(entrada.trocoParaEmCentavos),
+        pixKeySnapshot: entrada.chavePixCopiada ?? null,
+        pixKeyTypeSnapshot: entrada.tipoDaChavePixCopiado ?? null,
+        pixHolderSnapshot: entrada.nomeDoRecebedorCopiado ?? null,
+        subtotalCents: BigInt(entrada.subtotalEmCentavos),
+        itemsTotalCents: BigInt(entrada.subtotalEmCentavos),
+        deliveryFeeCents: BigInt(entrada.taxaDeEntregaEmCentavos),
+        deliveryFeeMode: entrada.modoDaTaxaDeEntrega ?? null,
+        discountCents: BigInt(entrada.descontoEmCentavos ?? 0),
+        totalCents: BigInt(entrada.totalEmCentavos),
+        customerNote: entrada.observacaoDoCliente ?? null,
+        idempotencyKey: entrada.chaveDeIdempotencia ?? null,
+        storeTimezone: situacao.fusoHorario ?? "America/Sao_Paulo",
+      },
+      select: { id: true },
+    });
+  } catch (erro) {
+    if (!comChave || !ehCorridaDeIdempotencia(erro)) throw erro;
+    await tx.$executeRaw`ROLLBACK TO SAVEPOINT criar_pedido_idempotente`;
+    // A outra requisição já confirmou (o índice só acusa depois disso), e a
+    // leitura é feita no contexto da loja e da chave declarada: não alcança
+    // pedido de outra loja nem de outra sessão.
+    const vencedor = await pedidoJaCriado(
+      tx,
+      entrada.lojaId,
+      entrada.chaveDeIdempotencia as string,
+    );
+    if (vencedor === null) throw erro;
+    return { ok: true, pedido: vencedor };
+  }
+  if (comChave)
+    await tx.$executeRaw`RELEASE SAVEPOINT criar_pedido_idempotente`;
 
   // O dado pessoal mora em outra linha, e é isso que torna o apagamento a
   // pedido do titular uma alteração de uma linha só (P-009).

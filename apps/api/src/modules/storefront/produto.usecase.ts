@@ -30,6 +30,7 @@ import {
   estaNaJanelaDeDisponibilidade,
   lerJanelasDeDisponibilidade,
   precoQueVale,
+  proximaQuedaDePreco,
   type PrecoCadastrado,
 } from "@simpleclick/core";
 import type {
@@ -106,6 +107,16 @@ export interface ProdutoDaVitrine {
   readonly precoCentavos: number | null;
   readonly precoAnteriorCentavos: number | null;
   /**
+   * A próxima QUEDA de preço dos próximos 7 dias (card #140). Só existe quando
+   * a flag FLAG_VITRINE_PROXIMO_PRECO está ligada — desligada, a CHAVE nem sai,
+   * e o corpo é o de sempre. Nulo = ligada, mas sem queda a anunciar. Só varejo
+   * unitário; aumento agendado nunca aparece.
+   */
+  readonly proximoPreco?: {
+    readonly precoCentavos: number;
+    readonly aPartirDe: string;
+  } | null;
+  /**
    * A tabela de atacado sobre `precoCentavos` (card #56): cada faixa com o
    * preço por unidade e a economia. Nulo = só varejo.
    */
@@ -164,6 +175,29 @@ function comoRegra(linha: LinhaDePreco): PrecoCadastrado {
   };
 }
 
+/** Os preços cadastrados da variante de abertura (a padrão, ou a primeira). */
+function precosDaVariante(
+  variacoes: readonly { id: string; precos: readonly LinhaDePreco[] }[],
+  idDaEscolhida: string | undefined,
+): PrecoCadastrado[] {
+  const escolhida = variacoes.find((v) => v.id === idDaEscolhida);
+  return (escolhida?.precos ?? []).map(comoRegra);
+}
+
+/** A próxima queda no formato do contrato, ou nulo quando não há o que dizer. */
+function proximoPrecoDoProduto(
+  precos: readonly PrecoCadastrado[],
+  agora: Date,
+): { precoCentavos: number; aPartirDe: string } | null {
+  const queda = proximaQuedaDePreco(precos, agora);
+  return queda === null
+    ? null
+    : {
+        precoCentavos: queda.precoCentavos,
+        aPartirDe: queda.aPartirDe.toISOString(),
+      };
+}
+
 /**
  * Lê um produto da loja que já está no contexto da transação.
  *
@@ -177,6 +211,7 @@ function comoRegra(linha: LinhaDePreco): PrecoCadastrado {
 export async function produtoDaVitrine(
   produtoId: string,
   agora: Date = new Date(),
+  opcoes: { readonly proximoPreco?: boolean } = {},
 ): Promise<ProdutoDaVitrine | null> {
   const tx = transacaoAtual();
 
@@ -335,6 +370,20 @@ export async function produtoDaVitrine(
       : emCentavos(produto.displayPriceCents)
     : (daVariante?.precoCentavos ?? null);
 
+  // A próxima queda sai da MESMA lista de preços que gerou `precoCentavos`
+  // (a do produto, ou a da variante de abertura), dentro desta transação — sem
+  // consulta nova. Desligada a flag, nada é calculado e a chave não entra.
+  const proximoPreco = opcoes.proximoPreco
+    ? proximoPrecoDoProduto(
+        semVariantes
+          ? precosDoProduto.length > 0
+            ? precosDoProduto.map(comoRegra)
+            : []
+          : precosDaVariante(produto.variacoes, daVariante?.id),
+        agora,
+      )
+    : undefined;
+
   const esgotado =
     !produto.isAvailable ||
     (!semVariantes && variacoes.every((v) => !v.disponivel));
@@ -368,6 +417,7 @@ export async function produtoDaVitrine(
         ? precoDoProduto.anteriorEmCentavos
         : emCentavos(produto.compareAtCents)
       : (daVariante?.precoAnteriorCentavos ?? null),
+    ...(proximoPreco === undefined ? {} : { proximoPreco }),
     atacado: semVariantes
       ? atacadoPublico(precoCentavos, atacadoDoProduto, agora)
       : (daVariante?.atacado ?? null),

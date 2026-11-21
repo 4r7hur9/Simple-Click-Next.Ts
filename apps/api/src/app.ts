@@ -12,6 +12,7 @@ import {
   type SessaoDaRequisicao,
 } from "./core/equipe-da-loja.ts";
 import { manipuladorDeErros } from "./core/erros.ts";
+import { FLAGS_DESLIGADAS, type ProvedorDeFlags } from "./core/flags.ts";
 import { identificarLojaDoPainel } from "./core/loja-do-painel.ts";
 import {
   criarRotasDoFeed,
@@ -27,6 +28,13 @@ import {
   senhaConfere,
 } from "./modules/auth/senha.ts";
 import { middlewareDeRegistro } from "./core/log.ts";
+import { criarMetricas } from "./core/metricas.ts";
+import {
+  middlewareDeRastreamento,
+  reentrarNoRastreio,
+} from "./core/rastreamento.ts";
+import type { AcessoAoMetricas } from "./core/observabilidade.ts";
+import { criarRotaDasMetricas } from "./core/rota-das-metricas.ts";
 import { conferirAntesDeFechar } from "./modules/cart/conferir-preco.usecase.ts";
 import { verCarrinho } from "./modules/cart/carrinho.usecase.ts";
 import {
@@ -233,6 +241,12 @@ export interface OpcoesDoApp {
    * exercitar a rota sem subir servidor e sem depender do relógio da máquina.
    */
   readonly vitrine?: Partial<OpcoesDaVitrine>;
+  /**
+   * Feature flags de ambiente (card #140). PORTA ÚNICA: vale depois de
+   * `vitrine`, então um `vitrine.anunciarProximoPreco` solto não a contradiz.
+   * Sem ela, tudo desligado — o corpo das respostas é o de sempre.
+   */
+  readonly flags?: ProvedorDeFlags;
   /** O mesmo, para o carrinho. */
   readonly carrinho?: Partial<OpcoesDoCarrinho>;
   /** O mesmo, para o fechamento do pedido. */
@@ -309,6 +323,17 @@ export interface OpcoesDoApp {
     readonly armazenamento?: ArmazenamentoDeMidia;
     readonly limites?: LimitesDeMidiaDaApi;
   };
+  /**
+   * Observabilidade (card #139). Sem esta opção, ou com acesso `desligado`,
+   * nada é medido e `/metrics` responde 404: fechado por padrão.
+   */
+  readonly observabilidade?: {
+    readonly metricas?: {
+      readonly acesso: AcessoAoMetricas;
+      /** Métricas do processo (memória, laço de eventos): só o `main` liga. */
+      readonly metricasPadrao?: boolean;
+    };
+  };
 }
 
 /**
@@ -325,7 +350,26 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   // procura vulnerabilidade conhecida.
   app.disable("x-powered-by");
 
-  // Primeiro de todos: é ele que abre o contexto da requisição, e tudo que
+  // Métricas RED (card #139): a rota `/metrics` vem ANTES do registro, para
+  // não gerar log nem métrica de si mesma; o medidor logo depois, para contar
+  // tudo o que vier (inclusive a recusa por origem).
+  const configuracaoDasMetricas = opcoes.observabilidade?.metricas;
+  if (
+    configuracaoDasMetricas !== undefined &&
+    configuracaoDasMetricas.acesso.tipo !== "desligado"
+  ) {
+    const metricas = criarMetricas({
+      metricasPadrao: configuracaoDasMetricas.metricasPadrao === true,
+    });
+    app.use(criarRotaDasMetricas(metricas.registro, configuracaoDasMetricas.acesso));
+    app.use(metricas.middleware());
+  }
+
+  // Trace da requisição (card #139): raiz nova, aberta antes do registro para
+  // que a primeira linha de log já leve o `traceId`. Sem provedor, não faz nada.
+  app.use(middlewareDeRastreamento());
+
+  // Primeiro de todos (depois das métricas): é ele que abre o contexto da requisição, e tudo que
   // vier depois precisa do identificador já existindo para que as linhas de
   // registro casem umas com as outras (AC-021) — inclusive a recusa por
   // origem, que sem isso seria registrada solta, sem dizer de qual requisição
@@ -343,6 +387,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
   );
 
   app.use(express.json({ limit: "1mb" }));
+  // O leitor de corpo chama `next()` de um evento do socket, fora do trace.
+  app.use(reentrarNoRastreio());
 
   // Antes das rotas de negócio: saber se a API pode receber tráfego não pode
   // depender de nada que ela ainda esteja montando (AC-023).
@@ -702,6 +748,8 @@ export function criarApp(opcoes: OpcoesDoApp = {}): Express {
     criarRotasDaVitrine({
       lerHorario: horarioDaLoja,
       ...opcoes.vitrine,
+      anunciarProximoPreco: () =>
+        (opcoes.flags ?? FLAGS_DESLIGADAS).ligada("vitrine.proximo_preco"),
       limiteDoCatalogo:
         opcoes.vitrine?.limiteDoCatalogo ??
         criarLimitadorDoCatalogo(

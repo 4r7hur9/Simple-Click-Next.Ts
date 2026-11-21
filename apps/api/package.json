@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --env-file-if-exists=../../.env --watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/main.js",
+    "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test:unit": "cd ../.. && vitest run --project unit apps/api/",
@@ -16,7 +16,14 @@
     "contrato:verificar": "node src/contracts/gerar.ts verificar"
   },
   "dependencies": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/context-async-hooks": "3.1.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.301.2",
+    "@opentelemetry/resources": "3.1.1",
+    "@opentelemetry/sdk-trace": "3.1.1",
+    "@opentelemetry/semantic-conventions": "1.45.0",
     "@prisma/adapter-pg": "catalog:",
+    "@prisma/instrumentation": "7.10.0",
     "@redis/client": "6.3.0",
     "@simpleclick/contracts": "workspace:*",
     "@simpleclick/core": "workspace:*",
@@ -26,6 +33,7 @@
     "ioredis": "6.0.0",
     "pg": "catalog:",
     "pino": "10.4.0",
+    "prom-client": "15.1.3",
     "zod": "catalog:"
   },
   "devDependencies": {

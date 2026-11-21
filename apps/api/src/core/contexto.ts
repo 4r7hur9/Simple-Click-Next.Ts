@@ -175,13 +175,141 @@ export function executarNoContexto<T>(
   return armazenamento.run(contexto, acao);
 }
 
-/** Atalho para o caso comum: montar o contexto e já rodar dentro dele. */
+// ---------------------------------------------------------------------------
+// Marcas da requisição (card #139)
+// ---------------------------------------------------------------------------
+
+/**
+ * O que o registro precisa saber da requisição INTEIRA, e não só do pedaço
+ * dela que está rodando agora.
+ *
+ * A requisição passa por vários contextos aninhados (`executarComoRequisicao`
+ * a cada acesso ao banco). O papel real do dono só existe num deles; a linha
+ * `requisicao.terminou` sai de fora de todos. As marcas juntam o que cada
+ * contexto soube, na raiz.
+ *
+ * Ficam numa `WeakMap` privada, fora do tipo público: `core/db.ts` nunca as
+ * lê, então elas não podem virar papel do banco por descuido.
+ */
+export interface MarcasDaRequisicao {
+  readonly papel: PapelDeAcesso;
+  readonly usuarioId: string | undefined;
+  readonly lojaId: string | undefined;
+  readonly traceId: string | undefined;
+  readonly spanId: string | undefined;
+}
+
+interface MarcasMutaveis {
+  papel: PapelDeAcesso;
+  usuarioId: string | undefined;
+  lojaId: string | undefined;
+  traceId: string | undefined;
+  spanId: string | undefined;
+}
+
+/** Do menor para o maior privilégio. Vale o maior visto na requisição. */
+const ORDEM_DE_PRIVILEGIO: readonly PapelDeAcesso[] = [
+  "PUBLIC",
+  "CUSTOMER",
+  "PRINT_AGENT",
+  "STAFF",
+  "OWNER",
+];
+
+const raizDoContexto = new WeakMap<ContextoDaRequisicao, ContextoDaRequisicao>();
+const marcasDaRaiz = new WeakMap<ContextoDaRequisicao, MarcasMutaveis>();
+
+function abrir(
+  dados: DadosDoContexto,
+  raiz: ContextoDaRequisicao | undefined,
+): ContextoDaRequisicao {
+  const contexto = criarContexto({
+    ...dados,
+    requisicaoId: dados.requisicaoId ?? raiz?.requisicaoId,
+  });
+  const dona = raiz ?? contexto;
+  raizDoContexto.set(contexto, dona);
+  if (raiz === undefined) {
+    marcasDaRaiz.set(contexto, {
+      papel: contexto.papel,
+      usuarioId: contexto.usuarioId,
+      lojaId: contexto.lojaId,
+      traceId: undefined,
+      spanId: undefined,
+    });
+  } else {
+    const marcas = marcasDaRaiz.get(dona);
+    if (marcas !== undefined) {
+      if (
+        ORDEM_DE_PRIVILEGIO.indexOf(contexto.papel) >
+        ORDEM_DE_PRIVILEGIO.indexOf(marcas.papel)
+      ) {
+        marcas.papel = contexto.papel;
+      }
+      marcas.usuarioId ??= contexto.usuarioId;
+      marcas.lojaId ??= contexto.lojaId;
+    }
+  }
+  return contexto;
+}
+
+/**
+ * Abre o contexto RAIZ de uma requisição HTTP. Não herda nada do que estiver
+ * em curso: é o começo da requisição.
+ */
+export function abrirContextoRaiz(
+  dados: DadosDoContexto = {},
+): ContextoDaRequisicao {
+  return abrir(dados, undefined);
+}
+
+/**
+ * Atalho para o caso comum: montar o contexto e já rodar dentro dele.
+ *
+ * Dentro de uma requisição, herda SÓ o identificador dela e a ligação com a
+ * raiz — para que as linhas de registro casem e as marcas se acumulem.
+ * Transação, tokens, loja e papel nunca são herdados: cada acesso declara os
+ * seus.
+ */
 export function executarComoRequisicao<T>(
   dados: DadosDoContexto,
   acao: (contexto: ContextoDaRequisicao) => T,
 ): T {
-  const contexto = criarContexto(dados);
+  const atual = armazenamento.getStore();
+  const raiz = atual === undefined ? undefined : raizDoContexto.get(atual);
+  const contexto = abrir(dados, raiz);
   return executarNoContexto(contexto, () => acao(contexto));
+}
+
+/** Cópia congelada das marcas da requisição em curso, ou `undefined` fora dela. */
+export function marcasDaRequisicao(): MarcasDaRequisicao | undefined {
+  const atual = armazenamento.getStore();
+  if (atual === undefined) return undefined;
+  const raiz = raizDoContexto.get(atual);
+  const marcas = raiz === undefined ? undefined : marcasDaRaiz.get(raiz);
+  return marcas === undefined ? undefined : Object.freeze({ ...marcas });
+}
+
+/** Marcas da requisição a que o contexto dado pertence. */
+export function marcasDoContexto(
+  contexto: ContextoDaRequisicao,
+): MarcasDaRequisicao | undefined {
+  const raiz = raizDoContexto.get(contexto);
+  const marcas = raiz === undefined ? undefined : marcasDaRaiz.get(raiz);
+  return marcas === undefined ? undefined : Object.freeze({ ...marcas });
+}
+
+/** Anota na raiz da requisição o trace em curso, para o registro. */
+export function anotarRastreio(
+  contexto: ContextoDaRequisicao,
+  traceId: string,
+  spanId: string,
+): void {
+  const raiz = raizDoContexto.get(contexto);
+  const marcas = raiz === undefined ? undefined : marcasDaRaiz.get(raiz);
+  if (marcas === undefined) return;
+  marcas.traceId = traceId;
+  marcas.spanId = spanId;
 }
 
 /** O contexto em curso, ou `undefined` fora de uma requisição. */

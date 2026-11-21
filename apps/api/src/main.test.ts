@@ -7,6 +7,8 @@ import type { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { VARIAVEIS, VARIAVEIS_APOSENTADAS } from "./core/env.ts";
+import { VARIAVEIS_DE_OBSERVABILIDADE } from "./core/observabilidade.ts";
+import { rastreamentoAtivo } from "./core/rastreamento.ts";
 import {
   criarRegistrador,
   definirRegistrador,
@@ -34,7 +36,15 @@ const CONEXAO_DA_APLICACAO =
 const CONEXAO_DIRETA = "postgresql://migracao:trocar@127.0.0.1:1/sc_partida";
 const CONEXAO_DE_TESTE =
   "postgresql://aplicacao:trocar@127.0.0.1:1/sc_partida_teste";
-const CHAVE_DE_ASSINATURA = "x".repeat(48);
+/**
+ * Segredo de prova com 48 caracteres distintos, montado em código: produção
+ * recusa repetição como "x" × 48 (A-1 da revisão #149). Não é chave real.
+ */
+const CHAVE_DE_ASSINATURA = Array.from(
+  { length: 48 },
+  (_, i) =>
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[(i * 7) % 62],
+).join("");
 /** 32 bytes de exemplo: produção não parte sem a chave da cifra (AC-130). */
 const CHAVE_DE_CIFRA = Buffer.alloc(32, 7).toString("base64");
 
@@ -86,7 +96,11 @@ function ambienteDeProva(
  */
 function ambienteDoFilho(ambiente: Record<string, string>): NodeJS.ProcessEnv {
   const herdado: NodeJS.ProcessEnv = { ...process.env };
-  for (const nome of [...VARIAVEIS, ...VARIAVEIS_APOSENTADAS]) {
+  for (const nome of [
+    ...VARIAVEIS,
+    ...VARIAVEIS_APOSENTADAS,
+    ...VARIAVEIS_DE_OBSERVABILIDADE,
+  ]) {
     delete herdado[nome];
   }
   return { ...herdado, ...ambiente };
@@ -497,5 +511,74 @@ describe("o que a partida sobe", () => {
     expect(captura.linha("ambiente.variavel_aposentada")?.campos).toEqual([
       "API_PORT",
     ]);
+  }, 30000);
+});
+
+describe("observabilidade na partida (#139)", () => {
+  it("sem OTEL_EXPORTER_OTLP_ENDPOINT nenhum provedor é registrado e /metrics fica fechado", async () => {
+    const porta = await portaLivre();
+    const api = await iniciarApi({
+      fonte: ambienteDeProva({ PORT: String(porta) }),
+      registrador: capturarRegistro().registrador,
+    });
+    emPe = api;
+
+    expect(rastreamentoAtivo()).toBe(false);
+    expect((await fetch(`http://127.0.0.1:${porta}/metrics`)).status).toBe(404);
+    expect((await api.desligar("teste")).limpo).toBe(true);
+    emPe = undefined;
+  }, 30000);
+
+  it("com o coletor inalcançável a API sobe, responde e desliga limpa", async () => {
+    const porta = await portaLivre();
+    const api = await iniciarApi({
+      fonte: ambienteDeProva({
+        PORT: String(porta),
+        OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:9",
+      }),
+      registrador: capturarRegistro().registrador,
+    });
+    emPe = api;
+
+    expect(rastreamentoAtivo()).toBe(true);
+    const viva = await fetch(`http://127.0.0.1:${porta}/v1/health/live`);
+    expect(viva.status).toBe(200);
+    const raiz = await fetch(`http://127.0.0.1:${porta}/`);
+    expect(raiz.status).toBe(200);
+
+    expect((await api.desligar("teste")).limpo).toBe(true);
+    emPe = undefined;
+    expect(rastreamentoAtivo()).toBe(false);
+  }, 30000);
+
+  it("/metrics com token: 401 sem ele e 200 com ele", async () => {
+    const porta = await portaLivre();
+    const token = "m".repeat(40);
+    const api = await iniciarApi({
+      fonte: ambienteDeProva({ PORT: String(porta), METRICAS_TOKEN: token }),
+      registrador: capturarRegistro().registrador,
+    });
+    emPe = api;
+
+    expect((await fetch(`http://127.0.0.1:${porta}/metrics`)).status).toBe(401);
+    const ok = await fetch(`http://127.0.0.1:${porta}/metrics`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(ok.status).toBe(200);
+    expect(await ok.text()).toContain("process_cpu_user_seconds_total");
+    await api.desligar("teste");
+    emPe = undefined;
+  }, 30000);
+
+  it("recusa a partida com token de métricas curto, sem repetir o valor", async () => {
+    const porta = await portaLivre();
+    const api = subirApi(
+      ambienteDeProva({ PORT: String(porta), METRICAS_TOKEN: "curto-secreto" }),
+    );
+    emExecucao = api;
+    const { codigo, erro, saida } = await esperarFim(api);
+    expect(codigo).not.toBe(0);
+    expect(erro + saida).toContain("METRICAS_TOKEN");
+    expect(erro + saida).not.toContain("curto-secreto");
   }, 30000);
 });

@@ -76,6 +76,12 @@ export interface OpcoesDaVitrine {
   readonly lerHorario: (agora: Date) => Promise<HorarioDaLoja>;
   /** Limite por IP para as três consultas públicas de catálogo. */
   readonly limiteDoCatalogo?: RequestHandler;
+  /**
+   * A página do produto anuncia a próxima queda de preço? É a feature flag
+   * `vitrine.proximo_preco` (card #140), já resolvida pelo `criarApp`: o módulo
+   * recebe só o sinal. Sem ele, desligado.
+   */
+  readonly anunciarProximoPreco?: () => boolean;
 }
 
 /** Os filtros do catálogo, como chegam na consulta. */
@@ -459,7 +465,9 @@ export function criarRotasDaVitrine(opcoes: OpcoesDaVitrine): Router {
           { papel: "PUBLIC", lojaId: identificacao.id },
           () =>
             acesso.emTransacao(async () => {
-              const lido = await produtoDaVitrine(params.produtoId, agora);
+              const lido = await produtoDaVitrine(params.produtoId, agora, {
+                proximoPreco: opcoes.anunciarProximoPreco?.() ?? false,
+              });
               if (lido === null) return null;
               // Curtidas e comentários aprovados (card #47), sem o "curtiu".
               const { curtidas, comentarios } = resumoOuZero(

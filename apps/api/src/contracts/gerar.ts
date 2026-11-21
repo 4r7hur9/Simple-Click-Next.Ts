@@ -20,6 +20,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { z } from "zod";
+import { stringify } from "yaml";
 import {
   ERROS_DE_TODA_ROTA,
   ESQUEMAS_DO_CONTRATO,
@@ -31,6 +32,11 @@ import {
 /** Onde o documento publicado mora, versionado junto do código. */
 export const CAMINHO_PUBLICADO = fileURLToPath(
   new URL("../../../../contrato/openapi.json", import.meta.url),
+);
+
+/** Cópia em YAML no caminho que o curso espera (docs/openapi.yaml). */
+export const CAMINHO_YAML = fileURLToPath(
+  new URL("../../../../docs/openapi.yaml", import.meta.url),
 );
 
 /** Comando que regrava o documento, citado em toda mensagem de reprovação. */
@@ -139,6 +145,30 @@ function situacoesDeErro(rota: RotaDoContrato): number[] {
   return [...todas].sort((uma, outra) => uma - outra);
 }
 
+/**
+ * Os formatos de corpo que a API devolve numa situação de erro.
+ *
+ * A API tem DOIS formatos de erro (achado do teste de contrato): o plano, das
+ * rotas que respondem à mão, e o envelope do manipulador global
+ * (`core/erros.ts`). No 400 o plano tem duas formas: a da borda de validação
+ * (`ErroDeEntradaInvalida`, com a lista de campos) e a das recusas escritas à
+ * mão nas rotas (`ErroDeEntradaRecusada`), que trazem outro código
+ * (`tipo_desconhecido`, `periodo_invalido`...), às vezes sem `campos` e às
+ * vezes com um detalhe próprio. Publicar só a primeira fazia o cliente gerado
+ * rejeitar uma resposta que a API manda de verdade (card #137).
+ */
+function formatosDoErro(situacao: number): ObjetoJson[] {
+  const envelope = { $ref: "#/components/schemas/ErroComEnvelope" };
+  if (situacao !== 400) {
+    return [{ $ref: "#/components/schemas/Erro" }, envelope];
+  }
+  return [
+    { $ref: "#/components/schemas/ErroDeEntradaInvalida" },
+    { $ref: "#/components/schemas/ErroDeEntradaRecusada" },
+    envelope,
+  ];
+}
+
 /** Descreve uma rota como operação do documento. */
 function descreverOperacao(
   rota: RotaDoContrato,
@@ -166,22 +196,28 @@ function descreverOperacao(
     };
   }
 
-  const respostas: ObjetoJson = {
-    [String(rota.status)]: {
-      description: DESCRICAO_DO_STATUS[String(rota.status)] ?? rota.resumo,
+  const respostas: ObjetoJson = {};
+  const sucessos = [rota.status, ...rota.statusAlternativosDeSucesso];
+  for (const sucesso of sucessos) {
+    respostas[String(sucesso)] = {
+      description:
+        sucesso === rota.status
+          ? (DESCRICAO_DO_STATUS[String(sucesso)] ?? rota.resumo)
+          : `${DESCRICAO_DO_STATUS[String(sucesso)] ?? rota.resumo} (resposta alternativa de sucesso; reenvio idempotente devolve o recurso já existente)`,
       content: {
         "application/json": {
           schema: referenciarEsquema(rota.resposta, nomes),
         },
       },
-    },
-  };
+    };
+  }
   for (const situacao of situacoesDeErro(rota)) {
+    if (respostas[String(situacao)] !== undefined) continue;
     respostas[String(situacao)] = {
       description: DESCRICAO_DO_STATUS[String(situacao)] ?? "Falha",
       content: {
         "application/json": {
-          schema: { $ref: "#/components/schemas/Erro" },
+          schema: { anyOf: formatosDoErro(situacao) },
         },
       },
     };
@@ -216,9 +252,78 @@ function descreverEtiquetas(rotas: readonly RotaDoContrato[]): ObjetoJson[] {
   }));
 }
 
+/**
+ * Corpo do 400 da borda de validação (`apps/api/src/core/validar.ts`): além do
+ * código, lista os campos reprovados. Só metadado do documento — a validação
+ * continua sendo a do contrato Zod; o teste de contrato prende este formato à
+ * resposta real.
+ */
+const ESQUEMA_DOS_CAMPOS_RECUSADOS: ObjetoJson = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      onde: { type: "string", enum: ["params", "query", "body"] },
+      caminho: { type: "string" },
+      mensagem: { type: "string" },
+    },
+    required: ["onde", "caminho", "mensagem"],
+    additionalProperties: false,
+  },
+};
+
+const ESQUEMA_DE_ENTRADA_INVALIDA: ObjetoJson = {
+  type: "object",
+  properties: {
+    erro: { type: "string", const: "entrada_invalida" },
+    campos: ESQUEMA_DOS_CAMPOS_RECUSADOS,
+  },
+  required: ["erro", "campos"],
+  additionalProperties: false,
+};
+
+/**
+ * Corpo do 400 escrito à mão numa rota: o código de máquina, sempre; a lista
+ * de campos e a mensagem, quando a rota as dá. Fica aberto a outros campos de
+ * diagnóstico (`explicacao`, `problemas`) porque eles existem nas respostas
+ * reais; o cliente gerado decide pelo `erro`.
+ */
+const ESQUEMA_DE_ENTRADA_RECUSADA: ObjetoJson = {
+  type: "object",
+  properties: {
+    erro: { type: "string" },
+    campos: ESQUEMA_DOS_CAMPOS_RECUSADOS,
+    mensagem: { type: "string" },
+  },
+  required: ["erro"],
+};
+
+/** Envelope de erro do manipulador global (`apps/api/src/core/erros.ts`). */
+const ESQUEMA_DE_ERRO_COM_ENVELOPE: ObjetoJson = {
+  type: "object",
+  properties: {
+    erro: {
+      type: "object",
+      properties: {
+        codigo: { type: "string" },
+        mensagem: { type: "string" },
+        referencia: { type: "string" },
+      },
+      required: ["codigo", "mensagem", "referencia"],
+      additionalProperties: false,
+    },
+  },
+  required: ["erro"],
+  additionalProperties: false,
+};
+
 /** Esquemas nomeados do documento, em ordem alfabética. */
 function descreverComponentes(): ObjetoJson {
-  const esquemas: ObjetoJson = {};
+  const esquemas: ObjetoJson = {
+    ErroDeEntradaInvalida: ESQUEMA_DE_ENTRADA_INVALIDA,
+    ErroDeEntradaRecusada: ESQUEMA_DE_ENTRADA_RECUSADA,
+    ErroComEnvelope: ESQUEMA_DE_ERRO_COM_ENVELOPE,
+  };
   const nomes = Object.keys(ESQUEMAS_DO_CONTRATO).sort((um, outro) =>
     um.localeCompare(outro, "en"),
   );
@@ -263,6 +368,13 @@ export function gerarDocumento(
 /** Texto exato que o arquivo publicado precisa ter. */
 export function serializar(documento: ObjetoJson): string {
   return `${JSON.stringify(documento, null, 2)}\n`;
+}
+
+/** Texto YAML do mesmo documento (sem quebra de linha automática). */
+export function serializarYaml(documento: ObjetoJson): string {
+  const cabecalho =
+    "# GERADO de packages/contracts por apps/api/src/contracts/gerar.ts.\n# Não edite à mão: rode `pnpm openapi:gerar`. Lint: `pnpm openapi:lint`.\n";
+  return cabecalho + stringify(documento, { lineWidth: 0 });
 }
 
 /** Um ponto em que código e documento publicado contam histórias diferentes. */
@@ -386,6 +498,22 @@ export async function escreverPublicado(
   return texto;
 }
 
+/** Grava docs/openapi.yaml a partir do mesmo documento. */
+export async function escreverYaml(
+  caminho: string = CAMINHO_YAML,
+): Promise<string> {
+  const texto = serializarYaml(gerarDocumento());
+  await writeFile(caminho, texto, "utf8");
+  return texto;
+}
+
+/** O YAML publicado está em dia com o código? */
+export async function yamlEstaEmDia(
+  caminho: string = CAMINHO_YAML,
+): Promise<boolean> {
+  return (await lerPublicado(caminho)) === serializarYaml(gerarDocumento());
+}
+
 /** Reprovação em texto: o que está errado, onde, e o que fazer agora. */
 export function explicar(comparacao: Comparacao, caminho: string): string {
   if (comparacao.emDia) return `contrato publicado em dia: ${caminho}`;
@@ -431,6 +559,23 @@ async function principal(argumentos: readonly string[]): Promise<number> {
     await escreverPublicado(caminho);
     process.stdout.write(`contrato gravado em ${caminho}\n`);
     return 0;
+  }
+
+  if (comando === "yaml") {
+    const destino = argumentos.includes("--arquivo") ? caminho : CAMINHO_YAML;
+    await escreverYaml(destino);
+    process.stdout.write(`openapi em YAML gravado em ${destino}\n`);
+    return 0;
+  }
+
+  if (comando === "verificar-yaml") {
+    const emDia = await yamlEstaEmDia();
+    process.stdout.write(
+      emDia
+        ? `yaml em dia: ${CAMINHO_YAML}\n`
+        : `yaml desatualizado: rode pnpm openapi:gerar\n`,
+    );
+    return emDia ? 0 : 1;
   }
 
   if (comando === "verificar") {

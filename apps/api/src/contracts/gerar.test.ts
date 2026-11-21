@@ -16,6 +16,7 @@ import {
   serializar,
   type ObjetoJson,
 } from "./gerar.ts";
+import { esquemaPublicadoDaResposta } from "../../tests/apoio-do-contrato.ts";
 
 const executar = promisify(execFile);
 
@@ -135,11 +136,13 @@ describe("documento de contrato publicado", () => {
       "/v1/vitrine/{apelido}/catalogo/produtos",
       "/v1/vitrine/{apelido}/catalogo/resumo",
       "/v1/vitrine/{apelido}/fechamento",
+      "/v1/vitrine/{apelido}/pedido/{token}",
       "/v1/vitrine/{apelido}/pedidos",
       "/v1/vitrine/{apelido}/produto/{produtoId}",
     ]);
     expect(Object.keys(esquemas).sort()).toEqual([
       "Abertura",
+      "Acompanhamento",
       "Carrinho",
       "ChavePix",
       "ComentarioDaLoja",
@@ -151,6 +154,9 @@ describe("documento de contrato publicado", () => {
       "EnderecoDaLoja",
       "EntregaDaLoja",
       "Erro",
+      "ErroComEnvelope",
+      "ErroDeEntradaInvalida",
+      "ErroDeEntradaRecusada",
       "Eu",
       "Fechamento",
       "GrupoDeEscolha",
@@ -187,6 +193,65 @@ describe("documento de contrato publicado", () => {
     // Toda rota descreve o erro pela mesma referência: cliente nativo gera um
     // tipo de erro, não um por rota.
     expect(JSON.stringify(caminhos)).toContain("#/components/schemas/Erro");
+  });
+
+  it("[CA-1] o 400 publicado aceita toda resposta 400 que a API escreve, e recusa corpo sem código", () => {
+    // Os corpos são os que as rotas devolvem de verdade (card #137): a borda
+    // de validação, o 400 escrito à mão de POST /v1/auth/lojas
+    // (auth.routes.ts), o da importação sem `campos` (importacao.routes.ts),
+    // os com detalhe próprio (metricas.routes.ts, especificacoes.routes.ts) e
+    // o envelope do manipulador global.
+    const corposReais = [
+      {
+        erro: "entrada_invalida",
+        campos: [{ onde: "body", caminho: "nome", mensagem: "obrigatório" }],
+      },
+      {
+        erro: "tipo_desconhecido",
+        campos: [
+          {
+            onde: "body",
+            caminho: "tipoDeNegocio",
+            mensagem: "Escolha um tipo de negócio da lista.",
+          },
+        ],
+      },
+      { erro: "entrada_invalida" },
+      { erro: "periodo_invalido", explicacao: "o fim vem antes do início" },
+      { erro: "imagem_invalida", mensagem: "formato não aceito" },
+      {
+        erro: "especificacao_invalida",
+        problemas: [{ campo: "valor", mensagem: "obrigatório" }],
+      },
+      {
+        erro: {
+          codigo: "entrada_invalida",
+          mensagem: "Entrada inválida.",
+          referencia: "ref-1",
+        },
+      },
+    ];
+    const caminhos = gerarDocumento()["paths"] as ObjetoJson;
+    const comQuatrocentos = Object.entries(caminhos).flatMap(([caminho, operacoes]) =>
+      Object.entries(operacoes as ObjetoJson)
+        .filter(([, operacao]) => {
+          const respostas = (operacao as ObjetoJson)["responses"] as ObjetoJson;
+          return respostas["400"] !== undefined;
+        })
+        .map(([metodo]) => ({ caminho, metodo })),
+    );
+    expect(comQuatrocentos.length).toBeGreaterThan(0);
+    expect(comQuatrocentos).toContainEqual({ caminho: "/v1/auth/lojas", metodo: "post" });
+
+    for (const { caminho, metodo } of comQuatrocentos) {
+      const esquema = esquemaPublicadoDaResposta(caminho, metodo, 400);
+      for (const corpo of corposReais) {
+        expect(esquema.safeParse(corpo).success, `${metodo} ${caminho}: ${JSON.stringify(corpo)}`).toBe(true);
+      }
+      // Continua sendo contrato: sem o código de máquina não passa.
+      expect(esquema.safeParse({ campos: [] }).success).toBe(false);
+      expect(esquema.safeParse({ erro: 42 }).success).toBe(false);
+    }
   });
 
   it("@spec:AC-007 gerar duas vezes dá o mesmo texto, byte a byte", () => {

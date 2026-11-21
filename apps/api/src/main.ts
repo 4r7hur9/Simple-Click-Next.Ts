@@ -28,10 +28,16 @@ import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
 import { criarApp } from "./app.ts";
+import { lerConfiguracaoDeObservabilidade } from "./core/observabilidade.ts";
+import {
+  iniciarRastreamento,
+  type Rastreamento,
+} from "./core/rastreamento.ts";
 import { exigirAceiteVigente } from "./core/aceites-legais.ts";
 import { clienteDaCompra } from "./modules/auth/cliente-da-compra.ts";
 import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
 import { encerrarCache } from "./core/cache.ts";
+import { flagsDoAmbiente } from "./core/flags.ts";
 import { encerrarCacheDoLimite } from "./modules/auth/limite-da-identidade.ts";
 import { encerrarBanco, encerrarBancoDaAdministracao } from "./core/db.ts";
 import {
@@ -208,7 +214,40 @@ export async function iniciarApi(
 ): Promise<ApiEmPe> {
   const fonte = opcoes.fonte ?? process.env;
   const ambiente = carregarAmbiente(fonte);
+  // Lida logo depois do ambiente, antes de abrir qualquer conexão: token de
+  // métricas curto ou endpoint de rastreamento inválido recusam a partida.
+  const observabilidade = lerConfiguracaoDeObservabilidade(fonte);
+  // Trace para o Jaeger: só com OTEL_EXPORTER_OTLP_ENDPOINT. Sem ela, nenhum
+  // provedor é registrado e a API sobe do mesmo jeito. A fila de exportação é
+  // limitada: coletor fora do ar não atrasa nenhuma requisição.
+  const rastreamento = iniciarRastreamento({
+    configuracao: observabilidade.exportador,
+    ambiente: ambiente.NODE_ENV,
+  });
 
+  // Daqui em diante, QUALQUER falha da partida desfaz o que já ficou
+  // registrado no processo: o provedor de rastreamento, o gerenciador de
+  // contexto e o ajudante do Prisma são globais, e um segundo `iniciarApi` no
+  // mesmo processo recusaria "já iniciado" (card #137).
+  const abertos: { segundoPlano?: SegundoPlano | undefined } = {};
+  try {
+    return await partir(opcoes, fonte, ambiente, observabilidade, rastreamento, abertos);
+  } catch (erro) {
+    await abertos.segundoPlano?.fechar().catch(() => undefined);
+    await rastreamento?.encerrar().catch(() => undefined);
+    throw erro;
+  }
+}
+
+/** O resto da partida, depois do rastreamento; quem desfaz em falha é `iniciarApi`. */
+async function partir(
+  opcoes: OpcoesDaPartida,
+  fonte: NodeJS.ProcessEnv,
+  ambiente: ReturnType<typeof carregarAmbiente>,
+  observabilidade: ReturnType<typeof lerConfiguracaoDeObservabilidade>,
+  rastreamento: Rastreamento | undefined,
+  abertos: { segundoPlano?: SegundoPlano | undefined },
+): Promise<ApiEmPe> {
   const registro =
     opcoes.registrador ??
     criarRegistrador({
@@ -242,6 +281,7 @@ export async function iniciarApi(
         },
       })
     : undefined;
+  abertos.segundoPlano = segundoPlano;
 
   if (segundoPlano === undefined) {
     registro.info(EVENTOS_DA_PARTIDA.segundoPlanoDesligado, {
@@ -258,6 +298,12 @@ export async function iniciarApi(
     opcoes.aplicacao ??
     criarApp({
       origens: ambiente.ORIGENS_PERMITIDAS,
+      // Feature flags do ambiente (card #140): tudo desligado sem pedido.
+      flags: flagsDoAmbiente(ambiente),
+      // Métricas RED em /metrics (card #139): fechado por padrão.
+      observabilidade: {
+        metricas: { acesso: observabilidade.metricas, metricasPadrao: true },
+      },
       // O processo que serve de verdade avisa o site quando o dono muda a
       // loja (dívida 93); configuração pela metade recusa a partida.
       avisarSite: avisoDoSiteDoAmbiente(fonte),
@@ -288,26 +334,25 @@ export async function iniciarApi(
     aplicacao(requisicao, resposta);
   });
 
-  try {
-    await escutar(servidor, ambiente.PORT);
-  } catch (erro) {
-    await segundoPlano?.fechar().catch(() => undefined);
-    throw erro;
-  }
-
   // A limpeza dos stories vencidos (card #46): no próprio processo, de
   // STORIES_LIMPEZA_MINUTOS em STORIES_LIMPEZA_MINUTOS (0 desliga). Só no
-  // processo de verdade: a prova que injeta a aplicação não limpa nada.
+  // processo de verdade: a prova que injeta a aplicação não limpa nada. A
+  // configuração é lida ANTES de abrir a porta: variável inválida recusa a
+  // partida sem deixar um servidor escutando.
   const minutosDaLimpeza = limitesDeMidiaDoAmbiente(fonte).limpezaDosStoriesMinutos;
-  const limpeza: LimpezaAgendada | undefined =
+  const limpezaDosStories =
     opcoes.aplicacao === undefined && minutosDaLimpeza > 0
-      ? agendarLimpezaDosStories(
-          criarLimpezaDosStories({
-            armazenamento: armazenamentoDeMidiaDoAmbiente(fonte),
-          }),
-          minutosDaLimpeza * 60_000,
-        )
+      ? criarLimpezaDosStories({
+          armazenamento: armazenamentoDeMidiaDoAmbiente(fonte),
+        })
       : undefined;
+
+  await escutar(servidor, ambiente.PORT);
+
+  const limpeza: LimpezaAgendada | undefined =
+    limpezaDosStories === undefined
+      ? undefined
+      : agendarLimpezaDosStories(limpezaDosStories, minutosDaLimpeza * 60_000);
 
   const porta = (servidor.address() as AddressInfo).port;
   // A porta entra como campo, não como texto interpolado (AC-021).
@@ -339,6 +384,7 @@ export async function iniciarApi(
       "http",
       ...(segundoPlano === undefined ? [] : ["segundo_plano"]),
       ...recursos.map((recurso) => recurso.nome),
+      ...(rastreamento === undefined ? [] : ["rastreamento"]),
     ]);
     const falharam: string[] = [];
 
@@ -367,6 +413,10 @@ export async function iniciarApi(
       await Promise.all(
         recursos.map((recurso) => fechar(recurso.nome, recurso.encerrar)),
       );
+      // Por último: os spans do banco e do desligamento ainda saem na descarga.
+      if (rastreamento !== undefined) {
+        await fechar("rastreamento", () => rastreamento.encerrar());
+      }
     })();
 
     let relogio: NodeJS.Timeout | undefined;

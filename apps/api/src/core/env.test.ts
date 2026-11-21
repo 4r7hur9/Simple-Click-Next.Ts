@@ -21,7 +21,17 @@ const CONEXAO_DIRETA =
 const CONEXAO_DE_TESTE =
   "postgresql://aplicacao:trocar@localhost:5432/simpleclick_test";
 const CACHE = "redis://localhost:6379/0";
-const CHAVE_DE_ASSINATURA = "x".repeat(48);
+/**
+ * Segredo de prova com variedade de caracteres (48 distintos), montado em
+ * código para não ser um literal: produção recusa repetição como "x" × 48
+ * (A-1 da revisão #149). Não é chave de lugar nenhum.
+ */
+const ALFABETO =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const CHAVE_DE_ASSINATURA = Array.from(
+  { length: 48 },
+  (_, i) => ALFABETO[(i * 7) % ALFABETO.length],
+).join("");
 
 /** Ambiente completo e válido — cada teste tira ou estraga uma peça dele. */
 function ambienteCompleto(): Record<string, string> {
@@ -174,6 +184,7 @@ describe("carregarAmbiente", () => {
       "DATABASE_URL",
       "DATABASE_URL_DIRETA",
       "DATABASE_URL_TEST",
+      "FLAG_VITRINE_PROXIMO_PRECO",
       "JWT_SECRET",
       "LOG_LEVEL",
       "NODE_ENV",
@@ -276,6 +287,113 @@ describe("o segundo plano", () => {
 
     expect(erro.variaveis).toEqual(["SEGUNDO_PLANO"]);
     expect(erro.message).toContain("ligado | desligado");
+  });
+});
+
+describe("a feature flag do próximo preço (card #140)", () => {
+  it("[CA-12] aceita ligado e desligado, e ausente passa", () => {
+    for (const valor of ["ligado", "desligado"]) {
+      const fonte = ambienteCompleto();
+      fonte.FLAG_VITRINE_PROXIMO_PRECO = valor;
+      expect(carregarAmbiente(fonte).FLAG_VITRINE_PROXIMO_PRECO).toBe(valor);
+    }
+    expect(
+      carregarAmbiente(ambienteCompleto()).FLAG_VITRINE_PROXIMO_PRECO,
+    ).toBeUndefined();
+  });
+
+  it("[CA-12] recusa 'ligada' e 'sim' listando os valores aceitos", () => {
+    for (const valor of ["ligada", "sim"]) {
+      const fonte = ambienteCompleto();
+      fonte.FLAG_VITRINE_PROXIMO_PRECO = valor;
+
+      const erro = recusaAoCarregar(fonte);
+
+      expect(erro.variaveis).toEqual(["FLAG_VITRINE_PROXIMO_PRECO"]);
+      expect(erro.message).toContain("ligado | desligado");
+    }
+  });
+});
+
+describe("segredos de exemplo e fracos em produção (A-1, revisão #149)", () => {
+  /** Mesmo texto do .env.example: público no repositório. */
+  const MARCADOR = "TROQUE_POR_UM_SEGREDO_GERADO_COM_AO_MENOS_32_CARACTERES";
+  const CHAVE_DA_CIFRA = Buffer.alloc(32, 7).toString("base64");
+
+  function producao(): Record<string, string> {
+    const fonte = ambienteCompleto();
+    fonte.NODE_ENV = "production";
+    fonte.CHAVE_CIFRA_TOTP = CHAVE_DA_CIFRA;
+    delete fonte.DATABASE_URL_TEST;
+    return fonte;
+  }
+
+  it("[A-1] produção parte com segredo gerado (controle)", () => {
+    expect(carregarAmbiente(producao()).NODE_ENV).toBe("production");
+  });
+
+  it("[A-1] produção recusa o marcador TROQUE_ do .env.example como JWT_SECRET, sem ecoar o valor", () => {
+    const fonte = producao();
+    fonte.JWT_SECRET = MARCADOR;
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["JWT_SECRET"]);
+    expect(erro.message).toContain(".env.example");
+    expect(erro.message).not.toContain(MARCADOR);
+  });
+
+  it("[A-1] produção recusa JWT_SECRET de baixa variedade, como 32 letras 'a'", () => {
+    const fonte = producao();
+    fonte.JWT_SECRET = "a".repeat(32);
+
+    const erro = recusaAoCarregar(fonte);
+
+    expect(erro.variaveis).toEqual(["JWT_SECRET"]);
+    expect(erro.message).toContain("caracteres distintos");
+    expect(erro.message).not.toContain("a".repeat(32));
+  });
+
+  it("[A-1] produção recusa o marcador nos outros segredos e nas conexões", () => {
+    const fonte = producao();
+    fonte.SEGREDO_DE_REVALIDACAO = MARCADOR;
+    fonte.SEGREDO_DA_PONTE = MARCADOR;
+    fonte.METRICAS_TOKEN = "b".repeat(40);
+    fonte.DATABASE_URL =
+      "postgresql://TROQUE_USUARIO:TROQUE_SENHA@localhost:6432/simpleclick?pgbouncer=true";
+    fonte.REDIS_URL = "redis://:TROQUE_SENHA@localhost:6379/0";
+
+    expect(recusaAoCarregar(fonte).variaveis).toEqual([
+      "DATABASE_URL",
+      "METRICAS_TOKEN",
+      "REDIS_URL",
+      "SEGREDO_DA_PONTE",
+      "SEGREDO_DE_REVALIDACAO",
+    ]);
+  });
+
+  it("[M-1] produção parte SEM a credencial de migração: só o pré-deploy a usa", () => {
+    const fonte = producao();
+    delete fonte.DATABASE_URL_DIRETA;
+
+    const ambiente = carregarAmbiente(fonte);
+
+    expect(ambiente.DATABASE_URL_DIRETA).toBeUndefined();
+  });
+
+  it("[M-1] fora de produção ela continua obrigatória, nomeada na recusa", () => {
+    const erro = recusaAoCarregar(ambienteSem("DATABASE_URL_DIRETA"));
+
+    expect(erro.variaveis).toEqual(["DATABASE_URL_DIRETA"]);
+    expect(erro.message).toContain("obrigatória quando NODE_ENV não é production");
+  });
+
+  it("[A-1] fora de produção o modelo copiado continua subindo (desenvolvimento)", () => {
+    const fonte = ambienteCompleto();
+    fonte.JWT_SECRET = MARCADOR;
+    fonte.SEGREDO_DE_REVALIDACAO = MARCADOR;
+
+    expect(carregarAmbiente(fonte).JWT_SECRET).toBe(MARCADOR);
   });
 });
 

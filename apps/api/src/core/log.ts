@@ -34,10 +34,14 @@ import { randomUUID } from "node:crypto";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { pino, type DestinationStream, type Logger } from "pino";
 
+import { trace } from "@opentelemetry/api";
+
 import {
+  abrirContextoRaiz,
+  anotarRastreio,
   contextoAtual,
-  criarContexto,
   executarNoContexto,
+  marcasDoContexto,
   type ContextoDaRequisicao,
 } from "./contexto.ts";
 
@@ -66,6 +70,9 @@ export const CAMPOS_PERMITIDOS: ReadonlySet<string> = new Set([
   "lojaId",
   "usuarioId",
   "papel",
+  // --- ligação com o trace (OpenTelemetry) ---
+  "traceId",
+  "spanId",
   // --- quem é o processo ---
   "servico",
   "ambiente",
@@ -336,13 +343,21 @@ export function criarRegistrador(
     mixin(): Record<string, unknown> {
       const contexto = contextoAtual();
       if (contexto === undefined) return {};
+      // As marcas juntam o que a requisição INTEIRA soube (papel de maior
+      // privilégio, usuário, loja); o contexto em curso é a reserva.
+      const marcas = marcasDoContexto(contexto);
+      const lojaId = contexto.lojaId ?? marcas?.lojaId;
+      const usuarioId = contexto.usuarioId ?? marcas?.usuarioId;
+      const ativo = trace.getActiveSpan()?.spanContext();
+      const traceId = ativo?.traceId ?? marcas?.traceId;
+      const spanId = ativo?.spanId ?? marcas?.spanId;
       return {
         requisicaoId: contexto.requisicaoId,
-        ...(contexto.lojaId === undefined ? {} : { lojaId: contexto.lojaId }),
-        ...(contexto.usuarioId === undefined
-          ? {}
-          : { usuarioId: contexto.usuarioId }),
-        papel: contexto.papel,
+        ...(lojaId === undefined ? {} : { lojaId }),
+        ...(usuarioId === undefined ? {} : { usuarioId }),
+        papel: marcas?.papel ?? contexto.papel,
+        ...(traceId === undefined ? {} : { traceId }),
+        ...(spanId === undefined ? {} : { spanId }),
       };
     },
     formatters: {
@@ -426,6 +441,47 @@ function identificadorDaRequisicao(req: Request): string {
     : randomUUID();
 }
 
+/** Rótulo da rota quando o molde não é texto (regex ou lista de caminhos). */
+export const ROTA_NAO_TEXTUAL = "rota_nao_textual";
+
+/** O molde completo (com o prefixo do sub-roteador) de cada requisição. */
+const moldesDasRequisicoes = new WeakMap<object, string>();
+
+/** Requisições que já têm a captura instalada. */
+const instaladas = new WeakSet<object>();
+
+/**
+ * Captura o molde da rota NO MOMENTO em que o Express a escolhe.
+ *
+ * Ler `req.baseUrl` só no `finish` não serve: nessa hora o roteador já
+ * restaurou o prefixo e o molde perde o `/v1/...`. Ler `req.route` também
+ * não, porque respostas 4xx tratadas e erros lançados saem depois que o
+ * sub-roteador devolveu o controle. O Express atribui `req.route = route`
+ * enquanto o `baseUrl` ainda é o do sub-roteador, então um setter guarda a
+ * combinação certa na hora (D-6e).
+ */
+export function instalarCapturaDeRota(req: Request): void {
+  if (instaladas.has(req)) return;
+  instaladas.add(req);
+  let atual: unknown;
+  Object.defineProperty(req, "route", {
+    configurable: true,
+    enumerable: true,
+    get: () => atual,
+    set(valor: unknown) {
+      atual = valor;
+      if (valor === undefined || valor === null) return;
+      const caminho = (valor as { path?: unknown }).path;
+      moldesDasRequisicoes.set(
+        req,
+        typeof caminho === "string"
+          ? `${req.baseUrl}${caminho}` || "/"
+          : ROTA_NAO_TEXTUAL,
+      );
+    },
+  });
+}
+
 /**
  * A rota REGISTRADA, e não o endereço pedido.
  *
@@ -433,10 +489,20 @@ function identificadorDaRequisicao(req: Request): string {
  * lugar de `:token` é credencial de acompanhamento e não pode ser gravado. O
  * mesmo raciocínio vale para a consulta (`?...`), que nunca entra.
  */
-function rotaRegistrada(req: Request): string | undefined {
-  const molde = (req as Request & { route?: { path?: string } }).route?.path;
+export function rotaDaRequisicao(req: Request): string | undefined {
+  const capturada = moldesDasRequisicoes.get(req);
+  if (capturada !== undefined && capturada !== "") return capturada;
+  if (instaladas.has(req)) return undefined;
+  // Sem a captura instalada (teste que monta só uma parte): melhor esforço.
+  const molde = (req as Request & { route?: { path?: unknown } }).route?.path;
   if (molde === undefined) return undefined;
-  return `${req.baseUrl}${molde}` || "/";
+  return typeof molde === "string"
+    ? `${req.baseUrl}${molde}` || "/"
+    : ROTA_NAO_TEXTUAL;
+}
+
+function rotaRegistrada(req: Request): string | undefined {
+  return rotaDaRequisicao(req);
 }
 
 /**
@@ -457,9 +523,15 @@ export function middlewareDeRegistro(): RequestHandler {
     res: Response,
     next: NextFunction,
   ): void {
-    const contexto = criarContexto({
+    instalarCapturaDeRota(req);
+    // Raiz nova: não herda nada de quem quer que esteja em curso.
+    const contexto = abrirContextoRaiz({
       requisicaoId: identificadorDaRequisicao(req),
     });
+    const ativo = trace.getActiveSpan()?.spanContext();
+    if (ativo !== undefined) {
+      anotarRastreio(contexto, ativo.traceId, ativo.spanId);
+    }
     res.setHeader(CABECALHO_DE_REQUISICAO, contexto.requisicaoId);
 
     const inicio = process.hrtime.bigint();
