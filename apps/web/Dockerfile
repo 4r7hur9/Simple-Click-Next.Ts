@@ -95,6 +95,9 @@ COPY --from=construcao --chown=node:node /app/apps/web/.next/standalone ./
 # propósito: o normal é servi-los por rede de distribuição. Sem esta linha o
 # site sobe sem estilo nenhum, que é a falha mais confusa desta imagem.
 COPY --from=construcao --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+# A pasta `public` (imagens da landing, ícones, prints) também fica FORA da
+# saída autônoma: sem esta linha tudo que mora em `public/` responde 404.
+COPY --from=construcao --chown=node:node /app/apps/web/public ./apps/web/public
 
 # Daqui para baixo, nada roda como administrador.
 USER node
