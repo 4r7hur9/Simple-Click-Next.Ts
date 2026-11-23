@@ -17,7 +17,8 @@ import {
 import { ErroDeAmbienteDeProducao } from "./destino-local.ts";
 import { derivarSenha } from "./demo/contas.ts";
 
-const URL_LOCAL = "postgresql://migracao:segredo-da-url@localhost:5432/simpleclick_dev";
+const URL_LOCAL =
+  "postgresql://migracao:segredo-da-url@localhost:5432/simpleclick_dev";
 const EMAIL = "pessoa.de.teste@exemplo.invalido";
 const SENHA = "senha-de-prova-deste-teste-1";
 
@@ -91,9 +92,18 @@ describe("administração local do seed: recusas antes de gravar", () => {
       [{ ...AMBIENTE, NODE_ENV: "production" }, undefined],
       [{ ...AMBIENTE, RAILWAY_ENVIRONMENT_NAME: "producao" }, undefined],
       [{ ...AMBIENTE, HEROKU_APP_NAME: "x" }, undefined],
-      [{ ...AMBIENTE }, "postgresql://u:segredo-da-url@db.exemplo.internal:5432/railway"],
-      [{ ...AMBIENTE }, "postgresql://u:segredo-da-url@localhost/simpleclick?host=10.0.0.9"],
-      [{ ...AMBIENTE }, "postgresql://u:segredo-da-url@localhost/simpleclick?hostaddr=10.0.0.9"],
+      [
+        { ...AMBIENTE },
+        "postgresql://u:segredo-da-url@db.exemplo.internal:5432/railway",
+      ],
+      [
+        { ...AMBIENTE },
+        "postgresql://u:segredo-da-url@localhost/simpleclick?host=10.0.0.9",
+      ],
+      [
+        { ...AMBIENTE },
+        "postgresql://u:segredo-da-url@localhost/simpleclick?hostaddr=10.0.0.9",
+      ],
     ];
     for (const [ambiente, url] of casos) {
       const { erro, consultas } = await recusa(ambiente, url ? { url } : {});

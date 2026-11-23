@@ -555,3 +555,113 @@ export function variaveisAposentadasPresentes(
     (nome) => valorDe(fonte, nome) !== undefined,
   );
 }
+
+// ---------------------------------------------------------------------------
+// Administração permanente (card #3)
+// ---------------------------------------------------------------------------
+
+/** O pedido de uma administração permanente, lido das variáveis do serviço. */
+export type PedidoDaAdministracaoPermanente =
+  | { readonly situacao: "ausente" }
+  | { readonly situacao: "incompleta"; readonly campos: readonly string[] }
+  | { readonly situacao: "invalida"; readonly campos: readonly string[] }
+  | {
+      readonly situacao: "pronta";
+      readonly email: string;
+      readonly senha: string;
+      readonly segredo: string;
+      readonly nome: string;
+    };
+
+const VARIEDADE_MINIMA_DA_ADMINISTRACAO = 10;
+
+const emailDaAdministracao = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(254)
+  .pipe(z.email());
+const senhaDaAdministracao = z
+  .string()
+  .min(12)
+  .max(256)
+  .refine((valor) => !valor.includes("TROQUE_"))
+  .refine((valor) => new Set(valor).size >= VARIEDADE_MINIMA_DA_ADMINISTRACAO);
+const segredoDaAdministracao = z
+  .string()
+  .transform((valor) => valor.replace(/\s+/g, "").toUpperCase())
+  .pipe(z.string().regex(/^[A-Z2-7]{32}$/))
+  .refine((valor) => new Set(valor).size >= VARIEDADE_MINIMA_DA_ADMINISTRACAO);
+const nomeDaAdministracao = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[\p{L}\p{M} .'-]+$/u);
+
+function presente(fonte: FonteDeAmbiente, nome: string): string | undefined {
+  const valor = fonte[nome];
+  return valor === undefined || valor.trim() === "" ? undefined : valor;
+}
+
+/**
+ * Lê `ADMIN_EMAIL`, `ADMIN_SENHA`, `ADMIN_TOTP_SEGREDO` e `ADMIN_NOME` e diz o
+ * que dá para fazer com elas. Fica FORA do `forma`/`Ambiente` de propósito: a
+ * senha e o segredo não viajam no objeto de ambiente que a API inteira recebe,
+ * e variável opcional errada vira aviso em vez de derrubar a partida. Só os
+ * NOMES das variáveis problemáticas saem daqui, nunca os valores.
+ *
+ * - sem senha e sem segredo: `ausente` (só o e-mail, ou o nome, não pede nada);
+ * - só um dos três obrigatórios: `incompleta`;
+ * - formato fora do esperado: `invalida`.
+ */
+export function lerPedidoDaAdministracaoPermanente(
+  fonte: FonteDeAmbiente,
+): PedidoDaAdministracaoPermanente {
+  const email = presente(fonte, "ADMIN_EMAIL");
+  const senha = presente(fonte, "ADMIN_SENHA");
+  const segredo = presente(fonte, "ADMIN_TOTP_SEGREDO");
+  const nome = presente(fonte, "ADMIN_NOME");
+  if (senha === undefined && segredo === undefined)
+    return { situacao: "ausente" };
+
+  const faltando = [
+    ["ADMIN_EMAIL", email],
+    ["ADMIN_SENHA", senha],
+    ["ADMIN_TOTP_SEGREDO", segredo],
+  ]
+    .filter(([, valor]) => valor === undefined)
+    .map(([variavel]) => variavel as string);
+  if (faltando.length > 0) return { situacao: "incompleta", campos: faltando };
+
+  const emailLido = emailDaAdministracao.safeParse(email);
+  const senhaLida = senhaDaAdministracao.safeParse(senha);
+  const segredoLido = segredoDaAdministracao.safeParse(segredo);
+  const nomeLido =
+    nome === undefined ? undefined : nomeDaAdministracao.safeParse(nome);
+  const invalidas = [
+    emailLido.success ? undefined : "ADMIN_EMAIL",
+    senhaLida.success ? undefined : "ADMIN_SENHA",
+    segredoLido.success ? undefined : "ADMIN_TOTP_SEGREDO",
+    nomeLido === undefined || nomeLido.success ? undefined : "ADMIN_NOME",
+    problemaDaChaveDeCifra(fonte["CHAVE_CIFRA_TOTP"]?.trim() ?? "") ===
+    undefined
+      ? undefined
+      : "CHAVE_CIFRA_TOTP",
+  ].filter((variavel): variavel is string => variavel !== undefined);
+  if (
+    invalidas.length > 0 ||
+    !emailLido.success ||
+    !senhaLida.success ||
+    !segredoLido.success
+  ) {
+    return { situacao: "invalida", campos: invalidas };
+  }
+  return {
+    situacao: "pronta",
+    email: emailLido.data,
+    senha: senhaLida.data,
+    segredo: segredoLido.data,
+    nome: nomeLido?.success ? nomeLido.data : "Administração",
+  };
+}

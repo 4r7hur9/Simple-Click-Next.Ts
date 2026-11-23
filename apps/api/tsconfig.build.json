@@ -10,12 +10,14 @@
   },
   // `src/administracao-local*.ts` é ferramenta de quem opera o banco LOCAL
   // (#163): roda pelo código-fonte (`pnpm administracao:local`) e não pode
-  // existir na imagem da API.
+  // existir na imagem da API. O mesmo vale para o gerador do segredo da
+  // administração permanente (card #3), que roda no computador de quem opera.
   "exclude": [
     "node_modules",
     "dist",
     "src/**/*.test.ts",
     "tests",
-    "src/administracao-local*.ts"
+    "src/administracao-local*.ts",
+    "src/administracao-segredo*.ts"
   ]
 }

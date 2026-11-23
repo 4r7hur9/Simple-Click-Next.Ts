@@ -89,6 +89,9 @@ export const CAMPOS_PERMITIDOS: ReadonlySet<string> = new Set([
   "esperaMs",
   "quantidade",
   "porta",
+  // --- administração permanente (card #3): só enumerações, nunca valor digitado ---
+  "situacao_da_administracao",
+  "sqlstate",
   // --- sobre qual coisa ---
   "recurso",
   "recursoId",

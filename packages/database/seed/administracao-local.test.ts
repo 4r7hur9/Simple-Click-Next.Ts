@@ -156,9 +156,14 @@ describe("administração local do seed (banco de verdade)", () => {
     const { situacao } = await rodar();
     expect(situacao).toBe("ja_existia");
     expect(
-      await contar(`SELECT count(*)::int AS n FROM app.identities WHERE email_norm = $1`, [EMAIL]),
+      await contar(
+        `SELECT count(*)::int AS n FROM app.identities WHERE email_norm = $1`,
+        [EMAIL],
+      ),
     ).toBe(1);
-    expect(await contar(`SELECT count(*)::int AS n FROM app.platform_admins`)).toBe(1);
+    expect(
+      await contar(`SELECT count(*)::int AS n FROM app.platform_admins`),
+    ).toBe(1);
     const depois = (
       await administracao.query(
         `SELECT password_hash FROM app.identities WHERE email_norm = $1`,
@@ -186,7 +191,9 @@ describe("administração local do seed (banco de verdade)", () => {
     );
     expect(senhaConfereComOHash(SENHA_NOVA, hash)).toBe(true);
     expect(
-      await contar(`SELECT count(*)::int AS n FROM app.platform_admins WHERE revoked_at IS NULL`),
+      await contar(
+        `SELECT count(*)::int AS n FROM app.platform_admins WHERE revoked_at IS NULL`,
+      ),
     ).toBe(1);
   });
 
@@ -235,7 +242,9 @@ describe("administração local do seed (banco de verdade)", () => {
   it("[CA-5] só a conta do .env tem grant ativo; a administração do seed original sem senha não ganha nada sozinha", async () => {
     expect(PESSOAS.administracao.email).toContain("@");
     expect(
-      await contar(`SELECT count(*)::int AS n FROM app.platform_admins WHERE revoked_at IS NULL`),
+      await contar(
+        `SELECT count(*)::int AS n FROM app.platform_admins WHERE revoked_at IS NULL`,
+      ),
     ).toBe(1);
   });
 });

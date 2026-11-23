@@ -27,12 +27,14 @@ import {
 import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
+import {
+  type ConectarNaAdministracao,
+  executarAdministracaoPermanente,
+  extrairPedidoDaAdministracao,
+} from "./administracao-permanente.ts";
 import { criarApp } from "./app.ts";
 import { lerConfiguracaoDeObservabilidade } from "./core/observabilidade.ts";
-import {
-  iniciarRastreamento,
-  type Rastreamento,
-} from "./core/rastreamento.ts";
+import { iniciarRastreamento, type Rastreamento } from "./core/rastreamento.ts";
 import { exigirAceiteVigente } from "./core/aceites-legais.ts";
 import { clienteDaCompra } from "./modules/auth/cliente-da-compra.ts";
 import { avisoDoSiteDoAmbiente } from "./core/aviso-ao-site.ts";
@@ -42,6 +44,7 @@ import { encerrarCacheDoLimite } from "./modules/auth/limite-da-identidade.ts";
 import { encerrarBanco, encerrarBancoDaAdministracao } from "./core/db.ts";
 import {
   carregarAmbiente,
+  type PedidoDaAdministracaoPermanente,
   ErroDeAmbiente,
   segundoPlanoLigado,
   variaveisAposentadasPresentes,
@@ -137,6 +140,15 @@ export interface OpcoesDaPartida {
   /** O que fechar depois das filas. Padrão: banco e cache da aplicação. */
   readonly recursos?: readonly RecursoDaApi[];
   readonly prazoDeDesligamentoMs?: number;
+  /**
+   * A administração permanente (card #3) roda no processo de verdade, isto é,
+   * quando a aplicação NÃO é injetada. A prova que quer exercitá-la injeta a
+   * conexão aqui (e pode trocar o prazo).
+   */
+  readonly administracaoPermanente?: {
+    readonly conectar?: ConectarNaAdministracao;
+    readonly prazoMs?: number;
+  };
   /** Padrão: o registrador da aplicação, já no nível do ambiente. */
   readonly registrador?: Registrador;
 }
@@ -213,6 +225,9 @@ export async function iniciarApi(
   opcoes: OpcoesDaPartida = {},
 ): Promise<ApiEmPe> {
   const fonte = opcoes.fonte ?? process.env;
+  // Primeiro de tudo: tira a senha e o segredo da administração permanente de
+  // `process.env` antes de qualquer outro código ter a chance de lê-los.
+  const pedidoDaAdministracao = extrairPedidoDaAdministracao(fonte);
   const ambiente = carregarAmbiente(fonte);
   // Lida logo depois do ambiente, antes de abrir qualquer conexão: token de
   // métricas curto ou endpoint de rastreamento inválido recusam a partida.
@@ -238,6 +253,7 @@ export async function iniciarApi(
       observabilidade,
       rastreamento,
       abertos,
+      pedidoDaAdministracao,
     });
   } catch (erro) {
     await abertos.segundoPlano?.fechar().catch(() => undefined);
@@ -254,7 +270,9 @@ async function partir({
   observabilidade,
   rastreamento,
   abertos,
+  pedidoDaAdministracao,
 }: {
+  readonly pedidoDaAdministracao: PedidoDaAdministracaoPermanente;
   readonly opcoes: OpcoesDaPartida;
   readonly fonte: NodeJS.ProcessEnv;
   readonly ambiente: ReturnType<typeof carregarAmbiente>;
@@ -353,13 +371,33 @@ async function partir({
   // processo de verdade: a prova que injeta a aplicação não limpa nada. A
   // configuração é lida ANTES de abrir a porta: variável inválida recusa a
   // partida sem deixar um servidor escutando.
-  const minutosDaLimpeza = limitesDeMidiaDoAmbiente(fonte).limpezaDosStoriesMinutos;
+  const minutosDaLimpeza =
+    limitesDeMidiaDoAmbiente(fonte).limpezaDosStoriesMinutos;
   const limpezaDosStories =
     opcoes.aplicacao === undefined && minutosDaLimpeza > 0
       ? criarLimpezaDosStories({
           armazenamento: armazenamentoDeMidiaDoAmbiente(fonte),
         })
       : undefined;
+
+  // Card #3: a administração permanente, com prazo curto, ANTES de abrir a
+  // porta (o healthcheck só passa depois). Falha vira log; a API sobe.
+  if (
+    opcoes.aplicacao === undefined ||
+    opcoes.administracaoPermanente !== undefined
+  ) {
+    await executarAdministracaoPermanente({
+      pedido: pedidoDaAdministracao,
+      fonte,
+      registro,
+      ...(opcoes.administracaoPermanente?.conectar === undefined
+        ? {}
+        : { conectar: opcoes.administracaoPermanente.conectar }),
+      ...(opcoes.administracaoPermanente?.prazoMs === undefined
+        ? {}
+        : { prazoMs: opcoes.administracaoPermanente.prazoMs }),
+    });
+  }
 
   await escutar(servidor, ambiente.PORT);
 

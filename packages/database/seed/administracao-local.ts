@@ -47,10 +47,7 @@ export const VARIAVEL_DO_NOME = "ADMIN_LOCAL_NOME";
 const MINIMO_DA_SENHA = 12;
 
 export type SituacaoDaAdministracaoLocal =
-  | "sem_variaveis"
-  | "criada"
-  | "atualizada"
-  | "ja_existia";
+  "sem_variaveis" | "criada" | "atualizada" | "ja_existia";
 
 /** Recusa com motivo. A mensagem nunca traz a senha nem a URL do banco. */
 export class ErroDaAdministracaoLocalDoSeed extends Error {
@@ -82,7 +79,9 @@ function emailsPublicos(): ReadonlySet<string> {
   for (const pessoa of Object.values(PESSOAS)) {
     // A administração do seed original é justamente a conta que pode virar a
     // do `.env`: ela existe sem senha e já tem grant.
-    if (pessoa.email.toLowerCase() === PESSOAS.administracao.email.toLowerCase()) {
+    if (
+      pessoa.email.toLowerCase() === PESSOAS.administracao.email.toLowerCase()
+    ) {
       continue;
     }
     emails.add(pessoa.email.toLowerCase());
@@ -112,7 +111,9 @@ export function senhaConfereComOHash(senha: string, hash: string): boolean {
       parallelism: 1,
       tagLength: 32,
     });
-    return esperado.length === obtido.length && timingSafeEqual(esperado, obtido);
+    return (
+      esperado.length === obtido.length && timingSafeEqual(esperado, obtido)
+    );
   } catch {
     return false;
   }

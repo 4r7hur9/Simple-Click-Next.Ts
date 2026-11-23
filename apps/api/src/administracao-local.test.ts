@@ -413,7 +413,10 @@ describe("senha do .env local (card #3)", () => {
     const pasta = mkdtempSync(join(tmpdir(), "sc-env-"));
     try {
       const arquivo = join(pasta, "teste.env");
-      writeFileSync(arquivo, "ADMIN_LOCAL_SENHA=vem-do-arquivo\nADMIN_SENHA=vem-do-arquivo\n");
+      writeFileSync(
+        arquivo,
+        "ADMIN_LOCAL_SENHA=vem-do-arquivo\nADMIN_SENHA=vem-do-arquivo\n",
+      );
       const saida = execFileSync(
         process.execPath,
         [
@@ -421,7 +424,14 @@ describe("senha do .env local (card #3)", () => {
           "-e",
           "process.stdout.write(JSON.stringify([process.env.ADMIN_LOCAL_SENHA, process.env.ADMIN_SENHA]))",
         ],
-        { env: { PATH: process.env.PATH ?? "", ADMIN_LOCAL_SENHA: "", ADMIN_SENHA: "" }, encoding: "utf8" },
+        {
+          env: {
+            PATH: process.env.PATH ?? "",
+            ADMIN_LOCAL_SENHA: "",
+            ADMIN_SENHA: "",
+          },
+          encoding: "utf8",
+        },
       );
       expect(JSON.parse(saida)).toEqual(["", ""]);
     } finally {

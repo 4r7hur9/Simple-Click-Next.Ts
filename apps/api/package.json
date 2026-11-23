@@ -14,7 +14,8 @@
     "test:int": "cd ../.. && vitest run --project api-int --project filas --project cache-int apps/api/",
     "contrato:escrever": "node src/contracts/gerar.ts escrever",
     "contrato:verificar": "node src/contracts/gerar.ts verificar",
-    "administracao:local": "node --env-file-if-exists=../../.env src/administracao-local.ts"
+    "administracao:local": "node --env-file-if-exists=../../.env src/administracao-local.ts",
+    "administracao:segredo": "node src/administracao-segredo.ts"
   },
   "dependencies": {
     "@opentelemetry/api": "1.10.0",
