@@ -67,6 +67,18 @@ pnpm dev                                     # 7. site em :3000 e API em :3001
 
 Ordem obrigatória: `up` → **migrar** → **seed** → demo (`pnpm dev`). Migrar antes do seed, e os dois depois do `up`.
 
+### Entrar no `/admin` local
+
+O seed **não** traz senha pública de administração. Antes do passo 6, ponha no seu `.env` (sem valor no repositório; os nomes estão no `.env.example`):
+
+```bash
+ADMIN_LOCAL_EMAIL=<um e-mail seu>
+ADMIN_LOCAL_SENHA=<12 caracteres ou mais, só sua>
+# ADMIN_LOCAL_NOME=<opcional>
+```
+
+O `seed` e o `demo` criam (ou atualizam) essa conta no fim da carga, só em banco local, e `pnpm --filter @simpleclick/database admin:local` roda só esse passo. Entre em `/entrar` com ela (a API local roda com `NODE_ENV=development`, que dispensa o aplicativo autenticador): o login leva a `/admin`. Sem essas variáveis o seed só avisa. Detalhes e regras em [docs/ambientes-e-deploy.md](docs/ambientes-e-deploy.md), seção 10.
+
 Avisos:
 
 - `setup.sh` **reinicia o Traefik se ele já estiver no ar** (para reler o certificado local); conexões abertas por ele caem por alguns segundos.

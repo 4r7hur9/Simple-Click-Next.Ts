@@ -289,7 +289,9 @@ E, **na produção** (seção 10):
 
 ### 8.1 A administração (obrigatória para testar o painel de admin)
 
-Banco novo não tem administrador. O `arranque` cria o primeiro. Ele roda **uma vez, no seu computador**, contra o banco do Railway pelo endereço **público** do Postgres.
+**Caminho automático (recomendado):** a própria API cria a administração ao subir, a partir de `ADMIN_EMAIL`, `ADMIN_SENHA` e `ADMIN_TOTP_SEGREDO` no serviço `api`. O passo a passo, as regras e os riscos estão em `docs/ambientes-e-deploy.md`, seção 10.2 (gere o segredo com `pnpm --filter @simpleclick/api administracao:segredo`, crie as três variáveis, publique, entre, troque o aplicativo em `/conta/seguranca` e apague as variáveis). Não use os dois caminhos ao mesmo tempo: quem já tem administração não ganha outra pelo caminho automático.
+
+**Caminho manual (`arranque`):** banco novo não tem administrador. O `arranque` cria o primeiro. Ele roda **uma vez, no seu computador**, contra o banco do Railway pelo endereço **público** do Postgres.
 
 1. No Railway: `Postgres` → **Variables** → copie `DATABASE_PUBLIC_URL`.
 2. Crie um arquivo **fora do repositório** (ex.: `~/arranque-staging.env`) com:
@@ -320,7 +322,7 @@ Depois, no Railway, se quiser, desligue o **TCP Proxy** do Postgres (Settings �
 
 ### 8.2 Seed de demonstração: o que fazer (e o que NÃO fazer)
 
-- **O seed `demo` não roda no Railway, de propósito.** Ele cria uma conta **administradora com senha pública** (`packages/database/seed/demo/contas.ts`) e por isso recusa qualquer banco que não seja `localhost`, qualquer processo com variável `RAILWAY_*` e qualquer `NODE_ENV=production` (`docs/ambientes-e-deploy.md` seção 1 e 9, M-2). **Não contorne a trava** e **não restaure um dump do banco local** no Railway: isso colocaria na internet contas com senha conhecida.
+- **O seed `demo` não roda no Railway, de propósito.** Ele cria contas de teste **com senha pública** (`packages/database/seed/demo/contas.ts`) e por isso recusa qualquer banco que não seja `localhost`, qualquer processo com variável `RAILWAY_*` e qualquer `NODE_ENV=production` (`docs/ambientes-e-deploy.md` seção 1 e 9, M-2). **Não contorne a trava** e **não restaure um dump do banco local** no Railway: isso colocaria na internet contas com senha conhecida.
 - **Os 100 mil pedidos do seed de volume** (`simpleclick_simulacao`) existem só no banco local de carga. Ficam **fora** do staging e da produção. Se um dia você quiser dado em volume no staging, isso é uma decisão nova e precisa de um seed próprio (peça um card): hoje não existe um caminho seguro para isso.
 - **Como ter dados de demonstração no staging:** pela própria aplicação, que é também o teste de ponta a ponta:
   1. abra `https://staging.DOMINIO/vender` e cadastre uma loja de teste (conta de **Dono**: a loja nasce "aguardando aprovação");
@@ -470,6 +472,8 @@ O modelo comentado de **todas** as variáveis está em `.env.example`; a matriz 
 
 **`api` — obrigatórias no Railway:** `NODE_ENV`, `DATABASE_URL`, `DATABASE_URL_DIRETA` (pre-deploy), `SENHA_BANCO_MIGRADOR`, `SENHA_BANCO_APLICACAO`, `SENHA_BANCO_ADMINISTRACAO`, `REDIS_URL`, `JWT_SECRET`, `CHAVE_CIFRA_TOTP`, `ORIGENS_PERMITIDAS`, `URL_DO_SITE`, `SEGREDO_DE_REVALIDACAO`, `SEGREDO_DA_PONTE`. (`PORT` fixa em 3001.)
 **`api` — opcionais:** `LOG_LEVEL`, `FLAG_VITRINE_PROXIMO_PRECO`, `CLOUDINARY_URL`, `METRICAS_TOKEN`, `OTEL_EXPORTER_OTLP_ENDPOINT` / `_HEADERS`, `SEGUNDO_PLANO`, `MIDIA_VIDEO_*`, `STORIES_*`, `VITRINE_CATALOGO_*`.
+**`api` — opcionais, só até o primeiro login da administração:** `ADMIN_EMAIL`, `ADMIN_SENHA`, `ADMIN_TOTP_SEGREDO`, `ADMIN_NOME` (`docs/ambientes-e-deploy.md`, seção 10.2); apague-as depois.
+
 **`api` — nunca no Railway:** `DATABASE_URL_TEST`, `REDIS_URL_TEST`, `METRICAS_ABERTAS`, `SIMPLECLICK_DEV_*`, `CAIXA_DE_EMAIL_DE_PROVA`, `MIDIA_LOCAL_DIR`, `ARMAZENAMENTO_PRIVADO_DIR`, `PG_BIN`, `GUARDAS_URL`; e `DATABASE_URL_ARRANQUE`, `PRIMEIRO_ADMIN_*` só no arquivo temporário da seção 8.1.
 
 **`web` — obrigatórias:** `NODE_ENV`, `NEXT_PUBLIC_API_URL` (build), `URL_DO_SITE`, `NEXT_PUBLIC_SESSION_COOKIE_DOMAIN`, `SEGREDO_DE_REVALIDACAO`, `SEGREDO_DA_PONTE`. (`PORT` fixa em 3000.)
