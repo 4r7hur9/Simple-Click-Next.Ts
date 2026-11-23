@@ -147,7 +147,7 @@ describe("o modo administração", () => {
       join(__dirname, "../src/features/painel/MenuLateral.tsx"),
       "utf8",
     );
-    expect(codigo).not.toMatch(/[A-Za-z0-9\]\)]\$\{classeDoModo\}/);
+    expect(codigo).not.toMatch(/[A-Za-z0-9\])]\$\{classeDoModo\}/);
     expect(codigo).toContain("lg:w-64 ${classeDoModo}");
   });
 });
