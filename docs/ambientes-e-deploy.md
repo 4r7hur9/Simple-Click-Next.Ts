@@ -77,8 +77,8 @@ Legenda:
 | `SIMPLECLICK_DEV_TEST_EMAIL` / `_PHRASE`, `NEXT_PUBLIC_DEV_STORE_SLUG`, `CAIXA_DE_EMAIL_DE_PROVA` | –             | –                                 | ✘                      | ✘                      | sim (local)                  | só local                                                                                             |
 | `PG_BIN`, `GUARDAS_URL`                                                                           | –             | –                                 | ✘                      | ✘                      | não                          | só local                                                                                             |
 | `DATABASE_URL_ARRANQUE`, `PRIMEIRO_ADMIN_EMAIL` / `_NOME` / `_SENHA`                              | ✘             | ✘                                 | uma vez                | uma vez                | **sim**                      | **nunca** em provedor nem GitHub: arquivo temporário fora do repositório, apagado depois do arranque |
-| `ADMIN_LOCAL_EMAIL` / `_SENHA` / `_NOME`                                                          | –             | –                                 | ✘                      | ✘                      | sim (local)                  | só o `.env` local: a conta de administração do seed (seção 10)                                         |
-| `ADMIN_EMAIL` / `ADMIN_SENHA` / `ADMIN_TOTP_SEGREDO` / `ADMIN_NOME`                               | ✘             | ✘                                 | opcional (uma vez)     | opcional (uma vez)     | **sim**                      | Railway, serviço `api`: administração permanente (seção 10). **Apague depois do 1º login**             |
+| `ADMIN_LOCAL_EMAIL` / `_SENHA` / `_NOME`                                                          | –             | –                                 | ✘                      | ✘                      | sim (local)                  | só o `.env` local: a conta de administração do seed (seção 10)                                       |
+| `ADMIN_EMAIL` / `ADMIN_SENHA` / `ADMIN_TOTP_SEGREDO` / `ADMIN_NOME`                               | ✘             | ✘                                 | opcional (uma vez)     | opcional (uma vez)     | **sim**                      | Railway, serviço `api`: administração permanente (seção 10). **Apague depois do 1º login**           |
 
 Ficam fora do `.env.example` de propósito:
 
@@ -420,12 +420,12 @@ ADMIN_LOCAL_SENHA= ADMIN_SENHA= pnpm --filter @simpleclick/api administracao:loc
 
 A API, ao subir, cria **uma** administração a partir de variáveis do serviço `api`. Fora de `development` a administração sempre exige o aplicativo autenticador, então o segredo dele vai junto.
 
-| Variável | O que é |
-| --- | --- |
-| `ADMIN_EMAIL` | E-mail **nunca cadastrado** na plataforma (confirme que a caixa recebe mensagens: é para onde vai uma recuperação de senha) |
-| `ADMIN_SENHA` | 12 a 256 caracteres, sem `TROQUE_`, com variedade (10 caracteres distintos ou mais) |
-| `ADMIN_TOTP_SEGREDO` | A chave do aplicativo autenticador: 32 letras A–Z e dígitos 2–7 (gerada abaixo) |
-| `ADMIN_NOME` | Opcional; como a pessoa aparece nas telas |
+| Variável             | O que é                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN_EMAIL`        | E-mail **nunca cadastrado** na plataforma (confirme que a caixa recebe mensagens: é para onde vai uma recuperação de senha) |
+| `ADMIN_SENHA`        | 12 a 256 caracteres, sem `TROQUE_`, com variedade (10 caracteres distintos ou mais)                                         |
+| `ADMIN_TOTP_SEGREDO` | A chave do aplicativo autenticador: 32 letras A–Z e dígitos 2–7 (gerada abaixo)                                             |
+| `ADMIN_NOME`         | Opcional; como a pessoa aparece nas telas                                                                                   |
 
 Use valores **diferentes** em staging e produção. `CHAVE_CIFRA_TOTP` e `SENHA_BANCO_ADMINISTRACAO` já são variáveis do serviço.
 
