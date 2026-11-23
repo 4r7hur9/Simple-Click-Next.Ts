@@ -71,41 +71,61 @@ describe("tokens --admin-* espelhados", () => {
 describe("contraste AA da administração", () => {
   for (const tema of ["claro", "escuro"] as const) {
     const a = PALETAS_DA_ADMINISTRACAO[tema];
-    const pagina = PALETAS[tema].fundo;
+    const pagina = PALETAS[tema];
     const textos: [string, string, string][] = [
       ["tinta do menu", a.menuTinta, a.menuFundo],
       ["tinta suave do menu", a.menuTintaSuave, a.menuFundo],
+      ["tinta do menu sobre o hover", a.menuTinta, a.menuHoverFundo],
       ["item ativo", a.menuAtivoTinta, a.menuAtivoFundo],
       ["selo", a.seloTinta, a.seloFundo],
+      ["cabeçalho", a.cabecalhoTinta, a.cabecalhoFundo],
     ];
     const naoTextos: [string, string, string][] = [
       ["borda do menu", a.menuBorda, a.menuFundo],
-      ["faixa sobre a página", a.faixa, pagina],
+      ["faixa sobre a página", a.faixa, pagina.fundo],
+      ["item ativo contra o menu", a.menuAtivoFundo, a.menuFundo],
+      ["foco da página sobre o menu", pagina.foco, a.menuFundo],
+      ["selo contra o menu", a.seloFundo, a.menuFundo],
     ];
     for (const [nome, frente, fundo] of textos) {
-      it(`[CA-13] ${nome} no tema ${tema} passa de 4,5:1`, () => {
+      it(`[CA-23] ${nome} no tema ${tema} passa de 4,5:1`, () => {
         expect(relacaoDeContraste(frente, fundo)).toBeGreaterThanOrEqual(
           CONTRASTE_MINIMO_TEXTO,
         );
       });
     }
     for (const [nome, frente, fundo] of naoTextos) {
-      it(`[CA-13] ${nome} no tema ${tema} passa de 3:1`, () => {
+      it(`[CA-23] ${nome} no tema ${tema} passa de 3:1`, () => {
         expect(relacaoDeContraste(frente, fundo)).toBeGreaterThanOrEqual(
           CONTRASTE_MINIMO_GRAFICO,
         );
       });
     }
   }
+
+  it("[CA-23] no escuro o menu do admin se distingue do grafite do painel (2:1)", () => {
+    expect(
+      relacaoDeContraste(
+        PALETAS_DA_ADMINISTRACAO.escuro.menuFundo,
+        PALETAS.escuro.superficie,
+      ),
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("[CA-23] no claro o menu do admin não é a superfície do painel", () => {
+    expect(PALETAS_DA_ADMINISTRACAO.claro.menuFundo).not.toBe(
+      PALETAS.claro.superficie,
+    );
+  });
 });
 
 describe("a folha do modo administração", () => {
-  it("[CA-13] não escreve cor literal: só var(--…)", () => {
+  it("[CA-24] não escreve cor literal: só var(--…)", () => {
     expect(CSS_ADMIN).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(CSS_ADMIN).not.toMatch(/\b(rgb|rgba|hsl|hsla|oklch|oklab)\(/);
   });
 
-  it("[CA-13] não usa blur nem filtro de fundo", () => {
+  it("[CA-24] não usa blur nem filtro de fundo", () => {
     expect(CSS_ADMIN).not.toMatch(/backdrop-filter|blur\(/);
   });
 
@@ -114,30 +134,48 @@ describe("a folha do modo administração", () => {
     expect(() => bruto("admin.css")).toThrow();
   });
 
-  it("[CA-13] declara as três classes do contrato", () => {
+  it("[CA-24] declara as classes do contrato", () => {
     const folha = lerFolha(CSS_ADMIN);
     for (const seletor of [
       ".sc-moldura-admin",
-      ".sc-menu--administracao[data-tema]",
+      ".sc-menu--administracao",
       ".sc-cabecalho-admin",
     ]) {
       expect(regrasDe(folha, seletor).length, seletor).toBeGreaterThan(0);
     }
   });
 
-  it("[CA-13] o seletor composto vence [data-tema=…] por especificidade", () => {
+  it("[CA-24] o menu do admin não depende de [data-tema] e redefine os tokens do menu a partir de --admin-*", () => {
     const folha = lerFolha(CSS_ADMIN);
-    const regra = regrasDe(folha, ".sc-menu--administracao[data-tema]")[0]!;
-    const peso = (seletor: string): number =>
-      (seletor.match(/\.[\w-]+|\[[^\]]+\]/g) ?? []).length;
-    // `[data-tema="escuro"]` vale (0,1,0); o composto vale (0,2,0).
-    expect(peso(".sc-menu--administracao[data-tema]")).toBeGreaterThan(
-      peso('[data-tema="escuro"]'),
+    expect(regrasDe(folha, ".sc-menu--administracao[data-tema]")).toHaveLength(
+      0,
     );
-    expect(regra.declaracoes.get("background-color")).toBe(
-      "var(--admin-menu-fundo)",
-    );
+    const regra = regrasDe(folha, ".sc-menu--administracao")[0]!;
+    const esperado: Record<string, string> = {
+      "--cor-superficie": "var(--admin-menu-fundo)",
+      "--cor-superficie-alta": "var(--admin-menu-hover-fundo)",
+      "--cor-tinta": "var(--admin-menu-tinta)",
+      "--cor-tinta-suave": "var(--admin-menu-tinta-suave)",
+      "--cor-borda": "var(--admin-menu-borda)",
+      "--cor-primaria": "var(--admin-menu-ativo-fundo)",
+      "--cor-em-primaria": "var(--admin-menu-ativo-tinta)",
+      "background-color": "var(--admin-menu-fundo)",
+    };
+    for (const [prop, valor] of Object.entries(esperado)) {
+      expect(regra.declaracoes.get(prop), prop).toBe(valor);
+    }
     expect(regra.contexto).toEqual([]);
+  });
+
+  it("[CA-22] a faixa não some abaixo de md: só o selo dentro dela", () => {
+    const folha = lerFolha(CSS_ADMIN);
+    const faixa = regrasDe(folha, ".sc-cabecalho-admin").filter(
+      (r) => r.contexto.length > 0,
+    );
+    expect(faixa).toHaveLength(0);
+    expect(CSS_ADMIN).toMatch(
+      /@media \(max-width: 47\.99rem\)\s*\{\s*\.sc-cabecalho-admin \.sc-selo-admin\s*\{\s*display: none/,
+    );
   });
 
   it("[CA-13] nenhum host do vidro.css declara background, box-shadow ou backdrop-filter", () => {

@@ -37,6 +37,9 @@ export default async function LayoutDaAdministracao({
         {/* O cabeçalho do modo administração (card #170, D-13). */}
         <div className="sc-cabecalho-admin px-4 sm:px-8">
           <SeloDaAdministracao />
+          <span className="sc-cabecalho-admin__titulo">
+            Administração da plataforma
+          </span>
         </div>
         {children}
       </main>

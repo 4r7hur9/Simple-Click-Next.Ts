@@ -104,4 +104,50 @@ describe("o modo administração", () => {
       );
     }
   });
+
+  it("[CA-22] a faixa do /admin leva o título 'Administração da plataforma' e o selo", async () => {
+    const html = renderToStaticMarkup(
+      await LayoutDaAdministracao({ children: <p>conteúdo</p> }),
+    );
+    expect(html).toMatch(
+      /sc-cabecalho-admin__titulo[^>]*>Administração da plataforma</,
+    );
+    const faixa = html.slice(html.indexOf('class="sc-cabecalho-admin'));
+    expect(faixa.slice(0, faixa.indexOf("</div>"))).toContain(SELO);
+  });
+
+  it("[CA-21] o menu do admin segue o tema da página (sem data-tema); o do painel continua escuro", () => {
+    const admin = montar(<MenuDaAdministracao pendentes={2} />);
+    for (const no of [
+      admin.querySelector("header"),
+      admin.querySelector("aside"),
+      admin.querySelector("nav[aria-label='Atalhos']"),
+    ]) {
+      expect(no?.hasAttribute("data-tema")).toBe(false);
+    }
+    desmontar();
+
+    const painel = montar(
+      <MenuLateral
+        rotulo="Navegação do painel"
+        marca={<a href="/painel">simpleclick</a>}
+        itens={[{ rotulo: "Início", href: "/painel", icone: IconeInicio }]}
+      />,
+    );
+    expect(painel.querySelector("header")?.getAttribute("data-tema")).toBe(
+      "escuro",
+    );
+    expect(painel.querySelector("aside")?.getAttribute("data-tema")).toBe(
+      "escuro",
+    );
+  });
+
+  it("[CA-20] nenhuma classe fica colada em ${ no MenuLateral (o Tailwind não a extrairia)", () => {
+    const codigo = readFileSync(
+      join(__dirname, "../src/features/painel/MenuLateral.tsx"),
+      "utf8",
+    );
+    expect(codigo).not.toMatch(/[A-Za-z0-9\]\)]\$\{classeDoModo\}/);
+    expect(codigo).toContain("lg:w-64 ${classeDoModo}");
+  });
 });

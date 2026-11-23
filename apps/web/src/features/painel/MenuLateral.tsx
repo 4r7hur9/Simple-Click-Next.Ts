@@ -147,7 +147,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
     modo = "painel",
   } = props;
   const administracao = modo === "administracao";
-  const classeDoModo = administracao ? " sc-menu--administracao" : "";
+  const classeDoModo = administracao ? "sc-menu--administracao" : "";
   const selo = administracao ? <SeloDaAdministracao /> : null;
   const secoes = secoesDoMenu(props);
   const caminho = usePathname();
@@ -236,8 +236,8 @@ export function MenuLateral(props: PropsDoMenuLateral) {
     <>
       {/* Celular: a barra do topo, com a marca e o botão da gaveta. */}
       <header
-        data-tema="escuro"
-        className={`sticky top-0 z-30 flex h-16 items-center justify-between gap-3 bg-[var(--cor-superficie)] px-4 text-[var(--cor-tinta)] md:hidden${classeDoModo}`}
+        data-tema={administracao ? undefined : "escuro"}
+        className={`sticky top-0 z-30 flex h-16 items-center justify-between gap-3 bg-[var(--cor-superficie)] px-4 text-[var(--cor-tinta)] md:hidden ${classeDoModo}`}
       >
         <div className="flex min-w-0 flex-col items-start">
           {marca}
@@ -257,7 +257,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
       <aside
         ref={painel}
         id={idDoMenu}
-        data-tema="escuro"
+        data-tema={administracao ? undefined : "escuro"}
         data-tutorial={alvoDoTutorial}
         data-modo={administracao ? "administracao" : undefined}
         data-aberta={aberta || undefined}
@@ -266,7 +266,7 @@ export function MenuLateral(props: PropsDoMenuLateral) {
           : {})}
         onKeyDown={prenderFoco}
         onClick={aoClicarNoMenu}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-hidden rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible lg:w-64${classeDoModo} ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col gap-4 overflow-hidden rounded-r-[var(--raio-cartao)] bg-[var(--cor-superficie)] p-3 text-[var(--cor-tinta)] motion-safe:transition-[translate,visibility] motion-safe:duration-200 md:sticky md:top-3 md:z-20 md:m-3 md:h-[calc(100dvh-1.5rem)] md:w-20 md:shrink-0 md:translate-x-0 md:rounded-[var(--raio-cartao)] md:visible lg:w-64 ${classeDoModo} ${aberta ? "translate-x-0" : "invisible -translate-x-full"}`}
       >
         <div className="flex items-start justify-between gap-2 px-2 pt-2 md:max-lg:justify-center md:max-lg:px-0">
           <div className="flex min-w-0 flex-col md:max-lg:hidden">
@@ -340,8 +340,8 @@ export function MenuLateral(props: PropsDoMenuLateral) {
       {atalhos.length > 0 ? (
         <nav
           aria-label="Atalhos"
-          data-tema="escuro"
-          className={`fixed inset-x-0 bottom-0 z-30 border-t border-[var(--cor-borda)] bg-[var(--cor-superficie)] pb-[env(safe-area-inset-bottom)] text-[var(--cor-tinta)] md:hidden${classeDoModo}`}
+          data-tema={administracao ? undefined : "escuro"}
+          className={`fixed inset-x-0 bottom-0 z-30 border-t border-[var(--cor-borda)] bg-[var(--cor-superficie)] pb-[env(safe-area-inset-bottom)] text-[var(--cor-tinta)] md:hidden ${classeDoModo}`}
         >
           <ul
             className="grid"
