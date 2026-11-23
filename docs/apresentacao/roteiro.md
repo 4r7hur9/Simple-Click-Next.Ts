@@ -42,7 +42,7 @@ Explorar, loja, sacola, conta.
 - Fonte: rotas em `apps/web/src/app/(explorar)`, `(loja)`, `(conta)`.
 
 ### 6. Para o dono (1 min)
-Quadro de pedidos, resumo de vendas, aparência. Cite equipe, estoque, stories.
+Quadro de pedidos, resumo de vendas e as fotos da vitrine (fundo e topo do cardápio). Cite equipe, estoque, stories.
 - Fontes: `packages/contracts/src/etapas-do-pedido.ts`; rotas em `apps/web/src/app/(painel)/painel/`.
 - Se houver demonstração, é aqui (sem usar as portas do preview).
 
