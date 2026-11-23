@@ -632,15 +632,15 @@ describe("custo das consultas novas numa loja de 10.000 produtos", () => {
   }, ESPERA_DA_ADMINISTRACAO * 6);
 
   // A evidência de custo fica num arquivo (o console de teste que passa é
-  // descartado): medidas medianas, em ms, de ponta a ponta.
+  // descartado): medianas em ms de ponta a ponta, e as razões sobre a base.
   afterAll(() => {
     writeFileSync(
       join(tmpdir(), "sc-108-medidas-das-consultas.json"),
       JSON.stringify(
         {
           produtos: TOTAL,
-          extraMaximoEmMs: EXTRA_MAXIMO_EM_MS,
           medianasEmMs: medidas,
+          razoesSobreABase: razoes,
         },
         null,
         2,
@@ -648,71 +648,116 @@ describe("custo das consultas novas numa loja de 10.000 produtos", () => {
     );
   });
 
-  /** A mediana de 5 chamadas, em milissegundos, medida de ponta a ponta. */
-  async function medir(nome: string, caminho: string): Promise<number> {
-    const tempos: number[] = [];
-    for (let i = 0; i < 6; i += 1) {
-      const inicio = performance.now();
-      const resposta = await http.get(
-        `/v1/vitrine/${grande.apelido}/${caminho}`,
-      );
-      const fim = performance.now();
-      expect(resposta.status, caminho).toBe(200);
-      if (i > 0) tempos.push(fim - inicio); // a primeira aquece o plano
-    }
-    tempos.sort((a, b) => a - b);
-    const mediana = tempos[Math.floor(tempos.length / 2)]!;
-    medidas[nome] = Math.round(mediana * 10) / 10;
-    return mediana;
+  const mediana = (valores: number[]): number => {
+    const ordenados = [...valores].sort((a, b) => a - b);
+    return ordenados[Math.floor(ordenados.length / 2)]!;
+  };
+
+  async function cronometrar(caminho: string): Promise<number> {
+    const inicio = performance.now();
+    const resposta = await http.get(`/v1/vitrine/${grande.apelido}/${caminho}`);
+    const fim = performance.now();
+    expect(resposta.status, caminho).toBe(200);
+    return fim - inicio;
   }
 
-  // Com cobertura ligada (SC_COM_COBERTURA, vitest.config.ts) o código roda
-  // instrumentado e mais lento: o custo extra tolerado sobe na mesma proporção.
-  const FATOR_DA_COBERTURA = process.env.SC_COM_COBERTURA === "1" ? 3 : 1;
-  const EXTRA_MAXIMO_EM_MS = 45 * FATOR_DA_COBERTURA;
-  const casos: Array<[string, string]> = [
+  /**
+   * Mede o caso e a sua base INTERCALADOS: em cada rodada, uma chamada de um e
+   * logo depois do outro (a ordem alterna). O runner compartilhado do CI muda
+   * de ritmo em segundos; assim o ruído atinge os dois lados da mesma rodada e
+   * a razão caso/base o cancela. A primeira rodada aquece o plano e não conta.
+   * Devolve a mediana das razões.
+   */
+  async function medirContraBase(
+    nome: string,
+    caminho: string,
+    caminhoDaBase: string,
+  ): Promise<number> {
+    const tempos: number[] = [];
+    const temposDaBase: number[] = [];
+    const razoesDasRodadas: number[] = [];
+    for (let i = 0; i <= RODADAS; i += 1) {
+      let caso: number;
+      let base: number;
+      if (i % 2 === 0) {
+        base = await cronometrar(caminhoDaBase);
+        caso = await cronometrar(caminho);
+      } else {
+        caso = await cronometrar(caminho);
+        base = await cronometrar(caminhoDaBase);
+      }
+      if (i === 0) continue;
+      tempos.push(caso);
+      temposDaBase.push(base);
+      razoesDasRodadas.push(caso / base);
+    }
+    medidas[nome] = Math.round(mediana(tempos) * 10) / 10;
+    medidas[`${nome} (base da rodada)`] =
+      Math.round(mediana(temposDaBase) * 10) / 10;
+    razoes[nome] = Math.round(mediana(razoesDasRodadas) * 100) / 100;
+    return razoes[nome]!;
+  }
+
+  // Rodadas pareadas por caso (a primeira aquece o plano e não conta). A razão
+  // é a mediana delas, então um pico isolado do runner não decide sozinho.
+  const RODADAS = 9;
+  const razoes: Record<string, number> = {};
+  // Limite da razão caso/base. Uma consulta que perde o índice fica várias
+  // vezes mais lenta que a base: esse limite pega isso, e não o ruído do
+  // runner. Medido localmente: 1,0 a 1,8 nos casos comuns e cerca de 2,1 no
+  // desconto de atacado (preço e faixas por produto), que tem teto próprio.
+  const RAZAO_MAXIMA = 2.5;
+  const RAZAO_MAXIMA_DO_ATACADO = 3;
+  const BASES = {
     // Sem filtro nenhum: o custo que a loja já tinha, para comparar.
-    ["base: página sem filtro", "catalogo/produtos?limite=48"],
-    ["base: resumo sem filtro", "catalogo/resumo?porSecao=24&totalMaximo=72"],
-    ["lancamentos", "catalogo/produtos?ordem=lancamentos&limite=48"],
+    página: "catalogo/produtos?limite=48",
+    resumo: "catalogo/resumo?porSecao=24&totalMaximo=72",
+  } as const;
+  const casos: Array<[string, string, keyof typeof BASES]> = [
+    ["lancamentos", "catalogo/produtos?ordem=lancamentos&limite=48", "página"],
     [
       "maior-desconto-atacado",
       "catalogo/produtos?ordem=maior-desconto-atacado&limite=48",
+      "página",
     ],
     [
       "maior-preco (refatorada)",
       "catalogo/produtos?ordem=maior-preco&limite=48",
+      "página",
     ],
     [
       "faixa de preço",
       "catalogo/produtos?precoMin=700&precoMax=1500&limite=48",
+      "página",
     ],
     [
       "resumo com estoque",
       "catalogo/resumo?estoque=1&porSecao=24&totalMaximo=72",
+      "resumo",
     ],
-    ["página com estoque", "catalogo/produtos?estoque=1&limite=48"],
+    ["página com estoque", "catalogo/produtos?estoque=1&limite=48", "página"],
   ];
 
-  for (const [nome, caminho] of casos) {
-    it(`[CA-9] @spec:AC-10816 ${nome}: custo extra abaixo de ${EXTRA_MAXIMO_EM_MS} ms em ${TOTAL} produtos`, async () => {
-      const mediana = await medir(nome, caminho);
-      // O tempo absoluto depende da máquina (a mesma consulta oscilou de 25 a
-      // 35 ms entre rodadas), então o limite é o CUSTO EXTRA sobre a consulta sem
-      // filtro, medida na mesma rodada. As linhas de base só registram.
-      const base = nome.startsWith("base:")
-        ? Number.POSITIVE_INFINITY
-        : (medidas[
-            nome.startsWith("resumo")
-              ? "base: resumo sem filtro"
-              : "base: página sem filtro"
-          ] ?? 0);
-      // O desconto de atacado é a conta mais pesada (preço + faixas por produto).
-      const extra = nome.startsWith("maior-desconto")
-        ? 60 * FATOR_DA_COBERTURA
-        : EXTRA_MAXIMO_EM_MS;
-      const teto = base + extra;
-      expect(mediana).toBeLessThan(teto);
+  for (const base of Object.keys(BASES) as Array<keyof typeof BASES>) {
+    it(`[CA-9] @spec:AC-10816 base: ${base} sem filtro, em ${TOTAL} produtos (só registra)`, async () => {
+      const tempos: number[] = [];
+      for (let i = 0; i <= RODADAS; i += 1) {
+        const tempo = await cronometrar(BASES[base]);
+        if (i > 0) tempos.push(tempo);
+      }
+      medidas[`base: ${base} sem filtro`] =
+        Math.round(mediana(tempos) * 10) / 10;
+      expect(medidas[`base: ${base} sem filtro`]).toBeGreaterThan(0);
+    });
+  }
+
+  for (const [nome, caminho, base] of casos) {
+    const limite = nome.startsWith("maior-desconto")
+      ? RAZAO_MAXIMA_DO_ATACADO
+      : RAZAO_MAXIMA;
+    it(`[CA-9] @spec:AC-10816 ${nome}: custo até ${limite}x a base sem filtro, em ${TOTAL} produtos`, async () => {
+      const razao = await medirContraBase(nome, caminho, BASES[base]);
+      expect(razao).toBeLessThan(limite);
     });
   }
 });
