@@ -47,7 +47,7 @@ const BLOCOS = {
   claro: [":root {", '[data-tema="claro"] {'],
   escuro: [
     '[data-tema="escuro"],\n:root[data-tema="escuro"] {',
-    "  :root:not([data-tema=\"claro\"]) {",
+    '  :root:not([data-tema="claro"]) {',
   ],
 } as const;
 
@@ -60,7 +60,9 @@ describe("tokens --admin-* espelhados", () => {
           NOME_NO_CSS_DA_ADMINISTRACAO,
         )) {
           expect(noCss.get(nome), `${nome} falta em ${bloco}`).toBe(
-            PALETAS_DA_ADMINISTRACAO[tema][chave as keyof PaletaDaAdministracao],
+            PALETAS_DA_ADMINISTRACAO[tema][
+              chave as keyof PaletaDaAdministracao
+            ],
           );
         }
       });
@@ -157,14 +159,24 @@ describe("a folha do modo administração", () => {
       "--cor-tinta": "var(--admin-menu-tinta)",
       "--cor-tinta-suave": "var(--admin-menu-tinta-suave)",
       "--cor-borda": "var(--admin-menu-borda)",
-      "--cor-primaria": "var(--admin-menu-ativo-fundo)",
-      "--cor-em-primaria": "var(--admin-menu-ativo-tinta)",
       "background-color": "var(--admin-menu-fundo)",
     };
     for (const [prop, valor] of Object.entries(esperado)) {
       expect(regra.declaracoes.get(prop), prop).toBe(valor);
     }
     expect(regra.contexto).toEqual([]);
+    // O item da página atual ganha o fundo próprio sem redefinir --cor-primaria.
+    const ativo = regrasDe(
+      folha,
+      '.sc-menu--administracao [aria-current="page"]',
+    )[0]!;
+    expect(ativo.declaracoes.get("background-color")).toBe(
+      "var(--admin-menu-ativo-fundo)",
+    );
+    expect(ativo.declaracoes.get("color")).toBe(
+      "var(--admin-menu-ativo-tinta)",
+    );
+    expect(CSS_ADMIN).not.toMatch(/--cor-(em-)?primaria\s*:/);
   });
 
   it("[CA-22] a faixa não some abaixo de md: só o selo dentro dela", () => {

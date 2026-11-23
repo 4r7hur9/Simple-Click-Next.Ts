@@ -23,6 +23,9 @@
  * Esta folha fica fora de `@layer`, então vence as utilidades do Tailwind
  * (`bg-[var(--cor-superficie)]`) sem `!important`. Todo `--cor-*` que o menu
  * lê e cujo contraste depende do fundo é redefinido aqui a partir dos tokens.
+ * `--cor-primaria` não se redefine fora de theme.css (guarda AC-11411): o item
+ * da página atual ganha o fundo próprio pela regra de `aria-current` abaixo, e
+ * o resto (marca "s" e contadores) segue o verde da marca com letra escura.
  */
 .sc-menu--administracao {
   --cor-superficie: var(--admin-menu-fundo);
@@ -30,8 +33,6 @@
   --cor-tinta: var(--admin-menu-tinta);
   --cor-tinta-suave: var(--admin-menu-tinta-suave);
   --cor-borda: var(--admin-menu-borda);
-  --cor-primaria: var(--admin-menu-ativo-fundo);
-  --cor-em-primaria: var(--admin-menu-ativo-tinta);
   background-color: var(--admin-menu-fundo);
   color: var(--admin-menu-tinta);
   border-color: var(--admin-menu-borda);
