@@ -1,75 +1,97 @@
 /*
- * Modo administração da plataforma (card #170, decisão D-13).
+ * Modo administração da plataforma (card #170, D-13; vidro no card #10).
  *
- * A administração continua verde, como o resto do SimpleClick; o que a separa
- * do painel do dono são três sinais: o fundo da sidebar (verde-floresta no
- * escuro, menta no claro, e não o grafite do painel), a faixa verde da moldura
- * e o selo "Administração SimpleClick". Esta é a única folha do modo: não há
- * `admin.css`, e nenhuma cor é escrita aqui — só os tokens `--admin-*` de
- * theme.css (espelho em `src/tokens.ts`).
- *
- * Sem blur novo e sem fundo nos hosts do vidro.css.
+ * Sem faixa no topo. O que separa a administração do painel do dono é o menu
+ * lateral em vidro líquido (grafite translúcido no escuro, cinza-gelo
+ * translúcido no claro) e o selo "Administração SimpleClick". O vidro reusa as
+ * peças do vidro.css (`--vidro-filtro-medio`, realce, brilho e sombra); o verde
+ * da marca fica só no item ativo e no selo. Esta é a única folha do modo:
+ * nenhuma cor é escrita aqui, só tokens (`--admin-*`, espelho em
+ * `src/tokens.ts`).
  */
 
-/* A moldura da página da administração: faixa verde no topo. */
+/* A moldura da página: um brilho suave atrás do menu, para o vidro ter o que
+   refratar. Sem faixa e sem borda. */
 .sc-moldura-admin {
-  border-top: 0.25rem solid var(--admin-faixa);
+  background-image:
+    radial-gradient(
+      40rem 32rem at 0% 0%,
+      color-mix(in srgb, var(--cor-primaria) 12%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      32rem 28rem at 0% 100%,
+      color-mix(in srgb, var(--cor-tinta) 8%, transparent),
+      transparent 70%
+    );
+  background-repeat: no-repeat;
 }
 
 /*
- * A sidebar. O menu do modo administração NÃO carrega `data-tema`: ele segue o
- * tema da página, e os tokens `--admin-*` (que mudam com o tema) chegam até
- * aqui sem o `[data-tema="escuro"]` do painel do dono os trocar pelos escuros.
- * Esta folha fica fora de `@layer`, então vence as utilidades do Tailwind
- * (`bg-[var(--cor-superficie)]`) sem `!important`. Todo `--cor-*` que o menu
- * lê e cujo contraste depende do fundo é redefinido aqui a partir dos tokens.
- * `--cor-primaria` não se redefine fora de theme.css (guarda AC-11411): o item
- * da página atual ganha o fundo próprio pela regra de `aria-current` abaixo, e
- * o resto (marca "s" e contadores) segue o verde da marca com letra escura.
+ * O menu (sidebar, barra do celular e atalhos). Ele NÃO carrega `data-tema`:
+ * segue o tema da página, e os tokens `--admin-*` chegam sem o
+ * `[data-tema="escuro"]` do painel do dono os trocar. Esta folha fica fora de
+ * `@layer`, então vence as utilidades do Tailwind (`bg-[var(--cor-superficie)]`)
+ * sem `!important`. Todo `--cor-*` que o menu lê e cujo contraste depende do
+ * fundo é redefinido aqui a partir dos tokens. `--cor-primaria` não se
+ * redefine fora de theme.css (guarda AC-11411).
+ *
+ * O fundo é a cor do token com `--admin-menu-opacidade`; sem `backdrop-filter`,
+ * com `prefers-reduced-transparency` ou com `prefers-contrast: more` a
+ * opacidade vai a 100% e o desfoque some (fundo sólido).
  */
 .sc-menu--administracao {
+  --adm-opacidade: var(--admin-menu-opacidade);
+  --adm-filtro: var(--vidro-filtro-medio);
   --cor-superficie: var(--admin-menu-fundo);
   --cor-superficie-alta: var(--admin-menu-hover-fundo);
   --cor-tinta: var(--admin-menu-tinta);
   --cor-tinta-suave: var(--admin-menu-tinta-suave);
   --cor-borda: var(--admin-menu-borda);
-  background-color: var(--admin-menu-fundo);
+  background-color: color-mix(
+    in srgb,
+    var(--admin-menu-fundo) var(--adm-opacidade),
+    transparent
+  );
+  background-image: linear-gradient(
+    color-mix(
+      in srgb,
+      var(--vidro-realce) calc(var(--vidro-brilho-alfa) * 100%),
+      transparent
+    ),
+    transparent 40%
+  );
   color: var(--admin-menu-tinta);
   border-color: var(--admin-menu-borda);
+  box-shadow:
+    var(--vidro-sombra-medio),
+    inset 0 0 0 1px var(--admin-menu-borda),
+    inset 0 1px 0 var(--vidro-realce);
+  -webkit-backdrop-filter: var(--adm-filtro);
+  backdrop-filter: var(--adm-filtro);
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .sc-menu--administracao {
+    --adm-opacidade: 100%;
+    --adm-filtro: none;
+    background-image: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .sc-menu--administracao {
+    --adm-opacidade: 100%;
+    --adm-filtro: none;
+    background-image: none;
+  }
 }
 
 .sc-menu--administracao [aria-current="page"] {
   background-color: var(--admin-menu-ativo-fundo);
   color: var(--admin-menu-ativo-tinta);
-}
-
-/*
- * A faixa da administração: título e selo sobre fundo próprio, em todas as
- * larguras (card #3). No celular o selo já está na barra do topo do menu, então
- * só ele some da faixa, para não aparecer duas vezes.
- */
-.sc-cabecalho-admin {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  border-bottom: 1px solid var(--admin-menu-borda);
-  background-color: var(--admin-cabecalho-fundo);
-  color: var(--admin-cabecalho-tinta);
-  padding-block: var(--espaco-3);
-}
-
-.sc-cabecalho-admin__titulo {
-  font-size: var(--tipo-rotulo-sm-tamanho);
-  line-height: var(--tipo-rotulo-sm-altura);
-  font-weight: var(--tipo-rotulo-sm-peso);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 47.99rem) {
-  .sc-cabecalho-admin .sc-selo-admin {
-    display: none;
-  }
 }
 
 /* O selo "Administração SimpleClick". */
