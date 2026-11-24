@@ -1,4 +1,3 @@
-import { SeloDaAdministracao } from "@simpleclick/ui";
 import { Suspense, type ReactNode } from "react";
 
 import { MenuDaAdministracao } from "../../../features/painel/MenuDaAdministracao.tsx";
@@ -34,13 +33,6 @@ export default async function LayoutDaAdministracao({
         aria-label="Administração da plataforma"
         className="min-w-0 flex-1 pb-24 md:pb-0"
       >
-        {/* O cabeçalho do modo administração (card #170, D-13). */}
-        <div className="sc-cabecalho-admin px-4 sm:px-8">
-          <SeloDaAdministracao />
-          <span className="sc-cabecalho-admin__titulo">
-            Administração da plataforma
-          </span>
-        </div>
         {children}
       </main>
       {/* "Minha conta" abre por cima da tela do admin (card #169). */}

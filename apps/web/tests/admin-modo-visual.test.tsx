@@ -53,15 +53,15 @@ function quantasVezes(texto: string, trecho: string): number {
 }
 
 describe("o modo administração", () => {
-  it("[CA-14] o layout do /admin traz a moldura com faixa, o cabeçalho e o selo", async () => {
+  it("[CA-14] o layout do /admin traz a moldura e o menu, sem faixa nem cabeçalho no topo", async () => {
     const html = renderToStaticMarkup(
       await LayoutDaAdministracao({ children: <p>conteúdo</p> }),
     );
     expect(html).toContain("sc-moldura-admin");
-    expect(html).toContain("sc-cabecalho-admin");
+    expect(html).not.toContain("sc-cabecalho-admin");
     expect(html).toContain("sc-menu--administracao");
-    // Selo no cabeçalho, na sidebar e na barra do celular.
-    expect(quantasVezes(html, SELO)).toBe(3);
+    // Selo só na sidebar e na barra do celular.
+    expect(quantasVezes(html, SELO)).toBe(2);
     expect(html).toContain("conteúdo");
   });
 
@@ -105,15 +105,14 @@ describe("o modo administração", () => {
     }
   });
 
-  it("[CA-22] a faixa do /admin leva o título 'Administração da plataforma' e o selo", async () => {
+  it("[CA-22] o /admin não tem faixa nem título no topo da página", async () => {
     const html = renderToStaticMarkup(
       await LayoutDaAdministracao({ children: <p>conteúdo</p> }),
     );
-    expect(html).toMatch(
-      /sc-cabecalho-admin__titulo[^>]*>Administração da plataforma</,
-    );
-    const faixa = html.slice(html.indexOf('class="sc-cabecalho-admin'));
-    expect(faixa.slice(0, faixa.indexOf("</div>"))).toContain(SELO);
+    expect(html).not.toContain("sc-cabecalho-admin");
+    const main = html.slice(html.indexOf("<main"));
+    expect(main).not.toContain(SELO);
+    expect(main).not.toContain("Administração da plataforma<");
   });
 
   it("[CA-21] o menu do admin segue o tema da página (sem data-tema); o do painel continua escuro", () => {

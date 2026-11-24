@@ -306,15 +306,14 @@ export const BRILHO_DO_CTA = Object.freeze({
 /** As cores do modo administração, por tema (tokens `--admin-*`). */
 export type PaletaDaAdministracao = {
   readonly menuFundo: string;
+  /** Quanto do fundo do vidro é cor (o resto é transparência). */
+  readonly menuOpacidade: string;
   readonly menuTinta: string;
   readonly menuTintaSuave: string;
   readonly menuBorda: string;
   readonly menuHoverFundo: string;
   readonly menuAtivoFundo: string;
   readonly menuAtivoTinta: string;
-  readonly faixa: string;
-  readonly cabecalhoFundo: string;
-  readonly cabecalhoTinta: string;
   readonly seloFundo: string;
   readonly seloTinta: string;
 };
@@ -323,45 +322,39 @@ export const NOME_NO_CSS_DA_ADMINISTRACAO: Readonly<
   Record<keyof PaletaDaAdministracao, string>
 > = {
   menuFundo: "--admin-menu-fundo",
+  menuOpacidade: "--admin-menu-opacidade",
   menuTinta: "--admin-menu-tinta",
   menuTintaSuave: "--admin-menu-tinta-suave",
   menuBorda: "--admin-menu-borda",
   menuHoverFundo: "--admin-menu-hover-fundo",
   menuAtivoFundo: "--admin-menu-ativo-fundo",
   menuAtivoTinta: "--admin-menu-ativo-tinta",
-  faixa: "--admin-faixa",
-  cabecalhoFundo: "--admin-cabecalho-fundo",
-  cabecalhoTinta: "--admin-cabecalho-tinta",
   seloFundo: "--admin-selo-fundo",
   seloTinta: "--admin-selo-tinta",
 };
 
 export const ADMINISTRACAO_CLARA: PaletaDaAdministracao = {
-  menuFundo: "#dff3b5",
+  menuFundo: "#e6eae8",
+  menuOpacidade: "72%",
   menuTinta: "#0b0f0d",
-  menuTintaSuave: "#34401f",
-  menuBorda: "#5f7a3f",
-  menuHoverFundo: "#cbe69a",
+  menuTintaSuave: "#2c3531",
+  menuBorda: "rgb(11 15 13 / 14%)",
+  menuHoverFundo: "#d3d9d6",
   menuAtivoFundo: "#3f7900",
   menuAtivoTinta: "#ffffff",
-  faixa: "#3f7900",
-  cabecalhoFundo: "#dff3b5",
-  cabecalhoTinta: "#0b0f0d",
   seloFundo: "#3f7900",
   seloTinta: "#ffffff",
 };
 
 export const ADMINISTRACAO_ESCURA: PaletaDaAdministracao = {
-  menuFundo: "#2c5e0e",
+  menuFundo: "#161c19",
+  menuOpacidade: "70%",
   menuTinta: "#ffffff",
-  menuTintaSuave: "#c9e3b4",
-  menuBorda: "#8fbf62",
-  menuHoverFundo: "#3a7316",
+  menuTintaSuave: "#dbe2de",
+  menuBorda: "rgb(255 255 255 / 16%)",
+  menuHoverFundo: "#252d29",
   menuAtivoFundo: "#b7ff00",
   menuAtivoTinta: "#0b0f0d",
-  faixa: "#b7ff00",
-  cabecalhoFundo: "#2c5e0e",
-  cabecalhoTinta: "#ffffff",
   seloFundo: "#b7ff00",
   seloTinta: "#0b0f0d",
 };
