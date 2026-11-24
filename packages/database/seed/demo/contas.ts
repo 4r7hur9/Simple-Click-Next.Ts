@@ -19,7 +19,9 @@
  *
  * A demonstração NUNCA concede administração da plataforma (card #163, D-5):
  * admin não vem de carga com senha pública. Quem administra é concedido à
- * parte, pela credencial de administração.
+ * parte, pela credencial de administração. Desde o card #3 a conta de
+ * administração LOCAL é criada por `seed/administracao-local.ts`, com e-mail e
+ * senha do `.env` de quem desenvolve (nunca uma conta ou senha desta lista).
  */
 
 import { argon2, randomBytes } from "node:crypto";

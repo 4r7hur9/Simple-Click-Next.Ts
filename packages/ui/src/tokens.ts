@@ -309,9 +309,12 @@ export type PaletaDaAdministracao = {
   readonly menuTinta: string;
   readonly menuTintaSuave: string;
   readonly menuBorda: string;
+  readonly menuHoverFundo: string;
   readonly menuAtivoFundo: string;
   readonly menuAtivoTinta: string;
   readonly faixa: string;
+  readonly cabecalhoFundo: string;
+  readonly cabecalhoTinta: string;
   readonly seloFundo: string;
   readonly seloTinta: string;
 };
@@ -323,9 +326,12 @@ export const NOME_NO_CSS_DA_ADMINISTRACAO: Readonly<
   menuTinta: "--admin-menu-tinta",
   menuTintaSuave: "--admin-menu-tinta-suave",
   menuBorda: "--admin-menu-borda",
+  menuHoverFundo: "--admin-menu-hover-fundo",
   menuAtivoFundo: "--admin-menu-ativo-fundo",
   menuAtivoTinta: "--admin-menu-ativo-tinta",
   faixa: "--admin-faixa",
+  cabecalhoFundo: "--admin-cabecalho-fundo",
+  cabecalhoTinta: "--admin-cabecalho-tinta",
   seloFundo: "--admin-selo-fundo",
   seloTinta: "--admin-selo-tinta",
 };
@@ -335,21 +341,27 @@ export const ADMINISTRACAO_CLARA: PaletaDaAdministracao = {
   menuTinta: "#0b0f0d",
   menuTintaSuave: "#34401f",
   menuBorda: "#5f7a3f",
-  menuAtivoFundo: "#b7ff00",
-  menuAtivoTinta: "#0b0f0d",
+  menuHoverFundo: "#cbe69a",
+  menuAtivoFundo: "#3f7900",
+  menuAtivoTinta: "#ffffff",
   faixa: "#3f7900",
+  cabecalhoFundo: "#dff3b5",
+  cabecalhoTinta: "#0b0f0d",
   seloFundo: "#3f7900",
   seloTinta: "#ffffff",
 };
 
 export const ADMINISTRACAO_ESCURA: PaletaDaAdministracao = {
-  menuFundo: "#12260f",
+  menuFundo: "#2c5e0e",
   menuTinta: "#ffffff",
-  menuTintaSuave: "#b4c4a6",
-  menuBorda: "#5f8a3a",
+  menuTintaSuave: "#c9e3b4",
+  menuBorda: "#8fbf62",
+  menuHoverFundo: "#3a7316",
   menuAtivoFundo: "#b7ff00",
   menuAtivoTinta: "#0b0f0d",
   faixa: "#b7ff00",
+  cabecalhoFundo: "#2c5e0e",
+  cabecalhoTinta: "#ffffff",
   seloFundo: "#b7ff00",
   seloTinta: "#0b0f0d",
 };

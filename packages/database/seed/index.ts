@@ -42,6 +42,19 @@ import {
   derivarUrlDePapel,
   type LinhaDeConsulta,
 } from "../src/migrate.ts";
+import {
+  ErroDeAmbienteDeProducao,
+  exigirAmbienteQueNaoEProducao,
+  type FonteDeAmbiente,
+} from "./destino-local.ts";
+
+export {
+  ErroDeAmbienteDeProducao,
+  exigirAmbienteQueNaoEProducao,
+  type FonteDeAmbiente,
+};
+
+import { garantirAdministracaoLocalSemFalhar } from "./administracao-local.ts";
 import { montarCatalogo, PRODUTOS } from "./catalogo.ts";
 import {
   type ConjuntoDeExemplo,
@@ -84,29 +97,6 @@ export function tabelasDoCenario(): readonly string[] {
 // ---------------------------------------------------------------------------
 // Erros
 // ---------------------------------------------------------------------------
-
-/** O ambiente indica produção, e dado fictício não alcança loja real. */
-export class ErroDeAmbienteDeProducao extends Error {
-  readonly motivo: string;
-
-  constructor(motivo: string) {
-    super(
-      [
-        `A carga de dados de exemplo se recusa a rodar: ${motivo}.`,
-        "",
-        "Estes dados são fictícios — lojas, clientes e pedidos inventados. Em",
-        "produção eles apareceriam na vitrine de uma loja real, misturados ao",
-        "catálogo de verdade, e não há como desfazer isso sem perder o que era",
-        "legítimo.",
-        "",
-        "Para carregar o exemplo, aponte para o banco de desenvolvimento ou de",
-        "teste e rode de novo.",
-      ].join("\n"),
-    );
-    this.name = "ErroDeAmbienteDeProducao";
-    this.motivo = motivo;
-  }
-}
 
 /** O banco já tem dado que não é do exemplo — ou já tem o exemplo. */
 export class ErroDeBancoNaoVazio extends Error {
@@ -195,26 +185,6 @@ export class ErroDeVitrineDeExemplo extends Error {
 // ---------------------------------------------------------------------------
 // Recusa em produção (AC-039)
 // ---------------------------------------------------------------------------
-
-/** De onde a carga lê a configuração — normalmente `process.env`. */
-export type FonteDeAmbiente = Readonly<Record<string, string | undefined>>;
-
-/**
- * Recusa rodar quando o ambiente diz produção.
- *
- * A checagem é pelo rótulo declarado, que é o que o operador controla. Ela não
- * é a única defesa: `exigirBancoSemDadoProprio` cobre o caso em que o rótulo
- * está errado — que é o caso perigoso de verdade, porque ninguém digita
- * `NODE_ENV=production` por engano, mas todo mundo já esqueceu de defini-lo.
- */
-export function exigirAmbienteQueNaoEProducao(ambiente: FonteDeAmbiente): void {
-  const rotulo = ambiente.NODE_ENV?.trim().toLowerCase();
-  if (rotulo === "production") {
-    throw new ErroDeAmbienteDeProducao(
-      "NODE_ENV=production indica ambiente de produção",
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Recusa em banco que já tem dados
@@ -753,6 +723,14 @@ async function principal(): Promise<number> {
     } finally {
       await aplicacao.end();
     }
+
+    // Card #3: a conta de administração local do `.env` volta sozinha depois
+    // de zerar o banco. Uma recusa vira aviso e não muda o código de saída.
+    await garantirAdministracaoLocalSemFalhar(administracao, {
+      ambiente: process.env,
+      urlDoBanco: urlDireta,
+      relatar: (linha) => process.stdout.write(`  ${linha}\n`),
+    });
 
     const linhas = relatorio.plantadas.reduce(
       (soma, tabela) => soma + tabela.linhas,

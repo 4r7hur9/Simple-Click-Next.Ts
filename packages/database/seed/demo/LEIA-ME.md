@@ -32,7 +32,7 @@ pnpm --filter @simpleclick/database demo -- --sem-videos   # mais rápido: não 
 | Equipe | staff.demo@simpleclick.test | Equipe da Pastelaria da Vila |
 | Cliente | ana.ribeiro@cliente.test | Pedidos em várias lojas (um a caminho hoje), favoritos, recentes, curtidas e comentários (aprovados e aguardando) |
 
-A demonstração **não concede administração da plataforma** (card #163): a cada carga ela revoga a concessão ativa da Maria e as sessões ADMIN abertas dela, sem apagar contas, lojas nem vínculos. Admin não vem de carga com senha pública; quem administra é concedido à parte, com a credencial de administração.
+A demonstração **não concede administração da plataforma** (card #163): a cada carga ela revoga a concessão ativa da Maria e as sessões ADMIN abertas dela, sem apagar contas, lojas nem vínculos. Admin não vem de carga com senha pública. A conta de administração LOCAL vem do seu `.env` (`ADMIN_LOCAL_EMAIL` e `ADMIN_LOCAL_SENHA`, sem valor no repositório): o `seed` e o `demo` a criam ou atualizam no fim da carga, só em banco local, e `pnpm --filter @simpleclick/database admin:local` roda só esse passo. Sem as variáveis, a carga avisa em uma linha e segue.
 
 Os donos das lojas novas (`<nome>@<apelido>.test`) usam a mesma senha do dono da demonstração.
 

@@ -26,11 +26,11 @@ Quatro regras que não se negociam:
 - **Homologação roda como `production`.** Assim as travas de produção valem lá também:
   - `CHAVE_CIFRA_TOTP` é obrigatória;
   - `METRICAS_ABERTAS` é recusada;
-  - o seed `demo` se recusa a rodar (pelo rótulo, por marcador de provedor de hospedagem e por banco que não seja local: ele cria uma conta ADMIN com senha pública);
+  - o seed `demo` se recusa a rodar (pelo rótulo, por marcador de provedor de hospedagem e por banco que não seja local: ele cria contas de teste com senha pública);
   - segredo de exemplo (`TROQUE_...`) ou fraco (menos de 10 caracteres distintos) recusa a partida;
   - o login exige o segundo fator.
 
-  Uma homologação em `development` exporia o admin de demonstração, que entra sem segundo fator e tem senha pública no repositório.
+  Uma homologação em `development` exporia as contas de demonstração (senha pública no repositório) e dispensaria o segundo fator da administração.
 
 - **Cada ambiente tem segredos próprios.** Nenhum valor é reaproveitado entre ambientes (`openssl rand` para cada um).
 - **Seeds de demonstração e de simulação, e o k6, só rodam em base descartável ou local.** Os scripts usam senhas fixas e públicas (seção 4.4). Nunca aponte esses scripts para homologação ou produção.
@@ -77,6 +77,8 @@ Legenda:
 | `SIMPLECLICK_DEV_TEST_EMAIL` / `_PHRASE`, `NEXT_PUBLIC_DEV_STORE_SLUG`, `CAIXA_DE_EMAIL_DE_PROVA` | –             | –                                 | ✘                      | ✘                      | sim (local)                  | só local                                                                                             |
 | `PG_BIN`, `GUARDAS_URL`                                                                           | –             | –                                 | ✘                      | ✘                      | não                          | só local                                                                                             |
 | `DATABASE_URL_ARRANQUE`, `PRIMEIRO_ADMIN_EMAIL` / `_NOME` / `_SENHA`                              | ✘             | ✘                                 | uma vez                | uma vez                | **sim**                      | **nunca** em provedor nem GitHub: arquivo temporário fora do repositório, apagado depois do arranque |
+| `ADMIN_LOCAL_EMAIL` / `_SENHA` / `_NOME`                                                          | –             | –                                 | ✘                      | ✘                      | sim (local)                  | só o `.env` local: a conta de administração do seed (seção 10)                                       |
+| `ADMIN_EMAIL` / `ADMIN_SENHA` / `ADMIN_TOTP_SEGREDO` / `ADMIN_NOME`                               | ✘             | ✘                                 | opcional (uma vez)     | opcional (uma vez)     | **sim**                      | Railway, serviço `api`: administração permanente (seção 10). **Apague depois do 1º login**           |
 
 Ficam fora do `.env.example` de propósito:
 
@@ -387,3 +389,67 @@ Baixos, **só registrados** (sem mudança de código):
 - **B-5:** a ordem site → API → flag e o rollback depois de _contract_ dependem de disciplina. Linha nova na seção 7.
 - **B-6:** o snippet antigo da doc (checkout por tag, sem checksum) foi substituído pela referência ao job real.
 - **B-7:** a senha antiga do admin continua no histórico e nas bases carregadas antes da troca. Considere-a pública e rode o `demo` de novo nessas bases.
+
+---
+
+## 10. Administração permanente (card #3)
+
+Uma conta de administração da plataforma que sobrevive a "zerar o banco" (local) e a novos deploys (staging e produção), sem senha ou e-mail no repositório.
+
+### 10.1 No seu computador (local)
+
+1. No `.env` (nunca no Git), preencha `ADMIN_LOCAL_EMAIL` e `ADMIN_LOCAL_SENHA` (12 caracteres ou mais; `ADMIN_LOCAL_NOME` é opcional). Os nomes estão comentados no `.env.example`, sem valor.
+2. Rode `pnpm --filter @simpleclick/database seed` (banco novo) ou `... demo`. No fim da carga, a conta é criada ou atualizada. Para rodar só esse passo: `pnpm --filter @simpleclick/database admin:local`.
+3. Entre em `/entrar` com esse e-mail e senha: a API local (`NODE_ENV=development`) dispensa o aplicativo autenticador e o login leva a `/admin`.
+
+Regras (as recusas saem com uma linha, sem repetir a senha nem a URL do banco):
+
+- só roda em banco local (`localhost`, `127.0.0.1`, `::1`, sem `?host=`), sem `NODE_ENV=production` nem marcador de hospedagem (`RAILWAY_*`, `VERCEL`, `RENDER`, `FLY_APP_NAME`, `HEROKU_APP_NAME`) e só em banco chamado `simpleclick`, `simpleclick_dev`, `simpleclick_local` ou terminado em `_dev`/`_local`;
+- sem as duas variáveis, o seed avisa em uma linha e não cria nada;
+- recusa e-mail de conta de demonstração, conta que nunca foi administração e conta com vínculo de loja; recusa senha pública da demo;
+- a senha só é regravada quando muda (e as sessões da conta caem); nenhum aceite dos termos é gravado por você: aceite no primeiro login;
+- a demonstração continua **sem** conceder administração a conta com senha pública (decisão do card #163, teste `[CA-7]`).
+
+O comando `administracao:local` da API (card #163) recusa senha vinda de variável de ambiente e o script relê o `.env`. Com as variáveis acima no `.env`, rode-o assim, com as duas vazias:
+
+```bash
+ADMIN_LOCAL_SENHA= ADMIN_SENHA= pnpm --filter @simpleclick/api administracao:local -- --email <e-mail> --banco <banco> --node-env-do-preview development --verificar
+```
+
+### 10.2 Staging e produção (Railway)
+
+A API, ao subir, cria **uma** administração a partir de variáveis do serviço `api`. Fora de `development` a administração sempre exige o aplicativo autenticador, então o segredo dele vai junto.
+
+| Variável             | O que é                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN_EMAIL`        | E-mail **nunca cadastrado** na plataforma (confirme que a caixa recebe mensagens: é para onde vai uma recuperação de senha) |
+| `ADMIN_SENHA`        | 12 a 256 caracteres, sem `TROQUE_`, com variedade (10 caracteres distintos ou mais)                                         |
+| `ADMIN_TOTP_SEGREDO` | A chave do aplicativo autenticador: 32 letras A–Z e dígitos 2–7 (gerada abaixo)                                             |
+| `ADMIN_NOME`         | Opcional; como a pessoa aparece nas telas                                                                                   |
+
+Use valores **diferentes** em staging e produção. `CHAVE_CIFRA_TOTP` e `SENHA_BANCO_ADMINISTRACAO` já são variáveis do serviço.
+
+**Passo a passo**
+
+1. No seu computador: `pnpm --filter @simpleclick/api administracao:segredo`. Ele mostra a chave e o link do aplicativo, pede o código de 6 dígitos que o aplicativo mostra e só então confirma. Cadastre a chave no aplicativo autenticador do celular. Rode isto você mesmo: a chave aparece só nesse terminal (nenhum agente deve rodar o gerador com valores reais).
+2. No Railway, serviço `api` do ambiente, crie `ADMIN_EMAIL`, `ADMIN_SENHA` e `ADMIN_TOTP_SEGREDO` (e `ADMIN_NOME`, se quiser) e publique.
+3. Nos logs do deploy, procure `administracao_permanente.situacao` com `situacao_da_administracao: criada`.
+4. Entre em `/entrar` com a senha e o código do aplicativo: o login leva a `/admin`.
+5. **Logo depois do primeiro login:** em `/conta/seguranca`, troque o aplicativo autenticador (isso invalida a chave que passou pelo Railway) e gere os códigos de recuperação. Depois **apague `ADMIN_SENHA`, `ADMIN_TOTP_SEGREDO` e `ADMIN_EMAIL`** do Railway.
+
+**Regras**
+
+- Só cria quando `platform_admins` não tem **nenhuma** linha (nem revogada), não há registro anterior da criação na trilha da plataforma e não existe conta com o e-mail. Trocar `ADMIN_EMAIL`, revogar o único administrador ou um rollback do Railway que traga variáveis antigas **nunca** cria outro. Quem já tem administração (por exemplo, criada pelo `arranque`, seção 8.1 do `deploy-railway.md`) não ganha um segundo por aqui.
+- Nunca promove conta existente, nunca reativa administração revogada, nunca troca senha nem segredo de quem já existe.
+- Variável ausente: nada acontece e o deploy segue. Só `ADMIN_EMAIL` sem senha e segredo também é silencioso. Trio incompleto ou formato inválido vira um aviso no log (com os **nomes** das variáveis, nunca os valores) e a API sobe.
+- Falha de banco ou prazo (15 s) vira uma linha de log com a situação e, no máximo, o código do banco; a API sobe do mesmo jeito.
+- Grava uma linha na trilha da plataforma ("Administração permanente criada no deploy", ato sensível, quem: sistema), sem e-mail, senha nem segredo.
+- Não grava códigos de recuperação nem aceites: você os gera e aceita no primeiro login.
+- Enquanto `ADMIN_TOTP_SEGREDO` ainda for o aplicativo ativo da conta, **toda partida** registra `segredo_de_bootstrap_ainda_ativo`: é o aviso de que falta trocar o aplicativo.
+
+**Riscos que sobram (e por quê)**
+
+- Quem lê as variáveis do serviço `api` (ou o histórico de deploys do Railway) enxerga a senha e o segredo: **equivale a ser administrador** até você trocar o aplicativo. Por isso o passo 5, e por isso os valores diferem por ambiente.
+- Ainda **não existe troca de senha com a sessão aberta**: a senha só muda pela recuperação por e-mail, e a API de produção ainda não tem provedor de e-mail. Escolha uma senha forte e tire `ADMIN_SENHA` do Railway; trocar a senha com sessão aberta fica como dívida técnica.
+- Apagar as variáveis do processo (`process.env`) não apaga o bloco original do ambiente que o sistema operacional guarda; a proteção é a rotação do aplicativo.
+- Perdeu o celular antes de gerar os códigos de recuperação? Use o `arranque` (seção 8.1 do `deploy-railway.md`) numa plataforma sem administração, ou o `administracao:local` num banco local; em produção, peça um card.

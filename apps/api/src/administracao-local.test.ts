@@ -5,9 +5,13 @@
  * de verdade é provada em `apps/api/tests/administracao-local.test.ts`.
  */
 
-import { dirname, resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { MARCADORES_DE_HOSPEDAGEM as MARCADORES_DO_SEED } from "@simpleclick/database/administracao-local";
 import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,6 +20,8 @@ import {
   ehBancoDeTeste,
   executarAdministracaoLocal,
   lerArgumentos,
+  MARCADORES_DE_HOSPEDAGEM,
+  recusarSenhaNoAmbiente,
   type OpcoesDaAdministracaoLocal,
   variavelDeSenhaDaConta,
 } from "./administracao-local.ts";
@@ -392,5 +398,50 @@ describe("fora do build", () => {
     expect(
       nomes.filter((nome) => nome.includes("administracao-local")),
     ).toEqual([]);
+  });
+});
+
+describe("senha do .env local (card #3)", () => {
+  it("[CA-7] a trava recusa ADMIN_LOCAL_SENHA e ADMIN_SENHA com valor, e aceita a variável vazia", () => {
+    for (const nome of ["ADMIN_LOCAL_SENHA", "ADMIN_SENHA"]) {
+      expect(() => recusarSenhaNoAmbiente({ [nome]: SENHA_BOA })).toThrow();
+      expect(() => recusarSenhaNoAmbiente({ [nome]: "" })).not.toThrow();
+    }
+  });
+
+  it("[CA-7] uma variável vazia no ambiente vence o --env-file (o comando documentado)", () => {
+    const pasta = mkdtempSync(join(tmpdir(), "sc-env-"));
+    try {
+      const arquivo = join(pasta, "teste.env");
+      writeFileSync(
+        arquivo,
+        "ADMIN_LOCAL_SENHA=vem-do-arquivo\nADMIN_SENHA=vem-do-arquivo\n",
+      );
+      const saida = execFileSync(
+        process.execPath,
+        [
+          `--env-file=${arquivo}`,
+          "-e",
+          "process.stdout.write(JSON.stringify([process.env.ADMIN_LOCAL_SENHA, process.env.ADMIN_SENHA]))",
+        ],
+        {
+          env: {
+            PATH: process.env.PATH ?? "",
+            ADMIN_LOCAL_SENHA: "",
+            ADMIN_SENHA: "",
+          },
+          encoding: "utf8",
+        },
+      );
+      expect(JSON.parse(saida)).toEqual(["", ""]);
+    } finally {
+      rmSync(pasta, { recursive: true, force: true });
+    }
+  });
+
+  it("[CA-4] a lista de marcadores de hospedagem do seed é a mesma do CLI", () => {
+    expect([...MARCADORES_DO_SEED].sort()).toEqual(
+      [...MARCADORES_DE_HOSPEDAGEM].sort(),
+    );
   });
 });

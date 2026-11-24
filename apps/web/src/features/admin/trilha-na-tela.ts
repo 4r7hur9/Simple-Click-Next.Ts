@@ -36,6 +36,7 @@ const ATOS_SEM_NOME_NO_CONTRATO: Readonly<Record<string, string>> = {
   ESPECIFICACAO_REMOVIDA: "Opção de produto removida",
   ESPECIFICACAO_OPCAO_ACRESCENTADA: "Valor acrescentado a uma opção",
   ESPECIFICACAO_VALOR_DESCARTADO: "Valor de uma opção descartado",
+  ADMINISTRACAO_PERMANENTE_CRIADA: "Administração permanente criada no deploy",
   PASSWORD_CHANGED: "Senha trocada",
   LOGOUT: "Saída da conta",
   LOGOUT_ALL: "Saída de todos os aparelhos",

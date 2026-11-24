@@ -37,7 +37,7 @@ export function ListaDaEquipe({
             >
               {membro.nome ?? membro.email}
             </Link>
-            <p className="truncate text-xs text-[var(--cor-tinta-suave)]">
+            <p className="text-xs text-[var(--cor-tinta-suave)]">
               {membro.nome !== null ? `${membro.email} · ` : ""}
               desde {dataCurta(membro.desde)}
             </p>

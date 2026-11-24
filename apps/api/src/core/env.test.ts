@@ -4,6 +4,7 @@ import {
   carregarAmbiente,
   ErroDeAmbiente,
   segundoPlanoLigado,
+  lerPedidoDaAdministracaoPermanente,
   VARIAVEIS,
   variaveisAposentadasPresentes,
   type FonteDeAmbiente,
@@ -385,7 +386,9 @@ describe("segredos de exemplo e fracos em produção (A-1, revisão #149)", () =
     const erro = recusaAoCarregar(ambienteSem("DATABASE_URL_DIRETA"));
 
     expect(erro.variaveis).toEqual(["DATABASE_URL_DIRETA"]);
-    expect(erro.message).toContain("obrigatória quando NODE_ENV não é production");
+    expect(erro.message).toContain(
+      "obrigatória quando NODE_ENV não é production",
+    );
   });
 
   it("[A-1] fora de produção o modelo copiado continua subindo (desenvolvimento)", () => {
@@ -451,5 +454,96 @@ describe("a chave que cifra o segredo do aplicativo autenticador", () => {
     const producao = producaoCompleta();
     producao.CHAVE_CIFRA_TOTP = "";
     expect(recusaAoCarregar(producao).variaveis).toEqual(["CHAVE_CIFRA_TOTP"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Administração permanente (card #3)
+// ---------------------------------------------------------------------------
+
+describe("lerPedidoDaAdministracaoPermanente [CA-10]", () => {
+  const CHAVE = Buffer.alloc(32, 7).toString("base64");
+  const boa = {
+    ADMIN_EMAIL: "  Pessoa.Admin@Exemplo.Invalido ",
+    ADMIN_SENHA: "senha-de-prova-grande-1",
+    ADMIN_TOTP_SEGREDO: "jbsw y3dp ehpk 3pxp jbsw y3dp ehpk 3pxp".toUpperCase(),
+    CHAVE_CIFRA_TOTP: CHAVE,
+  };
+
+  it("[CA-10] sem senha e sem segredo é 'ausente', com ou sem e-mail e nome", () => {
+    expect(lerPedidoDaAdministracaoPermanente({})).toEqual({
+      situacao: "ausente",
+    });
+    expect(
+      lerPedidoDaAdministracaoPermanente({
+        ADMIN_EMAIL: "a@b.co",
+        ADMIN_NOME: "X",
+      }),
+    ).toEqual({ situacao: "ausente" });
+    expect(
+      lerPedidoDaAdministracaoPermanente({
+        ADMIN_SENHA: "  ",
+        ADMIN_TOTP_SEGREDO: "",
+      }),
+    ).toEqual({ situacao: "ausente" });
+  });
+
+  it("[CA-10] faltando parte do trio é 'incompleta' e cita só os nomes", () => {
+    const pedido = lerPedidoDaAdministracaoPermanente({
+      ADMIN_SENHA: boa.ADMIN_SENHA,
+    });
+    expect(pedido).toEqual({
+      situacao: "incompleta",
+      campos: ["ADMIN_EMAIL", "ADMIN_TOTP_SEGREDO"],
+    });
+  });
+
+  it("[CA-10] trio válido fica 'pronta', com e-mail normalizado e segredo sem espaços", () => {
+    const pedido = lerPedidoDaAdministracaoPermanente(boa);
+    expect(pedido).toMatchObject({
+      situacao: "pronta",
+      email: "pessoa.admin@exemplo.invalido",
+      nome: "Administração",
+    });
+    if (pedido.situacao === "pronta") {
+      expect(pedido.segredo).toMatch(/^[A-Z2-7]{32}$/);
+    }
+  });
+
+  it("[CA-10] formatos inválidos viram 'invalida' citando só os NOMES, nunca os valores", () => {
+    const casos: [Record<string, string>, string][] = [
+      [{ ADMIN_EMAIL: "sem-arroba" }, "ADMIN_EMAIL"],
+      [{ ADMIN_SENHA: "curta" }, "ADMIN_SENHA"],
+      [{ ADMIN_SENHA: "TROQUE_POR_UMA_SENHA_FORTE" }, "ADMIN_SENHA"],
+      [{ ADMIN_SENHA: "aaaaaaaaaaaaaaaaaaaa" }, "ADMIN_SENHA"],
+      [{ ADMIN_SENHA: "x".repeat(257) }, "ADMIN_SENHA"],
+      [{ ADMIN_TOTP_SEGREDO: "ABC" }, "ADMIN_TOTP_SEGREDO"],
+      [{ ADMIN_TOTP_SEGREDO: "A".repeat(32) }, "ADMIN_TOTP_SEGREDO"],
+      [{ ADMIN_TOTP_SEGREDO: "1".repeat(32) }, "ADMIN_TOTP_SEGREDO"],
+      [{ ADMIN_NOME: "<script>" }, "ADMIN_NOME"],
+      [{ ADMIN_NOME: "n".repeat(121) }, "ADMIN_NOME"],
+      [{ CHAVE_CIFRA_TOTP: "" }, "CHAVE_CIFRA_TOTP"],
+    ];
+    for (const [troca, variavel] of casos) {
+      const fonte = { ...boa, ...troca };
+      const pedido = lerPedidoDaAdministracaoPermanente(fonte);
+      expect(pedido.situacao, JSON.stringify(Object.keys(troca))).toBe(
+        "invalida",
+      );
+      if (pedido.situacao === "invalida") {
+        expect(pedido.campos).toContain(variavel);
+      }
+      for (const valor of Object.values(fonte)) {
+        if (valor.length > 4)
+          expect(JSON.stringify(pedido)).not.toContain(valor);
+      }
+    }
+  });
+
+  it("[CA-10] nada de ADMIN_* entra no ambiente tipado nem na lista de variáveis", () => {
+    const fonte = { ...ambienteCompleto(), ...boa };
+    const ambiente = carregarAmbiente(fonte);
+    expect(JSON.stringify(ambiente)).not.toContain(boa.ADMIN_SENHA);
+    expect(VARIAVEIS.some((nome) => nome.startsWith("ADMIN_"))).toBe(false);
   });
 });

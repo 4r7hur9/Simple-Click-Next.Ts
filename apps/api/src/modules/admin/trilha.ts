@@ -53,6 +53,8 @@ export const ATOS_SENSIVEIS: ReadonlySet<string> = new Set([
   "CONTA_REATIVADA",
   "ACESSO_GERADO",
   "ACESSO_USADO",
+  // Card #3: a administração permanente nasceu das variáveis do serviço.
+  "ADMINISTRACAO_PERMANENTE_CRIADA",
   // Card #170 (T-4): quem manda na loja mudou. Dar, trocar e tirar o dono
   // ficam sempre destacados, na trilha da loja e na da plataforma.
   "DONO_ADICIONADO",

@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/migrate.ts",
     "./arranque": "./src/arranque.ts",
-    "./cliente": "./gerado/cliente/client.ts"
+    "./cliente": "./gerado/cliente/client.ts",
+    "./administracao-local": "./seed/administracao-local.ts"
   },
   "scripts": {
     "gerar": "prisma generate --schema prisma/schema.prisma",
@@ -15,6 +16,7 @@
     "guardas": "node src/guards.ts",
     "seed": "node --env-file-if-exists=../../.env seed/index.ts",
     "demo": "node --env-file-if-exists=../../.env seed/demo/index.ts",
+    "admin:local": "node --env-file-if-exists=../../.env seed/administracao-local.ts",
     "importar:winsis": "node --env-file-if-exists=../../.env seed/winsis/index.ts",
     "seed:simulacao": "node --env-file-if-exists=../../.env seed/simulacao/index.ts",
     "seed:simulacao:aplicacao": "node --env-file-if-exists=../../.env seed/simulacao/aplicacao.ts",

@@ -26,8 +26,13 @@ import {
 import { ENDERECO_DO_SITE } from "../playwright.config.ts";
 
 const LARGURAS = [1440, 390] as const;
+// Card #3: a pasta é parametrizável (CAPTURAS_CARD e CAPTURAS_ETAPA, ex.:
+// `.rmcode/capturas/3/antes/`); o padrão é a etapa "depois" do card #3.
 const PASTA = fileURLToPath(
-  new URL("../../.rmcode/capturas/170/", import.meta.url),
+  new URL(
+    `../../.rmcode/capturas/${process.env["CAPTURAS_CARD"] ?? "3"}/${process.env["CAPTURAS_ETAPA"] ?? "depois"}/`,
+    import.meta.url,
+  ),
 );
 const SELO = '[data-modo="administracao"].sc-selo-admin';
 
@@ -66,6 +71,34 @@ async function selosVisiveis(page: Page): Promise<number> {
     );
 }
 
+/** O fundo, a tinta e a largura da sidebar (ou da barra do celular) como o navegador as calculou. */
+async function coresDoMenu(page: Page) {
+  return page.evaluate(() => {
+    const menu = document.querySelector("aside, header.sticky") as HTMLElement;
+    const caixa = menu.getBoundingClientRect();
+    const estilo = getComputedStyle(menu);
+    const luz = (css: string) => {
+      const [r, g, b] = (css.match(/[\d.]+/g) ?? ["0", "0", "0"])
+        .slice(0, 3)
+        .map((v) => {
+          const c = Number(v) / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        }) as [number, number, number];
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const claro = Math.max(luz(estilo.backgroundColor), luz(estilo.color));
+    const escuro = Math.min(luz(estilo.backgroundColor), luz(estilo.color));
+    return {
+      fundo: estilo.backgroundColor,
+      largura: caixa.width,
+      contraste: (claro + 0.05) / (escuro + 0.05),
+    };
+  });
+}
+
+/** O grafite do menu do painel do dono (#161c19). */
+const GRAFITE_DO_PAINEL = "rgb(22, 28, 25)";
+
 for (const tela of TELAS) {
   test(`[CA-14] capturas de ${tela.id} em 1440/390, claro e escuro`, async ({
     page,
@@ -96,6 +129,19 @@ for (const tela of TELAS) {
             await expect(
               page.locator(".sc-moldura-admin").first(),
             ).toBeAttached();
+            // CA-27: o menu do admin NÃO é o grafite do dono e a tinta passa de 4,5:1.
+            const menu = await coresDoMenu(page);
+            expect(menu.fundo).not.toBe(GRAFITE_DO_PAINEL);
+            expect(menu.contraste).toBeGreaterThanOrEqual(4.5);
+            // CA-20: a sidebar do desktop volta a ter 256 px (lg:w-64).
+            if (largura === 1440)
+              expect(menu.largura).toBeGreaterThanOrEqual(250);
+          } else if (tela.papel === "dono" && largura === 1440) {
+            await expect(page.locator(SELO)).toHaveCount(0);
+            await expect(page.locator(".sc-moldura-admin")).toHaveCount(0);
+            expect((await coresDoMenu(page)).largura).toBeGreaterThanOrEqual(
+              250,
+            );
           } else {
             await expect(page.locator(SELO)).toHaveCount(0);
             await expect(page.locator(".sc-moldura-admin")).toHaveCount(0);

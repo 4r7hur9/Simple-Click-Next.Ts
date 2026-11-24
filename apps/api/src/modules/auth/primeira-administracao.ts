@@ -90,7 +90,7 @@ export class ErroDaPrimeiraAdministracao extends Error {
 
 const PASSO_EM_MS = 30_000;
 /** Trava da transação: duas execuções ao mesmo tempo não criam duas. */
-const CHAVE_DA_TRAVA = 8_310_024;
+export const CHAVE_DA_TRAVA = 8_310_024;
 
 const esquemaDoEmail = z.string().trim().toLowerCase().max(254).pipe(z.email());
 

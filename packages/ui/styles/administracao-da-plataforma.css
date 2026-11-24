@@ -17,13 +17,19 @@
 }
 
 /*
- * A sidebar. O menu lateral carrega `data-tema="escuro"` no próprio elemento, e
- * `[data-tema="escuro"]` tem especificidade (0,1,0). O seletor composto abaixo
- * tem (0,2,0) e por isso vence, sem `!important` e sem depender da ordem das
- * folhas: o fundo e a tinta vêm dos tokens da administração.
+ * A sidebar. O menu do modo administração NÃO carrega `data-tema`: ele segue o
+ * tema da página, e os tokens `--admin-*` (que mudam com o tema) chegam até
+ * aqui sem o `[data-tema="escuro"]` do painel do dono os trocar pelos escuros.
+ * Esta folha fica fora de `@layer`, então vence as utilidades do Tailwind
+ * (`bg-[var(--cor-superficie)]`) sem `!important`. Todo `--cor-*` que o menu
+ * lê e cujo contraste depende do fundo é redefinido aqui a partir dos tokens.
+ * `--cor-primaria` não se redefine fora de theme.css (guarda AC-11411): o item
+ * da página atual ganha o fundo próprio pela regra de `aria-current` abaixo, e
+ * o resto (marca "s" e contadores) segue o verde da marca com letra escura.
  */
-.sc-menu--administracao[data-tema] {
+.sc-menu--administracao {
   --cor-superficie: var(--admin-menu-fundo);
+  --cor-superficie-alta: var(--admin-menu-hover-fundo);
   --cor-tinta: var(--admin-menu-tinta);
   --cor-tinta-suave: var(--admin-menu-tinta-suave);
   --cor-borda: var(--admin-menu-borda);
@@ -32,26 +38,36 @@
   border-color: var(--admin-menu-borda);
 }
 
-.sc-menu--administracao[data-tema] [aria-current="page"] {
+.sc-menu--administracao [aria-current="page"] {
   background-color: var(--admin-menu-ativo-fundo);
   color: var(--admin-menu-ativo-tinta);
 }
 
-/* O cabeçalho da administração: o título leva a faixa, sem fundo próprio. */
+/*
+ * A faixa da administração: título e selo sobre fundo próprio, em todas as
+ * larguras (card #3). No celular o selo já está na barra do topo do menu, então
+ * só ele some da faixa, para não aparecer duas vezes.
+ */
 .sc-cabecalho-admin {
   display: flex;
   align-items: center;
   gap: var(--espaco-3);
-  border-bottom: 1px solid var(--cor-borda);
+  border-bottom: 1px solid var(--admin-menu-borda);
+  background-color: var(--admin-cabecalho-fundo);
+  color: var(--admin-cabecalho-tinta);
   padding-block: var(--espaco-3);
 }
 
-/*
- * No celular (abaixo de md) a barra do topo do menu já leva o selo; o
- * cabeçalho some para o selo não aparecer duas vezes empilhado (card #170, T-13).
- */
+.sc-cabecalho-admin__titulo {
+  font-size: var(--tipo-rotulo-sm-tamanho);
+  line-height: var(--tipo-rotulo-sm-altura);
+  font-weight: var(--tipo-rotulo-sm-peso);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 47.99rem) {
-  .sc-cabecalho-admin {
+  .sc-cabecalho-admin .sc-selo-admin {
     display: none;
   }
 }
@@ -70,4 +86,52 @@
   font-weight: var(--tipo-rotulo-sm-peso);
   letter-spacing: var(--tipo-rotulo-sm-espaco);
   white-space: nowrap;
+}
+
+/*
+ * Texto longo na administração (card #6). Nome de loja ou pessoa e e-mail
+ * quebram dentro da própria caixa (sem estourar célula nem cartão), e o selo
+ * de status, papel ou contagem nunca encolhe nem parte o texto: quem cede é o
+ * nome ao lado. Selo que leva texto livre (ex.: o filtro de loja da auditoria)
+ * usa `sc-selo--longo`, que pode quebrar linha em vez de sair da tela.
+ */
+.sc-moldura-admin main :is(h1, h2, h3, p, dt, dd, li, th, td, a, label) {
+  overflow-wrap: anywhere;
+}
+
+.sc-moldura-admin main .sc-selo,
+.sc-moldura-admin .sc-selo-admin {
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.sc-moldura-admin main .sc-selo.sc-selo--longo {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sc-moldura-admin main .sc-selo--longo .sc-selo__bolinha {
+  flex-shrink: 0;
+}
+
+/* Células de tabela: as colunas de texto cedem, as de selo e número não. */
+.sc-moldura-admin .sc-tabela td:has(> .sc-selo),
+.sc-moldura-admin .sc-tabela .sc-tabela__fim {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+/* No cartão do celular o valor longo quebra ao lado do rótulo, sem empurrá-lo. */
+@media (max-width: 539px) {
+  .sc-moldura-admin .sc-tabela--cartoes tbody td > :not(.sc-selo) {
+    min-width: 0;
+  }
+
+  .sc-moldura-admin .sc-tabela--cartoes tbody td::before {
+    flex-shrink: 0;
+  }
 }

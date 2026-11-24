@@ -255,9 +255,12 @@
   --admin-menu-tinta: #0b0f0d;
   --admin-menu-tinta-suave: #34401f;
   --admin-menu-borda: #5f7a3f;
-  --admin-menu-ativo-fundo: #b7ff00;
-  --admin-menu-ativo-tinta: #0b0f0d;
+  --admin-menu-hover-fundo: #cbe69a;
+  --admin-menu-ativo-fundo: #3f7900;
+  --admin-menu-ativo-tinta: #ffffff;
   --admin-faixa: #3f7900;
+  --admin-cabecalho-fundo: #dff3b5;
+  --admin-cabecalho-tinta: #0b0f0d;
   --admin-selo-fundo: #3f7900;
   --admin-selo-tinta: #ffffff;
 
@@ -443,13 +446,16 @@
     --vidro-sobreposicao: rgb(0 0 0 / 70%);
 
     /* administração da plataforma (card #170) - o que muda com o tema */
-    --admin-menu-fundo: #12260f;
+    --admin-menu-fundo: #2c5e0e;
     --admin-menu-tinta: #ffffff;
-    --admin-menu-tinta-suave: #b4c4a6;
-    --admin-menu-borda: #5f8a3a;
+    --admin-menu-tinta-suave: #c9e3b4;
+    --admin-menu-borda: #8fbf62;
+    --admin-menu-hover-fundo: #3a7316;
     --admin-menu-ativo-fundo: #b7ff00;
     --admin-menu-ativo-tinta: #0b0f0d;
     --admin-faixa: #b7ff00;
+    --admin-cabecalho-fundo: #2c5e0e;
+    --admin-cabecalho-tinta: #ffffff;
     --admin-selo-fundo: #b7ff00;
     --admin-selo-tinta: #0b0f0d;
   }
@@ -516,13 +522,16 @@
   --vidro-sobreposicao: rgb(0 0 0 / 70%);
 
   /* administração da plataforma (card #170) - o que muda com o tema */
-  --admin-menu-fundo: #12260f;
+  --admin-menu-fundo: #2c5e0e;
   --admin-menu-tinta: #ffffff;
-  --admin-menu-tinta-suave: #b4c4a6;
-  --admin-menu-borda: #5f8a3a;
+  --admin-menu-tinta-suave: #c9e3b4;
+  --admin-menu-borda: #8fbf62;
+  --admin-menu-hover-fundo: #3a7316;
   --admin-menu-ativo-fundo: #b7ff00;
   --admin-menu-ativo-tinta: #0b0f0d;
   --admin-faixa: #b7ff00;
+  --admin-cabecalho-fundo: #2c5e0e;
+  --admin-cabecalho-tinta: #ffffff;
   --admin-selo-fundo: #b7ff00;
   --admin-selo-tinta: #0b0f0d;
 }
@@ -588,9 +597,12 @@
   --admin-menu-tinta: #0b0f0d;
   --admin-menu-tinta-suave: #34401f;
   --admin-menu-borda: #5f7a3f;
-  --admin-menu-ativo-fundo: #b7ff00;
-  --admin-menu-ativo-tinta: #0b0f0d;
+  --admin-menu-hover-fundo: #cbe69a;
+  --admin-menu-ativo-fundo: #3f7900;
+  --admin-menu-ativo-tinta: #ffffff;
   --admin-faixa: #3f7900;
+  --admin-cabecalho-fundo: #dff3b5;
+  --admin-cabecalho-tinta: #0b0f0d;
   --admin-selo-fundo: #3f7900;
   --admin-selo-tinta: #ffffff;
 }

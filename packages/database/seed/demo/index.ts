@@ -38,11 +38,10 @@ import {
   PRODUTOS,
 } from "../catalogo.ts";
 import { tokenDeExemplo } from "../deterministico.ts";
-import {
-  ErroDeAmbienteDeProducao,
-  exigirAmbienteQueNaoEProducao,
-  type FonteDeAmbiente,
-} from "../index.ts";
+import { exigirDestinoLocalDaDemonstracao } from "../destino-local.ts";
+
+export { exigirDestinoLocalDaDemonstracao };
+import { garantirAdministracaoLocalSemFalhar } from "../administracao-local.ts";
 import { LOJAS } from "../lojas.ts";
 import {
   CONTA_CLIENTE,
@@ -1282,55 +1281,6 @@ export interface ResumoDaDemonstracao {
   readonly lojas: readonly { readonly apelido: string; readonly nome: string; readonly ramo: string }[];
 }
 
-/** Variáveis que só existem quando o processo roda num provedor de hospedagem. */
-const MARCADORES_DE_HOSPEDAGEM = [
-  "RAILWAY_ENVIRONMENT",
-  "RAILWAY_PROJECT_ID",
-  "VERCEL",
-  "VERCEL_ENV",
-  "RENDER",
-  "FLY_APP_NAME",
-] as const;
-
-/** Máquinas aceitas como "esta máquina" na URL do banco. */
-const HOSTS_LOCAIS = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
-
-/**
- * A trava de produção do `demo` (M-2 da revisão #149).
- *
- * Esta carga cria contas com senha pública (contas.ts) e as vincula como
- * donas de lojas (administração ela nunca concede, card #163). Só o rótulo `NODE_ENV=production` não basta: o
- * caso perigoso é o rótulo ESQUECIDO num servidor. Por isso três camadas:
- * o rótulo (como antes), nenhum marcador de provedor de hospedagem no
- * processo e, quando a URL é conhecida, banco só nesta máquina. A recusa nunca
- * repete a URL, que leva usuário e senha.
- */
-export function exigirDestinoLocalDaDemonstracao(
-  ambiente: FonteDeAmbiente,
-  urlDoBanco?: string,
-): void {
-  exigirAmbienteQueNaoEProducao(ambiente);
-  for (const marcador of MARCADORES_DE_HOSPEDAGEM) {
-    if (ambiente[marcador]?.trim()) {
-      throw new ErroDeAmbienteDeProducao(
-        `${marcador} está definida, sinal de que este processo roda num provedor de hospedagem`,
-      );
-    }
-  }
-  if (urlDoBanco === undefined) return;
-  let host: string;
-  try {
-    host = new URL(urlDoBanco).hostname.toLowerCase();
-  } catch {
-    throw new ErroDeAmbienteDeProducao("a URL do banco não pôde ser lida");
-  }
-  if (!HOSTS_LOCAIS.has(host)) {
-    throw new ErroDeAmbienteDeProducao(
-      "o banco de destino não é local (a demonstração só roda contra localhost ou 127.0.0.1)",
-    );
-  }
-}
-
 /** As 24 lojas da demonstração, na ordem da carga. */
 export const TODAS_AS_LOJAS_DEMO: readonly LojaDemo[] = [...LOJAS_DEMO, ...LOJAS_NOVAS];
 
@@ -1530,6 +1480,13 @@ async function principal(): Promise<number> {
       cliente,
       relatar: (linha) => process.stdout.write(`${linha}\n`),
       semVideos: process.argv.includes("--sem-videos"),
+    });
+    // Card #3: a conta de administração local do `.env` (se houver). Uma
+    // recusa vira aviso e não muda o código de saída da carga.
+    await garantirAdministracaoLocalSemFalhar(cliente, {
+      ambiente: process.env,
+      urlDoBanco: direta,
+      relatar: (linha) => process.stdout.write(`${linha}\n`),
     });
     process.stdout.write(
       "Pronto. Imagens e vídeos em apps/web/public/demo/. Rodar de novo atualiza sem duplicar.\n",
