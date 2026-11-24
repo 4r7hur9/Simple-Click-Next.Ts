@@ -156,11 +156,11 @@ const PASSOS_DA_EQUIPE: readonly PassoDoTutorial[] = [
   },
 ];
 
-const PASSOS_DO_CLIENTE: readonly PassoDoTutorial[] = [
+const PASSOS_BASE_DO_CLIENTE: readonly PassoDoTutorial[] = [
   {
     id: "boas-vindas",
     titulo: "Que bom ter você aqui",
-    texto: "Veja em quatro passos como pedir no SimpleClick. Se preferir, toque em Pular.",
+    texto: "Veja como pedir no SimpleClick. Se preferir, toque em Pular.",
     demonstracao: {
       titulo: "Do jeito mais curto",
       etapas: ["Explorar", "Favoritar", "Pedir", "Acompanhar"],
@@ -211,6 +211,23 @@ const PASSOS_DO_CLIENTE: readonly PassoDoTutorial[] = [
     alvos: ["[data-ver-tutorial]", "[data-menu-da-conta]"],
   },
 ];
+
+const NUMEROS_POR_EXTENSO = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez"];
+
+/** A quantidade de passos do texto de boas-vindas, como o indicador "1 de N" a mostra. */
+export function quantidadePorExtenso(quantidade: number): string {
+  return NUMEROS_POR_EXTENSO[quantidade] ?? String(quantidade);
+}
+
+/** O número do texto vem da lista, nunca escrito à mão: acrescentar um passo não o desatualiza. */
+export const PASSOS_DO_CLIENTE: readonly PassoDoTutorial[] = PASSOS_BASE_DO_CLIENTE.map((passo) =>
+  passo.id === "boas-vindas"
+    ? {
+        ...passo,
+        texto: `Veja em ${quantidadePorExtenso(PASSOS_BASE_DO_CLIENTE.length)} passos como pedir no SimpleClick. Se preferir, toque em Pular.`,
+      }
+    : passo,
+);
 
 export const PASSOS_DO_TUTORIAL: Readonly<Record<PapelDoTutorial, readonly PassoDoTutorial[]>> = {
   cliente: PASSOS_DO_CLIENTE,

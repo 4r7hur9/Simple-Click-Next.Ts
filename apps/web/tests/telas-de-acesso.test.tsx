@@ -198,7 +198,9 @@ describe("cadastro", () => {
       },
     }));
     const tela = montar(<PaginaDeCadastro />);
-    await preencherEEnviar(tela, "123456");
+    // 12+ caracteres: o mínimo já é conferido na tela (sem ir ao servidor);
+    // aqui a API recusa por outro motivo, e a mensagem dela aparece no campo.
+    await preencherEEnviar(tela, "123456123456");
 
     expect(tela.textContent).toContain("Use pelo menos 12 caracteres");
     expect(tela.textContent).toContain("vazamentos conhecidos");

@@ -23,6 +23,7 @@ import { NarrativaEmCenas } from "./cenas/Cenas.tsx";
 import { Comecar } from "./Comecar.tsx";
 import { LINK_PARA_COMECAR, LINK_PARA_ENTRAR } from "./conteudo.ts";
 import { NarrativaDaLanding } from "./NarrativaDaLanding.tsx";
+import { MenuCompacto } from "./MenuCompacto.tsx";
 import "./mobile.css";
 import { ConviteFinal } from "./secoes/ConviteFinal.tsx";
 import {
@@ -35,6 +36,14 @@ import {
   Recursos,
 } from "./secoes/index.ts";
 
+const SECOES_DO_MENU = [
+  { href: "#como-funciona", rotulo: "Como funciona" },
+  { href: "#por-dentro", rotulo: "Por dentro" },
+  { href: "#taxas", rotulo: "Taxas dos apps" },
+  { href: "#comparar", rotulo: "Comparar" },
+  { href: "#preco", rotulo: "Preço" },
+] as const;
+
 function Topo() {
   return (
     <header className="sc-lp-topo" data-tema="escuro">
@@ -46,11 +55,11 @@ function Topo() {
           <span>simpleclick</span>
         </a>
         <nav className="sc-lp-topo__navegacao" aria-label="Seções da página">
-          <a href="#como-funciona">Como funciona</a>
-          <a href="#por-dentro">Por dentro</a>
-          <a href="#taxas">Taxas dos apps</a>
-          <a href="#comparar">Comparar</a>
-          <a href="#preco">Preço</a>
+          {SECOES_DO_MENU.map((item) => (
+            <a key={item.href} href={item.href}>
+              {item.rotulo}
+            </a>
+          ))}
         </nav>
         <div className="sc-lp-topo__acoes">
           <a className="sc-lp-topo__entrar" href={LINK_PARA_ENTRAR}>
@@ -59,6 +68,7 @@ function Topo() {
           <a className="sc-lp-topo__criar" href={LINK_PARA_COMECAR}>
             Criar loja
           </a>
+          <MenuCompacto itens={SECOES_DO_MENU} />
         </div>
       </div>
       <div className="sc-lp-progresso" aria-hidden="true" />

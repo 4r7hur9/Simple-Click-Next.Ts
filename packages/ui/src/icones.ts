@@ -2,6 +2,7 @@ import { createElement } from "react";
 import type { LucideIcon, LucideProps } from "lucide-react";
 import {
   Boxes,
+  Inbox,
   Layers,
   ListPlus,
   CircleDashed,
@@ -127,6 +128,7 @@ function comPadrao(Desenho: LucideIcon, nome: string): Icone {
   return Componente;
 }
 
+export const IconeVazio = /* @__PURE__ */ comPadrao(Inbox, "IconeVazio");
 export const IconeAdicionar = /* @__PURE__ */ comPadrao(Plus, "IconeAdicionar");
 export const IconeAlerta = /* @__PURE__ */ comPadrao(
   TriangleAlert,

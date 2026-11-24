@@ -116,6 +116,11 @@
   min-inline-size: 0;
 }
 
+/* No celular a busca do feed já aparece abaixo do topo: o ícone some ali. */
+.sc-topo-cliente__botao[data-redundante] {
+  display: none;
+}
+
 .sc-topo-cliente__acoes {
   display: flex;
   align-items: center;
@@ -521,6 +526,14 @@
   font-weight: var(--peso-forte);
   text-align: start;
   cursor: pointer;
+}
+
+/* No celular o botão mede o que o texto pede: menos folga nas pontas, para o
+   rótulo ("Definir localização") caber inteiro. */
+@media (max-width: 63.99rem) {
+  .sc-local-topo__botao {
+    padding-inline: var(--espaco-2);
+  }
 }
 
 .sc-local-topo__botao:hover {

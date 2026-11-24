@@ -12,6 +12,7 @@
  * digitou quando algo é recusado — só o que deu errado precisa mudar.
  */
 import { useState, type FormEvent, type ReactNode } from "react";
+import { esquemaDaSenhaNova } from "@simpleclick/contracts";
 import { Aviso, Botao, Campo, CampoDeSenha, Sucesso } from "@simpleclick/ui";
 
 import { AceiteDosTermos } from "../legal/AceiteDosTermos.tsx";
@@ -59,7 +60,7 @@ export function telefoneComPais(digitado: string): string {
     : `+55${digitos}`;
 }
 
-/** O que dá para conferir antes de mandar: campo vazio e e-mail sem @. */
+/** O que dá para conferir antes de mandar: campo vazio, e-mail sem @ e senha curta (mesmo schema do contrato). */
 export function conferirAntes(dados: DadosDoCadastroNaTela): Record<string, string> {
   const erros: Record<string, string> = {};
   if (dados.nome === "") erros["nome"] = "Informe seu nome.";
@@ -72,7 +73,10 @@ export function conferirAntes(dados: DadosDoCadastroNaTela): Record<string, stri
   else if (digitos.length < 12) {
     erros["telefone"] = "Confira o número: DDD e celular, como 11 91234-5678.";
   }
-  if (dados.senha === "") erros["senha"] = "Crie uma senha.";
+  const senha = esquemaDaSenhaNova.safeParse(dados.senha);
+  if (!senha.success) {
+    erros["senha"] = senha.error.issues[0]?.message ?? "Crie uma senha.";
+  }
   if (!dados.aceitouTermos) {
     erros["aceitouTermos"] =
       "Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.";
