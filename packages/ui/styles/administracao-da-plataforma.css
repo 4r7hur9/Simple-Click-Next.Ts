@@ -87,3 +87,51 @@
   letter-spacing: var(--tipo-rotulo-sm-espaco);
   white-space: nowrap;
 }
+
+/*
+ * Texto longo na administração (card #6). Nome de loja ou pessoa e e-mail
+ * quebram dentro da própria caixa (sem estourar célula nem cartão), e o selo
+ * de status, papel ou contagem nunca encolhe nem parte o texto: quem cede é o
+ * nome ao lado. Selo que leva texto livre (ex.: o filtro de loja da auditoria)
+ * usa `sc-selo--longo`, que pode quebrar linha em vez de sair da tela.
+ */
+.sc-moldura-admin main :is(h1, h2, h3, p, dt, dd, li, th, td, a, label) {
+  overflow-wrap: anywhere;
+}
+
+.sc-moldura-admin main .sc-selo,
+.sc-moldura-admin .sc-selo-admin {
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.sc-moldura-admin main .sc-selo.sc-selo--longo {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sc-moldura-admin main .sc-selo--longo .sc-selo__bolinha {
+  flex-shrink: 0;
+}
+
+/* Células de tabela: as colunas de texto cedem, as de selo e número não. */
+.sc-moldura-admin .sc-tabela td:has(> .sc-selo),
+.sc-moldura-admin .sc-tabela .sc-tabela__fim {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+/* No cartão do celular o valor longo quebra ao lado do rótulo, sem empurrá-lo. */
+@media (max-width: 539px) {
+  .sc-moldura-admin .sc-tabela--cartoes tbody td > :not(.sc-selo) {
+    min-width: 0;
+  }
+
+  .sc-moldura-admin .sc-tabela--cartoes tbody td::before {
+    flex-shrink: 0;
+  }
+}

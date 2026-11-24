@@ -236,7 +236,7 @@ export function PainelDaAuditoria(props: PainelDaAuditoriaProps) {
 
       {aba === "lojas" && rascunho.loja !== "" && (
         <p className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <Selo semBolinha>
+          <Selo semBolinha className="sc-selo--longo">
             Só a loja {props.nomeDaLojaFiltrada ?? "escolhida"}
           </Selo>
           <Botao

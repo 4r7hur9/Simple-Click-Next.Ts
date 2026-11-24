@@ -378,7 +378,9 @@ export function MenuLateral(props: PropsDoMenuLateral) {
                         </>
                       ) : null}
                     </span>
-                    <span className="max-w-full truncate">{atalho.rotulo}</span>
+                    <span className="max-w-full truncate" title={atalho.rotulo}>
+                      {atalho.rotulo}
+                    </span>
                   </Link>
                 </li>
               );
