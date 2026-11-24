@@ -92,3 +92,38 @@ describe("rodapé com o aviso aberto", () => {
     expect(bruto("landing-rodape.css")).not.toMatch(/--altura-do-aviso-de-cookies/);
   });
 });
+
+describe("aviso de cookies: convivência com o menu do painel e da administração", () => {
+  it("o cartão do canto vale a partir de 48rem (a faixa larga ficava sob a lateral)", () => {
+    expect(cru("legal.css")).toMatch(/@media \(min-width: 48rem\) \{ \.sc-cookies \{ inset-block-end: calc\(/);
+  });
+
+  it("a folga da barra de atalhos só vale onde ela existe (abaixo de 48rem)", () => {
+    expect(cru("legal.css")).toMatch(
+      /@media \(max-width: 47\.99rem\) \{ body:has\(nav\[aria-label="Atalhos"\]\) \.sc-cookies \{ --sc-cookies-sobe: 4\.5rem;/,
+    );
+  });
+});
+
+describe("aviso de cookies: espaço reservado no fim da página", () => {
+  it("o corpo ganha folga da altura medida do aviso (limitada), para nada ficar coberto", () => {
+    expect(cru("legal.css")).toMatch(
+      /body:has\(\.sc-cookies\) \{ padding-block-end: min\(var\(--altura-do-aviso-de-cookies, 0px\), 45dvh\); \}/,
+    );
+  });
+});
+
+describe("aviso de cookies: pílula recolhida", () => {
+  it("fica no canto, sem animação nem transição (só troca de estado)", () => {
+    const texto = cru("legal.css");
+    expect(texto).toMatch(/\.sc-cookies\.sc-cookies--recolhido \{ inset-inline: max\(/);
+    expect(valorDe(legal(), ".sc-cookies__pilula", "transition")).toBeUndefined();
+    expect(valorDe(legal(), ".sc-cookies__pilula", "animation")).toBeUndefined();
+  });
+
+  it("tem foco visível", () => {
+    expect(valorDe(legal(), ".sc-cookies__pilula:focus-visible", "outline")).toBe(
+      "2px solid var(--cor-foco)",
+    );
+  });
+});

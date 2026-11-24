@@ -44,8 +44,12 @@
   font-family: var(--fonte-corpo);
 }
 
-body:has(nav[aria-label="Atalhos"]) .sc-cookies {
-  --sc-cookies-sobe: 4.5rem;
+/* A barra de atalhos do painel e da administração só existe abaixo de 48rem
+   (acima disso o menu vira a lateral): a folga dela não pode valer no tablet. */
+@media (max-width: 47.99rem) {
+  body:has(nav[aria-label="Atalhos"]) .sc-cookies {
+    --sc-cookies-sobe: 4.5rem;
+  }
 }
 
 body:has(.sc-pagina-do-produto) .sc-cookies {
@@ -63,6 +67,14 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
     .sc-cookies {
     --sc-cookies-sobe: var(--altura-da-barra-inferior);
   }
+}
+
+/* Espaço reservado: enquanto o aviso está aberto, o fim da página ganha uma
+   folga do tamanho dele (limitada), para o último botão ou linha poder rolar
+   até aparecer acima do aviso em vez de ficar escondido embaixo. A altura é
+   medida pelo BannerDeCookies; sem medida, não reserva nada. */
+body:has(.sc-cookies) {
+  padding-block-end: min(var(--altura-do-aviso-de-cookies, 0px), 45dvh);
 }
 
 .sc-cookies:focus-visible {
@@ -227,14 +239,55 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
   }
 }
 
-/* Computador: cartão no canto de baixo à direita (painel, administração,
-   landing, login e as áreas do cliente). */
-@media (min-width: 64rem) {
+/* Tablet e computador (a partir de 48rem, onde o menu do painel e da
+   administração vira a lateral fixa à esquerda): cartão no canto de baixo à
+   direita. A faixa de largura total ficava POR BAIXO da lateral (camada 20) e
+   o início do texto sumia atrás do menu. */
+@media (min-width: 48rem) {
   .sc-cookies {
-    inset-block-end: max(var(--espaco-5), env(safe-area-inset-bottom));
+    inset-block-end: calc(
+      max(var(--espaco-5), env(safe-area-inset-bottom)) + var(--sc-cookies-sobe, 0px)
+    );
     inset-inline: auto max(var(--espaco-5), env(safe-area-inset-right));
     inline-size: min(26rem, calc(100vw - 2 * var(--espaco-5)));
     max-block-size: calc(100dvh - 2 * var(--espaco-5));
+  }
+}
+
+/* Recolhido: só uma pílula "Cookies" no canto de baixo (a esquerda no celular,
+   onde a direita é da sacola flutuante). Sem animação: só troca de estado. */
+.sc-cookies.sc-cookies--recolhido {
+  inset-inline: max(var(--espaco-3), env(safe-area-inset-left)) auto;
+  inline-size: auto;
+  max-inline-size: none;
+  padding: 0;
+  overflow: visible;
+  border-radius: var(--raio-completo, 999px);
+}
+
+.sc-cookies__pilula {
+  box-sizing: border-box;
+  min-block-size: 2.25rem;
+  padding: 0 var(--espaco-4);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sc-cookies__pilula:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@media (min-width: 48rem) {
+  .sc-cookies.sc-cookies--recolhido {
+    inset-inline: auto max(var(--espaco-5), env(safe-area-inset-right));
+    inline-size: auto;
   }
 }
 
