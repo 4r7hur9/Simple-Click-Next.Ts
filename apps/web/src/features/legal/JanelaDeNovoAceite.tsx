@@ -18,7 +18,7 @@
  * Assim os formulários do painel, o checkout e o resto não precisam tratar o
  * código um a um.
  *
- * Visitante (sem sessão) recebe 401 e não vê nada. A checagem roda ao montar
+ * Visitante (sem sessão) recebe 200 sem pendências (`anonimo`) e não vê nada. A checagem roda ao montar
  * e a cada mudança de página, no máximo uma vez por minuto.
  */
 import "@simpleclick/ui/styles/aceite.css";
@@ -49,7 +49,9 @@ function textoDoDocumento(documento: DocumentoLegal): string {
 export function JanelaDeNovoAceite() {
   const caminho = usePathname();
   const ultimaChecagem = useRef(0);
-  const [pendentes, setPendentes] = useState<SituacaoDosAceites["pendentes"]>([]);
+  const [pendentes, setPendentes] = useState<SituacaoDosAceites["pendentes"]>(
+    [],
+  );
   const [dispensada, setDispensada] = useState(false);
   const [marcado, setMarcado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -59,12 +61,14 @@ export function JanelaDeNovoAceite() {
     // `caminho` só dispara a checagem; o intervalo evita pedir a cada clique.
     void caminho;
     const agora = Date.now();
-    if (agora - ultimaChecagem.current < INTERVALO_ENTRE_CHECAGENS_EM_MS) return;
+    if (agora - ultimaChecagem.current < INTERVALO_ENTRE_CHECAGENS_EM_MS)
+      return;
     ultimaChecagem.current = agora;
     let cancelado = false;
     void chamarConta("GET", "aceites").then((resposta) => {
       if (cancelado) return;
-      const corpo = resposta.corpo as Partial<SituacaoDosAceites> | undefined;
+      const corpo = resposta.corpo as
+        (Partial<SituacaoDosAceites> & { anonimo?: boolean }) | undefined;
       if (resposta.ok && Array.isArray(corpo?.pendentes)) {
         setPendentes(corpo.pendentes);
       } else {
@@ -72,6 +76,8 @@ export function JanelaDeNovoAceite() {
         setPendentes([]);
         if (resposta.status === 401) ultimaChecagem.current = 0;
       }
+      // Visitante: a próxima página confere de novo (pode ter entrado agora).
+      if (corpo?.anonimo === true) ultimaChecagem.current = 0;
     });
     return () => {
       cancelado = true;
@@ -87,14 +93,22 @@ export function JanelaDeNovoAceite() {
         void resposta
           .clone()
           .json()
-          .then((corpo: { erro?: string; pendentes?: SituacaoDosAceites["pendentes"] }) => {
-            if (corpo.erro !== "aceite_pendente") return;
-            if (Array.isArray(corpo.pendentes) && corpo.pendentes.length > 0) {
-              setPendentes(corpo.pendentes);
-            }
-            setDispensada(false);
-            ultimaChecagem.current = 0;
-          })
+          .then(
+            (corpo: {
+              erro?: string;
+              pendentes?: SituacaoDosAceites["pendentes"];
+            }) => {
+              if (corpo.erro !== "aceite_pendente") return;
+              if (
+                Array.isArray(corpo.pendentes) &&
+                corpo.pendentes.length > 0
+              ) {
+                setPendentes(corpo.pendentes);
+              }
+              setDispensada(false);
+              ultimaChecagem.current = 0;
+            },
+          )
           .catch(() => undefined);
       }
       return resposta;
@@ -156,7 +170,8 @@ export function JanelaDeNovoAceite() {
             <LinkDoDocumento documento={p.documento} />
             <br />
             <span className="sc-privacidade__quando">
-              {textoDoDocumento(p.documento)} Versão de {formatarVersao(p.versao)}.
+              {textoDoDocumento(p.documento)} Versão de{" "}
+              {formatarVersao(p.versao)}.
             </span>
           </li>
         ))}
@@ -172,8 +187,9 @@ export function JanelaDeNovoAceite() {
             onChange={(evento) => setMarcado(evento.target.checked)}
           />
           <span>
-            Li e aceito {pendentes.length === 1 ? "o documento" : "os documentos"}{" "}
-            acima: {pendentes
+            Li e aceito{" "}
+            {pendentes.length === 1 ? "o documento" : "os documentos"} acima:{" "}
+            {pendentes
               .map((p) => ROTULO_DOS_DOCUMENTOS_LEGAIS[p.documento])
               .join(", ")}
             .

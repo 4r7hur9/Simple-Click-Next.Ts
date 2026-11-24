@@ -9,7 +9,7 @@
  * A loja vem da sessão (T-115, `loja-do-painel.ts`); a conta não tem loja.
  */
 import { enderecoDaApi } from "./api-client.ts";
-import { cabecalhosDaPonte } from "./chamada-de-identidade.ts";
+import { cabecalhosDaPonte, origemParaApi } from "./chamada-de-identidade.ts";
 import { sessaoParaEncaminhar } from "./loja-do-painel.ts";
 import { lerTokenDeAcessoDoCookie } from "./session-cookie.ts";
 import { recusarAcaoDeFora } from "./protecao-da-conta.ts";
@@ -35,7 +35,10 @@ async function encaminhar(
     headers: {
       accept: "application/json",
       authorization: `Bearer ${token}`,
-      origin: new URL(requisicao.url).origin,
+      // A origem que o navegador mandou (já conferida acima), como no cadastro:
+      // atrás do proxy, `requisicao.url` traz o endereço interno do servidor,
+      // que a lista fechada da API recusa.
+      origin: origemParaApi(requisicao),
       // IP e navegador de quem pede (o aceite e os pedidos do titular gravam).
       ...cabecalhosDaPonte(requisicao),
       ...(leva ? { "content-type": "application/json" } : {}),

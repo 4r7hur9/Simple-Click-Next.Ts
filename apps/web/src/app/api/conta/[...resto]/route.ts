@@ -11,6 +11,7 @@
 import { FORMATO_DO_APELIDO } from "@simpleclick/contracts";
 
 import { recusarAcaoDeFora } from "../../../../server/protecao-da-conta.ts";
+import { lerTokenDeAcessoDoCookie } from "../../../../server/session-cookie.ts";
 import { encaminharAConta } from "../../../../server/encaminhar-a-loja.ts";
 
 type Contexto = { params: Promise<{ resto: string[] }> };
@@ -95,6 +96,18 @@ async function encaminhar(
   }
   const recusada = await recusarAcaoDeFora(requisicao);
   if (recusada !== null) return recusada;
+  // Visitante sem sessão: a janela de novo aceite pergunta em toda página, e um
+  // 401 aqui sujava o console. Sem sessão não há o que aceitar: 200 vazio.
+  if (
+    requisicao.method === "GET" &&
+    resto.join("/") === "aceites" &&
+    lerTokenDeAcessoDoCookie(requisicao.headers.get("cookie")) === undefined
+  ) {
+    return Response.json(
+      { pendentes: [], historico: [], anonimo: true },
+      { headers: { "cache-control": "no-store" } },
+    );
+  }
   return encaminharAConta(requisicao, resto.map(encodeURIComponent).join("/"));
 }
 
