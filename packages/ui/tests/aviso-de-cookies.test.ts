@@ -112,3 +112,18 @@ describe("aviso de cookies: espaço reservado no fim da página", () => {
     );
   });
 });
+
+describe("aviso de cookies: pílula recolhida", () => {
+  it("fica no canto, sem animação nem transição (só troca de estado)", () => {
+    const texto = cru("legal.css");
+    expect(texto).toMatch(/\.sc-cookies\.sc-cookies--recolhido \{ inset-inline: max\(/);
+    expect(valorDe(legal(), ".sc-cookies__pilula", "transition")).toBeUndefined();
+    expect(valorDe(legal(), ".sc-cookies__pilula", "animation")).toBeUndefined();
+  });
+
+  it("tem foco visível", () => {
+    expect(valorDe(legal(), ".sc-cookies__pilula:focus-visible", "outline")).toBe(
+      "2px solid var(--cor-foco)",
+    );
+  });
+});

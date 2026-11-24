@@ -6,7 +6,11 @@
  * rodapé.
  *
  * NÃO BLOQUEIA A PÁGINA: é um cartão no canto, sem fundo escurecido, sem prender
- * o foco e sem travar a rolagem. No celular ele deixa livre a faixa da direita
+ * o foco e sem travar a rolagem. Quando a pessoa rola a página, ou fica
+ * `TEMPO_PARA_RECOLHER_MS` sem mexer nele, o cartão recolhe numa pílula pequena
+ * "Cookies" (botão que reabre o cartão). Recolher NÃO grava consentimento: a
+ * escolha continua pendente até a pessoa decidir. Nunca recolhe com o foco
+ * dentro do cartão, nem quando foi aberto pelo link do rodapé. No celular ele deixa livre a faixa da direita
  * (onde fica a sacola flutuante) e fica abaixo dela na pilha de camadas.
  * Só lê o cookie depois de montar, para o HTML do servidor ser igual ao
  * primeiro desenho do navegador.
@@ -29,6 +33,11 @@ import {
   gravarConsentimento,
 } from "./consentimento.ts";
 
+/** Sem interação por este tempo, o cartão recolhe na pílula. */
+export const TEMPO_PARA_RECOLHER_MS = 8000;
+/** Rolagem mínima (px) que conta como "a pessoa rolou a página". */
+const ROLAGEM_PARA_RECOLHER_PX = 24;
+
 interface Escolha {
   desempenho: boolean;
   funcionais: boolean;
@@ -37,12 +46,14 @@ interface Escolha {
 export function BannerDeCookies() {
   const [aberto, setAberto] = useState(false);
   const [personalizando, setPersonalizando] = useState(false);
+  const [recolhido, setRecolhido] = useState(false);
   const [escolha, setEscolha] = useState<Escolha>({
     desempenho: false,
     funcionais: false,
   });
   const titulo = useId();
   const caixa = useRef<HTMLDivElement>(null);
+  const voltarAoCartao = useRef(false);
   const quemAbriu = useRef<Element | null>(null);
   const abertoPeloLink = useRef(false);
 
@@ -63,6 +74,7 @@ export function BannerDeCookies() {
       });
       quemAbriu.current = document.activeElement;
       abertoPeloLink.current = true;
+      setRecolhido(false);
       setPersonalizando(true);
       setAberto(true);
     }
@@ -95,7 +107,7 @@ export function BannerDeCookies() {
       raiz.style.removeProperty("--altura-do-aviso-de-cookies");
       window.dispatchEvent(new Event("resize"));
     };
-  }, [aberto, personalizando]);
+  }, [aberto, personalizando, recolhido]);
 
   // Aberto pelo link: leva o foco para dentro (quem usa teclado ou leitor de
   // tela pediu isso). Na primeira visita o foco não é roubado.
@@ -105,8 +117,53 @@ export function BannerDeCookies() {
     }
   }, [aberto]);
 
+  // Recolhe na pílula ao rolar a página ou depois de um tempo sem interação.
+  // Com o foco dentro do cartão (teclado) ou aberto pelo link, nunca recolhe.
+  useEffect(() => {
+    if (!aberto || recolhido || abertoPeloLink.current) return;
+    const comFocoDentro = () =>
+      caixa.current?.contains(document.activeElement) === true;
+    const recolher = () => {
+      if (comFocoDentro()) return;
+      setRecolhido(true);
+    };
+    let relogio = window.setTimeout(recolher, TEMPO_PARA_RECOLHER_MS);
+    const reiniciar = () => {
+      window.clearTimeout(relogio);
+      relogio = window.setTimeout(recolher, TEMPO_PARA_RECOLHER_MS);
+    };
+    const origem = window.scrollY;
+    const aoRolar = () => {
+      if (Math.abs(window.scrollY - origem) >= ROLAGEM_PARA_RECOLHER_PX)
+        recolher();
+    };
+    const el = caixa.current;
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    el?.addEventListener("pointerdown", reiniciar);
+    el?.addEventListener("pointermove", reiniciar);
+    el?.addEventListener("keydown", reiniciar);
+    el?.addEventListener("focusin", reiniciar);
+    return () => {
+      window.clearTimeout(relogio);
+      window.removeEventListener("scroll", aoRolar);
+      el?.removeEventListener("pointerdown", reiniciar);
+      el?.removeEventListener("pointermove", reiniciar);
+      el?.removeEventListener("keydown", reiniciar);
+      el?.removeEventListener("focusin", reiniciar);
+    };
+  }, [aberto, recolhido, personalizando]);
+
+  // Reaberto pela pílula: devolve o foco ao cartão (quem clicou ou usou teclado).
+  useEffect(() => {
+    if (!recolhido && voltarAoCartao.current) {
+      voltarAoCartao.current = false;
+      caixa.current?.focus();
+    }
+  }, [recolhido]);
+
   const fechar = useCallback(() => {
     setAberto(false);
+    setRecolhido(false);
     setPersonalizando(false);
     if (abertoPeloLink.current) {
       abertoPeloLink.current = false;
@@ -121,6 +178,29 @@ export function BannerDeCookies() {
   }
 
   if (!aberto) return null;
+
+  if (recolhido) {
+    return (
+      <div
+        ref={caixa}
+        className="sc-cookies sc-cookies--recolhido"
+        data-tema="escuro"
+      >
+        <button
+          type="button"
+          className="sc-cookies__pilula"
+          aria-haspopup="dialog"
+          aria-expanded={false}
+          onClick={() => {
+            voltarAoCartao.current = true;
+            setRecolhido(false);
+          }}
+        >
+          Cookies
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
