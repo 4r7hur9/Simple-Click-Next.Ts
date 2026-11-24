@@ -1358,7 +1358,7 @@ html:has(.sc-acesso-janela[open]) {
 }
 
 .sc-minha-conta__descricao + .sc-lojas-conta,
-.sc-minha-conta__descricao + .sc-vazio {
+.sc-minha-conta__descricao + .sc-estado--vazio {
   margin-block-start: var(--espaco-3);
 }
 

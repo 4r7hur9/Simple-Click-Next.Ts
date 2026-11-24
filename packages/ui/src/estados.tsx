@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { IconeVazio } from "./icones";
+
 /**
  * Os quatro estados de tela, em componentes reutilizáveis (P-011, AC-013).
  *
@@ -110,6 +112,7 @@ export function Vazio({ titulo, descricao, acao, className }: VazioProps) {
         className,
       )}
     >
+      <IconeVazio aria-hidden="true" className="sc-estado__icone" size={28} />
       <p className="sc-estado__titulo">{titulo}</p>
       {descricao !== undefined && (
         <p className="sc-estado__descricao">{descricao}</p>

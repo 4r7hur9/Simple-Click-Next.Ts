@@ -239,6 +239,9 @@ export function TopoDoCliente({
               className="sc-topo-cliente__botao"
               aria-label="Buscar"
               data-navegacao="buscar"
+              // Em /explorar a caixa de busca já está na tela: duas buscas
+              // juntas só tiram espaço do seletor de região (QA do staging).
+              data-redundante={caminho?.startsWith("/explorar") ? "" : undefined}
               onClick={aoBuscar}
             >
               <IconeBuscar aria-hidden="true" />

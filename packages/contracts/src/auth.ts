@@ -26,6 +26,24 @@ const esquemaDoEmail = z
  */
 const esquemaDaSenha = z.string().min(1, "Informe uma senha.").max(1024);
 
+/** Tamanho mínimo da senha ao CRIAR uma conta (a API confere o mesmo número). */
+export const MINIMO_DE_CARACTERES_DA_SENHA_NOVA = 12;
+
+/**
+ * Senha de uma conta nova: o formato do `esquemaDaSenha` mais o mínimo. Serve
+ * para a tela avisar antes de enviar; a política completa (inclusive senhas
+ * vazadas) continua sendo da API. O login NÃO usa este: quem já tem senha mais
+ * curta precisa conseguir entrar.
+ */
+export const esquemaDaSenhaNova = z
+  .string()
+  .min(1, "Crie uma senha.")
+  .min(
+    MINIMO_DE_CARACTERES_DA_SENHA_NOVA,
+    `Use pelo menos ${MINIMO_DE_CARACTERES_DA_SENHA_NOVA} caracteres.`,
+  )
+  .max(1024);
+
 /** Token de link (verificação, recuperação, convite): opaco, em base64url. */
 const esquemaDoTokenDeLink = z
   .string()

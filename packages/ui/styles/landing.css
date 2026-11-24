@@ -369,6 +369,70 @@ html:has(.sc-lp) body {
   white-space: nowrap;
 }
 
+/* Menu compacto (celular): botão + lista de âncoras sob o topo. */
+.sc-lp-menu {
+  position: relative;
+}
+
+.sc-lp-menu__botao {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--altura-toque);
+  block-size: var(--altura-toque);
+  padding: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-completo);
+  background: transparent;
+  color: var(--cor-tinta);
+  cursor: pointer;
+}
+
+.sc-lp-menu__botao:focus-visible,
+.sc-lp-menu__lista a:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.sc-lp-menu__lista {
+  position: absolute;
+  inset-block-start: calc(100% + var(--espaco-2));
+  inset-inline-end: 0;
+  z-index: 60;
+  display: grid;
+  min-inline-size: 13rem;
+  padding: var(--espaco-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-3, 1rem);
+  background: var(--cor-fundo);
+  box-shadow: 0 12px 32px color-mix(in oklab, black 40%, transparent);
+}
+
+.sc-lp-menu__lista[hidden] {
+  display: none;
+}
+
+.sc-lp-menu__lista a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--altura-toque);
+  padding-inline: var(--espaco-3);
+  border-radius: var(--raio-2);
+  color: var(--cor-tinta);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
+}
+
+.sc-lp-menu__lista a:hover {
+  background: var(--cor-superficie-alta);
+}
+
+@media (min-width: 1024px) {
+  .sc-lp-menu {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) {
   .sc-lp-topo__navegacao {
     display: flex;
