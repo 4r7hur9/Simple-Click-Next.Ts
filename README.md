@@ -2,7 +2,7 @@ Nível: Projeto A
 
 # SimpleClick
 
-[![CI](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/workflows/ci.yml/badge.svg?branch=entrega/projeto-final)](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/workflows/ci.yml)
+[![CI](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/workflows/ci.yml)
 
 Vitrine, catálogo e pedidos para pequenas lojas. A loja ganha uma vitrine na internet, o cliente monta o pedido e envia pelo WhatsApp, e o dono acompanha tudo num painel.
 
@@ -15,7 +15,7 @@ Vitrine, catálogo e pedidos para pequenas lojas. A loja ganha uma vitrine na in
 
 | Item | Onde |
 |---|---|
-| CI | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (7 jobs) · [docs/ci.md](docs/ci.md) · cobertura 80,1% linhas (mínimos 75/73/75/66 em linhas/instruções/funções/ramos) · **execução verde:** [run 44890192508](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/44890192508) (commit `2ada0f4`, 8/8 jobs) |
+| CI | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (7 jobs) · [docs/ci.md](docs/ci.md) · cobertura 80,1% linhas (mínimos 75/73/75/66 em linhas/instruções/funções/ramos) · **execução verde:** [run 45405848864](https://github.com/4r7hur9/Simple-Click-Next.Ts/actions/runs/45405848864) (`main`, commit `458c941`, 8/8 jobs) |
 | Desempenho | [docs/desempenho.md](docs/desempenho.md) (plano de p95, gargalo antes/depois e estresse com 101 mil pedidos) |
 | Observabilidade | [docs/observabilidade.md](docs/observabilidade.md) (métricas RED, 1 trace, 1 SLO) |
 | Deploy | [docs/deploy-railway.md](docs/deploy-railway.md) (roteiro Railway: staging e produção) |
@@ -30,10 +30,10 @@ Vitrine, catálogo e pedidos para pequenas lojas. A loja ganha uma vitrine na in
 
 | Ambiente | Branch | Site | API |
 |---|---|---|---|
-| staging | `entrega/projeto-final` | `https://staging.DOMINIO` | `https://api.staging.DOMINIO` |
-| produção | `main` | `https://DOMINIO` | `https://api.DOMINIO` |
+| staging | `staging` | https://staging.simplclick.com.br | https://api.staging.simplclick.com.br |
+| produção | `main` | https://simplclick.com.br | https://api.simplclick.com.br |
 
-> `DOMINIO` é o marcador: ainda não há domínio publicado. Troque pelo domínio real quando o deploy estiver no ar. O roteiro (Railway, variáveis e segredos por ambiente) está em [docs/deploy-railway.md](docs/deploy-railway.md).
+Os dois rodam no Railway e publicam sozinhos a cada push com a CI verde. Saúde da API: `/v1/health/ready`. O roteiro (variáveis e segredos por ambiente) está em [docs/deploy-railway.md](docs/deploy-railway.md).
 
 ## Subir com Docker (um comando)
 
@@ -91,6 +91,22 @@ curl -i http://localhost:3001/v1/health/ready   # 200 se PostgreSQL e Redis resp
 ```
 
 `/v1/health/ready` exige **as duas** dependências: com o Redis parado ele dá 503 mesmo que o pedido não use Redis (detalhes em [Arquitetura](docs/arquitetura/c4.md)).
+
+## Como testar
+
+Com o passo 4 de cima feito (PostgreSQL, Redis e banco de teste no ar):
+
+```bash
+pnpm typecheck               # tipos
+pnpm lint                    # ESLint
+pnpm test:unit               # testes de unidade (site, API, pacotes)
+pnpm test:int                # integração contra PostgreSQL e Redis de teste
+pnpm openapi:verificar       # contrato OpenAPI em dia
+```
+
+- **Ponta a ponta (Playwright):** ver [docs/estruturacao/10-e2e.md](docs/estruturacao/10-e2e.md).
+- **Desempenho (k6):** ver [docs/desempenho.md](docs/desempenho.md).
+- **Na CI**, os mesmos gates rodam a cada push em 8 jobs ([docs/ci.md](docs/ci.md)).
 
 ## Arquitetura e contrato
 

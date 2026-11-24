@@ -4,11 +4,31 @@ Projeto **individual** (Projeto Final Full Cycle 4, Projeto A).
 
 | Campo | Registro |
 |---|---|
-| **Nome completo** | PREENCHER: nome completo, como no curso |
-| **Turma** | PREENCHER: turma |
+| **Nome completo** | Arthur Bruno Morais Moreira Araujo |
+| **Turma** | GT4.0-FC02-ALDEOTA — Full Cycle, Engenharia de Software, Geração Tech 4.0 |
 | **Usuário no GitHub** | `4r7hur9` |
 | **Papel** | Autor único: produto, arquitetura, implementação, testes e operação |
-| **Declaração pessoal** | PREENCHER: declaração de autoria e do uso de IA, com as suas palavras (o que você fez, o que a IA fez e como você revisou) |
+| **Período** | 17/08/2026 a 24/11/2026 · 548 commits |
+| **Declaração pessoal** | Ver a seção abaixo |
+
+## Declaração pessoal
+
+Eu, Arthur Bruno Morais Moreira Araujo, sou o autor único deste projeto. **Fiz e decidi:**
+
+- **Produto:** concebi o SimpleClick, com vitrine por loja, sacola, pedido enviado pelo WhatsApp, painel do dono e administração da plataforma. Também defini o que cada entrega deveria conter e em que ordem.
+- **Regras de negócio:** decidi o modelo de pedido e de preço, o isolamento entre lojas e quem pode ver e fazer o quê (cliente, dono, administrador).
+- **Arquitetura:** escolhi monorepo com Next.js e API Express, PostgreSQL com migrações em SQL, contratos em Zod, testes em várias camadas e CI com gates.
+- **Ambientes e publicação:** montei o staging e a produção no Railway, configurei os domínios e o DNS (`simplclick.com.br` e `api.simplclick.com.br`), criei a conta de administrador com segundo fator e fiz os pushes e merges que colocaram cada versão no ar.
+- **Condução e revisão:** escrevi os cards do board, acompanhei cada entrega, testei as telas no navegador e no celular, apontei os defeitos que encontrei (cortes no menu lateral, avisos que empurravam a página, login próprio do admin) e decidi o que entrava em `main` e `staging`.
+
+**O que a IA fez:** usei agentes de IA (Claude e Codex, pelo Code Crew e pelo plugin Workflow IA) como assistentes. Eles escreveram boa parte do código, dos testes e da documentação a partir dos meus cards, sempre dentro dos arquivos reservados e passando por typecheck, lint e testes.
+
+**Como revisei:**
+- conferi cada card em "Em revisão";
+- rodei a CI antes de publicar;
+- verifiquei o resultado no staging antes de levar para a produção.
+
+Nenhum agente publicou nada sozinho: commit, push, merge e deploy foram decisão minha. O registro detalhado do uso de IA está em [`docs/ia.md`](docs/ia.md).
 
 ## Uso de IA
 
@@ -16,7 +36,7 @@ O uso de ferramentas de IA como assistente está registrado em [`docs/ia.md`](do
 
 ## O que foi feito por módulo
 
-> **PENDENTE — Arthur confirma/ajusta.** Preenchido a partir da estrutura do repositório, sem medir a autoria por linha de código.
+> Preenchido a partir da estrutura do repositório e do histórico de commits, sem medir a autoria por linha de código.
 
 | Módulo | Contribuição |
 |---|---|
@@ -30,3 +50,4 @@ O uso de ferramentas de IA como assistente está registrado em [`docs/ia.md`](do
 | `infra/` | Compose, Traefik com TLS local, scripts de ambiente, Prometheus/Jaeger |
 | `tests/` e `e2e/` | Testes de desempenho (k6) e ponta a ponta |
 | `docs/` | ADRs, C4, OpenAPI, observabilidade, desempenho, deploy e estruturação |
+| Operação | Staging e produção no Railway, domínio e DNS na Hostinger, CI no GitHub Actions, conta de administrador com segundo fator |
