@@ -93,6 +93,18 @@ describe("rodapé com o aviso aberto", () => {
   });
 });
 
+describe("aviso de cookies: convivência com o menu do painel e da administração", () => {
+  it("o cartão do canto vale a partir de 48rem (a faixa larga ficava sob a lateral)", () => {
+    expect(cru("legal.css")).toMatch(/@media \(min-width: 48rem\) \{ \.sc-cookies \{ inset-block-end: calc\(/);
+  });
+
+  it("a folga da barra de atalhos só vale onde ela existe (abaixo de 48rem)", () => {
+    expect(cru("legal.css")).toMatch(
+      /@media \(max-width: 47\.99rem\) \{ body:has\(nav\[aria-label="Atalhos"\]\) \.sc-cookies \{ --sc-cookies-sobe: 4\.5rem;/,
+    );
+  });
+});
+
 describe("aviso de cookies: espaço reservado no fim da página", () => {
   it("o corpo ganha folga da altura medida do aviso (limitada), para nada ficar coberto", () => {
     expect(cru("legal.css")).toMatch(

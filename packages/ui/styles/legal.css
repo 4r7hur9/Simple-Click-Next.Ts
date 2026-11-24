@@ -44,8 +44,12 @@
   font-family: var(--fonte-corpo);
 }
 
-body:has(nav[aria-label="Atalhos"]) .sc-cookies {
-  --sc-cookies-sobe: 4.5rem;
+/* A barra de atalhos do painel e da administração só existe abaixo de 48rem
+   (acima disso o menu vira a lateral): a folga dela não pode valer no tablet. */
+@media (max-width: 47.99rem) {
+  body:has(nav[aria-label="Atalhos"]) .sc-cookies {
+    --sc-cookies-sobe: 4.5rem;
+  }
 }
 
 body:has(.sc-pagina-do-produto) .sc-cookies {
@@ -235,11 +239,15 @@ body:has(.sc-cookies) {
   }
 }
 
-/* Computador: cartão no canto de baixo à direita (painel, administração,
-   landing, login e as áreas do cliente). */
-@media (min-width: 64rem) {
+/* Tablet e computador (a partir de 48rem, onde o menu do painel e da
+   administração vira a lateral fixa à esquerda): cartão no canto de baixo à
+   direita. A faixa de largura total ficava POR BAIXO da lateral (camada 20) e
+   o início do texto sumia atrás do menu. */
+@media (min-width: 48rem) {
   .sc-cookies {
-    inset-block-end: max(var(--espaco-5), env(safe-area-inset-bottom));
+    inset-block-end: calc(
+      max(var(--espaco-5), env(safe-area-inset-bottom)) + var(--sc-cookies-sobe, 0px)
+    );
     inset-inline: auto max(var(--espaco-5), env(safe-area-inset-right));
     inline-size: min(26rem, calc(100vw - 2 * var(--espaco-5)));
     max-block-size: calc(100dvh - 2 * var(--espaco-5));
