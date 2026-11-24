@@ -92,3 +92,11 @@ describe("rodapé com o aviso aberto", () => {
     expect(bruto("landing-rodape.css")).not.toMatch(/--altura-do-aviso-de-cookies/);
   });
 });
+
+describe("aviso de cookies: espaço reservado no fim da página", () => {
+  it("o corpo ganha folga da altura medida do aviso (limitada), para nada ficar coberto", () => {
+    expect(cru("legal.css")).toMatch(
+      /body:has\(\.sc-cookies\) \{ padding-block-end: min\(var\(--altura-do-aviso-de-cookies, 0px\), 45dvh\); \}/,
+    );
+  });
+});
