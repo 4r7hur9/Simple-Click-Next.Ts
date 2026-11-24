@@ -139,6 +139,7 @@ export function JanelaDeNovoAceite() {
   return (
     <Dialogo
       id="janela-de-novo-aceite"
+      className="sc-dialogo--flutuante"
       aberto
       titulo="Atualizamos nossos termos"
       descricao="Para continuar criando pedidos, cadastros e publicações, leia e aceite a versão nova."

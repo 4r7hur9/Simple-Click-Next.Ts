@@ -69,14 +69,9 @@ body:has(.sc-pagina-do-produto) .sc-cookies {
   }
 }
 
-/* Espaço reservado: enquanto o aviso está aberto, o fim da página ganha uma
-   folga do tamanho dele (limitada), para o último botão ou linha poder rolar
-   até aparecer acima do aviso em vez de ficar escondido embaixo. A altura é
-   medida pelo BannerDeCookies; sem medida, não reserva nada. */
-body:has(.sc-cookies) {
-  padding-block-end: min(var(--altura-do-aviso-de-cookies, 0px), 45dvh);
-}
-
+/* O aviso flutua POR CIMA da página e não reserva espaço nenhum (decisão do
+   dono): quem precisa do conteúdo embaixo rola ou deixa o aviso recolher na
+   pílula. */
 .sc-cookies:focus-visible {
   outline: 2px solid var(--cor-foco);
   outline-offset: 2px;
