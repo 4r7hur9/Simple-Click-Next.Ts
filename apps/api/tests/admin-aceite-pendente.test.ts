@@ -56,8 +56,13 @@ async function cadastrar(nome: string): Promise<{ id: string; token: string }> {
   return { id: rows[0]!.id, token: String(cadastro.body.tokenDeAcesso) };
 }
 
-/** Abre uma loja pendente com o lojista; devolve o id e o apelido. */
+/**
+ * Abre uma loja pendente com um lojista NOVO a cada chamada (a API limita as
+ * lojas por dono: com um só lojista, a terceira loja dava 409
+ * `limite_atingido`); `lojista` passa a ser o dono da loja recém-aberta.
+ */
 async function abrirLojaPendente(nome: string) {
+  lojista = await cadastrar(`Lojista de ${nome}`);
   const r = await http.post(
     "/v1/auth/lojas",
     { nome, tipoDeNegocio: "FOOD_SNACK", aceitouTermosDoLojista: true },
