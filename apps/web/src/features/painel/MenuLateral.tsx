@@ -17,7 +17,8 @@
  *   continua como texto, que é o que o leitor de tela lê.
  * - Celular (abaixo de md): uma barra no topo abre o menu como gaveta, sobre um
  *   fundo escurecido. Esc, o fundo e o botão de fechar fecham. Embaixo fica uma
- *   barra fixa com os atalhos e o botão "Menu", que abre a gaveta.
+ *   barra fixa com o botão "Menu" no centro (abre a gaveta) e os atalhos
+ *   divididos dos dois lados.
  *
  * O menu é grafite nos dois temas (`data-tema="escuro"` só neste trecho), e o
  * item da página atual leva o verde da marca com letra escura. A gaveta desliza
@@ -151,6 +152,12 @@ export function MenuLateral(props: PropsDoMenuLateral) {
   const selo = administracao ? <SeloDaAdministracao /> : null;
   const secoes = secoesDoMenu(props);
   const caminho = usePathname();
+  // Com o botão "Menu" no meio da barra, os atalhos se dividem entre os lados.
+  const metadeDosAtalhos = botaoDoMenuNosAtalhos
+    ? Math.ceil(atalhos.length / 2)
+    : atalhos.length;
+  const ladoEsquerdo = atalhos.slice(0, metadeDosAtalhos);
+  const ladoDireito = atalhos.slice(metadeDosAtalhos);
   const idDoMenu = useId();
   const painel = useRef<HTMLElement>(null);
   const quemAbriu = useRef<HTMLElement | null>(null);
@@ -336,74 +343,98 @@ export function MenuLateral(props: PropsDoMenuLateral) {
         </span>
       ) : null}
 
-      {/* Celular: os atalhos na barra de baixo. */}
-      {atalhos.length > 0 ? (
+      {/* Celular: os atalhos na barra de baixo. Com o botão "Menu", ele fica no
+          meio da barra e os atalhos se dividem entre os dois lados. */}
+      {atalhos.length > 0 || botaoDoMenuNosAtalhos ? (
         <nav
           aria-label="Atalhos"
           data-tema={administracao ? undefined : "escuro"}
           className={`fixed inset-x-0 bottom-0 z-30 border-t border-[var(--cor-borda)] bg-[var(--cor-superficie)] pb-[env(safe-area-inset-bottom)] text-[var(--cor-tinta)] md:hidden ${classeDoModo}`}
         >
-          <ul
-            className="grid"
-            style={{
-              gridTemplateColumns: `repeat(${atalhos.length + (botaoDoMenuNosAtalhos ? 1 : 0)}, 1fr)`,
-            }}
+          <div
+            className={
+              botaoDoMenuNosAtalhos
+                ? "grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+                : "grid grid-cols-[minmax(0,1fr)]"
+            }
           >
-            {atalhos.map((atalho) => {
-              const ativo = itemEstaAtivo(caminho, atalho);
-              const Desenho = atalho.icone;
-              const novos = atalho.contador ?? 0;
-              return (
-                <li key={atalho.href}>
-                  <Link
-                    href={atalho.href}
-                    aria-current={ativo ? "page" : undefined}
-                    className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs font-medium ${FOCO} ${ativo ? "text-[var(--cor-tinta)]" : "text-[var(--cor-tinta-suave)]"}`}
-                  >
-                    <span
-                      className={`relative flex h-8 w-12 items-center justify-center rounded-[var(--raio-completo)] motion-safe:transition-colors motion-safe:duration-150 ${ativo ? "bg-[var(--cor-primaria)] text-[var(--cor-em-primaria)]" : ""}`}
-                    >
-                      <Desenho />
-                      {novos > 0 ? (
-                        <>
-                          <span
-                            aria-hidden="true"
-                            className="absolute -top-1 right-0 min-w-4 rounded-[var(--raio-completo)] bg-[var(--cor-primaria)] px-1 text-center text-[0.625rem] font-bold leading-4 text-[var(--cor-em-primaria)] ring-2 ring-[var(--cor-superficie)]"
-                          >
-                            {novos > 99 ? "99+" : novos}
-                          </span>
-                          <span className="sr-only">
-                            , {novos} {novos === 1 ? "novo" : "novos"}
-                          </span>
-                        </>
-                      ) : null}
-                    </span>
-                    <span className="max-w-full truncate" title={atalho.rotulo}>
-                      {atalho.rotulo}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
+            <ListaDeAtalhos itens={ladoEsquerdo} caminho={caminho} />
             {botaoDoMenuNosAtalhos ? (
-              <li>
-                <button
-                  type="button"
-                  aria-expanded={aberta}
-                  aria-controls={idDoMenu}
-                  onClick={abrir}
-                  className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 rounded-none border-0 bg-transparent px-1 text-xs font-medium text-[var(--cor-tinta-suave)] ${FOCO}`}
-                >
-                  <span className="flex h-8 w-12 items-center justify-center">
-                    <IconeMenu />
-                  </span>
-                  <span>Menu</span>
-                </button>
-              </li>
+              <button
+                type="button"
+                aria-label="Abrir menu"
+                aria-expanded={aberta}
+                aria-controls={idDoMenu}
+                onClick={abrir}
+                className={`flex min-h-16 w-16 flex-col items-center justify-center gap-1 rounded-none border-0 bg-transparent px-1 text-xs font-medium text-[var(--cor-tinta-suave)] ${FOCO}`}
+              >
+                <span className="flex h-8 w-12 items-center justify-center">
+                  <IconeMenu />
+                </span>
+                <span>Menu</span>
+              </button>
             ) : null}
-          </ul>
+            {botaoDoMenuNosAtalhos ? (
+              <ListaDeAtalhos itens={ladoDireito} caminho={caminho} />
+            ) : null}
+          </div>
         </nav>
       ) : null}
     </>
+  );
+}
+
+/** Os atalhos de um lado da barra de baixo do celular, em colunas iguais. */
+function ListaDeAtalhos({
+  itens,
+  caminho,
+}: {
+  readonly itens: readonly ItemDoMenu[];
+  readonly caminho: ReturnType<typeof usePathname>;
+}) {
+  return (
+    <ul
+      className="grid min-w-0"
+      style={{
+        gridTemplateColumns: `repeat(${Math.max(itens.length, 1)}, minmax(0, 1fr))`,
+      }}
+    >
+      {itens.map((atalho) => {
+        const ativo = itemEstaAtivo(caminho, atalho);
+        const Desenho = atalho.icone;
+        const novos = atalho.contador ?? 0;
+        return (
+          <li key={atalho.href} className="min-w-0">
+            <Link
+              href={atalho.href}
+              aria-current={ativo ? "page" : undefined}
+              className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs font-medium ${FOCO} ${ativo ? "text-[var(--cor-tinta)]" : "text-[var(--cor-tinta-suave)]"}`}
+            >
+              <span
+                className={`relative flex h-8 w-12 items-center justify-center rounded-[var(--raio-completo)] motion-safe:transition-colors motion-safe:duration-150 ${ativo ? "bg-[var(--cor-primaria)] text-[var(--cor-em-primaria)]" : ""}`}
+              >
+                <Desenho />
+                {novos > 0 ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1 right-0 min-w-4 rounded-[var(--raio-completo)] bg-[var(--cor-primaria)] px-1 text-center text-[0.625rem] font-bold leading-4 text-[var(--cor-em-primaria)] ring-2 ring-[var(--cor-superficie)]"
+                    >
+                      {novos > 99 ? "99+" : novos}
+                    </span>
+                    <span className="sr-only">
+                      , {novos} {novos === 1 ? "novo" : "novos"}
+                    </span>
+                  </>
+                ) : null}
+              </span>
+              <span className="max-w-full truncate" title={atalho.rotulo}>
+                {atalho.rotulo}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
