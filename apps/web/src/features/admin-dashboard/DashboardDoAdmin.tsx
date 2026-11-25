@@ -479,9 +479,6 @@ export function DashboardDoAdmin() {
     <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-7xl gap-8 px-4 pt-8 pb-12 sm:px-8 lg:pt-10 lg:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-            Administração da plataforma
-          </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] min-[540px]:text-4xl">
             Crescimento do SimpleClick
           </h1>

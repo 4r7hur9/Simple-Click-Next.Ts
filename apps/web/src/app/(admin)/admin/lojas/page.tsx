@@ -31,9 +31,6 @@ export default async function PaginaDeLojas({
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-            Administração da plataforma
-          </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
             Lojas
           </h1>

@@ -36,9 +36,6 @@ export default async function PaginaDaAuditoria({
         ← Voltar para as lojas
       </Link>
       <header className="mt-6 max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--cor-primaria-texto)]">
-          Administração da plataforma
-        </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
           Histórico de auditoria
         </h1>
