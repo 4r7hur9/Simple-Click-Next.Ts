@@ -129,3 +129,14 @@ describe("aviso de cookies: pílula recolhida", () => {
     );
   });
 });
+
+describe("aviso de cookies: a pílula não herda regras do cartão", () => {
+  it("a regra do cartão na landing mobile exclui a pílula recolhida", () => {
+    const mobile = readFileSync(
+      fileURLToPath(new URL("../../../apps/web/src/features/landing/mobile.css", import.meta.url)),
+      "utf8",
+    ).replace(/\s+/g, " ");
+    expect(mobile).toMatch(/html:has\(\.sc-lp\) \.sc-cookies:not\(\.sc-cookies--recolhido\) \{/);
+    expect(mobile).not.toMatch(/html:has\(\.sc-lp\) \.sc-cookies \{/);
+  });
+});
