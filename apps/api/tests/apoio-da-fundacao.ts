@@ -11,7 +11,7 @@
 import request from "supertest";
 import { bancoDoArquivo } from "@simpleclick/testing";
 
-import { criarApp } from "../src/app.ts";
+import { criarApp, type OpcoesDoApp } from "../src/app.ts";
 import { encerrarBanco, encerrarBancoDaAdministracao } from "../src/core/db.ts";
 import type { PapelDaSessao } from "../src/modules/auth/token.ts";
 import { ORIGEM_DA_ADMINISTRACAO, tokenDe } from "./apoio-da-administracao.ts";
@@ -24,8 +24,14 @@ export interface ApiCompleta {
   encerrar(): Promise<void>;
 }
 
-/** Monta a API inteira sobre o banco do arquivo. Chame no `beforeAll`. */
-export function montarApiCompleta(): ApiCompleta {
+/**
+ * Monta a API inteira sobre o banco do arquivo. Chame no `beforeAll`. As
+ * `opcoes` completam as de sempre (`administracao` é mesclada em profundidade;
+ * `origens` fica fixa); sem argumento, o comportamento é o de antes.
+ */
+export function montarApiCompleta(
+  opcoes: Partial<OpcoesDoApp> = {},
+): ApiCompleta {
   const url = new URL(bancoDoArquivo().url);
   const daAplicacao = new URL(url);
   daAplicacao.username = "sc_app";
@@ -37,8 +43,9 @@ export function montarApiCompleta(): ApiCompleta {
   process.env.DATABASE_URL_ADMINISTRACAO = daAdministracao.toString();
 
   const app = criarApp({
+    ...opcoes,
     origens: [ORIGEM_DA_ADMINISTRACAO],
-    administracao: { enviarConvite: async () => {} },
+    administracao: { enviarConvite: async () => {}, ...opcoes.administracao },
   });
   return {
     app,
