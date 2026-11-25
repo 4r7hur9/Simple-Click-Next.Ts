@@ -17,6 +17,7 @@
  * (AC-204). A tela só evita mandar o vazio e o grande demais.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDoDocumentoDaLoja,
   esquemaDoLinkDoDocumento,
@@ -159,7 +160,11 @@ export function EnvioDeDocumento({
         estado: "falhou",
         mensagem:
           resposta.status === 401 || resposta.status === 403
-            ? MENSAGEM_DE_SESSAO_DOS_DOCUMENTOS
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                corpo,
+                MENSAGEM_DE_SESSAO_DOS_DOCUMENTOS,
+              )
             : resposta.status === 404
               ? "A loja não foi encontrada. Nada foi gravado."
               : resposta.status === 503
@@ -511,9 +516,14 @@ export function DocumentosDaLoja({ lojaId }: { readonly lojaId: string }) {
         return;
       }
       if (resposta.status === 401 || resposta.status === 403) {
+        const recusa: unknown = await resposta.json().catch(() => null);
         setEstado({
           fase: "erro",
-          mensagem: MENSAGEM_DE_SESSAO_DOS_DOCUMENTOS,
+          mensagem: mensagemDaRecusaDeAcesso(
+            resposta.status,
+            recusa,
+            MENSAGEM_DE_SESSAO_DOS_DOCUMENTOS,
+          ),
         });
         return;
       }

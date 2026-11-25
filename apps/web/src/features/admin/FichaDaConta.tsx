@@ -42,6 +42,7 @@ import {
   NOME_DA_SITUACAO,
   plural,
   TOM_DA_SITUACAO,
+  mensagemDaRecusaDeAcesso,
 } from "./apresentacao.ts";
 import { AcoesDaPessoa } from "./AcoesDaPessoa.tsx";
 import { AtosDeAprovacao } from "./AtosDeAprovacao.tsx";
@@ -123,7 +124,11 @@ function LimiteDeLojasDoDono({
       if (!resposta.ok) {
         setErro(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lido,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(lido, "O limite não foi salvo; tente de novo."),
         );
         return;

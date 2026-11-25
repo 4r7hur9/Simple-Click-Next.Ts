@@ -20,7 +20,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { AcessoDeUsoUnico } from "./AcessoDeUsoUnico.tsx";
-import { mensagemDaApi } from "./apresentacao.ts";
+import { mensagemDaApi, mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   INFO_DO_EMAIL_DA_PESSOA,
   INFO_DO_TELEFONE_DA_PESSOA,
@@ -137,7 +137,11 @@ export function FormularioDePessoa() {
           estado: "falhou",
           mensagem:
             resposta.status === 401 || resposta.status === 403
-              ? "Sua sessão não tem acesso à administração. Entre de novo."
+              ? mensagemDaRecusaDeAcesso(
+                  resposta.status,
+                  lido,
+                  "Sua sessão não tem acesso à administração. Entre de novo.",
+                )
               : mensagemDaApi(
                   lido,
                   "A pessoa não foi cadastrada; tente de novo.",

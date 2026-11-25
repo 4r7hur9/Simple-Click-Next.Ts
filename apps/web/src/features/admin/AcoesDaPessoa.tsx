@@ -32,7 +32,7 @@ import { Aviso, Botao, Campo, type ConteudoDoInfo } from "@simpleclick/ui";
 import { useId, useState } from "react";
 
 import { AcessoDeUsoUnico } from "./AcessoDeUsoUnico.tsx";
-import { mensagemDaApi } from "./apresentacao.ts";
+import { mensagemDaApi, mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   INFO_DA_DESATIVACAO_DA_PESSOA,
   INFO_DO_LINK_DE_ACESSO,
@@ -288,7 +288,11 @@ export function AcoesDaPessoa({
         }
         setFalha(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lido,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(lido, FALHA[ato]),
         );
         return;

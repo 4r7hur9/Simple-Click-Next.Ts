@@ -11,6 +11,7 @@
  * da administração, e cada abertura fica registrada na trilha (AC-118).
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaFichaDaLoja,
   esquemaDaRecusaDeCadastro,
@@ -131,7 +132,11 @@ export function CadastroDaLoja({
         estado: "falhou",
         mensagem:
           resposta.status === 401 || resposta.status === 403
-            ? MENSAGEM_DE_SESSAO_DA_FICHA
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                corpo,
+                MENSAGEM_DE_SESSAO_DA_FICHA,
+              )
             : "Não foi possível salvar agora. Nada foi alterado; tente de novo.",
       });
     } catch {

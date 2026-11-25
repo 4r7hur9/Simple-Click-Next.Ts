@@ -22,7 +22,7 @@ import {
 import { Aviso, Botao, Campo } from "@simpleclick/ui";
 import { useId, useState } from "react";
 
-import { mensagemDaApi } from "./apresentacao.ts";
+import { mensagemDaApi, mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import { INFO_DO_MOTIVO_DO_ATO } from "./explicacoes.ts";
 import { EscolherPessoa, mascararEmail } from "./EscolherPessoa.tsx";
 import { JanelaDeConfirmacao } from "./JanelaDeConfirmacao.tsx";
@@ -92,7 +92,9 @@ const FALHA: Readonly<Record<AtoDoVinculo, string>> = {
 /** Ações que pedem escolher uma pessoa na busca. */
 export function pedeEscolherPessoa(ato: AtoDoVinculo): boolean {
   return (
-    ato === "atribuir-dono" || ato === "trocar-dono" || ato === "atribuir-equipe"
+    ato === "atribuir-dono" ||
+    ato === "trocar-dono" ||
+    ato === "atribuir-equipe"
   );
 }
 
@@ -239,7 +241,11 @@ export function JanelaDoVinculo({
         const lida: unknown = await resposta.json().catch(() => null);
         setFalha(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lida,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(lida, FALHA[ato]),
         );
         return;

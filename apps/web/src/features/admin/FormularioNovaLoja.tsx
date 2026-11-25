@@ -9,6 +9,7 @@
  * sucesso — sem precisar de navegador nem de rede.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaLojaCriada,
   esquemaDaRecusaDeCadastro,
@@ -376,7 +377,11 @@ export function FormularioNovaLoja() {
         estado: "falhou",
         mensagem:
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                corpo,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : "Não foi possível criar a loja agora. Tente de novo em instantes.",
       });
     } catch {
