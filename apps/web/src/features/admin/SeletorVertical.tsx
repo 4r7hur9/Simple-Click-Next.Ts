@@ -13,6 +13,7 @@
  * tela e testável sem navegador.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaFichaDaLoja,
   esquemaDosTiposDeNegocio,
@@ -124,11 +125,16 @@ export function SeletorVertical({
         body: JSON.stringify({ tipoDeNegocio: para.codigo }),
       });
       if (!resposta.ok) {
+        const corpo: unknown = await resposta.json().catch(() => null);
         setTroca({
           estado: "falhou",
           mensagem:
             resposta.status === 401 || resposta.status === 403
-              ? "Sua sessão não tem acesso à administração. Entre de novo."
+              ? mensagemDaRecusaDeAcesso(
+                  resposta.status,
+                  corpo,
+                  "Sua sessão não tem acesso à administração. Entre de novo.",
+                )
               : "A troca não foi feita. A loja continua com o tipo de antes; tente de novo.",
         });
         return;

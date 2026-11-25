@@ -36,6 +36,7 @@ import {
   lerDaApi,
   mensagemDaApi,
   type LeituraDaApi,
+  mensagemDaRecusaDeAcesso,
 } from "./apresentacao.ts";
 import { BarraDeUso } from "./BarraDeUso.tsx";
 import { INFO_DO_LIMITE } from "./explicacoes.ts";
@@ -163,7 +164,11 @@ export function LimitesDaLoja({ lojaId }: { readonly lojaId: string }) {
       if (!resposta.ok) {
         setErro(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lido,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(
                 lido,
                 "Os limites não foram salvos; tente de novo.",

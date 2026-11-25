@@ -13,6 +13,7 @@
  * endereço (`?loja=`), que é como a ficha da loja chega aqui.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaPaginaDaAuditoria,
   esquemaDaPaginaDaAuditoriaDaPlataforma,
@@ -430,7 +431,15 @@ export function HistoricoDeAuditoria({
         { cache: "no-store" },
       );
       if (resposta.status === 401 || resposta.status === 403) {
-        setEstado({ fase: "erro", mensagem: MENSAGEM_DE_SESSAO });
+        const recusa: unknown = await resposta.json().catch(() => null);
+        setEstado({
+          fase: "erro",
+          mensagem: mensagemDaRecusaDeAcesso(
+            resposta.status,
+            recusa,
+            MENSAGEM_DE_SESSAO,
+          ),
+        });
         return;
       }
       if (!resposta.ok) {

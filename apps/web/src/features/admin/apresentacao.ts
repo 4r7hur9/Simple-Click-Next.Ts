@@ -3,7 +3,10 @@
  * datas, o tom de cada situação e a barra de uso de um limite.
  */
 
-import type { SituacaoDaLoja } from "@simpleclick/contracts";
+import {
+  ROTULO_DOS_DOCUMENTOS_LEGAIS,
+  type SituacaoDaLoja,
+} from "@simpleclick/contracts";
 
 export type TomDaSituacao = "sucesso" | "atencao" | "erro" | "neutro";
 
@@ -83,6 +86,63 @@ export function mensagemDaApi(corpo: unknown, padrao: string): string {
   return typeof doCampo === "string" ? doCampo : padrao;
 }
 
+function listaEmFrase(itens: readonly string[]): string {
+  if (itens.length <= 1) return itens.join("");
+  return `${itens.slice(0, -1).join(", ")} e ${itens[itens.length - 1]}`;
+}
+
+function textoDoCampo(corpo: unknown, campo: string): string | null {
+  if (typeof corpo !== "object" || corpo === null) return null;
+  const valor = (corpo as Record<string, unknown>)[campo];
+  return typeof valor === "string" ? valor : null;
+}
+
+function rotulosDosPendentes(pendentes: unknown): string[] {
+  const rotulos: string[] = [];
+  if (!Array.isArray(pendentes)) return rotulos;
+  for (const p of pendentes) {
+    const documento = textoDoCampo(p, "documento");
+    if (
+      documento === null ||
+      !Object.hasOwn(ROTULO_DOS_DOCUMENTOS_LEGAIS, documento)
+    ) {
+      continue;
+    }
+    const rotulo =
+      ROTULO_DOS_DOCUMENTOS_LEGAIS[
+        documento as keyof typeof ROTULO_DOS_DOCUMENTOS_LEGAIS
+      ];
+    if (!rotulos.includes(rotulo)) rotulos.push(rotulo);
+  }
+  return rotulos;
+}
+
+/**
+ * O que mostrar num 401/403 da administração, pelo motivo que a API deu:
+ * `aceite_pendente` diz o que falta aceitar; `acesso_negado` soma a próxima
+ * ação à frase de sessão; o resto fica só com a frase de sessão da tela.
+ * Nunca devolve o texto cru do corpo.
+ */
+export function mensagemDaRecusaDeAcesso(
+  status: number,
+  corpo: unknown,
+  mensagemDeSessao: string,
+): string {
+  if (status !== 403) return mensagemDeSessao;
+  const motivo = textoDoCampo(corpo, "erro") ?? textoDoCampo(corpo, "codigo");
+  if (motivo === "aceite_pendente") {
+    const pendentes = (corpo as { pendentes?: unknown }).pendentes;
+    const rotulos = rotulosDosPendentes(pendentes);
+    return rotulos.length > 0
+      ? `Falta aceitar a versão nova de: ${listaEmFrase(rotulos)}. Aceite na janela “Atualizamos nossos termos”, que abriu por cima, e confirme de novo.`
+      : "Falta aceitar a versão nova dos termos. Aceite e confirme de novo.";
+  }
+  if (motivo === "acesso_negado") {
+    return `${mensagemDeSessao} Se continuar, peça a liberação a quem administra o SimpleClick.`;
+  }
+  return mensagemDeSessao;
+}
+
 export interface UsoNaBarra {
   /** De 0 a 100. Passou do limite, a barra fica cheia. */
   readonly percentual: number;
@@ -128,7 +188,15 @@ export async function lerDaApi<T>(
     const resposta = await fetch(url, { cache: "no-store" });
     if (resposta.status === 404) return { fase: "nao-encontrada" };
     if (resposta.status === 401 || resposta.status === 403) {
-      return { fase: "erro", mensagem: MENSAGEM_DE_SESSAO_DA_ADMINISTRACAO };
+      const recusa: unknown = await resposta.json().catch(() => null);
+      return {
+        fase: "erro",
+        mensagem: mensagemDaRecusaDeAcesso(
+          resposta.status,
+          recusa,
+          MENSAGEM_DE_SESSAO_DA_ADMINISTRACAO,
+        ),
+      };
     }
     if (!resposta.ok) return { fase: "erro", mensagem: mensagemDeFalha };
     return { fase: "pronta", dados: validar(await resposta.json()) };

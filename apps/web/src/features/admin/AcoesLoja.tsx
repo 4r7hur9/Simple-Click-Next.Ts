@@ -19,6 +19,7 @@
  * com o ato no topo do histórico — quem decide é a API.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   confirmacaoConfere,
   DIAS_DE_RETENCAO_DA_LOJA_EXCLUIDA,
@@ -183,7 +184,11 @@ export function AcoesLoja({
           ato,
           mensagem:
             resposta.status === 401 || resposta.status === 403
-              ? "Sua sessão não tem acesso à administração. Entre de novo."
+              ? mensagemDaRecusaDeAcesso(
+                  resposta.status,
+                  lido,
+                  "Sua sessão não tem acesso à administração. Entre de novo.",
+                )
               : (mensagemDaRecusa(lido) ?? FALHA_DO_ATO[ato]),
         });
         return;
@@ -347,95 +352,96 @@ export function AcoesLoja({
 
       {!somenteExclusao && (
         <>
-      {ficha.status === "INACTIVE" ? (
-        <div>
-          <Aviso
-            tom="atencao"
-            aoVivo={false}
-            titulo={
-              ficha.suspensao === null
-                ? "Loja suspensa"
-                : `Loja suspensa desde ${momentoNaTela(ficha.suspensao.desde)}`
-            }
-          >
-            <p>
-              A vitrine e o fechamento estão fora do ar.
-              {ficha.suspensao !== null && (
-                <>
-                  {" "}
-                  Motivo: <strong>{ficha.suspensao.motivo}</strong>
-                </>
-              )}
-            </p>
-          </Aviso>
-          <p className="mt-4">
-            <Botao
-              variante="secundaria"
-              desabilitado={emConfirmacao !== null}
-              onClick={() => setPasso({ fase: "confirmando", ato: "reativar" })}
-            >
-              Reativar loja
-            </Botao>
-          </p>
-          {confirmacaoDo("reativar")}
-        </div>
-      ) : (
-        <form
-          noValidate
-          onSubmit={aoPedirSuspensao}
-          aria-label="Suspensão da loja"
-          className="grid gap-4"
-        >
-          <p>
-            {ficha.status === "PENDING_APPROVAL"
-              ? "A loja ainda não foi publicada."
-              : "A loja está no ar."}
-          </p>
-          <Campo
-            id="ficha-motivo-da-suspensao"
-            rotulo="Motivo da suspensão"
-            dica="De 3 a 500 caracteres. O dono lê este motivo ao entrar no painel. Nada é apagado."
-            erro={erroDoMotivo}
-            controle={
-              <textarea
-                id="ficha-motivo-da-suspensao"
-                name="motivo"
-                rows={3}
-                maxLength={500}
-                className="sc-campo__controle"
-                value={motivo}
-                aria-invalid={erroDoMotivo !== undefined || undefined}
-                aria-describedby={[
-                  "ficha-motivo-da-suspensao-dica",
-                  erroDoMotivo !== undefined
-                    ? "ficha-motivo-da-suspensao-erro"
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onChange={(evento) => {
-                  setMotivo(evento.target.value);
-                  setErroDoMotivo(undefined);
-                  if (emConfirmacao === "suspender") {
-                    setPasso({ fase: "parado" });
+          {ficha.status === "INACTIVE" ? (
+            <div>
+              <Aviso
+                tom="atencao"
+                aoVivo={false}
+                titulo={
+                  ficha.suspensao === null
+                    ? "Loja suspensa"
+                    : `Loja suspensa desde ${momentoNaTela(ficha.suspensao.desde)}`
+                }
+              >
+                <p>
+                  A vitrine e o fechamento estão fora do ar.
+                  {ficha.suspensao !== null && (
+                    <>
+                      {" "}
+                      Motivo: <strong>{ficha.suspensao.motivo}</strong>
+                    </>
+                  )}
+                </p>
+              </Aviso>
+              <p className="mt-4">
+                <Botao
+                  variante="secundaria"
+                  desabilitado={emConfirmacao !== null}
+                  onClick={() =>
+                    setPasso({ fase: "confirmando", ato: "reativar" })
                   }
-                }}
-              />
-            }
-          />
-          <div>
-            <Botao
-              type="submit"
-              variante="secundaria"
-              desabilitado={emConfirmacao !== null}
+                >
+                  Reativar loja
+                </Botao>
+              </p>
+              {confirmacaoDo("reativar")}
+            </div>
+          ) : (
+            <form
+              noValidate
+              onSubmit={aoPedirSuspensao}
+              aria-label="Suspensão da loja"
+              className="grid gap-4"
             >
-              Suspender loja
-            </Botao>
-          </div>
-          {confirmacaoDo("suspender")}
-        </form>
-      )}
-
+              <p>
+                {ficha.status === "PENDING_APPROVAL"
+                  ? "A loja ainda não foi publicada."
+                  : "A loja está no ar."}
+              </p>
+              <Campo
+                id="ficha-motivo-da-suspensao"
+                rotulo="Motivo da suspensão"
+                dica="De 3 a 500 caracteres. O dono lê este motivo ao entrar no painel. Nada é apagado."
+                erro={erroDoMotivo}
+                controle={
+                  <textarea
+                    id="ficha-motivo-da-suspensao"
+                    name="motivo"
+                    rows={3}
+                    maxLength={500}
+                    className="sc-campo__controle"
+                    value={motivo}
+                    aria-invalid={erroDoMotivo !== undefined || undefined}
+                    aria-describedby={[
+                      "ficha-motivo-da-suspensao-dica",
+                      erroDoMotivo !== undefined
+                        ? "ficha-motivo-da-suspensao-erro"
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onChange={(evento) => {
+                      setMotivo(evento.target.value);
+                      setErroDoMotivo(undefined);
+                      if (emConfirmacao === "suspender") {
+                        setPasso({ fase: "parado" });
+                      }
+                    }}
+                  />
+                }
+              />
+              <div>
+                <Botao
+                  type="submit"
+                  variante="secundaria"
+                  desabilitado={emConfirmacao !== null}
+                >
+                  Suspender loja
+                </Botao>
+              </div>
+              {confirmacaoDo("suspender")}
+            </form>
+          )}
         </>
       )}
 

@@ -22,7 +22,7 @@ import {
 import { Aviso, Botao, Campo } from "@simpleclick/ui";
 import { useId, useState } from "react";
 
-import { mensagemDaApi } from "./apresentacao.ts";
+import { mensagemDaApi, mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import { INFO_DA_DESATIVACAO, INFO_DA_RECUSA } from "./explicacoes.ts";
 import { JanelaDeConfirmacao } from "./JanelaDeConfirmacao.tsx";
 
@@ -199,7 +199,11 @@ export function AtosDeAprovacao({
       if (!resposta.ok) {
         setFalha(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lido,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(lido, FALHA[ato]),
         );
         return;

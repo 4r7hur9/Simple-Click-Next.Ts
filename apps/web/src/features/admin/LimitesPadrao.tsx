@@ -23,6 +23,7 @@ import {
   lerDaApi,
   mensagemDaApi,
   type LeituraDaApi,
+  mensagemDaRecusaDeAcesso,
 } from "./apresentacao.ts";
 import { INFO_DO_LIMITE, INFO_DO_LIMITE_DE_LOJAS } from "./explicacoes.ts";
 import { JanelaDeConfirmacao } from "./JanelaDeConfirmacao.tsx";
@@ -158,7 +159,11 @@ export function LimitesPadrao() {
       if (!resposta.ok) {
         setErroDaJanela(
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                lido,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : mensagemDaApi(
                 lido,
                 "Os limites não foram salvos; tente de novo.",

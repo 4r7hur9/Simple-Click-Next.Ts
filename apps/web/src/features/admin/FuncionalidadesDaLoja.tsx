@@ -17,6 +17,7 @@
  * — quem decide é a API.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaAlteracaoDeFuncionalidade,
   esquemaDasFuncionalidadesDaLoja,
@@ -119,8 +120,14 @@ export function CartaoDaFuncionalidade({
         setPasso({
           fase: "falhou",
           mensagem:
-            mensagemDaRecusa(corpo) ??
-            "Nada mudou. A funcionalidade continua como estava; tente de novo.",
+            resposta.status === 401 || resposta.status === 403
+              ? mensagemDaRecusaDeAcesso(
+                  resposta.status,
+                  corpo,
+                  MENSAGEM_DE_SESSAO_DAS_FUNCIONALIDADES,
+                )
+              : (mensagemDaRecusa(corpo) ??
+                "Nada mudou. A funcionalidade continua como estava; tente de novo."),
         });
         return;
       }
@@ -324,9 +331,14 @@ export function FuncionalidadesDaLoja({ lojaId }: { readonly lojaId: string }) {
         return;
       }
       if (resposta.status === 401 || resposta.status === 403) {
+        const recusa: unknown = await resposta.json().catch(() => null);
         setEstado({
           fase: "erro",
-          mensagem: MENSAGEM_DE_SESSAO_DAS_FUNCIONALIDADES,
+          mensagem: mensagemDaRecusaDeAcesso(
+            resposta.status,
+            recusa,
+            MENSAGEM_DE_SESSAO_DAS_FUNCIONALIDADES,
+          ),
         });
         return;
       }

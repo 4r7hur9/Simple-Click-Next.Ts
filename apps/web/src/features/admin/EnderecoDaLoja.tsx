@@ -9,6 +9,7 @@
  * antes de sair; o apelido ocupado volta com uma variação livre sugerida.
  */
 
+import { mensagemDaRecusaDeAcesso } from "./apresentacao.ts";
 import {
   esquemaDaFichaDaLoja,
   esquemaDaRecusaDeCadastro,
@@ -87,7 +88,11 @@ export function EnderecoDaLoja({
         estado: "falhou",
         mensagem:
           resposta.status === 401 || resposta.status === 403
-            ? "Sua sessão não tem acesso à administração. Entre de novo."
+            ? mensagemDaRecusaDeAcesso(
+                resposta.status,
+                corpo,
+                "Sua sessão não tem acesso à administração. Entre de novo.",
+              )
             : "O endereço não mudou. A loja continua no endereço de antes; tente de novo.",
       });
     } catch {
