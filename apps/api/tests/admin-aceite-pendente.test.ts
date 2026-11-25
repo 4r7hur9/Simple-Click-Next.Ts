@@ -15,6 +15,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   conectarNoBancoDoArquivo,
   criarAdministradorDaPlataforma,
+  criarIdentidade,
   type IdentidadeDeTeste,
 } from "@simpleclick/testing";
 
@@ -219,12 +220,9 @@ describe("as travas de papel valem com o freio ligado", () => {
     "[CA-3d] CUSTOMER com aceite pendente dá aceite_pendente e, depois de aceitar, acesso_negado",
     async () => {
       const lojaId = await abrirLojaPendente("Pastel Seis");
-      const pessoa = await cadastrar("Cliente Pendente");
-      // Faz o aceite vigente ficar pendente: remove os registros da pessoa.
-      await migrador.query(
-        `DELETE FROM app.legal_acceptances WHERE identity_id = $1`,
-        [pessoa.id],
-      );
+      // Identidade criada direto no banco, sem nenhum aceite registrado
+      // (`legal_acceptances` é imutável: não dá para apagar os de quem cadastrou).
+      const pessoa = await criarIdentidade();
       const cab = sessao(pessoa.id, "CUSTOMER");
       const antes = await aprovar(lojaId, cab);
       expect(antes.status).toBe(403);
