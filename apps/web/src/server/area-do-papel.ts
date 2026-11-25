@@ -16,8 +16,9 @@
  *   que explica o problema (`loja-da-pagina.ts`);
  * - `/explorar` e `/conta` ABREM na falha: são áreas de clientes e a vitrine
  *   é pública. Só o administrador CONFIRMADO é desviado, para `/admin`;
- * - sem sessão, quem pede `/admin` ou `/painel` vai para `/entrar` levando só
- *   o CAMINHO da área em `proximo` (nunca consulta), e volta depois de entrar.
+ * - sem sessão, quem pede `/admin` vai para `/admin/entrar` e quem pede
+ *   `/painel` vai para `/entrar`, levando só o CAMINHO da área em `proximo`
+ *   (nunca consulta), e volta depois de entrar.
  *
  * Nenhum desvio aponta para a própria área de origem, e cada destino é uma
  * área em que o papel FICA: o caminho mais longo possível é de dois saltos.
@@ -131,6 +132,15 @@ export function enderecoParaEntrar(caminho: string): string {
   return comDestino("/entrar", caminhoDoProximo(caminho));
 }
 
+/**
+ * O endereço da entrada PRÓPRIA da administração (`/admin/entrar`) para voltar
+ * a `caminho` (só o caminho) depois. Só a guarda do `/admin` usa; o `/painel`
+ * continua em `/entrar` (`enderecoParaEntrar`).
+ */
+export function enderecoParaEntrarNaAdministracao(caminho: string): string {
+  return comDestino("/admin/entrar", caminhoDoProximo(caminho));
+}
+
 /** A API não confirmou quem é a pessoa: a área fechada não abre. */
 export class AreaIndisponivel extends Error {
   constructor(readonly area: AreaDoSite) {
@@ -141,9 +151,9 @@ export class AreaIndisponivel extends Error {
 
 /**
  * A guarda da administração: volta só com grant ativo. Sem sessão vai para
- * `/entrar`; conta sem grant vai para a área do próprio papel; API fora do ar
- * lança `AreaIndisponivel` (a tela de erro do site, e não um 404 que
- * esconderia a falha).
+ * `/admin/entrar` (a entrada própria da administração); conta sem grant vai
+ * para a área do próprio papel; API fora do ar lança `AreaIndisponivel` (a
+ * tela de erro do site, e não um 404 que esconderia a falha).
  */
 export async function exigirAreaDaAdministracao(
   caminho: string,
@@ -151,7 +161,9 @@ export async function exigirAreaDaAdministracao(
   const decisao = decidirArea("admin", await euDoPedidoAtual());
   if (decisao.acao === "ficar") return;
   if (decisao.acao === "ir") redirect(decisao.destino);
-  if (decisao.acao === "entrar") redirect(enderecoParaEntrar(caminho));
+  if (decisao.acao === "entrar") {
+    redirect(enderecoParaEntrarNaAdministracao(caminho));
+  }
   throw new AreaIndisponivel("admin");
 }
 

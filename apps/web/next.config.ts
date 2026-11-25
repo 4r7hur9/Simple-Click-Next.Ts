@@ -20,6 +20,15 @@ try {
   // Em CI e na imagem de produção as variáveis já chegam pelo ambiente.
 }
 
+/** Cabeçalhos das telas `/admin/entrar` e `/admin/entrar/*` (card #11). */
+const CABECALHOS_DA_ENTRADA_DA_ADMINISTRACAO = [
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow" },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Cache-Control", value: "no-store" },
+];
+
 const configuracao: NextConfig = {
   reactStrictMode: true,
   // Saída autônoma: o build escreve um servidor mínimo com APENAS os arquivos
@@ -117,6 +126,14 @@ const configuracao: NextConfig = {
           { key: "Cache-Control", value: "no-store" },
         ],
       },
+      // A entrada da administração (card #11): senha e código do aplicativo
+      // de quem administra a plataforma. Nada de moldura de outro site
+      // (clickjacking), de buscador, de Referer para fora (a verificação leva
+      // o desafio no endereço) nem de cópia em cache.
+      ...["/admin/entrar", "/admin/entrar/:path*"].map((source) => ({
+        source,
+        headers: CABECALHOS_DA_ENTRADA_DA_ADMINISTRACAO,
+      })),
     ];
   },
   // Não anunciar a tecnologia do servidor: informação que só serve a quem

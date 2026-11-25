@@ -72,6 +72,8 @@ describe("destinoSeguro: casos hostis", () => {
       "/recuperar-senha",
       "/definir-senha",
       "/verificar-email",
+      "/admin/entrar",
+      "/admin/entrar/verificacao",
     ]) {
       expect(destinoSeguro(tela)).toBeUndefined();
     }
