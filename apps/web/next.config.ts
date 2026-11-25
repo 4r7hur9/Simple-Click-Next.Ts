@@ -114,6 +114,29 @@ const configuracao: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
+          // Anti-moldura (clickjacking, card #19): nenhuma página do site pode
+          // ser aberta dentro de um iframe de outro site. Os dois cabeçalhos
+          // dizem o mesmo (o antigo, para navegadores velhos; o CSP, que
+          // vence nos modernos). Não há outra CSP global a que juntar.
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'none'",
+          },
+        ],
+      },
+      // ÚNICA exceção: a prévia da Aparência (`PreviaDaLojaReal`) abre
+      // `/loja/<loja>/previa/<parte>` num iframe do PRÓPRIO site. Com DENY ela
+      // ficaria em branco. Só o mesmo site pode embutir; de fora continua
+      // bloqueado. Vem depois da regra geral para sobrescrevê-la.
+      {
+        source: "/loja/:slug/previa/:parte",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self'",
+          },
         ],
       },
       // O link único de definir senha leva o token no endereço: nada de
