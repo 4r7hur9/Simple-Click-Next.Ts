@@ -20,9 +20,13 @@
  *     acompanhamento do pedido (vira a página da loja) e `lat`/`lng`.
  */
 
-/** Telas de acesso: voltar para elas depois de entrar não faz sentido. */
+/**
+ * Telas de acesso: voltar para elas depois de entrar não faz sentido. Inclui
+ * a entrada da administração (`/admin/entrar`, também com barra repetida,
+ * que o Next normaliza para a mesma tela e faria laço).
+ */
 const TELAS_DE_ACESSO =
-  /^\/(?:entrar|cadastrar|vender|recuperar-senha|definir-senha|verificar-email)(?:[/?#]|$)/i;
+  /^\/(?:entrar|cadastrar|vender|recuperar-senha|definir-senha|verificar-email|admin\/+entrar)(?:[/?#]|$)/i;
 
 /** Origem inventada só para o navegador resolver o caminho relativo. */
 const BASE = "https://site.invalid";

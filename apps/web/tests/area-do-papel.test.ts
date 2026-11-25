@@ -289,6 +289,10 @@ const ERRO_DE_API: Resultado = { tipo: "erro-de-api" };
 const ENTRAR = (caminho: string) =>
   `/entrar?proximo=${encodeURIComponent(caminho)}`;
 
+/** A entrada própria da administração (card #11): só o `/admin` usa. */
+const ENTRAR_NA_ADMINISTRACAO = (caminho: string) =>
+  `/admin/entrar?proximo=${encodeURIComponent(caminho)}`;
+
 /** O que cada cenário encontra em cada área (a matriz da decisão D-10). */
 const ESPERADO: Readonly<Record<Area, Readonly<Record<Cenario, Resultado>>>> = {
   "/admin": {
@@ -297,8 +301,8 @@ const ESPERADO: Readonly<Record<Area, Readonly<Record<Cenario, Resultado>>>> = {
     dono: vai("/painel"),
     equipe: vai("/painel"),
     cliente: vai("/explorar/produtos"),
-    visitante: vai(ENTRAR("/admin")),
-    "token vencido": vai(ENTRAR("/admin")),
+    visitante: vai(ENTRAR_NA_ADMINISTRACAO("/admin")),
+    "token vencido": vai(ENTRAR_NA_ADMINISTRACAO("/admin")),
     "API fora do ar": ERRO_DE_API,
   },
   "/painel": {
@@ -401,6 +405,7 @@ describe("[CA-15] os destinos vêm só da lista fixa, e nunca da própria área"
     ...Object.values(DESTINO_DO_PAPEL),
     "/escolher-loja",
     "/entrar",
+    "/admin/entrar",
   ]);
 
   it("[CA-15] todo desvio da matriz aponta para a lista fixa, para /entrar ou para a escolha da loja", () => {
@@ -453,7 +458,9 @@ describe("[CA-15] os destinos vêm só da lista fixa, e nunca da própria área"
         expect(resultado.tipo).toBe("vai");
         if (resultado.tipo !== "vai") continue;
         const destino = new URL(resultado.destino, "https://x.test");
-        expect(destino.pathname).toBe("/entrar");
+        expect(destino.pathname).toBe(
+          area === "/admin" ? "/admin/entrar" : "/entrar",
+        );
         expect([...destino.searchParams.keys()]).toEqual(["proximo"]);
         expect(destino.searchParams.get("proximo")).toBe(area);
         expect(resultado.destino).not.toMatch(/%3F|%23/i);
@@ -479,12 +486,12 @@ describe("[CA-15] os destinos vêm só da lista fixa, e nunca da própria área"
           "/admin/lojas?proximo=https://golpe.example",
         ),
       ),
-    ).toEqual(vai(ENTRAR("/admin/lojas")));
+    ).toEqual(vai(ENTRAR_NA_ADMINISTRACAO("/admin/lojas")));
     expect(
       await abrir("/admin", () =>
         exigirAdministracaoDaPlataforma("//golpe.example/admin"),
       ),
-    ).toEqual(vai("/entrar"));
+    ).toEqual(vai("/admin/entrar"));
   });
 
   it("[CA-15] o endereço, o cookie da loja e os cabeçalhos do pedido não escolhem o destino", async () => {
@@ -793,7 +800,7 @@ describe("[CA-15] prova estrutural", () => {
     expect(redirects.length).toBeGreaterThan(0);
     for (const argumento of redirects) {
       expect(argumento).toMatch(
-        /^(?:decisao\.destino|enderecoParaEntrar\(caminho\)|modal === undefined \? decisao\.destino : enderecoDoModal\(modal\.aba, modal\.estado, DESTINO_DO_PAPEL\.admin\),?)$/,
+        /^(?:decisao\.destino|enderecoParaEntrar\(caminho\)|enderecoParaEntrarNaAdministracao\(caminho\)|modal === undefined \? decisao\.destino : enderecoDoModal\(modal\.aba, modal\.estado, DESTINO_DO_PAPEL\.admin\),?)$/,
       );
     }
     expect(codigo).not.toMatch(/searchParams|req\.url|\.url\b|headers\(/);

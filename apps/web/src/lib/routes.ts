@@ -112,6 +112,8 @@ const TELAS_DA_PLATAFORMA_E_DA_CONTA: readonly LinhaDoMapa[] = [
   ["/explorar/lojas", "Feed dos clientes: lojas", "PUBLICO", false, "—", "(explorar)/explorar/lojas/page.tsx"],
   ["/entrar", "Login (e-mail e senha)", "PUBLICO", true, "AC-105, AC-108, AC-119, AC-120", "(conta)/entrar/page.tsx"],
   ["/entrar/verificacao", "Segundo fator (código ou aplicativo)", "PUBLICO", true, "AC-105..AC-107, AC-121..AC-124", "(conta)/entrar/verificacao/page.tsx"],
+  ["/admin/entrar", "Entrada da administração (e-mail e senha, fora do layout protegido)", "PUBLICO", true, "card #11", "(admin-entrar)/admin/entrar/page.tsx"],
+  ["/admin/entrar/verificacao", "Segundo fator da entrada da administração", "PUBLICO", true, "card #11", "(admin-entrar)/admin/entrar/verificacao/page.tsx"],
   ["/cadastrar", "Cadastro de cliente final", "PUBLICO", true, "AC-100..AC-102", "(conta)/cadastrar/page.tsx"],
   ["/verificar-email", "Confirmação de e-mail por link", "PUBLICO", true, "AC-103, AC-104", "(conta)/verificar-email/page.tsx"],
   ["/recuperar-senha", "Pedido de recuperação", "PUBLICO", true, "AC-114", "(conta)/recuperar-senha/page.tsx"],

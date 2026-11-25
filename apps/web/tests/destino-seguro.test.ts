@@ -33,6 +33,25 @@ describe("destinoSeguro", () => {
     expect(destinoSeguro(valor)).toBeUndefined();
   });
 
+  it.each([
+    "/admin/entrar",
+    "/admin/entrar/verificacao",
+    "/admin/entrar/",
+    "/admin//entrar",
+    "/admin/x/../entrar",
+    "/ADMIN/ENTRAR",
+    "/admin/entrar?proximo=/admin",
+  ])("[CA-5] recusa a entrada da administração %j (sem laço)", (valor) => {
+    expect(destinoSeguro(valor)).toBeUndefined();
+  });
+
+  it.each(["/admin", "/admin/lojas", "/admin?x=1", "/admin/entrarx"])(
+    "[CA-5] aceita %j",
+    (valor) => {
+      expect(destinoSeguro(valor)).toBe(valor);
+    },
+  );
+
   it("recusa o que não é texto", () => {
     expect(destinoSeguro(undefined)).toBeUndefined();
     expect(destinoSeguro(null)).toBeUndefined();

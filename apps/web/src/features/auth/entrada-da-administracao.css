@@ -1,0 +1,121 @@
+/*
+ * Entrada da administração (`/admin/entrar`, card #11).
+ *
+ * Tela escura e sóbria, diferente da tela de clientes e lojas: um cartão só,
+ * em vidro líquido (`sc-vidro sc-vidro--forte`, de vidro.css), sobre o fundo
+ * escuro do tema (o trecho tem `data-tema="escuro"`). Só tokens: nenhuma cor
+ * escrita aqui. Os campos e botões são os do design system, sólidos.
+ */
+
+.sc-entrada-admin {
+  display: grid;
+  min-block-size: 100dvh;
+  place-items: center;
+  padding: var(--espaco-7) var(--espaco-4);
+  background-color: var(--cor-fundo);
+  background-image:
+    radial-gradient(
+      60rem 40rem at 15% 0%,
+      color-mix(in srgb, var(--admin-selo-fundo) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50rem 36rem at 100% 100%,
+      color-mix(in srgb, var(--cor-info) 12%, transparent),
+      transparent 70%
+    );
+  color: var(--cor-tinta);
+}
+
+/* O aviso de cookies reserva espaço no pé do `body` (legal.css), que é claro.
+   Nesta tela a reserva passa para dentro do fundo escuro: o aviso continua
+   sem cobrir o cartão, e não sobra faixa clara embaixo. */
+body:has(.sc-entrada-admin):has(.sc-cookies) {
+  padding-block-end: 0;
+}
+
+body:has(.sc-cookies) .sc-entrada-admin {
+  padding-block-end: calc(
+    var(--espaco-7) + min(var(--altura-do-aviso-de-cookies, 0px), 45dvh)
+  );
+}
+
+.sc-entrada-admin__cartao {
+  display: grid;
+  gap: var(--espaco-5);
+  inline-size: min(100%, 28rem);
+  padding: var(--espaco-6);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-janela);
+}
+
+.sc-entrada-admin__cabecalho {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-3);
+}
+
+.sc-entrada-admin__titulo {
+  margin: 0;
+  color: var(--cor-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--tipo-titulo-xl-tamanho);
+  line-height: 1.2;
+}
+
+.sc-entrada-admin__descricao,
+.sc-entrada-admin__instrucao {
+  margin: 0;
+  color: var(--cor-tinta-suave);
+  font-size: var(--tipo-corpo-lg-tamanho);
+}
+
+.sc-entrada-admin__instrucao {
+  margin-block-end: var(--espaco-2);
+}
+
+.sc-entrada-admin__sem-acesso {
+  display: grid;
+  gap: var(--espaco-4);
+}
+
+.sc-entrada-admin__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.sc-entrada-admin__acoes > a,
+.sc-entrada-admin__acoes > form {
+  flex: 1 1 12rem;
+}
+
+.sc-entrada-admin__acoes > a,
+.sc-entrada-admin__acoes .sc-botao {
+  inline-size: 100%;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Foco sempre visível, também nos links do cartão. */
+.sc-entrada-admin a:focus-visible,
+.sc-entrada-admin button:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@media (max-width: 30rem) {
+  .sc-entrada-admin {
+    align-items: start;
+    padding: var(--espaco-5) var(--espaco-3);
+  }
+
+  .sc-entrada-admin__cartao {
+    padding: var(--espaco-5);
+  }
+
+  .sc-entrada-admin__titulo {
+    font-size: var(--tipo-titulo-lg-tamanho);
+  }
+}

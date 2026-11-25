@@ -3,7 +3,8 @@
  *
  * Nenhuma tela de `/admin` sai do servidor sem a API confirmar, ao vivo, o
  * grant de administração (`adminDaPlataforma` do `GET /v1/eu`). Visitante ou
- * token vencido vão para `/entrar` com o destino conferido (só o caminho);
+ * token vencido vão para a entrada própria da administração (`/admin/entrar`,
+ * card #11) com o destino conferido (só o caminho);
  * qualquer outra conta é levada para a área do próprio papel (nunca 404 por
  * falta de permissão); qualquer falha da API é erro (fail closed). A
  * varredura no fim trava que toda página e layout do grupo `(admin)` chame a
@@ -120,15 +121,17 @@ async function recusa(promessa: Promise<unknown>): Promise<unknown> {
   throw new Error("a guarda deixou passar");
 }
 
-describe("[CA-1] visitante e token vencido vão para /entrar", () => {
-  it("[CA-1] sem cookie de acesso não chama a API e manda para /entrar com o destino", async () => {
+describe("[CA-4] visitante e token vencido vão para /admin/entrar", () => {
+  it("[CA-4] sem cookie de acesso não chama a API e manda para /admin/entrar com o destino", async () => {
     const erro = await recusa(exigirAdministracaoDaPlataforma("/admin"));
     expect(erro).toBeInstanceOf(Redirecionou);
-    expect((erro as Redirecionou).destino).toBe("/entrar?proximo=%2Fadmin");
+    expect((erro as Redirecionou).destino).toBe(
+      "/admin/entrar?proximo=%2Fadmin",
+    );
     expect(buscar).not.toHaveBeenCalled();
   });
 
-  it("[CA-1] 401 do /v1/eu (token vencido) em /admin/lojas/<id> manda para /entrar com o caminho da ficha", async () => {
+  it("[CA-4] 401 do /v1/eu (token vencido) em /admin/lojas/<id> manda para /admin/entrar com o caminho da ficha", async () => {
     cookieDoPedido.valor = COOKIE;
     buscar.mockResolvedValue(resposta(401, { erro: "vencido" }));
     const caminho = `/admin/lojas/${ID_DA_LOJA}`;
@@ -137,24 +140,24 @@ describe("[CA-1] visitante e token vencido vão para /entrar", () => {
 
     expect(erro).toBeInstanceOf(Redirecionou);
     expect((erro as Redirecionou).destino).toBe(
-      `/entrar?proximo=${encodeURIComponent(caminho)}`,
+      `/admin/entrar?proximo=${encodeURIComponent(caminho)}`,
     );
   });
 
-  it("[CA-1] destino que não passa em destinoSeguro é descartado (só /entrar)", async () => {
+  it("[CA-4] destino que não passa em destinoSeguro é descartado (só /admin/entrar)", async () => {
     const erro = await recusa(
       exigirAdministracaoDaPlataforma("//golpe.example/admin"),
     );
-    expect((erro as Redirecionou).destino).toBe("/entrar");
+    expect((erro as Redirecionou).destino).toBe("/admin/entrar");
   });
 
-  it("[CA-1] a página da ficha, sem sessão, não devolve a casca nem o texto da administração", async () => {
+  it("[CA-4] a página da ficha, sem sessão, não devolve a casca nem o texto da administração", async () => {
     const erro = await recusa(
       PaginaDoHistorico({ params: Promise.resolve({ id: ID_DA_LOJA }) }),
     );
     expect(erro).toBeInstanceOf(Redirecionou);
     expect((erro as Redirecionou).destino).toBe(
-      `/entrar?proximo=${encodeURIComponent(`/admin/lojas/${ID_DA_LOJA}/historico`)}`,
+      `/admin/entrar?proximo=${encodeURIComponent(`/admin/lojas/${ID_DA_LOJA}/historico`)}`,
     );
   });
 });
