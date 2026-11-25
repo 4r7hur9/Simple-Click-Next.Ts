@@ -211,7 +211,9 @@
     scroll-margin-block: 5rem;
   }
 
-  html:has(.sc-lp) .sc-cookies {
+  /* Só o CARTÃO: a pílula recolhida (.sc-cookies--recolhido) segue o tamanho dela
+     (esta regra esticava a pílula numa barra de largura total sobre a página). */
+  html:has(.sc-lp) .sc-cookies:not(.sc-cookies--recolhido) {
     inset-inline: max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-right));
     inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
     max-block-size: min(42svh, calc(100svh - 6rem - env(safe-area-inset-top)));

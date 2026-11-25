@@ -251,16 +251,14 @@
   --vidro-sobreposicao: rgb(11 15 13 / 60%);
 
   /* administração da plataforma (card #170) - o que muda com o tema */
-  --admin-menu-fundo: #dff3b5;
+  --admin-menu-fundo: #e6eae8;
+  --admin-menu-opacidade: 72%;
   --admin-menu-tinta: #0b0f0d;
-  --admin-menu-tinta-suave: #34401f;
-  --admin-menu-borda: #5f7a3f;
-  --admin-menu-hover-fundo: #cbe69a;
+  --admin-menu-tinta-suave: #2c3531;
+  --admin-menu-borda: rgb(11 15 13 / 14%);
+  --admin-menu-hover-fundo: #d3d9d6;
   --admin-menu-ativo-fundo: #3f7900;
   --admin-menu-ativo-tinta: #ffffff;
-  --admin-faixa: #3f7900;
-  --admin-cabecalho-fundo: #dff3b5;
-  --admin-cabecalho-tinta: #0b0f0d;
   --admin-selo-fundo: #3f7900;
   --admin-selo-tinta: #ffffff;
 
@@ -446,16 +444,14 @@
     --vidro-sobreposicao: rgb(0 0 0 / 70%);
 
     /* administração da plataforma (card #170) - o que muda com o tema */
-    --admin-menu-fundo: #2c5e0e;
+    --admin-menu-fundo: #161c19;
+    --admin-menu-opacidade: 70%;
     --admin-menu-tinta: #ffffff;
-    --admin-menu-tinta-suave: #c9e3b4;
-    --admin-menu-borda: #8fbf62;
-    --admin-menu-hover-fundo: #3a7316;
+    --admin-menu-tinta-suave: #dbe2de;
+    --admin-menu-borda: rgb(255 255 255 / 16%);
+    --admin-menu-hover-fundo: #252d29;
     --admin-menu-ativo-fundo: #b7ff00;
     --admin-menu-ativo-tinta: #0b0f0d;
-    --admin-faixa: #b7ff00;
-    --admin-cabecalho-fundo: #2c5e0e;
-    --admin-cabecalho-tinta: #ffffff;
     --admin-selo-fundo: #b7ff00;
     --admin-selo-tinta: #0b0f0d;
   }
@@ -522,16 +518,14 @@
   --vidro-sobreposicao: rgb(0 0 0 / 70%);
 
   /* administração da plataforma (card #170) - o que muda com o tema */
-  --admin-menu-fundo: #2c5e0e;
+  --admin-menu-fundo: #161c19;
+  --admin-menu-opacidade: 70%;
   --admin-menu-tinta: #ffffff;
-  --admin-menu-tinta-suave: #c9e3b4;
-  --admin-menu-borda: #8fbf62;
-  --admin-menu-hover-fundo: #3a7316;
+  --admin-menu-tinta-suave: #dbe2de;
+  --admin-menu-borda: rgb(255 255 255 / 16%);
+  --admin-menu-hover-fundo: #252d29;
   --admin-menu-ativo-fundo: #b7ff00;
   --admin-menu-ativo-tinta: #0b0f0d;
-  --admin-faixa: #b7ff00;
-  --admin-cabecalho-fundo: #2c5e0e;
-  --admin-cabecalho-tinta: #ffffff;
   --admin-selo-fundo: #b7ff00;
   --admin-selo-tinta: #0b0f0d;
 }
@@ -593,16 +587,14 @@
   --vidro-sobreposicao: rgb(11 15 13 / 60%);
 
   /* administração da plataforma (card #170) - o que muda com o tema */
-  --admin-menu-fundo: #dff3b5;
+  --admin-menu-fundo: #e6eae8;
+  --admin-menu-opacidade: 72%;
   --admin-menu-tinta: #0b0f0d;
-  --admin-menu-tinta-suave: #34401f;
-  --admin-menu-borda: #5f7a3f;
-  --admin-menu-hover-fundo: #cbe69a;
+  --admin-menu-tinta-suave: #2c3531;
+  --admin-menu-borda: rgb(11 15 13 / 14%);
+  --admin-menu-hover-fundo: #d3d9d6;
   --admin-menu-ativo-fundo: #3f7900;
   --admin-menu-ativo-tinta: #ffffff;
-  --admin-faixa: #3f7900;
-  --admin-cabecalho-fundo: #dff3b5;
-  --admin-cabecalho-tinta: #0b0f0d;
   --admin-selo-fundo: #3f7900;
   --admin-selo-tinta: #ffffff;
 }

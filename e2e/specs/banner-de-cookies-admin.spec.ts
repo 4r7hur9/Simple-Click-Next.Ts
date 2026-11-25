@@ -59,9 +59,11 @@ for (const largura of LARGURAS) {
       expect(caixa!.x + caixa!.width).toBeLessThanOrEqual(largura);
 
       // Nenhum item do menu (lateral ou barra de baixo) fica sob o aviso.
-      const menu = page.getByRole("navigation").first();
-      const menuCaixa = await menu.boundingBox();
-      if (menuCaixa !== null) {
+      // Cartão ou pílula não sobrepõe NENHUMA navegação visível (lateral, barra
+      // de atalhos do celular, cabeçalho).
+      for (const nav of await page.getByRole("navigation").all()) {
+        const menuCaixa = await nav.boundingBox();
+        if (menuCaixa === null) continue;
         const sobrepoe =
           caixa!.x < menuCaixa.x + menuCaixa.width &&
           caixa!.x + caixa!.width > menuCaixa.x &&
@@ -69,6 +71,13 @@ for (const largura of LARGURAS) {
           caixa!.y + caixa!.height > menuCaixa.y;
         expect(sobrepoe, "o aviso não pode sobrepor o menu").toBe(false);
       }
+
+      // Passados os 8 s, vira pílula pequena e continua sem cobrir nada.
+      await page.waitForTimeout(8500);
+      await expect(page.locator(".sc-cookies--recolhido")).toBeVisible();
+      const pil = await page.locator(".sc-cookies--recolhido").boundingBox();
+      expect(pil!.width).toBeLessThan(160);
+      expect(await cobertos(page)).toEqual([]);
 
       // Rolando até o fim, nada clicável fica atrás do aviso.
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));

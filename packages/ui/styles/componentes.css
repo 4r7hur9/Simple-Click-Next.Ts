@@ -640,6 +640,19 @@
   max-width: 100%;
 }
 
+.sc-dialogo--flutuante,
+.sc-dialogo--flutuante:not([aria-modal]) {
+  /* Janela não modal que fica por cima da página (ex.: novo aceite dos
+     termos): presa no canto de baixo, fora do fluxo, sem criar espaço extra. */
+  position: fixed;
+  inset: auto auto max(var(--espaco-3), env(safe-area-inset-bottom)) var(--espaco-3);
+  z-index: 40;
+  margin: 0;
+  max-width: min(30rem, calc(100vw - 2 * var(--espaco-3)));
+  max-height: calc(100dvh - 2 * var(--espaco-3));
+  overflow: auto;
+}
+
 .sc-dialogo::backdrop {
   background-color: var(--cor-sobreposicao);
   animation: sc-esmaecer var(--transicao-media) both;

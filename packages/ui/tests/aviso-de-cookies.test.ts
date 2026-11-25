@@ -105,11 +105,13 @@ describe("aviso de cookies: convivência com o menu do painel e da administraç�
   });
 });
 
-describe("aviso de cookies: espaço reservado no fim da página", () => {
-  it("o corpo ganha folga da altura medida do aviso (limitada), para nada ficar coberto", () => {
-    expect(cru("legal.css")).toMatch(
-      /body:has\(\.sc-cookies\) \{ padding-block-end: min\(var\(--altura-do-aviso-de-cookies, 0px\), 45dvh\); \}/,
-    );
+describe("aviso de cookies: flutua por cima, sem espaço extra", () => {
+  it("o corpo não ganha folga nenhuma enquanto o aviso está aberto", () => {
+    expect(cru("legal.css")).not.toMatch(/body:has\(\.sc-cookies\) \{[^}]*padding-block-end/);
+  });
+
+  it("a janela flutuante (novo aceite dos termos) fica fixa por cima, fora do fluxo", () => {
+    expect(cru("componentes.css")).toMatch(/\.sc-dialogo--flutuante[^{]*\{[^}]*position: fixed;/);
   });
 });
 
@@ -125,5 +127,16 @@ describe("aviso de cookies: pílula recolhida", () => {
     expect(valorDe(legal(), ".sc-cookies__pilula:focus-visible", "outline")).toBe(
       "2px solid var(--cor-foco)",
     );
+  });
+});
+
+describe("aviso de cookies: a pílula não herda regras do cartão", () => {
+  it("a regra do cartão na landing mobile exclui a pílula recolhida", () => {
+    const mobile = readFileSync(
+      fileURLToPath(new URL("../../../apps/web/src/features/landing/mobile.css", import.meta.url)),
+      "utf8",
+    ).replace(/\s+/g, " ");
+    expect(mobile).toMatch(/html:has\(\.sc-lp\) \.sc-cookies:not\(\.sc-cookies--recolhido\) \{/);
+    expect(mobile).not.toMatch(/html:has\(\.sc-lp\) \.sc-cookies \{/);
   });
 });
